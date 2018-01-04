@@ -9,10 +9,10 @@ from qcodes.instrument.ip import IPInstrument
 
 class Solstis3(IPInstrument):
     def __init__(self, name, address=None, port=None, timeout=5, controller_address=None,
-                  persistent=True, write_confirmation=True, testing=False,
-                 **kwargs):
+                  persistent=True, write_confirmation=True, testing=False,**kwargs):
+
         super().__init__(name, address=address, port=port, timeout=timeout,
-                         persistent=False, write_confirmation=write_confirmation, testing=testing, terminator='', **kwargs)
+                         persistent=False, write_confirmation=write_confirmation, terminator='', **kwargs)
 
         self._controller_address = controller_address
 
@@ -34,10 +34,22 @@ class Solstis3(IPInstrument):
 
         if answer['status'] != 'ok':
             super()._disconnect()
-            raise RuntimeError('Connection failed', answer)
+            raise RuntimeError('Connection to Solstis failed', answer)
+        else:
+            print('Connection to Solstis successful')
 
+    def _set_wavelength(self,wavelength):
+        parameters = {'wavelength':[wavelength]}
+        self.send_message('set_wave_m',parameters)
 
-    def send_message(self, op, parameters=None):
+    def _get_wavelength(self):
+        status = self._get_status()
+        return status['wavelength'][0]
+
+    def _get_status(self):
+        return self.send_message('get_status')
+
+    def send_message(self, op, parameters=None, verbose=False):
         transmission_id = self._generate_transmission_id()
 
         query = {'message':
@@ -47,9 +59,11 @@ class Solstis3(IPInstrument):
             query['message']['parameters'] = parameters
 
         query_string = json.dumps(query, separators=(',', ':'))
-        print('query:', query_string)
+        if verbose:
+            print('query:', query_string)
         answer_string = self.ask_raw(query_string)
-        print('answer:', answer_string)
+        if verbose:
+            print('answer:', answer_string)
         answer = json.loads(answer_string)
 
         if answer['message']['transmission_id'] != [transmission_id]:
