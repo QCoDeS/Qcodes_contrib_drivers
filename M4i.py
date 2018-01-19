@@ -382,7 +382,7 @@ class M4i(Instrument):
                            unit='ms',
                            set_cmd=partial(self._set_param32bit,
                                            pyspcm.SPC_TIMEOUT),
-                           docstring='defines the timeout for wait commands')
+                           docstring='defines the timeout for wait commands (in ms)')
 
         # Single acquisition mode memory, pre- and posttrigger (pretrigger = memory size - posttrigger)
         # TODO: improve the validators to make them take into account the
