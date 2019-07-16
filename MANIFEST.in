@@ -1,0 +1,2 @@
+include versioneer.py
+include qcodes_contrib_drivers/_version.py
