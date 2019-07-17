@@ -10,6 +10,7 @@ Welcome to qcodes_contrib_drivers's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+   examples/index
 
 
 Indices and tables
