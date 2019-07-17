@@ -1,6 +1,7 @@
 from setuptools import setup, find_packages
 import versioneer
 
+
 def readme():
     with open('README.rst') as f:
         return f.read()
@@ -25,8 +26,6 @@ setup(name='qcodes_contrib_drivers',
           'Topic :: Scientific/Engineering'
       ],
       license='MIT',
-      # if we want to install without tests:
-      # packages=find_packages(exclude=["*.tests", "tests"]),
       packages=find_packages(),
       install_requires=[
           'qcodes>=0.4.0',
