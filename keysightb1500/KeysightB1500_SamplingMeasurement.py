@@ -1,84 +1,70 @@
 from qcodes.instrument_drivers.Keysight.keysightb1500 import KeysightB1500, \
     MessageBuilder, constants
 from collections import namedtuple
-from qcodes import ParameterWithSetpoints
-import numpy
-import warnings
 
-class MeasurementNotTaken(Exception):
-    pass
+from qcodes import ParameterWithSetpoints
+a = 1
+
+## change indices axis
+sample_rate = 0.01
+nsamples = 100
+spa = KeysightB1500('spa', address='GPIB21::17::INSTR')
+spa.smu1.timing_parameters(0, sample_rate, nsamples)
+spa.autozero_enabled(False)
+spa.smu1.measurement_mode(constants.MM.Mode.SAMPLING)
+spa.smu1.source_config(constants.VOutputRange.AUTO, 1e-7, None, constants.IOutputRange.AUTO)
+spa.smu1.voltage(1e-6)
+
+# spa.smu1.source_config(constants.IOutputRange.AUTO, 10, None, constants.VOutputRange.AUTO)
+# spa.smu1.current(1e-6)
+
+
+
+
 
 class SamplingMeasurement(ParameterWithSetpoints):
-    """
-    Performs sampling measurement using semiconductor
-    parameter analyzer B1500A.
-    """
 
-    _timeout_response_factor  = 10.00
-    # This factor is a bit higher than the ratio between
-    # the measured measurement-time and the calculated measurement
-    # (from the user input). Check :get_raw: method to find its usage.
 
-    def __init__(self, name, **kwargs):
-        super().__init__(name, **kwargs)
+    def __init__(self, name, instrument):
+        super.__init__(name)
+        self._instrument = instrument
 
     def _set_up(self):
         self.root_instrument.write(MessageBuilder().fmt(1, 0).message)
 
     def get_raw(self):
-        """
-        sets up the measurement by calling :_set_up:
+        self.set_up()
+        raw_data = self.root_instrument.ask(MessageBuilder().xe().message)
+        data = self.parse_fmt_1_0_response(raw_data)
+        return data
 
-        Automatically sets up the visa time out.
+    def parse_fmt_1_0_response(raw_data):
+        _sampling_index = 'X'
+        _current_measurement_value = 'I'
+        _voltage_measurement_value = 'V'
+        _normal_status = 'N'
+        _compliance_issue = 'C'
+        _values_separator = ','
+        _channel_list = {'A': 'CH1',
+                         'B': 'CH2',
+                         'C': 'CH3',
+                         'D': 'CH4',
+                         'E': 'CH5',
+                         'F': 'CH6',
+                         'G': 'CH7',
+                         'H': 'CH8',
+                         'I': 'CH9',
+                         'J': 'CH10',
+                         'Z': 'XDATA'
+                         }
 
-        The visa time-out should be longer than the time it takes to finish
-        the sampling measurement. The reason is that while measurement is running
-        the data keeps on appending in the buffer of SPA. Only when the measurement
-        is finished the data is returned to the VISA handle.
-        Hence during this time the VISA is idle and waiting for the response.
-        If the timeout is lower than the total run time of the measurement,
-        VISA will give error.
+        _error_list = {'C': 'Reached_compliance_limit',
+                       'N': 'Normal',
+                       'T': 'Another_channel_reached_compliance_limit',
+                       'V': 'Measured_data_over_measurement_range'
+                       }
 
-        We set the Visa timeout to be the measurement_time times the _timeout_response_factor  .
-        Strictly speaking the timeout should be just higher the measurement time.
 
-        :return: numpy array with sampling measurement
-        """
-
-        measurement_time = self.instrument._total_measurement_time()
-        # set time out to this value
-        time_out = measurement_time * self._timeout_response_factor
-
-        #default timeout
-        default_timeout = self.root_instrument.timeout()
-
-        #if time out to be set is lower than the default value
-        # then keep default
-        if time_out < default_timeout:
-             time_out = default_timeout
-
-        with self.root_instrument.timeout.set_to(time_out):
-            self._set_up()
-            raw_data = self.root_instrument.ask(MessageBuilder().xe().message)
-            self.data = self.parse_fmt_1_0_response(raw_data)
-        return numpy.array(self.data.value)
-
-    def parse_fmt_1_0_response(self,raw_data_val):
-        """
-        parse the raw data from SPA into a named tuple
-        with names
-            value: data
-            status: Normal or with compliance error
-            such as "C","T","V"
-            channel: channel number of the output data
-            such as "CH1","CH2" ..
-            type: current "I" or voltage "V"
-
-        :Args
-            raw_data_val: Unparsed (raw) data for the instrument
-        """
-
-        values_separator = ','
         data_val = []
         data_status = []
         data_channel = []
@@ -86,10 +72,9 @@ class SamplingMeasurement(ParameterWithSetpoints):
 
         FMTResponse = namedtuple('FMTResponse', 'value status channel type')
 
-        for str_value in raw_data_val.split(values_separator):
+        for str_value in raw_data.split(_values_separator):
             status = str_value[0]
-            channel_name = constants.ChannelName
-            channel_id = channel_name[str_value[1]].value
+            channel_id = _channel_list[str_value[1]]
 
             datatype = str_value[2]
             value = float(str_value[3:])
@@ -102,29 +87,29 @@ class SamplingMeasurement(ParameterWithSetpoints):
         data = FMTResponse(data_val, data_status, data_channel, data_datatype)
         return data
 
-    def compliance(self):
-        """
-        check for the status other than "N" (normal) and output the
-        number of data values which were not measured under "N" (normal)
-        status.
 
-        For the list of all the status values and their meaning refer to :class:`constants.ComplianceStatus`.
 
-        """
+def compliance_issues(data_status):
+    """
+    check for the status other than "N" (normal) and output the
+    number of data values which were not measured under "N" (normal)
+    status.
+    This includes error such as
+    "C" :  compliance limit reached on current channel
+    "T" : compliance limit reached on some other channel
+    etc
+    """
 
-        if hasattr(self,'data'):
-            data = self.data
-            total_count = len(data.status)
-            normal_count = data.status.count('N')
-            exception_count = total_count - normal_count
-            if total_count == normal_count:
-                print('All measurements are normal')
-            else:
-                indices = [i for i, x in enumerate(data.status) if x == "C" or x == "T"]
-                warnings.warn(f'{str(exception_count)} measurements were out of compliance at {str(indices)}')
+    _total_count = len(data_status)
+    _normal_count = data_status.count('N')
+    _exception_count = _total_count - _normal_count
+    if _total_count == _normal_count:
+        print('All measurements are normal')
+    else:
+        #         raise Exception(f'{str(_exception_count)} measurements were out of compliance')
+        indices = [i for i, x in enumerate(data_status) if x == "C" or x == "T"]
+        print(f'{str(_exception_count)} measurements were out of compliance at {str(indices)}')
 
-            compliance_error_list = constants.ComplianceErrorList
-            compliance_list = [compliance_error_list[key].value for key in data.status]
-            return compliance_list
-        else:
-            raise MeasurementNotTaken('First run "sampling_measurement.get()" method to generate the data')
+
+raw_data = spa.ask(MessageBuilder().xe().message)
+data = parse_fmt_1_0_response(raw_data)
