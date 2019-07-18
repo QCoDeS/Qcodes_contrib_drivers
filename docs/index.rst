@@ -11,6 +11,7 @@ Welcome to qcodes_contrib_drivers's documentation!
    :caption: Contents:
 
    examples/index
+   api/generated/qcodes_contrib_drivers.drivers
 
 
 Indices and tables
