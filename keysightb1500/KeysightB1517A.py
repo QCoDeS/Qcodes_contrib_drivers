@@ -53,11 +53,11 @@ class B1517A(B1500Module):
             vals=vals.Enum(*list(MM.Mode)),
             docstring=textwrap.dedent("""
                 Set measurement mode for this module.
-                
-                It is recommended for this parameter to use values from 
+
+                It is recommended for this parameter to use values from
                 :class:`.constants.MM.Mode` enumeration.
-                
-                Refer to the documentation of ``MM`` command in the 
+
+                Refer to the documentation of ``MM`` command in the
                 programming guide for more information.""")
         )
         # Instrument is initialized with this setting having value of
@@ -92,22 +92,19 @@ class B1517A(B1500Module):
             setpoints=(self.time_axis,)
         )
 
-
     def _get_sampling_number(self) -> int:
+        sample_rate = self._timing_parameters['interval']
         sample_number = self._timing_parameters['number']
-        return sample_number
+        sampling = sample_number/sample_rate
+        return sampling
 
     def _get_time_axis(self) -> list:
         sample_rate = self._timing_parameters['interval']
-        total_time = self. _total_measurement_time
+        sample_number = self._timing_parameters['number']
+        total_time = sample_rate * sample_number
         time_xaxis = np.arange(0, total_time, sample_rate)
         return time_xaxis
 
-    def _total_measurement_time(self) -> int:
-        sample_rate = self._timing_parameters['interval']
-        sample_number = self._timing_parameters['number']
-        total_time = float(sample_rate * sample_number)
-        return total_time
 
     def _set_voltage(self, value: float) -> None:
         if self._source_config["output_range"] is None:
