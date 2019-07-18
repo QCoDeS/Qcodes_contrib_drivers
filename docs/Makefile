@@ -1,7 +1,3 @@
-THIS_FILE:=$(lastword $(MAKEFILE_LIST))
-# Minimal makefile for Sphinx documentation
-#
-
 # You can set these variables from the command line, and also
 # from the environment for the first two.
 SPHINXOPTS    ?=
@@ -21,11 +17,13 @@ clean:
 	rm -rf api/generated
 	@$(SPHINXBUILD) -M clean "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
+# generate api docs for instruments automatically
 genapi:
 	sphinx-apidoc.exe -o _auto -d 10 ..\qcodes_contrib_drivers
 	mkdir -p api/generated/
 	cp _auto/qcodes_contrib_drivers.drivers.* api/generated/
 
+# faster build by skipping execution of all notebooks
 htmlfast: genapi
 	@$(SPHINXBUILD) -M html "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O) -D nbsphinx_execute=never
 
