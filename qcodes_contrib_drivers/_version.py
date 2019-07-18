@@ -41,7 +41,7 @@ def get_config():
     cfg = VersioneerConfig()
     cfg.VCS = "git"
     cfg.style = "pep440"
-    cfg.tag_prefix = "'v'"
+    cfg.tag_prefix = "v"
     cfg.parentdir_prefix = "qcodes_contrib_drivers-"
     cfg.versionfile_source = "qcodes_contrib_drivers/_version.py"
     cfg.verbose = False
