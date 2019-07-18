@@ -1,3 +1,4 @@
+THIS_FILE:=$(lastword $(MAKEFILE_LIST))
 # Minimal makefile for Sphinx documentation
 #
 
@@ -12,7 +13,7 @@ BUILDDIR      = _build
 help:
 	@$(SPHINXBUILD) -M help "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
-.PHONY: help Makefile clean genapi
+.PHONY: help Makefile clean genapi htmlfast
 
 clean:
 	rm -rf $(BUILDDIR)/*
@@ -24,6 +25,9 @@ genapi:
 	sphinx-apidoc.exe -o _auto -d 10 ..\qcodes_contrib_drivers
 	mkdir -p api/generated/
 	cp _auto/qcodes_contrib_drivers.drivers.* api/generated/
+
+htmlfast: genapi
+	@$(SPHINXBUILD) -M html "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O) -D nbsphinx_execute=never
 
 # Catch-all target: route all unknown targets to Sphinx using the new
 # "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
