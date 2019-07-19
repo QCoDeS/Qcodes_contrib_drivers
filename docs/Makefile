@@ -19,7 +19,7 @@ clean:
 
 # generate api docs for instruments automatically
 genapi:
-	sphinx-apidoc.exe -o _auto -d 10 ..\qcodes_contrib_drivers
+	sphinx-apidoc -o _auto -d 10 ..\qcodes_contrib_drivers
 	mkdir -p api/generated/
 	cp _auto/qcodes_contrib_drivers.drivers.* api/generated/
 
