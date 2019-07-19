@@ -45,8 +45,8 @@ jobs:
       - bash: |
           conda --version
           curl https://raw.githubusercontent.com/QCoDeS/Qcodes/master/environment.yml > environment.yml
-          curl https://raw.githubusercontent.com/QCoDeS/Qcodes/master/environment.yml > test_requirements.txt
-          curl https://raw.githubusercontent.com/QCoDeS/Qcodes/master/environment.yml > docs_requirements.txt
+          curl https://raw.githubusercontent.com/QCoDeS/Qcodes/master/test_requirements.yml > test_requirements.txt
+          curl https://raw.githubusercontent.com/QCoDeS/Qcodes/master/docs_requirements.yml > docs_requirements.txt
           conda env create --file environment.yml
           source activate qcodes
           pip install -r test_requirements.txt
