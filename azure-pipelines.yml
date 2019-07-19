@@ -114,7 +114,7 @@ jobs:
           cd ..
           git config --global user.email "bot"
           git config --global user.name "Documentation Bot"
-          git clone --single-branch --branch gh-pages gh-pages
+          git clone --single-branch --branch gh-pages git@github.com:QCoDeS/Qcodes_contrib_drivers.git gh-pages
           cp Qcodes_contrib_drivers/docs/_build/html/ gh-pages
           cd gh-pages
           git add -A
