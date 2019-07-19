@@ -55,7 +55,7 @@ jobs:
         displayName: "Install environment, qcodes"
       - bash: |
           source activate qcodes
-          mypy qcodes
+          mypy qcodes_contrib_drivers
         displayName: "mypy"
       - script: |
           CALL C:\Miniconda\condabin\conda_hook.bat
