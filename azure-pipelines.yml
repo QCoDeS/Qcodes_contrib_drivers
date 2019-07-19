@@ -112,5 +112,13 @@ jobs:
           publishLocation: 'Container'
       - script: |
           cd ..
+          git config --global user.email "bot"
+          git config --global user.name "Documentation Bot"
+          git clone --single-branch --branch gh-pages gh-pages
+          cp Qcodes_contrib_drivers/docs/_build/html/ gh-pages
+          cd gh-pages
+          git add -A
+          git commit -m "Docs build of $(Build.SourceVersion)"
+          git push
         displayName: "Publish docs to gh-pages"
         condition: and(succeeded(), eq( variables['Agent.OS'], 'Linux' ), eq(variables['Build.SourceBranch'], 'refs/heads/master'), ne(variables['Build.Reason'], 'PullRequest'))
