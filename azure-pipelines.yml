@@ -121,4 +121,4 @@ jobs:
           git commit -m "Docs build of $(Build.SourceVersion)"
           git push
         displayName: "Publish docs to gh-pages"
-        condition: and(succeeded(), eq( variables['Agent.OS'], 'Linux' ), eq(variables['Build.SourceBranch'], 'refs/heads/master'), ne(variables['Build.Reason'], 'PullRequest'))
+        condition: and(succeeded(), eq( variables['Agent.OS'], 'Linux' ), eq(variables['Build.SourceBranch'], 'refs/heads/master'), eq(variables['Build.Reason'], 'IndividualCI'))
