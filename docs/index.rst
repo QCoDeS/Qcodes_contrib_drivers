@@ -3,8 +3,15 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to qcodes_contrib_drivers's documentation!
-==================================================
+|LOGO|
+
+Welcome to QCoDeS Contributed Drivers's documentation!
+======================================================
+
+.. include:: ../readme.rst
+
+The documentation here contains API documentation of the individual drivers as well as examples of how
+to use the drivers. For general documentation please refer to the QCoDeS documentation.
 
 .. toctree::
    :maxdepth: 2
@@ -20,3 +27,8 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
+
+
+.. |LOGO|  image:: /_static/logos/qcodes_logo.png
+   :scale: 10 %
+   :alt: qcodes logo
