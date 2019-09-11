@@ -10,7 +10,8 @@ from ctypes import POINTER
 from typing import Optional, List, Any
 from functools import partial
 from .visa_types import (
-    ViAttr, ViStatus, ViString, ViRsrc, ViSession, ViReal64, VI_NULL
+    ViChar, ViStatus, ViRsrc, ViString, ViSession, ViBoolean, ViAttr, ViChar,
+    ViReal64, VI_NULL
 )
 
 
@@ -20,7 +21,7 @@ class AttributeWrapper(object):
     `dtype` should be one of the types defined in visa_types.
     The value means the same as the attributeID.
     """
-    def __init__(value: ViAttr, dtype: Any):
+    def __init__(self, value: ViAttr, dtype: Any):
         self.value = value
         self.dtype = dtype
 
@@ -33,6 +34,7 @@ class NamedArgType:
         self.name = name
         self.argtype = argtype
 
+def c_str(s): return bytes(s, "ascii")
 
 class NIDLLWrapper(object):
     """
@@ -101,7 +103,7 @@ class NIDLLWrapper(object):
         #                                    ])
 
     def wrap_dll_function(self, name_in_library: str,
-                          argypes: List[NamedArgType],
+                          argtypes: List[NamedArgType],
                           restype: Any = ViStatus,
                           name: Optional[str] = None,
                           apply_handle: Optional[ViSession] = None):
@@ -131,7 +133,7 @@ class NIDLLWrapper(object):
         setattr(self, name, func)
 
     def wrap_dll_function_checked(self, name_in_library: str,
-                                  argypes: List[NamedArgType],
+                                  argtypes: List[NamedArgType],
                                   name: Optional[str] = None,
                                   apply_handle: Optional[ViSession] = None):
         """
@@ -167,7 +169,7 @@ class NIDLLWrapper(object):
         setattr(self, name, func_checked)
 
     def _wrap_c_func_attributes(self, name_in_library: str,
-                                argypes: List[NamedArgType],
+                                argtypes: List[NamedArgType],
                                 restype: Any,
                                 name: Optional[str] = None,
                                 apply_handle: Optional[ViSession] = None):
@@ -212,7 +214,7 @@ class NIDLLWrapper(object):
         return res
 
     def init(self, resource_name: str, id_query: bool = True,
-             reset: bool = False) -> ViSession:
+             reset_device: bool = False) -> ViSession:
         """
         Convenience wrapper around libName_init (which is registered as
         self._init in __init__). Returns the ViSession handle. Note that this
@@ -222,12 +224,12 @@ class NIDLLWrapper(object):
             resource_name: the resource name of the device to initialize,
                 as given by NI MAX.
             id_query: whether to perform an ID query
-            reset: whether to reset the device during initialization
+            reset_device: whether to reset_device the device during initialization
         Returns:
             the ViSession handle of the initialized device
         """
         session = ViSession()
-        self._init(ViRsrc(bytes(resource_name, "ascii")), id_query, reset,
+        self._init(ViRsrc(c_str(resource_name)), id_query, reset_device,
                    ctpyes.byref(session))
         return session
 

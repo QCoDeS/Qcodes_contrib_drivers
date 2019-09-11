@@ -4,6 +4,7 @@ import ctypes
 Visa types used by NI C API DLLs.
 """
 
+ViChar = ctypes.c_char
 ViStatus = ctypes.c_long
 ViRsrc = ctypes.c_char_p
 ViString = ctypes.c_char_p
