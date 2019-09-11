@@ -16,6 +16,9 @@ from .visa_types import (
 )
 
 
+def c_str(s: str): return bytes(s, "ascii")
+
+
 class AttributeWrapper(object):
     """
     Struct to associate a data type to a numeric constant defined in a library.
@@ -35,7 +38,6 @@ class NamedArgType:
         self.name = name
         self.argtype = argtype
 
-def c_str(s: str): return bytes(s, "ascii")
 
 class NIDLLWrapper(object):
     """
@@ -171,7 +173,8 @@ class NIDLLWrapper(object):
                     # negative error codes are errors
                     raise RuntimeError(msg)
                 else:
-                    warnings.warn(f"({error_code}) {msg}", RuntimeWarning, stacklevel=3)
+                    warnings.warn(f"({error_code}) {msg}", RuntimeWarning,
+                                  stacklevel=3)
 
         setattr(self, name, func_checked)
 
@@ -231,7 +234,8 @@ class NIDLLWrapper(object):
             resource_name: the resource name of the device to initialize,
                 as given by NI MAX.
             id_query: whether to perform an ID query
-            reset_device: whether to reset_device the device during initialization
+            reset_device: whether to reset_device the device during
+                initialization
         Returns:
             the ViSession handle of the initialized device
         """
