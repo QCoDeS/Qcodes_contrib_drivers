@@ -7,13 +7,15 @@ https://github.com/ni/nimi-python/blob/master/generated/nitclk/_library.py).
 
 import ctypes
 from ctypes import POINTER
-from typing import Optional, List, Any
-from functools import partial
+from typing import Optional, List, Any, Callable
 import warnings
 from .visa_types import (
     ViChar, ViStatus, ViRsrc, ViInt32, ViString, ViSession, ViBoolean, ViAttr,
     ViChar, ViReal64, VI_NULL
 )
+
+# 256 bytes should be enough, according to the documentation
+STRING_BUFFER_SIZE = 257
 
 
 def c_str(s: str): return bytes(s, "ascii")
@@ -41,12 +43,10 @@ class NamedArgType:
 
 class NIDLLWrapper(object):
     """
-    Base class for wrapping NI DLL libraries.
-
-    This module provides convenience functions for wrapping and checking a DLL
+    This class provides convenience functions for wrapping and checking a DLL
     function call, as well as some premade pythonic wrapper functinos for
     common library functions such as libName_error_message, libName_init/close
-    and libName_GetAttribute, (e.g.  niRFSG_init or niSync_init). Other
+    and libName_GetAttribute, (e.g. niRFSG_init or niSync_init). Other
     functions should be wrapped by a library-specific class by calling
     wrap_dll_function_checked.
 
@@ -61,11 +61,14 @@ class NIDLLWrapper(object):
         self._dll = ctypes.cdll.LoadLibrary(dll_path)
         self._lib_prefix = lib_prefix
 
+        # list of function names registered with setatttr
+        self._wrapped_functions: List[str] = []
+
         self._dtype_map = {
                 ViBoolean: "ViBoolean",
                 ViInt32: "ViInt32",
                 ViReal64: "ViReal64",
-                ViString: "ViString",
+                #ViString: "ViString", # strings not implemented
         }
 
         # standard functions that are the same in all libraries
@@ -98,24 +101,37 @@ class NIDLLWrapper(object):
                                            NamedArgType("vi", ViSession),
                                        ])
 
-        # TODO
         for dtype, dtype_name in self._dtype_map.items():
+            if dtype == ViString:
+                continue
+
             self.wrap_dll_function_checked(f"GetAttribute{dtype_name}",
                                            argtypes=[
                                                NamedArgType("vi", ViSession),
                                                NamedArgType("channelName",
                                                             ViString),
-                                               NamedArgType("attribute",
+                                               NamedArgType("attributeID",
                                                             ViAttr),
                                                NamedArgType("attributeValue",
                                                             POINTER(dtype))
                                            ])
 
+        # this doesn't work
+        #self.wrap_dll_function_checked("GetAttributeViString",
+        #                               argtypes=[
+        #                                   NamedArgType("vi", ViSession),
+        #                                   NamedArgType("channelName",
+        #                                                ViString),
+        #                                   NamedArgType("attributeID", ViAttr),
+        #                                   NamedArgType("bufferSize", ViInt32),
+        #                                   NamedArgType("attributeValue",
+        #                                                ViString),
+        #                               ])
+
     def wrap_dll_function(self, name_in_library: str,
                           argtypes: List[NamedArgType],
                           restype: Any = ViStatus,
-                          name: Optional[str] = None,
-                          apply_handle: Optional[ViSession] = None):
+                          name: Optional[str] = None) -> None:
         """
         Convenience function for wrapping a function in a NI C API.
 
@@ -129,29 +145,26 @@ class NIDLLWrapper(object):
                 of the arguments of the function
             restype: The return type of the library function (most likely
                 ViStatus)
-            apply_handle: partially apply this ViSession as the first argument
-                when the function is called
         """
         name, func = self._wrap_c_func_attributes(
                          name_in_library=name_in_library,
                          argtypes=argtypes,
                          restype=restype,
-                         name=name,
-                         apply_handle=apply_handle)
+                         name=name)
 
+        self._wrapped_functions.append(name)
         setattr(self, name, func)
 
     def wrap_dll_function_checked(self, name_in_library: str,
                                   argtypes: List[NamedArgType],
-                                  name: Optional[str] = None,
-                                  apply_handle: Optional[ViSession] = None):
+                                  name: Optional[str] = None) -> None:
         """
         Same as `wrap_dll_function`, but check the return value and raise an
         exception if the return value indicates an error or warn if it's a
         warning. Calls `self.error_message`, which must be initialized with
         `wrap_dll_function` before this function can be used. The arguments are
         the same as for `wrap_dll_function`, except that `restype` is always
-        ViStatus.
+        `ViStatus`.
         """
         if not getattr(self, "error_message"):
             raise RuntimeError(("wrap_dll_function_checked: self.error_message"
@@ -162,8 +175,7 @@ class NIDLLWrapper(object):
                          name_in_library=name_in_library,
                          argtypes=argtypes,
                          restype=ViSession,
-                         name=name,
-                         apply_handle=apply_handle)
+                         name=name)
 
         def func_checked(*args, **kwargs):
             error_code = func(*args, **kwargs)
@@ -176,13 +188,18 @@ class NIDLLWrapper(object):
                     warnings.warn(f"({error_code}) {msg}", RuntimeWarning,
                                   stacklevel=3)
 
+        # annotate function so that it is compatible with ctypes func pointer
+        func_checked.restype = func.restype
+        func_checked.argtypes = func.argtypes
+        func_checked.argnames = func.argnames
+
+        self._wrapped_functions.append(name)
         setattr(self, name, func_checked)
 
     def _wrap_c_func_attributes(self, name_in_library: str,
                                 argtypes: List[NamedArgType],
                                 restype: Any,
-                                name: Optional[str] = None,
-                                apply_handle: Optional[ViSession] = None):
+                                name: Optional[str] = None) -> (str, Callable):
         """
         Helper method for `wrap_dll_function` and `wrap_dll_function_checked.`
         """
@@ -199,29 +216,7 @@ class NIDLLWrapper(object):
         func.argtypes = [a.argtype for a in argtypes]
         func.argnames = [a.name for a in argtypes]  # just in case
 
-        if apply_handle is not None:
-            func = partial(func, apply_handle)
-
         return name, func
-
-    def get_attribute(self, session: ViSession, attr: AttributeWrapper) -> Any:
-        """
-        Map an attribute with data type DataType to the appropriate
-        "libName_GetAttributeDataType" function (for example
-        niRFSG_GetAttributeViReal64 when lib_prefix is niRFSG and attr.dtype is
-        ViReal64).
-
-        NOTE: channels are not implemented.
-        """
-        dtype = attr.dtype
-        if dtype not in self._dtype_map:
-            raise ValueError(f"get_attribute() not implemented for {dtype}")
-
-        dtype_name = self._dtype_map[dtype]
-        func = getattr(self, f"GetAttribute{dtype_name}")
-        res = dtype()
-        func(session, b"", attr.value, ctypes.byref(res))
-        return res.value
 
     def init(self, resource_name: str, id_query: bool = True,
              reset_device: bool = False) -> ViSession:
@@ -244,13 +239,31 @@ class NIDLLWrapper(object):
                    ctypes.byref(session))
         return session
 
+    def get_attribute(self, session: ViSession, attr: AttributeWrapper) -> Any:
+        """
+        Map an attribute with data type DataType to the appropriate
+        "libName_GetAttributeDataType" function (for example
+        niRFSG_GetAttributeViReal64 when lib_prefix is niRFSG and attr.dtype is
+        ViReal64).
+
+        NOTE: channels are not implemented.
+        """
+        dtype = attr.dtype
+        if dtype not in self._dtype_map:
+            raise ValueError(f"get_attribute() not implemented for {dtype}")
+
+        dtype_name = self._dtype_map[dtype]
+        func = getattr(self, f"GetAttribute{dtype_name}")
+        res = dtype()
+        func(session, b"", attr.value, ctypes.byref(res))
+        return res.value
+
     def error_message(self, session: Optional[ViSession] = None,
                       error_code: ViStatus = 0):
         """
-        Convenience wrapper around libName_error_message (registered as
-        self._error_message).
+        Convenience wrapper around libName_error_message (which is registered
+        as self._error_message).
         """
-        # 256 bytes should be enough, according to the documentation
-        buf = ctypes.create_string_buffer(256)
+        buf = ctypes.create_string_buffer(STRING_BUFFER_SIZE)
         self._error_message(session or VI_NULL, error_code, buf)
         return buf.value.decode()

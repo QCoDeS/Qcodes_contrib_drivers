@@ -4,16 +4,17 @@ from functools import partial
 from .visa_types import ViChar, ViString, ViAttr, ViSession, ViReal64
 from .dll_wrapper import NIDLLWrapper, AttributeWrapper, NamedArgType
 
-from qcodes.instrument.base import Instrument
+from .ni_dll_instrument import NIDLLInstrument
 
 # constants used for querying attributes
-NIRFSG_ATTR_FREQUENCY = AttributeWrapper(ViAttr(1250001), ViReal64)
-NIRFSG_ATTR_POWER_LEVEL = AttributeWrapper(ViAttr(1250002), ViReal64)
+#NIRFSG_ATTR_SERIAL_NUMBER = AttributeWrapper(ViAttr(1150026), ViString) # doesn't work
+NIRFSG_ATTR_FREQUENCY     = AttributeWrapper(ViAttr(1250001), ViReal64)
+NIRFSG_ATTR_POWER_LEVEL   = AttributeWrapper(ViAttr(1250002), ViReal64)
 
 logger = logging.getLogger(__name__)
 
 
-class NationalInstruments_RFSG(Instrument):
+class NationalInstruments_RFSG(NIDLLInstrument):
     r"""
     This is the qcodes driver for National Instruments RF signal generator
     devices based on the NI-RFSG driver. As of NI-RFSG version 18.1, the
@@ -49,38 +50,34 @@ class NationalInstruments_RFSG(Instrument):
                  id_query: bool = False,
                  reset_device: bool = False,
                  **kwargs):
-        super().__init__(name, **kwargs)
 
-        dll_path = dll_path or self.dll_path
-        self.resource_name = resource_name
+        super().__init__(name=name, resource_name=resource_name,
+                         dll_path=dll_path or self.dll_path,
+                         lib_prefix="niRFSG", **kwargs)
 
-        # _w is shorthand for wrapper
-        self._w = NIDLLWrapper(dll_path=dll_path, lib_prefix="niRFSG")
+        self.wrapper.wrap_dll_function_checked(name_in_library="Initiate",
+                                               argtypes=[
+                                                   NamedArgType("vi",
+                                                                ViSession),
+                                               ])
 
-        self._handle = self._w.init(self.resource_name,
-                                    id_query=id_query,
-                                    reset_device=reset_device)
+        self.wrapper.wrap_dll_function_checked(name_in_library="Abort",
+                                               argtypes=[
+                                                   NamedArgType("vi",
+                                                                ViSession),
+                                               ])
 
-        self._w.wrap_dll_function_checked(name_in_library="Initiate",
-                                          argtypes=[
-                                              NamedArgType("vi", ViSession),
-                                          ], apply_handle=self._handle)
+        self.wrapper.wrap_dll_function_checked(name_in_library="ConfigureRF",
+                                               argtypes=[
+                                                   NamedArgType("vi",
+                                                                ViSession),
+                                                   NamedArgType("frequency",
+                                                                ViReal64),
+                                                   NamedArgType("powerLevel",
+                                                                ViReal64),
+                                               ])
 
-        self._w.wrap_dll_function_checked(name_in_library="Abort",
-                                          argtypes=[
-                                              NamedArgType("vi", ViSession),
-                                          ], apply_handle=self._handle)
-
-        self._w.wrap_dll_function_checked(name_in_library="ConfigureRF",
-                                          argtypes=[
-                                              NamedArgType("vi", ViSession),
-                                              NamedArgType("frequency",
-                                                           ViReal64),
-                                              NamedArgType("powerLevel",
-                                                           ViReal64),
-                                          ], apply_handle=self._handle)
-
-        self.add_parameter("frequency",
+        self.add_parameter(name="frequency",
                            unit="Hz",
                            get_cmd=partial(self.get_attribute,
                                            NIRFSG_ATTR_FREQUENCY),
@@ -95,27 +92,18 @@ class NationalInstruments_RFSG(Instrument):
                            set_cmd=self.set_power_level,
                            )
 
-    # TODO: move commmon functions (init, close, get_attribute) to separate NIDLLInstrument class, so no need for _handle everywhere
-    def close(self):
-        if getattr(self, "_handle", None):
-            self._w.close(self._handle)
-        super().close()
-
-    def get_attribute(self, attr: AttributeWrapper):
-        return self._w.get_attribute(self._handle, attr)
-
     def initiate(self):
         """
         Initiate signal generation. This causes the NI-RFSG device to leave
         the Configuration state.
         """
-        self._w.Initiate()
+        self.wrapper.Initiate(self._handle)
 
     def abort(self):
         """
         Stop signal generation and return to the Configuration state.
         """
-        self._w.Abort()
+        self.wrapper.Abort(self._handle)
 
     def ConfigureRF(self, frequency: float, power_level: float,
                     initiate: bool):
@@ -133,22 +121,21 @@ class NationalInstruments_RFSG(Instrument):
             initiate: if True, call self.initiate after configuring, which
                 starts RF output
         """
-        self._w.ConfigureRF(ViReal64(frequency), ViReal64(power_level))
+        self.wrapper.ConfigureRF(self._handle, ViReal64(frequency),
+                                 ViReal64(power_level))
         if initiate:
             self.initiate()
 
     def set_frequency(self, frequency: float, initiate: bool = False):
-        power_level = self._w.get_attribute(self._handle,
-                                            NIRFSG_ATTR_POWER_LEVEL)
+        power_level = self.get_attribute(NIRFSG_ATTR_POWER_LEVEL)
         self.ConfigureRF(frequency, power_level, initiate)
 
     def set_power_level(self, power_level: float, initiate: bool = False):
-        frequency = self._w.get_attribute(self._handle,
-                                          NIRFSG_ATTR_FREQUENCY)
+        frequency = self.get_attribute(NIRFSG_ATTR_FREQUENCY)
         self.ConfigureRF(frequency, power_level, initiate)
 
     #def ask(self, cmd: str) -> str:
-    #    #TODO (IDN)
+    #    #TODO: IDN
     #    pass
 
 # class NationalInstruments_RFSG
