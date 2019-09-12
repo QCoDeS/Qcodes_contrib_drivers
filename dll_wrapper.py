@@ -116,18 +116,6 @@ class NIDLLWrapper(object):
                                                             POINTER(dtype))
                                            ])
 
-        # this doesn't work
-        #self.wrap_dll_function_checked("GetAttributeViString",
-        #                               argtypes=[
-        #                                   NamedArgType("vi", ViSession),
-        #                                   NamedArgType("channelName",
-        #                                                ViString),
-        #                                   NamedArgType("attributeID", ViAttr),
-        #                                   NamedArgType("bufferSize", ViInt32),
-        #                                   NamedArgType("attributeValue",
-        #                                                ViString),
-        #                               ])
-
     def wrap_dll_function(self, name_in_library: str,
                           argtypes: List[NamedArgType],
                           restype: Any = ViStatus,

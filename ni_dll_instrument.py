@@ -39,54 +39,6 @@ class NIDLLInstrument(Instrument):
                                          id_query=id_query,
                                          reset_device=reset_device)
 
-    # for convenience
-    #def wrap_dll_function(self, *args, **kwargs):
-    #    return self.wrapper.wrap_dll_function(*args, **kwargs)
-
-    #def wrap_dll_function_checked(self, *args, **kwargs):
-    #    return self.wrapper.wrap_dll_function_checked(*args, **kwargs)
-
-    # attempt at directly getting attributes from DLL, conflicts with qcodes
-    # should probably be done with DelegateAttributes
-    #def __getattr__(self, name):
-    #    """
-    #    If the attribute is not a QCoDeS parameter, try to call function that
-    #    from the DLL wrapper class, and automatically prepend self._handle to
-    #    argument list.
-    #    """
-    #    try:
-    #        return super().__getattr__(name)
-
-    #    except AttributeError:
-    #        print(name)
-    #        print(self.wrapper._wrapped_functions)
-    #        #try:
-    #        #    attr = getattr(self.wrapper, name)
-    #        #    print(attr)
-    #        #    if (name in self.wrapper._wrapped_functions and
-    #        #        attr.):
-    #        #        attr = partial(attr, self._handle)
-    #        #    return attr
-    #        try:
-    #            if name in self.wrapper._wrapped_functions:
-    #                attr = getattr(self.wrapper, name)
-
-    #                # automatically apply handle if applicable
-    #                if (attr.argnames[0] == "vi" and
-    #                    attr.argtypes[0] == ViSession):
-
-    #                    attr = partial(attr, self._handle)
-
-    #                return attr
-
-    #            else:
-    #                raise AttributeError
-
-    #        except AttributeError as e:
-    #            raise AttributeError((f"'{self.__class__.__name__}' or its"
-    #                                  f" wrapped library has no attribute"
-    #                                  f" '{name}'"))
-
     def get_attribute(self, attr: AttributeWrapper):
         return self.wrapper.get_attribute(self._handle, attr)
 
