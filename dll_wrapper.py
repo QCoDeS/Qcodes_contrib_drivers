@@ -214,16 +214,16 @@ class NIDLLWrapper(object):
     def init(self, resource: str, id_query: bool = True,
              reset_device: bool = False) -> ViSession:
         """
-        Convenience wrapper around libName_init (which is registered as
-        self._init in __init__). Returns the ViSession handle. Note that this
-        class is not responsible for storing the handle.
+        Convenience wrapper around libName_init (e.g. niRFSG_init). Returns the
+        ViSession handle. The wrapped version of the actual DLL function is
+        registered as self._init, see __init__. Note that this class is not
+        responsible for storing the handle.
 
         Args:
-            resource: the resource name of the device to initialize,
-                as given by NI MAX.
+            resource: the resource name of the device to initialize, as given
+                by NI MAX.
             id_query: whether to perform an ID query
-            reset_device: whether to reset_device the device during
-                initialization
+            reset_device: whether to reset the device during initialization
         Returns:
             the ViSession handle of the initialized device
         """
