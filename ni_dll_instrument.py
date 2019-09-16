@@ -39,6 +39,9 @@ class NIDLLInstrument(Instrument):
                                          id_query=id_query,
                                          reset_device=reset_device)
 
+    def reset(self):
+        self.wrapper.reset(self._handle)
+
     def get_attribute(self, attr: AttributeWrapper):
         return self.wrapper.get_attribute(self._handle, attr)
 

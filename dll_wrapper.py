@@ -94,9 +94,14 @@ class NIDLLWrapper(object):
                                                         ViBoolean),
                                        ])
 
-        self.wrap_dll_function_checked(name_in_library="close",
+        self.wrap_dll_function_checked(name_in_library="reset",
                                        # no special name is needed,
                                        # the signature is the same
+                                       argtypes=[
+                                           NamedArgType("vi", ViSession),
+                                       ])
+
+        self.wrap_dll_function_checked(name_in_library="close",
                                        argtypes=[
                                            NamedArgType("vi", ViSession),
                                        ])

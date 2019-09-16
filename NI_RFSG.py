@@ -2,7 +2,7 @@ import logging
 from typing import Optional, List, Any
 from functools import partial
 from .visa_types import ViChar, ViString, ViAttr, ViSession, ViReal64
-from .dll_wrapper import NIDLLWrapper, AttributeWrapper, NamedArgType
+from .dll_wrapper import AttributeWrapper, NamedArgType
 
 from .ni_dll_instrument import NIDLLInstrument
 
@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 class NationalInstruments_RFSG(NIDLLInstrument):
     r"""
-    This is the qcodes driver for National Instruments RF signal generator
+    This is the QCoDeS driver for National Instruments RF signal generator
     devices based on the NI-RFSG driver. As of NI-RFSG version 18.1, the
     supported devices are
     PXI-5610,  PXI-5650,  PXI-5651,  PXI-5652,  PXI-5670,  PXI-5671, PXIe-5611,
