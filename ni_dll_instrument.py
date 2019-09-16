@@ -17,7 +17,7 @@ class NIDLLInstrument(Instrument):
 
     Args:
         name: Name for this instrument
-        resource_name: Identifier for this instrument in NI MAX.
+        resource: Identifier for this instrument in NI MAX.
         dll_path: path to the library DLL.
         lib_prefix: the prefix of the function names in the library (see
             NIDLLWrapper)
@@ -25,17 +25,17 @@ class NIDLLInstrument(Instrument):
         reset_device: whether to reset the device on initialization
     """
 
-    def __init__(self, name: str, resource_name: str, dll_path: str,
+    def __init__(self, name: str, resource: str, dll_path: str,
                  lib_prefix: str, id_query: bool = False,
                  reset_device: bool = False, **kwargs):
 
         super().__init__(name, **kwargs)
 
-        self.resource_name = resource_name
+        self.resource = resource
 
         self.wrapper = NIDLLWrapper(dll_path=dll_path, lib_prefix=lib_prefix)
 
-        self._handle = self.wrapper.init(self.resource_name,
+        self._handle = self.wrapper.init(self.resource,
                                          id_query=id_query,
                                          reset_device=reset_device)
 
