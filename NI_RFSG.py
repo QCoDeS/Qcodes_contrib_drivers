@@ -35,7 +35,7 @@ class NationalInstruments_RFSG(NIDLLInstrument):
 
     Args:
         name: Name for this instrument
-        resource_name: Identifier for this instrument in NI MAX.
+        resource: Identifier for this instrument in NI MAX.
         dll_path: path to the NI-RFSG library DLL.
         id_query: whether to perform an ID query on initialization
         reset_device: whether to reset the device on initialization
@@ -45,13 +45,13 @@ class NationalInstruments_RFSG(NIDLLInstrument):
     dll_path = r"C:\Program Files\IVI Foundation\IVI\bin\NiRFSG_64.dll"
     # C:\Program Files (x86)\IVI Foundation\IVI\bin\NiRFSG.dll for 32-bit
 
-    def __init__(self, name: str, resource_name: str,
+    def __init__(self, name: str, resource: str,
                  dll_path: Optional[str] = None,
                  id_query: bool = False,
                  reset_device: bool = False,
                  **kwargs):
 
-        super().__init__(name=name, resource_name=resource_name,
+        super().__init__(name=name, resource=resource,
                          dll_path=dll_path or self.dll_path,
                          lib_prefix="niRFSG", **kwargs)
 

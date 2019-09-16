@@ -206,7 +206,7 @@ class NIDLLWrapper(object):
 
         return name, func
 
-    def init(self, resource_name: str, id_query: bool = True,
+    def init(self, resource: str, id_query: bool = True,
              reset_device: bool = False) -> ViSession:
         """
         Convenience wrapper around libName_init (which is registered as
@@ -214,7 +214,7 @@ class NIDLLWrapper(object):
         class is not responsible for storing the handle.
 
         Args:
-            resource_name: the resource name of the device to initialize,
+            resource: the resource name of the device to initialize,
                 as given by NI MAX.
             id_query: whether to perform an ID query
             reset_device: whether to reset_device the device during
@@ -223,7 +223,7 @@ class NIDLLWrapper(object):
             the ViSession handle of the initialized device
         """
         session = ViSession()
-        self._init(ViRsrc(c_str(resource_name)), id_query, reset_device,
+        self._init(ViRsrc(c_str(resource)), id_query, reset_device,
                    ctypes.byref(session))
         return session
 
