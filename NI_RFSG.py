@@ -147,11 +147,10 @@ class NationalInstruments_RFSG(NIDLLInstrument):
 NI_RFSG = NationalInstruments_RFSG
 
 
-class PXIe_5645(NI_RFSG):
+class PXIe_5654(NI_RFSG):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         # device-specific parameter limits
-        # spec says 65 MHz - 6 GHz, but driver allows these values
-        self.frequency.vals = Numbers(250e3, 10e9)
-        self.power_level.vals = Numbers(-30, 20)
+        self.frequency.vals = Numbers(250e3, 20e9)
+        self.power_level.vals = Numbers(-7, 13)
