@@ -1,9 +1,11 @@
 import logging
 from typing import Optional, List, Any
 from functools import partial
+
+from qcodes.utils.validators import Numbers
+
 from .visa_types import ViChar, ViString, ViAttr, ViSession, ViReal64
 from .dll_wrapper import AttributeWrapper, NamedArgType
-
 from .ni_dll_instrument import NIDLLInstrument
 
 # constants used for querying attributes
@@ -112,8 +114,8 @@ class NationalInstruments_RFSG(NIDLLInstrument):
         simultatneously.
 
         NOTE: PXI-5670/5671 and PXIe-5672 devices must be in the Configuration
-        state before calling this function (by calling niRFSG_Abort), that is
-        not implemented here.
+        state before calling this function (by calling abort()), that is not
+        implemented here.
 
         Args:
             frequency:
@@ -143,3 +145,13 @@ class NationalInstruments_RFSG(NIDLLInstrument):
 
 # shorthand alias for the above
 NI_RFSG = NationalInstruments_RFSG
+
+
+class PXIe_5645(NI_RFSG):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # device-specific parameter limits
+        # spec says 65 MHz - 6 GHz, but driver allows these values
+        self.frequency.vals = Numbers(250e3, 10e9)
+        self.power_level.vals = Numbers(-30, 20)
