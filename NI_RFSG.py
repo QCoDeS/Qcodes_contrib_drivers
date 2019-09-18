@@ -153,4 +153,4 @@ class PXIe_5654(NI_RFSG):
 
         # device-specific parameter limits
         self.frequency.vals = Numbers(250e3, 20e9)
-        self.power_level.vals = Numbers(-7, 13)
+        self.power_level.vals = Numbers(-7, 15)
