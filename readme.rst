@@ -7,7 +7,7 @@ How to contribute a driver:
 This repository is open for contribution of new drivers. Each driver should
 contain an implementation of the driver and a Jupyter notebook showing how the
 drivers should be used. In addition we strongly encourage writing tests for the drivers.
-An intruduction for wrting tests with PyVISA-sim can be found in the QCoDeS documentation linked
+An intruduction for writing tests with PyVISA-sim can be found in the QCoDeS documentation linked
 below.
 
 Drivers are expected to be added to ``qcodes_contrib_drivers/drivers/MakeofInstrument/`` folder

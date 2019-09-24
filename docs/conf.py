@@ -98,3 +98,40 @@ numfig = True
 nbsphinx_kernel_name = 'python3'
 # always execute notebooks.
 nbsphinx_execute = 'always'
+
+# we mock modules that for one reason or another is not
+# there when generating the docs
+autodoc_mock_imports = ['spirack']
+
+# we allow most types from the typing modules to be used in
+# docstrings even if they don't resolve
+nitpick_ignore = [('py:class', 'Optional'),
+                  ('py:class', 'Union'),
+                  ('py:class', 'Any'),
+                  ('py:class', 'Tuple'),
+                  ('py:class', 'List'),
+                  ('py:class', 'Sequence'),
+                  ('py:class', 'Iterable'),
+                  ('py:class', 'Type'),
+                  # These are some types currently in use
+                  # in docstrings not actually defined anywhere
+                  ('py:class', 'io_manager'),
+                  ('py:class', 'chan_type'),
+                  ('py:class', 'SD_Wave'),
+                  ('py:class', 'array'),
+                  # private types that are not currently documented so links
+                  # will not resolve
+                  ('py:class', 'SweepFixedValues'),
+                  # We don't generate the docs for function since
+                  # it is deprecated
+                  ('py:class', 'Function'),
+                  # We do not document any QCoDeS classes
+                  ('py:class', 'Parameter'),
+                  # External types that for some reason or the other
+                  # don't resolve.
+                  ('py:class', 'json.encoder.JSONEncoder'),
+                  ('py:class', 'SPI_rack'),
+                  ('py:class', 'unittest.case.TestCase'),
+                  ('py:class', 'builtins.AssertionError'),
+                  ('py:exc', 'visa.VisaIOError')
+                  ]
