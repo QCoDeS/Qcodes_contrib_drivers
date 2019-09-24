@@ -125,6 +125,8 @@ nitpick_ignore = [('py:class', 'Optional'),
                   # We don't generate the docs for function since
                   # it is deprecated
                   ('py:class', 'Function'),
+                  # We do not document any QCoDeS classes
+                  ('py:class', 'Parameter'),
                   # External types that for some reason or the other
                   # don't resolve.
                   ('py:class', 'json.encoder.JSONEncoder'),
