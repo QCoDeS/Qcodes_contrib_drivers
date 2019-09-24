@@ -98,3 +98,7 @@ numfig = True
 nbsphinx_kernel_name = 'python3'
 # always execute notebooks.
 nbsphinx_execute = 'always'
+
+# we mock modules that for one reason or another is not
+# there when generating the docs
+autodoc_mock_imports = ['spirack']
