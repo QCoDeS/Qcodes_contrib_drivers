@@ -101,7 +101,8 @@ nbsphinx_execute = 'always'
 
 # we mock modules that for one reason or another is not
 # there when generating the docs
-autodoc_mock_imports = ['spirack']
+autodoc_mock_imports = ['spirack',
+                        'pyspcm']
 
 # we allow most types from the typing modules to be used in
 # docstrings even if they don't resolve
