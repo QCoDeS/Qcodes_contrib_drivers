@@ -633,18 +633,21 @@ class M4i(Instrument):
         return data * input_range / resolution
 
     def initialize_channels(self, channels=None, mV_range=1000, input_path=0,
-                            termination=0, coupling=0, compensation=None, memsize=2**12, pretrigger_memsize=16):
+                            termination=0, coupling=0, compensation=None,
+                            memsize=2**12, pretrigger_memsize=16):
         """ Setup channels of the digitizer for simple readout using Parameters
 
-        The channels can be read out using the Parmeters `channel_0`, `channel_1`, ...
+        The channels can be read out using the Parameters `channel_0`,
+        `channel_1`, ...
 
         Args:
-            channels (list): list of channels to setup
-            mV_range, input_path, termination, coupling, compensation: passed
-                to the set_channel_settings function
+            channels (list): list of channels to setup. mV_range, input_path,
+                termination, coupling, compensation. Passed to the
+                set_channel_settings function
             memsize (int): memory size to use for simple channel readout
-            pretrigger_memsize (int): Pretrigger memory size to use. The default
-                value used is 16, which is the smallest value possible.
+            pretrigger_memsize (int): Pretrigger memory size to use.
+                The default value used is 16, which is the smallest value
+                possible.
         """
         allchannels = 0
         self._channel_memsize = memsize
@@ -692,15 +695,18 @@ class M4i(Instrument):
         return value
 
     def set_channel_settings(self, channel_index, mV_range, input_path, termination, coupling, compensation=None):
-        """ Update settings of the specified channel 
+        """ Update settings of the specified channel
 
         Args:
-            channel_index (idx): channel to update
+            channel_index (int): channel to update
             mV_range (float): measurement range for the channel
             input_path (int): input path
-            termination (None or int): If None, then do not update the termination
-            coupling (None or int): Set the ACDC_coupling.If None, then do not update the coupling
-            compensation (None or int): If None, then do not update the compensation
+            termination (None or int): If None, then do not update the
+                termination
+            coupling (None or int): Set the ACDC_coupling.If None, then do not
+                update the coupling
+            compensation (None or int): If None, then do not update the
+                compensation
         """
         # initialize
         getattr(self, 'input_path_{}'.format(channel_index))(
@@ -799,7 +805,7 @@ class M4i(Instrument):
             memsize (int): size of data trace
             posttrigger_size (int or None): size of data trace after triggering
         Returns:
-            trace (dict): data concerning the trace
+            trace as a dict. Data concerning the trace
         """
         self.card_mode(pyspcm.SPC_REC_STD_SINGLE)  # single
 
@@ -1014,7 +1020,8 @@ class M4i(Instrument):
             verbose (int): output level
             post_trigger (None or int): optional size of post_trigger buffer
         Returns:
-            voltages (array): if multiple channels are read, then the data is interleaved
+            An array of voltages. If multiple channels are read,
+            then the data is interleaved
         """
         # self.available_card_modes()
         memsize = self.data_memory_size()
