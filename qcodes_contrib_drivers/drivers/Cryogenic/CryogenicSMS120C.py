@@ -1,17 +1,18 @@
 """
+Driver for Cryogenic Magnet Power Supply SMS120C.
 
-# Please refer to Cryogenic's Magnet Power Supply SMS120C manual for further details and functionality.
-# This magnet PS model is not SCPI compliant.
-# Note: Some commands return more than one line in the output,
-        some are unidirectional, with no return (eg. 'write' rather than 'ask').
+Please refer to Cryogenic's Magnet Power Supply SMS120C manual for further
+details and functionality. This magnet PS model is not SCPI compliant. Note
+that some commands return more than one line in the output, some are
+unidirectional, with no return (eg. 'write' rather than 'ask').
 
-This magnet PS driver has been tested with:
-    FTDI chip drivers (USB to serial), D2XX version installed.
-    Cryogenic SMS120C and SMS60C (though the default init arguments are not correct for the latter)
-    Both the coil_constant and current_rating should be based on calibration data accompanying the magnet.
-    The SMS60C current_rating should be slightly below 60, as indicated by its name.
-    Examples of values for a 2T magnet using SMS60C are: coil_constant=0.0380136, current_rating=52.61
-
+This magnet PS driver has been tested with FTDI chip drivers (USB to serial),
+    D2XX version installed and with  Cryogenic SMS120C and SMS60C (though the
+    default init arguments are not correct for the latter). Both the
+    coil_constant and current_rating should be based on calibration data
+    accompanying the magnet. The SMS60C current_rating should be slightly below
+    60, as indicated by its name. Examples of values for a 2T magnet using
+    SMS60C are: coil_constant=0.0380136, current_rating=52.61
 """
 
 import visa
@@ -43,8 +44,8 @@ class CryogenicSMS120C(VisaInstrument):
     Magnet and magnet PSU limits : max B=12T, I=105.84A, V=3.5V
 
     Args:
-        name (string): a name for the instrument
-        address (string): (serial to USB) COM number of the power supply
+        name (str): a name for the instrument
+        address (str): (serial to USB) COM number of the power supply
         coil_constant (float): coil constant in Tesla per ampere, fixed at 0.113375T/A
         current_rating (float): maximum current rating in ampere, fixed at 105.84A
         current_ramp_limit (float): current ramp limit in ampere per second,
@@ -159,8 +160,8 @@ class CryogenicSMS120C(VisaInstrument):
         separate regexp to parse unique/variable instrument message structures.
 
         Returns:
-            key : unused
-            value : parsed value extracted from output message
+            The key (unused), and the value (parsed value extracted from output
+            message)
         """
         value = self.ask(msg)
 
