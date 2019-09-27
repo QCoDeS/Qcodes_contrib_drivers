@@ -123,6 +123,8 @@ nitpick_ignore = [('py:class', 'Optional'),
                   # private types that are not currently documented so links
                   # will not resolve
                   ('py:class', 'SweepFixedValues'),
+                  ('py:class', 'qcodes_contrib_drivers.drivers.RohdeSchwarz.'
+                               'private.HMC804x._RohdeSchwarzHMC804x'),
                   # We don't generate the docs for function since
                   # it is deprecated
                   ('py:class', 'Function'),
