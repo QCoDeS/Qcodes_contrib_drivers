@@ -12,11 +12,11 @@ from qcodes import validators as vals
 log = logging.getLogger(__name__)
 
 class RohdeSchwarz_SMR40(VisaInstrument):
-    """This is the qcodes driver for the Rohde & Schwarz SMR40 signal generator
+    """
+    This is the qcodes driver for the Rohde & Schwarz SMR40 signal generator
     Status: beta-version.
 
-    .. todo::
-
+    Work still pending:
         - Add all parameters that are in the manual
         - Add test suite
         - See if there can be a common driver for RS mw sources from which
