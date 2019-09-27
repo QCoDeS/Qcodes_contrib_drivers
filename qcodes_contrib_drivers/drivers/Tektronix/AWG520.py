@@ -27,25 +27,25 @@ from qcodes import VisaInstrument, validators as vals
 
 
 class Tektronix_AWG520(VisaInstrument):
-    '''
+    """
     This is the python driver for the Tektronix AWG520
     Arbitrary Waveform Generator
 
-    .. todo::
+    Work pending:
 
         1) Get All
         2) Remove test_send??
         3) Add docstrings
 
-    .. todo::
+    Work pending:
 
         use inheritance for common use with 520, currently contains
         a lot of repetition
-    '''
+    """
 
     def __init__(self, name, address, reset=False, clock=1e9, numpoints=1000,
                  **kw):
-        '''
+        """
         Initializes the AWG520.
 
         Args:
@@ -57,7 +57,7 @@ class Tektronix_AWG520(VisaInstrument):
 
         Output:
             None
-        '''
+        """
         super().__init__(name, address, **kw)
 
         self._address = address
@@ -207,10 +207,10 @@ class Tektronix_AWG520(VisaInstrument):
         self.visa_handle.write('mmem:cdir')
 
     def make_directory(self, dir, root):
-        '''
+        """
         makes a directory
         if root = True, new dir in main folder
-        '''
+        """
         if root:
             self.goto_root()
             self.visa_handle.write('MMEMory:MDIRectory "{}"'.format(dir))
@@ -224,7 +224,7 @@ class Tektronix_AWG520(VisaInstrument):
         return self.snapshot(update=False)
 
     def clear_waveforms(self):
-        '''
+        """
         Clears the waveform on both channels.
 
         Input:
@@ -232,32 +232,32 @@ class Tektronix_AWG520(VisaInstrument):
 
         Output:
             None
-        '''
+        """
         logging.debug(__name__ + ' : Clear waveforms from channels')
         self.visa_handle.write('SOUR1:FUNC:USER ""')
         self.visa_handle.write('SOUR2:FUNC:USER ""')
 
     def force_trigger(self):
-        '''
+        """
         forces a trigger event (used for wait_trigger option in sequences)
 
         Ron
-        '''
+        """
         return self.visa_handle.write('TRIG:SEQ:IMM')
 
     def force_logicjump(self):
-        '''
+        """
         forces a jumplogic event (used as a conditional event during waveform
         executions)
 
         note: jump_logic events&mode have to be set properly!
 
         Ron
-        '''
+        """
         return self.visa_handle.write('AWGC:EVEN:SEQ:IMM')
 
     def set_jumpmode(self, mode):
-        '''
+        """
         sets the jump mode for jump logic events, possibilities:
         LOGic,TABle,SOFTware
         give mode as string
@@ -265,19 +265,19 @@ class Tektronix_AWG520(VisaInstrument):
         note: jump_logic events&mode have to be set properly!
 
         Ron
-        '''
+        """
         return self.visa_handle.write('AWGC:ENH:SEQ:JMOD %s' % mode)
 
     def get_jumpmode(self, mode):
-        '''
+        """
         get the jump mode for jump logic events
 
         Ron
-        '''
+        """
         return self.visa_handle.ask('AWGC:ENH:SEQ:JMOD?')
 
     def _do_get_numpoints(self):
-        '''
+        """
         Returns the number of datapoints in each wave
 
         Input:
@@ -285,11 +285,11 @@ class Tektronix_AWG520(VisaInstrument):
 
         Output:
             numpoints (int) : Number of datapoints in each wave
-        '''
+        """
         return self._numpoints
 
     def _do_set_numpoints(self, numpts):
-        '''
+        """
         Sets the number of datapoints in each wave.
         This acts on both channels.
 
@@ -298,7 +298,7 @@ class Tektronix_AWG520(VisaInstrument):
 
         Output:
             None
-        '''
+        """
         logging.debug(__name__ + ' : Trying to set numpoints to %s' % numpts)
         if numpts != self._numpoints:
             logging.warning(__name__ + ' : changing numpoints. This will clear all waveforms!')
@@ -337,7 +337,7 @@ class Tektronix_AWG520(VisaInstrument):
             return
 
     def _do_set_filename(self, name, channel):
-        '''
+        """
         Specifies which file has to be set on which channel
         Make sure the file exists, and the numpoints and clock of the file
         matches the instrument settings.
@@ -351,7 +351,7 @@ class Tektronix_AWG520(VisaInstrument):
 
         Output:
             None
-        '''
+        """
         logging.debug(__name__ + ' : Try to set {} on channel {}'.format(
                       name, channel))
         exists = False
@@ -436,7 +436,7 @@ class Tektronix_AWG520(VisaInstrument):
     # Send waveform to the device
 
     def send_waveform(self, w, m1, m2, filename, clock):
-        '''
+        """
         Sends a complete waveform. All parameters need to be specified.
         choose a file extension 'wfm' (must end with .pat)
         See also: resend_waveform()
@@ -450,7 +450,7 @@ class Tektronix_AWG520(VisaInstrument):
 
         Output:
             None
-        '''
+        """
         logging.debug(__name__ + ' : Sending waveform %s to instrument' % filename)
 
         # Check for errors
@@ -482,7 +482,7 @@ class Tektronix_AWG520(VisaInstrument):
         self.visa_handle.write(mes)
 
     def send_pattern(self, w, m1, m2, filename, clock):
-        '''
+        """
         Sends a pattern file.
         similar to waveform except diff file extension
         number of poitns different. diff byte conversion
@@ -497,7 +497,7 @@ class Tektronix_AWG520(VisaInstrument):
 
         Output:
             None
-        '''
+        """
         logging.debug(__name__ + ' : Sending pattern %s to instrument' % filename)
 
         # Check for errors
@@ -530,7 +530,7 @@ class Tektronix_AWG520(VisaInstrument):
 
 
     def resend_waveform(self, channel, w=[], m1=[], m2=[], clock=[]):
-        '''
+        """
         Resends the last sent waveform for the designated channel
         Overwrites only the parameters specifiedta
 
@@ -545,7 +545,7 @@ class Tektronix_AWG520(VisaInstrument):
 
         Output:
             None
-        '''
+        """
         filename = self._values['recent_channel_%s' %channel]['filename']
         logging.debug(__name__ + ' : Resending %s to channel %s' % (filename, channel))
 
@@ -566,14 +566,14 @@ class Tektronix_AWG520(VisaInstrument):
         self.do_set_filename(filename, channel)
 
     def delete_all_waveforms_from_list(self):
-        '''
+        """
         for compatibillity with awg, is not relevant for AWG520 since it
         has no waveform list
-        '''
+        """
         pass
 
     def send_sequence(self, wfs, rep, wait, goto, logic_jump, filename):
-        '''
+        """
         Sends a sequence file (for the moment only for ch1)
 
         Args:
@@ -583,7 +583,7 @@ class Tektronix_AWG520(VisaInstrument):
         Returs:
 
             None
-        '''
+        """
         logging.debug(__name__ + ' : Sending sequence %s to instrument' % filename)
         N = str(len(rep))
         try:
@@ -613,7 +613,7 @@ class Tektronix_AWG520(VisaInstrument):
         self.visa_handle.write(mes)
 
     def send_sequence2(self,wfs1,wfs2,rep,wait,goto,logic_jump,filename):
-        '''
+        """
         Sends a sequence file
 
         Args:
@@ -627,7 +627,7 @@ class Tektronix_AWG520(VisaInstrument):
 
         Returns:
             None
-        '''
+        """
         logging.debug(__name__ + ' : Sending sequence %s to instrument' % filename)
 
 
@@ -649,18 +649,17 @@ class Tektronix_AWG520(VisaInstrument):
         self.visa_handle.write(mes)
 
     def set_sequence(self,filename):
-        '''
+        """
         loads a sequence file on all channels.
         Waveforms/patterns to be executed on respective channel
         must be defined inside the sequence file itself
         make sure to send all waveforms before setting a seq
-        '''
+        """
         self.visa_handle.write('SOUR%s:FUNC:USER "%s","MAIN"' % (1, filename))
 
     def load_and_set_sequence(self,wfs,rep,wait,goto,logic_jump,filename):
-        '''
+        """
         Loads and sets the awg sequecne
-        '''
+        """
         self.send_sequence(wfs,rep,wait,goto,logic_jump,filename)
         self.set_sequence(filename)
-
