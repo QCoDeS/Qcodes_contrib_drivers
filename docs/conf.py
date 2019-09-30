@@ -103,7 +103,8 @@ nbsphinx_execute = 'always'
 # there when generating the docs
 autodoc_mock_imports = ['spirack',
                         'pyspcm',
-                        'keysightSD1']
+                        'keysightSD1',
+                        'zhinst']
 
 # we allow most types from the typing modules to be used in
 # docstrings even if they don't resolve
