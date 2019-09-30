@@ -109,6 +109,7 @@ autodoc_mock_imports = ['spirack',
 # we allow most types from the typing modules to be used in
 # docstrings even if they don't resolve
 nitpick_ignore = [('py:class', 'Optional'),
+                  ('py:class', 'Dict'),
                   ('py:class', 'Union'),
                   ('py:class', 'Any'),
                   ('py:class', 'Tuple'),
