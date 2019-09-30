@@ -3,8 +3,8 @@ import unittest
 from unittest.mock import MagicMock, call
 
 sys.modules['spirack'] = MagicMock(name='spirack')
-from spirack import M2j_module, SPI_rack
-from qcodes.instrument_drivers.QuTech.M2j import M2j
+from spirack import SPI_rack
+from qcodes_contrib_drivers.drivers.QuTech.M2j import M2j
 
 
 class TestM2j(unittest.TestCase):
