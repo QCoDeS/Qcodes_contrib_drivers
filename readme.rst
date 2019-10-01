@@ -26,17 +26,17 @@ Install the contrib drivers with ``pip``
 Contributing
 ############
 
-How to contribute a driver:
-
-This repository is open for contribution of new drivers. Each driver should
+This repository is open for contribution of new drivers, 
+as well as improvements to existing drivers. Each driver should
 contain an implementation of the driver and a Jupyter notebook showing how the
-drivers should be used. In addition we strongly encourage writing tests for the drivers.
+driver should be used. In addition we strongly encourage writing tests for the drivers.
 An introduction for writing tests with PyVISA-sim can be found in the QCoDeS documentation linked
 below.
 
-Drivers are expected to be added to ``qcodes_contrib_drivers/drivers/MakeofInstrument/`` folder
+Drivers are expected to be added to ``qcodes_contrib_drivers/drivers/MakerOfInstrument/`` folder
 while examples should be added to the ``docs/examples`` folder and tests placed in the
-``qcodes_contrib_drivers/tests`` folder.
+``qcodes_contrib_drivers/tests/MakerOfInstrument`` folder. Please follow naming conventions for
+consistency.
 
 For general information about writing drivers and how to write tests refer to the `QCoDeS documentation <http://qcodes.github.io/Qcodes/>`_.
 Especially the examples `here <https://qcodes.github.io/Qcodes/examples/index.html#writing-drivers>`__
