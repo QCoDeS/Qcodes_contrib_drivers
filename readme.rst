@@ -24,7 +24,7 @@ Install the contrib drivers with ``pip``
   pip install qcodes_contrib_drivers
 
 Contributing
-************
+############
 
 How to contribute a driver:
 
