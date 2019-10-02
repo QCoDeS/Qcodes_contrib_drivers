@@ -26,8 +26,8 @@ def c_str(s: str): return bytes(s, "ascii")
 class AttributeWrapper(object):
     """
     Struct to associate a data type to a numeric constant (i.e. attribute)
-    defined in a NI DLL library. `dtype` should be one of the types defined in
-    the `visa_types` module. Here, `value` means the same as the attributeID in
+    defined in a NI DLL library. ``dtype`` should be one of the types defined in
+    the ``visa_types`` module. Here, ``value`` means the same as the attributeID in
     the DLL documentation.
     """
     value: ViAttr
@@ -49,13 +49,13 @@ class NIDLLWrapper(object):
     common library functions such as libName_error_message, libName_init/close
     and libName_GetAttribute, (e.g. niRFSG_init or niSync_init). Other
     functions should be wrapped by a library-specific class by calling
-    wrap_dll_function_checked.
+    ``wrap_dll_function_checked``.
 
     Args:
         dll_path: path to the DLL file containing the library
         lib_prefix: All function names in the library start with this. For
             example, for NI-RFSG, where function names are of the form
-            niRFSG_name, `lib_prefix` should be 'niRFSG'
+            niRFSG_FunctionName, so ``lib_prefix`` should be 'niRFSG'.
     """
 
     def __init__(self, dll_path: str, lib_prefix: str):
@@ -75,7 +75,8 @@ class NIDLLWrapper(object):
         # standard functions that are the same in all libraries
         self.wrap_dll_function(name_in_library="error_message",
                                # note special name, self.error_message is a
-                               # convenience wrapper around this
+                               # convenience wrapper around this with a
+                               # different signature
                                name="_error_message",
                                argtypes=[
                                    NamedArgType("vi", ViSession),
@@ -85,7 +86,8 @@ class NIDLLWrapper(object):
                                ])
 
         self.wrap_dll_function_checked(name_in_library="init",
-                                       # this is wrapped in self.init
+                                       # this is wrapped in self.init with a
+                                       # different signature
                                        name="_init",
                                        argtypes=[
                                            NamedArgType("resourceName",
@@ -138,12 +140,12 @@ class NIDLLWrapper(object):
             name_in_library: The name of the function in the library (e.g.
                 "niRFSG_init", or without the prefix, just "init")
             name: The name of the method that will be registered. For example,
-                if `name = "func"`, you can then call `NI_RFSG.func()`. If
-                None, `name_in_library` will be used instead.
-            argtypes: list of NamedArgType containing the names and types
-                of the arguments of the function
+                if ``name = "func"``, you can then call ``self.func()``. If
+                None, ``name_in_library`` will be used instead.
+            argtypes: list of ``NamedArgType`` containing the names and types
+                of the arguments of the function to be wrapped.
             restype: The return type of the library function (most likely
-                ViStatus)
+                ViStatus).
         """
         name, func = self._wrap_c_func_attributes(
                          name_in_library=name_in_library,
@@ -158,12 +160,12 @@ class NIDLLWrapper(object):
                                   argtypes: List[NamedArgType],
                                   name: Optional[str] = None) -> None:
         """
-        Same as `wrap_dll_function`, but check the return value and raise an
+        Same as ``wrap_dll_function``, but check the return value and raise an
         exception if the return value indicates an error or warn if it's a
-        warning. Calls `self.error_message`, which must be initialized with
-        `wrap_dll_function` before this function can be used. The arguments are
-        the same as for `wrap_dll_function`, except that `restype` is always
-        `ViStatus`.
+        warning. Calls ``self.error_message``, which must be initialized with
+        ``wrap_dll_function`` before this method can be used. The arguments are
+        the same as for ``wrap_dll_function``, except that ``restype`` is
+        always ``ViStatus``.
         """
         if not getattr(self, "error_message"):
             raise RuntimeError(("wrap_dll_function_checked: self.error_message"
@@ -200,7 +202,8 @@ class NIDLLWrapper(object):
                                 restype: Any,
                                 name: Optional[str] = None) -> (str, Callable):
         """
-        Helper method for `wrap_dll_function` and `wrap_dll_function_checked.`
+        Helper method for ``wrap_dll_function`` and
+        ``wrap_dll_function_checked``.
         """
 
         if name is None:
@@ -240,8 +243,8 @@ class NIDLLWrapper(object):
 
     def get_attribute(self, session: ViSession, attr: AttributeWrapper) -> Any:
         """
-        Map an attribute with data type DataType to the appropriate
-        "libName_GetAttributeDataType" function (for example
+        Get an attribute with data type "DataType" by calling the appropriate
+        "libName_GetAttribute<DataType>" function (for example
         niRFSG_GetAttributeViReal64 when lib_prefix is niRFSG and attr.dtype is
         ViReal64).
 
@@ -268,8 +271,8 @@ class NIDLLWrapper(object):
     def error_message(self, session: Optional[ViSession] = None,
                       error_code: ViStatus = 0):
         """
-        Convenience wrapper around libName_error_message (which is registered
-        as self._error_message).
+        Convenience wrapper around libName_error_message (which is wrapped as
+        self._error_message).
         """
         buf = ctypes.create_string_buffer(STRING_BUFFER_SIZE)
         self._error_message(session or VI_NULL, error_code, buf)
