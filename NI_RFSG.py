@@ -9,9 +9,14 @@ from .dll_wrapper import AttributeWrapper, NamedArgType
 from .ni_dll_instrument import NIDLLInstrument
 
 # constants used for querying attributes
-#NIRFSG_ATTR_SERIAL_NUMBER = AttributeWrapper(ViAttr(1150026), ViString) # doesn't work
-NIRFSG_ATTR_FREQUENCY     = AttributeWrapper(ViAttr(1250001), ViReal64)
-NIRFSG_ATTR_POWER_LEVEL   = AttributeWrapper(ViAttr(1250002), ViReal64)
+NIRFSG_ATTR_INSTRUMENT_FIRMWARE_REVISION = AttributeWrapper(ViAttr(1050510), ViString)
+NIRFSG_ATTR_INSTRUMENT_MANUFACTURER      = AttributeWrapper(ViAttr(1050511), ViString)
+NIRFSG_ATTR_INSTRUMENT_MODEL             = AttributeWrapper(ViAttr(1050512), ViString)
+NIRFSG_ATTR_SPECIFIC_DRIVER_VENDOR       = AttributeWrapper(ViAttr(1050513), ViString)
+NIRFSG_ATTR_SPECIFIC_DRIVER_REVISION     = AttributeWrapper(ViAttr(1050551), ViString)
+NIRFSG_ATTR_SERIAL_NUMBER                = AttributeWrapper(ViAttr(1150026), ViString)
+NIRFSG_ATTR_FREQUENCY                    = AttributeWrapper(ViAttr(1250001), ViReal64)
+NIRFSG_ATTR_POWER_LEVEL                  = AttributeWrapper(ViAttr(1250002), ViReal64)
 
 logger = logging.getLogger(__name__)
 
