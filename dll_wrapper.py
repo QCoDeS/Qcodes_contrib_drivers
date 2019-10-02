@@ -7,7 +7,7 @@ https://github.com/ni/nimi-python/blob/master/generated/nitclk/_library.py).
 
 import ctypes
 from ctypes import POINTER
-from typing import Optional, List, Any, Callable
+from typing import NamedTuple, Optional, List, Any, Callable
 import warnings
 from dataclasses import dataclass
 from .visa_types import (
@@ -34,8 +34,7 @@ class AttributeWrapper(object):
     dtype: Any
 
 
-@dataclass
-class NamedArgType:
+class NamedArgType(NamedTuple):
     """
     Struct for associating a name with an argument type for DLL functions.
     """
