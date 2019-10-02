@@ -9,6 +9,7 @@ import ctypes
 from ctypes import POINTER
 from typing import Optional, List, Any, Callable
 import warnings
+from dataclasses import dataclass
 from .visa_types import (
     ViChar, ViStatus, ViRsrc, ViInt32, ViString, ViSession, ViBoolean, ViAttr,
     ViChar, ViReal64, VI_NULL
@@ -21,24 +22,25 @@ STRING_BUFFER_SIZE = 257
 def c_str(s: str): return bytes(s, "ascii")
 
 
+@dataclass
 class AttributeWrapper(object):
     """
-    Struct to associate a data type to a numeric constant defined in a library.
-    `dtype` should be one of the types defined in visa_types.
-    The value means the same as the attributeID.
+    Struct to associate a data type to a numeric constant (i.e. attribute)
+    defined in a NI DLL library. `dtype` should be one of the types defined in
+    the `visa_types` module. Here, `value` means the same as the attributeID in
+    the DLL documentation.
     """
-    def __init__(self, value: ViAttr, dtype: Any):
-        self.value = value
-        self.dtype = dtype
+    value: ViAttr
+    dtype: Any
 
 
+@dataclass
 class NamedArgType:
     """
-    Struct for associating a name with an argument type.
+    Struct for associating a name with an argument type for DLL functions.
     """
-    def __init__(self, name: str, argtype: Any):
-        self.name = name
-        self.argtype = argtype
+    name: str
+    argtype: Any
 
 
 class NIDLLWrapper(object):
