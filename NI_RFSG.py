@@ -141,9 +141,29 @@ class NationalInstruments_RFSG(NIDLLInstrument):
         frequency = self.get_attribute(NIRFSG_ATTR_FREQUENCY)
         self.ConfigureRF(frequency, power_level, initiate)
 
-    #def ask(self, cmd: str) -> str:
-    #    #TODO: IDN
-    #    pass
+    @property
+    def vendor(self):
+        return self.get_attribute(NIRFSG_ATTR_SPECIFIC_DRIVER_VENDOR)
+
+    @property
+    def model(self):
+        return self.get_attribute(NIRFSG_ATTR_INSTRUMENT_MODEL)
+
+    @property
+    def serial(self):
+        return self.get_attribute(NIRFSG_ATTR_SERIAL_NUMBER)
+
+    @property
+    def firmware(self):
+        return self.get_attribute(NIRFSG_ATTR_INSTRUMENT_FIRMWARE_REVISION)
+
+    def get_idn(self):
+        return {
+                "vendor": self.vendor,
+                "model": self.model,
+                "serial": self.serial,
+                "firmware": self.firmware
+        }
 
 # class NationalInstruments_RFSG
 
