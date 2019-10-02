@@ -19,7 +19,7 @@ from .visa_types import (
 STRING_BUFFER_SIZE = 257
 
 
-def c_str(s: str): return bytes(s, "ascii")
+def c_str(s: str) -> bytes: return bytes(s, "ascii")
 
 
 @dataclass
@@ -212,7 +212,7 @@ class NIDLLWrapper(object):
         if not name_in_library.startswith(self._lib_prefix):
             name_in_library = f"{self._lib_prefix}_{name_in_library}"
 
-        # TODO: lock? (see nimi-python link at top of file)
+        # TODO( mgunyho ): thread lock? (see nimi-python link at top of file)
         func = getattr(self._dll, name_in_library)
         func.restype = restype
         func.argtypes = [a.argtype for a in argtypes]
@@ -269,7 +269,7 @@ class NIDLLWrapper(object):
         return ret
 
     def error_message(self, session: Optional[ViSession] = None,
-                      error_code: ViStatus = 0):
+                      error_code: ViStatus = 0) -> str:
         """
         Convenience wrapper around libName_error_message (which is wrapped as
         self._error_message).
