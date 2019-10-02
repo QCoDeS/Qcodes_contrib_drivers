@@ -69,7 +69,7 @@ class NIDLLWrapper(object):
                 ViBoolean: "ViBoolean",
                 ViInt32: "ViInt32",
                 ViReal64: "ViReal64",
-                #ViString: "ViString", # strings not implemented
+                ViString: "ViString"
         }
 
         # standard functions that are the same in all libraries
@@ -108,19 +108,24 @@ class NIDLLWrapper(object):
                                        ])
 
         for dtype, dtype_name in self._dtype_map.items():
+            # wrap GetAttribute<DataType> functions (see get_attribute method)
+
+            argtypes = [
+                    NamedArgType("vi", ViSession),
+                    NamedArgType("channelName", ViString),
+                    NamedArgType("attributeID", ViAttr),
+                    NamedArgType("attributeValue", POINTER(dtype))
+            ]
+
             if dtype == ViString:
-                continue
+                # replace last argument
+                argtypes.pop()
+                argtypes.append(NamedArgType("bufferSize", ViInt32))
+                # ViString is already a pointer, so no POINTER() here
+                argtypes.append(NamedArgType("attributeValue", dtype))
 
             self.wrap_dll_function_checked(f"GetAttribute{dtype_name}",
-                                           argtypes=[
-                                               NamedArgType("vi", ViSession),
-                                               NamedArgType("channelName",
-                                                            ViString),
-                                               NamedArgType("attributeID",
-                                                            ViAttr),
-                                               NamedArgType("attributeValue",
-                                                            POINTER(dtype))
-                                           ])
+                                           argtypes=argtypes)
 
     def wrap_dll_function(self, name_in_library: str,
                           argtypes: List[NamedArgType],
@@ -248,9 +253,17 @@ class NIDLLWrapper(object):
 
         dtype_name = self._dtype_map[dtype]
         func = getattr(self, f"GetAttribute{dtype_name}")
-        res = dtype()
-        func(session, b"", attr.value, ctypes.byref(res))
-        return res.value
+
+        if dtype == ViString:
+            res = ctypes.create_string_buffer(STRING_BUFFER_SIZE)
+            func(session, b"", attr.value, STRING_BUFFER_SIZE, res)
+            ret = res.value.decode()
+        else:
+            res = dtype()
+            func(session, b"", attr.value, ctypes.byref(res))
+            ret = res.value
+
+        return ret
 
     def error_message(self, session: Optional[ViSession] = None,
                       error_code: ViStatus = 0):
