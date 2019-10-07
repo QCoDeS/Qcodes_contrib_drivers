@@ -98,6 +98,7 @@ class NationalInstruments_RFSG(NIDLLInstrument):
                                            NIRFSG_ATTR_POWER_LEVEL),
                            set_cmd=self.set_power_level,
                            )
+        self.connect_message()
 
     def initiate(self):
         """
