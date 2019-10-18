@@ -130,8 +130,8 @@ jobs:
           source activate qcodes
           python setup.py bdist_wheel
           python setup.py sdist
-          condition: and(succeeded(), eq( variables['Agent.OS'], 'Linux' ))
-          displayName: "Build dist artifacts"
+        condition: and(succeeded(), eq( variables['Agent.OS'], 'Linux' ))
+        displayName: "Build dist artifacts"
       - script: |
           source activate qcodes
           twine upload -r "qcodes_contrib_drivers_release" --config-file $(PYPIRC_PATH) dist/*
