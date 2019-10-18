@@ -118,7 +118,7 @@ jobs:
           cd ..
           git config --global user.email "bot"
           git config --global user.name "Documentation Bot"
-          git clone --single-branch --branch gh-pages git@github.com:QCoDeS/Qcodes_contrib_drivers.git gh-pages
+          git clone --single-branch --branch gh-pages git@github.com:QCoDeS/Qcodes_contrib_drivers.git gh-pages-dir
           cd gh-pages-dir &&
           rm -rf ./*
           cp $(Build.Repository.LocalPath)/docs/_build/html/. . -R
