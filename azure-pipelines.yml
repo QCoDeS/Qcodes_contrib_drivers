@@ -30,7 +30,7 @@ jobs:
         inputs:
           knownHostsEntry: "github.com,140.82.118.4 ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAq2A7hRGmdnm9tUDbO9IDSwBK6TbQa+PXYPCPy6rbTrTtw7PHkccKrpp0yVhp5HdEIcKr6pLlVDBfOLX9QUsyCOV0wzfjIJNlGEYsdlLJizHhbn2mUjvSAHQqZETYP81eFzLQNnPHt4EVVUh7VfDESU84KezmD5QlWpXLmvU31/yMf+Se8xhHTvKSCZIFImWwoG6mbUoWf9nzpIoaSjB+weqqUUmpaaasXVal72J+UX2B+2RPW3RcT0eOzQgqlJL3RKrTJvdsjE3JEAvGq3lGHSZXy28G3skua2SmVi/w4yCE6gbODqnTWlg7+wC604ydGXA8VJiS5ap43JXiUFFAaQ=="
           sshPublicKey: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC4CueNb+B4aQ9owhu09E1/B4sGgfdZFyGFLwNl7Ye4vXVWhpDdCNLS3lux66xDz0LkVKPeStXSTZ6+NqeLwP2q/9ZP1n7lkoUrzVV2AXVRYv9rD7YYglXQK22oEheeUBzhJUj8Xx5o40clmgnHq5VF5B9W7Hy+/bkhE2Q0xnRVxOq1KnJUttkRHqXy6OY9Ll1XzVNtN61d0Q4LBQNXEyLWrNgT74ThxLv+ckk+nuPs8S869OLoCijnYCy6FzgwcyicYk+FuGhBcW7Sy7W9cGLzbwQZh0efkTlc54FH9PCI2PmI6SaY7oejb4BTmiGBwrkFHQpSlieoreFrDFC1nBJLyfLNu8J8ZqnpBahC3eiU5qxFUmMJzYCykrGw+UBfPPbdPjCHs/b+q4Glsttgg4YP1pbVvAWJK8MiNmAisG5+YFCm2b3jNjVbuJKnZOD4NummrBCawjNsI/nr+ff5rDtycQ1rVl0vgYpfVzzFvI+OUdUjJQOfHvzXS0ZlQ8JGMm1RGPt90Ht2fX0/GWA93Tm64ortJ4rnI4ZOkBUiyS1DSYUgDDi19SvSjDdjurM+TvTTpk2a1cZgsJCW+8E8il9SZRamc+mawP+CYxWDkJ8w1rezt6xdiVyhvRqZJo7WTgyVwTB11PWHlGbiqT6/lFN8dB+xY/Cl89IdWLOnHZfEBw== deploybot"
-          sshKeySecureFile: 'ghpagesdeploykey'
+          sshKeySecureFile: 'ghdocskey'
       - powershell: Write-Host "##vso[task.prependpath]$env:CONDA\Scripts"
         displayName: "Add conda to PATH on Windows"
         condition: eq( variables['Agent.OS'], 'Windows_NT' )
