@@ -129,7 +129,7 @@ jobs:
         condition: and(succeeded(), eq( variables['Agent.OS'], 'Linux' ), eq(variables['Build.SourceBranch'], 'refs/heads/master'), eq(variables['Build.Reason'], 'IndividualCI'))
       - task: TwineAuthenticate@1
         inputs:
-          pythonUploadServiceConnection: pypiupload
+          pythonUploadServiceConnection: qcodes_contrib_drivers_upload
       - script: |
           source activate qcodes
           python setup.py bdist_wheel
