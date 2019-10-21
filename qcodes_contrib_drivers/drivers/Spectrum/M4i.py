@@ -782,8 +782,8 @@ class M4i(Instrument):
         self.posttrigger_memory_size(posttrigger_size)
         numch = self._num_channels()
 
-        self.general_command(pyspcm.M2CMD_CARD_START |
-                             pyspcm.M2CMD_CARD_ENABLETRIGGER | pyspcm.M2CMD_CARD_WAITREADY)
+        self.general_command(pyspcm.M2CMD_CARD_START | pyspcm.M2CMD_CARD_ENABLETRIGGER)
+        self.wait_ready()
 
         # convert transfer data to numpy array
         output = self._transfer_buffer_numpy(
@@ -873,7 +873,8 @@ class M4i(Instrument):
         numch = trace['numch']
         mV_range = trace['mV_range']
 
-        self.general_command(pyspcm.M2CMD_CARD_WAITREADY)
+        self.wait_ready()
+
         output = self._transfer_buffer_numpy(memsize, numch)
         self._stop_acquisition()
 
@@ -900,8 +901,8 @@ class M4i(Instrument):
         self.posttrigger_memory_size(posttrigger_size)
         numch = self._num_channels()
 
-        self.general_command(pyspcm.M2CMD_CARD_START |
-                             pyspcm.M2CMD_CARD_ENABLETRIGGER | pyspcm.M2CMD_CARD_WAITREADY)
+        self.general_command(pyspcm.M2CMD_CARD_START | pyspcm.M2CMD_CARD_ENABLETRIGGER)
+        self.wait_ready()
 
         output = self._transfer_buffer_numpy(memsize, numch)
         self._stop_acquisition()
@@ -924,8 +925,8 @@ class M4i(Instrument):
         self.posttrigger_memory_size(posttrigger_size)
         numch = self._num_channels()
 
-        self.general_command(pyspcm.M2CMD_CARD_START |
-                             pyspcm.M2CMD_CARD_ENABLETRIGGER | pyspcm.M2CMD_CARD_WAITREADY)
+        self.general_command(pyspcm.M2CMD_CARD_START | pyspcm.M2CMD_CARD_ENABLETRIGGER )
+        self.wait_ready()
 
         output = self._transfer_buffer_numpy(memsize, numch)
 
@@ -953,8 +954,8 @@ class M4i(Instrument):
         numch = self._num_channels()
 
         self.trigger_or_mask(pyspcm.SPC_TMASK_SOFTWARE)
-        self.general_command(pyspcm.M2CMD_CARD_START |
-                             pyspcm.M2CMD_CARD_ENABLETRIGGER | pyspcm.M2CMD_CARD_WAITREADY)
+        self.general_command(pyspcm.M2CMD_CARD_START | pyspcm.M2CMD_CARD_ENABLETRIGGER)
+        self.wait_ready()
 
         output = self._transfer_buffer_numpy(
             memsize, numch, bytes_per_sample=4)
@@ -983,8 +984,8 @@ class M4i(Instrument):
 
         # start/enable trigger/wait ready
         self.trigger_or_mask(pyspcm.SPC_TMASK_SOFTWARE)  # software trigger
-        self.general_command(pyspcm.M2CMD_CARD_START |
-                             pyspcm.M2CMD_CARD_ENABLETRIGGER | pyspcm.M2CMD_CARD_WAITREADY)
+        self.general_command(pyspcm.M2CMD_CARD_START | pyspcm.M2CMD_CARD_ENABLETRIGGER)
+        self.wait_ready()
 
         output = self._transfer_buffer_numpy(memsize, numch)
         self._stop_acquisition()
@@ -1007,6 +1008,14 @@ class M4i(Instrument):
         """ Return number of channels that is enabled """
         return bin(self.enable_channels()).count("1")
 
+    def wait_ready(self) -> int:
+        """  Wait for the M4i card to be ready using M2CMD_CARD_WAITREADY
+        Returns:
+               Return code of the M4i general command used to wait for the card to be ready
+        """
+        command_result = pyspcm.spcm_dwSetParam_i32(self.hCard, pyspcm.SPC_M2CMD, int(pyspcm.M2CMD_CARD_WAITREADY))
+        return command_result
+    
     def blockavg_hardware_trigger_acquisition(self, mV_range, nr_averages=10,
                                               verbose=0, post_trigger=None):
         """ Acquire data using block averaging and hardware triggering
@@ -1056,8 +1065,8 @@ class M4i(Instrument):
 
         self.external_trigger_mode(pyspcm.SPC_TM_POS)
         self.trigger_or_mask(pyspcm.SPC_TMASK_EXT0)
-        self.general_command(pyspcm.M2CMD_CARD_START |
-                             pyspcm.M2CMD_CARD_ENABLETRIGGER | pyspcm.M2CMD_CARD_WAITREADY)
+        self.general_command(pyspcm.M2CMD_CARD_START | pyspcm.M2CMD_CARD_ENABLETRIGGER)
+        self.wait_ready()
 
         output = self._transfer_buffer_numpy(memsize, numch, bytes_per_sample=4) / nr_averages
 
