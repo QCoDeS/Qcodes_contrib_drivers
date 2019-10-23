@@ -54,7 +54,7 @@ class SIM928(VisaInstrument):
                                      "{}".format(module_name),
                                vals=vals.Numbers(-20, 20),
                                get_cmd=partial(self.get_voltage, i),
-                               set_cmd=partial(self.set_voltage, i))
+                               set_cmd=partial(self._set_voltage, i))
             self.add_parameter('volt_{}_step'.format(module_name), unit='V',
                                label="Step size when changing the voltage "
                                      "smoothly on module "
@@ -160,8 +160,17 @@ class SIM928(VisaInstrument):
             i = self.module_nr[i]
         else:
             name = self.slot_names.get(i, i)
+        self.parameters['volt_{}'.format(name)].set(voltage)
+
+    def _set_voltage(self, i, voltage):
+        """
+        Set the output voltage of a module.
+
+        Args:
+            i (int): Slot number of the module to set the voltage of.
+            voltage (float): The value to set the voltage to.
+        """
         self.write_module(i, 'VOLT {:.3f}'.format(voltage))
-        self.parameters['volt_{}'.format(name)]._save_val(voltage)
 
     def get_voltage(self, i):
         """
