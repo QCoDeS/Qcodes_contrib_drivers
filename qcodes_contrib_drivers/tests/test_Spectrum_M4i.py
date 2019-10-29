@@ -19,5 +19,3 @@ class TestM2j(unittest.TestCase):
             m4i.wait_ready()
             mock_pyspcm_module.spcm_dwSetParam_i32.assert_called()
             m4i.close()
-
-
