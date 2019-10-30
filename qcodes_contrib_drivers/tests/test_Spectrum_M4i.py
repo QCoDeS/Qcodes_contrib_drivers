@@ -14,7 +14,7 @@ class TestM2j(unittest.TestCase):
             import qcodes_contrib_drivers.drivers.Spectrum.M4i
             m4i = qcodes_contrib_drivers.drivers.Spectrum.M4i.M4i('test_m4i_instrument')
             self.addCleanup(qcodes_contrib_drivers.drivers.Spectrum.M4i.M4i.close_all)
-    
+
             m4i.sample_rate()
             self.mock_pyspcm_module.int32.assert_called()
             m4i.wait_ready()
