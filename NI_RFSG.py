@@ -193,3 +193,8 @@ class PXIe_5654(NI_RFSG):
         # device-specific parameter limits
         self.frequency.vals = Numbers(250e3, 20e9)
         self.power_level.vals = Numbers(-7, 15)
+
+        # check for amplitude extender and update power level limits accordingly
+        model = self.IDN()["model"]
+        if "PXIe-5696" in model:
+            self.power_level.vals = Numbers(-110, 24)
