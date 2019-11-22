@@ -61,6 +61,9 @@ class NIDLLInstrument(Instrument):
     def get_attribute(self, attr: AttributeWrapper) -> Any:
         return self.wrapper.get_attribute(self._handle, attr)
 
+    def set_attribute(self, attr: AttributeWrapper, set_value: Any):
+        self.wrapper.set_attribute(self._handle, attr, set_value)
+
     def close(self):
         if getattr(self, "_handle", None):
             self.wrapper.close(self._handle)

@@ -118,16 +118,20 @@ class NIDLLWrapper(object):
                     NamedArgType("attributeID", ViAttr),
                     NamedArgType("attributeValue", POINTER(dtype))
             ]
-
             if dtype == ViString:
                 # replace last argument
                 argtypes.pop()
                 argtypes.append(NamedArgType("bufferSize", ViInt32))
                 # ViString is already a pointer, so no POINTER() here
                 argtypes.append(NamedArgType("attributeValue", dtype))
-
+                
             self.wrap_dll_function_checked(f"GetAttribute{dtype_name}",
                                            argtypes=argtypes)
+                                           
+            set_argtypes = argtypes.copy()
+            set_argtypes[-1] = NamedArgType("attributeValue", dtype)
+            self.wrap_dll_function_checked(f"SetAttribute{dtype_name}",
+                                           argtypes=set_argtypes)
 
     def wrap_dll_function(self, name_in_library: str,
                           argtypes: List[NamedArgType],
@@ -267,6 +271,30 @@ class NIDLLWrapper(object):
             ret = res.value
 
         return ret
+        
+    def set_attribute(self, session: ViSession, attr: AttributeWrapper, set_value: Any) -> Any:
+        """
+        Set an attribute with data type "DataType" by calling the appropriate
+        "libName_SetAttribute<DataType>" function (for example
+        niRFSG_SetAttributeViReal64 when lib_prefix is niRFSG and attr.dtype is
+        ViReal64).
+
+        NOTE: channels are not implemented.
+        """
+        dtype = attr.dtype
+        if dtype not in self._dtype_map:
+            raise ValueError(f"set_attribute() not implemented for {dtype}")
+
+        dtype_name = self._dtype_map[dtype]
+        func = getattr(self, f"SetAttribute{dtype_name}")
+
+        if dtype == ViString:
+            res = ctypes.create_string_buffer(STRING_BUFFER_SIZE)
+            func(session, b"", attr.value, STRING_BUFFER_SIZE, res)
+            ret = res.value.decode()
+        else:
+            res = dtype()
+            func(session, b"", attr.value, set_value)
 
     def error_message(self, session: Optional[ViSession] = None,
                       error_code: ViStatus = 0) -> str:

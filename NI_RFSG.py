@@ -3,8 +3,9 @@ from typing import Optional, List, Any
 from functools import partial
 
 from qcodes.utils.validators import Numbers
+from qcodes.utils.helpers import create_on_off_val_mapping
 
-from .visa_types import ViChar, ViString, ViAttr, ViSession, ViReal64
+from .visa_types import ViChar, ViString, ViAttr, ViSession, ViReal64, ViBoolean
 from .dll_wrapper import AttributeWrapper, NamedArgType
 from .ni_dll_instrument import NIDLLInstrument
 
@@ -17,6 +18,7 @@ NIRFSG_ATTR_SPECIFIC_DRIVER_REVISION     = AttributeWrapper(ViAttr(1050551), ViS
 NIRFSG_ATTR_SERIAL_NUMBER                = AttributeWrapper(ViAttr(1150026), ViString)
 NIRFSG_ATTR_FREQUENCY                    = AttributeWrapper(ViAttr(1250001), ViReal64)
 NIRFSG_ATTR_POWER_LEVEL                  = AttributeWrapper(ViAttr(1250002), ViReal64)
+NIRFSG_ATTR_OUTPUT_ENABLED               = AttributeWrapper(ViAttr(1250004), ViBoolean)
 
 logger = logging.getLogger(__name__)
 
@@ -98,6 +100,17 @@ class NationalInstruments_RFSG(NIDLLInstrument):
                                            NIRFSG_ATTR_POWER_LEVEL),
                            set_cmd=self.set_power_level,
                            )
+                           
+        self.add_parameter(name="output_on",
+                           label="Output enabled",
+                           get_cmd=partial(self.get_attribute,
+                                           NIRFSG_ATTR_OUTPUT_ENABLED),
+                           set_cmd=partial(self.set_attribute,
+                                           NIRFSG_ATTR_OUTPUT_ENABLED),
+                           val_mapping=create_on_off_val_mapping(on_val=True, off_val=False),
+                           initial_value=False,
+                           )
+        self.initiate()
         self.connect_message()
 
     def initiate(self):
