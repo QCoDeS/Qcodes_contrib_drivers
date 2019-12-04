@@ -113,19 +113,6 @@ class NationalInstruments_RFSG(NIDLLInstrument):
         self.initiate()
         self.connect_message()
 
-    def output_on(self, enable: bool):
-        """
-        Enable or disable signal generation. This is a convenience function that
-        is called as if to set a Qcodes parameter.
-        This allows using the RFSG driver in places where other
-        signal generators would have an actual parameter `output_on`. 
-        The output state cannot be queried from the instrument, however.
-        """
-        if enable:
-            self.initiate()
-        else:
-            self.abort()    
-
     def initiate(self):
         """
         Initiate signal generation. This causes the NI-RFSG device to leave
