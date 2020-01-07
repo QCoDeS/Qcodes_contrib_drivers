@@ -1,7 +1,10 @@
+import os
+if os.name != 'nt':
+    raise ImportError("The \"Shamrock SR750\" driver is only compatible with Microsoft Windows")
+
 from qcodes import Instrument
 from qcodes.utils.validators import Ints, Numbers
 import ctypes
-import os
 import logging
 from typing import Optional
 
@@ -21,7 +24,6 @@ class ShamrockCIF:
     Attributes:
         verbose: Flag for the verbose behaviour.
         dll: WinDLL object for ShamrockCIF.dll.
-
     """
 
     # default dll path
