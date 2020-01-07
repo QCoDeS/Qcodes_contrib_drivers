@@ -1,10 +1,7 @@
-import os
-if os.name != 'nt':
-    raise ImportError("The \"Shamrock SR750\" driver is only compatible with Microsoft Windows")
-
 from qcodes import Instrument
 from qcodes.utils.validators import Ints, Numbers
 import ctypes
+import os
 import logging
 from typing import Optional
 
@@ -43,6 +40,8 @@ class ShamrockCIF:
     }
 
     def __init__(self, dll_path: Optional[str] = None, verbose: bool = False):
+        if os.name != 'nt':
+            raise ImportError("\"ShamrockCIF\" is only compatible with Microsoft Windows")
 
         # save attributes
         self.verbose: bool = verbose
@@ -51,7 +50,7 @@ class ShamrockCIF:
         current_path = os.getcwd()
         try:
             os.chdir(os.path.dirname(self._dll_path))
-            self.dll: ctypes.WinDLL = ctypes.windll.LoadLibrary(dll_path or self._dll_path)
+            self.dll: ctypes.WinDLL = ctypes.windll.LoadLibrary(dll_path or self._dll_path)  #  type: ignore
         finally:
             os.chdir(current_path)
 
