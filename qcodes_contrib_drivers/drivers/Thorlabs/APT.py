@@ -1,17 +1,20 @@
 import ctypes
+from typing import Optional
 
 
 class Thorlabs_APT:
     """
     Wrapper class for the APT.dll Thorlabs APT Server library.
     The class has been tested for a Thorlabs MFF10x mirror flipper and a Thorlabs PRM1Z8 Polarizer Wheel.
+
     Args:
-        dll_path (str): Path to the APT.dll file. If not set, a default path is used.
-        verbose (bool): Flag for the verbose behaviour. If true, successful events are printed.
-        event_dialog (bool): Flag for the event dialog. If true, event dialog pops up for information.
+        dll_path: Path to the APT.dll file. If not set, a default path is used.
+        verbose: Flag for the verbose behaviour. If true, successful events are printed.
+        event_dialog: Flag for the event dialog. If true, event dialog pops up for information.
+
     Attributes:
-        verbose (bool): Flag for the verbose behaviour.
-        dll (WinDLL): WinDLL object for APT.dll.
+        verbose: Flag for the verbose behaviour.
+        dll: WinDLL object for APT.dll.
     """
 
     # default dll path
@@ -19,9 +22,8 @@ class Thorlabs_APT:
 
     # success and error codes
     _success_code = 0
-    _error_codes = {}
 
-    def __init__(self, dll_path=None, verbose=False, event_dialog=False):
+    def __init__(self, dll_path: Optional[str] = None, verbose: bool = False, event_dialog: bool = False):
 
         # save attributes
         self.verbose = verbose
@@ -37,9 +39,6 @@ class Thorlabs_APT:
         if code == self._success_code:
             if self.verbose:
                 print("APT: [%s]: %s" % (function_name, 'OK - no error'))
-        elif code in self._error_codes.keys():
-            print("APT: [%s]: %s" % (function_name, self._error_codes[code]))
-            raise Exception(self._error_codes[code])
         else:
             print("APT: [%s]: Unknown code: %s" % (function_name, code))
             raise Exception()
@@ -64,7 +63,7 @@ class Thorlabs_APT:
         c_sz_hw_notes = ctypes.create_string_buffer(64)
         code = self.dll.GetHWInfo(c_serial_number, c_sz_model, 64, c_sz_sw_ver, 64, c_sz_hw_notes, 64)
         self.error_check(code, 'GetHWInfo')
-        return c_sz_model.value, c_sz_sw_ver.value, c_sz_hw_notes.value
+        return c_sz_model.value.decode('utf-8'), c_sz_sw_ver.value.decode("utf-8"), c_sz_hw_notes.value.decode("utf-8")
 
     def get_hw_serial_num_ex(self, hw_type, index):
         c_hw_type = ctypes.c_long(hw_type)
