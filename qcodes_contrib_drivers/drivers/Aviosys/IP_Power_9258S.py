@@ -55,7 +55,7 @@ class Aviosys_IP_Power_9258S(Instrument):
         name: Instrument name.
         address: http address.
         login_name: http login name.
-        login_password http login password.
+        login_password: http login password.
 
     Attributes:
         address: http address.
@@ -70,7 +70,7 @@ class Aviosys_IP_Power_9258S(Instrument):
 
         # set up http connection
         password_manager = urllib.request.HTTPPasswordMgrWithDefaultRealm()
-        password_manager.add_password(None, self.address, login_name, login_password)
+        password_manager.add_password(None, self.address, login_name, login_password)  # type: ignore
         handler = urllib.request.HTTPBasicAuthHandler(password_manager)
         opener = urllib.request.build_opener(handler)
         urllib.request.install_opener(opener)
