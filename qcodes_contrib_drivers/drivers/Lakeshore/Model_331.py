@@ -5,18 +5,19 @@ from qcodes.utils.validators import Enum
 class SensorChannel(InstrumentChannel):
     """
     Channel class for the Lakeshore 331.
+
     Args:
-        parent (Instrument): The parent Lakeshore 331.
-        name (str): The channel name.
-        channel (str): The channel ID.
+        parent: The parent Lakeshore 331.
+        name: The channel name.
+        channel: The channel ID.
+
     Attributes:
-        channel (str): The channel ID.
+        channel: The channel ID.
     """
 
     _channel_values = Enum('A', 'B')
 
-    def __init__(self, parent, name, channel):
-
+    def __init__(self, parent: "Model_331", name: str, channel: str):
         super().__init__(parent, name)
 
         # validate the channel value
@@ -53,15 +54,15 @@ class SensorChannel(InstrumentChannel):
 class Model_331(VisaInstrument):
     """
     Instrument class for the Lakeshore 331.
+
     Args:
-        name (str): The channel name.
-        address (str): The GPIB address.
+        name: The channel name.
+        address: The GPIB address.
     """
 
     _loop = 1
 
-    def __init__(self, name, address, **kwargs):
-
+    def __init__(self, name: str, address: str, **kwargs):
         super().__init__(name, address, terminator="\r\n", **kwargs)
 
         # add channels
@@ -91,12 +92,10 @@ class Model_331(VisaInstrument):
                                '50W': 3},
                            label='heater range')
 
-        def input_get_parser(ans):
-            return ans[0]
         self.add_parameter('input',
                            get_cmd='CSET? %i' % self._loop,
                            set_cmd='CSET ' + str(self._loop) + ',{},1,1,1',
-                           get_parser=input_get_parser,
+                           get_parser=lambda ans: ans[0],
                            label='input')
 
         self.add_parameter('setpoint',
