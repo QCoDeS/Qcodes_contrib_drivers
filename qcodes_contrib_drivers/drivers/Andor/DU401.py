@@ -401,7 +401,7 @@ class Andor_DU401(Instrument):
     # get methods
     def get_idn(self) -> Dict[str, Optional[str]]:
         return {'vendor': 'Andor', 'model': self.head_model,
-                'serial': self.serial_number, 'firmware': str(self.firmware_version)+'.'+str(self.firmware_build)}
+                'serial': str(self.serial_number), 'firmware': str(self.firmware_version)+'.'+str(self.firmware_build)}
 
     # set methods
     def _set_cooler(self, cooler_on: int) -> None:
