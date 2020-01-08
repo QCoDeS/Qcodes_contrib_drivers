@@ -52,7 +52,6 @@ class Status(ctypes.Structure):
 
 
 class libximc:
-
     # TODO: use error check, implement wait for stop function from dll
 
     # default dll path
@@ -63,7 +62,6 @@ class libximc:
     _error_codes = {-1: 'Error', -2: 'NotImplemented', -3: 'ValueError', -4: 'NoDevice'}
 
     def __init__(self, dll_path=None, verbose=False):
-
         # save attributes
         self.verbose = verbose
 
@@ -112,7 +110,6 @@ class libximc:
 class Standa_10MWA168(Instrument):
 
     def __init__(self, name, serial_number, dll_path=None, **kwargs):
-
         super().__init__(name, **kwargs)
 
         # link to dll
@@ -185,7 +182,7 @@ class Standa_10MWA168(Instrument):
                            np.ceil(current_position / self.revolution + 2) * self.revolution
         position_wheel_1 = self.offset_wheel_1 + self.distance * filter_wheel_1 + \
                            np.ceil(current_position / self.revolution + 2) * self.revolution
-        print(position_wheel_1, position_wheel_2)
+
         if position_wheel_1 > position_wheel_2:
             print('new', position_wheel_1, position_wheel_2)
             position_wheel_1 -= self.revolution
