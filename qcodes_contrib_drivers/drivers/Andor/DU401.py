@@ -243,8 +243,8 @@ class Spectrum(Parameter):
         name: Parameter name.
     """
 
-    def __init__(self, name: str, *args, instrument: "Andor_DU401" = None, **kwargs):
-        super().__init__(name, *args, instrument=instrument, **kwargs)
+    def __init__(self, name: str, instrument: "Andor_DU401", **kwargs):
+        super().__init__(name, instrument=instrument, **kwargs)
         self.ccd = instrument
 
     def get_raw(self) -> List[int]:
