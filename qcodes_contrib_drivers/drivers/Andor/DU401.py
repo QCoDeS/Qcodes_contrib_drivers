@@ -1,3 +1,5 @@
+import os
+from typing import Dict, List, Optional, Tuple
 from qcodes import Instrument, Parameter
 from qcodes.utils.validators import Ints
 from qcodes.utils.helpers import create_on_off_val_mapping
@@ -7,16 +9,15 @@ import ctypes
 class atmcd64d:
     """
     Wrapper class for the atmcd64.dll Andor library.
-
     The class has been tested for an Andor iDus DU401 BU2.
 
     Args:
-        dll_path (str): Path to the atmcd64.dll file. If not set, a default path is used.
-        verbose (bool): Flag for the verbose behaviour. If true, successful events are printed.
+        dll_path: Path to the atmcd64.dll file. If not set, a default path is used.
+        verbose: Flag for the verbose behaviour. If true, successful events are printed.
 
     Attributes:
-        verbose (bool): Flag for the verbose behaviour.
-        dll (WinDLL): WinDLL object for atmcd64.dll.
+        verbose: Flag for the verbose behaviour.
+        dll: WinDLL object for atmcd64.dll.
 
     """
 
@@ -51,10 +52,11 @@ class atmcd64d:
         20130: 'DRV_GATING_NOT_AVAILABLE', 20131: 'DRV_FPGA_VOLTAGE_ERROR', 20099: 'DRV_BINNING_ERROR',
         20100: 'DRV_INVALID_AMPLIFIER', 20101: 'DRV_INVALID_COUNTCONVERT_MODE'}
 
-    def __init__(self, dll_path=None, verbose=False):
-
+    def __init__(self, dll_path: Optional[str] = None, verbose: bool = False):
+        if os.name != 'nt':
+            raise OSError("\"atmcd64d\" is only compatible with Microsoft Windows")
         self.verbose = verbose
-        self.dll = ctypes.windll.LoadLibrary(dll_path or self._dll_path)
+        self.dll: ctypes.WinDLL = ctypes.windll.LoadLibrary(dll_path or self._dll_path)
 
     def error_check(self, code, function_name=''):
         if code in self._success_codes.keys():
@@ -67,15 +69,15 @@ class atmcd64d:
             print("atmcd64d: [%s]: Unknown code: %s" % (function_name, code))
             raise Exception()
 
-    def cooler_off(self):
+    def cooler_off(self) -> None:
         code = self.dll.CoolerOFF()
         self.error_check(code, 'CoolerOFF')
 
-    def cooler_on(self):
+    def cooler_on(self) -> None:
         code = self.dll.CoolerON()
         self.error_check(code, 'CoolerON')
 
-    def get_acquired_data(self, size):
+    def get_acquired_data(self, size) -> List[int]:
         c_data_array = ctypes.c_int * size
         c_data = c_data_array()
         code = self.dll.GetAcquiredData(ctypes.pointer(c_data), size)
@@ -85,7 +87,7 @@ class atmcd64d:
             acquired_data.append(c_data[i])
         return acquired_data
 
-    def get_acquisition_timings(self):
+    def get_acquisition_timings(self) -> Tuple[float, float, float]:
         c_exposure = ctypes.c_float()
         c_accumulate = ctypes.c_float()
         c_kinetic = ctypes.c_float()
@@ -93,19 +95,19 @@ class atmcd64d:
         self.error_check(code, 'GetAcquisitionTimings')
         return c_exposure.value, c_accumulate.value, c_kinetic.value
 
-    def get_camera_handle(self, camera_index):
+    def get_camera_handle(self, camera_index) -> int:
         c_camera_handle = ctypes.c_long()
         code = self.dll.GetCameraHandle(camera_index, ctypes.byref(c_camera_handle))
         self.error_check(code, 'GetCameraHandle')
         return c_camera_handle.value
 
-    def get_camera_serial_number(self):
+    def get_camera_serial_number(self) -> int:
         c_serial_number = ctypes.c_int()
         code = self.dll.GetCameraSerialNumber(ctypes.byref(c_serial_number))
         self.error_check(code, 'GetCameraSerialNumber')
         return c_serial_number.value
 
-    def get_hardware_version(self):
+    def get_hardware_version(self) -> Tuple[int, int, int, int, int, int]:
         c_pcb = ctypes.c_int()
         c_decode = ctypes.c_int()
         c_dummy1 = ctypes.c_int()
@@ -119,89 +121,89 @@ class atmcd64d:
         return c_pcb.value, c_decode.value, c_dummy1.value, c_dummy2.value, c_firmware_version.value, \
             c_firmware_build.value
 
-    def get_head_model(self):
+    def get_head_model(self) -> str:
         c_head_model = ctypes.create_string_buffer(128)
         code = self.dll.GetHeadModel(c_head_model)
         self.error_check(code)
         return c_head_model.value.decode('ascii')
 
-    def get_detector(self):
+    def get_detector(self) -> Tuple[int, int]:
         c_x_pixels = ctypes.c_int()
         c_y_pixels = ctypes.c_int()
         code = self.dll.GetDetector(ctypes.byref(c_x_pixels), ctypes.byref(c_y_pixels))
         self.error_check(code, 'GetDetector')
         return c_x_pixels.value, c_y_pixels.value
 
-    def get_filter_mode(self):
+    def get_filter_mode(self) -> int:
         c_mode = ctypes.c_int()
         code = self.dll.GetFilterMode(ctypes.byref(c_mode))
         self.error_check(code, 'GetFilterMode')
         return c_mode.value
 
-    def get_status(self):
+    def get_status(self) -> int:
         c_status = ctypes.c_int()
         code = self.dll.GetStatus(ctypes.byref(c_status))
         self.error_check(code, 'GetStatus')
         return c_status.value
 
-    def get_temperature(self):
+    def get_temperature(self) -> int:
         c_temperature = ctypes.c_int()
         code = self.dll.GetTemperature(ctypes.byref(c_temperature))
         self.error_check(code, 'GetTemperature')
         return c_temperature.value
 
-    def get_temperature_range(self):
+    def get_temperature_range(self) -> Tuple[int, int]:
         c_min_temp = ctypes.c_int()
         c_max_temp = ctypes.c_int()
         code = self.dll.GetTemperatureRange(ctypes.byref(c_min_temp), ctypes.byref(c_max_temp))
         self.error_check(code, 'GetTemperatureRange')
         return c_min_temp.value, c_max_temp.value
 
-    def initialize(self, directory):
+    def initialize(self, directory: str) -> None:
         code = self.dll.Initialize(directory)
         self.error_check(code, 'Initialize')
 
-    def is_cooler_on(self):
+    def is_cooler_on(self) -> int:
         c_cooler_status = ctypes.c_int()
         code = self.dll.IsCoolerOn(ctypes.byref(c_cooler_status))
         self.error_check(code, 'IsCoolerOn')
         return c_cooler_status.value
 
-    def set_accumulation_cycle_time(self, cycle_time):
+    def set_accumulation_cycle_time(self, cycle_time: float) -> None:
         c_cycle_time = ctypes.c_float(cycle_time)
         code = self.dll.SetAccumulationCycleTime(c_cycle_time)
         self.error_check(code, 'SetAccumulationCycleTime')
 
-    def set_acqiusition_mode(self, mode):
+    def set_acquisition_mode(self, mode: int) -> None:
         c_mode = ctypes.c_int(mode)
         code = self.dll.SetAcquisitionMode(c_mode)
         self.error_check(code, 'SetAcquisitionMode')
 
-    def set_current_camera(self, camera_handle):
+    def set_current_camera(self, camera_handle: int) -> None:
         c_camera_handle = ctypes.c_long(camera_handle)
         code = self.dll.SetCurrentCamera(c_camera_handle)
         self.error_check(code, 'SetCurrentCamera')
 
-    def set_exposure_time(self, exposure_time):
+    def set_exposure_time(self, exposure_time: float) -> None:
         c_time = ctypes.c_float(exposure_time)
         code = self.dll.SetExposureTime(c_time)
         self.error_check(code, 'SetExposureTime')
 
-    def set_filter_mode(self, mode):
+    def set_filter_mode(self, mode: int) -> None:
         c_mode = ctypes.c_int(mode)
         code = self.dll.SetFilterMode(c_mode)
         self.error_check(code, 'SetFilterMode')
 
-    def set_number_accumulations(self, number):
+    def set_number_accumulations(self, number: int) -> None:
         c_number = ctypes.c_int(number)
         code = self.dll.SetNumberAccumulations(c_number)
         self.error_check(code, 'SetNumberAccumulations')
 
-    def set_read_mode(self, mode):
+    def set_read_mode(self, mode: int) -> None:
         code = self.dll.SetReadMode(mode)
         self.error_check(code, 'SetReadMode')
 
-    def set_shutter(self, typ, mode, closing_time, opening_time):
+    def set_shutter(self, typ: int, mode: int, closing_time: int, opening_time: int) -> None:
         c_typ = ctypes.c_int(typ)
         c_mode = ctypes.c_int(mode)
         c_closing_time = ctypes.c_int(closing_time)
@@ -209,25 +211,25 @@ class atmcd64d:
         code = self.dll.SetShutter(c_typ, c_mode, c_closing_time, c_opening_time)
         self.error_check(code, 'SetShutter')
 
-    def set_temperature(self, temperature):
+    def set_temperature(self, temperature: int) -> None:
         c_temperature = ctypes.c_int(temperature)
         code = self.dll.SetTemperature(c_temperature)
         self.error_check(code, 'SetTemperature')
 
-    def set_trigger_mode(self, mode):
+    def set_trigger_mode(self, mode: int) -> None:
         c_mode = ctypes.c_int(mode)
         code = self.dll.SetTriggerMode(c_mode)
         self.error_check(code, 'SetTriggerMode')
 
-    def shut_down(self):
+    def shut_down(self) -> None:
         code = self.dll.ShutDown()
         self.error_check(code, 'ShutDown')
 
-    def start_acquisition(self):
+    def start_acquisition(self) -> None:
         code = self.dll.StartAcquisition()
         self.error_check(code, 'StartAcquisition')
 
-    def wait_for_acquisition(self):
+    def wait_for_acquisition(self) -> None:
         code = self.dll.WaitForAcquisition()
         self.error_check(code, 'WaitForAcquisition')
 
@@ -235,33 +237,28 @@ class atmcd64d:
 class Spectrum(Parameter):
     """
     Parameter class for a spectrum taken with an Andor CCD.
-
     The spectrum is saved in a list with the length being set by the number of pixels on the CCD.
 
     Args:
-        name (str): Parameter name.
-
+        name: Parameter name.
     """
 
-    def __init__(self, name, *args, **kwargs):
+    def __init__(self, name: str, *args, instrument: "Andor_DU401" = None, **kwargs):
+        super().__init__(name, *args, instrument=instrument, **kwargs)
+        self.ccd = instrument
 
-        self.ccd = kwargs['instrument']
-        super().__init__(name, *args, **kwargs)
-
-    def get_raw(self):
-
+    def get_raw(self) -> List[int]:
         # get acquisition mode
         acquisition_mode = self.ccd.acquisition_mode.get()
 
         # start acquisition
         self.ccd.atmcd64d.start_acquisition()
 
-        # wait for single acquisition
         if acquisition_mode == 'single scan':
+            # wait for single acquisition
             self.ccd.atmcd64d.wait_for_acquisition()
-
-        # wait for accumulate acquisition
         elif acquisition_mode == 'accumulate':
+            # wait for accumulate acquisition
             number_accumulations = self.ccd.number_accumulations.get()
             for i in range(number_accumulations):
                 self.ccd.atmcd64d.wait_for_acquisition()
@@ -269,24 +266,27 @@ class Spectrum(Parameter):
         # get and return spectrum
         return self.ccd.atmcd64d.get_acquired_data(self.ccd.x_pixels)
 
+    def set_raw(self, value):
+        raise NotImplementedError()
+
 
 class Andor_DU401(Instrument):
     """
     Instrument driver for the Andor DU401 BU2 CCD.
 
     Args:
-        name (str): Instrument name.
-        dll_path (str): Path to the atmcd64.dll file. If not set, a default path is used.
-        camera_id (int): ID for the desired CCD.
-        setup (bool): Flag for the setup of the CCD. If true, some default settings will be sent to the CCD.
+        name: Instrument name.
+        dll_path: Path to the atmcd64.dll file. If not set, a default path is used.
+        camera_id: ID for the desired CCD.
+        setup: Flag for the setup of the CCD. If true, some default settings will be sent to the CCD.
 
     Attributes:
-        serial_number (int): Serial number of the CCD.
-        head_model (str): Head model of the CCD.
-        firmware_version (int): Firmware version of the CCD.
-        firmware_build (int): Firmware build of the CCD.
-        x_pixels (int): Number of pixels on the x axis.
-        y_pixels (int): Number of pixels on the y axis.
+        serial_number: Serial number of the CCD.
+        head_model: Head model of the CCD.
+        firmware_version: Firmware version of the CCD.
+        firmware_build: Firmware build of the CCD.
+        x_pixels: Number of pixels on the x axis.
+        y_pixels: Number of pixels on the y axis.
 
     """
 
@@ -296,8 +296,7 @@ class Andor_DU401(Instrument):
     # TODO (SvenBo90): add and delete parameters dynamically when switching acquisition mode or read mode
     # TODO (SvenBo90): handle shutter closing and opening timings
 
-    def __init__(self, name, dll_path=None, camera_id=0, setup=True, **kwargs):
-
+    def __init__(self, name: str, dll_path: Optional[str] = None, camera_id: int = 0, setup: bool = True, **kwargs):
         super().__init__(name, **kwargs)
 
         # link to dll
@@ -315,17 +314,15 @@ class Andor_DU401(Instrument):
         self.x_pixels, self.y_pixels = self.atmcd64d.get_detector()
 
         # add the instrument parameters
-        def accumulation_cycle_time_parser(ans):
-            return float(ans[1])
         self.add_parameter('accumulation_cycle_time',
                            get_cmd=self.atmcd64d.get_acquisition_timings,
                            set_cmd=self.atmcd64d.set_accumulation_cycle_time,
-                           get_parser=accumulation_cycle_time_parser,
+                           get_parser=lambda ans: float(ans[1]),
                            unit='s',
                            label='accumulation cycle time')
 
         self.add_parameter('acquisition_mode',
-                           set_cmd=self.atmcd64d.set_acqiusition_mode,
+                           set_cmd=self.atmcd64d.set_acquisition_mode,
                            val_mapping={
                                'single scan': 1,
                                'accumulate': 2
@@ -334,16 +331,14 @@ class Andor_DU401(Instrument):
 
         self.add_parameter('cooler',
                            get_cmd=self.atmcd64d.is_cooler_on,
-                           set_cmd=self.set_cooler,
+                           set_cmd=self._set_cooler,
                            val_mapping=create_on_off_val_mapping(on_val=1, off_val=0),
                            label='cooler')
 
-        def exposure_time_parser(ans):
-            return float(ans[0])
         self.add_parameter('exposure_time',
                            get_cmd=self.atmcd64d.get_acquisition_timings,
                            set_cmd=self.atmcd64d.set_exposure_time,
-                           get_parser=exposure_time_parser,
+                           get_parser=lambda ans: float(ans[0]),
                            unit='s',
                            label='exposure time')
 
@@ -370,7 +365,7 @@ class Andor_DU401(Instrument):
                            label='set temperature')
 
         self.add_parameter('shutter_mode',
-                           set_cmd=self.set_shutter_mode,
+                           set_cmd=self._set_shutter_mode,
                            val_mapping={
                                'fully auto': 0,
                                'permanently open': 1,
@@ -404,21 +399,21 @@ class Andor_DU401(Instrument):
         self.connect_message(idn_param='IDN')
 
     # get methods
-    def get_idn(self):
+    def get_idn(self) -> Dict[str, Optional[str]]:
         return {'vendor': 'Andor', 'model': self.head_model,
                 'serial': self.serial_number, 'firmware': str(self.firmware_version)+'.'+str(self.firmware_build)}
 
     # set methods
-    def set_cooler(self, cooler_on):
+    def _set_cooler(self, cooler_on: int) -> None:
         if cooler_on == 1:
             self.atmcd64d.cooler_on()
         elif cooler_on == 0:
             self.atmcd64d.cooler_off()
 
-    def set_shutter_mode(self, shutter_mode):
+    def _set_shutter_mode(self, shutter_mode: int) -> None:
         self.atmcd64d.set_shutter(1, shutter_mode, 30, 30)
 
     # further methods
-    def close(self):
+    def close(self) -> None:
         self.atmcd64d.shut_down()
         super().close()
