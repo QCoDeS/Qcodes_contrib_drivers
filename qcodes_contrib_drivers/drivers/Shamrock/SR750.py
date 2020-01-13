@@ -2,6 +2,7 @@ from qcodes import Instrument
 from qcodes.utils.validators import Ints, Numbers
 import ctypes
 import os
+import sys
 import logging
 from typing import Optional
 
@@ -40,7 +41,7 @@ class ShamrockCIF:
     }
 
     def __init__(self, dll_path: Optional[str] = None, verbose: bool = False):
-        if os.name != 'nt':
+        if sys.platform != 'win32':
             raise OSError("\"ShamrockCIF\" is only compatible with Microsoft Windows")
 
         # save attributes
