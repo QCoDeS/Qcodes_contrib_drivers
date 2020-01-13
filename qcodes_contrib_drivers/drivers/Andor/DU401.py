@@ -1,4 +1,5 @@
 import os
+import sys
 from typing import Dict, List, Optional, Tuple
 from qcodes import Instrument, Parameter
 from qcodes.utils.validators import Ints
@@ -53,10 +54,10 @@ class atmcd64d:
         20100: 'DRV_INVALID_AMPLIFIER', 20101: 'DRV_INVALID_COUNTCONVERT_MODE'}
 
     def __init__(self, dll_path: Optional[str] = None, verbose: bool = False):
-        if os.name != 'nt':
+        if sys.platform != 'win32':
             raise OSError("\"atmcd64d\" is only compatible with Microsoft Windows")
         self.verbose = verbose
-        self.dll: ctypes.WinDLL = ctypes.windll.LoadLibrary(dll_path or self._dll_path)
+        self.dll = ctypes.windll.LoadLibrary(dll_path or self._dll_path)
 
     def error_check(self, code, function_name=''):
         if code in self._success_codes.keys():
