@@ -51,7 +51,7 @@ class ShamrockCIF:
         current_path = os.getcwd()
         try:
             os.chdir(os.path.dirname(self._dll_path))
-            self.dll: ctypes.WinDLL = ctypes.windll.LoadLibrary(dll_path or self._dll_path)
+            self.dll = ctypes.windll.LoadLibrary(dll_path or self._dll_path)
         finally:
             os.chdir(current_path)
 
