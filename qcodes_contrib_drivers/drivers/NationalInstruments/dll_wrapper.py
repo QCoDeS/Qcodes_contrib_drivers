@@ -118,6 +118,13 @@ class NIDLLWrapper(object):
                     NamedArgType("attributeID", ViAttr),
                     NamedArgType("attributeValue", POINTER(dtype))
             ]
+
+            # the argtypes for the corresponding SetAttribute<DataType>
+            # functions. note that the signature for SetAttributeViString is
+            # the same as for the other types even though GetAttributeViString
+            # has a unique signature
+            set_argtypes = argtypes.copy()
+
             if dtype == ViString:
                 # replace last argument
                 argtypes.pop()
@@ -127,8 +134,7 @@ class NIDLLWrapper(object):
                 
             self.wrap_dll_function_checked(f"GetAttribute{dtype_name}",
                                            argtypes=argtypes)
-                                           
-            set_argtypes = argtypes.copy()
+
             set_argtypes[-1] = NamedArgType("attributeValue", dtype)
             self.wrap_dll_function_checked(f"SetAttribute{dtype_name}",
                                            argtypes=set_argtypes)
