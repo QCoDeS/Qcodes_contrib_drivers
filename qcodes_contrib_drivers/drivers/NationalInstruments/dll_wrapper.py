@@ -296,7 +296,7 @@ class NIDLLWrapper(object):
 
         if dtype == ViString:
             res = ctypes.create_string_buffer(STRING_BUFFER_SIZE)
-            func(session, b"", attr.value, STRING_BUFFER_SIZE, res)
+            func(session, b"", attr.value, bytes(set_value,encoding='ascii'), res)
             ret = res.value.decode()
         else:
             res = dtype()

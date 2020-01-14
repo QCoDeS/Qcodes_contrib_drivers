@@ -1,6 +1,8 @@
 import logging
+import warnings
 from typing import Optional, List, Any
 from functools import partial
+import ctypes
 
 from qcodes.utils.validators import Numbers
 from qcodes.utils.helpers import create_on_off_val_mapping
@@ -19,9 +21,19 @@ NIRFSG_ATTR_SERIAL_NUMBER                = AttributeWrapper(ViAttr(1150026), ViS
 NIRFSG_ATTR_FREQUENCY                    = AttributeWrapper(ViAttr(1250001), ViReal64)
 NIRFSG_ATTR_POWER_LEVEL                  = AttributeWrapper(ViAttr(1250002), ViReal64)
 NIRFSG_ATTR_OUTPUT_ENABLED               = AttributeWrapper(ViAttr(1250004), ViBoolean)
+NIRFSG_ATTR_REF_CLOCK_SOURCE             = AttributeWrapper(ViAttr(1150001), ViString)
+NIRFSG_ATTR_PULSE_MODULATION_ENABLED     = AttributeWrapper(ViAttr(1250051), ViBoolean)
 
 logger = logging.getLogger(__name__)
 
+CLK_SRC_MAP = {
+    "onboard": "OnboardClock",
+    "clk_in": "ClkIn",
+    "ref_in": "RefIn",
+    "pxi_clk": "PXI_CLK",
+    "ref_in_2": "RefIn2",
+    "pxi_clk_master": "PXI_ClkMaster",
+}
 
 class NationalInstruments_RFSG(NIDLLInstrument):
     r"""
@@ -110,6 +122,22 @@ class NationalInstruments_RFSG(NIDLLInstrument):
                            val_mapping=create_on_off_val_mapping(on_val=True, off_val=False),
                            initial_value=False,
                            )
+                           
+        self.add_parameter(name="pulse_mod_enabled",
+                           label="Pulse modulation enabled",
+                           get_cmd=partial(self.get_attribute,
+                                           NIRFSG_ATTR_PULSE_MODULATION_ENABLED),
+                           set_cmd=partial(self.set_attribute,
+                                           NIRFSG_ATTR_PULSE_MODULATION_ENABLED),
+                           val_mapping=create_on_off_val_mapping(on_val=True, off_val=False),
+                           initial_value=False,
+                           )
+        self.add_parameter(name="clock_source",
+                           label="Reference clock source",
+                           get_cmd=partial(self.get_attribute,
+                                           NIRFSG_ATTR_REF_CLOCK_SOURCE),
+                           set_cmd=self.set_clock_source,
+                           )    
         self.initiate()
         self.connect_message()
 
@@ -146,7 +174,7 @@ class NationalInstruments_RFSG(NIDLLInstrument):
                                  ViReal64(power_level))
         if initiate:
             self.initiate()
-
+        
     def set_frequency(self, frequency: float, initiate: bool = False):
         power_level = self.get_attribute(NIRFSG_ATTR_POWER_LEVEL)
         self.ConfigureRF(frequency, power_level, initiate)
@@ -155,6 +183,30 @@ class NationalInstruments_RFSG(NIDLLInstrument):
         frequency = self.get_attribute(NIRFSG_ATTR_FREQUENCY)
         self.ConfigureRF(frequency, power_level, initiate)
 
+    def set_clock_source(self, source: str, clock_rate: float = 10e6):
+        """
+        Sets reference clock source
+        Args:
+            source: reference clock source. Valid values are 
+                        onboard
+                        clk_in
+                        ref_in
+                        pxi_clk
+                        ref_in_2
+                        pxi_clk_master
+                    Last two values are valid for PXIe-5840 with PXIe-5653.
+            clock_rate: Not implemented. Reference clock frequency in Hertz.
+                        Default value is 10 MHz.
+        """
+        if source in CLK_SRC_MAP.keys():
+            self.set_attribute(NIRFSG_ATTR_REF_CLOCK_SOURCE,
+                                CLK_SRC_MAP[source])
+        else:
+            warnings.warn(f"Unknown clock source {source}."
+                        f"Valid sources are {CLK_SRC_MAP.keys()}. Falling back"
+                        "to onboard clock.", RuntimeWarning) 
+            self.set_attribute(NIRFSG_ATTR_REF_CLOCK_SOURCE,
+                                CLK_SRC_MAP['onboard'])
     @property
     def vendor(self) -> str:
         return self.get_attribute(NIRFSG_ATTR_SPECIFIC_DRIVER_VENDOR)
@@ -181,10 +233,8 @@ class NationalInstruments_RFSG(NIDLLInstrument):
 
 # class NationalInstruments_RFSG
 
-
 # shorthand alias for the above
 NI_RFSG = NationalInstruments_RFSG
-
 
 class PXIe_5654(NI_RFSG):
     def __init__(self, *args, **kwargs):
