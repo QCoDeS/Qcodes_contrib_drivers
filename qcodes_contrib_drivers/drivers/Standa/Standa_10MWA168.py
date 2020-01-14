@@ -67,9 +67,11 @@ class libximc:
 
         # connect to the dll
         current_path = os.getcwd()
-        os.chdir(os.path.dirname(self._dll_path))
-        self.dll = ctypes.windll.LoadLibrary(dll_path or self._dll_path)
-        os.chdir(current_path)
+        try:
+            os.chdir(os.path.dirname(self._dll_path))
+            self.dll = ctypes.windll.LoadLibrary(dll_path or self._dll_path)
+        finally:
+            os.chdir(current_path)
 
         # set resource type
         self.dll.enumerate_devices.restype = ctypes.POINTER(DeviceInformation)
@@ -129,9 +131,12 @@ class Standa_10MWA168(Instrument):
         enumeration_name = self.libximc.get_device_name(device_enumeration, 0)
         self.device_id = self.libximc.open_device(enumeration_name)
 
+        # Time to wait (in seconds) between setting up wheel 1 and 2
+        self.set_transmittance_sleep_time = 10.0
+
         # add parameters
         self.add_parameter('transmittance',
-                           set_cmd=self.set_transmittance,
+                           set_cmd=self._set_transmittance,
                            label='Transmittance',
                            val_mapping={
                                1: 0, 0: 1, 9.0e-1: 2, 8.0e-1: 3, 7.2e-1: 4, 4.0e-1: 5, 3.0e-1: 6, 2.7e-1: 7,
@@ -141,35 +146,34 @@ class Standa_10MWA168(Instrument):
                                3.0e-8: 29, 3.0e-9: 30})
 
         self.add_parameter('position',
-                           set_cmd=self.set_position,
-                           get_cmd=self.get_position,
+                           set_cmd=self._set_position,
+                           get_cmd=self._get_position,
                            get_parser=float,
                            label='Position')
 
         self.add_parameter('status',
-                           get_cmd=self.get_status,
+                           get_cmd=self._get_status,
                            get_parser=int,
                            label='status')
 
         self.connect_message()
 
     # get methods
-    def get_position(self):
+    def _get_position(self):
         position = GetPosition()
         self.libximc.get_position(self.device_id, ctypes.byref(position))
         return position.Position
 
-    def get_status(self):
+    def _get_status(self):
         status = Status()
         self.libximc.get_status(self.device_id, ctypes.byref(status))
         return status.MoveSts
 
     # set methods
-    def set_position(self, position):
+    def _set_position(self, position):
         self.libximc.command_move(self.device_id, int(position), 0)
 
-    def set_transmittance(self, transmittance_id):
-
+    def _set_transmittance(self, transmittance_id):
         # get filter to set
         filter_wheel_1 = self.filter_wheel_1[transmittance_id]
         filter_wheel_2 = self.filter_wheel_2[transmittance_id]
@@ -188,19 +192,20 @@ class Standa_10MWA168(Instrument):
             position_wheel_1 -= self.revolution
 
         # set position of the second wheel
-        self.position.set(int(position_wheel_2))
-        time.sleep(1)
+        self.position.set(np.floor(position_wheel_2))
+        time.sleep(self.sleep_time / 10.0)  # default: 1 s
         for i in range(100):
             if self.status.get() == 0:
                 break
 
         # wait another time
-        time.sleep(10)
+        time.sleep(self.sleep_time)  # default: 10 s
 
         # set position of the first wheel
-        self.position.set(int(position_wheel_1))
-        time.sleep(1)
+        self.position.set(np.floor(position_wheel_1))
+        time.sleep(self.sleep_time / 10.0)  # default: 1 s
         for i in range(100):
             if self.status.get() == 0:
                 break
-        time.sleep(0.1)
+
+        time.sleep(self.sleep_time / 100.0)  # default: 0.1 s
