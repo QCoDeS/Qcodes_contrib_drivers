@@ -43,13 +43,15 @@ class PowerChannel(InstrumentChannel):
 
     # set methods
     def _set_power_enabled(self, power):
-        request = urllib.request.Request(self.parent.address+'/set.cmd?cmd=setpower+p6%d=%s' % (self._id_number, power))
+        request = urllib.request.Request(f"{self.parent.address}/set.cmd?cmd=setpower+p6{self._id_number}={power}")
         urllib.request.urlopen(request)
 
 
 class Aviosys_IP_Power_9258S(Instrument):
     """
-    Instrument driver for the Aviosys IP Power 9258 remote socket controller.
+    Instrument driver for the Aviosys IP Power 9258S. The IP Power 9258S is a network power controller. The device
+    controls up to four power channels, that can be turned on and off. With this instrument also non-smart instruments
+    can be controlled remotely.
 
     Args:
         name: Instrument name.
