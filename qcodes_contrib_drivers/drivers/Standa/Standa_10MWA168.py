@@ -5,10 +5,6 @@ import os
 import time
 
 
-class DeviceEnumeration(ctypes.BigEndianStructure):
-    pass
-
-
 class DeviceInformation(ctypes.Structure):
     _fields_ = [
         ("Manufacturer", ctypes.c_char * 5),
