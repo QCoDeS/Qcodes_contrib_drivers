@@ -1,4 +1,7 @@
-import os, sys
+import sys
+assert sys.platform == "win32", "\"Andor DU401\" is only compatible with Microsoft Windows!"
+
+import os
 from typing import Dict, List, Optional, Tuple
 from qcodes import Instrument, Parameter
 from qcodes.utils.validators import Ints
