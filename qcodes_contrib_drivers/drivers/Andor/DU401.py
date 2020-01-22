@@ -1,8 +1,5 @@
-import sys
-assert sys.platform == "win32", "\"Andor DU401\" is only compatible with Microsoft Windows!"
-
-import os
-from typing import Dict, List, Optional, Tuple
+import os, sys
+from typing import Dict, List, Optional, Tuple, Any
 from qcodes import Instrument, Parameter
 from qcodes.utils.validators import Ints
 from qcodes.utils.helpers import create_on_off_val_mapping
@@ -57,9 +54,11 @@ class atmcd64d:
 
     def __init__(self, dll_path: Optional[str] = None, verbose: bool = False):
         if sys.platform != 'win32':
+            self.dll: Any = None
             raise OSError("\"atmcd64d\" is only compatible with Microsoft Windows")
-        self.verbose = verbose
-        self.dll = ctypes.windll.LoadLibrary(dll_path or self._dll_path)
+        else:
+            self.verbose = verbose
+            self.dll = ctypes.windll.LoadLibrary(dll_path or self._dll_path)
 
     def error_check(self, code, function_name=''):
         if code in self._success_codes.keys():
