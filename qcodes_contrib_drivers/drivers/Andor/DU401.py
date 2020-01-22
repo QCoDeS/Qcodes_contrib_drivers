@@ -57,8 +57,8 @@ class atmcd64d:
             self.dll: Any = None
             raise OSError("\"atmcd64d\" is only compatible with Microsoft Windows")
         else:
-            self.verbose = verbose
             self.dll = ctypes.windll.LoadLibrary(dll_path or self._dll_path)
+        self.verbose = verbose
 
     def error_check(self, code, function_name=''):
         if code in self._success_codes.keys():
