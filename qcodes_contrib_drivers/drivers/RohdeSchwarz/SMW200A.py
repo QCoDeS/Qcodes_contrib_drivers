@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-File: SMW200A.py
-Date: Mai / Jun 2019
+File: SMW200A.py - QCoDeS driver for the R&S Vector source
+
+Date: Jan 2020
 Author: Michael Wagener, ZEA-2, m.wagener@fz-juelich.de
-Author: Sarah Fleitmann, ZEA-2, s.fleitmann@fz-juelich.de
+        Sarah Fleitmann, ZEA-2, s.fleitmann@fz-juelich.de
 Purpose: QCoDeS-Driver for Rohde&Schwarz Vector Signal Generator RS_SMW200A
 """
 
