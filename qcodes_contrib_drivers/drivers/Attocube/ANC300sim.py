@@ -117,7 +117,6 @@ class MockComHandle:
         self.closed = True
 
     def write(self, cmd):
-        global cmddef
         if self.closed:
             raise RuntimeError("Trying to write to a closed instrument")
         cmd = cmd.decode('ascii').rstrip()
