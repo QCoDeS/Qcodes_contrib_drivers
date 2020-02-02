@@ -1,4 +1,3 @@
-from typing import Optional
 import logging
 log = logging.getLogger(__name__)
 
@@ -57,18 +56,18 @@ class DG645(VisaInstrument):
                 self.add_parameter('phase_{}'.format(k),
                        label='Prescale phase factor {}'.format(k),
                        unit='',
-                       get_cmd=lambda ch=k: self._get_phase_prescale(ch),
+                       get_cmd=lambda channel=k: self._get_phase_prescale(channel),
                        get_parser=int,
-                       set_cmd=lambda val, ch=k: self._set_phase_prescale(val, channel=ch),
+                       set_cmd=lambda val, channel=k: self._set_phase_prescale(val, channel),
                        vals=vals.Ints(min_value=0)
                 )
 
             self.add_parameter('prescale_{}'.format(v),
                    label='Prescale factor {}'.format(v),
                    unit='',
-                   get_cmd=lambda ch=k: self._get_prescale(ch),
+                   get_cmd=lambda channel=k: self._get_prescale(channel),
                    get_parser=int,
-                   set_cmd=lambda val, ch=k: self._set_prescale(val, channel=ch),
+                   set_cmd=lambda val, channel=k: self._set_prescale(val, channel),
                    vals=vals.Ints(min_value=0)
             )
 
@@ -95,7 +94,7 @@ class DG645(VisaInstrument):
                get_cmd=self._get_trig_source,
                get_parser=str,
                set_cmd=self._set_trig_source,
-               vals=vals.Enum(tuple(self.TRIGGER_MAPPING.keys()))
+               vals=vals.Enum(*tuple(self.TRIGGER_MAPPING.keys()))
         )
 
         # Burst parameters
@@ -138,18 +137,18 @@ class DG645(VisaInstrument):
                 self.add_parameter('delay_{}'.format(ch),
                        label='{} delay'.format(ch),
                        unit='s',
-                       get_cmd=lambda c=ch: self._get_delay(channel=c),
+                       get_cmd=lambda channel=ch: self._get_delay(channel),
                        get_parser=str,
-                       set_cmd=lambda src_delay, c=ch: self._set_delay(src_delay, target=c),
+                       set_cmd=lambda src_delay, channel=ch: self._set_delay(src_delay, channel),
                        vals=vals.Strings()
                 )
                 self.add_parameter('channel_link_{}'.format(ch),
                        label='Channel linked to {}'.format(ch),
                        unit='',
-                       get_cmd=lambda c=ch: self._get_link(channel=c),
+                       get_cmd=lambda channel=ch: self._get_link(channel),
                        get_parser=int,
-                       set_cmd=lambda d, c=ch: self._set_link(d, source=c),
-                       vals=vals.Enum(tuple(k for k in self.CHANNEL_MAPPING if k != 'T1'))
+                       set_cmd=lambda target, source=ch: self._set_link(target, source),
+                       vals=vals.Enum(*tuple(k for k in self.CHANNEL_MAPPING if k != 'T1'))
                 )
 
         # Output parameters
@@ -157,25 +156,25 @@ class DG645(VisaInstrument):
             self.add_parameter('amp_out_{}'.format(out),
                    label='Output {} amplitude'.format(out),
                    unit='V',
-                   get_cmd=lambda o=out: self._get_amp(output=o),
+                   get_cmd=lambda output=out: self._get_amp(output),
                    get_parser=float,
-                   set_cmd=lambda lvl, o=out: self._set_amp(lvl, output=o),
+                   set_cmd=lambda level, output=out: self._set_amp(level, output),
                    vals=vals.Numbers()
             )
             self.add_parameter('offset_out_{}'.format(out),
                    label='Output {} offset'.format(out),
                    unit='V',
-                   get_cmd=lambda o=out: self._get_offset(output=o),
+                   get_cmd=lambda output=out: self._get_offset(output),
                    get_parser=float,
-                   set_cmd=lambda lvl, o=out: self._set_offset(lvl, output=o),
+                   set_cmd=lambda level, output=out: self._set_offset(level, output),
                    vals=vals.Numbers()
             )
             self.add_parameter('polarity_out_{}'.format(out),
                    label='Output {} polarity'.format(out),
                    unit='',
-                   get_cmd=lambda o=out: self._get_polarity(output=o),
+                   get_cmd=lambda output=out: self._get_polarity(output),
                    get_parser=int,
-                   set_cmd=lambda lvl, o=out: self._set_offset(lvl, output=o),
+                   set_cmd=lambda level, output=out: self._set_offset(level, output),
                    vals=vals.Enum(0,1)
             )
 
@@ -231,13 +230,13 @@ class DG645(VisaInstrument):
     def _get_phase_prescale(self, channel: str) -> str:
         return self.ask('PHAS?{}'.format(self.PRESCALE_MAPPING[channel]))
 
-    def _set_phase_prescale(self, value: int, channel: Optional[str]=None) -> None:
+    def _set_phase_prescale(self, value: int, channel: str) -> None:
         self.write('PHAS {},{}'.format(self.PRESCALE_MAPPING[channel], value))
 
     def _get_prescale(self, channel: str) -> str:
         return self.ask('PRES?{}'.format(self.PRESCALE_MAPPING[channel]))
 
-    def _set_prescale(self, value: int, channel: Optional[str]=None) -> None:
+    def _set_prescale(self, value: int, channel: str) -> None:
         self.write('PRES {},{}'.format(self.PRESCALE_MAPPING[channel], value))
 
     def _set_trig_source(self, src: str) -> None:  
@@ -249,36 +248,36 @@ class DG645(VisaInstrument):
         values = self.TRIGGER_MAPPING.values()
         return list(keys)[list(values).index(int(response))]
 
-    def _get_delay(self, channel: Optional[str]=None) -> str:
+    def _get_delay(self, channel: str) -> str:
         return self.ask('DLAY?{}'.format(self.CHANNEL_MAPPING[channel]))
 
-    def _set_delay(self, src_delay: str, target: Optional[str]=None) -> None:
+    def _set_delay(self, src_delay: str, target: str) -> None:
         source, delay = [s.strip() for s in src_delay.split(',')]
         self.write('DLAY {},{},{}'.format(self.CHANNEL_MAPPING[target],
                                           self.CHANNEL_MAPPING[source],
                                           delay))
 
-    def _get_amp(self, output: Optional[str]=None) -> str:
+    def _get_amp(self, output: str) -> str:
         return self.ask('LAMP?{}'.format(self.OUTPUT_MAPPING[output]))
 
-    def _set_amp(self, lvl: float, output: Optional[str]=None) -> None:
+    def _set_amp(self, lvl: float, output: str) -> None:
         self.write('LAMP {},{}'.format(lvl, self.OUTPUT_MAPPING[output]))
 
-    def _get_link(self, channel: Optional[str]=None) -> str:
+    def _get_link(self, channel: str) -> str:
         return self.ask('LINK?{}'.format(self.CHANNEL_MAPPING[channel]))
 
-    def _set_link(self, target: str, source: Optional[str]=None) -> None:
-        self.write('LINK {},{}'.format(self.CHANNEL_MAPPING[source],
-                                       self.CHANNEL_MAPPING[target]))
+    def _set_link(self, target: str, source: str) -> None:
+        self.write('LINK {},{}'.format(self.CHANNEL_MAPPING[target],
+                                       self.CHANNEL_MAPPING[source]))
 
-    def _get_offset(self, output: Optional[str]=None) -> str:
+    def _get_offset(self, output: str) -> str:
         return self.ask('LOFF?{}'.format(self.OUTPUT_MAPPING[output]))
 
-    def _set_offset(self, off: float, output: Optional[str]=None) -> None:
+    def _set_offset(self, off: float, output: str) -> None:
         self.write('LOFF {},{}'.format(off, self.OUTPUT_MAPPING[output]))
 
-    def _get_polarity(self, output: Optional[str]=None) -> str:
+    def _get_polarity(self, output: str) -> str:
         return self.ask('LPOL?{}'.format(self.OUTPUT_MAPPING[output]))
 
-    def _set_polarity(self, pol: int, output: Optional[str]=None) -> None:
+    def _set_polarity(self, pol: int, output: str) -> None:
         self.write('LPOL {},{}'.format(pol, self.OUTPUT_MAPPING[output]))
