@@ -7,7 +7,7 @@ import qcodes.utils.validators as vals
 class DG645(VisaInstrument):
     """Qcodes driver for SRS DG645 digital delay generator.
     """
-    CHANNEL_MAPPING: {
+    CHANNEL_MAPPING = {
         'T0': 0, 'T1': 1, 'A': 2, 'B': 3, 'C': 4,
         'D': 5, 'E': 6, 'F': 7, 'G': 8, 'H': 9
     }
