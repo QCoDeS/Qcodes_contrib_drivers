@@ -1,3 +1,4 @@
+from typing import Optional
 import logging
 log = logging.getLogger(__name__)
 
@@ -230,13 +231,13 @@ class DG645(VisaInstrument):
     def _get_phase_prescale(self, channel: str) -> str:
         return self.ask('PHAS?{}'.format(self.PRESCALE_MAPPING[channel]))
 
-    def _set_phase_prescale(self, value: int, channel: str=None) -> None:
+    def _set_phase_prescale(self, value: int, channel: Optional[str]=None) -> None:
         self.write('PHAS {},{}'.format(self.PRESCALE_MAPPING[channel], value))
 
     def _get_prescale(self, channel: str) -> str:
         return self.ask('PRES?{}'.format(self.PRESCALE_MAPPING[channel]))
 
-    def _set_prescale(self, value: int, channel: str=None) -> None:
+    def _set_prescale(self, value: int, channel: Optional[str]=None) -> None:
         self.write('PRES {},{}'.format(self.PRESCALE_MAPPING[channel], value))
 
     def _set_trig_source(self, src: str) -> None:  
@@ -248,36 +249,36 @@ class DG645(VisaInstrument):
         values = self.TRIGGER_MAPPING.values()
         return list(keys)[list(values).index(int(response))]
 
-    def _get_delay(self, channel: str=None) -> str:
+    def _get_delay(self, channel: Optional[str]=None) -> str:
         return self.ask('DLAY?{}'.format(self.CHANNEL_MAPPING[channel]))
 
-    def _set_delay(self, src_delay: str, target: str=None) -> None:
+    def _set_delay(self, src_delay: str, target: Optional[str]=None) -> None:
         source, delay = [s.strip() for s in src_delay.split(',')]
         self.write('DLAY {},{},{}'.format(self.CHANNEL_MAPPING[target],
                                           self.CHANNEL_MAPPING[source],
                                           delay))
 
-    def _get_amp(self, output: str=None) -> str:
+    def _get_amp(self, output: Optional[str]=None) -> str:
         return self.ask('LAMP?{}'.format(self.OUTPUT_MAPPING[output]))
 
-    def _set_amp(self, lvl: float, output: str=None) -> None:
+    def _set_amp(self, lvl: float, output: Optional[str]=None) -> None:
         self.write('LAMP {},{}'.format(lvl, self.OUTPUT_MAPPING[output]))
 
-    def _get_link(self, channel: str=None) -> str:
+    def _get_link(self, channel: Optional[str]=None) -> str:
         return self.ask('LINK?{}'.format(self.CHANNEL_MAPPING[channel]))
 
-    def _set_link(self, target: str, source: str=None) -> None:
+    def _set_link(self, target: str, source: Optional[str]=None) -> None:
         self.write('LINK {},{}'.format(self.CHANNEL_MAPPING[source],
                                        self.CHANNEL_MAPPING[target]))
 
-    def _get_offset(self, output: str=None) -> str:
+    def _get_offset(self, output: Optional[str]=None) -> str:
         return self.ask('LOFF?{}'.format(self.OUTPUT_MAPPING[output]))
 
-    def _set_offset(self, off: float, output: str=None) -> None:
+    def _set_offset(self, off: float, output: Optional[str]=None) -> None:
         self.write('LOFF {},{}'.format(off, self.OUTPUT_MAPPING[output]))
 
-    def _get_polarity(self, output: str=None) -> str:
+    def _get_polarity(self, output: Optional[str]=None) -> str:
         return self.ask('LPOL?{}'.format(self.OUTPUT_MAPPING[output]))
 
-    def _set_polarity(self, pol: int, output: str=None) -> None:
+    def _set_polarity(self, pol: int, output: Optional[str]=None) -> None:
         self.write('LPOL {},{}'.format(pol, self.OUTPUT_MAPPING[output]))
