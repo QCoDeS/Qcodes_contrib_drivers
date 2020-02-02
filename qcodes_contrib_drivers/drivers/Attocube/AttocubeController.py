@@ -23,28 +23,28 @@ class AttocubeController(VisaInstrument):
         kwargs: Keyword arguments to be passed to VisaInstrument constructor.
 
     An example of the atto_config dictionary is provided below:
-        {
-            "name": "atto",
-            "model": "ANC300",
-            "address": "ASRL1::INSTR",
-            "timeout": 5,
-            "terminator": "\r\n",
-            "stopbits": 1,
-            "baud_rate" : 38400,
-            "axes": {"x": 1, "y": 2, "z": 3},
-            "voltage_limits": {
-                "RT":{"x": 25,"y": 25,"z": 25}, # V
-                "LT":{"x": 60, "y": 60, "z": 60} # V
-            },
-            "default_frequency": {"x": 100, "y": 100, "z": 100}, # Hz
-            "history": {}
-        }
+    {
+        'name': 'atto',
+        'model': 'ANC300',
+        "address": "ASRL1::INSTR",
+        'timeout': 5,
+        'terminator': '\r\n',
+        'baud_rate' : 38400,
+        'axes': {'x': 1, 'y': 2, 'z': 3}, # {axis_name: controller_output}
+        'voltage_limits': {
+            'RT': {'x': 25, 'y': 25, 'z': 25}, # room temperature limits, V
+            'LT': {'x': 60, 'y': 60, 'z': 60} # low temperature limits, V
+        },
+        'default_frequency': {'x': 100, 'y': 100, 'z': 100}, # stepping frequency, Hz
+    }
     """
-    def __init__(self, atto_config: Dict, temp: str, ureg: Any, str, **kwargs) -> None:
+    def __init__(self, atto_config: Dict, temp: str, **kwargs) -> None:
         super().__init__(atto_config['name'], atto_config['address'], atto_config['timeout'],
                          atto_config['terminator'], **kwargs)
         if temp.upper() not in ['LT', 'RT']:
             raise ValueError('temp must be "LT" or "RT".')
+        if 'history' not in atto_config:
+            atto_config['history'] = {} # dict of past attocube movements, so you don't get lost
         self.metadata.update(atto_config)
         self.visa_handle.baud_rate = atto_config['baud_rate']
         self.visa_handle.stop_bits = visa.constants.StopBits.one
