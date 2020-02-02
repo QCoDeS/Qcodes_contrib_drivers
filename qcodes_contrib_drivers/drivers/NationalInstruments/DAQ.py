@@ -1,7 +1,9 @@
 """Qcodes drivers for National Instrument mutlifunction I/O devices (DAQs).
 
+Requires nidaqmx package: https://nidaqmx-python.readthedocs.io/en/latest/
+
 This was written for/tested with National Instruments USB-6363 DAQ,
-but the nidaqmx API is pretty general, so I expect they will work with other devices
+but the nidaqmx API is pretty general, so I expect it will work with other devices
 with minimal changes.
 
 For an example of synchronously writing data to multiple analog outputs and
