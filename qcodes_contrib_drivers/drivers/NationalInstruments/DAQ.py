@@ -111,31 +111,32 @@ class DAQAnalogInputs(Instrument):
         ) 
 
 class DAQAnalogOutputVoltage(Parameter):
-    """Writes data to one or several DAQ analog outputs.
+    """Writes data to one or several DAQ analog outputs. This only writes one channel at a time,
+    since Qcodes ArrayParameters are not settable.
 
     Args:
         name: Name of parameter (usually 'voltage').
         dev_name: DAQ device name (e.g. 'Dev1').
-        idx: AO channel inde.
-        **kwargs: Keyword arguments to be passed to ArrayParameter constructor.
+        idx: AO channel index.
+        kwargs: Keyword arguments to be passed to ArrayParameter constructor.
     """
     def __init__(self, name: str, dev_name: str, idx: int, **kwargs) -> None:
         super().__init__(name, **kwargs)
         self.dev_name = dev_name
         self.idx = idx
-        self.voltage = '?'
+        self._voltage = np.nan
      
     def set_raw(self, voltage: Union[int, float]) -> None:
         with nidaqmx.Task('daq_ao_task') as ao_task:
             channel = '{}/ao{}'.format(self.dev_name, self.idx)
             ao_task.ao_channels.add_ao_voltage_chan(channel, self.name)
             ao_task.write(voltage, auto_start=True)
-        self.voltage = voltage
+        self._voltage = voltage
 
     def get_raw(self):
         """Returns last voltage array written to outputs.
         """
-        return self.voltage
+        return self._voltage
 
 class DAQAnalogOutputs(Instrument):
     """Instrument to write DAQ analog output data in a qcodes Loop or measurement.
