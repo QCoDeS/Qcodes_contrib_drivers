@@ -156,15 +156,23 @@ class AttocubeController(VisaInstrument):
         axis, idx = self._parse_axis(axis)
         if not isinstance(steps, int):
             raise ValueError('Steps must be an integer.')
-        freq = getattr(self, f'freq_ax{idx}')()
+        current_freq = getattr(self, f'freq_ax{idx}')()
         log.info(f'Performing {steps} steps along axis {axis}.')
-        getattr(self, f'mode_ax{idx}')('stp')
-        direc = 'u' if steps > 0 else 'd'
-        self.ask(f'step{direc} {idx} {abs(steps)}')
+        axis_mode = getattr(self, f'mode_ax{idx}')
+        # Set this axis into stepping mode.
+        axis_mode('stp')
+        if steps > 0:
+            direction = 'u'
+        else:
+            direction = 'd'
+        self.ask(f'step{direction} {idx} {abs(steps)}')
+        # Tell the instrument to wait while stepping
         self.write(f'stepw {idx}')
-        # do nothing while stepping
-        time.sleep(abs(steps) / freq * 1.25)
-        getattr(self, f'mode_ax{idx}')('gnd')
+        # Do nothing while stepping
+        time.sleep(abs(steps) / current_freq * 1.25)
+        # Now ground this axis for safety
+        axis_mode('gnd')
+        # Log this movement in self.metadata['history']
         ts = time.strftime(self.timestamp_fmt)
         msg = f'Moved {steps} steps along {axis} axis.'
         self.metadata['history'].update({ts: msg})
