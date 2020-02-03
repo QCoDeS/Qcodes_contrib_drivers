@@ -15,7 +15,7 @@ class AttocubeController(VisaInstrument):
     voltage limits to protect the Attocubes.
 
     I have found the Attocube serial communication to be kind of sketchy,
-    so ask_raw() is overridden try to make communication more robust. YMMV.
+    so ask_raw() is overwritten to try to make communication more robust. YMMV.
 
     Args:
         atto_config (dict): Configuration dict (example below).
