@@ -42,7 +42,7 @@ class AttocubeController(VisaInstrument):
         super().__init__(atto_config['name'], atto_config['address'], atto_config['timeout'],
                          atto_config['terminator'], **kwargs)
         if temp.upper() not in ['LT', 'RT']:
-            raise ValueError('temp must be "LT" or "RT".')
+            raise ValueError('Temperature must be "LT" or "RT".')
         if 'history' not in atto_config:
             atto_config['history'] = {} # dict of past attocube movements, so you don't get lost
         self.metadata.update(atto_config)
