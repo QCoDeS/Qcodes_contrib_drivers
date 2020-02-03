@@ -66,7 +66,6 @@ class AttocubeController(VisaInstrument):
             # axis mode
             self.add_parameter(f'mode_ax{idx}',
                                 label=f'{axis} axis mode',
-                                unit='',
                                 get_cmd=f'getm {idx}',
                                 set_cmd=f'setm {idx} {{}}',
                                 vals=vals.Enum('gnd', 'inp', 'cap', 'stp', 'off', 'stp+', 'stp-'),
