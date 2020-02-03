@@ -19,14 +19,16 @@ class EL320P(VisaInstrument):
             get_cmd='V?',
             get_parser=self._get_parser,
             set_cmd='V {}',
-            vals=vals.Numbers(0,30)
+            vals=vals.Numbers(0,30),
+            docstring='Voltage setting'
             )
         self.add_parameter(
             name='voltage_out',
             label='Actual output voltage',
             unit='V',
             get_cmd='VO?',
-            get_parser=self._get_parser
+            get_parser=self._get_parser,
+            docstring='Actual output voltage'
             )
         self.add_parameter(
             name='current_set',
@@ -35,20 +37,23 @@ class EL320P(VisaInstrument):
             get_cmd='I?',
             get_parser=self._get_parser,
             set_cmd='I {}',
-            vals=vals.Numbers(0.01,2)
+            vals=vals.Numbers(0.01,2),
+            docstring='Current setting'
             )
         self.add_parameter(
             name='current_out',
             label='Actual output current',
             unit='A',
             get_cmd='IO?',
-            get_parser=self._get_parser
+            get_parser=self._get_parser,
+            docstring='Actual output current'
             )
         self.add_parameter(
             name='mode',
             label='Mode',
             get_cmd='M?',
-            get_parser=str
+            get_parser=str,
+            docstring='Device mode: constant current or constant voltage'
             )
         self.add_parameter(
             name='output',
@@ -76,4 +81,3 @@ class EL320P(VisaInstrument):
 
     def _error_parser(self, response):
         return int(response[-1])
-        
