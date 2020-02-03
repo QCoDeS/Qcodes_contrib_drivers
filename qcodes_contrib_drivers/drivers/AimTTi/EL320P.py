@@ -76,3 +76,4 @@ class EL320P(VisaInstrument):
 
     def _error_parser(self, response):
         return int(response[-1])
+        
