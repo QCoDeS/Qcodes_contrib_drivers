@@ -64,38 +64,38 @@ class AttocubeController(VisaInstrument):
         for axis, idx in self.axes.items():
             self.voltage_limits.update({axis: self.metadata['voltage_limits'][temp][axis]}) # Volts
             # axis mode
-            self.add_parameter('mode_ax{}'.format(idx),
-                                label='{} axis mode'.format(axis),
+            self.add_parameter(f'mode_ax{idx}',
+                                label=f'{axis} axis mode',
                                 unit='',
-                                get_cmd='getm {}'.format(idx),
-                                set_cmd='setm {} {{}}'.format(idx),
+                                get_cmd=f'getm {idx}',
+                                set_cmd=f'setm {idx} {{}}',
                                 vals=vals.Enum('gnd', 'inp', 'cap', 'stp', 'off', 'stp+', 'stp-'),
                                 get_parser=self._mode_parser,
                                 snapshot_get=False
                                 )
             # axis voltage, with limits set according to temperature mode
-            self.add_parameter('voltage_ax{}'.format(idx),
-                                label='{} axis voltage'.format(axis),
+            self.add_parameter(f'voltage_ax{idx}',
+                                label=f'{axis} axis voltage',
                                 unit='V',
-                                get_cmd='getv {}'.format(idx),
-                                set_cmd='setv {} {{:.3f}}'.format(idx),
+                                get_cmd=f'getv {idx}',
+                                set_cmd=f'setv {idx} {{:.3f}}',
                                 vals=vals.Numbers(min_value=0, max_value=self.voltage_limits[axis]),
                                 get_parser=self._voltage_parser,
                                 snapshot_get=True
                                 )
             # axis frequency
-            self.add_parameter('freq_ax{}'.format(idx),
-                                label='{} axis frequency'.format(axis),
+            self.add_parameter(f'freq_ax{idx}',
+                                label=f'{axis} axis frequency',
                                 unit='Hz',
                                 get_cmd=(lambda idx=idx: self._get_freq(idx)),
-                                set_cmd='setf {} {{:.0f}}'.format(idx),
+                                set_cmd=f'setf {idx} {{:.0f}}',
                                 vals=vals.Numbers(min_value=1, max_value=10000),
                                 get_parser=self._freq_parser,
                                 snapshot_get=True
                                 )
             # axis capacitance (gettable, will fail if Attocubes are grounded with e.g. a GND cap)
-            self.add_parameter('cap_ax{}'.format(idx),
-                               label='{} axis capacitance'.format(axis),
+            self.add_parameter(f'cap_ax{idx}',
+                               label=f'{axis} axis capacitance',
                                unit='nF',
                                get_cmd=(lambda idx=idx: self._get_cap(idx)),
                                get_parser=self._cap_parser,
@@ -142,9 +142,9 @@ class AttocubeController(VisaInstrument):
             axis: Either axis label (str, e.g. 'y') or index (int, e.g. 2)
         """  
         ax, idx = self._parse_axis(axis)
-        log.info('Stopping {} axis motion.'.format(ax))
-        self.write('stop {}'.format(idx))
-        getattr(self, 'mode_ax{}'.format(idx))('gnd')
+        log.info(f'Stopping {ax} axis motion.')
+        self.write(f'stop {idx}')
+        getattr(self, f'mode_ax{idx}')('gnd')
 
     def step(self, axis: Union[int, str], steps: int) -> None:
         """Performs a given number of Attocube steps. steps > 0 corresponds to stepu (up),
@@ -157,17 +157,17 @@ class AttocubeController(VisaInstrument):
         axis, idx = self._parse_axis(axis)
         if not isinstance(steps, int):
             raise ValueError('Steps must be an integer.')
-        freq = getattr(self, 'freq_ax{}'.format(idx))()
-        log.info('Performing {} steps along axis {}.'.format(steps, axis))
-        getattr(self, 'mode_ax{}'.format(idx))('stp')
+        freq = getattr(self, f'freq_ax{idx}')()
+        log.info(f'Performing {steps} steps along axis {axis}.')
+        getattr(self, f'mode_ax{idx}')('stp')
         direc = 'u' if steps > 0 else 'd'
-        self.ask('step{} {} {}'.format(direc, idx, abs(steps)))
-        self.write('stepw {}'.format(idx))
+        self.ask(f'step{direc} {idx} {abs(steps)}')
+        self.write(f'stepw {idx}')
         # do nothing while stepping
         time.sleep(abs(steps) / freq * 1.25)
-        getattr(self, 'mode_ax{}'.format(idx))('gnd')
+        getattr(self, f'mode_ax{idx}')('gnd')
         ts = time.strftime(self.timestamp_fmt)
-        msg = 'Moved {} steps along {} axis.'.format(steps, axis)
+        msg = f'Moved {steps} steps along {axis} axis.'
         self.metadata['history'].update({ts: msg})
 
     def _parse_axis(self, axis: Union[int, str]) -> Tuple[str, int]:
@@ -186,13 +186,13 @@ class AttocubeController(VisaInstrument):
             idx = axis
             axis = axes[idxs.index(idx)]
             if idx not in idxs:
-                 raise ValueError('axis must be in {} or {}.'.format(axes, idxs))
+                 raise ValueError(f'Axis must be in {axes} or {idxs}.')
         elif isinstance(axis, str):
             idx = self.axes[axis]
             if axis not in axes:
-                raise ValueError('axis must be in {} or {}.'.format(axes, idxs))
+                raise ValueError(f'Axis must be in {axes} or {idxs}.')
         else:
-            raise ValueError('axis of type str or int.')
+            raise ValueError('Axis must be str or int.')
         return axis, idx
     
     def _mode_parser(self,response: str) -> str:
@@ -249,7 +249,7 @@ class AttocubeController(VisaInstrument):
             str: response
         """
         self.set_terminator('\n') # Bug in ANC300! Response for getf is terminated with '\n'
-        response = self.ask('getf {}'.format(idx))
+        response = self.ask(f'getf {idx}')
         self.set_terminator('\r\n') # Set terminator back to '\r\n', works for other paramaters
         return response
     
@@ -262,9 +262,9 @@ class AttocubeController(VisaInstrument):
         Returns:
             str: response
         """
-        self.parameters['mode_ax{}'.format(idx)].set('cap')
-        self.write('capw {}'.format(idx))
-        response = self.ask('getc {}'.format(idx))
+        self.parameters[f'mode_ax{idx}'].set('cap')
+        self.write(f'capw {idx}')
+        response = self.ask(f'getc {idx}')
         return response
 
 class ANC300(AttocubeController):
@@ -280,9 +280,9 @@ class ANC300(AttocubeController):
                     )
         for axis, idx in self.axes.items():
             # serial number for axis controller module (gettable only)
-            self.add_parameter('serialnum_ax{}'.format(idx),
-                                label='{} axis serial number'.format(axis),
-                                get_cmd='getser {}'.format(idx),
+            self.add_parameter(f'serialnum_ax{idx}',
+                                label=f'{axis} axis serial number',
+                                get_cmd=f'getser {idx}',
                                 get_parser=str,
                                 snapshot_get=False
                                 )
@@ -295,14 +295,14 @@ class ANC300(AttocubeController):
         for axis, idx in self.axes.items():
             freq_in_Hz = self.metadata['default_frequency'][axis]
             voltage_lim = self.voltage_limits[axis]
-            self.parameters['freq_ax{}'.format(idx)].set(freq_in_Hz)
-            self.parameters['voltage_ax{}'.format(idx)].set(voltage_lim)
-            self.parameters['mode_ax{}'.format(idx)].set('gnd')
+            self.parameters[f'freq_ax{idx}'].set(freq_in_Hz)
+            self.parameters[f'voltage_ax{idx}'].set(voltage_lim)
+            self.parameters[f'mode_ax{idx}'].set('gnd')
         self.serialnum()
         self.serialnum_ax1()
         self.serialnum_ax2()
         self.serialnum_ax3()
-        logging.info('Connected to: {}.'.format(self.version()))
+        logging.info(f'Connected to: {self.version()}.')
         
 class ANC150(AttocubeController):
     """ANC150 Attocube controller instrument.
@@ -318,7 +318,7 @@ class ANC150(AttocubeController):
         for axis, idx in self.axes.items():
             freq_in_Hz = self.metadata['default_frequency'][axis]
             voltage_lim = self.voltage_limits[axis]
-            self.parameters['freq_ax{}'.format(idx)].set(freq_in_Hz)
-            self.parameters['voltage_ax{}'.format(idx)].set(voltage_lim)
-            self.parameters['mode_ax{}'.format(idx)].set('gnd')
-        logging.info('Connected to: {}.'.format(self.version()))
+            self.parameters[f'freq_ax{idx}'].set(freq_in_Hz)
+            self.parameters[f'voltage_ax{idx}'].set(voltage_lim)
+            self.parameters[f'mode_ax{idx}'].set('gnd')
+        logging.info(f'Connected to: {self.version()}.')
