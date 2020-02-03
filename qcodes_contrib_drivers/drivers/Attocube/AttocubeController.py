@@ -18,8 +18,8 @@ class AttocubeController(VisaInstrument):
     so ask_raw() is overwritten to try to make communication more robust. YMMV.
 
     Args:
-        atto_config (dict): Configuration dict (example below).
-        temp (str): 'LT' or 'RT', depending on whether the attocubes are at room temp. or low temp.
+        atto_config: Configuration dict (example below).
+        temp: 'LT' or 'RT', depending on whether the attocubes are at room temp. or low temp.
         kwargs: Keyword arguments to be passed to VisaInstrument constructor.
 
     An example of the atto_config dictionary is provided below:
