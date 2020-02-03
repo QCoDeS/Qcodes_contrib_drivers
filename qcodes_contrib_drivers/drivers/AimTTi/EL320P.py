@@ -47,14 +47,12 @@ class EL320P(VisaInstrument):
         self.add_parameter(
             name='mode',
             label='Mode',
-            unit='',
             get_cmd='M?',
             get_parser=str
             )
         self.add_parameter(
             name='output',
             label='Output status',
-            unit='',
             get_cmd='OUT?',
             get_parser=self._output_parser,
             set_cmd='{}',
@@ -63,7 +61,6 @@ class EL320P(VisaInstrument):
         self.add_parameter(
             name='error',
             label='Error message',
-            unit='',
             get_cmd='ERR?',
             get_parser=self._error_parser,
             val_mapping={'OK': 0, 'Command not recognized': 1, 'Value outside of instrument limits': 2},
