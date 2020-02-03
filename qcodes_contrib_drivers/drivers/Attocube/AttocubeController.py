@@ -11,7 +11,7 @@ import qcodes.utils.validators as vals
 class AttocubeController(VisaInstrument):
     """Base class for Attocube controller instrument.
 
-    This driver "low temperature" and "room temperature" modes, with different
+    This driver has "low temperature" and "room temperature" modes, with different
     voltage limits to protect the Attocubes.
 
     I have found the Attocube serial communication to be kind of sketchy,
