@@ -164,3 +164,4 @@ class DAQAnalogOutputs(Instrument):
                 label='Voltage',
                 unit='V'
             )
+            
