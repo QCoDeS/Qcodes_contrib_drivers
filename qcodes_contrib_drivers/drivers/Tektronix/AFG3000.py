@@ -592,3 +592,4 @@ class AFG3000(VisaInstrument):
 
 class AFG3252(AFG3000):
     pass
+    
