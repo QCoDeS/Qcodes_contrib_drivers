@@ -14,7 +14,6 @@ class AFG3000(VisaInstrument):
         self.add_parameter(
             name='trigger_mode',
             label='Trigger mode',
-            unit='',
             get_cmd='OUTPut:TRIGger:MODE?',
             get_parser=str,
             set_cmd='OUTPut:TRIGger:MODE {}',
@@ -37,7 +36,6 @@ class AFG3000(VisaInstrument):
             self.add_parameter(
                 name='polarity_output{}'.format(src),
                 label='Output {} polarity'.format(src),
-                unit='',
                 get_cmd='OUTPut{}:POLarity?'.format(src),
                 get_parser=str,
                 set_cmd='OUTPut{}:POLarity {{}}'.format(src),
@@ -46,7 +44,6 @@ class AFG3000(VisaInstrument):
             self.add_parameter(
                 name='state_output{}'.format(src),
                 label='Output {} state'.format(src),
-                unit='',
                 get_cmd='OUTPut{}:STATe?'.format(src),
                 get_parser=lambda x: bool(int(x)),
                 set_cmd='OUTPut{}:STATe {{}}'.format(src),
@@ -111,7 +108,6 @@ class AFG3000(VisaInstrument):
                 self.add_parameter(
                     name='{}_internal_function{}'.format(mod_type.lower(), src),
                     label='Source {} {} interal function'.format(src, mod_type),
-                    unit='',
                     get_cmd='SOURce{}:{}:INTernal:FUNCtion?'.format(src, mod_type),
                     get_parser=str,
                     set_cmd='SOURce{}:{}:INTernal:FUNCtion {{}}'.format(src, mod_type),
@@ -129,7 +125,6 @@ class AFG3000(VisaInstrument):
                 self.add_parameter(
                     name='{}_internal_efile{}'.format(mod_type.lower(), src),
                     label='Source {} {} interal EFile'.format(src, mod_type),
-                    unit='',
                     get_cmd='SOURce{}:{}:INTernal:FUNCtion:EFILe?'.format(src, mod_type),
                     get_parser=str,
                     set_cmd='SOURce{}:{}:INTernal:FUNCtion:EFILe {{}}'.format(src, mod_type),
@@ -138,7 +133,6 @@ class AFG3000(VisaInstrument):
                 self.add_parameter(
                     name='{}_internal_source{}'.format(mod_type.lower(), src),
                     label='Source {} {} source'.format(src, mod_type),
-                    unit='',
                     get_cmd='SOURce{}:{}:SOURce?'.format(src, mod_type),
                     get_parser=str,
                     set_cmd='SOURce{}:{}:SOURce? {{}}'.format(src, mod_type),
@@ -147,7 +141,6 @@ class AFG3000(VisaInstrument):
                 self.add_parameter(
                     name='{}_state{}'.format(mod_type.lower(), src),
                     label='Source {} {} interal state'.format(src, mod_type),
-                    unit='',
                     get_cmd='SOURce{}:{}:STATe?'.format(src, mod_type),
                     get_parser=lambda x: bool(int(x)),
                     set_cmd='SOURce{}:{}:STATe {{}}'.format(src, mod_type),
@@ -158,7 +151,6 @@ class AFG3000(VisaInstrument):
             self.add_parameter(
                 name='burst_mode{}'.format(src),
                 label='Source {} burst mode'.format(src),
-                unit='',
                 get_cmd='SOURce{}:BURSt:MODE?'.format(src),
                 get_parser=str,
                 set_cmd='SOURce{}:BURSt:MODE {{}}'.format(src),
@@ -167,7 +159,6 @@ class AFG3000(VisaInstrument):
             self.add_parameter(
                 name='burst_ncycles{}'.format(src),
                 label='Source {} burst N cycles'.format(src),
-                unit='',
                 get_cmd='SOURce{}:BURSt:NCYCles?'.format(src),
                 get_parser=float,
                 set_cmd='SOURce{}:BURSt:NCYCles {{}}'.format(src),
@@ -178,7 +169,6 @@ class AFG3000(VisaInstrument):
             self.add_parameter(
                 name='burst_state{}'.format(src),
                 label='Source {} burst state'.format(src),
-                unit='',
                 get_cmd='SOURce{}:BURSt:STATe?'.format(src),
                 get_parser=lambda x: bool(int(x)),
                 set_cmd='SOURce{}:BURSt:STATe {{}}'.format(src),
@@ -201,7 +191,6 @@ class AFG3000(VisaInstrument):
             self.add_parameter(
                 name='combine{}'.format(src),
                 label='Source {} combine signals'.format(src),
-                unit='',
                 get_cmd='SOURce{}:COMBine:FEED?'.format(src),
                 get_parser=str,
                 set_cmd='SOURce{}:COMBine:FEED {{}}'.format(src),
@@ -221,7 +210,6 @@ class AFG3000(VisaInstrument):
             self.add_parameter(
                 name='freq_concurrent{}'.format(src),
                 label='Source {} concurrent frequency'.format(src),
-                unit='',
                 get_cmd='SOURce{}:FREQuency:CONCurrent?'.format(src),
                 get_parser=lambda x: bool(int(x)),
                 set_cmd='SOURce{}:FREQuency:CONCurrent {{}}'.format(src),
@@ -248,7 +236,6 @@ class AFG3000(VisaInstrument):
             self.add_parameter(
                 name='freq_mode{}'.format(src),
                 label='Source {} frequency mode'.format(src),
-                unit='',
                 get_cmd='SOURce{}:FREQuency:MODE?'.format(src),
                 get_parser=str,
                 set_cmd='SOURce{}:FREQuency:MODE {{}}'.format(src),
@@ -304,7 +291,6 @@ class AFG3000(VisaInstrument):
             self.add_parameter(
                 name='fsk_source{}'.format(src),
                 label='Source {} FSK source'.format(src),
-                unit='',
                 get_cmd='SOURce{}:FSKey:SOURce?'.format(src),
                 get_parser=str,
                 set_cmd='SOURce{}:FSKey:SOURce {{}}'.format(src),
@@ -313,7 +299,6 @@ class AFG3000(VisaInstrument):
             self.add_parameter(
                 name='fsk_state{}'.format(src),
                 label='Source {} FSK state'.format(src),
-                unit='',
                 get_cmd='SOURce{}:FSKey:STATe?'.format(src),
                 get_parser=lambda x: bool(int(x)),
                 set_cmd='SOURce{}:FSKey:STATe {{}}'.format(src),
@@ -324,7 +309,6 @@ class AFG3000(VisaInstrument):
             self.add_parameter(
                 name='function_efile{}'.format(src),
                 label='Source {} function efile'.format(src),
-                unit='',
                 get_cmd='SOURce{}:FUNCtion:EFILe?'.format(src),
                 get_parser=str,
                 set_cmd='SOURce{}:FUNCtion:EFILe {{}}'.format(src),
@@ -342,7 +326,6 @@ class AFG3000(VisaInstrument):
             self.add_parameter(
                 name='function_shape{}'.format(src),
                 label='Source {} function shape'.format(src),
-                unit='',
                 get_cmd='SOURce{}:FUNCtion:SHAPe?'.format(src),
                 get_parser=str,
                 set_cmd='SOURce{}:FUNCtion:SHAPe {{}}'.format(src),
@@ -395,7 +378,6 @@ class AFG3000(VisaInstrument):
             self.add_parameter(
                 name='pulse_hold{}'.format(src),
                 label='Source {} pulse hold'.format(src),
-                unit='',
                 get_cmd='SOURce{}:PULSe:HOLD?'.format(src),
                 get_parser=str,
                 set_cmd='SOURce{}:PULSe:HOLD {{}}'.format(src),
@@ -451,7 +433,6 @@ class AFG3000(VisaInstrument):
             self.add_parameter(
                 name='sweep_mode{}'.format(src),
                 label='Source {} sweep mode'.format(src),
-                unit='',
                 get_cmd='SOURce{}:SWEep:MODE?'.format(src),
                 get_parser=str,
                 set_cmd='SOURce{}:SWEep:MODE {{}}'.format(src),
@@ -469,7 +450,6 @@ class AFG3000(VisaInstrument):
             self.add_parameter(
                 name='sweep_spacing{}'.format(src),
                 label='Source {} sweep spacing'.format(src),
-                unit='',
                 get_cmd='SOURce{}:SWEep:SPACing?'.format(src),
                 get_parser=str,
                 set_cmd='SOURce{}:SWEep:SPACing {{}}'.format(src),
@@ -489,7 +469,6 @@ class AFG3000(VisaInstrument):
             self.add_parameter(
                 name='voltage_concurrent{}'.format(src),
                 label='Source {} concurrent voltage'.format(src),
-                unit='',
                 get_cmd='SOURce{}:VOLTage:CONCurrent:STATe?'.format(src),
                 get_parser=lambda x: bool(int(x)),
                 set_cmd='SOURce{}:VOLTage:CONCurrent:STATe {{}}'.format(src),
@@ -525,7 +504,6 @@ class AFG3000(VisaInstrument):
             self.add_parameter(
                 name='voltage_unit{}'.format(src),
                 label='Source {} voltage unit'.format(src),
-                unit='',
                 get_cmd='SOURce{}:VOLTage:UNIT?'.format(src),
                 get_parser=str,
                 set_cmd='SOURce{}:VOLTage:UNIT {{}}'.format(src),
@@ -575,7 +553,6 @@ class AFG3000(VisaInstrument):
         self.add_parameter(
             name='ref_osc_source',
             label='Reference clock source',
-            unit='',
             get_cmd='SOURce:ROSCillator:SOURce?',
             get_parser=str,
             set_cmd='SOURce:ROSCillator:SOURce {}',
@@ -586,7 +563,6 @@ class AFG3000(VisaInstrument):
         self.add_parameter(
             name='trigger_slope',
             label='Trigger slope',
-            unit='',
             get_cmd='TRIGger:SEQuence:SLOPe?',
             get_parser=str,
             set_cmd='TRIGger:SEQuence:SLOPe {}',
@@ -595,7 +571,6 @@ class AFG3000(VisaInstrument):
         self.add_parameter(
             name='trigger_source',
             label='Trigger source',
-            unit='',
             get_cmd='TRIGger:SEQuence:SOURce?',
             get_parser=str,
             set_cmd='TRIGger:SEQuence:SOURce {}',
