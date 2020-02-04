@@ -232,3 +232,4 @@ class HF2LI(Instrument):
     def sample(self):
         path = f'/{self.dev_id}/demods/{self.demod}/sample/'
         return self.daq.getSample(path)
+        
