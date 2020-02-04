@@ -70,7 +70,7 @@ class HF2LI(Instrument):
                 name=f'output_{ch}',
                 label=f'{ch} outptut select',
                 get_cmd=lambda channel=ch: self._get_output_select(channel),
-                get_parser=str,
+                get_parser=str
             )
             # Making output select only gettable, since we are
             # explicitly mapping auxouts to X, Y, R, Theta, etc.
@@ -146,90 +146,90 @@ class HF2LI(Instrument):
                 docstring='Multiply by sigout_range to get actual output voltage.'
             )
 
-    def _get_phase(self):
+    def _get_phase(self) -> float:
         path = f'/{self.dev_id}/demods/{self.demod}/phaseshift/'
         return self.daq.getDouble(path)
 
-    def _set_phase(self, phase):
+    def _set_phase(self, phase: float) -> None:
         path = f'/{self.dev_id}/demods/{self.demod}/phaseshift/'
         self.daq.setDouble(path, phase)
         
-    def _get_gain(self, channel):
+    def _get_gain(self, channel: float) -> float:
         path = f'/{self.devid}/auxouts/{self.auxouts[channel]}/scale/'
         return self.daq.getDouble(path)
 
-    def _set_gain(self, gain, channel):
+    def _set_gain(self, gain: float, channel: str) -> None:
         path = f'/{self.dev_id}/auxouts/{self.auxouts[channel]}/scale/'
         self.daq.setDouble(path, gain)
 
-    def _get_offset(self, channel):
+    def _get_offset(self, channel: str) -> float:
         path = f'/{self.dev_id}/auxouts/{self.auxouts[channel]}/offset/'
         return self.daq.getDouble(path)
 
-    def _set_offset(self, offset, channel):
+    def _set_offset(self, offset: float, channel: str) -> None:
         path = f'/{self.dev_id}/auxouts/{self.auxouts[channel]}/offset/'
         self.daq.setDouble(path, offset)
 
-    def _get_output_value(self, channel):
+    def _get_output_value(self, channel: str) -> float:
         path = f'/{self.dev_id}/auxouts/{self.auxouts[channel]}/value/'
         return self.daq.getDouble(path)
 
-    def _get_output_select(self, channel):
+    def _get_output_select(self, channel: str) -> str:
         path = f'/{self.dev_id}/auxouts/{self.auxouts[channel]}/outputselect/'
         idx = self.daq.getInt(path)
         return self.OUTPUT_MAPPING[idx]
 
-    def _set_output_select(self, channel):
+    def _set_output_select(self, channel: str) -> None:
         path = f'/{self.dev_id}/auxouts/{self.auxouts[channel]}/outputselect/'
         keys = list(self.OUTPUT_MAPPING.keys())
         idx = keys[list(self.OUTPUT_MAPPING.values()).index(channel)]
         self.daq.setInt(path, idx)
 
-    def _get_time_constant(self):
+    def _get_time_constant(self) -> float:
         path = f'/{self.dev_id}/demods/{self.demod}/timeconstant/'
         return self.daq.getDouble(path)
 
-    def _set_time_constant(self, tc):
+    def _set_time_constant(self, tc: float) -> None:
         path = f'/{self.dev_id}/demods/{self.demod}/timeconstant/'
         self.daq.setDouble(path, tc)
 
-    def _get_sigout_range(self):
+    def _get_sigout_range(self) -> float:
         path = f'/{self.dev_id}/sigouts/{self.sigout}/range/'
         return self.daq.getDouble(path)
 
-    def _set_sigout_range(self, rng):
+    def _set_sigout_range(self, rng: float) -> None:
         path = f'/{self.dev_id}/sigouts/{self.sigout}/range/'
         self.daq.setDouble(path, rng)
 
-    def _get_sigout_offset(self):
+    def _get_sigout_offset(self) -> float:
         path = f'/{self.dev_id}/sigouts/{self.sigout}/offset/'
         return self.daq.getDouble(path)
 
-    def _set_sigout_offset(self, offset):
+    def _set_sigout_offset(self, offset: float) -> None:
         path = f'/{self.dev_id}/sigouts/{self.sigout}/offset/'
         self.daq.setDouble(path, offset)
 
-    def _get_sigout_amplitude(self, mixer_channel):
+    def _get_sigout_amplitude(self, mixer_channel: int) -> float:
         path = f'/{self.dev_id}/sigouts/{self.sigout}/amplitudes/{mixer_channel}/'
         return self.daq.getDouble(path)
 
-    def _set_sigout_amplitude(self, mixer_channel, amp):
+    def _set_sigout_amplitude(self, mixer_channel: int, amp: float) -> None:
         path = f'/{self.dev_id}/sigouts/{self.sigout}/amplitudes/{mixer_channel}/'
         self.daq.setDouble(path, amp)
 
-    def _get_sigout_enable(self, mixer_channel):
+    def _get_sigout_enable(self, mixer_channel: int) -> int:
         path = f'/{self.dev_id}/sigouts/{self.sigout}/enables/{mixer_channel}/'
         return self.daq.getInt(path)
 
-    def _set_sigout_enable(self, mixer_channel, val):
+    def _set_sigout_enable(self, mixer_channel: int, val: int) -> None:
         path = f'/{self.dev_id}/sigouts/{self.sigout}/enables/{mixer_channel}/'
         self.daq.setInt(path, val)
 
-    def _get_frequency(self):
+    def _get_frequency(self) -> float:
         path = f'/{self.dev_id}/demods/{self.demod}/freq/'
         return self.daq.getDouble(path)
 
-    def sample(self):
+    def sample(self) -> dict:
         path = f'/{self.dev_id}/demods/{self.demod}/sample/'
         return self.daq.getSample(path)
         
