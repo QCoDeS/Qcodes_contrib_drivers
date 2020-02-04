@@ -16,6 +16,9 @@ class HF2LI(Instrument):
     and multiple auxout channels (for X, Y, R, Theta, or an arbitrary manual value).
     Multiple instances can be run simultaneously as independent lockin amplifiers.
 
+    This instrument has a great deal of additional functionality that is
+    not currently supported by this driver.
+
     Args:
         name: Name of instrument.
         device: Device name, e.g. "dev204", used to create zhinst API session.
