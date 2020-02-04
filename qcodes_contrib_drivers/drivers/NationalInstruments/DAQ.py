@@ -81,10 +81,10 @@ class DAQAnalogInputs(Instrument):
         self.task = task
         self.metadata.update({
             'dev_name': dev_name,
-            'rate': '{} Hz'.format(rate),
+            'rate': f'{rate} Hz',
             'channels': channels})
         for ch, idx in channels.items():
-            channel = '{}/ai{}'.format(dev_name, idx)
+            channel = f'{dev_name}/ai{idx}'
             self.task.ai_channels.add_ai_voltage_chan(channel, ch, min_val=min_val, max_val=max_val)
         if clock_src is None:
             # Use default sample clock timing: ai/SampleClockTimebase
@@ -130,7 +130,7 @@ class DAQAnalogOutputVoltage(Parameter):
      
     def set_raw(self, voltage: Union[int, float]) -> None:
         with nidaqmx.Task('daq_ao_task') as ao_task:
-            channel = '{}/ao{}'.format(self.dev_name, self.idx)
+            channel = f'{self.dev_name}/ao{self.idx}'
             ao_task.ao_channels.add_ao_voltage_chan(channel, self.name)
             ao_task.write(voltage, auto_start=True)
         self._voltage = voltage
@@ -157,7 +157,7 @@ class DAQAnalogOutputs(Instrument):
         # We need parameters in order to write voltages in a qcodes Loop or Measurement
         for ch, idx in channels.items():
             self.add_parameter(
-                name='voltage_{}'.format(ch.lower()),
+                name=f'voltage_{ch.lower()}',
                 dev_name=dev_name,
                 idx=idx,
                 parameter_class=DAQAnalogOutputVoltage,
