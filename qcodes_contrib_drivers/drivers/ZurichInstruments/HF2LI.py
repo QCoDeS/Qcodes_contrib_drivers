@@ -71,11 +71,9 @@ class HF2LI(Instrument):
                 label=f'{ch} outptut select',
                 get_cmd=lambda channel=ch: self._get_output_select(channel),
                 get_parser=str,
-                # making this only gettable since we are explicitly mapping
-                # auxouts to X, Y, R, Theta, etc.
-                # set_cmd=lambda output, channel=ch: self._set_output_select(output, channel),
-                # vals=vals.Ints(-1,3)
             )
+            # Making output select only gettable, since we are
+            # explicitly mapping auxouts to X, Y, R, Theta, etc.
             self._set_output_select(ch)
             
         self.add_parameter(
