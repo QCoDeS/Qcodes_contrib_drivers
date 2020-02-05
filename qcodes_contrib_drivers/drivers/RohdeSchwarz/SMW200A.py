@@ -30,6 +30,7 @@ log = logging.getLogger(__name__)
 class IQChannel(InstrumentChannel): # doc done ********************************
     """
     The I/Q channels are the analog output channels of the device.
+
     Parameters:
         state: Actives/deactives the I/Q output. Values are 'ON' and 'OFF'.
         type: Sets the type of the analog signal. Values are 'SING' (single) and
@@ -63,7 +64,8 @@ class IQChannel(InstrumentChannel): # doc done ********************************
     """
     def __init__(self, parent: 'RohdeSchwarz_SMW200A', name: str, hwchan: int):
         """
-        Creates a new IQChannel
+        Creates a new IQChannel.
+
         Args:
             parent: the parent instrument of this channel
             name  : the internal QCoDeS name of this channel
@@ -225,6 +227,7 @@ class IQChannel(InstrumentChannel): # doc done ********************************
 class IQModulation(InstrumentChannel): # doc done *****************************
     """
     Combines all the parameters concerning the IQ modulation.
+
     Parameters:
         state: Activates/deactivates the I/Q modulation. Values are 'ON', and 'OFF'.
         source: Selects/reads the input signal source for the I/Q modulator.
@@ -256,7 +259,8 @@ class IQModulation(InstrumentChannel): # doc done *****************************
     """
     def __init__(self, parent: 'RohdeSchwarz_SMW200A', name: str, hwchan: int):
         """
-        Creates a new IQModulation
+        Creates a new IQModulation.
+
         Args:
             parent: the parent instrument of this channel
             name  : the internal QCoDeS name of this channel
@@ -346,6 +350,7 @@ class IQModulation(InstrumentChannel): # doc done *****************************
 class FrequencyModulation(InstrumentChannel): # doc done **********************
     """
     Combines all the parameters concerning the frequency modulation.
+
     Parameters:
         state: actives/deactivates the frequency modulation. Values are 'ON' and 'OFF'.
         deviation: Sets the modulation deviation of the frequency modulation in Hz.
@@ -378,7 +383,8 @@ class FrequencyModulation(InstrumentChannel): # doc done **********************
     """
     def __init__(self, parent: 'RohdeSchwarz_SMW200A', name: str, hwchan: int, chnum: int):
         """
-        Creates a new FrequencyModulation
+        Creates a new FrequencyModulation.
+
         Args:
             parent: the parent instrument of this channel
             name  : the internal QCoDeS name of this channel
@@ -493,13 +499,12 @@ class AmplitudeModulation(InstrumentChannel): # doc done **********************
     Combines all the parameters concerning the amplitude modulation. Activation
     of amplitude modulation deactivates ARB, I/Q modulation, digital modulation
     and all digital standards.
+
     Parameters:
         state: actives/deactivates the amplitude modulation. Values are 'ON' and 'OFF'.
         source: Selects the modulation source. Values are:
-            'INT': internally generated LF signal = 'LF1' (for channel 2 only
-                available with option SMW-K24)
-            'EXT': externally supplied LF signal  = 'EXT1' (for channel 2 only
-                available with option SMW-K24)
+            'INT': internally generated LF signal = 'LF1' (for channel 2 only with option SMW-K24)
+            'EXT': externally supplied LF signal  = 'EXT1' (for channel 2 only with option SMW-K24)
             'LF1': first internally generated signal
             'LF2': second internally gererated signal (only available with option SMW-K24)
             'NOIS': internally generated noise signal (only available with option SMW-K24)
@@ -511,7 +516,7 @@ class AmplitudeModulation(InstrumentChannel): # doc done **********************
         coupling_mode: Selects the coupling mode. The coupling mode parameter also
             determines the modefor fixing the total depth. Values are:
             'UNC': Does not couple the LF signals. The deviation depth values of
-                both paths are independent.
+            both paths are independent.
             'TOT': Couples the deviation depth of both paths.
             'RAT': Couples the deviation depth ratio of both paths.
         deviation_ratio: Sets the deviation ratio (path2 to path1) in percent.
@@ -522,7 +527,8 @@ class AmplitudeModulation(InstrumentChannel): # doc done **********************
     """
     def __init__(self, parent: 'RohdeSchwarz_SMW200A', name: str, hwchan: int, chnum: int):
         """
-        Creates a new AmplitudeModulation
+        Creates a new AmplitudeModulation.
+
         Args:
             parent: the parent instrument of this channel
             name  : the internal QCoDeS name of this channel
@@ -624,6 +630,7 @@ class AmplitudeModulation(InstrumentChannel): # doc done **********************
 class PulseModulation(InstrumentChannel): # doc done **************************
     """
     Combines all the parameters concerning the pulse modulation.
+
     Parameters:
         state: Activates/deactivates the pulse modulation. Values are 'ON' and 'OFF'.
         source: Selects the modulation source. Values are:
@@ -645,25 +652,26 @@ class PulseModulation(InstrumentChannel): # doc done **************************
         trigger_impedance: Sets the impedance for the external pulse trigger.
             Values are 'G50' and 'G10K'
 
-        Only available with option SMW-K23:
-            mode: Selects the mode for the pulse modulation. Values can be:
-                'SING': generates a single pulse
-                'DOUB': generates two pulses within one pulse period
-            double_delay: Sets the delay from the start of the first pulse to
-                the start of the second pulse.
-            double_width: Sets the width of the second pulse.
-            trigger_mode: Selects a trigger mode for generating the modulation signal.
-                Values are 'AUTO' (AUTOmatic), 'EXT' (EXTernal), 'EGAT' (External GATed),
-                'ESIN' (External single).
-            period: Sets the period of the generated pulse, that means the
-                repetition frequency of the internally generated modulation signal.
-            width: Sets the width of the generated pulse, that means the pulse length.
-                It must be at least 20ns less than the set pulse period.
-            delay: Sets the pulse delay.
+    Parameters only available with option SMW-K23:
+        mode: Selects the mode for the pulse modulation. Values can be:
+            'SING': generates a single pulse
+            'DOUB': generates two pulses within one pulse period
+        double_delay: Sets the delay from the start of the first pulse to
+            the start of the second pulse.
+        double_width: Sets the width of the second pulse.
+        trigger_mode: Selects a trigger mode for generating the modulation signal.
+            Values are 'AUTO' (AUTOmatic), 'EXT' (EXTernal), 'EGAT' (External GATed),
+            'ESIN' (External single).
+        period: Sets the period of the generated pulse, that means the
+            repetition frequency of the internally generated modulation signal.
+        width: Sets the width of the generated pulse, that means the pulse length.
+            It must be at least 20ns less than the set pulse period.
+        delay: Sets the pulse delay.
     """
     def __init__(self, parent: 'RohdeSchwarz_SMW200A', name: str, hwchan: int):
         """
-        Creates a new PulseModulation
+        Creates a new PulseModulation.
+
         Args:
             parent: the parent instrument of this channel
             name  : the internal QCoDeS name of this channel
@@ -829,6 +837,7 @@ class PulseGenerator(InstrumentChannel):
     """
     Combines all the parameters concerning the pulse generator for setting output
     of the pulse modulation signal. Available only with option SMW-K23 installed.
+
     Parameters:
         polarity: Sets the polarity of the pulse output signal. Values are:
             'NORM': Outputs the pulse signal during the pulse width, that means during
@@ -839,6 +848,7 @@ class PulseGenerator(InstrumentChannel):
         state: Enables the output of the video/sync signal. If the pulse generator is the
                current modulation source, activating the pulse modulation automatically
                activates the signal output and the pulse generator.
+
     Configurations for the Pulse Generator set with another subclass:
         Pulse Mode         -> PulseModulation.mode()
         Trigger Mode       -> PulseModulation.trigger_mode()
@@ -850,7 +860,8 @@ class PulseGenerator(InstrumentChannel):
     """
     def __init__(self, parent: 'RohdeSchwarz_SMW200A', name: str, hwchan: int):
         """
-        Creates a new PulseGenerator
+        Creates a new PulseGenerator.
+
         Args:
             parent: the parent instrument of this channel
             name  : the internal QCoDeS name of this channel
@@ -923,6 +934,7 @@ class PulseGenerator(InstrumentChannel):
 class PhaseModulation(InstrumentChannel): # doc done **************************
     """
     Combines all the parameters concerning the phase modulation.
+
     Parameters:
         state: Activates or deactivates phase modulation.
             Activation of phase modulation deactivates frequency modulation.
@@ -958,7 +970,8 @@ class PhaseModulation(InstrumentChannel): # doc done **************************
     """
     def __init__(self, parent: 'RohdeSchwarz_SMW200A', name: str, hwchan: int, chnum: int):
         """
-        Creates a new PhaseModulation
+        Creates a new PhaseModulation.
+
         Args:
             parent: the parent instrument of this channel
             name  : the internal QCoDeS name of this channel
@@ -1074,8 +1087,9 @@ class PhaseModulation(InstrumentChannel): # doc done **************************
 
 class LFOutputSweep(InstrumentChannel): # doc done ****************************
     """
-    Combines all the parameters concerning one LF output Sweeping.
-    The LF output is used as modulation signal for the analog modulation.
+    Combines all the parameters concerning one LF output Sweeping. The LF output
+    is used as modulation signal for the analog modulation.
+
     Parameters:
         dwell: Dwell time in seconds from 0.5 ms to 100 s.
         mode: Cycle mode for level sweep.
@@ -1100,7 +1114,8 @@ class LFOutputSweep(InstrumentChannel): # doc done ****************************
     """
     def __init__(self, parent: 'RohdeSchwarz_SMW200A', name: str, hwchan: int):
         """
-        Creates a new LFOutputSweep
+        Creates a new LFOutputSweep.
+
         Args:
             parent: the parent instrument of this channel
             name  : the internal QCoDeS name of this channel
@@ -1219,10 +1234,12 @@ class LFOutputSweep(InstrumentChannel): # doc done ****************************
 
 class LFOutputChannel(InstrumentChannel): # doc done **************************
     """
-    Combines all the parameters concerning one LF output.
-    The LF output is used as modulation signal for the analog modulation.
+    Combines all the parameters concerning one LF output. The LF output is used
+    as modulation signal for the analog modulation.
+
     Parameters:
         bandwidth: (ReadOnly) Requests the current bandwidth.
+
     Parameters only for the first RF-Source available:
         state: The state of the output. Values are 'ON' or 'OFF'.
         offset: DC offset voltage in the range from -3.6V to +3.6V.
@@ -1242,6 +1259,7 @@ class LFOutputChannel(InstrumentChannel): # doc done **************************
             available. Values are 'A' or 'B'
         voltage: Output voltage of the LF output. The valid range will be dynamic
             as shown in the datasheet.
+
     Parameters only for the first LF-Channel available:
         period: ReadOnly. Queries the repetition frequency of the sine signal.
         frequency: The Frequency of the LF signal when the mode() is `FIX'. Valid
@@ -1253,6 +1271,7 @@ class LFOutputChannel(InstrumentChannel): # doc done **************************
         mode: Set the used mode:
             FIX = fixed frequency mode (CW is a synonym)
             SWE = set sweep mode (use LFOutputSweep class)
+
     Parameters only with SMW-K24 option available:
         shape: Define the shape of the signal. Valid values are: 'SINE',
             'SQUARE', 'TRIANGLE', 'TRAPEZE'.
@@ -1269,7 +1288,8 @@ class LFOutputChannel(InstrumentChannel): # doc done **************************
     """
     def __init__(self, parent: 'RohdeSchwarz_SMW200A', name: str, hwchan: int, lfchan: int):
         """
-        Creates a new LFOutputChannel
+        Creates a new LFOutputChannel.
+
         Args:
             parent: the parent instrument of this channel
             name  : the internal QCoDeS name of this channel
@@ -1519,6 +1539,7 @@ class LFOutputChannel(InstrumentChannel): # doc done **************************
 class OutputLevelSweep(InstrumentChannel): # doc done *************************
     """
     Combines all the parameters concerning one RF output level (power) sweeping.
+
     Parameters:
         attenuator: Power attenuator mode for level sweep. Values are:
             'NORM': Performs the level settings in the range of the
@@ -1545,7 +1566,8 @@ class OutputLevelSweep(InstrumentChannel): # doc done *************************
     """
     def __init__(self, parent: 'RohdeSchwarz_SMW200A', name: str, hwchan: int):
         """
-        Creates a new OutputLevelSweep
+        Creates a new OutputLevelSweep.
+
         Args:
             parent: the parent instrument of this channel
             name  : the internal QCoDeS name of this channel
@@ -1650,6 +1672,7 @@ class OutputLevelSweep(InstrumentChannel): # doc done *************************
 class OutputFrequencySweep(InstrumentChannel): # doc done *********************
     """
     Combines all the parameters concerning one RF output frequency sweeping.
+
     Parameters:
         dwell: Dwell time for frequency sweep. Valid range from 0.001s to 100s.
         mode: Cycle mode for frequency sweep. Values are:
@@ -1676,7 +1699,8 @@ class OutputFrequencySweep(InstrumentChannel): # doc done *********************
     """
     def __init__(self, parent: 'RohdeSchwarz_SMW200A', name: str, hwchan: int):
         """
-        Creates a new OutputFrequencySweep
+        Creates a new OutputFrequencySweep.
+
         Args:
             parent: the parent instrument of this channel
             name  : the internal QCoDeS name of this channel
@@ -1802,6 +1826,7 @@ class OutputFrequencySweep(InstrumentChannel): # doc done *********************
 class OutputChannel(InstrumentChannel): # doc done ****************************
     """
     Combines all the parameters concerning one RF output.
+
     Parameters:
         state: actives/deactivates the RF output. Values are 'ON' and 'OFF'.
         frequency: set/read the main frequency of the oscillator.
@@ -2202,10 +2227,12 @@ class RohdeSchwarz_SMW200A(VisaInstrument):
 
     def get_id(self):
         """
-        Get the device identification
+        Get the device identification.
+
         Args:
             None
-        Output:
+
+        Returns:
             Strings from the *IDN? command
         """
         return self.idn
@@ -2213,10 +2240,12 @@ class RohdeSchwarz_SMW200A(VisaInstrument):
 
     def get_options(self):
         """
-        Get the device option flags
+        Get the device option flags.
+
         Args:
             None
-        Output:
+
+        Returns:
             Stringarray with the options installed in the device
         """
         return self.options
@@ -2224,10 +2253,12 @@ class RohdeSchwarz_SMW200A(VisaInstrument):
 
     def close(self):
         """
-        Close the connection
+        Close the connection.
+
         Args:
             None
-        Output:
+
+        Returns:
             None
         """
         log.info(__name__ + ': close connection')
@@ -2237,9 +2268,11 @@ class RohdeSchwarz_SMW200A(VisaInstrument):
     def reset(self):
         """
         Resets the instrument to default values.
+
         Args:
             None
-        Output:
+
+        Returns:
             None
         """
         log.info(__name__ + ': Resetting instrument')
@@ -2248,10 +2281,12 @@ class RohdeSchwarz_SMW200A(VisaInstrument):
 
     def get_error(self):
         """
-        Reads the errors from the device
+        Reads the errors from the device.
+
         Args:
             None
-        Output:
+
+        Returns:
             List of strings containing error number and string representation
         """
         #count = int( self.ask('SYST:ERR:COUNT?') )
@@ -2265,6 +2300,7 @@ class RohdeSchwarz_SMW200A(VisaInstrument):
         """
         Function to generate a trigger pulse. The port for this is always defined
         by the user. And the Options SMW-K22 and SMW-K23 must be installed.
+
         Args:
             val: the time value in seconds (tested with 0.0001)
         """
@@ -2302,9 +2338,11 @@ class RohdeSchwarz_SMW200A(VisaInstrument):
         Read all parameters and retun them to the caller. This will scan all
         submodules with all parameters, so in this function no changes are
         necessary for new modules or parameters.
+
         Args:
-            submod: (optional) returns only the parameters for this submodule
-        Output:
+            submod: (optional) returns only the parameters for this submodule.
+
+        Returns:
             dict with all parameters, the key is the modulename and the parametername
         """
         retval = {}
