@@ -1,3 +1,13 @@
+# -*- coding: utf-8 -*-
+"""Simulation for the QCoDeS-Driver SMW200A.
+
+This simulation is used to generate meanfull answers
+to the comunication from the driver if the hardware
+is not available.
+
+Authors:
+    Michael Wagener, ZEA-2, m.wagener@fz-juelich.de
+"""
 #from unittest import TestCase
 #from unittest.mock import patch
 import visa

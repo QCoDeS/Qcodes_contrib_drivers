@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """QCoDeS-Driver for Rohde&Schwarz Vector Signal Generator RS_SMW200A.
 
-Date: Jan 2020
-Author: Michael Wagener, ZEA-2, m.wagener@fz-juelich.de
-Author: Sarah Fleitmann, ZEA-2, s.fleitmann@fz-juelich.de
+Authors:
+    Michael Wagener, ZEA-2, m.wagener@fz-juelich.de
+    Sarah Fleitmann, ZEA-2, s.fleitmann@fz-juelich.de
 """
 
 
