@@ -353,7 +353,7 @@ class ANC300(Instrument):
         if _USE_DEBUG:
             print("DBG write-echo:" + rv)
         # then we collect the output lines until an OK or ERROR comes
-        output = []
+        output: List[str] = []
         while True:
             rv = self._comport.readline().decode('ascii').rstrip()
             if _USE_DEBUG:
