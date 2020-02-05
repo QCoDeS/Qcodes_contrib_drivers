@@ -6,6 +6,7 @@ import qcodes.utils.validators as vals
 
 class AFG3000(VisaInstrument):
     """Qcodes driver for Tektronix AFG3000 series arbitrary function generator.
+    
     Not all instrument functionality is included here.
     """
     def __init__(self, name, address, **kwargs):
@@ -25,92 +26,92 @@ class AFG3000(VisaInstrument):
 
             # Outputs
             self.add_parameter(
-                name='impedance_output{}'.format(src),
-                label='Output {} impedance'.format(src),
+                name=f'impedance_output{src}',
+                label=f'Output {src} impedance',
                 unit='Ohm',
-                get_cmd='OUTPut{}:IMPedance?'.format(src),
+                get_cmd=f'OUTPut{src}:IMPedance?',
                 get_parser=float,
-                set_cmd='OUTPut{}:IMPedance {{}}'.format(src),
-                vals=vals.Strings()
+                set_cmd=f'OUTPut{src}:IMPedance {{}}OHM',
+                vals=vals.Numbers(1,10000)
             )
             self.add_parameter(
-                name='polarity_output{}'.format(src),
-                label='Output {} polarity'.format(src),
-                get_cmd='OUTPut{}:POLarity?'.format(src),
+                name=f'polarity_output{src}',
+                label=f'Output {src} polarity',
+                get_cmd=f'OUTPut{src}:POLarity?',
                 get_parser=str,
-                set_cmd='OUTPut{}:POLarity {{}}'.format(src),
+                set_cmd=f'OUTPut{src}:POLarity {{}}',
                 vals=vals.Enum('NORMal', 'NORM', 'INVerted', 'INV')
             ) 
             self.add_parameter(
-                name='state_output{}'.format(src),
-                label='Output {} state'.format(src),
-                get_cmd='OUTPut{}:STATe?'.format(src),
+                name=f'state_output{src}',
+                label=f'Output {src} state',
+                get_cmd=f'OUTPut{src}:STATe?',
                 get_parser=lambda x: bool(int(x)),
-                set_cmd='OUTPut{}:STATe {{}}'.format(src),
+                set_cmd=f'OUTPut{src}:STATe {{}}',
                 vals=vals.Enum('OFF', 0, 'ON', 1)
             )  
 
             # Amplitude modulation
             self.add_parameter(
-                name='am_depth{}'.format(src),
-                label='Source {} AM depth'.format(src),
+                name=f'am_depth{src}',
+                label=f'Source {src} AM depth',
                 unit='%',
-                get_cmd='SOURce{}:AM:DEPTh?'.format(src),
+                get_cmd=f'SOURce{src}:AM:DEPTh?',
                 get_parser=float,
-                set_cmd='SOURce{}:AM:DEPTh {{}}'.format(src),
-                vals=vals.Strings()
+                set_cmd=f'SOURce{src}:AM:DEPTh {{}}PCT',
+                vals=vals.Multiples(divisor=0.1, min_value=0, max_value=120)
             )
 
             # Frequency modulation
             self.add_parameter(
-                name='fm_deviation{}'.format(src),
-                label='Source {} FM deviation'.format(src),
+                name=f'fm_deviation{src}',
+                label=f'Source {src} FM deviation',
                 unit='Hz',
-                get_cmd='SOURce{}:FM:DEViation?'.format(src),
+                get_cmd=f'SOURce{src}:FM:DEViation?',
                 get_parser=float,
-                set_cmd='SOURce{}:FM:DEViation {{}}'.format(src),
-                vals=vals.Strings()
+                set_cmd=f'SOURce{src}:FM:DEViation {{}}Hz',
+                vals=vals.Numbers()
             )
 
             # Phase modulation
             self.add_parameter(
-                name='pm_deviation{}'.format(src),
-                label='Source {} PM deviation'.format(src),
-                unit='Radians',
-                get_cmd='SOURce{}:PM:DEViation?'.format(src),
+                name=f'pm_deviation{src}',
+                label=f'Source {src} PM deviation',
+                unit='degrees',
+                get_cmd=f'SOURce{src}:PM:DEViation?',
                 get_parser=float,
-                set_cmd='SOURce{}:PM:DEViation {{}}'.format(src),
-                vals=vals.Strings()
+                set_cmd=f'SOURce{src}:PM:DEViation {{}}DEG',
+                vals=vals.Ints(0, 180)
             )
 
             # Pulse-width modulation
             self.add_parameter(
-                name='pwm_duty_deviation{}'.format(src),
-                label='Source {} PWM duty cycle deviation'.format(src),
+                name=f'pwm_duty_deviation{src}',
+                label=f'Source {src} PWM duty cycle deviation',
                 unit='%',
-                get_cmd='SOURce{}:PWM:DEViation:DCYCle?'.format(src),
+                get_cmd=f'SOURce{src}:PWM:DEViation:DCYCle?',
                 get_parser=float,
-                set_cmd='SOURce{}:PWM:DEViation:DCYCle {{}}'.format(src),
-                vals=vals.Numbers(min_value=0, max_value=100)
+                set_cmd=f'SOURce{src}:PWM:DEViation:DCYCle {{}}PCT',
+                vals=vals.Numbers(0, 100)
             )
 
             # Amplitude, frequency, phase, and pulse-width modulation
             for mod_type in ['AM', 'FM', 'PM', 'PWM']:
                 self.add_parameter(
-                    name='{}_internal_freq{}'.format(mod_type.lower(), src),
-                    label='Source {} {} interal frequency'.format(src, mod_type),
+                    name=f'{mod_type.lower()}_internal_freq{src}',
+                    label=f'Source {src} {mod_type} interal frequency',
                     unit='Hz',
-                    get_cmd='SOURce{}:{}:INTernal:FREQuency?'.format(src, mod_type),
+                    get_cmd=f'SOURce{src}:{mod_type}:INTernal:FREQuency?',
                     get_parser=float,
-                    set_cmd='SOURce{}:{}:INTernal:FREQuency {{}}'.format(src, mod_type),
-                    vals=vals.Strings()
+                    set_cmd=f'SOURce{src}:{mod_type}:INTernal:FREQuency {{}}Hz',
+                    vals=vals.Multiples(divisor=1e-3, min_value=2e-3, max_value=5e4)
                 )              
                 self.add_parameter(
-                    name='{}_internal_function{}'.format(mod_type.lower(), src),
-                    label='Source {} {} interal function'.format(src, mod_type),
-                    get_cmd='SOURce{}:{}:INTernal:FUNCtion?'.format(src, mod_type),
+                    name=f'{mod_type.lower()}_internal_function{src}',
+                    label=f'Source {src} {mod_type} interal function',
+                    get_cmd=f'SOURce{src}:{mod_type}:INTernal:FUNCtion?',
                     get_parser=str,
-                    set_cmd='SOURce{}:{}:INTernal:FUNCtion {{}}'.format(src, mod_type),
+                    set_cmd=f'SOURce{src}:{mod_type}:INTernal:FUNCtion {{}}',
                     vals=vals.Enum(
                     'SINusoid', 'SIN',
                     'SQUare',  'SQU',
@@ -123,65 +124,65 @@ class AFG3000(VisaInstrument):
                     'EFILe', 'EFIL')
                 ) 
                 self.add_parameter(
-                    name='{}_internal_efile{}'.format(mod_type.lower(), src),
-                    label='Source {} {} interal EFile'.format(src, mod_type),
-                    get_cmd='SOURce{}:{}:INTernal:FUNCtion:EFILe?'.format(src, mod_type),
+                    name=f'{mod_type.lower()}_internal_efile{src}',
+                    label=f'Source {src} {mod_type} interal EFile',
+                    get_cmd=f'SOURce{src}:{mod_type}:INTernal:FUNCtion:EFILe?',
                     get_parser=str,
-                    set_cmd='SOURce{}:{}:INTernal:FUNCtion:EFILe {{}}'.format(src, mod_type),
+                    set_cmd=f'SOURce{src}:{mod_type}:INTernal:FUNCtion:EFILe {{}}',
                     vals=vals.Strings()
                 )
                 self.add_parameter(
-                    name='{}_internal_source{}'.format(mod_type.lower(), src),
-                    label='Source {} {} source'.format(src, mod_type),
-                    get_cmd='SOURce{}:{}:SOURce?'.format(src, mod_type),
+                    name=f'{mod_type.lower()}_internal_source{src}',
+                    label=f'Source {src} {mod_type} source',
+                    get_cmd=f'SOURce{src}:{mod_type}:SOURce?',
                     get_parser=str,
-                    set_cmd='SOURce{}:{}:SOURce? {{}}'.format(src, mod_type),
+                    set_cmd=f'SOURce{src}:{mod_type}:SOURce? {{}}',
                     vals=vals.Enum('INTernal', 'INT', 'EXTernal', 'EXT')
                 )
                 self.add_parameter(
-                    name='{}_state{}'.format(mod_type.lower(), src),
-                    label='Source {} {} interal state'.format(src, mod_type),
-                    get_cmd='SOURce{}:{}:STATe?'.format(src, mod_type),
+                    name=f'{mod_type.lower()}_state{src}',
+                    label=f'Source {src} {mod_type} interal state',
+                    get_cmd=f'SOURce{src}:{mod_type}:STATe?',
                     get_parser=lambda x: bool(int(x)),
-                    set_cmd='SOURce{}:{}:STATe {{}}'.format(src, mod_type),
+                    set_cmd=f'SOURce{src}:{mod_type}:STATe {{}}',
                     vals=vals.Enum('OFF', 0, 'ON', 1)
                 )
 
             # Burst mode
             self.add_parameter(
-                name='burst_mode{}'.format(src),
-                label='Source {} burst mode'.format(src),
-                get_cmd='SOURce{}:BURSt:MODE?'.format(src),
+                name=f'burst_mode{src}',
+                label=f'Source {src} burst mode',
+                get_cmd=f'SOURce{src}:BURSt:MODE?',
                 get_parser=str,
-                set_cmd='SOURce{}:BURSt:MODE {{}}'.format(src),
+                set_cmd=f'SOURce{src}:BURSt:MODE {{}}',
                 vals=vals.Enum('TRIGgered', 'TRIG', 'GATed', 'GAT')
             )
             self.add_parameter(
-                name='burst_ncycles{}'.format(src),
-                label='Source {} burst N cycles'.format(src),
-                get_cmd='SOURce{}:BURSt:NCYCles?'.format(src),
+                name=f'burst_ncycles{src}',
+                label=f'Source {src} burst N cycles',
+                get_cmd=f'SOURce{src}:BURSt:NCYCles?',
                 get_parser=float,
-                set_cmd='SOURce{}:BURSt:NCYCles {{}}'.format(src),
+                set_cmd=f'SOURce{src}:BURSt:NCYCles {{}}',
                 vals=vals.MultiType(
                     vals.Ints(min_value=1, max_value=1000000),
                     vals.Enum('INFinity', 'INF', 'MAXimum', 'MAX', 'MINimum', 'MIN'))
             )
             self.add_parameter(
-                name='burst_state{}'.format(src),
-                label='Source {} burst state'.format(src),
-                get_cmd='SOURce{}:BURSt:STATe?'.format(src),
+                name=f'burst_state{src}',
+                label=f'Source {src} burst state',
+                get_cmd=f'SOURce{src}:BURSt:STATe?',
                 get_parser=lambda x: bool(int(x)),
-                set_cmd='SOURce{}:BURSt:STATe {{}}'.format(src),
+                set_cmd=f'SOURce{src}:BURSt:STATe {{}}',
                 vals=vals.Enum('OFF', 0, 'ON', 1)
             )
             self.add_parameter(
-                name='burst_tdelay{}'.format(src),
-                label='Source {} burst time delay'.format(src),
+                name=f'burst_tdelay{src}',
+                label=f'Source {src} burst time delay',
                 unit='s',
-                get_cmd='SOURce{}:BURSt:TDELay?'.format(src),
+                get_cmd=f'SOURce{src}:BURSt:TDELay?',
                 get_parser=float,
-                set_cmd='SOURce{}:BURSt:TDELay {{}}'.format(src),
-                vals=vals.Strings()
+                set_cmd=f'SOURce{src}:BURSt:TDELay {{}}s',
+                vals=vals.Numbers(0, 85)
             )
 
             if src == 1:
@@ -189,146 +190,137 @@ class AFG3000(VisaInstrument):
             else:
                 combine_enum = ('NOISe', 'NOIS', '')
             self.add_parameter(
-                name='combine{}'.format(src),
-                label='Source {} combine signals'.format(src),
-                get_cmd='SOURce{}:COMBine:FEED?'.format(src),
+                name=f'combine{src}',
+                label=f'Source {src} combine signals',
+                get_cmd=f'SOURce{src}:COMBine:FEED?',
                 get_parser=str,
-                set_cmd='SOURce{}:COMBine:FEED {{}}'.format(src),
+                set_cmd=f'SOURce{src}:COMBine:FEED {{}}',
                 vals=vals.Enum(combine_enum)
             ) 
 
             # Frequency controls                 
             self.add_parameter(
-                name='center_freq{}'.format(src),
-                label='Source {} center frequency'.format(src),
+                name=f'center_freq{src}',
+                label=f'Source {src} center frequency',
                 unit='Hz',
-                get_cmd='SOURce{}:FREQuency:CENTer?'.format(src),
+                get_cmd=f'SOURce{src}:FREQuency:CENTer?',
                 get_parser=float,
-                set_cmd='SOURce{}:FREQuency:CENTer {{}}'.format(src),
-                vals=vals.Strings()
+                set_cmd=f'SOURce{src}:FREQuency:CENTer {{}}Hz',
+                vals=vals.Numbers()
             )
             self.add_parameter(
-                name='freq_concurrent{}'.format(src),
-                label='Source {} concurrent frequency'.format(src),
-                get_cmd='SOURce{}:FREQuency:CONCurrent?'.format(src),
+                name=f'freq_concurrent{src}',
+                label=f'Source {src} concurrent frequency',
+                get_cmd=f'SOURce{src}:FREQuency:CONCurrent?',
                 get_parser=lambda x: bool(int(x)),
-                set_cmd='SOURce{}:FREQuency:CONCurrent {{}}'.format(src),
+                set_cmd=f'SOURce{src}:FREQuency:CONCurrent {{}}',
                 vals=vals.Enum('OFF', 0, 'ON', 1)
             ) 
             self.add_parameter(
-                name='freq_cw{}'.format(src),
-                label='Source {} continuous frequency'.format(src),
+                name=f'freq_cw{src}',
+                label=f'Source {src} continuous frequency',
                 unit='Hz',
-                get_cmd='SOURce{}:FREQuency:CW?'.format(src),
+                get_cmd=f'SOURce{src}:FREQuency:CW?',
                 get_parser=float,
-                set_cmd='SOURce{}:FREQuency:CW {{}}'.format(src),
-                vals=vals.Strings()
+                set_cmd=f'SOURce{src}:FREQuency:CW {{}}Hz',
+                vals=vals.Numbers()
             )
             self.add_parameter(
-                name='freq_fixed{}'.format(src),
-                label='Source {} fixed frequency'.format(src),
-                unit='Hz',
-                get_cmd='SOURce{}:FREQuency:FIXed?'.format(src),
-                get_parser=float,
-                set_cmd='SOURce{}:FREQuency:FIXed {{}}'.format(src),
-                vals=vals.Strings()
-            )
-            self.add_parameter(
-                name='freq_mode{}'.format(src),
-                label='Source {} frequency mode'.format(src),
-                get_cmd='SOURce{}:FREQuency:MODE?'.format(src),
+                name=f'freq_mode{src}',
+                label=f'Source {src} frequency mode',
+                get_cmd=f'SOURce{src}:FREQuency:MODE?',
                 get_parser=str,
-                set_cmd='SOURce{}:FREQuency:MODE {{}}'.format(src),
+                set_cmd=f'SOURce{src}:FREQuency:MODE {{}}',
                 vals=vals.Enum('CW', 'FIXed', 'FIX', 'SWEep', 'SWE')
             )
             self.add_parameter(
-                name='freq_span{}'.format(src),
-                label='Source {} frequency span'.format(src),
+                name=f'freq_span{src}',
+                label=f'Source {src} frequency span',
                 unit='Hz',
-                get_cmd='SOURce{}:FREQuency:SPAN?'.format(src),
+                get_cmd=f'SOURce{src}:FREQuency:SPAN?',
                 get_parser=float,
-                set_cmd='SOURce{}:FREQuency:SPAN {{}}'.format(src),
-                vals=vals.Strings()
+                set_cmd=f'SOURce{src}:FREQuency:SPAN {{}}Hz',
+                vals=vals.Numbers()
             )
             self.add_parameter(
-                name='freq_start{}'.format(src),
-                label='Source {} frequency start'.format(src),
+                name=f'freq_start{src}',
+                label=f'Source {src} frequency start',
                 unit='Hz',
-                get_cmd='SOURce{}:FREQuency:STARt?'.format(src),
+                get_cmd=f'SOURce{src}:FREQuency:STARt?',
                 get_parser=float,
-                set_cmd='SOURce{}:FREQuency:STARt {{}}'.format(src),
-                vals=vals.Strings()
+                set_cmd=f'SOURce{src}:FREQuency:STARt {{}}Hz',
+                vals=vals.Numbers()
             )
             self.add_parameter(
-                name='freq_stop{}'.format(src),
-                label='Source {} frequency stop'.format(src),
+                name=f'freq_stop{src}',
+                label=f'Source {src} frequency stop',
                 unit='Hz',
-                get_cmd='SOURce{}:FREQuency:STOP?'.format(src),
+                get_cmd=f'SOURce{src}:FREQuency:STOP?',
                 get_parser=float,
-                set_cmd='SOURce{}:FREQuency:STOP {{}}'.format(src),
-                vals=vals.Strings()
+                set_cmd=f'SOURce{src}:FREQuency:STOP {{}}Hz',
+                vals=vals.Numbers()
             )
 
             # FSK modulation
             self.add_parameter(
-                name='fsk_freq{}'.format(src),
-                label='Source {} FSK frequency'.format(src),
+                name=f'fsk_freq{src}',
+                label=f'Source {src} FSK frequency',
                 unit='Hz',
-                get_cmd='SOURce{}:FSKey:FREQuency?'.format(src),
+                get_cmd=f'SOURce{src}:FSKey:FREQuency?',
                 get_parser=float,
-                set_cmd='SOURce{}:FSKey:FREQuency {{}}'.format(src),
-                vals=vals.Strings()
+                set_cmd=f'SOURce{src}:FSKey:FREQuency {{}}Hz',
+                vals=vals.Numbers()
             )            
             self.add_parameter(
-                name='fsk_internal_rate{}'.format(src),
-                label='Source {} FSK internal rate'.format(src),
+                name=f'fsk_internal_rate{src}',
+                label=f'Source {src} FSK internal rate',
                 unit='Hz',
-                get_cmd='SOURce{}:FSKey:INTernal:RATE?'.format(src),
+                get_cmd=f'SOURce{src}:FSKey:INTernal:RATE?',
                 get_parser=float,
-                set_cmd='SOURce{}:FSKey:INTernal:RATE {{}}'.format(src),
-                vals=vals.Strings()
+                set_cmd=f'SOURce{src}:FSKey:INTernal:RATE {{}}Hz',
+                vals=vals.Numbers()
             )
             self.add_parameter(
-                name='fsk_source{}'.format(src),
-                label='Source {} FSK source'.format(src),
-                get_cmd='SOURce{}:FSKey:SOURce?'.format(src),
+                name=f'fsk_source{src}',
+                label=f'Source {src} FSK source',
+                get_cmd=f'SOURce{src}:FSKey:SOURce?',
                 get_parser=str,
-                set_cmd='SOURce{}:FSKey:SOURce {{}}'.format(src),
+                set_cmd=f'SOURce{src}:FSKey:SOURce {{}}',
                 vals=vals.Enum('INTernal', 'INT', 'EXTernal', 'EXT')
             )
             self.add_parameter(
-                name='fsk_state{}'.format(src),
-                label='Source {} FSK state'.format(src),
-                get_cmd='SOURce{}:FSKey:STATe?'.format(src),
+                name=f'fsk_state{src}',
+                label=f'Source {src} FSK state',
+                get_cmd=f'SOURce{src}:FSKey:STATe?',
                 get_parser=lambda x: bool(int(x)),
-                set_cmd='SOURce{}:FSKey:STATe {{}}'.format(src),
+                set_cmd=f'SOURce{src}:FSKey:STATe {{}}',
                 vals=vals.Enum('OFF', 0, 'ON', 1)
             )
 
             # Function parameters
             self.add_parameter(
-                name='function_efile{}'.format(src),
-                label='Source {} function efile'.format(src),
-                get_cmd='SOURce{}:FUNCtion:EFILe?'.format(src),
+                name=f'function_efile{src}',
+                label=f'Source {src} function efile',
+                get_cmd=f'SOURce{src}:FUNCtion:EFILe?',
                 get_parser=str,
-                set_cmd='SOURce{}:FUNCtion:EFILe {{}}'.format(src),
+                set_cmd=f'SOURce{src}:FUNCtion:EFILe {{}}',
                 vals=vals.Strings()
             )
             self.add_parameter(
-                name='function_ramp_symmetry{}'.format(src),
-                label='Source {} function ramp symmetry'.format(src),
+                name=f'function_ramp_symmetry{src}',
+                label=f'Source {src} function ramp symmetry',
                 unit='%',
-                get_cmd='SOURce{}:FUNCtion:RAMP:SYMMetry?'.format(src),
+                get_cmd=f'SOURce{src}:FUNCtion:RAMP:SYMMetry?',
                 get_parser=float,
-                set_cmd='SOURce{}:FUNCtion:RAMP:SYMMetry {{}}'.format(src),
-                vals=vals.Numbers(min_value=0, max_value=100)
+                set_cmd=f'SOURce{src}:FUNCtion:RAMP:SYMMetry {{}}PCT',
+                vals=vals.Numbers(0, 100)
             )
             self.add_parameter(
-                name='function_shape{}'.format(src),
-                label='Source {} function shape'.format(src),
-                get_cmd='SOURce{}:FUNCtion:SHAPe?'.format(src),
+                name=f'function_shape{src}',
+                label=f'Source {src} function shape',
+                get_cmd=f'SOURce{src}:FUNCtion:SHAPe?',
                 get_parser=str,
-                set_cmd='SOURce{}:FUNCtion:SHAPe {{}}'.format(src),
+                set_cmd=f'SOURce{src}:FUNCtion:SHAPe {{}}',
                 vals=vals.Enum(
                 'SINusoid', 'SIN',
                 'SQUare',  'SQU',
@@ -347,206 +339,205 @@ class AFG3000(VisaInstrument):
 
             # Phase parameters
             self.add_parameter(
-                name='phase{}'.format(src),
-                label='Source {} phase'.format(src),
-                unit='Radians',
-                get_cmd='SOURce{}:PHASe:ADJust?'.format(src),
+                name=f'phase{src}',
+                label=f'Source {src} phase',
+                unit='degrees',
+                get_cmd=f'SOURce{src}:PHASe:ADJust?',
                 get_parser=float,
-                set_cmd='SOURce{}:PHASe:ADJust {{}}'.format(src),
-                vals=vals.Strings()
+                set_cmd=f'SOURce{src}:PHASe:ADJust {{}}DEG',
+                vals=vals.Numbers(-180, 180)
             )
 
             # Pulse parameters
             self.add_parameter(
-                name='pulse_duty_cycle{}'.format(src),
-                label='Source {} pulse duty cycle'.format(src),
+                name=f'pulse_duty_cycle{src}',
+                label=f'Source {src} pulse duty cycle',
                 unit='%',
-                get_cmd='SOURce{}:PULSe:DCYCle?'.format(src),
+                get_cmd=f'SOURce{src}:PULSe:DCYCle?',
                 get_parser=float,
-                set_cmd='SOURce{}:PULSe:DCYCle {{}}'.format(src),
-                vals=vals.Strings()
+                set_cmd=f'SOURce{src}:PULSe:DCYCle {{}}PCT',
+                vals=vals.Numbers(1e-3, 99.999)
             )            
             self.add_parameter(
-                name='pulse_delay{}'.format(src),
-                label='Source {} pulse delay'.format(src),
+                name=f'pulse_delay{src}',
+                label=f'Source {src} pulse delay',
                 unit='s',
-                get_cmd='SOURce{}:PULSe:DELay?'.format(src),
+                get_cmd=f'SOURce{src}:PULSe:DELay?',
                 get_parser=float,
-                set_cmd='SOURce{}:PULSe:DELay {{}}'.format(src),
-                vals=vals.Strings()
+                set_cmd=f'SOURce{src}:PULSe:DELay {{}}s',
+                vals=vals.Numbers(min_value=0)
             )
             self.add_parameter(
-                name='pulse_hold{}'.format(src),
-                label='Source {} pulse hold'.format(src),
-                get_cmd='SOURce{}:PULSe:HOLD?'.format(src),
+                name=f'pulse_hold{src}',
+                label=f'Source {src} pulse hold',
+                get_cmd=f'SOURce{src}:PULSe:HOLD?',
                 get_parser=str,
-                set_cmd='SOURce{}:PULSe:HOLD {{}}'.format(src),
+                set_cmd=f'SOURce{src}:PULSe:HOLD {{}}',
                 vals=vals.Enum('WIDTh', 'WIDT', 'DUTY')
             )
             self.add_parameter(
-                name='pulse_period{}'.format(src),
-                label='Source {} pulse period'.format(src),
+                name=f'pulse_period{src}',
+                label=f'Source {src} pulse period',
                 unit='s',
-                get_cmd='SOURce{}:PULSe:PERiod?'.format(src),
+                get_cmd=f'SOURce{src}:PULSe:PERiod?',
                 get_parser=float,
-                set_cmd='SOURce{}:PULSe:PERiod {{}}'.format(src),
-                vals=vals.Strings()
+                set_cmd=f'SOURce{src}:PULSe:PERiod {{}}s',
+                vals=vals.Numbers()
             )
             self.add_parameter(
-                name='pulse_trans_lead{}'.format(src),
-                label='Source {} pulse leading edge time'.format(src),
+                name=f'pulse_trans_lead{src}',
+                label=f'Source {src} pulse leading edge time',
                 unit='s',
-                get_cmd='SOURce{}:PULSe:TRANsition:LEADing?'.format(src),
+                get_cmd=f'SOURce{src}:PULSe:TRANsition:LEADing?',
                 get_parser=float,
-                set_cmd='SOURce{}:PULSe:TRANsition:LEADing {{}}'.format(src),
-                vals=vals.Strings()
+                set_cmd=f'SOURce{src}:PULSe:TRANsition:LEADing {{}}s',
+                vals=vals.Numbers()
             )
             self.add_parameter(
-                name='pulse_trans_trail{}'.format(src),
-                label='Source {} pulse trailing edge time'.format(src),
+                name=f'pulse_trans_trail{src}',
+                label=f'Source {src} pulse trailing edge time',
                 unit='s',
-                get_cmd='SOURce{}:PULSe:TRANsition:TRAiling?'.format(src),
+                get_cmd=f'SOURce{src}:PULSe:TRANsition:TRAiling?',
                 get_parser=float,
-                set_cmd='SOURce{}:PULSe:TRANsition:TRAiling {{}}'.format(src),
-                vals=vals.Strings()
+                set_cmd=f'SOURce{src}:PULSe:TRANsition:TRAiling {{}}s',
+                vals=vals.Numbers()
             )
             self.add_parameter(
-                name='pulse_width{}'.format(src),
-                label='Source {} pulse width'.format(src),
+                name=f'pulse_width{src}',
+                label=f'Source {src} pulse width',
                 unit='s',
-                get_cmd='SOURce{}:PULSe:WIDTh?'.format(src),
+                get_cmd=f'SOURce{src}:PULSe:WIDTh?',
                 get_parser=float,
-                set_cmd='SOURce{}:PULSe:WIDTh {{}}'.format(src),
-                vals=vals.Strings()
+                set_cmd=f'SOURce{src}:PULSe:WIDTh {{}}s',
+                vals=vals.Numbers()
             )
 
             # Sweep parameters
             self.add_parameter(
-                name='sweep_hold_time{}'.format(src),
-                label='Source {} sweep hold time'.format(src),
+                name=f'sweep_hold_time{src}',
+                label=f'Source {src} sweep hold time',
                 unit='s',
-                get_cmd='SOURce{}:SWEep:HTIMe?'.format(src),
+                get_cmd=f'SOURce{src}:SWEep:HTIMe?',
                 get_parser=float,
-                set_cmd='SOURce{}:SWEep:HTIMe {{}}'.format(src),
-                vals=vals.Strings()
+                set_cmd=f'SOURce{src}:SWEep:HTIMe {{}}s',
+                vals=vals.Numbers()
             )            
             self.add_parameter(
-                name='sweep_mode{}'.format(src),
-                label='Source {} sweep mode'.format(src),
-                get_cmd='SOURce{}:SWEep:MODE?'.format(src),
+                name=f'sweep_mode{src}',
+                label=f'Source {src} sweep mode',
+                get_cmd=f'SOURce{src}:SWEep:MODE?',
                 get_parser=str,
-                set_cmd='SOURce{}:SWEep:MODE {{}}'.format(src),
+                set_cmd=f'SOURce{src}:SWEep:MODE {{}}',
                 vals=vals.Enum('AUTO', 'MANual', 'MAN')
             )
             self.add_parameter(
-                name='sweep_return_time{}'.format(src),
-                label='Source {} sweep return time'.format(src),
+                name=f'sweep_return_time{src}',
+                label=f'Source {src} sweep return time',
                 unit='s',
-                get_cmd='SOURce{}:SWEep:RTIMe?'.format(src),
+                get_cmd=f'SOURce{src}:SWEep:RTIMe?',
                 get_parser=float,
-                set_cmd='SOURce{}:SWEep:RTIMe {{}}'.format(src),
-                vals=vals.Strings()
+                set_cmd=f'SOURce{src}:SWEep:RTIMe {{}}s',
+                vals=vals.Numbers()
             )                  
             self.add_parameter(
-                name='sweep_spacing{}'.format(src),
-                label='Source {} sweep spacing'.format(src),
-                get_cmd='SOURce{}:SWEep:SPACing?'.format(src),
+                name=f'sweep_spacing{src}',
+                label=f'Source {src} sweep spacing',
+                get_cmd=f'SOURce{src}:SWEep:SPACing?',
                 get_parser=str,
-                set_cmd='SOURce{}:SWEep:SPACing {{}}'.format(src),
+                set_cmd=f'SOURce{src}:SWEep:SPACing {{}}',
                 vals=vals.Enum('LINear', 'LIN', 'LOGarithmic', 'LOG')
             )
             self.add_parameter(
-                name='sweep_time{}'.format(src),
-                label='Source {} sweep time'.format(src),
+                name=f'sweep_time{src}',
+                label=f'Source {src} sweep time',
                 unit='s',
-                get_cmd='SOURce{}:SWEep:TIME?'.format(src),
+                get_cmd=f'SOURce{src}:SWEep:TIME?',
                 get_parser=float,
-                set_cmd='SOURce{}:SWEep:TIME {{}}'.format(src),
-                vals=vals.Strings()
+                set_cmd=f'SOURce{src}:SWEep:TIME {{}}s',
+                vals=vals.Numbers(1e-3, 300)
             )
 
             # Voltage parameters       
             self.add_parameter(
-                name='voltage_concurrent{}'.format(src),
-                label='Source {} concurrent voltage'.format(src),
-                get_cmd='SOURce{}:VOLTage:CONCurrent:STATe?'.format(src),
+                name=f'voltage_concurrent{src}',
+                label=f'Source {src} concurrent voltage',
+                get_cmd=f'SOURce{src}:VOLTage:CONCurrent:STATe?',
                 get_parser=lambda x: bool(int(x)),
-                set_cmd='SOURce{}:VOLTage:CONCurrent:STATe {{}}'.format(src),
+                set_cmd=f'SOURce{src}:VOLTage:CONCurrent:STATe {{}}',
                 vals=vals.Enum('OFF', 0, 'ON', 1)
             ) 
             self.add_parameter(
-                name='voltage_high{}'.format(src),
-                label='Source {} high voltage level'.format(src),
+                name=f'voltage_high{src}',
+                label=f'Source {src} high voltage level',
                 unit='V',
-                get_cmd='SOURce{}:VOLTage:LEVel:IMMediate:HIGH?'.format(src),
+                get_cmd=f'SOURce{src}:VOLTage:LEVel:IMMediate:HIGH?',
                 get_parser=float,
-                set_cmd='SOURce{}:VOLTage:LEVel:IMMediate:HIGH {{}}'.format(src),
-                vals=vals.Strings()
+                set_cmd=f'SOURce{src}:VOLTage:LEVel:IMMediate:HIGH {{}}V',
+                vals=vals.Numbers()
             ) 
             self.add_parameter(
-                name='voltage_low{}'.format(src),
-                label='Source {} low voltage level'.format(src),
+                name=f'voltage_low{src}',
+                label=f'Source {src} low voltage level',
                 unit='V',
-                get_cmd='SOURce{}:VOLTage:LEVel:IMMediate:LOW?'.format(src),
+                get_cmd=f'SOURce{src}:VOLTage:LEVel:IMMediate:LOW?',
                 get_parser=float,
-                set_cmd='SOURce{}:VOLTage:LEVel:IMMediate:LOW {{}}'.format(src),
-                vals=vals.Strings()
+                set_cmd=f'SOURce{src}:VOLTage:LEVel:IMMediate:LOW {{}}V',
+                vals=vals.Numbers()
             )
             self.add_parameter(
-                name='voltage_offset{}'.format(src),
-                label='Source {} voltage offset'.format(src),
+                name=f'voltage_offset{src}',
+                label=f'Source {src} voltage offset',
                 unit='V',
-                get_cmd='SOURce{}:VOLTage:LEVel:IMMediate:OFFSet?'.format(src),
+                get_cmd=f'SOURce{src}:VOLTage:LEVel:IMMediate:OFFSet?',
                 get_parser=float,
-                set_cmd='SOURce{}:VOLTage:LEVel:IMMediate:OFFSet {{}}'.format(src),
-                vals=vals.Strings()
+                set_cmd=f'SOURce{src}:VOLTage:LEVel:IMMediate:OFFSet {{}}V',
+                vals=vals.Numbers()
             )
             self.add_parameter(
-                name='voltage_unit{}'.format(src),
-                label='Source {} voltage unit'.format(src),
-                get_cmd='SOURce{}:VOLTage:UNIT?'.format(src),
+                name=f'voltage_unit{src}',
+                label=f'Source {src} voltage unit',
+                get_cmd=f'SOURce{src}:VOLTage:UNIT?',
                 get_parser=str,
-                set_cmd='SOURce{}:VOLTage:UNIT {{}}'.format(src),
+                set_cmd=f'SOURce{src}:VOLTage:UNIT {{}}',
                 vals=vals.Enum('VPP', 'VRMS', 'DBM')
             )
             self.add_parameter(
-                name='voltage_amplitude{}'.format(src),
-                label='Source {} voltage amplitude'.format(src),
-                unit=getattr(self, 'voltage_unit{}'.format(src))(),
-                get_cmd='SOURce{}:VOLTage:LEVel:IMMediate:AMPLitude?'.format(src),
+                name=f'voltage_amplitude{src}',
+                label=f'Source {src} voltage amplitude',
+                get_cmd=f'SOURce{src}:VOLTage:LEVel:IMMediate:AMPLitude?',
                 get_parser=float,
-                set_cmd='SOURce{}:VOLTage:LEVel:IMMediate:AMPLitude {{}}'.format(src),
-                vals=vals.Strings()
+                set_cmd=f'SOURce{src}:VOLTage:LEVel:IMMediate:AMPLitude {{}}V',
+                vals=vals.Numbers()
             )
             self.add_parameter(
-                name='voltage_limit_high{}'.format(src),
-                label='Source {} voltage limit high'.format(src),
+                name=f'voltage_limit_high{src}',
+                label=f'Source {src} voltage limit high',
                 unit='V',
-                get_cmd='SOURce{}:VOLTage:LIMit:HIGH?'.format(src),
+                get_cmd=f'SOURce{src}:VOLTage:LIMit:HIGH?',
                 get_parser=float,
-                set_cmd='SOURce{}:VOLTage:LIMit:HIGH {{}}'.format(src),
-                vals=vals.Strings()
+                set_cmd=f'SOURce{src}:VOLTage:LIMit:HIGH {{}}V',
+                vals=vals.Numbers()
             )
             self.add_parameter(
-                name='voltage_limit_low{}'.format(src),
-                label='Source {} voltage limit low'.format(src),
+                name=f'voltage_limit_low{src}',
+                label=f'Source {src} voltage limit low',
                 unit='V',
-                get_cmd='SOURce{}:VOLTage:LIMit:LOW?'.format(src),
+                get_cmd=f'SOURce{src}:VOLTage:LIMit:LOW?',
                 get_parser=float,
-                set_cmd='SOURce{}:VOLTage:LIMit:LOW {{}}'.format(src),
-                vals=vals.Strings()
+                set_cmd=f'SOURce{src}:VOLTage:LIMit:LOW {{}}V',
+                vals=vals.Numbers()
             )
 
         # Noise parameters
         for src in [3, 4]:
             self.add_parameter(
-                name='noise_level{}'.format(src),
-                label='Source {} noise level'.format(src),
+                name=f'noise_level{src}',
+                label=f'Source {src} relative noise level',
                 unit='%',
-                get_cmd='SOURce{}:POWer:LEVel:IMMediate:AMPLitude?'.format(src),
+                get_cmd=f'SOURce{src}:POWer:LEVel:IMMediate:AMPLitude?',
                 get_parser=float,
-                set_cmd='SOURce{}:POWer:LEVel:IMMediate:AMPLitude {{}}'.format(src),
-                vals=vals.Strings(),
+                set_cmd=f'SOURce{src}:POWer:LEVel:IMMediate:AMPLitude {{}}PCT',
+                vals=vals.Numbers(0, 50),
                 docstring='Noise level applied to output, as a percentage of current amplitude.'
             )
 
@@ -582,14 +573,14 @@ class AFG3000(VisaInstrument):
             unit='s',
             get_cmd='TRIGger:SEQuence:TIMer?',
             get_parser=float,
-            set_cmd='TRIGger:SEQuence:TIMer {}',
-            vals=vals.Strings()
+            set_cmd='TRIGger:SEQuence:TIMer {}s',
+            vals=vals.Numbers(1e-6, 500)
         )
 
         self.snapshot(update=True)
         self.connect_message()
 
-    def calibrate(self):
+    def self_calibrate(self):
         self.write('CALibration:ALL')
         self.wait()
 
@@ -602,7 +593,7 @@ class AFG3000(VisaInstrument):
         self.wait()
 
     def reset(self):
-        log.info('Resetting {}.'.format(self.name))
+        log.info(f'Resetting {self.name}.')
         self.write('*RST')
         self.wait()
 
@@ -611,19 +602,19 @@ class AFG3000(VisaInstrument):
 
     def save(self, location: int) -> None:
         if location not in [0, 1, 2, 3, 4]:
-            raise ValueError('location must be in {}.'.format([0, 1, 2, 3, 4]))
-        log.info('Instrument settings saved to location {}.'.format(location))
-        self.write('*SAVE {}'.format(location))
+            raise ValueError(f'Location must be in {[0, 1, 2, 3, 4]}.')
+        log.info(f'Instrument settings saved to location {location}.')
+        self.write(f'*SAVE {location}')
 
     def recall(self, location: int) -> None:
         if location not in [0, 1, 2, 3, 4]:
-            raise ValueError('location must be in {}.'.format([0, 1, 2, 3, 4]))
-        log.info('Recalling instrument settings from location {}.'.format(location))
-        self.write('*RCL {}'.format(location))
+            raise ValueError(f'Location must be in {[0, 1, 2, 3, 4]}.')
+        log.info(f'Recalling instrument settings from location {location}.')
+        self.write(f'*RCL {location}')
 
     def synchronize_phase(self, src: int) -> None:
         log.info('Synchronizing CH1 and CH2 phase.')
-        self.write('SOURce{}:PHASe:INITiate'.format(src))
+        self.write(f'SOURce{src}:PHASe:INITiate')
 
 class AFG3252(AFG3000):
     pass
