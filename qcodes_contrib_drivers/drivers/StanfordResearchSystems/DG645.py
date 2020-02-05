@@ -43,145 +43,169 @@ class DG645(VisaInstrument):
     def __init__(self, name, address, **kwargs):
         super().__init__(name, address, terminator='\r\n', timeout=10, **kwargs)
         self.add_parameter('trig_holdoff',
-               label='Trigger holdoff',
-               unit='s',
-               get_cmd='HOLD?',
-               get_parser=float,
-               set_cmd='HOLD {}'
+            label='Trigger holdoff',
+            unit='s',
+            get_cmd='HOLD?',
+            get_parser=float,
+            set_cmd='HOLD {}'
         )
 
         # Prescale parameters
-        for k, v in self.PRESCALE_MAPPING.items():
-            if v > 0:
-                self.add_parameter('phase_{}'.format(k),
-                       label='Prescale phase factor {}'.format(k),
-                       unit='',
-                       get_cmd=lambda channel=k: self._get_phase_prescale(channel),
-                       get_parser=int,
-                       set_cmd=lambda val, channel=k: self._set_phase_prescale(val, channel),
-                       vals=vals.Ints(min_value=0)
+        for channel, idx in self.PRESCALE_MAPPING.items():
+            if idx > 0:
+                self.add_parameter(
+                    f'phase_{channel}',
+                    label=f'{channel} prescale phase factor {k}',
+                    get_cmd=f'PHAS?{idx}',
+                    get_parser=int,
+                    set_cmd=f'PHAS {idx},{{}}',
+                    vals=vals.Ints(min_value=0),
+                    docstring="""\
+                    The prescale phase factor determines the phase at which the associated output is
+                    enabled. The output is enabled when the prescaler counter equals the phase
+                    factor. 
+                    """
                 )
 
-            self.add_parameter('prescale_{}'.format(v),
-                   label='Prescale factor {}'.format(v),
-                   unit='',
-                   get_cmd=lambda channel=k: self._get_prescale(channel),
-                   get_parser=int,
-                   set_cmd=lambda val, channel=k: self._set_prescale(val, channel),
-                   vals=vals.Ints(min_value=0)
+            self.add_parameter(
+                f'prescale_{channel}',
+                label=f'{channel} prescale factor',
+                get_cmd=f'PRES?{idx}',
+                get_parser=int,
+                set_cmd=f'PRES {idx},{{}}',
+                vals=vals.Ints(min_value=0),
+                docstring="""\
+                A prescaler on the trigger input enables one to generate
+                delay cycles at a sub-multiple of the trigger input frequency.
+                """
             )
 
         # Trigger parameters
-        self.add_parameter('trig_level',
-               label='Trigger level',
-               unit='V',
-               get_cmd='TLVL?',
-               get_parser=float,
-               set_cmd='TLVL {}',
-               vals=vals.Numbers()
+        self.add_parameter(
+            'trigger_level',
+            label='Trigger level',
+            unit='V',
+            get_cmd='TLVL?',
+            get_parser=float,
+            set_cmd='TLVL {}',
+            vals=vals.Numbers()
         )
-        self.add_parameter('trig_rate',
-               label='Trigger rate',
-               unit='Hz',
-               get_cmd='TRAT?',
-               get_parser=float,
-               set_cmd='TRAT {}',
-               vals=vals.Numbers(min_value=0)
+        self.add_parameter(
+            'trigger_rate',
+            label='Trigger rate',
+            unit='Hz',
+            get_cmd='TRAT?',
+            get_parser=float,
+            set_cmd='TRAT {}',
+            vals=vals.Numbers(min_value=0)
         ) 
-        self.add_parameter('trig_source',
-               label='Trigger source',
-               unit='',
-               get_cmd=self._get_trig_source,
-               get_parser=str,
-               set_cmd=self._set_trig_source,
-               vals=vals.Enum(*tuple(self.TRIGGER_MAPPING.keys()))
+        self.add_parameter(
+            'trigger_source',
+            label='Trigger source',
+            get_cmd=self._get_trigger_source,
+            get_parser=str,
+            set_cmd=self._set_trigger_source,
+            vals=vals.Enum(*tuple(self.TRIGGER_MAPPING))
         )
 
         # Burst parameters
-        self.add_parameter('burst_count',
-               label='Burst count',
-               unit='',
-               get_cmd='BURC?',
-               get_parser=int,
-               set_cmd='BURC {}',
-               vals=vals.Ints(min_value=0)
+        self.add_parameter(
+            'burst_count',
+            label='Burst count',
+            get_cmd='BURC?',
+            get_parser=int,
+            set_cmd='BURC {}',
+            vals=vals.Ints(min_value=0)
         )
-        self.add_parameter('burst_delay',
-               label='Burst delay',
-               unit='s',
-               get_cmd='BURD?',
-               get_parser=float,
-               set_cmd='BURD {}',
-               vals=vals.Numbers(min_value=0)
+        self.add_parameter(
+            'burst_delay',
+            label='Burst delay',
+            unit='s',
+            get_cmd='BURD?',
+            get_parser=float,
+            set_cmd='BURD {}',
+            vals=vals.Numbers(min_value=0)
         )
-        self.add_parameter('burst_period',
-               label='Burst period',
-               unit='s',
-               get_cmd='BURP?',
-               get_parser=float,
-               set_cmd='BURC {}',
-               vals=vals.Numbers(min_value=100e-9, max_value=2000-10e-9)
+        self.add_parameter(
+            'burst_period',
+            label='Burst period',
+            unit='s',
+            get_cmd='BURP?',
+            get_parser=float,
+            set_cmd='BURC {}',
+            vals=vals.Numbers(min_value=100e-9, max_value=2000-10e-9)
         )
-        self.add_parameter('burst_T0_config',
-               label='Burst T0 configuration',
-               unit='',
-               get_cmd='BURT?',
-               get_parser=int,
-               set_cmd='BURT {}',
-               vals=vals.Enum(0,1)
+        self.add_parameter(
+            'burst_T0_config',
+            label='Burst T0 configuration',
+            get_cmd='BURT?',
+            get_parser=int,
+            set_cmd='BURT {}',
+            vals=vals.Enum(0,1)
         )
 
         # Channel parameters
         for ch, idx in self.CHANNEL_MAPPING.items():
             if idx > 1:
-                self.add_parameter('delay_{}'.format(ch),
-                       label='{} delay'.format(ch),
-                       unit='s',
-                       get_cmd=lambda channel=ch: self._get_delay(channel),
-                       get_parser=str,
-                       set_cmd=lambda src_delay, channel=ch: self._set_delay(src_delay, channel),
-                       vals=vals.Strings()
+                self.add_parameter(
+                    f'delay_{ch}',
+                    label=f'{ch} delay',
+                    unit='s',
+                    get_cmd=f'DLAY?{idx}',
+                    get_parser=str,
+                    set_cmd=lambda src_delay, channel=ch: self._set_delay(src_delay, channel),
+                    vals=vals.Strings(),
+                    docstring="""\
+                    Set/query they delay of this channel relative to another.
+                    Arguments/returned values strings of the form
+                    '{index_of_other_channel},{delay_in_seconds}'. For example, '2,+0.001'
+                    indicates that this channel is delayed from channel A by 1 ms, since
+                    self.CHANNEL_MAPPING['A'] == 2.
+                    """
                 )
-                self.add_parameter('channel_link_{}'.format(ch),
-                       label='Channel linked to {}'.format(ch),
-                       unit='',
-                       get_cmd=lambda channel=ch: self._get_link(channel),
-                       get_parser=int,
-                       set_cmd=lambda target, source=ch: self._set_link(target, source),
-                       vals=vals.Enum(*tuple(k for k in self.CHANNEL_MAPPING if k != 'T1'))
+                self.add_parameter(
+                    f'channel_link_{ch}',
+                    label=f'Channel linked to {ch}',
+                    get_cmd=f'LINK?{idx}',
+                    get_parser=int,
+                    set_cmd=lambda target, source=ch: self._set_link(target, source),
+                    vals=vals.Enum(*tuple(k for k in self.CHANNEL_MAPPING if k != 'T1'))
                 )
 
         # Output parameters
         for out, idx in self.OUTPUT_MAPPING.items():
-            self.add_parameter('amp_out_{}'.format(out),
-                   label='Output {} amplitude'.format(out),
-                   unit='V',
-                   get_cmd=lambda output=out: self._get_amp(output),
-                   get_parser=float,
-                   set_cmd=lambda level, output=out: self._set_amp(level, output),
-                   vals=vals.Numbers()
+            self.add_parameter(
+                f'amp_out_{out}',
+                label=f'Output {out} amplitude',
+                unit='V',
+                get_cmd=f'LAMP?{idx}',
+                get_parser=float,
+                set_cmd=f'LAMP {idx},{{}}',
+                vals=vals.Numbers()
             )
-            self.add_parameter('offset_out_{}'.format(out),
-                   label='Output {} offset'.format(out),
-                   unit='V',
-                   get_cmd=lambda output=out: self._get_offset(output),
-                   get_parser=float,
-                   set_cmd=lambda level, output=out: self._set_offset(level, output),
-                   vals=vals.Numbers()
+            self.add_parameter(
+                f'offset_out_{out}',
+                label=f'Output {out} offset',
+                unit='V',
+                get_cmd=f'LOFF?{idx}',
+                get_parser=float,
+                set_cmd=f'LOFF {idx},{{}}',
+                vals=vals.Numbers()
             )
-            self.add_parameter('polarity_out_{}'.format(out),
-                   label='Output {} polarity'.format(out),
-                   unit='',
-                   get_cmd=lambda output=out: self._get_polarity(output),
-                   get_parser=int,
-                   set_cmd=lambda level, output=out: self._set_offset(level, output),
-                   vals=vals.Enum(0,1)
+            self.add_parameter(
+                f'polarity_out_{out}',
+                label=f'Output {out} polarity',
+                get_cmd=f'LPOL?{idx}',
+                get_parser=int,
+                set_cmd=f'LPOL {idx},{{}}',
+                vals=vals.Enum(0,1),
+                docstring='0 -> negative polarity, 1 -> positive polarity.'
             )
 
         self.snapshot(update=True)
         self.connect_message()
 
-    def calibrate(self) -> None:
+    def self_calibrate(self) -> None:
         """Run auto-calibration routine.
         """
         self.write('*CAL?')
@@ -196,16 +220,17 @@ class DG645(VisaInstrument):
     def reset(self) -> None:
         """Reset instrument.
         """
-        log.info('Resetting {}.'.format(self.name))
+        log.info(f'Resetting {self.name}.')
         self.write('*RST')
 
     def save_settings(self, location: int) -> None:
         """Save instrument settings to given location.
+
         Args:
             location: Location to which to save the settings (in [1..9]).
         """
-        log.info('Saving instrument settings to location {}.'.format(location))
-        self.write('*SAV {}'.format(location))
+        log.info(f'Saving instrument settings to location {location}.')
+        self.write(f'*SAV {location}')
 
     def trigger(self) -> None:
         """Initiates a single trigger if instrument is in single shot mode.
@@ -227,29 +252,14 @@ class DG645(VisaInstrument):
         """
         self.write('REMT')
 
-    def _get_phase_prescale(self, channel: str) -> str:
-        return self.ask('PHAS?{}'.format(self.PRESCALE_MAPPING[channel]))
+    def _set_trigger_source(self, src: str) -> None:  
+        self.write(f'TSRC {self.TRIGGER_MAPPING[src]}')
 
-    def _set_phase_prescale(self, value: int, channel: str) -> None:
-        self.write('PHAS {},{}'.format(self.PRESCALE_MAPPING[channel], value))
-
-    def _get_prescale(self, channel: str) -> str:
-        return self.ask('PRES?{}'.format(self.PRESCALE_MAPPING[channel]))
-
-    def _set_prescale(self, value: int, channel: str) -> None:
-        self.write('PRES {},{}'.format(self.PRESCALE_MAPPING[channel], value))
-
-    def _set_trig_source(self, src: str) -> None:  
-        self.write('TSRC {}'.format(self.TRIGGER_MAPPING[src]))
-
-    def _get_trig_source(self) -> str:
+    def _get_trigger_source(self) -> str:
         response = self.ask('TSRC?')
         keys = self.TRIGGER_MAPPING.keys()
         values = self.TRIGGER_MAPPING.values()
         return list(keys)[list(values).index(int(response))]
-
-    def _get_delay(self, channel: str) -> str:
-        return self.ask('DLAY?{}'.format(self.CHANNEL_MAPPING[channel]))
 
     def _set_delay(self, src_delay: str, target: str) -> None:
         source, delay = [s.strip() for s in src_delay.split(',')]
@@ -257,27 +267,6 @@ class DG645(VisaInstrument):
                                           self.CHANNEL_MAPPING[source],
                                           delay))
 
-    def _get_amp(self, output: str) -> str:
-        return self.ask('LAMP?{}'.format(self.OUTPUT_MAPPING[output]))
-
-    def _set_amp(self, lvl: float, output: str) -> None:
-        self.write('LAMP {},{}'.format(lvl, self.OUTPUT_MAPPING[output]))
-
-    def _get_link(self, channel: str) -> str:
-        return self.ask('LINK?{}'.format(self.CHANNEL_MAPPING[channel]))
-
     def _set_link(self, target: str, source: str) -> None:
         self.write('LINK {},{}'.format(self.CHANNEL_MAPPING[target],
                                        self.CHANNEL_MAPPING[source]))
-
-    def _get_offset(self, output: str) -> str:
-        return self.ask('LOFF?{}'.format(self.OUTPUT_MAPPING[output]))
-
-    def _set_offset(self, off: float, output: str) -> None:
-        self.write('LOFF {},{}'.format(off, self.OUTPUT_MAPPING[output]))
-
-    def _get_polarity(self, output: str) -> str:
-        return self.ask('LPOL?{}'.format(self.OUTPUT_MAPPING[output]))
-
-    def _set_polarity(self, pol: int, output: str) -> None:
-        self.write('LPOL {},{}'.format(pol, self.OUTPUT_MAPPING[output]))
