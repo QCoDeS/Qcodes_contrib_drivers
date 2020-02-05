@@ -17,7 +17,7 @@ PyLint rating: Your code has been rated at 9.06/10
 
 """
 
-
+from typing import List
 import serial
 
 from qcodes.instrument.base import Instrument
