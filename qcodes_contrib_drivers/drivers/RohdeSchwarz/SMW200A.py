@@ -1242,20 +1242,16 @@ class LFOutputChannel(InstrumentChannel): # doc done **************************
         offset: DC offset voltage in the range from -3.6V to +3.6V.
         source: Determines the LF signal to be synchronized, when monitoring is
             enabled. Values are:
-            'LF1', 'LF2', 'LF1A', 'LF2A', 'LF1B', 'LF2B':
-                Selects an internally generated LF signal.
-            'NOISE', 'NOISA', 'NOISB':
-                Selects an internally generated noise signal.
-            'EXT1', 'EXT2':
-                Selects an externally supplied LF signal.
-            'AM', 'AMA', 'AMB':
-                Selects the AM signal.
-            'FMPM', 'FMPMA', 'FMPMB':
-                Selects the signal also used by the frequency or phase modulations.
-        source_path: Path of the LF output source, only with option SMW-???
-            available. Values are 'A' or 'B'
-        voltage: Output voltage of the LF output. The valid range will be dynamic
-            as shown in the datasheet.
+            'LF1', 'LF2', 'LF1A', 'LF2A', 'LF1B', 'LF2B': Selects an internally generated LF signal.
+            'NOISE', 'NOISA', 'NOISB': Selects an internally generated noise signal.
+            'EXT1', 'EXT2': Selects an externally supplied LF signal.
+            'AM', 'AMA', 'AMB': Selects the AM signal.
+            'FMPM', 'FMPMA', 'FMPMB': Selects the signal also used by the frequency or phase
+            modulations.
+        source_path: Path of the LF output source, only with option SMW-??? available.
+        Values are 'A' or 'B'
+        voltage: Output voltage of the LF output. The valid range will be dynamic as shown in
+        the datasheet.
 
     Parameters only for the first LF-Channel available:
         period: ReadOnly. Queries the repetition frequency of the sine signal.
@@ -1266,12 +1262,11 @@ class LFOutputChannel(InstrumentChannel): # doc done **************************
         freq_min: Set minimum for manual frequency from 0.1Hz to 1MHz.
         freq_max: Set maximum for manual frequency from 0.1Hz to 1MHz.
         mode: Set the used mode:
-            FIX = fixed frequency mode (CW is a synonym)
-            SWE = set sweep mode (use LFOutputSweep class)
+            'FIX': fixed frequency mode (CW is a synonym)
+            'SWE': set sweep mode (use LFOutputSweep class)
 
     Parameters only with SMW-K24 option available:
-        shape: Define the shape of the signal. Valid values are: 'SINE',
-            'SQUARE', 'TRIANGLE', 'TRAPEZE'.
+        shape: Define the shape of the signal. Valid values: 'SINE','SQUARE','TRIANGLE','TRAPEZE'.
         shape_duty_cycle: Duty cycle for shape pulse (*)
         shape_period: Period for shape pulse (*)
         shape_width: Width for shape pulse (*)
@@ -1281,7 +1276,7 @@ class LFOutputChannel(InstrumentChannel): # doc done **************************
         trapez_rise: Rise time for the trapezoid shape (*)
         triangle_period: Period of the generated pulse (*)
         triangle_rise: Rise time for the triangle shape (*)
-            (*) All the last parameters have a valid range from 1e-6 to 100.
+        (*) All the last parameters have a valid range from 1e-6 to 100.
     """
     def __init__(self, parent: 'RohdeSchwarz_SMW200A', name: str, hwchan: int, lfchan: int):
         """
@@ -1558,8 +1553,7 @@ class OutputLevelSweep(InstrumentChannel): # doc done *************************
             shapes in sweep mode 'MAN' or 'STEP'.
         running: ReadOnly parameter to get the current sweep state. Return
             values are 'ON' or 'OFF'.
-        reset: Resets all active sweeps to the starting point. Use no
-            braces () here!
+        reset: Resets all active sweeps to the starting point. Use no braces () here!
     """
     def __init__(self, parent: 'RohdeSchwarz_SMW200A', name: str, hwchan: int):
         """
@@ -1691,8 +1685,7 @@ class OutputFrequencySweep(InstrumentChannel): # doc done *********************
         lin_step: Step size for linear RF frequency sweep. The minimum is 0.01
             and the maximum is the sweep_span of the output channel and will
             be read during the set lin_step command.
-        reset: Resets all active sweeps to the starting point. Use no
-            braces () here!
+        reset: Resets all active sweeps to the starting point. Use no braces () here!
     """
     def __init__(self, parent: 'RohdeSchwarz_SMW200A', name: str, hwchan: int):
         """
