@@ -244,7 +244,7 @@ class IQModulation(InstrumentChannel): # doc done *****************************
             'AUTO': The gain value is retrieved form the connected R&S SZU. The I/Q modulator
             is configured automatically.
         swap: Activates/Deactives the swapping of the I and Q channel. Values are 'ON' and 'OFF'.
-        crest_factor: If source set to `ANAL' (Analog Wideband I/Q Input), sets the crest factor
+        crest_factor: If source set to 'ANAL' (Analog Wideband I/Q Input), sets the crest factor
             of the externally supplied analog signal. The crest factor gives the difference in
             level between the peak envelope power (PEP) and the average power value (RMS) in dB.
             The R&S SMW uses this value for the calculation of the RF output power. The allowed
@@ -254,7 +254,8 @@ class IQModulation(InstrumentChannel): # doc done *****************************
     """
 
     #/home/vsts/work/1/s/qcodes_contrib_drivers/drivers/RohdeSchwarz/SMW200A.py:docstring of
-    #qcodes_contrib_drivers.drivers.RohdeSchwarz.SMW200A.IQModulation:21:Inline interpreted text or phrase reference start-string without end-string.
+    #qcodes_contrib_drivers.drivers.RohdeSchwarz.SMW200A.IQModulation:20:
+    #Inline interpreted text or phrase reference start-string without end-string.
 
     def __init__(self, parent: 'RohdeSchwarz_SMW200A', name: str, hwchan: int):
         """
