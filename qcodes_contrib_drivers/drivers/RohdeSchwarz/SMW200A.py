@@ -355,10 +355,8 @@ class FrequencyModulation(InstrumentChannel): # doc done **********************
         state: actives/deactivates the frequency modulation. Values are 'ON' and 'OFF'.
         deviation: Sets the modulation deviation of the frequency modulation in Hz.
         source: Selects the modulation source. Values are:
-            'INT': internally generated LF signal = 'LF1' (for channel 2 only
-                available with option SMW-K24)
-            'EXT': externally supplied LF signal  = 'EXT1' (for channel 2 only
-                available with option SMW-K24)
+            'INT': internally generated LF signal = 'LF1' (for channel 2 only with option SMW-K24)
+            'EXT': externally supplied LF signal  = 'EXT1' (for channel 2 only with option SMW-K24)
             'LF1': first internally generated signal
             'LF2': second internally gererated signal (only available with option SMW-K24)
             'NOIS': internally generated noise signal (only available with option SMW-K24)
@@ -367,8 +365,7 @@ class FrequencyModulation(InstrumentChannel): # doc done **********************
             'INTB': internal baseband signal (only available with option SMW-B9)
         coupling_mode: Selects the coupling mode. The coupling mode parameter also
             determines the mode for fixing the total deviation. Values are:
-            'UNC': Does not couple the LF signals. The deviation values of both paths are
-                   independent.
+            'UNC': Does not couple the LF signals. The deviation values of both paths are independent.
             'TOT': Couples the deviation of both paths.
             'RAT': Couples the deviation ratio of both paths
         total_deviation: Sets the total deviation of the LF signal when using combined
@@ -642,7 +639,7 @@ class PulseModulation(InstrumentChannel): # doc done **************************
         video_polarity: Sets the polarity of the pulse video (modulating) signal,
             related to the RF (modulated) signal. Values are:
             'NORM': the video signal follows the RF signal, that means it is high
-                when RF signal is high and vice versa
+            when RF signal is high and vice versa
             'INV': the video signal follows in inverted mode
         polarity: sets the polarity of the externally applied modulation signal
             'NORM': Suppresses the RF signal during the pulse pause
@@ -841,13 +838,13 @@ class PulseGenerator(InstrumentChannel):
     Parameters:
         polarity: Sets the polarity of the pulse output signal. Values are:
             'NORM': Outputs the pulse signal during the pulse width, that means during
-                    the high state.
-            'INV' : Inverts the pulse output signal polarity. The pulse output signal
-                    is suppressed during the pulse width, but provided during the low state.
+            the high state.
+            'INV': Inverts the pulse output signal polarity. The pulse output signal
+            is suppressed during the pulse width, but provided during the low state.
         output: Activates the output of the pulse modulation signal. Possible values: OFF or ON.
         state: Enables the output of the video/sync signal. If the pulse generator is the
-               current modulation source, activating the pulse modulation automatically
-               activates the signal output and the pulse generator.
+            current modulation source, activating the pulse modulation automatically
+            activates the signal output and the pulse generator.
 
     Configurations for the Pulse Generator set with another subclass:
         Pulse Mode         -> PulseModulation.mode()
@@ -942,9 +939,9 @@ class PhaseModulation(InstrumentChannel): # doc done **************************
         deviation: Sets the modulation deviation of the phase modulation in RAD.
         source: Selects the modulation source. Values are:
             'INT': internally generated LF signal = 'LF1' (for channel 2 only
-                available with option SMW-K24)
+            available with option SMW-K24)
             'EXT': externally supplied LF signal  = 'EXT1' (for channel 2 only
-                available with option SMW-K24)
+            available with option SMW-K24)
             'LF1': first internally generated signal
             'LF2': second internally gererated signal (only available with option SMW-K24)
             'NOIS': internally generated noise signal (only available with option SMW-K24)
@@ -955,10 +952,10 @@ class PhaseModulation(InstrumentChannel): # doc done **************************
             'HBAN': sets the maximum available bandwidth (High BANdwidth)
             'HDEV': sets the maximum range for deviation (High DEViation)
             'LNO': selects a phase modulation mode with phase noise and spurious
-                characteristics close to CW mode. (Low NOise)
+            characteristics close to CW mode. (Low NOise)
         coupling_mode: Selects the coupling mode. Possible values are:
             'UNC': Does not couple the LF signals. The deviation values of both
-                paths are independent.
+            paths are independent.
             'TOT': Couples the deviation of both paths.
             'RAT': Couples the deviation ratio of both paths.
         total_deviation: Sets the total deviation of the LF signal when using
@@ -1093,24 +1090,24 @@ class LFOutputSweep(InstrumentChannel): # doc done ****************************
     Parameters:
         dwell: Dwell time in seconds from 0.5 ms to 100 s.
         mode: Cycle mode for level sweep.
-                'AUTO': Each trigger triggers exactly one complete sweep.
-                'MAN':  You can trigger every step individually with a command.
-                'STEP': Each trigger triggers one sweep step only.
+            'AUTO': Each trigger triggers exactly one complete sweep.
+            'MAN':  You can trigger every step individually with a command.
+            'STEP': Each trigger triggers one sweep step only.
         points: Steps within level sweep range
         shape: Waveform shape for sweep. Allowed values are 'SAWTOOTH'
-                and 'TRIANGLE'
+            and 'TRIANGLE'
         execute: Executes one RF level sweep. Use this without any ( )
         retrace: Activates that the signal changes to the start frequency value
             while it is waiting for the next trigger event. Values are 'ON' and
             'OFF'. You can enable this feature, when you are working with sawtooth
             shapes in sweep mode 'MAN' or 'STEP'.
         running: (ReadOnly) Reports the current sweep state. Returnvalues
-                are 'ON' or 'OFF'.
+            are 'ON' or 'OFF'.
         spacing: calculationmode of frequency intervals. Values are 'LIN' or 'LOG'
         log_step: Sets the step width factor for logarithmic sweeps to calculate
             the frequencies of the steps. The value can be from 0.01% upto 100%.
         lin_step: Set the step size for linear sweep. The value can be from 0.01
-                up to the value of <OutputChannel::sweep_span>
+            up to the value of <OutputChannel::sweep_span>
     """
     def __init__(self, parent: 'RohdeSchwarz_SMW200A', name: str, hwchan: int):
         """
@@ -1245,15 +1242,15 @@ class LFOutputChannel(InstrumentChannel): # doc done **************************
         offset: DC offset voltage in the range from -3.6V to +3.6V.
         source: Determines the LF signal to be synchronized, when monitoring is
             enabled. Values are:
-            'LF1', 'LF2', 'LF1A', 'LF2A', 'LF1B', 'LF2B'
+            'LF1', 'LF2', 'LF1A', 'LF2A', 'LF1B', 'LF2B':
                 Selects an internally generated LF signal.
-            'NOISE', 'NOISA', 'NOISB'
+            'NOISE', 'NOISA', 'NOISB':
                 Selects an internally generated noise signal.
-            'EXT1', 'EXT2'
+            'EXT1', 'EXT2':
                 Selects an externally supplied LF signal.
-            'AM', 'AMA', 'AMB'
+            'AM', 'AMA', 'AMB':
                 Selects the AM signal.
-            'FMPM', 'FMPMA', 'FMPMB'
+            'FMPM', 'FMPMA', 'FMPMB':
                 Selects the signal also used by the frequency or phase modulations.
         source_path: Path of the LF output source, only with option SMW-???
             available. Values are 'A' or 'B'
@@ -1543,7 +1540,7 @@ class OutputLevelSweep(InstrumentChannel): # doc done *************************
     Parameters:
         attenuator: Power attenuator mode for level sweep. Values are:
             'NORM': Performs the level settings in the range of the
-                    built-in attenuator.
+            built-in attenuator.
             'HPOW': Performs the level settings in the high level range.
         dwell: Dwell time for level sweep, valid range is from 0.001s to 100s.
         mode: Cycle mode for level sweep. Values are:
@@ -1832,33 +1829,29 @@ class OutputChannel(InstrumentChannel): # doc done ****************************
         frequency: set/read the main frequency of the oscillator.
         level: set/read the output power level.
         mode: selects the mode of the oscillator. Valid values are:
-            FIX  = fixed frequency mode (CW is a synonym)
-            SWE  = set sweep mode (use sweep_start/sweep_stop/sweep_center/sweep_span)
-            LIST = use a special loadable list of frequencies - the list functions
-                    are not yet implemented here.
+            'FIX': fixed frequency mode (CW is a synonym)
+            'SWE': set sweep mode (use sweep_start/sweep_stop/sweep_center/sweep_span)
+            'LIST': use a special loadable list of frequencies - the list functions
+            are not yet implemented here.
         sweep_center: set/read the center frequency of the sweep.
         sweep_span: set/read the span of frequency sweep range.
         sweep_start: set/read the start frequency of the sweep.
         sweep_stop: set/read the stop frequency of the sweep.
         losc_input: read the LOscillator input frequency (ReadOnly).
         losc_mode: set/read the LOscillator mode. Valid values are:
-            INT  = A&B Internal / Internal (one path instrument)
-                    Uses the internal oscillator signal in both paths.
-            EXT  = A External & B Internal (one path instrument)
-                    Uses an external signal in path A. B uses its internal signal.
-            COUP = A Internal & A->B Coupled
-                    Assigns the internal oscillator signal of path A also to path B.
-            ECO  = A External & A->B Coupled
-                    Assigns an externally supplied signal to both paths.
-            BOFF = A Internal & B RF Off
-                    Uses the internal local oscillator signal of path A, if the
-                    selected frequency exceeds the maximum frequency of path B.
-            EBOF = A External & B RF Off
-                    Uses the LO IN signal for path A, if the selected RF frequency
-                    exceeds the maximum frequency of path B.
-            AOFF = A RF Off & B External
-                    Uses the LO IN signal for path B, if the selected RF frequency
-                    exceeds the maximum frequency of path A.
+            'INT': A&B Internal / Internal (one path instrument). Uses the internal oscillator
+            signal in both paths.
+            'EXT': A External & B Internal (one path instrument). Uses an external signal in
+            path A. B uses its internal signal.
+            'COUP': A Internal & A->B Coupled. Assigns the internal oscillator signal of path A
+            also to path B.
+            'ECO': A External & A->B Coupled. Assigns an externally supplied signal to both paths.
+            'BOFF': A Internal & B RF Off. Uses the internal local oscillator signal of path A,
+            if the selected frequency exceeds the maximum frequency of path B.
+            'EBOF': A External & B RF Off. Uses the LO IN signal for path A, if the selected
+            RF frequency exceeds the maximum frequency of path B.
+            'AOFF': A RF Off & B External. Uses the LO IN signal for path B, if the selected
+            RF frequency exceeds the maximum frequency of path A.
         losc_output: read the LOscillator output frequency (ReadOnly).
         losc_state: set/read the LOscillator state. Valid values are 'ON' and 'OFF'.
     """
