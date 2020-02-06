@@ -1240,16 +1240,14 @@ class LFOutputChannel(InstrumentChannel): # doc done **************************
     Parameters only for the first RF-Source available:
         state: The state of the output. Values are 'ON' or 'OFF'.
         offset: DC offset voltage in the range from -3.6V to +3.6V.
-        source: Determines the LF signal to be synchronized, when monitoring is
-            enabled. Values are:
+        source: Determines the LF signal to be synchronized, when monitoring is enabled. Values are:
             'LF1', 'LF2', 'LF1A', 'LF2A', 'LF1B', 'LF2B': Selects an internally generated LF signal.
             'NOISE', 'NOISA', 'NOISB': Selects an internally generated noise signal.
             'EXT1', 'EXT2': Selects an externally supplied LF signal.
             'AM', 'AMA', 'AMB': Selects the AM signal.
             'FMPM', 'FMPMA', 'FMPMB': Selects the signal also used by the frequency or phase
             modulations.
-        source_path: Path of the LF output source, only with option SMW-??? available.
-        Values are 'A' or 'B'
+        source_path: Path of the LF output source. Values are 'A' or 'B'.
         voltage: Output voltage of the LF output. The valid range will be dynamic as shown in
         the datasheet.
 
