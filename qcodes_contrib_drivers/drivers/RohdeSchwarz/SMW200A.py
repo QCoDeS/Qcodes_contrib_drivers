@@ -33,8 +33,8 @@ class IQChannel(InstrumentChannel): # doc done ********************************
 
     Parameters:
         state: Actives/deactives the I/Q output. Values are 'ON' and 'OFF'.
-        type: Sets the type of the analog signal. Values are 'SING' (single) and
-            'DIFF' (differential, only available with option SMW-K16)
+        type: Sets the type of the analog signal. Values are 'SING' (single) and 'DIFF'
+            (differential, only available with option SMW-K16)
         mode: Determines the mode for setting the output parameters. Values are
             'FIX': Locks the I/Q output settings
             'VAR': Unlocks the settings (only available with option SMW-K16)
@@ -54,13 +54,11 @@ class IQChannel(InstrumentChannel): # doc done ********************************
         i_offset: Sets an offset between the inverting and non-inverting input
             of the differential analog I/Q output signal for the I component.
             The value range is adjusted so that the maximum overall output voltage
-            does not exceed 4V. Is only settable, if parameter mode has the value
-            'VAR'.
+            does not exceed 4V. Is only settable, if parameter mode has the value 'VAR'.
         q_offset: Sets an offset between the inverting and non-inverting input
             of the differential analog I/Q output signal for the Q component.
             The value range is adjusted so that the maximum overall output voltage
-            does not exceed 4V. Is only settable, if parameter mode has the value
-            'VAR'.
+            does not exceed 4V. Is only settable, if parameter mode has the value 'VAR'.
     """
     def __init__(self, parent: 'RohdeSchwarz_SMW200A', name: str, hwchan: int):
         """
@@ -237,15 +235,14 @@ class IQModulation(InstrumentChannel): # doc done *****************************
             'DIFF': differential analog signal (only with option SMW-K739)
         gain: Optimizes the modulation of the I/Q modulator for a subset of
             measurement requirements. Values are:
-            'DB0', 'DB2', 'DB4', 'DB6', 'DB8': Activates the specified gain of
-                0 dB, +2 dB, +4 dB, +6 dB, +8 dB
+            'DB0', 'DB2', 'DB4', 'DB6', 'DB8': Activates the specified gain of 0 dB, +2 dB,
+            +4 dB, +6 dB, +8 dB
             'DBM2', 'DBM4': Activates the specified gain of -2 dB, -4 dB
-            'DBM3', 'DB3': Provided only for backward compatibility with other
-                Rohde & Schwarz signal generators. The R&S SMW accepts these
-                values and maps them automatically as follows:
-                DBM3 = DBM2, DB3 = DB2
-            'AUTO': The gain value is retrieved form the connected R&S SZU. The
-                I/Q modulator is configured automatically.
+            'DBM3', 'DB3': Provided only for backward compatibility with other Rohde & Schwarz
+            signal generators. The R&S SMW accepts these values and maps them automatically as
+            follows: DBM3 = DBM2, DB3 = DB2
+            'AUTO': The gain value is retrieved form the connected R&S SZU. The I/Q modulator
+            is configured automatically.
         swap: Activates/Deactives the swapping of the I and Q channel. Values are
             'ON' and 'OFF'.
         crest_factor: If source set to `ANAL' (Analog Wideband I/Q Input), sets
