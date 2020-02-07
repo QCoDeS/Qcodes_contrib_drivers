@@ -2228,7 +2228,7 @@ class RohdeSchwarz_SMW200A(VisaInstrument):
             None
 
         Returns:
-            Strings from the *IDN? command
+            Strings from the '*IDN?' command
         """
         return self.idn
 
@@ -2284,10 +2284,7 @@ class RohdeSchwarz_SMW200A(VisaInstrument):
         Returns:
             List of strings containing error number and string representation
         """
-        #count = int( self.ask('SYST:ERR:COUNT?') )
-        #print( "Error count: ", count )
         retval = self.ask('SYST:ERR:ALL?').strip().split("\n")
-        #print( "Error strings:", retval )
         return retval
 
 
