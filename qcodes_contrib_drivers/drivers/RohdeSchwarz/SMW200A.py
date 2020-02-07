@@ -2228,7 +2228,7 @@ class RohdeSchwarz_SMW200A(VisaInstrument):
             None
 
         Returns:
-            Strings from the '*IDN?' command
+            Strings from the IDN command from the startup.
         """
         return self.idn
 
