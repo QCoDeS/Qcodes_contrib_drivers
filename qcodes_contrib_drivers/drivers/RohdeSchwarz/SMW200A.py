@@ -1248,6 +1248,7 @@ class LFOutputChannel(InstrumentChannel): # doc done **************************
             - 'AM', 'AMA', 'AMB': Selects the AM signal.
             - 'FMPM', 'FMPMA', 'FMPMB': Selects the signal also used by the frequency or phase
               modulations.
+
         source_path: Path of the LF output source. Values are 'A' or 'B'.
         voltage: Output voltage of the LF output. The valid range will be dynamic as shown in
         the datasheet.
