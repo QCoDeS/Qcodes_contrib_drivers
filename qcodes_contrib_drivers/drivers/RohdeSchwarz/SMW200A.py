@@ -631,38 +631,47 @@ class PulseModulation(InstrumentChannel): # doc done **************************
     Parameters:
         state: Activates/deactivates the pulse modulation. Values are 'ON' and 'OFF'.
         source: Selects the modulation source. Values are:
-            'INT': internally generated signal is used (only available with option SMW-K23)
-            'EXT': externally supplied signal is used
+
+            - 'INT': internally generated signal is used (only available with option SMW-K23)
+            - 'EXT': externally supplied signal is used
+
         transition_type: sets the transition mode for the pulse signal. Values are:
-            'SMO': flattens the slew , resulting in longer rise/fall times (SMOothed)
-            'FAST': enables fast transition with shortest rise and fall times
-        video_polarity: Sets the polarity of the pulse video (modulating) signal,
-            related to the RF (modulated) signal. Values are:
-            'NORM': the video signal follows the RF signal, that means it is high
-            when RF signal is high and vice versa
-            'INV': the video signal follows in inverted mode
+
+            - 'SMO': flattens the slew , resulting in longer rise/fall times (SMOothed)
+            - 'FAST': enables fast transition with shortest rise and fall times
+
+        video_polarity: Sets the polarity of the pulse video (modulating) signal, related
+        to the RF (modulated) signal. Values are:
+
+            - 'NORM': the video signal follows the RF signal, that means it is high
+              when RF signal is high and vice versa
+            - 'INV': the video signal follows in inverted mode
+
         polarity: sets the polarity of the externally applied modulation signal
-            'NORM': Suppresses the RF signal during the pulse pause
-            'INV': Suppresses the RF signal during the pulse
+
+            - 'NORM': Suppresses the RF signal during the pulse pause
+            - 'INV': Suppresses the RF signal during the pulse
+
         impedance: Sets the impedance for the external pulse modulation input.
-            Values are 'G50' and 'G1K'
+        Values are 'G50' and 'G1K'
         trigger_impedance: Sets the impedance for the external pulse trigger.
-            Values are 'G50' and 'G10K'
+        Values are 'G50' and 'G10K'
 
     Parameters only available with option SMW-K23:
         mode: Selects the mode for the pulse modulation. Values can be:
-            'SING': generates a single pulse
-            'DOUB': generates two pulses within one pulse period
+
+            - 'SING': generates a single pulse
+            - 'DOUB': generates two pulses within one pulse period
+
         double_delay: Sets the delay from the start of the first pulse to
-            the start of the second pulse.
+        the start of the second pulse.
         double_width: Sets the width of the second pulse.
-        trigger_mode: Selects a trigger mode for generating the modulation signal.
-            Values are 'AUTO' (AUTOmatic), 'EXT' (EXTernal), 'EGAT' (External GATed),
-            'ESIN' (External single).
-        period: Sets the period of the generated pulse, that means the
-            repetition frequency of the internally generated modulation signal.
-        width: Sets the width of the generated pulse, that means the pulse length.
-            It must be at least 20ns less than the set pulse period.
+        trigger_mode: Selects a trigger mode for generating the modulation signal. Values
+        are 'AUTO' (AUTOmatic), 'EXT' (EXTernal), 'EGAT' (External GATed), 'ESIN' (External single).
+        period: Sets the period of the generated pulse, that means the repetition frequency
+        of the internally generated modulation signal.
+        width: Sets the width of the generated pulse, that means the pulse length. It must be
+        at least 20ns less than the set pulse period.
         delay: Sets the pulse delay.
     """
     def __init__(self, parent: 'RohdeSchwarz_SMW200A', name: str, hwchan: int):
