@@ -8,17 +8,13 @@ is not available.
 Authors:
     Michael Wagener, ZEA-2, m.wagener@fz-juelich.de
 """
-#from unittest import TestCase
-#from unittest.mock import patch
 import visa
 from qcodes.instrument.visa import VisaInstrument
 from qcodes.utils.validators import Numbers
-#import warnings
 
 
 class MockVisa(VisaInstrument):
     def __init__(self, *args, **kwargs):
-        #print("DBG-Mock:", args, kwargs)
         super().__init__(*args, **kwargs)
         self.add_parameter('state',
                            get_cmd='STAT?', get_parser=float,
@@ -53,7 +49,7 @@ class MockVisaHandle:
               'SOUR1:FREQ:LOSC:OUTP:FREQ?': '0',
               'SOUR1:FREQ:LOSC:OUTP:STAT?': '0',
               
-              'SOUR1:SWE:POW:AMOD?': 'AUTO', # TODO: ist nicht dokumentiert
+              'SOUR1:SWE:POW:AMOD?': 'AUTO',
               'SOUR1:SWE:POW:DWEL?': '0.01',
               'SOUR1:SWE:POW:MODE?': 'AUTO',
               'SOUR1:SWE:POW:POIN?': '21',
@@ -133,13 +129,13 @@ class MockVisaHandle:
               'SOUR1:PM2:SOUR?': 'EXT1',
               'SOUR1:PM:MODE?': 'HBAN',
               
-              'SOUR1:PULM:MODE?': '0',      # Diese Werte werden
-              'SOUR1:PULM:DOUB:DEL?': '0',  # beim ReadAll nicht
-              'SOUR1:PULM:DOUB:WID?': '0',  # angezeigt. Sollten
-              'SOUR1:PULM:TRIG:MODE?': '0', # diese nur intern
-              'SOUR1:PULM:PER?': '2.0',     # Verwendung finden?
-              'SOUR1:PULM:WIDT?': '0',      # TODO
-              'SOUR1:PULM:DEL?': '0',       #
+              'SOUR1:PULM:MODE?': '0',
+              'SOUR1:PULM:DOUB:DEL?': '0',
+              'SOUR1:PULM:DOUB:WID?': '0',
+              'SOUR1:PULM:TRIG:MODE?': '0',
+              'SOUR1:PULM:PER?': '2.0',
+              'SOUR1:PULM:WIDT?': '0',
+              'SOUR1:PULM:DEL?': '0',
               'SOUR1:PULM:STAT?': '0',
               'SOUR1:PULM:SOUR?': 'EXT',
               'SOUR1:PULM:TTYP?': 'FAST',
@@ -181,21 +177,17 @@ class MockVisaHandle:
               }
     
     def __init__(self):
-        #print("DBG-Mock: MockVisaHandle init")
         self.state = 0
         self.closed = False
 
     def clear(self):
-        #print("DBG-Mock: MockVisaHandle clear")
         self.state = 0
 
     def close(self):
         # make it an error to ask or write after close
-        #print("DBG-Mock: MockVisaHandle close")
         self.closed = True
 
     def write(self, cmd):
-        #print("DBG-Mock: MockVisaHandle write", cmd)
         if self.closed:
             raise RuntimeError("Trying to write to a closed instrument")
         try:
@@ -215,7 +207,6 @@ class MockVisaHandle:
         return len(cmd), ret_code
 
     def ask(self, cmd):
-        #print("DBG-Mock: MockVisaHandle ask", cmd)
         if self.closed:
             raise RuntimeError("Trying to ask a closed instrument")
         if self.state > 10:
@@ -223,7 +214,6 @@ class MockVisaHandle:
         return self.state
 
     def query(self, cmd):
-        #print("DBG-Mock: MockVisaHandle query", cmd)
         if cmd in self.cmddef:
             return self.cmddef[cmd]
         if self.state > 10:
