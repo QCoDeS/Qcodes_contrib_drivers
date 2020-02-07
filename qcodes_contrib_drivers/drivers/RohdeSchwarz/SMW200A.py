@@ -1256,7 +1256,7 @@ class LFOutputChannel(InstrumentChannel): # doc done **************************
     Parameters only for the first LF-Channel available:
         period: ReadOnly. Queries the repetition frequency of the sine signal.
         frequency: The Frequency of the LF signal when the mode() is `FIX'. Valid range is from 0.1Hz and ends
-            depending on the installed options.
+        depending on the installed options.
         freq_manual: Manual frequency set only valid in the range given by the parameters freq_min and freq_max.
         freq_min: Set minimum for manual frequency from 0.1Hz to 1MHz.
         freq_max: Set maximum for manual frequency from 0.1Hz to 1MHz.
