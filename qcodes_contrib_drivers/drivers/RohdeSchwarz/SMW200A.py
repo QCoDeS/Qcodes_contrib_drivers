@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 """QCoDeS-Driver for Rohde&Schwarz Vector Signal Generator RS_SMW200A.
 
+This driver can be used with a simulation class (SMW200Asim.py) to generate
+reasonable answers to all requests. The only thing is to change two times
+the comments as shown below (real mode/simulation mode).
+
 Authors:
     Michael Wagener, ZEA-2, m.wagener@fz-juelich.de
     Sarah Fleitmann, ZEA-2, s.fleitmann@fz-juelich.de
@@ -27,47 +31,44 @@ log = logging.getLogger(__name__)
 
 
 
-class IQChannel(InstrumentChannel): # doc done ********************************
-    """
-    The I/Q channels are the analog output channels of the device.
-
-    Parameters:
-        state: Actives/deactives the I/Q output. Values are 'ON' and 'OFF'.
-        type: Sets the type of the analog signal. Values are 'SING' (single) and 'DIFF'
-            (differential, only available with option SMW-K16)
-        mode: Determines the mode for setting the output parameters. Values are
-            'FIX': Locks the I/Q output settings
-            'VAR': Unlocks the settings (only available with option SMW-K16)
-        level: Sets the off-load voltage Vp of the analog I/Q signal output.
-            Values are in range 0.04V to 4V for option SMW-B10 and in range 0.04V
-            to 2V for option SMW-B9. The value range is adjusted so that the maximum
-            overall output voltage does not exceed 4V. Only settable when mode has
-            the value 'VAR'.
-        coupling: Couples the bias setting of the I and Q signal components.
-            Values are 'ON and 'OFF'.
-        i_bias: Specifies the amplifier bias of the I component. The value range
-            is adjusted so that the maximum overall output voltage does not
-            exceed 4V. Is only settable, if the mode parameter has the value 'VAR'.
-        q_bias: Specifies the amplifier bias of the Q component. The value range
-            is adjusted so that the maximum overall output voltage does not
-            exceed 4V. Is only settable, if the mode parameter has the value 'VAR'.
-        i_offset: Sets an offset between the inverting and non-inverting input
-            of the differential analog I/Q output signal for the I component.
-            The value range is adjusted so that the maximum overall output voltage
-            does not exceed 4V. Is only settable, if parameter mode has the value 'VAR'.
-        q_offset: Sets an offset between the inverting and non-inverting input
-            of the differential analog I/Q output signal for the Q component.
-            The value range is adjusted so that the maximum overall output voltage
-            does not exceed 4V. Is only settable, if parameter mode has the value 'VAR'.
-    """
+class IQChannel(InstrumentChannel):
+    
     def __init__(self, parent: 'RohdeSchwarz_SMW200A', name: str, hwchan: int):
-        """
-        Creates a new IQChannel.
+        """The I/Q channels are the analog output channels of the device.
 
-        Args:
+        Arguments:
             parent: the parent instrument of this channel
-            name  : the internal QCoDeS name of this channel
+            name:   the internal QCoDeS name of this channel
             hwchan: the internal number of the hardware channel used in the communication
+
+        Attributes:
+            state: Actives/deactives the I/Q output. Values are 'ON' and 'OFF'.
+            type: Sets the type of the analog signal. Values are 'SING' (single) and 'DIFF'
+                (differential, only available with option SMW-K16)
+            mode: Determines the mode for setting the output parameters. Values are
+                'FIX': Locks the I/Q output settings
+                'VAR': Unlocks the settings (only available with option SMW-K16)
+            level: Sets the off-load voltage Vp of the analog I/Q signal output.
+                Values are in range 0.04V to 4V for option SMW-B10 and in range 0.04V
+                to 2V for option SMW-B9. The value range is adjusted so that the maximum
+                overall output voltage does not exceed 4V. Only settable when mode has
+                the value 'VAR'.
+            coupling: Couples the bias setting of the I and Q signal components.
+                Values are 'ON and 'OFF'.
+            i_bias: Specifies the amplifier bias of the I component. The value range
+                is adjusted so that the maximum overall output voltage does not
+                exceed 4V. Is only settable, if the mode parameter has the value 'VAR'.
+            q_bias: Specifies the amplifier bias of the Q component. The value range
+                is adjusted so that the maximum overall output voltage does not
+                exceed 4V. Is only settable, if the mode parameter has the value 'VAR'.
+            i_offset: Sets an offset between the inverting and non-inverting input
+                of the differential analog I/Q output signal for the I component.
+                The value range is adjusted so that the maximum overall output voltage
+                does not exceed 4V. Is only settable, if parameter mode has the value 'VAR'.
+            q_offset: Sets an offset between the inverting and non-inverting input
+                of the differential analog I/Q output signal for the Q component.
+                The value range is adjusted so that the maximum overall output voltage
+                does not exceed 4V. Is only settable, if parameter mode has the value 'VAR'.
         """
         self.hwchan = hwchan
         super().__init__(parent, name)
@@ -217,54 +218,47 @@ class IQChannel(InstrumentChannel): # doc done ********************************
                                      " The value range is adjusted so that the maximum"
                                      " overall output voltage does not exceed 4V. Is only"
                                      " settable, if the mode parameter has the value 'VAR'.")
-
-        # TODO: setter methods for the last 4 parameters
-        # --> they have dynamic validators
+        # TODO: setter methods for the last 4 parameters, they have dynamic validators
 
 
-class IQModulation(InstrumentChannel): # doc done *****************************
-    """
-    Combines all the parameters concerning the IQ modulation.
 
-    Parameters:
-        state: Activates/deactivates the I/Q modulation. Values are 'ON', and 'OFF'.
-        source: Selects/reads the input signal source for the I/Q modulator.
-            Values are:
-            'BAS': internal baseband signal
-            'ANAL': external analog signal
-            'DIFF': differential analog signal (only with option SMW-K739)
-        gain: Optimizes the modulation of the I/Q modulator for a subset of
-            measurement requirements. Values are:
-            'DB0', 'DB2', 'DB4', 'DB6', 'DB8': Activates the specified gain of 0 dB, +2 dB,
-            +4 dB, +6 dB, +8 dB
-            'DBM2', 'DBM4': Activates the specified gain of -2 dB, -4 dB
-            'DBM3', 'DB3': Provided only for backward compatibility with other Rohde & Schwarz
-            signal generators. The R&S SMW accepts these values and maps them automatically as
-            follows: DBM3 = DBM2, DB3 = DB2
-            'AUTO': The gain value is retrieved form the connected R&S SZU. The I/Q modulator
-            is configured automatically.
-        swap: Activates/Deactives the swapping of the I and Q channel. Values are 'ON' and 'OFF'.
-        crest_factor: If source set to 'ANAL' (Analog Wideband I/Q Input), sets the crest factor
-            of the externally supplied analog signal. The crest factor gives the difference in
-            level between the peak envelope power (PEP) and the average power value (RMS) in dB.
-            The R&S SMW uses this value for the calculation of the RF output power. The allowed
-            range is from 0 dB to 35 dB.
-        wideband: Activates/deactivates optimization for wideband modulation signals
-            (higher I/Q modulation bandwidth). Values are 'ON' and 'OFF'.
-    """
-
-    #/home/vsts/work/1/s/qcodes_contrib_drivers/drivers/RohdeSchwarz/SMW200A.py:docstring of
-    #qcodes_contrib_drivers.drivers.RohdeSchwarz.SMW200A.IQModulation:20:
-    #Inline interpreted text or phrase reference start-string without end-string.
+class IQModulation(InstrumentChannel):
 
     def __init__(self, parent: 'RohdeSchwarz_SMW200A', name: str, hwchan: int):
-        """
-        Creates a new IQModulation.
+        """Combines all the parameters concerning the IQ modulation.
 
         Args:
             parent: the parent instrument of this channel
             name  : the internal QCoDeS name of this channel
             hwchan: the internal number of the hardware channel used in the communication
+
+        Attributes:
+            state: Activates/deactivates the I/Q modulation. Values are 'ON', and 'OFF'.
+            source: Selects/reads the input signal source for the I/Q modulator.
+                'BAS': internal baseband signal
+                'ANAL': external analog signal
+                'DIFF': differential analog signal (only with option SMW-K739)
+            gain: Optimizes the modulation of the I/Q modulator for a subset of
+                measurement requirements.
+                'DB0': Activates the gain of  0 dB
+                'DB2': Activates the gain of +2 dB
+                'DB3': same as 'DB2', for backward compatibility
+                'DB4': Activates the gain of +4 dB
+                'DB6': Activates the gain of +6 dB
+                'DB8': Activates the gain of +8 dB
+                'DBM2': Activates the gain of -2 dB
+                'DBM3': same as 'DBM2', for backward compatibility
+                'DBM4': Activates the gain of -4 dB
+                'AUTO': The gain value is retrieved form the connected R&S SZU. The I/Q modulator
+                is configured automatically.
+            swap: Activates/Deactives the swapping of the I and Q channel. Values are 'ON' / 'OFF'.
+            crest_factor: If source set to 'ANAL' (Analog Wideband I/Q Input), sets the crest factor
+                of the externally supplied analog signal. The crest factor gives the difference in
+                level between the peak envelope power (PEP) and the average power value (RMS) in dB.
+                The R&S SMW uses this value for the calculation of the RF output power. The allowed
+                range is from 0 dB to 35 dB.
+            wideband: Activates/deactivates optimization for wideband modulation signals
+                (higher I/Q modulation bandwidth). Values are 'ON' and 'OFF'.
         """
         self.hwchan = hwchan
         super().__init__(parent, name)
@@ -347,46 +341,43 @@ class IQModulation(InstrumentChannel): # doc done *****************************
 
 
 
-class FrequencyModulation(InstrumentChannel): # doc done **********************
-    """
-    Combines all the parameters concerning the frequency modulation.
+class FrequencyModulation(InstrumentChannel):
 
-    Parameters:
-        state: actives/deactivates the frequency modulation. Values are 'ON' and 'OFF'.
-        deviation: Sets the modulation deviation of the frequency modulation in Hz.
-        source: Selects the modulation source. Values are:
-            'INT': internally generated LF signal = 'LF1' (for channel 2 only with option SMW-K24)
-            'EXT': externally supplied LF signal  = 'EXT1' (for channel 2 only with option SMW-K24)
-            'LF1': first internally generated signal
-            'LF2': second internally gererated signal (only available with option SMW-K24)
-            'NOIS': internally generated noise signal (only available with option SMW-K24)
-            'EXT1': first externally supplied signal
-            'EXT2': second externally supplied signal
-            'INTB': internal baseband signal (only available with option SMW-B9)
-        coupling_mode: Selects the coupling mode. The coupling mode parameter also
-            determines the mode for fixing the total deviation. Values are:
-            'UNC': Does not couple the LF signals. The deviation values of both paths are independent.
-            'TOT': Couples the deviation of both paths.
-            'RAT': Couples the deviation ratio of both paths
-        total_deviation: Sets the total deviation of the LF signal when using combined
-            signal sources in frequency modulation.
-        deviation_ratio: Sets the deviation ratio (path2 to path1) in percent.
-        mode: Selects the mode for the frequency modulation. Values are:
-            'NOR': normal mode
-            'LNO': low noise mode
-        sensitivity: (ReadOnly) Queries the sensitivity of the externally supplied signal for
-            frequency modulation. The sensitivity depends on the set modulation deviation.
-
-    """
     def __init__(self, parent: 'RohdeSchwarz_SMW200A', name: str, hwchan: int, chnum: int):
-        """
-        Creates a new FrequencyModulation.
+        """Combines all the parameters concerning the frequency modulation.
 
         Args:
             parent: the parent instrument of this channel
             name  : the internal QCoDeS name of this channel
             hwchan: the internal number of the hardware channel used in the communication
             chnum : the internal number of the channel used for the communication
+    
+        Attributes:
+            state: actives/deactivates the frequency modulation. Values are 'ON' and 'OFF'.
+            deviation: Sets the modulation deviation of the frequency modulation in Hz.
+            source: Selects the modulation source. Values are:
+                'INT': internally generated LF signal = 'LF1' (channel 2 only with option SMW-K24)
+                'EXT': externally supplied LF signal  = 'EXT1' (channel 2 only with option SMW-K24)
+                'LF1': first internally generated signal
+                'LF2': second internally gererated signal (only available with option SMW-K24)
+                'NOIS': internally generated noise signal (only available with option SMW-K24)
+                'EXT1': first externally supplied signal
+                'EXT2': second externally supplied signal
+                'INTB': internal baseband signal (only available with option SMW-B9)
+            coupling_mode: Selects the coupling mode. The coupling mode parameter also
+                determines the mode for fixing the total deviation. Values are:
+                'UNC': Does not couple the LF signals. The deviation values of both paths are
+                independent.
+                'TOT': Couples the deviation of both paths.
+                'RAT': Couples the deviation ratio of both paths
+            total_deviation: Sets the total deviation of the LF signal when using combined
+                signal sources in frequency modulation.
+            deviation_ratio: Sets the deviation ratio (path2 to path1) in percent.
+            mode: Selects the mode for the frequency modulation. Values are:
+                'NOR': normal mode
+                'LNO': low noise mode
+            sensitivity: (ReadOnly) Queries the sensitivity of the externally supplied signal for
+                frequency modulation. The sensitivity depends on the set modulation deviation.
         """
         self.hwchan = hwchan
         self.chnum = chnum
@@ -491,46 +482,43 @@ class FrequencyModulation(InstrumentChannel): # doc done **********************
 
 
 
-class AmplitudeModulation(InstrumentChannel): # doc done **********************
-    """
-    Combines all the parameters concerning the amplitude modulation. Activation
-    of amplitude modulation deactivates ARB, I/Q modulation, digital modulation
-    and all digital standards.
+class AmplitudeModulation(InstrumentChannel):
 
-    Parameters:
-        state: actives/deactivates the amplitude modulation. Values are 'ON' and 'OFF'.
-        source: Selects the modulation source. Values are:
-            'INT': internally generated LF signal = 'LF1' (for channel 2 only with option SMW-K24)
-            'EXT': externally supplied LF signal  = 'EXT1' (for channel 2 only with option SMW-K24)
-            'LF1': first internally generated signal
-            'LF2': second internally gererated signal (only available with option SMW-K24)
-            'NOIS': internally generated noise signal (only available with option SMW-K24)
-            'EXT1': first externally supplied signal
-            'EXT2': second externally supplied signal
-        depth: Sets the depth of the amplitude modulation in percent.
-        total_depth: Sets the total depth of the LF signal when using combined
-            signal sources in amplitude modulation.
-        coupling_mode: Selects the coupling mode. The coupling mode parameter also
-            determines the modefor fixing the total depth. Values are:
-            'UNC': Does not couple the LF signals. The deviation depth values of
-            both paths are independent.
-            'TOT': Couples the deviation depth of both paths.
-            'RAT': Couples the deviation depth ratio of both paths.
-        deviation_ratio: Sets the deviation ratio (path2 to path1) in percent.
-        sensitivity: (ReadOnly) Queries the sensitivity of the externally applied signal.
-            The sensitivity depends on the set modulation depth. The returned value
-            reports the sensitivity in %/V. It is assigned to the voltage value for
-            full modulation of the input.
-    """
     def __init__(self, parent: 'RohdeSchwarz_SMW200A', name: str, hwchan: int, chnum: int):
-        """
-        Creates a new AmplitudeModulation.
+        """Combines all the parameters concerning the amplitude modulation. Activation
+        of amplitude modulation deactivates ARB, I/Q modulation, digital modulation
+        and all digital standards.
 
         Args:
             parent: the parent instrument of this channel
             name  : the internal QCoDeS name of this channel
             hwchan: the internal number of the hardware channel used in the communication
             chnum : the internal number of the channel used in the communication
+
+        Attributes:
+            state: actives/deactivates the amplitude modulation. Values are 'ON' and 'OFF'.
+            source: Selects the modulation source. Values are:
+                'INT': internally generated LF signal = 'LF1' (channel 2 only with option SMW-K24)
+                'EXT': externally supplied LF signal  = 'EXT1' (channel 2 only with option SMW-K24)
+                'LF1': first internally generated signal
+                'LF2': second internally gererated signal (only available with option SMW-K24)
+                'NOIS': internally generated noise signal (only available with option SMW-K24)
+                'EXT1': first externally supplied signal
+                'EXT2': second externally supplied signal
+            depth: Sets the depth of the amplitude modulation in percent.
+            total_depth: Sets the total depth of the LF signal when using combined
+                signal sources in amplitude modulation.
+            coupling_mode: Selects the coupling mode. The coupling mode parameter also
+                determines the modefor fixing the total depth. Values are:
+                'UNC': Does not couple the LF signals. The deviation depth values of
+                both paths are independent.
+                'TOT': Couples the deviation depth of both paths.
+                'RAT': Couples the deviation depth ratio of both paths.
+            deviation_ratio: Sets the deviation ratio (path2 to path1) in percent.
+            sensitivity: (ReadOnly) Queries the sensitivity of the externally applied signal.
+                The sensitivity depends on the set modulation depth. The returned value
+                reports the sensitivity in %/V. It is assigned to the voltage value for
+                full modulation of the input.
         """
         self.hwchan = hwchan
         self.chnum = chnum
@@ -586,7 +574,8 @@ class AmplitudeModulation(InstrumentChannel): # doc done **********************
                            vals=vals.Numbers(0, 100),
                            docstring="Sets the depth of the amplitude modulation in percent.")
 
-        if 'SMW-XXX' in self._parent.options: #TODO: welche Option wird hierfür benötigt?
+        if 'SMW-XXX' in self._parent.options:
+            # this function was disabled in the device but the needed option not documented in manual
             self.add_parameter('total_depth',
                                label='Total depth',
                                set_cmd='SOUR{}:'.format(self.hwchan)+'AM:DEPT:SUM {}',
@@ -594,7 +583,8 @@ class AmplitudeModulation(InstrumentChannel): # doc done **********************
                                get_parser=float,
                                vals=vals.Numbers(0, 100))
 
-        if 'SMW-XXX' in self._parent.options: #TODO: welche Option wird hierfür benötigt?
+        if 'SMW-XXX' in self._parent.options:
+            # this function was disabled in the device but the needed option not documented in manual
             self.add_parameter('coupling_mode',
                                label='Coupling mode',
                                set_cmd='SOUR{}:'.format(self.hwchan)+'AM:DEV:MODE {}',
@@ -624,64 +614,62 @@ class AmplitudeModulation(InstrumentChannel): # doc done **********************
 
 
 
-class PulseModulation(InstrumentChannel): # doc done **************************
-    """
-    Combines all the parameters concerning the pulse modulation.
+class PulseModulation(InstrumentChannel):
 
-    Parameters:
-        state: Activates/deactivates the pulse modulation. Values are 'ON' and 'OFF'.
-        source: Selects the modulation source. Values are:
-
-            - 'INT': internally generated signal is used (only available with option SMW-K23)
-            - 'EXT': externally supplied signal is used
-
-        transition_type: sets the transition mode for the pulse signal. Values are:
-
-            - 'SMO': flattens the slew , resulting in longer rise/fall times (SMOothed)
-            - 'FAST': enables fast transition with shortest rise and fall times
-
-        video_polarity: Sets the polarity of the pulse video (modulating) signal,
-            related to the RF (modulated) signal. Values are:
-
-            - 'NORM': the video signal follows the RF signal, that means it is high
-              when RF signal is high and vice versa
-            - 'INV': the video signal follows in inverted mode
-
-        polarity: sets the polarity of the externally applied modulation signal
-
-            - 'NORM': Suppresses the RF signal during the pulse pause
-            - 'INV': Suppresses the RF signal during the pulse
-
-        impedance: Sets the impedance for the external pulse modulation input.
-            Values are 'G50' and 'G1K'
-        trigger_impedance: Sets the impedance for the external pulse trigger.
-            Values are 'G50' and 'G10K'
-
-    Parameters only available with option SMW-K23:
-        mode: Selects the mode for the pulse modulation. Values can be:
-
-            - 'SING': generates a single pulse
-            - 'DOUB': generates two pulses within one pulse period
-
-        double_delay: Sets the delay from the start of the first pulse to the start of the
-            second pulse.
-        double_width: Sets the width of the second pulse.
-        trigger_mode: Selects a trigger mode for generating the modulation signal. Values
-            are 'AUTO' (AUTOmatic), 'EXT' (EXTernal), 'EGAT' (External GATed), 'ESIN' (External single).
-        period: Sets the period of the generated pulse, that means the repetition frequency
-            of the internally generated modulation signal.
-        width: Sets the width of the generated pulse, that means the pulse length. It must be
-            at least 20ns less than the set pulse period.
-        delay: Sets the pulse delay.
-    """
     def __init__(self, parent: 'RohdeSchwarz_SMW200A', name: str, hwchan: int):
-        """
-        Creates a new PulseModulation.
+        """Combines all the parameters concerning the pulse modulation.
 
         Args:
             parent: the parent instrument of this channel
             name  : the internal QCoDeS name of this channel
             hwchan: the internal number of the hardware channel used in the communication
+
+
+        Attributes:
+            state: Activates/deactivates the pulse modulation. Values are 'ON' and 'OFF'.
+            source: Selects the modulation source. Values are:
+
+                - 'INT': internally generated signal is used (only available with option SMW-K23)
+                - 'EXT': externally supplied signal is used
+
+            transition_type: sets the transition mode for the pulse signal. Values are:
+
+                - 'SMO': flattens the slew , resulting in longer rise/fall times (SMOothed)
+                - 'FAST': enables fast transition with shortest rise and fall times
+
+            video_polarity: Sets the polarity of the pulse video (modulating) signal,
+                related to the RF (modulated) signal. Values are:
+
+                - 'NORM': the video signal follows the RF signal, that means it is high
+                  when RF signal is high and vice versa
+                - 'INV': the video signal follows in inverted mode
+
+            polarity: sets the polarity of the externally applied modulation signal
+
+                - 'NORM': Suppresses the RF signal during the pulse pause
+                - 'INV': Suppresses the RF signal during the pulse
+
+            impedance: Sets the impedance for the external pulse modulation input.
+                Values are 'G50' and 'G1K'
+            trigger_impedance: Sets the impedance for the external pulse trigger.
+                Values are 'G50' and 'G10K'
+
+            mode: (Only SMW-K23) Selects the mode for the pulse modulation. Values can be:
+
+                - 'SING': generates a single pulse
+                - 'DOUB': generates two pulses within one pulse period
+
+            double_delay: (Only SMW-K23) Sets the delay from the start of the first pulse to the
+                start of the second pulse.
+            double_width: (Only SMW-K23) Sets the width of the second pulse.
+            trigger_mode: (Only SMW-K23) Selects a trigger mode for generating the modulation
+                signal. Values are 'AUTO' (AUTOmatic), 'EXT' (EXTernal), 'EGAT' (External
+                GATed), 'ESIN' (External single).
+            period: (Only SMW-K23) Sets the period of the generated pulse, that means the repetition
+                frequency of the internally generated modulation signal.
+            width: (Only SMW-K23) Sets the width of the generated pulse, that means the pulse
+                length. It must be at least 20ns less than the set pulse period.
+            delay: (Only SMW-K23) Sets the pulse delay.
         """
         self.hwchan = hwchan
         super().__init__(parent, name)
@@ -841,21 +829,7 @@ class PulseModulation(InstrumentChannel): # doc done **************************
 
 class PulseGenerator(InstrumentChannel):
     """
-    Combines all the parameters concerning the pulse generator for setting output
-    of the pulse modulation signal. Available only with option SMW-K23 installed.
-
-    Parameters:
-        polarity: Sets the polarity of the pulse output signal. Values are:
-            'NORM': Outputs the pulse signal during the pulse width, that means during
-            the high state.
-            'INV': Inverts the pulse output signal polarity. The pulse output signal
-            is suppressed during the pulse width, but provided during the low state.
-        output: Activates the output of the pulse modulation signal. Possible values: OFF or ON.
-        state: Enables the output of the video/sync signal. If the pulse generator is the
-            current modulation source, activating the pulse modulation automatically
-            activates the signal output and the pulse generator.
-
-    Configurations for the Pulse Generator set with another subclass:
+    Configurations for the Pulse Generator set with another subclasses:
         Pulse Mode         -> PulseModulation.mode()
         Trigger Mode       -> PulseModulation.trigger_mode()
         Pulse Period       -> PulseModulation.period()
@@ -865,13 +839,24 @@ class PulseGenerator(InstrumentChannel):
         Double Pulse Delay -> PulseModulation.double_delay()
     """
     def __init__(self, parent: 'RohdeSchwarz_SMW200A', name: str, hwchan: int):
-        """
-        Creates a new PulseGenerator.
+        """Combines all the parameters concerning the pulse generator for setting output
+        of the pulse modulation signal. Available only with option SMW-K23 installed.
 
         Args:
             parent: the parent instrument of this channel
             name  : the internal QCoDeS name of this channel
             hwchan: the internal number of the hardware channel used in the communication
+
+        Attributes:
+            polarity: Sets the polarity of the pulse output signal. Values are:
+                'NORM': Outputs the pulse signal during the pulse width, that means during
+                the high state.
+                'INV': Inverts the pulse output signal polarity. The pulse output signal
+                is suppressed during the pulse width, but provided during the low state.
+            output: Activates the output of the pulse modulation signal. Values are: 'OFF' or 'ON'.
+            state: Enables the output of the video/sync signal. If the pulse generator is the
+                current modulation source, activating the pulse modulation automatically
+                activates the signal output and the pulse generator.
         """
         self.hwchan = hwchan
         super().__init__(parent, name)
@@ -937,52 +922,45 @@ class PulseGenerator(InstrumentChannel):
 
 
 
-class PhaseModulation(InstrumentChannel): # doc done **************************
-    """
-    Combines all the parameters concerning the phase modulation.
+class PhaseModulation(InstrumentChannel):
 
-    Parameters:
-        state: Activates or deactivates phase modulation.
-            Activation of phase modulation deactivates frequency modulation.
-            Possible values are 'ON' and 'OFF'.
-        deviation: Sets the modulation deviation of the phase modulation in RAD.
-        source: Selects the modulation source. Values are:
-            'INT': internally generated LF signal = 'LF1' (for channel 2 only
-            available with option SMW-K24)
-            'EXT': externally supplied LF signal  = 'EXT1' (for channel 2 only
-            available with option SMW-K24)
-            'LF1': first internally generated signal
-            'LF2': second internally gererated signal (only available with option SMW-K24)
-            'NOIS': internally generated noise signal (only available with option SMW-K24)
-            'EXT1': first externally supplied signal
-            'EXT2': second externally supplied signal
-            'INTB': internal baseband signal (only available with option SMW-B9)
-        mode: Selects the mode for the phase modulation. Possible values are:
-            'HBAN': sets the maximum available bandwidth (High BANdwidth)
-            'HDEV': sets the maximum range for deviation (High DEViation)
-            'LNO': selects a phase modulation mode with phase noise and spurious
-            characteristics close to CW mode. (Low NOise)
-        coupling_mode: Selects the coupling mode. Possible values are:
-            'UNC': Does not couple the LF signals. The deviation values of both
-            paths are independent.
-            'TOT': Couples the deviation of both paths.
-            'RAT': Couples the deviation ratio of both paths.
-        total_deviation: Sets the total deviation of the LF signal when using
-            combined signal sources. Possible values range from 0 to 20.
-        ratio: Sets the deviation ratio (path2 to path1) in percent.
-        sensitivity: Queries the sensitivity of the externally applied signal for phase
-            modulation. The returned value reports the sensitivity in RAD/V. It is assigned
-            to the voltage value for full modulation of the input.
-    """
     def __init__(self, parent: 'RohdeSchwarz_SMW200A', name: str, hwchan: int, chnum: int):
-        """
-        Creates a new PhaseModulation.
+        """Combines all the parameters concerning the phase modulation.
 
         Args:
             parent: the parent instrument of this channel
             name  : the internal QCoDeS name of this channel
             hwchan: the internal number of the hardware channel used in the communication
             chnum : the internal number of the channel used in the communication
+
+        Attributes:
+            state: Activates or deactivates phase modulation. Activation of phase modulation
+                deactivates frequency modulation. Possible values are 'ON' and 'OFF'.
+            deviation: Sets the modulation deviation of the phase modulation in RAD.
+            source: Selects the modulation source. Values are:
+                'INT': internally generated LF signal = 'LF1' (channel 2 only with option SMW-K24)
+                'EXT': externally supplied LF signal  = 'EXT1' (channel 2 only with option SMW-K24)
+                'LF1': first internally generated signal
+                'LF2': second internally gererated signal (only available with option SMW-K24)
+                'NOIS': internally generated noise signal (only available with option SMW-K24)
+                'EXT1': first externally supplied signal
+                'EXT2': second externally supplied signal
+                'INTB': internal baseband signal (only available with option SMW-B9)
+            mode: Selects the mode for the phase modulation. Possible values are:
+                'HBAN': sets the maximum available bandwidth (High BANdwidth)
+                'HDEV': sets the maximum range for deviation (High DEViation)
+                'LNO': selects a phase modulation mode with phase noise and spurious
+                characteristics close to CW mode. (Low NOise)
+            coupling_mode: Selects the coupling mode. Possible values are:
+                'UNC': Does not couple the LF signals. The deviation of both paths are independent.
+                'TOT': Couples the deviation of both paths.
+                'RAT': Couples the deviation ratio of both paths.
+            total_deviation: Sets the total deviation of the LF signal when using
+                combined signal sources. Possible values range from 0 to 20.
+            ratio: Sets the deviation ratio (path2 to path1) in percent.
+            sensitivity: Queries the sensitivity of the externally applied signal for phase
+                modulation. The returned value reports the sensitivity in RAD/V. It is assigned
+                to the voltage value for full modulation of the input.
         """
         self.hwchan = hwchan
         self.chnum = chnum
@@ -1090,42 +1068,35 @@ class PhaseModulation(InstrumentChannel): # doc done **************************
 
 
 
+class LFOutputSweep(InstrumentChannel):
 
-class LFOutputSweep(InstrumentChannel): # doc done ****************************
-    """
-    Combines all the parameters concerning one LF output Sweeping. The LF output
-    is used as modulation signal for the analog modulation.
-
-    Parameters:
-        dwell: Dwell time in seconds from 0.5 ms to 100 s.
-        mode: Cycle mode for level sweep.
-            'AUTO': Each trigger triggers exactly one complete sweep.
-            'MAN':  You can trigger every step individually with a command.
-            'STEP': Each trigger triggers one sweep step only.
-        points: Steps within level sweep range
-        shape: Waveform shape for sweep. Allowed values are 'SAWTOOTH'
-            and 'TRIANGLE'
-        execute: Executes one RF level sweep. Use this without any ( )
-        retrace: Activates that the signal changes to the start frequency value
-            while it is waiting for the next trigger event. Values are 'ON' and
-            'OFF'. You can enable this feature, when you are working with sawtooth
-            shapes in sweep mode 'MAN' or 'STEP'.
-        running: (ReadOnly) Reports the current sweep state. Returnvalues
-            are 'ON' or 'OFF'.
-        spacing: calculationmode of frequency intervals. Values are 'LIN' or 'LOG'
-        log_step: Sets the step width factor for logarithmic sweeps to calculate
-            the frequencies of the steps. The value can be from 0.01% upto 100%.
-        lin_step: Set the step size for linear sweep. The value can be from 0.01
-            up to the value of <OutputChannel::sweep_span>
-    """
     def __init__(self, parent: 'RohdeSchwarz_SMW200A', name: str, hwchan: int):
-        """
-        Creates a new LFOutputSweep.
+        """Combines all the parameters concerning one LF output Sweeping. The LF output
+        is used as modulation signal for the analog modulation.
 
         Args:
             parent: the parent instrument of this channel
             name  : the internal QCoDeS name of this channel
             hwchan: the internal number of the hardware channel used in the communication
+
+        Attributes:
+            dwell: Dwell time in seconds from 0.5 ms to 100 s.
+            mode: Cycle mode for level sweep.
+                'AUTO': Each trigger triggers exactly one complete sweep.
+                'MAN':  You can trigger every step individually with a command.
+                'STEP': Each trigger triggers one sweep step only.
+            points: Steps within level sweep range
+            shape: Waveform shape for sweep. Allowed values are 'SAWTOOTH' and 'TRIANGLE'
+            execute: Executes one RF level sweep. Use this without any ( )
+            retrace: Activates that the signal changes to the start frequency value while it is
+                waiting for the next trigger event. Values are 'ON' and 'OFF'. You can enable this
+                feature, when you are working with sawtooth shapes in sweep mode 'MAN' or 'STEP'.
+            running: (ReadOnly) Reports the current sweep state. Returnvalues are 'ON' or 'OFF'.
+            spacing: calculationmode of frequency intervals. Values are 'LIN' or 'LOG'
+            log_step: Sets the step width factor for logarithmic sweeps to calculate
+                the frequencies of the steps. The value can be from 0.01% upto 100%.
+            lin_step: Set the step size for linear sweep. The value can be from 0.01
+                up to the value of <OutputChannel::sweep_span>
         """
         self.hwchan = hwchan
 
@@ -1237,65 +1208,59 @@ class LFOutputSweep(InstrumentChannel): # doc done ****************************
 
 
 
+class LFOutputChannel(InstrumentChannel):
 
-class LFOutputChannel(InstrumentChannel): # doc done **************************
-    """
-    Combines all the parameters concerning one LF output. The LF output is used
-    as modulation signal for the analog modulation.
-
-    Parameters:
-        bandwidth: (ReadOnly) Requests the current bandwidth.
-
-    Parameters only for the first RF-Source available:
-        state: The state of the output. Values are 'ON' or 'OFF'.
-        offset: DC offset voltage in the range from -3.6V to +3.6V.
-        source: Determines the LF signal to be synchronized, if monitoring is enabled. Values are:
-
-            - 'LF1', 'LF2', 'LF1A', 'LF2A', 'LF1B', 'LF2B': Selects an internally generated LF signal.
-            - 'NOISE', 'NOISA', 'NOISB': Selects an internally generated noise signal.
-            - 'EXT1', 'EXT2': Selects an externally supplied LF signal.
-            - 'AM', 'AMA', 'AMB': Selects the AM signal.
-            - 'FMPM', 'FMPMA', 'FMPMB': Selects the signal also used by the frequency or phase
-              modulations.
-
-        source_path: Path of the LF output source. Values are 'A' or 'B'.
-        voltage: Output voltage of the LF output. The valid range will be dynamic as shown in
-        the datasheet.
-
-    Parameters only for the first LF-Channel available:
-        period: ReadOnly. Queries the repetition frequency of the sine signal.
-        frequency: The Frequency of the LF signal when the mode() is 'FIX'. Valid range is from 0.1Hz and ends
-        depending on the installed options.
-        freq_manual: Manual frequency set only valid in the range given by the parameters freq_min and freq_max.
-        freq_min: Set minimum for manual frequency from 0.1Hz to 1MHz.
-        freq_max: Set maximum for manual frequency from 0.1Hz to 1MHz.
-        mode: Set the used mode:
-
-            - 'FIX': fixed frequency mode (CW is a synonym)
-            - 'SWE': set sweep mode (use LFOutputSweep class)
-
-    Parameters only with SMW-K24 option available:
-        shape: Define the shape of the signal. Valid values: 'SINE','SQUARE','TRIANGLE','TRAPEZE'.
-        shape_duty_cycle: Duty cycle for shape pulse (*)
-        shape_period: Period for shape pulse (*)
-        shape_width: Width for shape pulse (*)
-        trapez_fall: Fall time for the trapezoid shape (*)
-        trapez_height; High time for the trapezoid signal (*)
-        trapez_period: Period of the generated trapezoid shape (*)
-        trapez_rise: Rise time for the trapezoid shape (*)
-        triangle_period: Period of the generated pulse (*)
-        triangle_rise: Rise time for the triangle shape (*)
-        (*) All the last parameters have a valid range from 1e-6 to 100.
-    """
     def __init__(self, parent: 'RohdeSchwarz_SMW200A', name: str, hwchan: int, lfchan: int):
-        """
-        Creates a new LFOutputChannel.
+        """Combines all the parameters concerning one LF output. The LF output is used
+        as modulation signal for the analog modulation.
 
         Args:
             parent: the parent instrument of this channel
             name  : the internal QCoDeS name of this channel
             hwchan: the internal number of the hardware channel used in the communication
             lfchan: the internal number of the LF output channel used
+
+        Attributes:
+            bandwidth: (ReadOnly) Requests the current bandwidth.
+    
+            state: (hwchan=1) The state of the output. Values are 'ON' or 'OFF'.
+            offset: (hwchan=1) DC offset voltage in the range from -3.6V to +3.6V.
+            source: (hwchan=1) Determines the LF signal to be synchronized if monitoring is enabled.
+    
+                - 'LF1', 'LF2', 'LF1A', 'LF2A', 'LF1B', 'LF2B': Selects an internally generated
+                  LF signal.
+                - 'NOISE', 'NOISA', 'NOISB': Selects an internally generated noise signal.
+                - 'EXT1', 'EXT2': Selects an externally supplied LF signal.
+                - 'AM', 'AMA', 'AMB': Selects the AM signal.
+                - 'FMPM', 'FMPMA', 'FMPMB': Selects the signal also used by the frequency or phase
+                  modulations.
+    
+            source_path: (hwchan=1) Path of the LF output source. Values are 'A' or 'B'.
+            voltage: (hwchan=1) Output voltage of the LF output. The valid range will be dynamic
+            as shown in the datasheet.
+    
+            period: (lfchan=1, ReadOnly). Queries the repetition frequency of the sine signal.
+            frequency: (lfchan=1) The Frequency of the LF signal when the mode() is 'FIX'. Valid range is from 0.1Hz and ends
+            depending on the installed options.
+            freq_manual: (lfchan=1) Manual frequency set only valid in the range given by the parameters freq_min and freq_max.
+            freq_min: (lfchan=1) Set minimum for manual frequency from 0.1Hz to 1MHz.
+            freq_max: (lfchan=1) Set maximum for manual frequency from 0.1Hz to 1MHz.
+            mode: (lfchan=1) Set the used mode:
+    
+                - 'FIX': fixed frequency mode (CW is a synonym)
+                - 'SWE': set sweep mode (use LFOutputSweep class)
+    
+            shape: (SMW-K24) Define the shape of the signal.
+            Valid values: 'SINE','SQUARE','TRIANGLE','TRAPEZE'.
+            shape_duty_cycle: (SMW-K24) Duty cycle for shape pulse (range 1e-6 to 100)
+            shape_period: (SMW-K24) Period for shape pulse (range 1e-6 to 100)
+            shape_width: (SMW-K24) Width for shape pulse (range 1e-6 to 100)
+            trapez_fall: (SMW-K24) Fall time for the trapezoid shape (range 1e-6 to 100)
+            trapez_height: (SMW-K24) High time for the trapezoid signal (range 1e-6 to 100)
+            trapez_period: (SMW-K24) Period of the generated trapezoid shape (range 1e-6 to 100)
+            trapez_rise: (SMW-K24) Rise time for the trapezoid shape (range 1e-6 to 100)
+            triangle_period: (SMW-K24) Period of the generated pulse (range 1e-6 to 100)
+            triangle_rise: (SMW-K24) Rise time for the triangle shape (range 1e-6 to 100)
         """
         self.hwchan = hwchan
         self.lfchan = lfchan
@@ -1536,42 +1501,35 @@ class LFOutputChannel(InstrumentChannel): # doc done **************************
 
 
 
+class OutputLevelSweep(InstrumentChannel):
 
-class OutputLevelSweep(InstrumentChannel): # doc done *************************
-    """
-    Combines all the parameters concerning one RF output level (power) sweeping.
-
-    Parameters:
-        attenuator: Power attenuator mode for level sweep. Values are:
-            'NORM': Performs the level settings in the range of the
-            built-in attenuator.
-            'HPOW': Performs the level settings in the high level range.
-        dwell: Dwell time for level sweep, valid range is from 0.001s to 100s.
-        mode: Cycle mode for level sweep. Values are:
-            'AUTO': Each trigger triggers exactly one complete sweep.
-            'MAN':  You can trigger every step individually with a command.
-            'STEP': Each trigger triggers one sweep step only.
-        points: Steps within level sweep range, minimum is 2.
-        log_step: Logarithmically determined step size for the RF level sweep,
-            valid range is 0.01dB to 139dB.
-        shape: Waveform shape for sweep. Valid are 'SAWTOOTH' and 'TRIANGLE'.
-        execute: Executes one RF level sweep. Use no braces () here!
-        retrace: Activates that the signal changes to the start frequency value
-            while it is waiting for the next trigger event. Values are 'ON' and
-            'OFF'. You can enable this feature, when you are working with sawtooth
-            shapes in sweep mode 'MAN' or 'STEP'.
-        running: ReadOnly parameter to get the current sweep state. Return
-            values are 'ON' or 'OFF'.
-        reset: Resets all active sweeps to the starting point. Use no braces () here!
-    """
     def __init__(self, parent: 'RohdeSchwarz_SMW200A', name: str, hwchan: int):
-        """
-        Creates a new OutputLevelSweep.
+        """Combines all the parameters concerning one RF output level (power) sweeping.
 
         Args:
             parent: the parent instrument of this channel
             name  : the internal QCoDeS name of this channel
             hwchan: the internal number of the hardware channel used in the communication
+
+        Attributes:
+            attenuator: Power attenuator mode for level sweep. Values are:
+                'NORM': Performs the level settings in the range of the built-in attenuator.
+                'HPOW': Performs the level settings in the high level range.
+            dwell: Dwell time for level sweep, valid range is from 0.001s to 100s.
+            mode: Cycle mode for level sweep. Values are:
+                'AUTO': Each trigger triggers exactly one complete sweep.
+                'MAN':  You can trigger every step individually with a command.
+                'STEP': Each trigger triggers one sweep step only.
+            points: Steps within level sweep range, minimum is 2.
+            log_step: Logarithmically determined step size for the RF level sweep,
+                valid range is 0.01dB to 139dB.
+            shape: Waveform shape for sweep. Valid are 'SAWTOOTH' and 'TRIANGLE'.
+            execute: Executes one RF level sweep. Use no braces () here!
+            retrace: Activates that the signal changes to the start frequency value while it is
+                waiting for the next trigger event. Values are 'ON' and 'OFF'. You can enable this
+                feature, when you are working with sawtooth shapes in sweep mode 'MAN' or 'STEP'.
+            running: (ReadOnly) Get the current sweep state. Return values are 'ON' or 'OFF'.
+            reset: Resets all active sweeps to the starting point. Use no braces () here!
         """
         self.hwchan = hwchan
         super().__init__(parent, name)
@@ -1669,41 +1627,36 @@ class OutputLevelSweep(InstrumentChannel): # doc done *************************
 
 
 
-class OutputFrequencySweep(InstrumentChannel): # doc done *********************
-    """
-    Combines all the parameters concerning one RF output frequency sweeping.
+class OutputFrequencySweep(InstrumentChannel):
 
-    Parameters:
-        dwell: Dwell time for frequency sweep. Valid range from 0.001s to 100s.
-        mode: Cycle mode for frequency sweep. Values are:
-            'AUTO': Each trigger triggers exactly one complete sweep.
-            'MAN':  You can trigger every step individually with a command.
-            'STEP': Each trigger triggers one sweep step only.
-        points: Steps within frequency sweep range, minimum is 2.
-        spacing: Calculationmode of frequency intervals. Values are 'LIN' or 'LOG'.
-        shape: Waveform shape for sweep. Valid values are 'SAWTOOTH' or 'TRIANGLE'.
-        execute: Executes one RF frequency sweep. Use no braces () here!
-        retrace: Activates that the signal changes to the start frequency value
-            while it is waiting for the next trigger event. Values are 'ON' and
-            'OFF'. You can enable this feature, when you are working with sawtooth
-            shapes in sweep mode 'MAN' or 'STEP'.
-        running: ReadOnly parameter to get the current sweep state. Return
-            values are 'ON' or 'OFF'.
-        log_step: Logarithmically determined step size for the RF frequency
-            sweep. Valid range is 0.01 to 100.
-        lin_step: Step size for linear RF frequency sweep. The minimum is 0.01
-            and the maximum is the sweep_span of the output channel and will
-            be read during the set lin_step command.
-        reset: Resets all active sweeps to the starting point. Use no braces () here!
-    """
     def __init__(self, parent: 'RohdeSchwarz_SMW200A', name: str, hwchan: int):
-        """
-        Creates a new OutputFrequencySweep.
+        """Combines all the parameters concerning one RF output frequency sweeping.
 
         Args:
             parent: the parent instrument of this channel
             name  : the internal QCoDeS name of this channel
             hwchan: the internal number of the hardware channel used in the communication
+
+        Attributes:
+            dwell: Dwell time for frequency sweep. Valid range from 0.001s to 100s.
+            mode: Cycle mode for frequency sweep. Values are:
+                'AUTO': Each trigger triggers exactly one complete sweep.
+                'MAN':  You can trigger every step individually with a command.
+                'STEP': Each trigger triggers one sweep step only.
+            points: Steps within frequency sweep range, minimum is 2.
+            spacing: Calculationmode of frequency intervals. Values are 'LIN' or 'LOG'.
+            shape: Waveform shape for sweep. Valid values are 'SAWTOOTH' or 'TRIANGLE'.
+            execute: Executes one RF frequency sweep. Use no braces () here!
+            retrace: Activates that the signal changes to the start frequency value while it is
+                waiting for the next trigger event. Values are 'ON' and 'OFF'. You can enable this
+                feature, when you are working with sawtooth shapes in sweep mode 'MAN' or 'STEP'.
+            running: (ReadOnly) Get the current sweep state. Return values are 'ON' or 'OFF'.
+            log_step: Logarithmically determined step size for the RF frequency sweep.
+                Valid range is 0.01 to 100.
+            lin_step: Step size for linear RF frequency sweep. The minimum is 0.01
+                and the maximum is the sweep_span of the output channel and will
+                be read during the set lin_step command.
+            reset: Resets all active sweeps to the starting point. Use no braces () here!
         """
         self.hwchan = hwchan
 
@@ -1820,50 +1773,49 @@ class OutputFrequencySweep(InstrumentChannel): # doc done *********************
 
 
 
+class OutputChannel(InstrumentChannel):
 
-
-class OutputChannel(InstrumentChannel): # doc done ****************************
-    """
-    Combines all the parameters concerning one RF output.
-
-    Parameters:
-        state: actives/deactivates the RF output. Values are 'ON' and 'OFF'.
-        frequency: set/read the main frequency of the oscillator.
-        level: set/read the output power level.
-        mode: selects the mode of the oscillator. Valid values are:
-            'FIX': fixed frequency mode (CW is a synonym)
-            'SWE': set sweep mode (use sweep_start/sweep_stop/sweep_center/sweep_span)
-            'LIST': use a special loadable list of frequencies - the list functions
-            are not yet implemented here.
-        sweep_center: set/read the center frequency of the sweep.
-        sweep_span: set/read the span of frequency sweep range.
-        sweep_start: set/read the start frequency of the sweep.
-        sweep_stop: set/read the stop frequency of the sweep.
-        losc_input: read the LOscillator input frequency (ReadOnly).
-        losc_mode: set/read the LOscillator mode. Valid values are:
-            'INT': A&B Internal / Internal (one path instrument). Uses the internal oscillator
-            signal in both paths.
-            'EXT': A External & B Internal (one path instrument). Uses an external signal in
-            path A. B uses its internal signal.
-            'COUP': A Internal & A->B Coupled. Assigns the internal oscillator signal of path A
-            also to path B.
-            'ECO': A External & A->B Coupled. Assigns an externally supplied signal to both paths.
-            'BOFF': A Internal & B RF Off. Uses the internal local oscillator signal of path A,
-            if the selected frequency exceeds the maximum frequency of path B.
-            'EBOF': A External & B RF Off. Uses the LO IN signal for path A, if the selected
-            RF frequency exceeds the maximum frequency of path B.
-            'AOFF': A RF Off & B External. Uses the LO IN signal for path B, if the selected
-            RF frequency exceeds the maximum frequency of path A.
-        losc_output: read the LOscillator output frequency (ReadOnly).
-        losc_state: set/read the LOscillator state. Valid values are 'ON' and 'OFF'.
-    """
     def __init__(self, parent: 'RohdeSchwarz_SMW200A', name: str, chnum: int):
-        """
-        Creates a new OutputChannel which is used for RF output
+        """Combines all the parameters concerning one RF output.
+
         Args:
             parent: the parent instrument of this channel
             name  : the internal QCoDeS name of this channel
             chnum : the internal number of the channel used in the communication
+
+        Attributes:
+            state: actives/deactivates the RF output. Values are 'ON' and 'OFF'.
+            frequency: set/read the main frequency of the oscillator.
+            level: set/read the output power level.
+            mode: selects the mode of the oscillator. Valid values are:
+                'FIX': fixed frequency mode (CW is a synonym)
+                'SWE': set sweep mode (use sweep_start/sweep_stop/sweep_center/sweep_span)
+                'LIST': use a special loadable list of frequencies - the list functions
+                are not yet implemented here.
+            sweep_center: set/read the center frequency of the sweep.
+            sweep_span: set/read the span of frequency sweep range.
+            sweep_start: set/read the start frequency of the sweep.
+            sweep_stop: set/read the stop frequency of the sweep.
+            losc_input: read the LOscillator input frequency (ReadOnly).
+            losc_mode: set/read the LOscillator mode. Valid values are:
+
+                - 'INT': A&B Internal / Internal (one path instrument). Uses the internal oscillator
+                  signal in both paths.
+                - 'EXT': A External & B Internal (one path instrument). Uses an external signal in
+                  path A. B uses its internal signal.
+                - 'COUP': A Internal & A->B Coupled. Assigns the internal oscillator signal of path A
+                  also to path B.
+                - 'ECO': A External & A->B Coupled. Assigns an externally supplied signal to both
+                  paths.
+                - 'BOFF': A Internal & B RF Off. Uses the internal local oscillator signal of path A,
+                  if the selected frequency exceeds the maximum frequency of path B.
+                - 'EBOF': A External & B RF Off. Uses the LO IN signal for path A, if the selected
+                  RF frequency exceeds the maximum frequency of path B.
+                - 'AOFF': A RF Off & B External. Uses the LO IN signal for path B, if the selected
+                  RF frequency exceeds the maximum frequency of path A.
+
+            losc_output: read the LOscillator output frequency (ReadOnly).
+            losc_state: set/read the LOscillator state. Valid values are 'ON' and 'OFF'.
         """
 
         self.chnum = chnum
@@ -1907,7 +1859,7 @@ class OutputChannel(InstrumentChannel): # doc done ****************************
                                      " The minimum is 100kHz and the maximum"
                                      " depends on the installed option.")
 
-        # TODO: sind die folgenden Parameter notwendig/sinnvoll?
+        # TODO: are these parameter meaningfull?
         # 'offset' This value represents the frequency shift of a downstream
         #          instrument, like for example a mixer.
         # 'multiplier': This value represents the multiplication factor of a
@@ -2047,9 +1999,10 @@ class OutputChannel(InstrumentChannel): # doc done ****************************
 
 class RohdeSchwarz_SMW200A(VisaInstrument):
 #class RohdeSchwarz_SMW200A(MockVisa):
-    """
-    This is the qcodes driver for the Rohde & Schwarz SMW200A vector signal
+    """This is the qcodes driver for the Rohde & Schwarz SMW200A vector signal
     generator.
+    
+    Do not forget to change the class for real / simulation mode.
 
     Status:
         coding: almost finished
