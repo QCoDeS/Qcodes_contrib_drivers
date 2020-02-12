@@ -411,7 +411,6 @@ class ANC300(VisaInstrument):
 
         Raises:
             RuntimeError: if Error-Message from the device is read.
-            VisaIOError: Timeout expired before operation completed.
         """
         status = super().ask_raw(cmd) # send the command to the device and read the echo/status
         if status == cmd:
