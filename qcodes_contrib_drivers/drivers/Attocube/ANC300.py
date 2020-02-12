@@ -1,185 +1,205 @@
 # -*- coding: utf-8 -*-
-"""
-File:    ANC300.py
-Date:    Jan 2020
-Author:  Michael Wagener, FZJ / ZEA-2, m.wagener@fz-juelich.de
-Purpose: Main instrument driver for the Attocube ANC300 controller
+"""QCoDeS- Driver for the Attocube ANC300 controller.
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!! This driver code is written for our instrument, the ANC300 with two !!!
-!!! ANM150 modules. Therefore this code contains no functions to        !!!
-!!! automatically distinguish between the modules.                      !!!
-!!! In the comments the axis types are noted and the code not suitable  !!!
-!!! for the ANM150 is commented out.                                    !!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+This driver can be used with a simulation class (ANC300sim.py) to generate
+reasonable answers to all requests. The only thing is to change two times
+the comments as shown below (real mode/simulation mode).
 
-PyLint rating: Your code has been rated at 9.06/10
+Attention - the device has not feedback from the motor. That means, the current position is
+not known. The driver can send a move command and the controller behaves like there is a motor
+connected to it, even if there is no motor available.
 
+Author:
+    Michael Wagener, FZJ / ZEA-2, m.wagener@fz-juelich.de
 """
 
-from typing import List
-import serial
+import time
+import logging
+import visa
 
-from qcodes.instrument.base import Instrument
+# real mode:
+from qcodes import VisaInstrument
+# simulation mode:
+#from qcodes.instrument_drivers.attocube.ANC300sim import MockVisa
+
+## do not forget to change the main class accordingly:
+## real  -> class ANC300(VisaInstrument):
+## simul -> class ANC300(MockVisa):
+
 from qcodes.instrument.channel import InstrumentChannel, ChannelList
 from qcodes import validators as vals
 
-# if set to True, every communication line is printed
-_USE_DEBUG = False
 
-# if set to True, the simulation in ANC300sim.py is used and no real device
-_USE_SIMULATION = False
-
+log = logging.getLogger(__name__)
 
 
 
 class Anc300Axis(InstrumentChannel):
-    """
-    The Attocube ANC300 piezo controller has up to 7 axis.
-    Parameters:
-        frequency: Set the frequency of the output signal. The maximum is
-            restricted by the combination of output voltage and
-            Capacitance of the piezo actuators.
-        amplitude: Set the maximum level of the output signal.
-        offset: Add a constant voltage to the output signal.
-            Attention: the output level is only from 0 to 150 V.
-        filter: Set the filter frequency of the internal low pass filter.
-        mode: Setting to a certain mode typically switches other functionalities
-            off. Especially, there are the following modes:
-                'gnd': Setting to this mode diables all outputs and
-                       connects them to chassis mass.
-                'inp': In this mode, AC-IN and DC-IN can be enabled
-                       using the setaci and setdci commands. Setting
-                       to inp mode disables stepping and offset modes.
-                'cap': Setting to cap mode starts a capacitance measurement.
-                       The axis returns to gnd mode afterwards. It is not
-                       needed to switch to gnd mode before.
-                'stp': This enables stepping mode. AC-IN and DC-IN
-                       functionalities are not modified, while an offset
-                       function would be turned off.
-                'off': This enables offset mode. AC-IN and DC-IN
-                       functionalities are not modified, while any
-                       stepping would be turned off.
-                'stp+': This enables additive offset + stepping mode.
-                        Stepping waveforms are added to an offset.
-                        AC-IN and DC-IN functionalities are not modified.
-                'stp-': This enables subtractive offset + stepping mode.
-                        Stepping waveforms are subtracted from an offset.
-                        AC-IN and DC-IN functionalities, are not modified.
-        ac: When switching on the AC-IN feature, a voltage of up to 10 VAC
-            can be added to the output (gain 1, no amplification) using
-            the AC-IN BNC on the frontplate of the module.
-        dc: When switching on the DC-IN feature, a voltage in the range
-            -10 .. +10 V can be added to the output. The gain is 15.
-        move: Start the movement with the given steps. For moving out
-              use positive numbers and to move in use negative numbers.
-        start: Start a continous movement in the given direction.
-        triggerUp: Set/get input trigger up number on axis
-        triggerDown: Set/get input trigger down number on axis
-    """
-    def __init__(self, parent: 'ANC300', name: str, axis: int) -> None:
-        """
-        Creates a new Anc300Axis class instance
+
+    def __init__(self, parent: 'ANC300', name: str, axis: int, sn: str) -> None:
+        """Creates a new Anc300Axis class instance.
+        
+        The Attocube ANC300 piezo controller has up to 7 axis. Each of them are controlled
+        by the same class.
+
         Args:
             parent: the internal QCoDeS name of the instrument this axis belongs to
             name: the internal QCoDeS name of the axis itself
-            axis: the Index of the axis
+            axis: the Index of the axis (1..7)
+            sn: serial number of the axis controller to change some features
+
+        Attributes:
+            frequency: Set the frequency of the output signal. The maximum is restricted by the
+                combination of output voltage and Capacitance of the piezo actuators.
+            amplitude: Set the maximum level of the output signal.
+            voltage: (Readonly) Reads the current stepping voltage.
+            offset: Add a constant voltage to the output signal. Attention: the output level is
+                only from 0 to 150 V.
+            filter: Set the filter frequency of the internal low pass filter.
+                For the ANM150 this attribute is not present.
+                For the ANM200 and ANM300 this attribute has different allowed values.
+            mode: Setting to a certain mode typically switches other functionalities off.
+                'gnd': Setting to this mode diables all outputs and connects them to chassis mass.
+                'inp': (Not for ANM150) In this mode, AC-IN and DC-IN can be enabled using the
+                specific attributes. Setting to inp mode disables stepping and offset modes.
+                'cap': Setting to cap mode starts a capacitance measurement. The axis returns to
+                gnd mode afterwards. It is not needed to switch to gnd mode before.
+                'stp': This enables stepping mode. AC-IN and DC-IN functionalities are not modified,
+                while an offset function would be turned off.
+                'off': This enables offset mode. AC-IN and DC-IN functionalities are not modified,
+                while any stepping would be turned off.
+                'stp+': This enables additive offset + stepping mode. Stepping waveforms are added
+                to an offset. AC-IN and DC-IN functionalities are not modified.
+                'stp-': This enables subtractive offset + stepping mode. Stepping waveforms are
+                subtracted from an offset. AC-IN and DC-IN functionalities, are not modified.
+            ac: When switching on the AC-IN feature, a voltage of up to 10 VAC can be added to the
+                output (gain 1, no amplification) using the AC-IN BNC on the frontplate of the module.
+            dc: When switching on the DC-IN feature, a voltage in the range -10 .. +10 V can be
+                added to the output. The gain is 15.
+            move: Start the movement with the given steps. For moving out use positive numbers and
+                to move in use negative numbers.
+            start: Start a continous movement in the given direction.
+            triggerUp: Set/get input trigger up number on axis
+            triggerDown: Set/get input trigger down number on axis
         """
         super().__init__(parent, name)
         self._axisnr = axis
-        self.add_parameter('frequency',
-                           label='Set/get the stepping frequency',
-                           get_cmd='getf {}'.format(axis),
-                           set_cmd='setf {}'.format(axis)+' {}',
-                           vals=vals.Ints(1, 10000),
-                           unit='Hz',
-                           docstring="""
-                           Set the frequency of the output signal. The maximum is
-                           restricted by the combination of output voltage and
-                           Capacitance of the piezo actuators.
-                           """
-                           )
+        if sn != 'ANM200':
+            self.add_parameter('frequency',
+                               label='Set/get the stepping frequency',
+                               get_cmd='getf {}'.format(axis),
+                               set_cmd='setf {}'.format(axis)+' {}',
+                               vals=vals.Ints(1, 10000),
+                               get_parser=int,
+                               unit='Hz',
+                               docstring="""
+                               Set the frequency of the output signal. The maximum is restricted by
+                               the combination of output voltage and Capacitance of the piezo actuators.
+                               """
+                               )
         self.add_parameter('amplitude',
                            label='Set/get the stepping amplitude',
                            get_cmd='getv {}'.format(axis),
                            set_cmd='setv {}'.format(axis)+' {}',
                            vals=vals.Numbers(0.0, 150.0),
+                           get_parser=float,
                            unit='V',
                            docstring="Set the maximum level of the output signal."
+                           )
+        self.add_parameter('voltage',
+                           label='Set/get the stepping voltage',
+                           get_cmd='geto {}'.format(axis),
+                           set_cmd=False,
+                           get_parser=float,
+                           unit='V',
+                           docstring="Reads the current stepping voltage."
                            )
         self.add_parameter('offset',
                            label='Set/get the offset voltage',
                            get_cmd='geta {}'.format(axis),
                            set_cmd='seta {}'.format(axis)+' {}',
                            vals=vals.Numbers(0.0, 150.0),
+                           get_parser=float,
                            unit='V',
                            docstring="""
                            Add a constant voltage to the output signal.
                            Attention: the output level is only from 0 to 150 V.
                            """
                            )
-        # this is not for ANM150
-        #self.add_parameter('filter',
-        #                   label='Set/get filter setting',
-        #                   get_cmd='getfil {}'.format(axis),
-        #                   set_cmd='setfil {}'.format(axis)+' {}',
-        #                   vals=vals.Enum('off', '16', '160'),
-        #                   unit='Hz',
-        #                   docstring="Set the filter frequency of the internal low pass filter."
-        #                   )
+        if sn == 'ANM200':
+            self.add_parameter('filter',
+                               label='Set/get filter setting',
+                               get_cmd='getfil {}'.format(axis),
+                               set_cmd='setfil {}'.format(axis)+' {}',
+                               vals=vals.Enum('1.6', '16', '160', '1600'),
+                               unit='Hz',
+                               docstring="Set the filter frequency of the internal low pass filter."
+                               )
+        if sn == 'ANM300':
+            self.add_parameter('filter',
+                               label='Set/get filter setting',
+                               get_cmd='getfil {}'.format(axis),
+                               set_cmd='setfil {}'.format(axis)+' {}',
+                               vals=vals.Enum('off', '16', '160'),
+                               unit='Hz',
+                               docstring="Set the filter frequency of the internal low pass filter."
+                               )
+        if sn == 'ANM150':
+            mode_vals = ['gnd', 'cap', 'stp', 'off', 'stp+', 'stp-']
+        elif sn == 'ANM200':
+            mode_vals = ['gnd', 'cap', 'stp', 'off', 'stp+', 'stp-', 'inp']
+        else: # ANM300
+            mode_vals = ['gnd', 'cap', 'stp', 'off', 'stp+', 'stp-', 'inp']
+        mode_docs = """
+                    'gnd': Setting to this mode diables all outputs and connects them to chassis mass.
+                    'cap': Setting to cap mode starts a capacitance measurement. The axis returns to
+                           gnd mode afterwards. It is not needed to switch to gnd mode before.
+                    'stp': This enables stepping mode. AC-IN and DC-IN functionalities are not
+                           modified, while an offset function would be turned off.
+                    'off': This enables offset mode. AC-IN and DC-IN functionalities are not
+                           modified, while any stepping would be turned off.
+                    'stp+': This enables additive offset + stepping mode. Stepping waveforms are
+                            added to an offset. AC-IN and DC-IN functionalities are not modified.
+                    'stp-': This enables subtractive offset + stepping mode. Stepping waveforms are
+                            subtracted from an offset. AC-IN and DC-IN functionalities, are not modified.
+                    """
+        if 'inp' in mode_vals:
+            mode_docs += """
+                         'inp': In this mode, AC-IN and DC-IN can be enabled using the specific
+                         attributes. Setting to inp mode disables stepping and offset modes.
+                         """
         self.add_parameter('mode',
                            label='Set/get mode',
                            get_cmd='getm {}'.format(axis),
                            set_cmd='setm {}'.format(axis)+' {}',
-                           #vals=vals.Enum(...'inp'...) not for ANM150
-                           vals=vals.Enum('gnd', 'cap', 'stp', 'off', 'stp+', 'stp-'),
+                           vals=vals.Enum(*mode_vals),
                            docstring="""
-                           Setting to a certain mode typically switches other functionalities
-                           off. Especially, there are the following modes:
-                               'gnd': Setting to this mode diables all outputs and
-                                      connects them to chassis mass.
-                               'cap': Setting to cap mode starts a capacitance measurement.
-                                      The axis returns to gnd mode afterwards. It is not
-                                      needed to switch to gnd mode before.
-                               'stp': This enables stepping mode. AC-IN and DC-IN
-                                      functionalities are not modified, while an offset
-                                      function would be turned off.
-                               'off': This enables offset mode. AC-IN and DC-IN
-                                      functionalities are not modified, while any
-                                      stepping would be turned off.
-                               'stp+': This enables additive offset + stepping mode.
-                                       Stepping waveforms are added to an offset.
-                                       AC-IN and DC-IN functionalities are not modified.
-                               'stp-': This enables subtractive offset + stepping mode.
-                                       Stepping waveforms are subtracted from an offset.
-                                       AC-IN and DC-IN functionalities, are not modified.
-                            """
-                           # not for ANM150:
-                           #'inp': In this mode, AC-IN and DC-IN can be enabled
-                           #       using the setaci and setdci commands. Setting
-                           #       to inp mode disables stepping and offset modes.
+                           Setting to a certain mode typically switches other functionalities off.
+                           Especially, there are the following modes:
+                           """ + mode_docs
                            )
-        self.add_parameter('ac',
-                           label='Set/get status of AC-IN input',
-                           get_cmd='getaci {}'.format(axis),
-                           set_cmd='setaci {}'.format(axis)+' {}',
-                           vals=vals.Enum('off', 'on'),
-                           docstring="""
-                           When switching on the AC-IN feature, a voltage of up to 10 VAC
-                           can be added to the output (gain 1, no amplification) using
-                           the AC-IN BNC on the frontplate of the module.
-                           """
-                           )
-        self.add_parameter('dc',
-                           label='Set/get status of DC-IN input',
-                           get_cmd='getdci {}'.format(axis),
-                           set_cmd='setdci {}'.format(axis)+' {}',
-                           vals=vals.Enum('off', 'on'),
-                           docstring="""
-                           When switching on the DC-IN feature, a voltage in the range
-                           -10 .. +10 V can be added to the output. The gain is 15.
-                           """
-                           )
+        if sn != 'ANM150':
+            self.add_parameter('ac',
+                               label='Set/get status of AC-IN input',
+                               get_cmd='getaci {}'.format(axis),
+                               set_cmd='setaci {}'.format(axis)+' {}',
+                               vals=vals.Enum('off', 'on'),
+                               docstring="""
+                               When switching on the AC-IN feature, a voltage of up to 10 VAC
+                               can be added to the output (gain 1, no amplification) using
+                               the AC-IN BNC on the frontplate of the module.
+                               """
+                               )
+            self.add_parameter('dc',
+                               label='Set/get status of DC-IN input',
+                               get_cmd='getdci {}'.format(axis),
+                               set_cmd='setdci {}'.format(axis)+' {}',
+                               vals=vals.Enum('off', 'on'),
+                               docstring="""
+                               When switching on the DC-IN feature, a voltage in the range
+                               -10 .. +10 V can be added to the output. The gain is 15.
+                               """
+                               )
         self.add_parameter('move',
                            label='Move steps',
                            get_cmd=False,
@@ -212,35 +232,78 @@ class Anc300Axis(InstrumentChannel):
                            docstring="Set/get input trigger down number on axis"
                            )
 
+
     def _domove(self, value: int):
         """
-        Internal helper function to start the movement.
-        Parameter:
-            value - the amount of steps to move, the sign denotes the direction
+        Internal helper function to start the movement. This will not wait until the move is
+        finished. So multiple axis can be started one after the other.
+
+        Args:
+            value: the amount of steps to move, the sign denotes the direction
+
+        Returns:
+            None
+
+        Raises:
+            ValueError: if the value is zero
         """
         if value < 0:
             self._parent.write('stepd {} {}'.format(self._axisnr, -value))
         elif value > 0:
             self._parent.write('stepu {} {}'.format(self._axisnr, value))
         else:
-            raise RuntimeError("zero is an invalid move parameter")
+            raise ValueError("zero is an invalid move parameter")
+
 
     def _contmove(self, direc: str):
         """
-        Internal helper function to start the continous movement.
-        Parameter:
-            direc - the direction 'up' or 'down'
+        Internal helper function to start the continous movement. This will not wait until the move
+        is finished. So multiple axis can be started one after the other.
+
+        Args:
+            direc: the direction 'up' or 'down'
+
+        Returns:
+            None
+
+        Raises:
+            ValueError: if the given direction is invalid
         """
         if direc == 'up':
             self._parent.write('stepu {} c'.format(self._axisnr))
         elif direc == 'down':
             self._parent.write('stepd {} c'.format(self._axisnr))
+        else:
+            raise ValueError("no 'up' or 'donw' given")
 
-    def waitMove(self):
+
+    def waitMove(self, wait=1.0, timeout=0):
+        """Global function to wait until the movement is finished.
+
+        The commandinterface has the function 'stepw n' to wait until the axis stops moving. The
+        controller sends the 'OK' after the axis stops, so the communication is hanging. In the
+        former version with the pyserial interface, it will work fine. But the visa library
+        throws an error if the communication timed out. After this, the read function didn't
+        get the needed 'OK'. To avoid this, this routine asks the current output voltage. This
+        voltage will be zero if the axis has stopped.
+
+        Args:
+            wait: time to wait between the checks
+            timeout: number of seconds to generate a RuntimeError if not finished moving
+
+        Returns:
+            None. This function will block, until the motion of this axis has been stopped.
         """
-        Global function to wait until the movement is finished.
-        """
-        self._parent.write('stepw {}'.format(self._axisnr))
+        start = time.time()
+        while True:
+            volt = self._parent.ask('geto {}'.format(self._axisnr))
+            if float(volt) == 0.0:
+                return
+            time.sleep(wait)
+            if timeout > 0:
+                if time.time() - start >= timeout:
+                    raise RuntimeError('waitMove timed out')
+
 
     def stopMove(self):
         """
@@ -251,19 +314,20 @@ class Anc300Axis(InstrumentChannel):
 
 
 class Anc300TriggerOut(InstrumentChannel):
-    """
-    The Attocube ANC300 piezo controller has three trigger outputs.
-    Parameters:
-        state: Set / get the state of the output
-    NOT FOR THE CURRENT TEST DEVICE!
-    """
+
     def __init__(self, parent: 'ANC300', name: str, num: int) -> None:
-        """
-        Creates a new TriggerOut Signal
+        """The Attocube ANC300 piezo controller has three trigger outputs.
+        
+        This function cannot be tested because this function belongs to a specific controller
+        feature code. This code was not available during the tests.
+        
         Args:
             parent: the internal QCoDeS name of the instrument this output belongs to
             name: the internal QCoDeS name of the output itself
             num: the Index of the trigger output
+
+        Attributes:
+            state: Set / get the state of the output
         """
         super().__init__(parent, name)
         self.add_parameter('state',
@@ -277,9 +341,12 @@ class Anc300TriggerOut(InstrumentChannel):
 
 
 
-class ANC300(Instrument):
+class ANC300(VisaInstrument):
+#class ANC300(MockVisa):
     """
     This is the qcodes driver for the Attocube ANC300.
+    
+    Be careful to correct the parameters if not useing the USB port.
 
     Status:
         coding: finished
@@ -288,46 +355,40 @@ class ANC300(Instrument):
     """
 
     def __init__(self, name, address, **kwargs):
-        super().__init__(name, **kwargs)
+        super().__init__(name, address, 5, '\r\n', **kwargs)
 
-        if _USE_SIMULATION:
-            # The simulation class has the same functions as the serial.Serial():
-            #   write() / readline() / close()
-            from qcodes.instrument_drivers.attocube.ANC300sim import MockComHandle
-            self._comport = MockComHandle()
-        else:
-            # initialization of serial port
-            self._comport = serial.Serial()
-            self._comport.port = address
-            self._comport.timeout = 2
-            try:
-                self._comport.open()
-            except:
-                # make a second try to open the port. If this fails then report it
-                self._comport.close()
-                self._comport.open()
-            self._comport.flushInput()
-            self._comport.flushOutput()
+        # configure the port
+        if 'ASRL' not in address:
+            self.visa_handle.baud_rate = 38400 # USB has no baud rate parameter
+        self.visa_handle.stop_bits = visa.constants.StopBits.one
+        self.visa_handle.parity = visa.constants.Parity.none
+        self.visa_handle.read_termination = '\r\n'
+        self.parameters.pop('IDN') # Get rid of this parameter
 
         # for security check the ID from the device
         self.idn = self.ask("ver")
-        if _USE_DEBUG:
-            print("DBG:", self.idn)
-        if not self.idn[0].startswith("attocube ANC300"):
+        log.debug("Main version:", self.idn)
+        if not self.idn.startswith("attocube ANC300"):
             raise RuntimeError("Invalid device ID found: "+str(self.idn))
 
-        # instantiate the axis channels
+        # Now request all serial numbers of the axis modules. The first 6 chars are the id
+        # of the module type. This will be used to enable special parameters.
+        # Instantiate the axis channels only for available axis
         axischannels = ChannelList(self, "Anc300Channels", Anc300Axis,
                                    snapshotable=False)
         for ax in range(1, 7+1):
-            name = 'axis{}'.format(ax)
-            axischan = Anc300Axis(self, name, ax)
-            axischannels.append(axischan)
-            self.add_submodule(name, axischan)
+            try:
+                tmp = self.ask('getser {}'.format(ax))
+                name = 'axis{}'.format(ax)
+                axischan = Anc300Axis(self, name, ax, tmp[:6])
+                axischannels.append(axischan)
+                self.add_submodule(name, axischan)
+            except:
+                pass
         axischannels.lock()
         self.add_submodule('axis_channels', axischannels)
 
-        # instantiate the trigger channels
+        # instantiate the trigger channels even if they could not be tested
         triggerchannels = ChannelList(self, "Anc300Trigger", Anc300TriggerOut,
                                       snapshotable=False)
         for ax in [1, 2, 3]:
@@ -339,82 +400,98 @@ class ANC300(Instrument):
         self.add_submodule('trigger_channels', triggerchannels)
 
 
-    def _write(self, cmd: str):
-        """
-        Central routine for a simple write and read the answers until the device
-        sends an "OK" or "ERROR".
-        """
-        # all lines have to end with a CR / LF
-        setstr = cmd + '\r\n'
-        # the device can not handle unicode strings
-        self._comport.write(setstr.encode('ascii'))
-        # first, the device echos what was written
-        rv = self._comport.readline().decode('ascii')
-        if _USE_DEBUG:
-            print("DBG write-echo:" + rv)
-        # then we collect the output lines until an OK or ERROR comes
-        output: List[str] = []
-        while True:
-            rv = self._comport.readline().decode('ascii').rstrip()
-            if _USE_DEBUG:
-                print("DBG write-answ:" + rv)
-            if rv.startswith('OK'):
-                # positive answer returns all answer lines
-                return output
-            if rv.startswith('ERROR'):
-                # negative answer raises an exception
-                raise RuntimeError(output[-1])
-            if output != "":
-                # the output array contains all lines read from the device
-                output.append(rv)
+    def write_raw(self, cmd: str) -> str:
+        """Write cmd and wait until the 'OK' or 'ERROR' comes back from the device.
+        
+        Args:
+            cmd: Command to write to controller.
 
+        Returns:
+            Statusstring
 
-    def write_raw(self, cmd: str) -> None:
+        Raises:
+            RuntimeError if Error-Message from the device is read.
+            VisaIOError: Timeout expired before operation completed.
         """
-        Central routine to send a value to the device
-        """
-        self._write(cmd)
+        status = super().ask_raw(cmd) # send the command to the device and read the echo/status
+        if status == cmd:
+            # now the device sends an echo
+            status = self.visa_handle.read() # read the status line again
+        if status.startswith('OK'):
+            return status
+        if status.startswith('ERROR'):
+            raise RuntimeError(status)
+        # the line before the 'ERROR' a message will be send from the device
+        response = status
+        status = self.visa_handle.read() # read the last status line
+        if status.startswith('ERROR'):
+            raise RuntimeError(response)
+        return response
 
 
     def ask_raw(self, cmd: str) -> str:
+        """Query instrument with cmd and return response.
+        
+        Args:
+            cmd: Command to write to controller.
+
+        Returns:
+            Response of Attocube controller to the query.
+
+        Raises:
+            RuntimeError if Error-Message from the device is read.
         """
-        Central routine for a query (write and read).
-        """
-        output = self._write(cmd)
-        # The output array contains all lines read from the device. If the
-        # version information is read, it consists of two lines. The normal
-        # answers have only one line.
-        outval = output[-1].split(' = ')
-        # The normal output format for values is <parameter> = <value> <unit>
-        if len(outval) == 2:
-            if _USE_DEBUG:
-                print("DBG ask:" + outval[1].split()[0])
-            return outval[1].split()[0] # return only the value without the unit
-        # returns the complete output (for version information)
-        return output
+        response = super().ask_raw(cmd) # send the command to the device and read the echo/status
+        if response.startswith('> '): # sometimes the response starts with '> '. I don't know why.
+            response = response[2:]
+        if response == cmd:
+            # now the device has send an echo
+            response = self.visa_handle.read() # read the response line again
+            if response.startswith('> '):
+                response = response[2:]
+        status = self.visa_handle.read() # read the status line
+        if status.startswith('OK'):
+            if '=' in response:
+                # "frequency = 220 Hz" -> filter the 220
+                tmp = response.split('=')
+                return tmp[1].split()[0] # a single value
+            return response # the complete string
+        if status.startswith('ERROR'):
+            raise RuntimeError(response)
+        # the 'ver' command answers with two lines...
+        response = response + " - " + status
+        status = self.visa_handle.read() # read the second status line
+        if status.startswith('ERROR'):
+            raise RuntimeError(response)
+        return response
 
 
     def stopall(self):
         """
         Routine to stop all axis, regardless if the axis is available
         """
-        if _USE_DEBUG:
-            print("Stop all axis")
+        self.log.debug("Stop all axis.")
         for a in range(7):
-            self._write('stop {}'.format(a+1))
+            self.write('stop {}'.format(a+1))
 
 
     def close(self):
         """
         Override of the base class' close function
         """
-        self._comport.close()
+        self.log.debug("Close the device.")
         super().close()
 
 
     def version(self):
         """
-        Read all possible version informations and returns them as a dict
+        Read all possible version informations.
+
+        Args:
+            None
+
+        Returns:
+            Dict with all version informations
         """
         retval = dict()
         retval['Version'] = self.ask('ver')
@@ -433,15 +510,17 @@ class ANC300(Instrument):
         Read all parameters and retun them to the caller. This will scan all
         submodules with all parameters, so in this function no changes are
         necessary for new modules or parameters.
+
         Args:
             submod: (optional) returns only the parameters for this submodule
-        Output:
+
+        Returns:
             dict with all parameters, the key is the modulename and the parametername
         """
-        retval = {}
+        retval = dict()
         if submod == "*":
             # ID and options only if all modules are returned
-            retval.update({"ID": self.idn})
+            retval.update(self.version())
 
         for m in self.submodules:
             mod = self.submodules[m]
