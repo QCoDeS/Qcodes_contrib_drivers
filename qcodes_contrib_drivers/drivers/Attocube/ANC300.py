@@ -400,17 +400,17 @@ class ANC300(VisaInstrument):
         self.add_submodule('trigger_channels', triggerchannels)
 
 
-    def write_raw(self, cmd: str) -> str:
+    def write_raw(self, cmd: str) -> None:
         """Write cmd and wait until the 'OK' or 'ERROR' comes back from the device.
         
         Args:
             cmd: Command to write to controller.
 
         Returns:
-            Statusstring
+            None
 
         Raises:
-            RuntimeError if Error-Message from the device is read.
+            RuntimeError: if Error-Message from the device is read.
             VisaIOError: Timeout expired before operation completed.
         """
         status = super().ask_raw(cmd) # send the command to the device and read the echo/status
@@ -418,7 +418,7 @@ class ANC300(VisaInstrument):
             # now the device sends an echo
             status = self.visa_handle.read() # read the status line again
         if status.startswith('OK'):
-            return status
+            return
         if status.startswith('ERROR'):
             raise RuntimeError(status)
         # the line before the 'ERROR' a message will be send from the device
@@ -426,7 +426,7 @@ class ANC300(VisaInstrument):
         status = self.visa_handle.read() # read the last status line
         if status.startswith('ERROR'):
             raise RuntimeError(response)
-        return response
+        return
 
 
     def ask_raw(self, cmd: str) -> str:
@@ -439,7 +439,7 @@ class ANC300(VisaInstrument):
             Response of Attocube controller to the query.
 
         Raises:
-            RuntimeError if Error-Message from the device is read.
+            RuntimeError: if Error-Message from the device is read.
         """
         response = super().ask_raw(cmd) # send the command to the device and read the echo/status
         if response.startswith('> '): # sometimes the response starts with '> '. I don't know why.
