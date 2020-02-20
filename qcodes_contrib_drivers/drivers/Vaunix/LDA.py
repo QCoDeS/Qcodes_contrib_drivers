@@ -35,10 +35,12 @@ class LDA(Instrument):
     is located in the same folder.
     If the instrument has more than one physical channel, `InstrumentChannel` objects
     are created for each one. If there is only one physical channel, no channels are created
-    and the `attenuation` parameter will be assigned to this instrument instead.
+    and the parameters will be assigned to this instrument instead.
+    The sweep profiles available in the API are not implemented.
 
-    Tested with
-    -
+    Tested with with 64-bit system and
+    - LDA-133
+    - LDA-802Q
 
     Args:
         name: Qcodes name for this instrument
@@ -87,18 +89,19 @@ class LDA(Instrument):
                                
             max_freq = DLL.fnLDA_GetMaxWorkingFrequency(self.reference) * FREQ_UNIT
             min_freq = DLL.fnLDA_GetMinWorkingFrequency(self.reference) * FREQ_UNIT
-            self.add_parameter("working_frequency",
-                               unit="Hz",
-                               vals=Numbers(min_freq, max_freq),
-                               get_cmd=self.get_working_frequency,
-                               set_cmd=self.set_working_frequency,
-                               docstring="Frequency at which the attenuation is most accurate.",
-                               )
+            if max_freq > min_freq:
+                self.add_parameter("working_frequency",
+                                   unit="Hz",
+                                   vals=Numbers(min_freq, max_freq),
+                                   get_cmd=self.get_working_frequency,
+                                   set_cmd=self.set_working_frequency,
+                                   docstring="Frequency at which the attenuation is most accurate.",
+                                   )
                                
         else:
             for i in range(1, num_channels + 1):
-                ch = LDAChannel(parent=self, channel_number=i)
-                name = channel_names[i-1] if len(channel_names) >= num_channels else f"ch{i}"
+                name = channel_names[i-1] if len(channel_names) >= i else f"ch{i}"
+                ch = LDAChannel(parent=self, channel_number=i, name=name)
                 self.add_submodule(name, ch)
                 
         self.connect_message()
@@ -149,13 +152,18 @@ class LDA(Instrument):
     def switch_channel(self, number: int):
         """ Change to which channel get and set commands refer to."""
         _ = DLL.fnLDA_SetChannel(self.reference, number)
+        
+    def save_settings(self):
+        """ Save current settings to memory. Settings are automatically loaded during power on."""
+        DLL.fnLDA_SaveSettings(self.reference)
 
 
 class LDAChannel(InstrumentChannel):
     """ Attenuation channel for the LDA digital attenuator. """
 
-    def __init__(self, parent, channel_number):
-        super().__init__(parent=parent, name=str(channel_number))
+    def __init__(self, parent: str, channel_number: int, name: Optional[str] = None):
+        name = name or f"ch{channel_number}"
+        super().__init__(parent=parent, name=name)
         self.channel_number = channel_number
 
         max_att = DLL.fnLDA_GetMaxAttenuationHR(self.parent.reference) * ATT_UNIT
@@ -171,18 +179,19 @@ class LDAChannel(InstrumentChannel):
         max_freq = DLL.fnLDA_GetMaxWorkingFrequency(self.parent.reference) * FREQ_UNIT
         min_freq = DLL.fnLDA_GetMinWorkingFrequency(self.parent.reference) * FREQ_UNIT
 
-        self.add_parameter("working_frequency",
-                           unit="Hz",
-                           vals=Numbers(min_freq, max_freq),
-                           get_cmd=partial(self._switch_and_call,
-                                           self.parent.get_working_frequency),
-                           set_cmd=partial(self._switch_and_call,
-                                           self.parent.set_working_frequency),
-                           docstring="Frequency at which the attenuation is most accurate.",
-                           )
+        if max_freq > min_freq:
+            self.add_parameter("working_frequency",
+                               unit="Hz",
+                               vals=Numbers(min_freq, max_freq),
+                               get_cmd=partial(self._switch_and_call,
+                                               self.parent.get_working_frequency),
+                               set_cmd=partial(self._switch_and_call,
+                                               self.parent.set_working_frequency),
+                               docstring="Frequency at which the attenuation is most accurate.",
+                               )
 
-    def _switch_and_call(self, func, *args):
+    def _switch_and_call(self, func, *args) -> Any:
         """ Change active channel on the parent instrument, so that `func` call is applied on
         the this channel. """
         self.parent.switch_channel(self.channel_number)
-        func(*args)
+        return func(*args)
