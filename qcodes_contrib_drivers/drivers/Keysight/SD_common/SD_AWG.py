@@ -22,9 +22,12 @@ class SD_AWG(SD_Module):
         slot (int): slot of the module in the chassis.
         channels (int): number of channels of the module.
         triggers (int): number of triggers of the module.
+        legacy_channel_numbering (bool): indicates whether legacy channel number 
+            should be used. (Legacy numbering starts with channel 0)
     """
 
-    def __init__(self, name, chassis, slot, channels, triggers, **kwargs):
+    def __init__(self, name, chassis, slot, channels, triggers, 
+                 legacy_channel_numbering=True, **kwargs):
         super().__init__(name, chassis, slot, **kwargs)
 
         # Create instance of keysight SD_AOU class
@@ -71,36 +74,39 @@ class SD_AWG(SD_Module):
                                docstring='The digital value of pxi trigger no. {}, 0 (ON) of 1 (OFF)'.format(i),
                                vals=validator.Enum(0, 1))
 
+        index_offset = 0 if legacy_channel_numbering else 1
+        
         for i in range(channels):
-            self.add_parameter('frequency_channel_{}'.format(i),
-                               label='frequency channel {}'.format(i),
+            ch = i + index_offset
+            self.add_parameter('frequency_channel_{}'.format(ch),
+                               label='frequency channel {}'.format(ch),
                                unit='Hz',
-                               set_cmd=partial(self.set_channel_frequency, channel_number=i),
-                               docstring='The frequency of channel {}'.format(i),
+                               set_cmd=partial(self.set_channel_frequency, channel_number=ch),
+                               docstring='The frequency of channel {}'.format(ch),
                                vals=validator.Numbers(0, 200e6))
-            self.add_parameter('phase_channel_{}'.format(i),
-                               label='phase channel {}'.format(i),
+            self.add_parameter('phase_channel_{}'.format(ch),
+                               label='phase channel {}'.format(ch),
                                unit='deg',
-                               set_cmd=partial(self.set_channel_phase, channel_number=i),
-                               docstring='The phase of channel {}'.format(i),
+                               set_cmd=partial(self.set_channel_phase, channel_number=ch),
+                               docstring='The phase of channel {}'.format(ch),
                                vals=validator.Numbers(0, 360))
             # TODO: validate the setting of amplitude and offset at the same time (-1.5<amp+offset<1.5)
-            self.add_parameter('amplitude_channel_{}'.format(i),
-                               label='amplitude channel {}'.format(i),
+            self.add_parameter('amplitude_channel_{}'.format(ch),
+                               label='amplitude channel {}'.format(ch),
                                unit='V',
-                               set_cmd=partial(self.set_channel_amplitude, channel_number=i),
-                               docstring='The amplitude of channel {}'.format(i),
+                               set_cmd=partial(self.set_channel_amplitude, channel_number=ch),
+                               docstring='The amplitude of channel {}'.format(ch),
                                vals=validator.Numbers(-1.5, 1.5))
-            self.add_parameter('offset_channel_{}'.format(i),
-                               label='offset channel {}'.format(i),
+            self.add_parameter('offset_channel_{}'.format(ch),
+                               label='offset channel {}'.format(ch),
                                unit='V',
-                               set_cmd=partial(self.set_channel_offset, channel_number=i),
-                               docstring='The DC offset of channel {}'.format(i),
+                               set_cmd=partial(self.set_channel_offset, channel_number=ch),
+                               docstring='The DC offset of channel {}'.format(ch),
                                vals=validator.Numbers(-1.5, 1.5))
-            self.add_parameter('wave_shape_channel_{}'.format(i),
-                               label='wave shape channel {}'.format(i),
-                               set_cmd=partial(self.set_channel_wave_shape, channel_number=i),
-                               docstring='The output waveform type of channel {}'.format(i),
+            self.add_parameter('wave_shape_channel_{}'.format(ch),
+                               label='wave shape channel {}'.format(ch),
+                               set_cmd=partial(self.set_channel_wave_shape, channel_number=ch),
+                               docstring='The output waveform type of channel {}'.format(ch),
                                vals=validator.Enum(-1, 0, 1, 2, 4, 5, 6, 8))
 
     def close(self):
