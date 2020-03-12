@@ -1,7 +1,7 @@
 from qcodes import validators as validator
 from functools import partial
 
-from .SD_Module import *
+from .SD_Module import SD_Module, result_parser, keysightSD1
 
 
 class SD_AWG(SD_Module):
@@ -14,6 +14,14 @@ class SD_AWG(SD_Module):
     This driver was written with the M3201A card in mind.
 
     This driver makes use of the Python library provided by Keysight as part of the SD1 Software package (v.2.01.00).
+
+    Args:
+        name (str): an identifier for this instrument, particularly for
+            attaching it to a Station.
+        chassis (int): identification of the chassis.
+        slot (int): slot of the module in the chassis.
+        channels (int): number of channels of the module.
+        triggers (int): number of triggers of the module.
     """
 
     def __init__(self, name, chassis, slot, channels, triggers, **kwargs):
@@ -31,14 +39,10 @@ class SD_AWG(SD_Module):
 
         # Open the device, using the specified chassis and slot number
         awg_name = self.awg.getProductNameBySlot(chassis, slot)
-        if isinstance(awg_name, str):
-            result_code = self.awg.openWithSlot(awg_name, chassis, slot)
-            if result_code <= 0:
-                raise Exception('Could not open SD_AWG '
-                                'error code {}'.format(result_code))
-        else:
-            raise Exception('No SD_AWG found at '
-                            'chassis {}, slot {}'.format(chassis, slot))
+        result_parser(awg_name, f'getProductNameBySlot({chassis}, {slot})')
+
+        result_code = self.awg.openWithSlot(awg_name, chassis, slot)
+        result_parser(result_code, f'openWithSlot({awg_name}, {chassis}, {slot})')
 
         self.add_parameter('trigger_io',
                            label='trigger io',
@@ -98,6 +102,14 @@ class SD_AWG(SD_Module):
                                set_cmd=partial(self.set_channel_wave_shape, channel_number=i),
                                docstring='The output waveform type of channel {}'.format(i),
                                vals=validator.Enum(-1, 0, 1, 2, 4, 5, 6, 8))
+
+    def close(self):
+        """
+        Closes the hardware device and frees resources.
+        """
+        # Note: the awg module keeps track of open/close state. So, keep the reference to awg.
+        self.awg.close()
+        super().close()
 
     #
     # Get-commands
@@ -250,13 +262,9 @@ class SD_AWG(SD_Module):
 
         for i in range(self.channels):
             awg_response = self.awg.AWGstop(i)
-            if isinstance(awg_response, int) and awg_response < 0:
-                raise Exception('Error in call to Signadyne AWG '
-                                'error code {}'.format(awg_response))
+            result_parser(awg_response, f'AWGstop({i})')
             channel_response = self.awg.channelWaveShape(i, 0)
-            if isinstance(channel_response, int) and channel_response < 0:
-                raise Exception('Error in call to Signadyne AWG '
-                                'error code {}'.format(channel_response))
+            result_parser(channel_response, f'channelWaveShape({i}, 0)')
 
     def reset_clock_phase(self, trigger_behaviour, trigger_source, skew=0.0, verbose=False):
         """
@@ -561,7 +569,8 @@ class SD_AWG(SD_Module):
         Queues the specified waveform in one of the AWGs of the module.
         The waveform must be already loaded in the module onboard RAM.
         """
-        self.awg.AWGqueueWaveform(awg_number, waveform_number, trigger_mode, start_delay, cycles, prescaler)
+        result = self.awg.AWGqueueWaveform(awg_number, waveform_number, trigger_mode, start_delay, cycles, prescaler)
+        result_parser(result, f'AWGqueueWaveform({awg_number}, {waveform_number})')
 
     def awg_queue_config(self, awg_number, mode):
         """
@@ -571,14 +580,16 @@ class SD_AWG(SD_Module):
             awg_number (int): awg number where the waveform is queued
             mode (int): operation mode of the queue: One Shot (0), Cyclic (1)
         """
-        self.awg.AWGqueueConfig(awg_number, mode)
+        result = self.awg.AWGqueueConfig(awg_number, mode)
+        result_parser(result, f'AWGqueueConfig({awg_number}, {mode})')
 
     def awg_flush(self, awg_number):
         """
         Empties the queue of the selected AWG.
         Waveforms are not removed from the onboard RAM.
         """
-        self.awg.AWGflush(awg_number)
+        result = self.awg.AWGflush(awg_number)
+        result_parser(result, f'AWGflush({awg_number})')
 
     def awg_start(self, awg_number):
         """
@@ -587,7 +598,8 @@ class SD_AWG(SD_Module):
         depending on the trigger selection of the first waveform in the queue
         and provided that at least one waveform is queued in the AWG.
         """
-        self.awg.AWGstart(awg_number)
+        result = self.awg.AWGstart(awg_number)
+        result_parser(result, f'AWGstart({awg_number})')
 
     def awg_start_multiple(self, awg_mask):
         """
@@ -599,7 +611,8 @@ class SD_AWG(SD_Module):
         Args:
             awg_mask (int): Mask to select the awgs to start (LSB is awg 0, bit 1 is awg 1 etc.)
         """
-        self.awg.AWGstartMultiple(awg_mask)
+        result = self.awg.AWGstartMultiple(awg_mask)
+        result_parser(result, f'AWGstartMultiple({awg_mask})')
 
     def awg_pause(self, awg_number):
         """
@@ -607,7 +620,8 @@ class SD_AWG(SD_Module):
         and ignoring all incoming triggers.
         The waveform generation can be resumed calling awg_resume
         """
-        self.awg.AWGpause(awg_number)
+        result = self.awg.AWGpause(awg_number)
+        result_parser(result, f'AWGpause({awg_number})')
 
     def awg_pause_multiple(self, awg_mask):
         """
@@ -618,13 +632,15 @@ class SD_AWG(SD_Module):
         Args:
             awg_mask (int): Mask to select the awgs to pause (LSB is awg 0, bit 1 is awg 1 etc.)
         """
-        self.awg.AWGpauseMultiple(awg_mask)
+        result = self.awg.AWGpauseMultiple(awg_mask)
+        result_parser(result, f'AWGpauseMultiple({awg_mask})')
 
     def awg_resume(self, awg_number):
         """
         Resumes the selected AWG, from the current position of the queue.
         """
-        self.awg.AWGresume(awg_number)
+        result = self.awg.AWGresume(awg_number)
+        result_parser(result, f'AWGresume({awg_number})')
 
     def awg_resume_multiple(self, awg_mask):
         """
@@ -633,14 +649,16 @@ class SD_AWG(SD_Module):
         Args:
             awg_mask (int): Mask to select the awgs to resume (LSB is awg 0, bit 1 is awg 1 etc.)
         """
-        self.awg.AWGresumeMultiple(awg_mask)
+        result = self.awg.AWGresumeMultiple(awg_mask)
+        result_parser(result, f'AWGresumeMultiple({awg_mask})')
 
     def awg_stop(self, awg_number):
         """
         Stops the selected AWG, setting the output to zero and resetting the AWG queue to its initial position.
         All following incoming triggers are ignored.
         """
-        self.awg.AWGstop(awg_number)
+        result = self.awg.AWGstop(awg_number)
+        result_parser(result, f'AWGstop({awg_number})')
 
     def awg_stop_multiple(self, awg_mask):
         """
@@ -650,14 +668,16 @@ class SD_AWG(SD_Module):
         Args:
             awg_mask (int): Mask to select the awgs to stop (LSB is awg 0, bit 1 is awg 1 etc.)
         """
-        self.awg.AWGstopMultiple(awg_mask)
+        result = self.awg.AWGstopMultiple(awg_mask)
+        result_parser(result, f'AWGstopMultiple({awg_mask})')
 
     def awg_jump_next_waveform(self, awg_number):
         """
         Forces a jump to the next waveform in the awg queue.
         The jump is executed once the current waveform has finished a complete cycle.
         """
-        self.awg.AWGjumpNextWaveform(awg_number)
+        result = self.awg.AWGjumpNextWaveform(awg_number)
+        result_parser(result, f'AWGjumpNextWaveform({awg_number})')
 
     def awg_config_external_trigger(self, awg_number, external_source, trigger_behaviour):
         """
@@ -675,7 +695,8 @@ class SD_AWG(SD_Module):
                 Rising Edge     :   3
                 Falling Edge    :   4
         """
-        self.awg.AWGtriggerExternalConfig(awg_number, external_source, trigger_behaviour)
+        result = self.awg.AWGtriggerExternalConfig(awg_number, external_source, trigger_behaviour)
+        result_parser(result, f'AWGtriggerExternalConfig({awg_number})')
 
     def awg_trigger(self, awg_number):
         """
@@ -683,7 +704,8 @@ class SD_AWG(SD_Module):
         The waveform waiting in the current position of the queue is launched,
         provided it is configured with VI/HVI Trigger.
         """
-        self.awg.AWGtrigger(awg_number)
+        result = self.awg.AWGtrigger(awg_number)
+        result_parser(result, f'AWGtrigger({awg_number})')
 
     def awg_trigger_multiple(self, awg_mask):
         """
@@ -694,7 +716,8 @@ class SD_AWG(SD_Module):
         Args:
             awg_mask (int): Mask to select the awgs to be triggered (LSB is awg 0, bit 1 is awg 1 etc.)
         """
-        self.awg.AWGtriggerMultiple(awg_mask)
+        result = self.awg.AWGtriggerMultiple(awg_mask)
+        result_parser(result, f'AWGtriggerMultiple({awg_mask})')
 
     #
     # Functions related to creation of SD_Wave objects
