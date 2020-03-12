@@ -1,7 +1,6 @@
 import warnings
 
 from qcodes.instrument.base import Instrument
-from numpy import ndarray
 
 try:
     import keysightSD1
@@ -28,13 +27,15 @@ def result_parser(value, name='result', verbose=False):
         parsed value, which is the same as value if non-negative
         or not a number
     """
-    if isinstance(value, ndarray) or isinstance(value, str) or isinstance(value, bool) or (int(value) >= 0):
+    if isinstance(value, int) and (int(value) < 0):
+        error_message = keysightSD1.SD_Error.getErrorMessage(value)
+        call_message = f' ({name})' if name != 'result' else ''
+        raise Exception(f'Error in call to SD_Module ({value}): '
+                        f'{error_message}{call_message}')
+    else:
         if verbose:
             print('{}: {}'.format(name, value))
         return value
-    else:
-        raise Exception('Error in call to SD_Module '
-                        'error code {}'.format(value))
 
 
 class SD_Module(Instrument):
@@ -48,6 +49,12 @@ class SD_Module(Instrument):
     Specifically, this driver was written with the M3201A and M3300A cards in mind.
 
     This driver makes use of the Python library provided by Keysight as part of the SD1 Software package (v.2.01.00).
+    
+    Args:
+        name (str): an identifier for this instrument, particularly for
+            attaching it to a Station.
+        chassis (int): identification of the chassis.
+        slot (int): slot of the module in the chassis.
     """
 
     def __init__(self, name, chassis, slot, **kwargs):
@@ -57,15 +64,11 @@ class SD_Module(Instrument):
         self.SD_module = keysightSD1.SD_Module()
 
         # Open the device, using the specified chassis and slot number
-        module_name = self.SD_module.getProductNameBySlot(chassis, slot)
-        if isinstance(module_name, str):
-            result_code = self.SD_module.openWithSlot(module_name, chassis, slot)
-            if result_code <= 0:
-                raise Exception('Could not open SD_Module '
-                                'error code {}'.format(result_code))
-        else:
-            raise Exception('No SD Module found at '
-                            'chassis {}, slot {}'.format(chassis, slot))
+        self.module_name = self.SD_module.getProductNameBySlot(chassis, slot)
+        result_parser(self.module_name, f'getProductNameBySlot({chassis}, {slot})')
+
+        result_code = self.SD_module.openWithSlot(self.module_name, chassis, slot)
+        result_parser(result_code, f'openWithSlot({self.module_name}, {chassis}, {slot})')
 
         self.add_parameter('module_count',
                            label='module count',
@@ -216,8 +219,8 @@ class SD_Module(Instrument):
             port (int): PCport number
             data_size (int): number of 32-bit words to read (maximum is 128 words)
             address (int): address that wil appear at the PCport interface
-            address_mode (int): ?? not in the docs
-            access_mode (int): ?? not in the docs
+            address_mode (int): auto-increment (0), or fixed (1)
+            access_mode (int): non-dma (0), or dma (1)
         """
         data = self.SD_module.FPGAreadPCport(port, data_size, address, address_mode, access_mode)
         value_name = 'data at PCport {}'.format(port)
@@ -231,8 +234,8 @@ class SD_Module(Instrument):
             port (int): PCport number
             data (array): array of integers containing the data
             address (int): address that wil appear at the PCport interface
-            address_mode (int): ?? not in the docs
-            access_mode (int): ?? not in the docs
+            address_mode (int): auto-increment (0), or fixed (1)
+            access_mode (int): non-dma (0), or dma (1)
         """
         result = self.SD_module.FPGAwritePCport(port, data, address, address_mode, access_mode)
         value_name = 'set fpga PCport {} to data:{}, address:{}, address_mode:{}, access_mode:{}'\
@@ -280,9 +283,13 @@ class SD_Module(Instrument):
     # The methods below are useful for controlling the device, but are not used for setting or getting parameters
     #
 
-    # closes the hardware device and also throws away the current instrument object
-    # if you want to open the instrument again, you have to initialize a new instrument object
     def close(self):
+        """
+        Closes the hardware device and frees resources.
+        
+        If you want to open the instrument again, you have to initialize a new instrument object
+        """
+        # Note: SD_module keeps track of open/close state. So, keep the reference.
         self.SD_module.close()
         super().close()
 
@@ -291,11 +298,14 @@ class SD_Module(Instrument):
         self.SD_module.close()
 
     def open_with_serial_number(self, name, serial_number):
-        self.SD_module.openWithSerialNumber(name, serial_number)
+        result = self.SD_module.openWithSerialNumber(name, serial_number)
+        return result_parser(result, f'openWithSerialNumber({name}, {serial_number})')
 
     def open_with_slot(self, name, chassis, slot):
-        self.SD_module.openWithSlot(name, chassis, slot)
+        result = self.SD_module.openWithSlot(name, chassis, slot)        
+        return result_parser(result, f'openWithSlot({name}, {chassis}, {slot})')
 
     def run_self_test(self):
         value = self.SD_module.runSelfTest()
         print('Did self test and got result: {}'.format(value))
+        return value
