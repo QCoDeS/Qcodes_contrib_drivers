@@ -243,6 +243,36 @@ class SD_Module(Instrument):
         return result_parser(result, value_name, verbose)
 
     #
+    # HVI related functions
+    #
+
+    def set_hvi_register(self, register, value, verbose=False):
+        """
+        Sets value of specified HVI register.
+        
+        Args:
+            register (int or str): register to set.
+            value (int): new value.
+        """
+        result = self.SD_module.writeRegisterByName(register, value)
+        value_name = 'set HVI register {}:{}'.format(register, value)
+        result_parser(result, value_name, verbose)
+        
+    def get_hvi_register(self, register, verbose=False):
+        """
+        Returns value of specified HVI register.
+        
+        Args:
+            register (int or str): register to read.
+        Returns:
+            int: register value.
+        """
+        error, result = self.SD_module.readRegisterByName(register)
+        value_name = 'get HVI register {}'.format(register)
+        result_parser(error, value_name, verbose)
+        return result
+        
+    #
     # The methods below are not used for setting or getting parameters, but can be used in the test functions of the
     # test suite e.g. The main reason they are defined is to make this driver more complete
     #
