@@ -1,5 +1,6 @@
 from qcodes import validators as validator
 from functools import partial
+from threading import RLock
 
 from .SD_Module import SD_Module, result_parser, keysightSD1
 
@@ -35,6 +36,9 @@ class SD_AWG(SD_Module):
 
         # Create an instance of keysight SD_Wave class
         self.wave = keysightSD1.SD_Wave()
+
+        # Lock to avoid concurrent access of waveformLoad()/waveformReLoad()
+        self._lock = RLock()
 
         # store card-specifics
         self.channels = channels
@@ -415,7 +419,9 @@ class SD_AWG(SD_Module):
             int: available onboard RAM in waveform points,
             or negative numbers for errors
         """
-        value = self.awg.waveformLoad(waveform_object, waveform_number)
+        # Lock to avoid concurrent access of waveformLoad()/waveformReLoad()
+        with self._lock:
+            value = self.awg.waveformLoad(waveform_object, waveform_number)
         value_name = 'Loaded waveform. available_RAM'
         return result_parser(value, value_name, verbose)
 
@@ -434,7 +440,9 @@ class SD_AWG(SD_Module):
             int: available onboard RAM in waveform points,
             or negative numbers for errors
         """
-        value = self.awg.waveformLoadInt16(waveform_type, data_raw, waveform_number)
+        # Lock to avoid concurrent access of waveformLoad()/waveformReLoad()
+        with self._lock:
+            value = self.awg.waveformLoadInt16(waveform_type, data_raw, waveform_number)
         value_name = 'Loaded waveform. available_RAM'
         return result_parser(value, value_name, verbose)
 
@@ -460,7 +468,9 @@ class SD_AWG(SD_Module):
             int: available onboard RAM in waveform points,
             or negative numbers for errors
         """
-        value = self.awg.waveformReLoad(waveform_object, waveform_number, padding_mode)
+        # Lock to avoid concurrent access of waveformLoad()/waveformReLoad()
+        with self._lock:
+            value = self.awg.waveformReLoad(waveform_object, waveform_number, padding_mode)
         value_name = 'Reloaded waveform. available_RAM'
         return result_parser(value, value_name, verbose)
 
@@ -487,7 +497,9 @@ class SD_AWG(SD_Module):
             int: available onboard RAM in waveform points,
             or negative numbers for errors
         """
-        value = self.awg.waveformReLoadArrayInt16(waveform_type, data_raw, waveform_number, padding_mode)
+        # Lock to avoid concurrent access of waveformLoad()/waveformReLoad()
+        with self._lock:
+            value = self.awg.waveformReLoadArrayInt16(waveform_type, data_raw, waveform_number, padding_mode)
         value_name = 'Reloaded waveform. available_RAM'
         return result_parser(value, value_name, verbose)
 
@@ -495,7 +507,9 @@ class SD_AWG(SD_Module):
         """
         Deletes all waveforms from the module onboard RAM and flushes all the AWG queues.
         """
-        value = self.awg.waveformFlush()
+        # Lock to avoid concurrent access of waveformLoad()/waveformReLoad()
+        with self._lock:
+            value = self.awg.waveformFlush()
         value_name = 'flushed AWG queue and RAM'
         return result_parser(value, value_name, verbose)
 
@@ -530,8 +544,10 @@ class SD_AWG(SD_Module):
             int: available onboard RAM in waveform points,
             or negative numbers for errors
         """
-        value = self.awg.AWGFromFile(awg_number, waveform_file, trigger_mode, start_delay, cycles, prescaler,
-                                     padding_mode)
+        # Lock to avoid concurrent access of waveformLoad()/waveformReLoad()
+        with self._lock:
+            value = self.awg.AWGFromFile(awg_number, waveform_file, trigger_mode, start_delay, cycles, prescaler,
+                                         padding_mode)
         value_name = 'AWG from file. available_RAM'
         return result_parser(value, value_name, verbose)
 
@@ -565,8 +581,10 @@ class SD_AWG(SD_Module):
             int: available onboard RAM in waveform points,
             or negative numbers for errors
         """
-        value = self.awg.AWGfromArray(awg_number, trigger_mode, start_delay, cycles, prescaler,
-                                      waveform_type, waveform_data_a, waveform_data_b, padding_mode)
+        # Lock to avoid concurrent access of waveformLoad()/waveformReLoad()
+        with self._lock:
+            value = self.awg.AWGfromArray(awg_number, trigger_mode, start_delay, cycles, prescaler,
+                                          waveform_type, waveform_data_a, waveform_data_b, padding_mode)
         value_name = 'AWG from file. available_RAM'
         return result_parser(value, value_name, verbose)
 
