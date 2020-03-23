@@ -32,9 +32,11 @@ class WaveformReference:
 
     Attributes:
         wave_number: number refering to the wave in AWG memory
+        awg_name: name of the awg the waveform is uploaded to
     """
-    def __init__(self, wave_number: int):
+    def __init__(self, wave_number: int, awg_name: str):
         self._wave_number = wave_number
+        self._awg_name = awg_name
 
     @property
     def wave_number(self):
@@ -42,6 +44,13 @@ class WaveformReference:
         Number of the wave in AWG memory.
         """
         return self._wave_number
+
+    @property
+    def awg_name(self):
+        """
+        Name of the AWG the waveform is uploaded to
+        """
+        return self._awg_name
 
     def release(self):
         """
@@ -65,8 +74,8 @@ class WaveformReference:
 
 class _WaveformReferenceInternal(WaveformReference):
 
-    def __init__(self, wave_number: int, memory_manager:MemoryManager):
-        super().__init__(wave_number)
+    def __init__(self, wave_number: int, awg_name: str, memory_manager:MemoryManager):
+        super().__init__(wave_number, awg_name)
         self._memory_manager = memory_manager
         self._uploaded = threading.Event()
         self._upload_error: str = None
@@ -155,8 +164,8 @@ class SD_AWG_Async(SD_AWG):
     _ACTION_STOP = UploadAction('stop', None, None)
     _ACTION_INIT_AWG_MEMORY = UploadAction('init', None, None)
 
-    # all async uploader instances
     _uploaders = {}
+    """ All uploaders by unique module name. """
 
 
     def __init__(self, name, chassis, slot, channels, triggers, waveform_size_limit=1e6,
@@ -232,6 +241,10 @@ class SD_AWG_Async(SD_AWG):
                 zero = infinite repeats
             prescaler (int): waveform prescaler value, to reduce eff. sampling rate
         """
+        if waveform_ref.awg_name != self.name:
+            raise Exception(f'Waveform not uploaded to this AWG ({self.name}). '
+                            f'It is uploaded to {waveform_ref.awg_name}')
+            
         self.log.debug(f'Enqueue {waveform_ref.wave_number}')
         if not waveform_ref.is_uploaded():
             self.log.info('waiting till wave is uploaded')
@@ -269,8 +282,11 @@ class SD_AWG_Async(SD_AWG):
         Returns:
             reference to the wave
         '''
+        if len(wave) < 2000:
+            raise Exception(f'{len(wave)} is less than 2000 samples required for proper functioning of AWG')
+        
         slot_number = self._memory_manager.allocate(len(wave))
-        ref = _WaveformReferenceInternal(slot_number, self._memory_manager)
+        ref = _WaveformReferenceInternal(slot_number, self.name, self._memory_manager)
         self.log.debug(f'upload: {ref.wave_number}')
 
         entry = SD_AWG_Async.UploadAction('upload', wave, ref)
@@ -305,8 +321,7 @@ class SD_AWG_Async(SD_AWG):
         for slot in new_slots:
             start = time.perf_counter()
             if len(zeros) != slot.size:
-                # TODO: when SD1 supports numpy this should be changed to np.zeros(slot.size, np.float)
-                zeros = [0.0] * slot.size 
+                zeros = np.zeros(slot.size, np.float)
                 wave = keysightSD1.SD_Wave()
                 result_parser(wave.newFromArrayDouble(keysightSD1.SD_WaveformTypes.WAVE_ANALOG, zeros))
             super().load_waveform(wave, slot.number)
@@ -349,5 +364,3 @@ class SD_AWG_Async(SD_AWG):
             wave_ref._uploaded.set()
 
         self.log.info('Uploader terminated')
-
-
