@@ -18,15 +18,15 @@ class MemoryManager:
     Args:
         waveform_size_limit (int): maximum waveform size to support.
     """
-    
+       
     @dataclass
     class MemorySlot:
-        number: int
         size: int
         allocated: bool
+        initialized: bool
         
         
-        # Note (M3202A): size must be multiples of 10 and >= 2000
+    # Note (M3202A): size must be multiples of 10 and >= 2000
     memory_sizes = [
             (int(1e4), 400),            
             (int(1e5), 100),
@@ -38,9 +38,13 @@ class MemoryManager:
     
     def __init__(self, log, waveform_size_limit: int = 1e6):
         self._log = log
-        self._create_memory_slots()
-        self._initialized_size = 0
+        self._created_size = 0
         self._max_waveform_size = 0
+        
+        self._free_memory_slots = {}        
+        self._slots = []
+        self._slot_sizes = sorted([size for size,_ in MemoryManager.memory_sizes])
+
         self.set_waveform_limit(waveform_size_limit)
         
         
@@ -58,20 +62,21 @@ class MemoryManager:
             raise Exception(f'Requested waveform size {waveform_size_limit} is too big')
             
         self._max_waveform_size = waveform_size_limit
+        self._create_memory_slots(waveform_size_limit)
+
 
     def get_uninitialized_slots(self):
         """
         Returns list of slots that must be initialized (reserved in AWG)
         """
         new_slots = []
-        initialization_limit = self._get_slot_size(self._max_waveform_size)
            
-        for slot_number, slot in enumerate(self._slots):
-            if (slot.size > self._initialized_size and
-                slot.size <= initialization_limit):
+        slots = self._slots.copy()
+        for slot in slots:
+            if not slot.initialized:
                 new_slots.append(slot)
+                slot.initialized = True
             
-        self._initialized_size = initialization_limit
         return new_slots
                 
 
@@ -116,24 +121,28 @@ class MemoryManager:
         self._log.debug(f'Released slot {slot_number}')
 
 
-    def _create_memory_slots(self):
+    def _create_memory_slots(self, max_size):
 
-        free_slots = dict()
-        slot_sizes = []
-        slots = []
+        creation_limit = self._get_slot_size(max_size)
 
-        number = 0
+        free_slots = self._free_memory_slots
+        slots = self._slots
+
         for size, amount in sorted(MemoryManager.memory_sizes):            
-            slot_sizes.append(size)
+            if size > creation_limit:
+                break
+            if size <= self._created_size:
+                continue
+            
             free_slots[size] = []
             for i in range(amount):
+                number = len(slots)
                 free_slots[size].append(number)
-                slots.append(MemoryManager.MemorySlot(number, size, False))
-                number += 1
+                slots.append(MemoryManager.MemorySlot(size, False, False))
 
         self._free_memory_slots = free_slots
-        self._slot_sizes = slot_sizes
         self._slots = slots
+        self._created_size = creation_limit
 
 
     def _get_slot_size(self, size):
