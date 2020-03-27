@@ -27,16 +27,16 @@ class E36313AChannel(InstrumentChannel):
 
         self.add_parameter('source_voltage',
                            label="Channel {} Voltage".format(chan),
-                           get_cmd='SOURCE{:d}:VOLT?'.format(chan),
+                           get_cmd='VOLT? (@{:d})'.format(chan),
                            get_parser=float,
-                           set_cmd='SOURCE{:d}:VOLT {{:.8G}}'.format(chan),
+                           set_cmd='VOLT {{:.8G}} (@{:d})'.format(chan),
                            unit='V')
 
         self.add_parameter('source_current',
                            label="Channel {} Current".format(chan),
-                           get_cmd='SOURCE{:d}:CURR?'.format(chan),
+                           get_cmd='CURR? (@{:d})'.format(chan),
                            get_parser=float,
-                           set_cmd='SOURCE{:d}:CURR {{:.8G}}'.format(chan),
+                           set_cmd='CURR {{:.8G}} (@{:d})'.format(chan),
                            unit='A')
 
         self.add_parameter('voltage',
@@ -51,35 +51,10 @@ class E36313AChannel(InstrumentChannel):
                            label='Channel {} Current'.format(chan),
                            unit='A')
 
-        self.add_parameter('resistance',
-                           get_cmd='MEAS:RES? (@{:d})'.format(chan),
-                           get_parser=float,
-                           label='Channel {} Resistance'.format(chan),
-                           unit='ohm')
-
-        self.add_parameter('voltage_limit',
-                           get_cmd='SENS{:d}:VOLT:PROT?'.format(chan),
-                           get_parser=float,
-                           set_cmd='SENS{:d}:VOLT:PROT {{:.8G}}'.format(chan),
-                           label='Channel {} Voltage Limit'.format(chan),
-                           unit='V')
-
-        self.add_parameter('current_limit',
-                           get_cmd='SENS{:d}:CURR:PROT?'.format(chan),
-                           get_parser=float,
-                           set_cmd='SENS{:d}:CURR:PROT {{:.8G}}'.format(chan),
-                           label='Channel {} Current Limit',
-                           unit='A')
-
         self.add_parameter('enable',
-                           get_cmd='OUTP{:d}?'.format(chan),
-                           set_cmd='OUTP{:d} {{:d}}'.format(chan),
+                           get_cmd='OUTP? (@{:d})'.format(chan),
+                           set_cmd='OUTP {{:d}} (@{:d})'.format(chan),
                            val_mapping={'on':  1, 'off': 0})
-
-        self.add_parameter('source_mode',
-                           get_cmd=':SOUR{:d}:FUNC:MODE?'.format(chan),
-                           set_cmd=':SOUR{:d}:FUNC:MODE {{:s}}'.format(chan),
-                           val_mapping={'current': 'CURR', 'voltage': 'VOLT'})
 
         self.channel = chan
 
