@@ -1823,7 +1823,6 @@ class OutputChannel(InstrumentChannel):
                     break
             else:
                 raise RuntimeError(f"Missing frequency option for RF path {self.chnum}")
-        else:
 
         self.add_parameter('frequency',
                            label='Frequency',
