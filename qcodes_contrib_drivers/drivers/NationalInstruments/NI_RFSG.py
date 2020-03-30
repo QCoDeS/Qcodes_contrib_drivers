@@ -35,6 +35,7 @@ CLK_SRC_MAP = {
     "pxi_clk_master": "PXI_ClkMaster",
 }
 
+
 class NationalInstruments_RFSG(NIDLLInstrument):
     r"""
     This is the QCoDeS driver for National Instruments RF signal generator
@@ -58,7 +59,8 @@ class NationalInstruments_RFSG(NIDLLInstrument):
         name: Name for this instrument
         resource: Identifier for this instrument in NI MAX.
         dll_path: path to the NI-RFSG library DLL. If not provided, use the
-            default location, ``C:\Program Files\IVI Foundation\IVI\bin\NiRFSG_64.dll``.
+            default location,
+            ``C:\Program Files\IVI Foundation\IVI\bin\NiRFSG_64.dll``.
         id_query: whether to perform an ID query on initialization
         reset_device: whether to reset the device on initialization
     """
@@ -124,22 +126,26 @@ class NationalInstruments_RFSG(NIDLLInstrument):
                            val_mapping=on_off_map(on_val=True, off_val=False),
                            initial_value=False,
                            )
-                           
+
         self.add_parameter(name="pulse_mod_enabled",
                            label="Pulse modulation enabled",
                            get_cmd=partial(self.get_attribute,
-                                           NIRFSG_ATTR_PULSE_MODULATION_ENABLED),
+                                           NIRFSG_ATTR_PULSE_MODULATION_ENABLED
+                                           ),
                            set_cmd=partial(self.set_attribute,
-                                           NIRFSG_ATTR_PULSE_MODULATION_ENABLED),
+                                           NIRFSG_ATTR_PULSE_MODULATION_ENABLED
+                                           ),
                            val_mapping=on_off_map(on_val=True, off_val=False),
                            initial_value=False,
                            )
+
         self.add_parameter(name="clock_source",
                            label="Reference clock source",
                            get_cmd=partial(self.get_attribute,
                                            NIRFSG_ATTR_REF_CLOCK_SOURCE),
                            set_cmd=self.set_clock_source,
-                           )    
+                           )
+
         self.initiate()
         self.connect_message()
 
@@ -177,7 +183,7 @@ class NationalInstruments_RFSG(NIDLLInstrument):
                                  ViReal64(power_level))
         if initiate:
             self.initiate()
-        
+
     def set_frequency(self, frequency: float, initiate: bool = False):
         power_level = self.get_attribute(NIRFSG_ATTR_POWER_LEVEL)
         self.ConfigureRF(frequency, power_level, initiate)
@@ -190,7 +196,7 @@ class NationalInstruments_RFSG(NIDLLInstrument):
         """
         Sets reference clock source
         Args:
-            source: reference clock source. Valid values are 
+            source: reference clock source. Valid values are
                         onboard
                         clk_in
                         ref_in
@@ -203,13 +209,14 @@ class NationalInstruments_RFSG(NIDLLInstrument):
         """
         if source in CLK_SRC_MAP.keys():
             self.set_attribute(NIRFSG_ATTR_REF_CLOCK_SOURCE,
-                                CLK_SRC_MAP[source])
+                               CLK_SRC_MAP[source])
         else:
             warnings.warn(f"Unknown clock source {source}."
-                        f"Valid sources are {CLK_SRC_MAP.keys()}. Falling back"
-                        "to onboard clock.", RuntimeWarning) 
+                          f" Valid sources are {CLK_SRC_MAP.keys()}. Falling"
+                          f" back to onboard clock.", RuntimeWarning)
             self.set_attribute(NIRFSG_ATTR_REF_CLOCK_SOURCE,
-                                CLK_SRC_MAP['onboard'])
+                               CLK_SRC_MAP['onboard'])
+
     @property
     def vendor(self) -> str:
         return self.get_attribute(NIRFSG_ATTR_SPECIFIC_DRIVER_VENDOR)
@@ -236,8 +243,10 @@ class NationalInstruments_RFSG(NIDLLInstrument):
 
 # class NationalInstruments_RFSG
 
+
 # shorthand alias for the above
 NI_RFSG = NationalInstruments_RFSG
+
 
 class PXIe_5654(NI_RFSG):
     """
@@ -250,7 +259,7 @@ class PXIe_5654(NI_RFSG):
         self.frequency.vals = Numbers(250e3, 20e9)
         self.power_level.vals = Numbers(-7, 15)
 
-        # check for amplitude extender and update power level limits accordingly
+        # check for amplitude extender and update power limits accordingly
         model = self.IDN()["model"]
         if "PXIe-5696" in model:
             self.power_level.vals = Numbers(-110, 24)
