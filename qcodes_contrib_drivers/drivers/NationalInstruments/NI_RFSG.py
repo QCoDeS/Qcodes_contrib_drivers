@@ -5,7 +5,7 @@ from functools import partial
 import ctypes
 
 from qcodes.utils.validators import Numbers
-from qcodes.utils.helpers import create_on_off_val_mapping
+from qcodes.utils.helpers import create_on_off_val_mapping as on_off_map
 
 from .visa_types import ViChar, ViString, ViAttr, ViSession, ViReal64, ViBoolean
 from .dll_wrapper import AttributeWrapper, NamedArgType
@@ -114,14 +114,14 @@ class NationalInstruments_RFSG(NIDLLInstrument):
                                            NIRFSG_ATTR_POWER_LEVEL),
                            set_cmd=self.set_power_level,
                            )
-                           
+
         self.add_parameter(name="output_on",
                            label="Output enabled",
                            get_cmd=partial(self.get_attribute,
                                            NIRFSG_ATTR_OUTPUT_ENABLED),
                            set_cmd=partial(self.set_attribute,
                                            NIRFSG_ATTR_OUTPUT_ENABLED),
-                           val_mapping=create_on_off_val_mapping(on_val=True, off_val=False),
+                           val_mapping=on_off_map(on_val=True, off_val=False),
                            initial_value=False,
                            )
                            
@@ -131,7 +131,7 @@ class NationalInstruments_RFSG(NIDLLInstrument):
                                            NIRFSG_ATTR_PULSE_MODULATION_ENABLED),
                            set_cmd=partial(self.set_attribute,
                                            NIRFSG_ATTR_PULSE_MODULATION_ENABLED),
-                           val_mapping=create_on_off_val_mapping(on_val=True, off_val=False),
+                           val_mapping=on_off_map(on_val=True, off_val=False),
                            initial_value=False,
                            )
         self.add_parameter(name="clock_source",
