@@ -197,7 +197,7 @@ class NIDLLWrapper(object):
                 msg = self.error_message(error_code=error_code)
                 if error_code < 0:
                     # negative error codes are errors
-                    raise RuntimeError(msg)
+                    raise RuntimeError(f"({error_code}) {msg}")
                 else:
                     warnings.warn(f"({error_code}) {msg}", RuntimeWarning,
                                   stacklevel=3)
