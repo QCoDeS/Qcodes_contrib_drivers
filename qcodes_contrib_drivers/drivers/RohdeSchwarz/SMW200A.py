@@ -1817,7 +1817,7 @@ class OutputChannel(InstrumentChannel):
         self.chnum = chnum
         super().__init__(parent, name)
         if self.chnum in self._MAXFREQ_POOL:
-            for opt, freq in self._MAXFREQ_POOL[self.chnum]:
+            for opt, freq in self._MAXFREQ_POOL[self.chnum].items():
                 if opt in self._parent.options:
                     maxfreq = freq
                     break
