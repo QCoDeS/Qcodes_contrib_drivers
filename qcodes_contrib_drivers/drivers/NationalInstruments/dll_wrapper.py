@@ -133,7 +133,7 @@ class NIDLLWrapper(object):
                 argtypes.append(NamedArgType("bufferSize", ViInt32))
                 # ViString is already a pointer, so no POINTER() here
                 argtypes.append(NamedArgType("attributeValue", dtype))
-                
+
             self.wrap_dll_function_checked(f"GetAttribute{dtype_name}",
                                            argtypes=argtypes)
 
@@ -282,8 +282,9 @@ class NIDLLWrapper(object):
             ret = res.value
 
         return ret
-        
-    def set_attribute(self, session: ViSession, attr: AttributeWrapper, set_value: Any) -> Any:
+
+    def set_attribute(self, session: ViSession, attr: AttributeWrapper,
+                      set_value: Any) -> Any:
         """
         Set an attribute with data type "DataType" by calling the appropriate
         "libName_SetAttribute<DataType>" function (for example
