@@ -39,7 +39,7 @@ _MODULATION_SIGNAL_DOC_POOL = {
 
 
 class IQChannel(InstrumentChannel):
-    
+
     def __init__(self, parent: 'RohdeSchwarz_SMW200A', name: str, hwchan: int):
         """The I/Q channels are the analog output channels of the device.
 
@@ -121,7 +121,7 @@ class IQChannel(InstrumentChannel):
         if self.mode() == 'VAR':
             level_set_cmd = f'SOUR{self.hwchan}:'+'IQ:OUTP:LEV {}'
         else:
-            level_set_cmd = False
+            level_set_cmd = False  # type: ignore
         self.add_parameter('level',
                            label='Level',
                            set_cmd=level_set_cmd,
@@ -154,7 +154,7 @@ class IQChannel(InstrumentChannel):
         if self.mode() == 'VAR':
             i_bias_set_cmd = f'SOUR{self.hwchan}:' + 'IQ:OUTP:ANAL:BIAS:I {}'
         else:
-            i_bias_set_cmd = False
+            i_bias_set_cmd = False  # type: ignore
         self.add_parameter('i_bias',
                            label='I bias',
                            set_cmd=i_bias_set_cmd,
@@ -176,7 +176,7 @@ class IQChannel(InstrumentChannel):
         if self.mode() == 'VAR':
             q_bias_set_cmd = f'SOUR{self.hwchan}:'+'IQ:OUTP:ANAL:BIAS:Q {}'
         else:
-            q_bias_set_cmd = False
+            q_bias_set_cmd = False  # type: ignore
         self.add_parameter('q_bias',
                            label='Q bias',
                            set_cmd=q_bias_set_cmd,
@@ -200,7 +200,7 @@ class IQChannel(InstrumentChannel):
         if self.mode() == 'VAR':
             i_offset_set_cmd = f'SOUR{self.hwchan}:'+'IQ:OUTP:ANAL:OFFS:I {}'
         else:
-            i_offset_set_cmd = False
+            i_offset_set_cmd = False  # type: ignore
         self.add_parameter('i_offset',
                            label='I offset',
                            set_cmd=i_offset_set_cmd,
@@ -226,7 +226,7 @@ class IQChannel(InstrumentChannel):
         if self.mode() == 'VAR':
             q_offset_set_cmd = f'SOUR{self.hwchan}:'+'IQ:OUTP:ANAL:OFFS:Q {}'
         else:
-            q_offset_set_cmd = False
+            q_offset_set_cmd = False  # type: ignore
         self.add_parameter('q_offset',
                            label='Q offset',
                            set_cmd=q_offset_set_cmd,
