@@ -188,7 +188,7 @@ class NIDLLWrapper(object):
         name, func = self._wrap_c_func_attributes(
                          name_in_library=name_in_library,
                          argtypes=argtypes,
-                         restype=ViSession,
+                         restype=ViStatus,
                          name=name)
 
         def func_checked(*args, **kwargs):
