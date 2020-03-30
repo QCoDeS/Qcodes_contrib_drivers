@@ -1,6 +1,6 @@
 """
 This module contains a small class that mixes features that are common to all
-libraries in the NIDLLWrapper class with qcodes.Instrument.
+libraries in the ``NIDLLWrapper`` class with ``qcodes.Instrument``.
 """
 
 from functools import partial
@@ -12,17 +12,19 @@ from .visa_types import ViSession
 
 class NIDLLInstrument(Instrument):
     """
-    Common base class for QCoDeS instruments based on NI DLL drivers.
-    It holds a refence to an NI DLL wrapper object, as well as an instrument
-    handle (ViSession). It handles calling the DLL methods and has some common
-    methods implemented, such as init, close and get_attribute.
+    Common base class for QCoDeS instruments based on NI DLL drivers, when an
+    official NI Python driver (such as ``nidaqmx`` or ``nifpga``) is not
+    available. It holds a refence to an NI DLL wrapper object, as well as an
+    instrument handle (``ViSession``). It handles calling the DLL methods and
+    has some common methods implemented, such as ``init``, ``close`` and
+    ``get_attribute``.
 
     Args:
         name: Name for this instrument
         resource: Identifier for this instrument in NI MAX.
         dll_path: path to the library DLL.
         lib_prefix: the prefix of the function names in the library (see
-            NIDLLWrapper)
+            ``NIDLLWrapper``)
         id_query: whether to perform an ID query on initialization
         reset_device: whether to reset the device on initialization
     """
