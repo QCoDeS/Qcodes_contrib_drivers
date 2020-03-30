@@ -57,7 +57,8 @@ class NationalInstruments_RFSG(NIDLLInstrument):
     Args:
         name: Name for this instrument
         resource: Identifier for this instrument in NI MAX.
-        dll_path: path to the NI-RFSG library DLL.
+        dll_path: path to the NI-RFSG library DLL. If not provided, use the
+            default location, ``C:\Program Files\IVI Foundation\IVI\bin\NiRFSG_64.dll``.
         id_query: whether to perform an ID query on initialization
         reset_device: whether to reset the device on initialization
     """
@@ -76,6 +77,7 @@ class NationalInstruments_RFSG(NIDLLInstrument):
                          dll_path=dll_path or self.dll_path,
                          lib_prefix="niRFSG", **kwargs)
 
+        # Wrap DLL calls
         self.wrapper.wrap_dll_function_checked(name_in_library="Initiate",
                                                argtypes=[
                                                    NamedArgType("vi",
@@ -158,7 +160,8 @@ class NationalInstruments_RFSG(NIDLLInstrument):
                     initiate: bool):
         """
         NI-RFSG devices can only set both the frequency and power level
-        simultatneously.
+        simultatneously. Convenience methods are defined below for setting
+        them individually.
 
         NOTE: PXI-5670/5671 and PXIe-5672 devices must be in the Configuration
         state before calling this function (by calling abort()), that is not
@@ -237,6 +240,9 @@ class NationalInstruments_RFSG(NIDLLInstrument):
 NI_RFSG = NationalInstruments_RFSG
 
 class PXIe_5654(NI_RFSG):
+    """
+    Device-specific driver for the PXIe-5654 signal generator.
+    """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 

@@ -26,9 +26,9 @@ def c_str(s: str) -> bytes: return bytes(s, "ascii")
 class AttributeWrapper(object):
     """
     Struct to associate a data type to a numeric constant (i.e. attribute)
-    defined in a NI DLL library. ``dtype`` should be one of the types defined in
-    the ``visa_types`` module. Here, ``value`` means the same as the attributeID in
-    the DLL documentation.
+    defined in a NI DLL library. ``dtype`` should be one of the types defined
+    in the ``visa_types`` module. Here, ``value`` means the same as the
+    attributeID in the DLL documentation.
     """
     value: ViAttr
     dtype: Any
