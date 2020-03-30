@@ -19,6 +19,7 @@ Authors:
 import logging
 from functools import partial
 import time
+from typing import Union
 
 from qcodes import VisaInstrument
 from qcodes.instrument.channel import InstrumentChannel, ChannelList
@@ -118,10 +119,11 @@ class IQChannel(InstrumentChannel):
             level_validator = vals.Numbers(0.04, 4)
         else: #option SMW-B9
             level_validator = vals.Numbers(0.04, 2)
+
+        level_set_cmd: Union[str, bool] = False
         if self.mode() == 'VAR':
             level_set_cmd = f'SOUR{self.hwchan}:'+'IQ:OUTP:LEV {}'
-        else:
-            level_set_cmd = False  # type: ignore
+
         self.add_parameter('level',
                            label='Level',
                            set_cmd=level_set_cmd,
@@ -151,10 +153,11 @@ class IQChannel(InstrumentChannel):
             bias_validator = vals.Numbers(lower, upper)
         else: #option SMW-B9
             bias_validator = vals.Numbers(-0.2, 2.5)
+
+        i_bias_set_cmd: Union[str, bool] = False
         if self.mode() == 'VAR':
             i_bias_set_cmd = f'SOUR{self.hwchan}:' + 'IQ:OUTP:ANAL:BIAS:I {}'
-        else:
-            i_bias_set_cmd = False  # type: ignore
+
         self.add_parameter('i_bias',
                            label='I bias',
                            set_cmd=i_bias_set_cmd,
@@ -173,10 +176,11 @@ class IQChannel(InstrumentChannel):
             bias_validator = vals.Numbers(lower, upper)
         else: #option SMW-B9
             bias_validator = vals.Numbers(-0.2, 2.5)
+
+        q_bias_set_cmd: Union[str, bool] = False
         if self.mode() == 'VAR':
             q_bias_set_cmd = f'SOUR{self.hwchan}:'+'IQ:OUTP:ANAL:BIAS:Q {}'
-        else:
-            q_bias_set_cmd = False  # type: ignore
+
         self.add_parameter('q_bias',
                            label='Q bias',
                            set_cmd=q_bias_set_cmd,
@@ -197,10 +201,11 @@ class IQChannel(InstrumentChannel):
             lower = -2+self.level()
             upper = 2-self.level()
             offset_validator = vals.Numbers(lower, upper)
+
+        i_offset_set_cmd: Union[str, bool] = False
         if self.mode() == 'VAR':
             i_offset_set_cmd = f'SOUR{self.hwchan}:'+'IQ:OUTP:ANAL:OFFS:I {}'
-        else:
-            i_offset_set_cmd = False  # type: ignore
+
         self.add_parameter('i_offset',
                            label='I offset',
                            set_cmd=i_offset_set_cmd,
@@ -223,10 +228,11 @@ class IQChannel(InstrumentChannel):
             lower = -2+self.level()
             upper = 2-self.level()
             offset_validator = vals.Numbers(lower, upper)
+
+        q_offset_set_cmd: Union[str, bool] = False
         if self.mode() == 'VAR':
             q_offset_set_cmd = f'SOUR{self.hwchan}:'+'IQ:OUTP:ANAL:OFFS:Q {}'
-        else:
-            q_offset_set_cmd = False  # type: ignore
+
         self.add_parameter('q_offset',
                            label='Q offset',
                            set_cmd=q_offset_set_cmd,
