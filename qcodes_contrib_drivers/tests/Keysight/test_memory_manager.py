@@ -22,80 +22,80 @@ N_EXTREMELY_LARGE = 4
 
 
 class TestMemoryManager(unittest.TestCase):
-    
+
     def test_allocate_release(self):
         mm = MemoryManager(logging)
-        
+
         # cycle through slots
         for i in range(1001):
-            slot = mm.allocate(LARGE_SIZE)
-            mm.release(slot)
+            allocated_slot = mm.allocate(LARGE_SIZE)
+            allocated_slot.release()
 
         # allocate all large slots
         slots = [mm.allocate(LARGE_SIZE) for i in range(N_LARGE)]
-        
+
         with self.assertRaises(Exception):
             # no more slots available
-            slot = mm.allocate(LARGE_SIZE)
-        
-        for slot in slots:
-            mm.release(slot)
-    
-    
+            allocated_slot = mm.allocate(LARGE_SIZE)
+
+        for allocated_slot in slots:
+            allocated_slot.release()
+
+
     def test_allocate_big(self):
         mm = MemoryManager(logging)
-        
+
         with self.assertRaises(Exception):
-            slot = mm.allocate(VERY_LARGE_SIZE)
-            
+            allocated_slot = mm.allocate(VERY_LARGE_SIZE)
+
         mm.set_waveform_limit(VERY_LARGE_SIZE)
-        slot = mm.allocate(VERY_LARGE_SIZE)       
-        mm.release(slot)
-        
+        allocated_slot = mm.allocate(VERY_LARGE_SIZE)
+        allocated_slot.release()
+
         with self.assertRaises(Exception):
-            slot = mm.allocate(EXTREMELY_LARGE_SIZE)
+            allocated_slot = mm.allocate(EXTREMELY_LARGE_SIZE)
 
         mm.set_waveform_limit(EXTREMELY_LARGE_SIZE)
-        slot = mm.allocate(EXTREMELY_LARGE_SIZE)       
-        mm.release(slot)
+        allocated_slot = mm.allocate(EXTREMELY_LARGE_SIZE)
+        allocated_slot.release()
 
 
     def test_allocate_all_small(self):
         mm = MemoryManager(logging)
-        
+
         # allocate all slots by requesting small sizes
         slots = [mm.allocate(SMALL_SIZE) for i in range(N_SMALL + N_MEDIUM + N_LARGE)]
-        
+
         with self.assertRaises(Exception):
             # no more slots available
-            slot = mm.allocate(SMALL_SIZE)
-        
-        for slot in slots:
-            mm.release(slot)
+            allocated_slot = mm.allocate(SMALL_SIZE)
+
+        for allocated_slot in slots:
+            allocated_slot.release()
 
 
     def test_uninitialized(self):
         mm = MemoryManager(logging, SMALL_SIZE)
-        
+
         new_slots = mm.get_uninitialized_slots()
         self.assertEqual(len(new_slots), N_SMALL)
 
-        mm.set_waveform_limit(LARGE_SIZE)        
+        mm.set_waveform_limit(LARGE_SIZE)
         new_slots = mm.get_uninitialized_slots()
         self.assertEqual(len(new_slots), N_MEDIUM + N_LARGE)
-        
+
         new_slots = mm.get_uninitialized_slots()
         self.assertEqual(len(new_slots), 0)
-        
+
         mm.set_waveform_limit(LARGE_SIZE)
         new_slots = mm.get_uninitialized_slots()
         self.assertEqual(len(new_slots), 0)
-        
+
         mm.set_waveform_limit(VERY_LARGE_SIZE)
         new_slots = mm.get_uninitialized_slots()
         self.assertEqual(len(new_slots), N_VERY_LARGE)
 
-    
+
 if __name__ == '__main__':
-    
+
     unittest.main()

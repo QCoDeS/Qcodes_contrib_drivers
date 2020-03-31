@@ -20,11 +20,24 @@ class MemoryManager:
     """
 
     @dataclass
-    class MemorySlot:
+    class AllocatedSlot:
+        number: int
+        allocation_ref: int
+        memory_manager: object
+
+        def release(self):
+            self.memory_manager.release(self)
+
+    @dataclass
+    class _MemorySlot:
         number: int
         size: int
         allocated: bool
         initialized: bool
+        allocation_ref: int
+        '''Unique reference value when allocated.
+        Used to check for incorrect or missing release calls.
+        '''
 
 
     # Note (M3202A): size must be multiples of 10 and >= 2000
@@ -39,6 +52,7 @@ class MemoryManager:
 
     def __init__(self, log, waveform_size_limit: int = 1e6):
         self._log = log
+        self._allocation_ref_count = 0
         self._created_size = 0
         self._max_waveform_size = 0
 
@@ -87,6 +101,8 @@ class MemoryManager:
 
         Args:
             wave_size (int): number of samples of the waveform
+        Returns:
+            allocated slot (MemoryManager.AllocatedSlot)
         """
         if wave_size > self._max_waveform_size:
             raise Exception(f'AWG wave with {wave_size} samples is too long. ' +
@@ -97,26 +113,34 @@ class MemoryManager:
                 continue
             if len(self._free_memory_slots[slot_size]) > 0:
                 slot = self._free_memory_slots[slot_size].pop(0)
+                self._allocation_ref_count += 1
+                self._slots[slot].allocation_ref = self._allocation_ref_count
                 self._slots[slot].allocated = True
                 self._log.debug(f'Allocated slot {slot}')
-                return slot
+                return MemoryManager.AllocatedSlot(slot, self._slots[slot].allocation_ref, self)
 
         raise Exception(f'No free memory slot for AWG wave with {wave_size} samples ({self.name})')
 
 
-    def release(self, slot_number):
+    def release(self, allocated_slot):
         """
-        Releases the spefied slot
+        Releases the `allocated_slot`.
 
         Args:
-            slot_number: number of the slot
+            allocated_slot: MemoryManager.AllocatedSlot
         """
+        slot_number = allocated_slot.number
         slot = self._slots[slot_number]
 
         if not slot.allocated:
             raise Exception(f'memory slot {slot_number} not in use')
 
+        if slot.allocation_ref != allocated_slot.allocation_ref:
+            raise Exception(f'memory slot {slot_number} allocation reference mismatch:'
+                            f'{slot.allocation_ref} != {allocated_slot.allocation_ref}')
+
         slot.allocated = False
+        slot.allocation_ref = 0
         self._free_memory_slots[slot.size].append(slot_number)
 
         self._log.debug(f'Released slot {slot_number}')
@@ -139,7 +163,7 @@ class MemoryManager:
             for i in range(amount):
                 number = len(slots)
                 free_slots[size].append(number)
-                slots.append(MemoryManager.MemorySlot(number, size, False, False))
+                slots.append(MemoryManager._MemorySlot(number, size, False, False, 0))
 
         self._free_memory_slots = free_slots
         self._slots = slots
