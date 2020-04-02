@@ -139,5 +139,6 @@ nitpick_ignore = [('py:class', 'Optional'),
                   ('py:class', 'SPI_rack'),
                   ('py:class', 'unittest.case.TestCase'),
                   ('py:class', 'builtins.AssertionError'),
+                  ('py:class', '_ctypes.Structure'),
                   ('py:exc', 'visa.VisaIOError')
                   ]
