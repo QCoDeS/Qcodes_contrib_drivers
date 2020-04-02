@@ -169,10 +169,10 @@ class NationalInstruments_RFSG(NIDLLInstrument):
 
         NOTE: PXI-5670/5671 and PXIe-5672 devices must be in the Configuration
         state before calling this function (by calling abort()), that is not
-        implemented here.
+        checked here.
 
         Args:
-            frequency:
+            frequency: frequency in Hz
             power_level: power level in dBm
             initiate: if True, call self.initiate after configuring, which
                 starts RF output
