@@ -82,27 +82,23 @@ class NationalInstruments_RFSG(NIDLLInstrument):
                          lib_prefix="niRFSG", **kwargs)
 
         # Wrap DLL calls
-        self.wrapper.wrap_dll_function_checked(name_in_library="Initiate",
-                                               argtypes=[
-                                                   NamedArgType("vi",
-                                                                ViSession),
-                                               ])
+        self.wrapper.Initiate = self.wrapper.wrap_dll_function_checked(
+                name_in_library="Initiate",
+                argtypes=[NamedArgType("vi", ViSession)]
+                )
 
-        self.wrapper.wrap_dll_function_checked(name_in_library="Abort",
-                                               argtypes=[
-                                                   NamedArgType("vi",
-                                                                ViSession),
-                                               ])
+        self.wrapper.Abort = self.wrapper.wrap_dll_function_checked(
+                name_in_library="Abort",
+                argtypes=[NamedArgType("vi", ViSession)])
 
-        self.wrapper.wrap_dll_function_checked(name_in_library="ConfigureRF",
-                                               argtypes=[
-                                                   NamedArgType("vi",
-                                                                ViSession),
-                                                   NamedArgType("frequency",
-                                                                ViReal64),
-                                                   NamedArgType("powerLevel",
-                                                                ViReal64),
-                                               ])
+        self.wrapper.ConfigureRF = self.wrapper.wrap_dll_function_checked(
+                name_in_library="ConfigureRF",
+                argtypes=[
+                    NamedArgType("vi", ViSession),
+                    NamedArgType("frequency", ViReal64),
+                    NamedArgType("powerLevel", ViReal64),
+                    ]
+                )
 
         self.add_parameter(name="frequency",
                            unit="Hz",
