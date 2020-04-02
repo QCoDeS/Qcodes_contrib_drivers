@@ -108,7 +108,8 @@ class NIDLLWrapper(object):
         # wrap GetAttribute<DataType> functions (see get_attribute method)
         for dtype, dtype_name in self._dtype_map.items():
 
-            argtypes = [
+            # argtypes for the GetAttribute<DataType> functions
+            getter_argtypes = [
                     NamedArgType("vi", ViSession),
                     NamedArgType("channelName", ViString),
                     NamedArgType("attributeID", ViAttr),
@@ -119,26 +120,28 @@ class NIDLLWrapper(object):
             # functions. note that the signature for SetAttributeViString is
             # the same as for the other types even though GetAttributeViString
             # has a unique signature
-            set_argtypes = argtypes.copy()
+            setter_argtypes = getter_argtypes.copy()
 
             if dtype == ViString:
                 # replace last argument
-                argtypes.pop()
-                argtypes.append(NamedArgType("bufferSize", ViInt32))
+                getter_argtypes.pop()
+                getter_argtypes.append(NamedArgType("bufferSize", ViInt32))
                 # ViString is already a pointer, so no POINTER() here
-                argtypes.append(NamedArgType("attributeValue", dtype))
+                getter_argtypes.append(NamedArgType("attributeValue", dtype))
 
             getter_name = f"GetAttribute{dtype_name}"
-            getter_func = self.wrap_dll_function_checked(getter_name,
-                                                         argtypes=argtypes)
+            getter_func = self.wrap_dll_function_checked(
+                    getter_name,
+                    argtypes=getter_argtypes)
             setattr(self, getter_name, getter_func)
 
-            set_argtypes[-1] = NamedArgType("attributeValue", dtype)
+            setter_argtypes[-1] = NamedArgType("attributeValue", dtype)
 
-            func_name = f"SetAttribute{dtype_name}"
-            func = self.wrap_dll_function_checked(func_name,
-                                                  argtypes=set_argtypes)
-            setattr(self, func_name, func)
+            setter_name = f"SetAttribute{dtype_name}"
+            setter_func = self.wrap_dll_function_checked(
+                    setter_name,
+                    argtypes=setter_argtypes)
+            setattr(self, setter_name, setter_func)
 
     def wrap_dll_function(self, name_in_library: str,
                           argtypes: List[NamedArgType],
