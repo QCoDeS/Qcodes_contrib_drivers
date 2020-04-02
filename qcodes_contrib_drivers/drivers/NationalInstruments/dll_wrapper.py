@@ -158,11 +158,15 @@ class NIDLLWrapper(object):
             restype: The return type of the library function (most likely
                 ``ViStatus``).
         """
-        func = self._wrap_c_func_attributes(
-                         name_in_library=name_in_library,
-                         argtypes=argtypes,
-                         restype=restype,
-                         )
+
+        if not name_in_library.startswith(self._lib_prefix):
+            name_in_library = f"{self._lib_prefix}_{name_in_library}"
+
+        # TODO( mgunyho ): thread lock? (see nimi-python link at top of file)
+        func = getattr(self._dll, name_in_library)
+        func.restype = restype
+        func.argtypes = [a.argtype for a in argtypes]
+        func.argnames = [a.name for a in argtypes]  # just in case
 
         return func
 
@@ -177,7 +181,7 @@ class NIDLLWrapper(object):
         always ``ViStatus``.
         """
 
-        func = self._wrap_c_func_attributes(
+        func = self.wrap_dll_function(
                 name_in_library=name_in_library,
                 argtypes=argtypes,
                 restype=ViStatus,
@@ -200,26 +204,6 @@ class NIDLLWrapper(object):
         func_checked.argnames = func.argnames
 
         return func_checked
-
-    def _wrap_c_func_attributes(self, name_in_library: str,
-                                argtypes: List[NamedArgType],
-                                restype: Any,
-                                ) -> Callable:
-        """
-        Helper method for ``wrap_dll_function`` and
-        ``wrap_dll_function_checked``.
-        """
-
-        if not name_in_library.startswith(self._lib_prefix):
-            name_in_library = f"{self._lib_prefix}_{name_in_library}"
-
-        # TODO( mgunyho ): thread lock? (see nimi-python link at top of file)
-        func = getattr(self._dll, name_in_library)
-        func.restype = restype
-        func.argtypes = [a.argtype for a in argtypes]
-        func.argnames = [a.name for a in argtypes]  # just in case
-
-        return func
 
     def init(self, resource: str, id_query: bool = True,
              reset_device: bool = False) -> ViSession:
