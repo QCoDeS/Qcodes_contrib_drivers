@@ -78,8 +78,6 @@ class LDA(Instrument):
             max_att = DLL.fnLDA_GetMaxAttenuationHR(self.reference) * ATT_UNIT
             min_att = DLL.fnLDA_GetMinAttenuationHR(self.reference) * ATT_UNIT
             
-            min_freq = DLL.fnLDA_SetWorkingFrequency(self.reference, int(6.5e9/ FREQ_UNIT))
-            max_freq = DLL.fnLDA_GetWorkingFrequency(self.reference) * FREQ_UNIT
             self.add_parameter("attenuation",
                                unit="dB",
                                get_cmd=self.get_attenuation,
@@ -192,6 +190,6 @@ class LDAChannel(InstrumentChannel):
 
     def _switch_and_call(self, func, *args) -> Any:
         """ Change active channel on the parent instrument, so that `func` call is applied on
-        the this channel. """
+        this channel. """
         self.parent.switch_channel(self.channel_number)
         return func(*args)
