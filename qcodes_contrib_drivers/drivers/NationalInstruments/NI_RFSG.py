@@ -7,7 +7,9 @@ import ctypes
 from qcodes.utils.validators import Numbers
 from qcodes.utils.helpers import create_on_off_val_mapping as on_off_map
 
-from .visa_types import ViChar, ViString, ViAttr, ViSession, ViReal64, ViBoolean
+from .visa_types import (
+        ViChar, ViString, ViAttr, ViSession, ViReal64, ViBoolean
+        )
 from .dll_wrapper import AttributeWrapper, NamedArgType
 from .ni_dll_instrument import NIDLLInstrument
 

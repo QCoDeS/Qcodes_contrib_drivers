@@ -80,8 +80,7 @@ class NIDLLWrapper(object):
                 argtypes=[
                     NamedArgType("vi", ViSession),
                     NamedArgType("errorCode", ViStatus),
-                    NamedArgType("errorMessage",
-                        POINTER(ViChar)),
+                    NamedArgType("errorMessage", POINTER(ViChar)),
                     ]
                 )
 
@@ -89,11 +88,9 @@ class NIDLLWrapper(object):
         self._init = self.wrap_dll_function_checked(
                 name_in_library="init",
                 argtypes=[
-                    NamedArgType("resourceName",
-                        ViRsrc),
+                    NamedArgType("resourceName", ViRsrc),
                     NamedArgType("idQuery", ViBoolean),
-                    NamedArgType("resetDevice",
-                        ViBoolean),
+                    NamedArgType("resetDevice", ViBoolean),
                     ]
                 )
 
