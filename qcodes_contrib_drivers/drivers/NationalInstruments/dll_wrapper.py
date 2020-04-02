@@ -128,8 +128,10 @@ class NIDLLWrapper(object):
                 # ViString is already a pointer, so no POINTER() here
                 argtypes.append(NamedArgType("attributeValue", dtype))
 
-            self.wrap_dll_function_checked(f"GetAttribute{dtype_name}",
-                                           argtypes=argtypes)
+            getter_name = f"GetAttribute{dtype_name}"
+            getter_func = self.wrap_dll_function_checked(getter_name,
+                                                         argtypes=argtypes)
+            setattr(self, getter_name, getter_func)
 
             set_argtypes[-1] = NamedArgType("attributeValue", dtype)
 
