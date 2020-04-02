@@ -176,10 +176,6 @@ class NIDLLWrapper(object):
         the same as for ``wrap_dll_function``, except that ``restype`` is
         always ``ViStatus``.
         """
-        if not getattr(self, "error_message"):
-            raise RuntimeError(("wrap_dll_function_checked: self.error_message"
-                                " not found, wrap it with wrap_dll_function"
-                                " before calling wrap_dll_function_checked."))
 
         name, func = self._wrap_c_func_attributes(
                          name_in_library=name_in_library,
