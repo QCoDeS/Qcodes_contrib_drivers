@@ -1,8 +1,7 @@
 """
 This module has some convenience classes and functions for wrapping NI C API
-calls. Modeled after the DLL calls in the NIMI-python library
-(see e.g.
-https://github.com/ni/nimi-python/blob/master/generated/nitclk/_library.py).
+calls. Modeled after the DLL calls in the NIMI-python library, see e.g.
+https://github.com/ni/nimi-python/blob/master/generated/nitclk/nitclk/_library.py
 """
 
 import ctypes
