@@ -132,8 +132,11 @@ class NIDLLWrapper(object):
                                            argtypes=argtypes)
 
             set_argtypes[-1] = NamedArgType("attributeValue", dtype)
-            self.wrap_dll_function_checked(f"SetAttribute{dtype_name}",
-                                           argtypes=set_argtypes)
+
+            func_name = f"SetAttribute{dtype_name}"
+            func = self.wrap_dll_function_checked(func_name,
+                                                  argtypes=set_argtypes)
+            setattr(self, func_name, func)
 
     def wrap_dll_function(self, name_in_library: str,
                           argtypes: List[NamedArgType],
