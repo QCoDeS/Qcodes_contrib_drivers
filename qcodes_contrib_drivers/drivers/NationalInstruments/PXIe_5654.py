@@ -16,3 +16,6 @@ class NationalInstruments_PXIe_5654(NI_RFSG):
         model = self.IDN()["model"]
         if "PXIe-5696" in model:
             self.power_level.vals = Numbers(-110, 24)
+
+
+NI_PXIe_5654 = NationalInstruments_PXIe_5654
