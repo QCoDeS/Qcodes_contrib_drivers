@@ -5,7 +5,8 @@ from qcodes.utils.validators import Numbers
 
 class NationalInstruments_PXIe_5654(NI_RFSG):
     r"""
-    Device-specific driver for the PXIe-5654 signal generator.
+    Device-specific driver for the PXIe-5654 signal generator. See the NI_RFSG
+    class for further details.
 
     Args:
         name: Name for this instrument
