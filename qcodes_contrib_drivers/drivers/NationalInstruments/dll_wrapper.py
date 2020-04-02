@@ -143,7 +143,7 @@ class NIDLLWrapper(object):
                           restype: Any = ViStatus,
                           name: Optional[str] = None) -> None:
         """
-        Convenience function for wrapping a function in a NI C API.
+        Convenience method for wrapping a function in a NI C API.
 
         Args:
             name_in_library: The name of the function in the library (e.g.
