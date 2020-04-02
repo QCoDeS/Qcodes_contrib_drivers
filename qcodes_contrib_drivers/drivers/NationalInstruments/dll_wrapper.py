@@ -64,9 +64,6 @@ class NIDLLWrapper(object):
         self._dll = ctypes.cdll.LoadLibrary(dll_path)
         self._lib_prefix = lib_prefix
 
-        # list of function names registered with setatttr
-        self._wrapped_functions: List[str] = []
-
         self._dtype_map = {
                 ViBoolean: "ViBoolean",
                 ViInt32: "ViInt32",
@@ -166,7 +163,6 @@ class NIDLLWrapper(object):
                          restype=restype,
                          name=name)
 
-        self._wrapped_functions.append(name)
         setattr(self, name, func)
 
     def wrap_dll_function_checked(self, name_in_library: str,
@@ -207,7 +203,6 @@ class NIDLLWrapper(object):
         func_checked.argtypes = func.argtypes
         func_checked.argnames = func.argnames
 
-        self._wrapped_functions.append(name)
         setattr(self, name, func_checked)
 
     def _wrap_c_func_attributes(self, name_in_library: str,
