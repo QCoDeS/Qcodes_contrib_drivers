@@ -4,14 +4,13 @@ from qcodes.utils.validators import Ints
 
 class Keysight_J7211(VisaInstrument):
     r"""
-    Qcodes driver for the Keysight J7211 Attenuation Control Unit
-    Tested with J7211B
+    Qcodes driver for the Keysight J7211 Attenuation Control Unit.
+    Tested with J7211B.
 
     Args:
         name: Instrument name
         address: Address or alias of instrument
         attenuation: Optional attenuation level to set on startup
-        **kwargs: passed to base class
     """
 
     def __init__(self, name, address, attenuation=None, **kwargs):
