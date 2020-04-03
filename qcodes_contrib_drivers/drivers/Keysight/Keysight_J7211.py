@@ -1,21 +1,22 @@
 from qcodes.instrument.visa import VisaInstrument
 from qcodes.utils.validators import Ints
+from typing import Optional
 
 
 class Keysight_J7211(VisaInstrument):
     r"""
-    Qcodes driver for the Keysight J7211 Attenuation Control Unit
-    Tested with J7211B
+    Qcodes driver for the Keysight J7211 Attenuation Control Unit.
+    Tested with J7211B.
 
     Args:
         name: Instrument name
         address: Address or alias of instrument
         attenuation: Optional attenuation level to set on startup
-        **kwargs: passed to base class
     """
 
-    def __init__(self, name, address, attenuation=None, **kwargs):
-        super().__init__(name, address, terminator='\r', **kwargs)
+    def __init__(self, name: str, address: str,
+                 attenuation: Optional[int] = None, **kwargs):
+        super().__init__(name=name, address=address, terminator='\r', **kwargs)
 
         self.add_parameter('attenuation', unit='dB',
                            set_cmd='ATT {:03.0f}',
@@ -32,6 +33,6 @@ class Keysight_J7211(VisaInstrument):
             self.attenuation.vals = Ints(0, 100)
         else:
             raise RuntimeError("Model {} is not supported.".format(model))
-            
-        if attenuation:
+
+        if attenuation is not None:
             self.attenuation(attenuation)
