@@ -10,6 +10,8 @@ import logging
 import warnings
 from functools import partial
 
+log = logging.getLogger(__name__)
+
 on_off_vals = create_on_off_val_mapping(on_val=1, off_val=0)
 
 
