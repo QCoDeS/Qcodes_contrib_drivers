@@ -189,9 +189,9 @@ class NationalInstruments_RFSG(NIDLLInstrument):
         frequency = self.get_attribute(NIRFSG_ATTR_FREQUENCY)
         self._configure_rf(frequency, power_level, initiate)
 
-    def _set_clock_source(self, source: str, clock_rate: float = 10e6):
+    def _set_clock_source(self, source: str):
         """
-        Sets reference clock source
+        Sets the reference clock source.
         Args:
             source: reference clock source. Valid values are
                         onboard
@@ -201,8 +201,6 @@ class NationalInstruments_RFSG(NIDLLInstrument):
                         ref_in_2
                         pxi_clk_master
                     Last two values are valid for PXIe-5840 with PXIe-5653.
-            clock_rate: Not implemented. Reference clock frequency in Hertz.
-                        Default value is 10 MHz.
         """
         if source in CLK_SRC_MAP.keys():
             self.set_attribute(NIRFSG_ATTR_REF_CLOCK_SOURCE,
