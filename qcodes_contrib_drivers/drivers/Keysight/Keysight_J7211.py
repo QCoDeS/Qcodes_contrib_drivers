@@ -33,6 +33,6 @@ class Keysight_J7211(VisaInstrument):
             self.attenuation.vals = Ints(0, 100)
         else:
             raise RuntimeError("Model {} is not supported.".format(model))
-            
+
         if attenuation is not None:
             self.attenuation(attenuation)
