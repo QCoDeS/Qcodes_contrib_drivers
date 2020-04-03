@@ -1,5 +1,6 @@
 from qcodes.instrument.visa import VisaInstrument
 from qcodes.utils.validators import Ints
+from typing import Optional
 
 
 class Keysight_J7211(VisaInstrument):
@@ -32,5 +33,5 @@ class Keysight_J7211(VisaInstrument):
         else:
             raise RuntimeError("Model {} is not supported.".format(model))
             
-        if attenuation:
+        if attenuation is not None:
             self.attenuation(attenuation)
