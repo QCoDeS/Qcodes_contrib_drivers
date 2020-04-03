@@ -18,10 +18,12 @@ FREQ_UNIT = 100_000  # integers returned by the API correspond to 100kHz
 class Vaunix_LDA(Instrument):
     r"""
     This is the QCoDeS driver for Vaunix LDA digital attenuators.
-    Requires that the DLL that comes with the instrument, `` VNX_atten64.dll``  and/or `` VNX_atten.dll``,
-    is found at ``dll_path``, for 64-bit Windows and 32-bit Windows, respectively.
-    If the instrument has more than one physical channel, `` InstrumentChannel``  objects
-    are created for each one. If the instrument has only one physical channel, no channels are created
+    Requires that the DLL that comes with the instrument,
+    `` VNX_atten64.dll``  and/or `` VNX_atten.dll``, is found at ``dll_path``,
+    for 64-bit Windows and 32-bit Windows, respectively.
+    If the instrument has more than one physical channel,
+    `` InstrumentChannel``  objects are created for each one.
+    If the instrument has only one physical channel, no channels are created
     and the parameters will be assigned to this instrument instead.
     The sweep profiles available in the API are not implemented.
 
@@ -32,9 +34,11 @@ class Vaunix_LDA(Instrument):
     Args:
         name: Qcodes name for this instrument
         serial_number: Serial number of the instrument, used to identify it.
-        dll_path: Look for the LDA DLL's in this directory. By default, the directory this file is in.
+        dll_path: Look for the LDA DLL's in this directory.
+            By default, the directory this file is in.
         channel_names: Optionally assign these names to the channels.
-        test_mode: If true, communicates with the API but not with the device. For testing purposes.
+        test_mode: If true, communicates with the API but not with the device.
+            For testing purposes.
     """
 
     def __init__(self, name: str,
@@ -63,8 +67,8 @@ class Vaunix_LDA(Instrument):
         devices = {self.dll.fnLDA_GetSerialNumber(ref): ref for ref in device_refs}
         self.reference = devices.get(self.serial_number, "not found")
         if self.reference == "not found":
-            raise ValueError(f"LDA with serial number {self.serial_number} was not found"
-                             f" in the system. Found: {devices}")
+            raise ValueError(f"LDA with serial number {self.serial_number}"
+                             f" was not found in the system. Found: {devices}")
 
         self.dll.fnLDA_InitDevice(self.reference)
 
@@ -89,7 +93,8 @@ class Vaunix_LDA(Instrument):
                                    vals=Numbers(min_freq, max_freq),
                                    get_cmd=self.get_working_frequency,
                                    set_cmd=self.set_working_frequency,
-                                   docstring="Frequency at which the attenuation is most accurate.",
+                                   docstring="Frequency at which the a"
+                                             "ttenuation is most accurate.",
                                    )
 
         else:
@@ -133,7 +138,7 @@ class Vaunix_LDA(Instrument):
                 "firmware": self.dll.fnLDA_GetDLLVersion(),
                 }
 
-    def close(self):
+    def close(self) -> None:
         self.dll.fnLDA_CloseDevice(self.reference)
         super().close()
 
@@ -146,30 +151,38 @@ class Vaunix_LDA(Instrument):
         atten_db = value * ATT_UNIT
         return atten_db
 
-    def set_attenuation(self, value: float):
+    def set_attenuation(self, value: float) -> None:
         """ Set attenuation of currently selected channel to `` value`` . """
         attenuation = round(value / ATT_UNIT)
-        error_msg = self.dll.fnLDA_SetAttenuationHR(self.reference, int(attenuation))
+        error_msg = self.dll.fnLDA_SetAttenuationHR(self.reference,
+                                                    int(attenuation))
         if error_msg != 0:
             raise RuntimeError('SetAttenuationHR returned error', error_msg)
 
-    def set_working_frequency(self, value: float):
-        """ Set working frequency of currently selected channel to `` value`` . """
+    def set_working_frequency(self, value: float) -> None:
+        """ Set working frequency of currently selected
+        channel to ``value`` .
+         """
         frequency_100khz = int(value / FREQ_UNIT)
-        error_msg = self.dll.fnLDA_SetWorkingFrequency(self.reference, frequency_100khz)
+        error_msg = self.dll.fnLDA_SetWorkingFrequency(self.reference,
+                                                       frequency_100khz)
         if error_msg != 0:
             raise RuntimeError('fSetWorkingFrequency returned error', error_msg)
 
     def get_working_frequency(self) -> float:
-        """ Get working frequency of currently selected channel to `` value`` . """
+        """ Get working frequency of currently selected
+        channel to `` value`` .
+        """
         return self.dll.fnLDA_GetWorkingFrequency(self.reference) * FREQ_UNIT
 
-    def switch_channel(self, number: int):
+    def switch_channel(self, number: int) -> None:
         """ Change to which channel get and set commands refer to."""
         _ = self.dll.fnLDA_SetChannel(self.reference, number)
 
-    def save_settings(self):
-        """ Save current settings to memory. Settings are automatically loaded during power on."""
+    def save_settings(self) -> None:
+        """ Save current settings to memory.
+        Settings are automatically loaded during power on.
+        """
         self.dll.fnLDA_SaveSettings(self.reference)
 
 
@@ -186,8 +199,10 @@ class LDAChannel(InstrumentChannel):
 
         self.add_parameter("attenuation",
                            unit="dB",
-                           get_cmd=partial(self._switch_and_call, self.parent.get_attenuation),
-                           set_cmd=partial(self._switch_and_call, self.parent.set_attenuation),
+                           get_cmd=partial(self._switch_and_call,
+                                           self.parent.get_attenuation),
+                           set_cmd=partial(self._switch_and_call,
+                                           self.parent.set_attenuation),
                            vals=Numbers(min_att, max_att)
                            )
 
@@ -202,12 +217,13 @@ class LDAChannel(InstrumentChannel):
                                                self.parent.get_working_frequency),
                                set_cmd=partial(self._switch_and_call,
                                                self.parent.set_working_frequency),
-                               docstring="Frequency at which the attenuation is most accurate.",
+                               docstring="Frequency at which the attenuation "
+                                         "is most accurate.",
                                )
 
     def _switch_and_call(self, func: Callable, *args) -> Any:
-        """ Change active channel on the parent instrument, so that ``func``  call is applied on
-        this channel. """
+        """ Change active channel on the parent instrument, so that ``func``
+        call is applied on this channel. """
         self.parent.switch_channel(self.channel_number)
         return func(*args)
 
