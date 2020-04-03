@@ -556,6 +556,7 @@ class M4i(Instrument):
                                    pyspcm, 'SPC_TRIG_EXT0_LEVEL{}'.format(l))),
                                set_cmd=partial(self._set_param32bit, getattr(
                                    pyspcm, 'SPC_TRIG_EXT0_LEVEL{}'.format(l))),
+                               unit='mV',
                                docstring='trigger level {} for external trigger'.format(l))
 
         for i in [0, 1, 2, 3]:
