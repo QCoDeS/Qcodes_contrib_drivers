@@ -140,7 +140,9 @@ class NationalInstruments_RFSG(NIDLLInstrument):
                            label="Reference clock source",
                            get_cmd=partial(self.get_attribute,
                                            NIRFSG_ATTR_REF_CLOCK_SOURCE),
-                           set_cmd=self._set_clock_source,
+                           set_cmd=partial(self.set_attribute,
+                                           NIRFSG_ATTR_REF_CLOCK_SOURCE),
+                           val_mapping=CLK_SRC_MAP,
                            )
 
         self.initiate()
@@ -188,29 +190,6 @@ class NationalInstruments_RFSG(NIDLLInstrument):
     def _set_power_level(self, power_level: float, initiate: bool = False):
         frequency = self.get_attribute(NIRFSG_ATTR_FREQUENCY)
         self._configure_rf(frequency, power_level, initiate)
-
-    def _set_clock_source(self, source: str):
-        """
-        Sets the reference clock source.
-        Args:
-            source: reference clock source. Valid values are
-                        onboard
-                        clk_in
-                        ref_in
-                        pxi_clk
-                        ref_in_2
-                        pxi_clk_master
-                    Last two values are valid for PXIe-5840 with PXIe-5653.
-        """
-        if source in CLK_SRC_MAP.keys():
-            self.set_attribute(NIRFSG_ATTR_REF_CLOCK_SOURCE,
-                               CLK_SRC_MAP[source])
-        else:
-            warnings.warn(f"Unknown clock source {source}."
-                          f" Valid sources are {CLK_SRC_MAP.keys()}. Falling"
-                          f" back to onboard clock.", RuntimeWarning)
-            self.set_attribute(NIRFSG_ATTR_REF_CLOCK_SOURCE,
-                               CLK_SRC_MAP['onboard'])
 
     @property
     def vendor(self) -> str:
