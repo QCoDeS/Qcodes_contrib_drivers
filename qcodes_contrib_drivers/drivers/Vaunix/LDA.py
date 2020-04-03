@@ -15,7 +15,7 @@ ATT_UNIT = 0.05  # integers returned by the API correspond to 0.05 dB
 FREQ_UNIT = 100_000  # integers returned by the API correspond to 100kHz
 
 
-class LDA(Instrument):
+class Vaunix_LDA(Instrument):
     r"""
     This is the QCoDeS driver for Vaunix LDA digital attenuators.
     Requires that the DLL that comes with the instrument, `` VNX_atten64.dll``  and/or `` VNX_atten.dll``,
@@ -208,3 +208,6 @@ class LDAChannel(InstrumentChannel):
         this channel. """
         self.parent.switch_channel(self.channel_number)
         return func(*args)
+
+# shorthand
+LDA = Vaunix_LDA
