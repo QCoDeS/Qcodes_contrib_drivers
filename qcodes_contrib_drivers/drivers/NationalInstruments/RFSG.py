@@ -103,7 +103,7 @@ class NationalInstruments_RFSG(NIDLLInstrument):
                            unit="Hz",
                            get_cmd=partial(self.get_attribute,
                                            NIRFSG_ATTR_FREQUENCY),
-                           set_cmd=self.set_frequency,
+                           set_cmd=self._set_frequency,
                            )
 
         self.add_parameter(name="power_level",
@@ -111,7 +111,7 @@ class NationalInstruments_RFSG(NIDLLInstrument):
                            label="power level",
                            get_cmd=partial(self.get_attribute,
                                            NIRFSG_ATTR_POWER_LEVEL),
-                           set_cmd=self.set_power_level,
+                           set_cmd=self._set_power_level,
                            )
 
         self.add_parameter(name="output_on",
@@ -159,8 +159,8 @@ class NationalInstruments_RFSG(NIDLLInstrument):
         """
         self.wrapper.Abort(self._handle)
 
-    def configure_rf(self, frequency: float, power_level: float,
-                     initiate: bool):
+    def _configure_rf(self, frequency: float, power_level: float,
+                      initiate: bool):
         """
         NI-RFSG devices can only set both the frequency and power level
         simultatneously. Convenience methods are defined below for setting
@@ -181,13 +181,13 @@ class NationalInstruments_RFSG(NIDLLInstrument):
         if initiate:
             self.initiate()
 
-    def set_frequency(self, frequency: float, initiate: bool = False):
+    def _set_frequency(self, frequency: float, initiate: bool = False):
         power_level = self.get_attribute(NIRFSG_ATTR_POWER_LEVEL)
-        self.configure_rf(frequency, power_level, initiate)
+        self._configure_rf(frequency, power_level, initiate)
 
-    def set_power_level(self, power_level: float, initiate: bool = False):
+    def _set_power_level(self, power_level: float, initiate: bool = False):
         frequency = self.get_attribute(NIRFSG_ATTR_FREQUENCY)
-        self.configure_rf(frequency, power_level, initiate)
+        self._configure_rf(frequency, power_level, initiate)
 
     def set_clock_source(self, source: str, clock_rate: float = 10e6):
         """
