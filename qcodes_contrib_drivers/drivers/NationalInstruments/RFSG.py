@@ -159,8 +159,8 @@ class NationalInstruments_RFSG(NIDLLInstrument):
         """
         self.wrapper.Abort(self._handle)
 
-    def ConfigureRF(self, frequency: float, power_level: float,
-                    initiate: bool):
+    def configure_rf(self, frequency: float, power_level: float,
+                     initiate: bool):
         """
         NI-RFSG devices can only set both the frequency and power level
         simultatneously. Convenience methods are defined below for setting
@@ -183,11 +183,11 @@ class NationalInstruments_RFSG(NIDLLInstrument):
 
     def set_frequency(self, frequency: float, initiate: bool = False):
         power_level = self.get_attribute(NIRFSG_ATTR_POWER_LEVEL)
-        self.ConfigureRF(frequency, power_level, initiate)
+        self.configure_rf(frequency, power_level, initiate)
 
     def set_power_level(self, power_level: float, initiate: bool = False):
         frequency = self.get_attribute(NIRFSG_ATTR_FREQUENCY)
-        self.ConfigureRF(frequency, power_level, initiate)
+        self.configure_rf(frequency, power_level, initiate)
 
     def set_clock_source(self, source: str, clock_rate: float = 10e6):
         """
