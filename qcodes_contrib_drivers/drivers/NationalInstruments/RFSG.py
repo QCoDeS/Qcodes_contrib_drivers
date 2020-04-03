@@ -140,7 +140,7 @@ class NationalInstruments_RFSG(NIDLLInstrument):
                            label="Reference clock source",
                            get_cmd=partial(self.get_attribute,
                                            NIRFSG_ATTR_REF_CLOCK_SOURCE),
-                           set_cmd=self.set_clock_source,
+                           set_cmd=self._set_clock_source,
                            )
 
         self.initiate()
@@ -189,7 +189,7 @@ class NationalInstruments_RFSG(NIDLLInstrument):
         frequency = self.get_attribute(NIRFSG_ATTR_FREQUENCY)
         self._configure_rf(frequency, power_level, initiate)
 
-    def set_clock_source(self, source: str, clock_rate: float = 10e6):
+    def _set_clock_source(self, source: str, clock_rate: float = 10e6):
         """
         Sets reference clock source
         Args:
