@@ -138,11 +138,12 @@ class NationalInstruments_RFSG(NIDLLInstrument):
 
         self.add_parameter(name="clock_source",
                            label="Reference clock source",
-                           docstring="Specify the reference clock source for the device."
-                           " See the ``vals`` attribute for valid values.\n\n"
-                           "The values 'ref_in_2' and 'pxi_clk_master' are valid"
-                           " for PXIe-5840 with PXIe-5653. For further details,"
-                           " see the NI-RFSG documentation.",
+                           docstring="Specify the reference clock source for "
+                           "the device. See the ``vals`` attribute for valid "
+                           "values.\n\nThe values 'ref_in_2' and "
+                           "'pxi_clk_master' are valid for PXIe-5840 with "
+                           "PXIe-5653. For further details, see the NI-RFSG "
+                           "documentation.",
                            get_cmd=partial(self.get_attribute,
                                            NIRFSG_ATTR_REF_CLOCK_SOURCE),
                            set_cmd=partial(self.set_attribute,
