@@ -127,11 +127,11 @@ class Keithley_6430(VisaInstrument):
                            get_cmd=':SOUR:DEL?',
                            vals=Numbers(0, 9999.998)
                            )
-        self.add_parameter('output_on',
+        self.add_parameter('output_enabled',
                            set_cmd='OUTP {}',
                            get_cmd='OUTP?',
                            val_mapping=on_off_vals,
-                           docstring='True if the instrument is outputting.',
+                           docstring='Turns the source on or off.',
                            )
         self.add_parameter('output_auto_off',
                            set_cmd=':SOUR:CLE:AUTO {}',
@@ -316,7 +316,7 @@ class Keithley_6430(VisaInstrument):
         Returns:
             tuple of(voltage (V), current (A), resistance (Ohm))
         """
-        if not (self.output_on() or self.output_auto_off()):
+        if not (self.output_enabled() or self.output_auto_off()):
             raise Exception(
                     'Either source must be turned on manually or auto_off has '
                     'to be enabled before calling read().'
