@@ -61,9 +61,8 @@ class Vaunix_LDA(Instrument):
         device_refs = device_IDs()
         self.dll.fnLDA_GetDevInfo(device_refs)
         devices = {self.dll.fnLDA_GetSerialNumber(ref): ref for ref in device_refs}
-        if self.serial_number in devices:
-            self.reference = devices[self.serial_number]
-        else:
+        self.reference = devices.get(self.serial_number, "not found")
+        if self.reference == "not found":
             raise ValueError(f"LDA with serial number {self.serial_number} was not found"
                              f" in the system. Found: {devices}")
 
