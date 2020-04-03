@@ -14,8 +14,9 @@ class Keysight_J7211(VisaInstrument):
         attenuation: Optional attenuation level to set on startup
     """
 
-    def __init__(self, name, address, attenuation=None, **kwargs):
-        super().__init__(name, address, terminator='\r', **kwargs)
+    def __init__(self, name: str, address: str,
+                 attenuation: Optional[int] = None, **kwargs):
+        super().__init__(name=name, address=address, terminator='\r', **kwargs)
 
         self.add_parameter('attenuation', unit='dB',
                            set_cmd='ATT {:03.0f}',
