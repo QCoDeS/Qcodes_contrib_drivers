@@ -32,13 +32,16 @@ class Vaunix_LDA(Instrument):
     Args:
         name: Qcodes name for this instrument
         serial_number: Serial number of the instrument, used to identify it.
+        dll_path: Look for the LDA DLL's in this directory. By default, the directory this file is in.
         channel_names: Optionally assign these names to the channels.
+        test_mode: If true, communicates with the API but not with the device. For testing purposes.
     """
 
     def __init__(self, name: str,
                  serial_number: int,
                  dll_path: Optional[str] = None,
                  channel_names: Optional[List[str]] = None,
+                 test_mode: Optional[bool] = False,
                  **kwargs):
 
         super().__init__(name=name, **kwargs)
@@ -50,7 +53,7 @@ class Vaunix_LDA(Instrument):
 
         self.dll = None
         self._load_dll(dll_path)
-        self.dll.fnLDA_SetTestMode(False)  # Test API without communication
+        self.dll.fnLDA_SetTestMode(test_mode)  # Test API without communication
 
         # Find all Vaunix devices, init the one with matching serial number.
         num_devices = self.dll.fnLDA_GetNumDevices()
