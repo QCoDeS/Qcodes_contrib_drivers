@@ -114,7 +114,7 @@ class NationalInstruments_RFSG(NIDLLInstrument):
                            set_cmd=self._set_power_level,
                            )
 
-        self.add_parameter(name="output_on",
+        self.add_parameter(name="output_enabled",
                            label="Output enabled",
                            get_cmd=partial(self.get_attribute,
                                            NIRFSG_ATTR_OUTPUT_ENABLED),
