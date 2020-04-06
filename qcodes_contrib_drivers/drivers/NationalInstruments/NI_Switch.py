@@ -1,8 +1,9 @@
 import logging
-from typing import Optional, Dict, Union
-from functools import partial
+from typing import Optional, Dict, Union, List
 
-from qcodes import Instrument
+from qcodes import Instrument, InstrumentChannel, ChannelList
+from qcodes.utils.validators import Enum
+
 from niswitch import Session, PathCapability
 
 logger = logging.getLogger(__name__)
@@ -34,78 +35,97 @@ class NationalInstrumentsSwitch(Instrument):
     """
 
     def __init__(self, name: str, resource: str,
-                 #name_mapping: Optional[Dict[str, str]] = None,
+                 name_mapping: Optional[Dict[str, str]] = None,
                  reset_device: bool = False,
                  niswitch_kw: Optional[Dict] = None,
                  **kwargs):
 
         super().__init__(name=name, **kwargs)
+        if name_mapping is None:
+            name_mapping = {}
         if niswitch_kw is None:
             niswitch_kw = {}
-        self._session = Session(resource, reset_device=reset_device, **niswitch_kw)
-        self.channelNames = [self._session.get_channel_name(i + 1)
-                             for i in range(self._session.channel_count)]
-        #self._name_map = name_mapping
+        self.session = Session(resource, reset_device=reset_device, **niswitch_kw)
+
+        new_channels = ChannelList(self, "all_channels", SwitchChannel)
+        self.add_submodule("channels", new_channels)
+        for i in range(self.session.channel_count):
+            api_name = self.session.get_channel_name(i + 1)
+            alias = name_mapping.get(api_name, api_name)
+            ch = SwitchChannel(self, alias, api_name)
+            new_channels.append(ch)
+        self.snapshot(update=True)  # make all channels read their conenctions
+
         self.connect_message()
-        # define parameter(s) in device-specific subclass
-
-    def connect(self,
-                channel1: Union[str, None],
-                channel2: Union[str, None]) -> None:
-        r"""
-        Force connection between ``channel1`` and ``channel2``, disconnect ALL
-        other connections. If either one is None, disconnect the other.
-        """
-        if channel1 is None and channel2 is not None:
-            self._session.disconnect(channel2, self.read_connection(channel2))
-            return
-        if channel2 is None and channel1 is not None:
-            self._session.disconnect(channel1, self.read_connection(channel1))
-            return
-
-        if channel1 in self.channelNames and channel2 in self.channelNames:
-            status = self._session.can_connect(channel1, channel2)
-            if status == PathCapability.PATH_EXISTS:
-                # already connected, do nothing
-                pass
-            elif status == PathCapability.PATH_AVAILABLE:
-                # not connected
-                self._session.connect(channel1, channel2)
-            elif status == PathCapability.RESOURCE_IN_USE:
-                # connected to something else
-                self._session.disconnect_all()
-                self._session.connect(channel1, channel2)
-            else:
-                raise RuntimeError(f"Could not connect channels {channel1} "
-                                   f"and {channel2}: {status.name}")
-        else:
-            #available = self._name_map.keys() if self._name_map else self.channelNames
-            available = self.channelNames
-            raise ValueError(f"Unrecognized channel name. Available: "
-                             f"{available}, got '{channel1}', '{channel2}'")
 
     def disconnect_all(self) -> None:
-        self._session.disconnect_all()
-
-    def read_connection(self, channel) -> Union[str, None]:
-        r"""
-        Returns the name of the channel to which `channel` is connected to. If
-        not connected, return None.
-        """
-        #if self._name_map:
-        #    channel = self._name_map[channel]
-
-        for ch in self.channelNames:
-            res = self._session.can_connect(channel, ch)
-            if res == PathCapability.PATH_EXISTS:
-                return ch
-        return None
+        self.session.disconnect_all()
+        self.snapshot(update=True)
 
     def get_idn(self):
-        return {'vendor': self._session.instrument_manufacturer,
-                'model': self._session.instrument_model,
-                'serial': self._session.serial_number,
-                'firmware': self._session.instrument_firmware_revision}
+        return {'vendor': self.session.instrument_manufacturer,
+                'model': self.session.instrument_model,
+                'serial': self.session.serial_number,
+                'firmware': self.session.instrument_firmware_revision}
+
+
+class SwitchChannel(InstrumentChannel):
+    """ Represents one output or input terminal of a switch instrument. """
+    def __init__(self, instrument: NationalInstrumentsSwitch,
+                 name: str, api_name: str):
+        super().__init__(instrument, name)
+
+        self._session = self.root_instrument.session
+        self.api_name = api_name
+        self.connection_list = ChannelList(self.root_instrument, "connections",
+                                           type(self), snapshotable=False)
+        
+        self.add_parameter("connections",
+                           get_cmd=self._read_connections,
+                           set_cmd=False,
+                           )
+        
+    def _update_connection_list(self) -> None:
+        self.connection_list.clear()
+        for ch in self.root_instrument.channels:
+            if ch is self:
+                continue
+            status = self._session.can_connect(self.api_name, ch.api_name)
+            if status == PathCapability.PATH_EXISTS:
+                self.connection_list.append(ch)
+                
+
+    def _read_connections(self) -> List[str]:
+        r"""
+        Returns a list of the channels to which this terminal is connected to.
+        """
+        self._update_connection_list()
+        return [ch.short_name for ch in self.connection_list]
+
+    def connect_to(self, other: "InstrumentChannel") -> None:
+        status = self._session.can_connect(self.api_name, other.api_name)
+        if status == PathCapability.PATH_EXISTS:
+            # already connected, do nothing
+            return
+        elif status == PathCapability.PATH_AVAILABLE:
+            # not connected
+            pass
+        elif status == PathCapability.RESOURCE_IN_USE:
+            # connected to something else
+            self.disconnect_from_all()
+            other.disconnect_from_all()
+        self._session.connect(self.api_name, other.api_name)
+        self.connection_list.append(other)
+        other.connection_list.append(self)
+
+    def disconnect_from(self, other: "InstrumentChannel") -> None:
+        self._session.disconnect(self.api_name, other.api_name)
+        other.connection_list.remove(self)
+        self.connection_list.remove(other)
+
+    def disconnect_from_all(self) -> None:
+        while len(self.connection_list) > 0:
+            self.disconnect_from(self.connection_list[0])
 
 
 class PXIe_2597(NationalInstrumentsSwitch):
@@ -113,7 +133,7 @@ class PXIe_2597(NationalInstrumentsSwitch):
     QCoDeS driver for National Instruments RF switch PXIe-2597.
     The device connects the common "com" port to any of the 6 other ports,
     labeled "ch1"..."ch6" by default. Use the ``name_mapping `` parameter
-    to map additional aliases to the 
+    to map additional aliases to the
 
     Args:
         name: Qcodes name for this instrument
@@ -123,32 +143,34 @@ class PXIe_2597(NationalInstrumentsSwitch):
         reset_device: whether to reset the device on initialization
     """
     def __init__(self, name: str, resource: str,
-                 name_mapping: Optional[Dict[str, str]] = None,
+                 name_mapping: Optional[Dict[str, str]] = None,  # other keys than strings?
                  reset_device: bool = False, **kwargs):
-        super().__init__(name, resource, reset_device, **kwargs)
+        super().__init__(name, resource, name_mapping, reset_device, **kwargs)
 
-        val_mapping = {name: name for name in self.channelNames}
-        if name_mapping is not None:
-            val_mapping = dict(val_mapping, **name_mapping)
-        val_mapping[None] = None
+        self.channels.lock()
+        valid_choices = [ch.short_name for ch in self.channels]
+        valid_choices.remove("com")
 
         self.add_parameter(name="channel",
                            get_cmd=self._get_channel,
-                           set_cmd=partial(self.connect, 'com'),
-                           val_mapping=val_mapping,
+                           set_cmd=self._set_channel,
+                           vals=Enum( *tuple(valid_choices + [None])),
                            post_delay=1,
                            docstring='Name of the channel where the common '
                                      '"com" port is connected to',
                            label=f"{self.short_name} active channel")
-                        
-    def connect(self, channel1, channel2):
-        self.channel.validate(channel1)
-        self.channel.validate(channel2)
-        mapping = self.channel.val_mapping
-        # for some reason, super() doesn't work when setting the parameter
-        # but using this _connect hack works...
-        super().connect(mapping[channel1], mapping[channel2])
 
-    def _get_channel(self):
-        end_point = self.read_connection('com')
-        return end_point if end_point is not None else 'com'
+    def _set_channel(self, name_to_connect: Union[str, None]) -> None:
+        if name_to_connect is None:
+            self.channels.com.disconnect_from_all()
+        else:
+            self.channels.com.connect_to(getattr(self.channels, name_to_connect))
+
+    def _get_channel(self) -> Union[str, None]:
+        com_list = self.channels.com.connection_list
+        if len(com_list) == 0:
+            return None
+        elif len(com_list) == 1:
+            return com_list[0].short_name
+        else:
+            raise RuntimeError("this shouldn't happen.")
