@@ -50,7 +50,7 @@ class Vaunix_LDA(Instrument):
         self.reference = None
 
         if channel_names is None:
-            channel_names = []
+            channel_names = {}
 
         self.dll = None
         self._load_dll(dll_path)
