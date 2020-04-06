@@ -1,3 +1,20 @@
+r"""
+This is the QCoDeS driver for Vaunix LDA digital attenuators.
+It requires the DLL that comes with the instrument,
+`` VNX_atten64.dll``  and/or `` VNX_atten.dll``,
+for 64-bit Windows and 32-bit Windows, respectively.
+If the instrument has more than one physical channel,
+``InstrumentChannel``s are created for each one.
+If the instrument has only one physical channel, no channels are created
+and the parameters will be assigned to this instrument instead.
+The sweep profiles available in the API are not implemented.
+
+Tested with with 64-bit system and
+- LDA-133
+- LDA-802Q
+
+"""
+
 import logging
 from typing import Optional, Dict, Callable, Union
 from functools import partial
@@ -13,37 +30,22 @@ logger = logging.getLogger(__name__)
 
 
 class Vaunix_LDA(Instrument):
-    r"""
-    This is the QCoDeS driver for Vaunix LDA digital attenuators.
-    Requires that the DLL that comes with the instrument,
-    `` VNX_atten64.dll``  and/or `` VNX_atten.dll``, is found at ``dll_path``,
-    for 64-bit Windows and 32-bit Windows, respectively.
-    If the instrument has more than one physical channel,
-    ``InstrumentChannel``  objects are created for each one.
-    If the instrument has only one physical channel, no channels are created
-    and the parameters will be assigned to this instrument instead.
-    The sweep profiles available in the API are not implemented.
-
-    Tested with with 64-bit system and
-    - LDA-133
-    - LDA-802Q
-
-    Args:
-        name: Qcodes name for this instrument
-        serial_number: Serial number of the instrument, used to identify it.
-        dll_path: Look for the LDA DLL's in this directory.
-            By default, the directory this file is in.
-        channel_names: Optionally assign these names to the channels.
-        test_mode: If true, communicates with the API but not with the device.
-            For testing purposes.
-    """
-
     def __init__(self, name: str,
                  serial_number: int,
                  dll_path: Optional[str] = None,
                  channel_names: Optional[Dict[int, str]] = None,
                  test_mode: Optional[bool] = False,
                  **kwargs):
+        r"""  QCoDeS Instrument for Vaunix LDA digital attenuators.
+        Args:
+            name: Qcodes name for this instrument
+            serial_number: Serial number of the instrument, used to identify it.
+            dll_path: Look for the LDA DLLs in this directory.
+                By default, the directory this file is in.
+            channel_names: Optionally assign these names to the channels.
+            test_mode: If True, communicates with the API but not with the device.
+                For testing purposes.
+        """
 
         super().__init__(name=name, **kwargs)
         self.serial_number = serial_number
@@ -90,7 +92,8 @@ class Vaunix_LDA(Instrument):
         self.connect_message()
 
     def _load_dll(self, dll_path: str = None) -> None:
-        r""" Load correct DLL from ``dll_path`` based on bitness of the operating system.
+        r""" Load correct DLL from ``dll_path`` based on bitness of
+            the operating system.
         Args:
             dll_path: path to the directory that contains the Vaunix LDA DLL.
             By default, same as the directory of this file.
@@ -153,7 +156,7 @@ class LdaChannel(InstrumentChannel):
 
 
 class LdaParameter(Parameter):
-    scaling = 1
+    scaling = 1  # Scaling from integers from API to physical quantities
 
     def __init__(self, name: str,
                  instrument: Union[Vaunix_LDA, LdaChannel],
@@ -248,7 +251,7 @@ class LdaWorkingFrequency(LdaParameter):
     @classmethod
     def get_validator(cls, root_instrument: Vaunix_LDA) -> Optional[Numbers]:
         """ Returns validator for working frequency, if ``root_instrument``
-         supports it. Else returns None.
+            supports it. Else returns None.
         """
         max_freq = root_instrument.dll.fnLDA_GetMaxWorkingFrequency(
                     root_instrument.reference) * cls.scaling
