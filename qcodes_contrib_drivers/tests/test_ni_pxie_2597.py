@@ -145,7 +145,7 @@ def test_connect_to_other_instrument(pxie_2597, pxie_2597_with_name_map):
 
     for instr in [instr1, instr2]:
         assert instr1.channels[0].connections() == []
-        assert instr1.com.connections() == []
+        assert instr1.channels.com.connections() == []
         assert instr1.channel() is None
         assert instr2.channel() is None
 
@@ -186,8 +186,8 @@ def test_parameters(pxie_2597,
                 continue
 
             instr.channel(ch_name)
-            assert ch_name in instr.channels.com.connections()
-            assert "com" in ch.connections()
+            assert instr.channels.com.connections() == [ch_name]
+            assert ch.connections() == ["com"]
             instr.disconnect_all()
             assert instr.channel() is None
             assert instr.channels.com.connections() == []
