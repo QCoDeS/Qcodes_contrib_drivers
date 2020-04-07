@@ -30,6 +30,17 @@ def pxie_2597():
     instr.close()
 
 
+@pytest.fixture(scope="module")
+def pxie_2597_with_shuffled_channels():
+    instr = get_pxie_2597("PXIe-2597-sim-with-shuffled-channels",
+                          name_mapping={"ch1": "ch2",
+                                        "ch2": "ch3",
+                                        "ch3": "ch1"}
+                         )
+    yield instr
+    instr.close()
+
+
 # example name mapping to use in the tests
 NAME_MAPPING = {
         "ch1": "The first channel",
@@ -72,13 +83,16 @@ def test_channel(pxie_2597):
     assert len(ch.connection_list)  == 0
 
 
-def test_parameters(pxie_2597, pxie_2597_with_name_map):
-    for instr in [pxie_2597, pxie_2597_with_name_map]:
-        for ch in range(1, 6+1):
-            ch_name = f"ch{ch}"
-            if instr is pxie_2597_with_name_map and ch_name in NAME_MAPPING: 
-                ch_name = NAME_MAPPING[ch_name]
-            ch = getattr(instr.channels, ch_name)
+def test_parameters(pxie_2597,
+                    pxie_2597_with_name_map,
+                    pxie_2597_with_shuffled_channels):
+    for instr in [pxie_2597,
+                  pxie_2597_with_name_map,
+                  pxie_2597_with_shuffled_channels]:
+        for ch in instr.channels:
+            ch_name = ch.short_name
+            if ch_name == "com":
+                continue
 
             instr.channel(ch_name)
             assert ch_name in instr.channels.com.connections()
