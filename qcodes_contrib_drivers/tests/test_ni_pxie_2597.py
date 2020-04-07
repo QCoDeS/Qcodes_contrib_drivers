@@ -137,10 +137,10 @@ def test_connect_to_other_instrument(pxie_2597, pxie_2597_with_name_map):
     instr1, instr2 = pxie_2597, pxie_2597_with_name_map
     instr1.disconnect_all()
     instr2.disconnect_all()
-    with pytest.raises(RuntimeError):
+    with pytest.raises(ValueError):
         # attempting to connect channels on two different devices is an error
         instr1.channels[0].connect_to(instr2.channels.com)
-    with pytest.raises(RuntimeError):
+    with pytest.raises(ValueError):
         instr2.channels[0].connect_to(instr1.channels.com)
 
     for instr in [instr1, instr2]:
