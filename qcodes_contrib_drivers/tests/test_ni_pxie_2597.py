@@ -1,6 +1,7 @@
 import pytest
 try:
     import niswitch
+    from niswitch.errors import DriverError
 except ImportError:
     pytest.skip("niswitch not found", allow_module_level=True)
 
@@ -66,6 +67,89 @@ def test_disconnect_all(pxie_2597):
         assert len(getattr(pxie_2597.channels, ch_name).connection_list)  == 0
 
 
+def test_connect_to(pxie_2597, pxie_2597_with_name_map):
+    for instr in [pxie_2597, pxie_2597_with_name_map]:
+        ch1, ch2 = instr.channels[:2]
+        com = instr.channels.com
+        assert ch1 is not com
+        assert ch2 is not com
+        instr.disconnect_all()
+
+        with pytest.raises(DriverError):
+            ch1.connect_to(ch2)
+        with pytest.raises(DriverError):
+            ch2.connect_to(ch1)
+
+        ch1.connect_to(com)
+        assert ch1.connections() == [com.short_name]
+        assert ch2.connections() == []
+        for (c1, c2) in [(ch2, com),
+                         (ch2, com),
+                         (com, ch2)]:
+            c1.connect_to(c2)
+            assert ch1.connections() == []
+            assert ch2.connections() == [com.short_name]
+
+        instr.disconnect_all()
+        for ch in [ch1, ch2, com]:
+            with pytest.raises(ValueError):
+                ch.connect_to("foo")
+
+
+def test_disconnect_from(pxie_2597, pxie_2597_with_name_map):
+    from itertools import combinations_with_replacement
+    for instr in [pxie_2597, pxie_2597_with_name_map]:
+        ch1, ch2 = instr.channels[:2]
+        com = instr.channels.com
+        instr.disconnect_all()
+        for (c1, c2) in combinations_with_replacement([ch1, ch2, com], 2):
+            with pytest.raises(DriverError):
+                c1.disconnect_from(c2)
+            with pytest.raises(DriverError):
+                c2.disconnect_from(c1)
+
+        ch1.connect_to(com)
+        with pytest.raises(DriverError):
+            ch1.disconnect_from(ch2)
+        with pytest.raises(DriverError):
+            ch2.disconnect_from(ch1)
+        with pytest.raises(DriverError):
+            ch2.disconnect_from(com)
+        with pytest.raises(DriverError):
+            com.disconnect_from(ch2)
+
+
+def test_disconnect_from_all(pxie_2597, pxie_2597_with_name_map):
+    for instr in [pxie_2597, pxie_2597_with_name_map]:
+        com = instr.channels.com
+        for ch in instr.channels:
+            if ch is com:
+                continue
+            for ch_to_disconnect in [ch, com]:
+                com.connect_to(ch)
+                assert ch.connections() == ["com"]
+                ch_to_disconnect.disconnect_from_all()
+                assert ch.connections() == []
+                assert com.connections() == []
+
+
+def test_connect_to_other_instrument(pxie_2597, pxie_2597_with_name_map):
+    instr1, instr2 = pxie_2597, pxie_2597_with_name_map
+    instr1.disconnect_all()
+    instr2.disconnect_all()
+    with pytest.raises(RuntimeError):
+        # attempting to connect channels on two different devices is an error
+        instr1.channels[0].connect_to(instr2.channels.com)
+    with pytest.raises(RuntimeError):
+        instr2.channels[0].connect_to(instr1.channels.com)
+
+    for instr in [instr1, instr2]:
+        assert instr1.channels[0].connections() == []
+        assert instr1.com.connections() == []
+        assert instr1.channel() is None
+        assert instr2.channel() is None
+
+
 def test_channel(pxie_2597):
     pxie_2597.disconnect_all()
 
@@ -81,6 +165,13 @@ def test_channel(pxie_2597):
     assert pxie_2597.channel() is None
     assert len(pxie_2597.channels.com.connection_list) == 0
     assert len(ch.connection_list)  == 0
+
+
+def test_com_alias_ignored(pxie_2597_with_name_map):
+    instr = pxie_2597_with_name_map
+    ch_names = [ch.short_name for ch in instr.channels]
+    assert "com" in ch_names
+    assert NAME_MAPPING["com"] not in ch_names
 
 
 def test_parameters(pxie_2597,
