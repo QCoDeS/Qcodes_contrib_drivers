@@ -145,8 +145,12 @@ class PXIe_2597(NationalInstrumentsSwitch):
     def __init__(self, name: str, resource: str,
                  name_mapping: Optional[Dict[str, str]] = None,  # other keys than strings?
                  reset_device: bool = False, **kwargs):
-        if name_mapping:
+
+        if name_mapping is not None:
+            # don't mutate external dict
+            name_mapping = name_mapping.copy()
             name_mapping["com"] = "com"
+
         super().__init__(name, resource, name_mapping, reset_device, **kwargs)
 
         self.channels.lock()
