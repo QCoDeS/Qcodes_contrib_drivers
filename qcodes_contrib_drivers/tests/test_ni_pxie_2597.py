@@ -98,5 +98,6 @@ def test_parameters(pxie_2597,
             assert ch_name in instr.channels.com.connections()
             assert "com" in ch.connections()
             instr.disconnect_all()
+            assert instr.channel() is None
             assert instr.channels.com.connections() == []
             assert ch.connections() == []
