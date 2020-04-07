@@ -32,9 +32,9 @@ def pxie_2597():
 
 # example name mapping to use in the tests
 NAME_MAPPING = {
-        "The first channel": "ch1",
-        "aux": "ch3",
-        "center": "com"
+        "ch1": "The first channel",
+        "ch3": "aux",
+        "com": "mistake"  # this should be ignored
         }
 
 
@@ -49,6 +49,10 @@ def pxie_2597_with_name_map():
 def test_disconnect_all(pxie_2597):
     pxie_2597.disconnect_all()
     assert pxie_2597.channel() is None
+    for ch in range(1, 6+1):
+        ch_name = f"ch{ch}"
+        assert len(pxie_2597.channels.com.connection_list) == 0
+        assert len(getattr(pxie_2597.channels, ch_name).connection_list)  == 0
 
 
 def test_channel(pxie_2597):
@@ -56,71 +60,29 @@ def test_channel(pxie_2597):
 
     for ch in range(1, 6+1):
         ch_name = f"ch{ch}"
+        ch = getattr(pxie_2597.channels, ch_name)
         pxie_2597.channel(ch_name)
         assert pxie_2597.channel() == ch_name
+        assert ch in pxie_2597.channels.com.connection_list
+        assert pxie_2597.channels.com in ch.connection_list
 
     pxie_2597.channel(None)
     assert pxie_2597.channel() is None
+    assert len(pxie_2597.channels.com.connection_list) == 0
+    assert len(ch.connection_list)  == 0
 
 
-def test_read_connection(pxie_2597):
-    for ch in range(1, 6+1):
-        ch_name = f"ch{ch}"
-        pxie_2597.disconnect_all()
-        assert pxie_2597.read_connection("com") is None
-        assert pxie_2597.read_connection(ch_name) is None
-
-        pxie_2597.channel(ch_name)
-        assert pxie_2597.read_connection("com") == ch_name
-        assert pxie_2597.read_connection(ch_name) == "com"
-
-
-def test_connect(pxie_2597, pxie_2597_with_name_map):
+def test_parameters(pxie_2597, pxie_2597_with_name_map):
     for instr in [pxie_2597, pxie_2597_with_name_map]:
         for ch in range(1, 6+1):
             ch_name = f"ch{ch}"
+            if instr is pxie_2597_with_name_map and ch_name in NAME_MAPPING: 
+                ch_name = NAME_MAPPING[ch_name]
+            ch = getattr(instr.channels, ch_name)
 
+            instr.channel(ch_name)
+            assert ch_name in instr.channels.com.connections()
+            assert "com" in ch.connections()
             instr.disconnect_all()
-            instr.connect(ch_name, "com")
-            assert instr.channel() == ch_name
-            instr.disconnect_all()
-            instr.connect("com", ch_name)
-            assert instr.channel() == ch_name
-            instr.connect(ch_name, "com")
-            assert instr.channel() == ch_name
-
-        instr.connect("ch1", "com")
-        instr.connect("ch1", None)
-        assert instr.channel() is None
-        instr.connect("ch1", "com")
-        instr.connect(None, "ch1")
-        assert instr.channel() is None
-
-        instr.connect("com", "com")
-        assert instr.channel() is None
-
-
-def test_name_map(pxie_2597_with_name_map):
-    instr = pxie_2597_with_name_map
-    com_key = [k for k, v in NAME_MAPPING.items() if v == "com"][0]
-
-    from qcodes.instrument.parameter import invert_val_mapping
-    # check that the generated val_mapping is one to one
-    val_mapping = instr.channel.val_mapping
-    assert invert_val_mapping(invert_val_mapping(val_mapping)) == val_mapping
-
-    for k in NAME_MAPPING.keys():
-        if k == com_key:
-            continue
-
-        instr.disconnect_all()
-        instr.channel(k)
-        assert instr.channel() == k
-
-        for ck in ["com", com_key]:
-            instr.disconnect_all()
-            instr.connect(k, ck)
-            assert instr.channel() == k
-            instr.disconnect_all()
-            instr.connect(ck, k)
-            assert instr.channel() == k
+            assert instr.channels.com.connections() == []
+            assert ch.connections() == []
