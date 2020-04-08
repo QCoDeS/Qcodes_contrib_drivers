@@ -1,9 +1,9 @@
 from typing import Optional, Dict
 from qcodes.utils.validators import Enum
-from .Switch import NationalInstrumentsSwitch
+from .Switch import NI_Switch
 
 
-class NI_PXIe_2597(NationalInstrumentsSwitch):
+class NI_PXIe_2597(NI_Switch):
     r"""
     QCoDeS driver for National Instruments RF switch PXIe-2597. The device
     connects the common "com" port to any of the 6 other ports, labeled

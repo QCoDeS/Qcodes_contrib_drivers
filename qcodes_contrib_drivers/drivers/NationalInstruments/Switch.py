@@ -9,7 +9,7 @@ from niswitch.errors import DriverError
 logger = logging.getLogger(__name__)
 
 
-class NationalInstrumentsSwitch(Instrument):
+class NI_Switch(Instrument):
     r"""
     This is the QCoDeS driver for National Instruments RF switch devices based
     on the NI-SWITCH driver, using the ``niswitch`` module. ``Parameter``s for
@@ -81,7 +81,7 @@ class SwitchChannel(InstrumentChannel):
         raw_name: name of this port in the driver's channel table, as given by
             ``self._session.get_channel_name``
     """
-    def __init__(self, instrument: NationalInstrumentsSwitch,
+    def __init__(self, instrument: NI_Switch,
                  name: str, raw_name: str):
         super().__init__(instrument, name)
 
