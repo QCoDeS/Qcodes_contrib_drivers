@@ -1,5 +1,5 @@
 import logging
-from typing import Optional, Dict, Union, List
+from typing import Optional, Dict, List
 
 from qcodes import Instrument, InstrumentChannel, ChannelList
 from qcodes.utils.validators import Enum
@@ -45,7 +45,8 @@ class NationalInstrumentsSwitch(Instrument):
             name_mapping = {}
         if niswitch_kw is None:
             niswitch_kw = {}
-        self.session = Session(resource, reset_device=reset_device, **niswitch_kw)
+        self.session = Session(resource, reset_device=reset_device,
+                               **niswitch_kw)
 
         new_channels = ChannelList(self, "all_channels", SwitchChannel)
         self.add_submodule("channels", new_channels)
@@ -79,12 +80,12 @@ class SwitchChannel(InstrumentChannel):
         self.api_name = api_name
         self.connection_list = ChannelList(self.root_instrument, "connections",
                                            type(self), snapshotable=False)
-        
+
         self.add_parameter("connections",
                            get_cmd=self._read_connections,
                            set_cmd=False,
                            )
-        
+
     def _update_connection_list(self) -> None:
         self.connection_list.clear()
         for ch in self.root_instrument.channels:
@@ -93,7 +94,6 @@ class SwitchChannel(InstrumentChannel):
             status = self._session.can_connect(self.api_name, ch.api_name)
             if status == PathCapability.PATH_EXISTS:
                 self.connection_list.append(ch)
-                
 
     def _read_connections(self) -> List[str]:
         r"""
@@ -140,13 +140,13 @@ class PXIe_2597(NationalInstrumentsSwitch):
 
     Args:
         name: Qcodes name for this instrument
-        resource: Network address or alias for the instrument.
-        name_mapping: Optional dict that maps custom channel names to the default
-            names ("ch1", "ch2" etc.).
+        resource: Network address or alias for the instrument
+        name_mapping: Optional dict that maps the default channel names to
+            custom aliases
         reset_device: whether to reset the device on initialization
     """
     def __init__(self, name: str, resource: str,
-                 name_mapping: Optional[Dict[str, str]] = None,  # other keys than strings?
+                 name_mapping: Optional[Dict[str, str]] = None,
                  reset_device: bool = False, **kwargs):
 
         if name_mapping is not None:
@@ -163,19 +163,20 @@ class PXIe_2597(NationalInstrumentsSwitch):
         self.add_parameter(name="channel",
                            get_cmd=self._get_channel,
                            set_cmd=self._set_channel,
-                           vals=Enum( *tuple(valid_choices + [None])),
+                           vals=Enum(*tuple(valid_choices + [None])),
                            post_delay=1,
                            docstring='Name of the channel where the common '
                                      '"com" port is connected to',
                            label=f"{self.short_name} active channel")
 
-    def _set_channel(self, name_to_connect: Union[str, None]) -> None:
+    def _set_channel(self, name_to_connect: Optional[str]) -> None:
         if name_to_connect is None:
             self.channels.com.disconnect_from_all()
         else:
-            self.channels.com.connect_to(getattr(self.channels, name_to_connect))
+            ch = getattr(self.channels, name_to_connect)
+            self.channels.com.connect_to(ch)
 
-    def _get_channel(self) -> Union[str, None]:
+    def _get_channel(self) -> Optional[str]:
         com_list = self.channels.com.connection_list
         if len(com_list) == 0:
             return None
