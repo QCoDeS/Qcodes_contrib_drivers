@@ -5,6 +5,7 @@ from qcodes import Instrument, InstrumentChannel, ChannelList
 from qcodes.utils.validators import Enum
 
 from niswitch import Session, PathCapability
+from niswitch.errors import DriverError
 
 logger = logging.getLogger(__name__)
 
@@ -15,10 +16,10 @@ class NationalInstrumentsSwitch(Instrument):
     on the NI-SWITCH driver, using the ``niswitch`` module. ``Parameter``s for
     specific instruments should be defined in subclasses.
 
-    This class has functions for connecting two channels, and reading to which
-    channel another is connected to. Driver is mainly written for 1-to-many
-    port devices (e.g. NI PXI-2597). More complex features supported by the
-    ``niswitch`` module are not implemented.
+    This main class mostly just maintains a reference to a
+    ``niswitch.Session``, and  holds ``ChannelList`` of channels, or ports.
+    Actually making connections between the channels is implemented by the
+    ``SwitchChannel`` class.
 
     Tested with
 
@@ -26,11 +27,11 @@ class NationalInstrumentsSwitch(Instrument):
 
     Args:
         name: Qcodes name for this instrument
-        resource: Network address or alias for the instrument.
-        name_mapping: Optional mapping from custom channel names to default
-            names
+        resource: Network address or VISA alias for the instrument.
+        name_mapping: Optional mapping from default ("raw") channel names to
+            custom aliases
         reset_device: whether to reset the device on initialization
-        niswitch_kw: keyword arguments passed to the ``niswitch.Session``
+        niswitch_kw: other keyword arguments passed to the ``niswitch.Session``
             constructor
     """
 
@@ -71,7 +72,16 @@ class NationalInstrumentsSwitch(Instrument):
 
 
 class SwitchChannel(InstrumentChannel):
-    """ Represents one output or input terminal of a switch instrument. """
+    """
+    This class represents one input or output port of a switch instrument.
+
+    Args:
+        instrument: the instrument to which this port belongs to
+        name: name or alias of this port in the parent instrument's
+            ChannelList
+        raw_name: name of this port in the driver's channel table, as given by
+            ``self._session.get_channel_name``
+    """
     def __init__(self, instrument: NationalInstrumentsSwitch,
                  name: str, raw_name: str):
         super().__init__(instrument, name)
@@ -82,6 +92,9 @@ class SwitchChannel(InstrumentChannel):
                                            type(self), snapshotable=False)
 
         self.add_parameter("connections",
+                           docstring="The value of this read-only parameter "
+                                     "is a list of the names of the channels "
+                                     "to which this channel is connected to.",
                            get_cmd=self._read_connections,
                            set_cmd=False,
                            )
@@ -97,12 +110,19 @@ class SwitchChannel(InstrumentChannel):
 
     def _read_connections(self) -> List[str]:
         r"""
-        Returns a list of the channels to which this terminal is connected to.
+        Returns a list of the channels to which this channel is connected to.
         """
         self._update_connection_list()
         return [ch.short_name for ch in self.connection_list]
 
     def connect_to(self, other: "InstrumentChannel") -> None:
+        """
+        Connect this channel to another channel. If either of the channels is
+        already connected to something else, disconnect both channels first. If
+        the channels are already connected to each other, do nothing. If the
+        two channels cannot be connected, raises a ``DriverError``, see
+        the ``niswitch.Session.connect`` documentation for further details.
+        """
         self.root_instrument.channels.get_validator().validate(other)
 
         status = self._session.can_connect(self.raw_name, other.raw_name)
@@ -121,12 +141,19 @@ class SwitchChannel(InstrumentChannel):
         other.connection_list.append(self)
 
     def disconnect_from(self, other: "InstrumentChannel") -> None:
+        """
+        Disconnect this channel from another chanel. If the channels are not
+        connected, raises a ``DriverError``.
+        """
         self.root_instrument.channels.get_validator().validate(other)
         self._session.disconnect(self.raw_name, other.raw_name)
         other.connection_list.remove(self)
         self.connection_list.remove(other)
 
     def disconnect_from_all(self) -> None:
+        """
+        Disconnect this channel from all channels it is connected to.
+        """
         while len(self.connection_list) > 0:
             ch = cast(InstrumentChannel, self.connection_list[0])
             self.disconnect_from(ch)
@@ -134,16 +161,16 @@ class SwitchChannel(InstrumentChannel):
 
 class PXIe_2597(NationalInstrumentsSwitch):
     r"""
-    QCoDeS driver for National Instruments RF switch PXIe-2597.
-    The device connects the common "com" port to any of the 6 other ports,
-    labeled "ch1"..."ch6" by default. Use the ``name_mapping `` parameter
-    to map additional aliases to the
+    QCoDeS driver for National Instruments RF switch PXIe-2597. The device
+    connects the common "com" port to any of the 6 other ports, labeled
+    "ch1"..."ch6" by default. Use the ``name_mapping `` argument to alias the
+    channel names.
 
     Args:
         name: Qcodes name for this instrument
-        resource: Network address or alias for the instrument
-        name_mapping: Optional dict that maps the default channel names to
-            custom aliases
+        resource: Network address or VISA alias for the instrument.
+        name_mapping: Optional mapping from default channel names to custom
+            aliases
         reset_device: whether to reset the device on initialization
     """
     def __init__(self, name: str, resource: str,
