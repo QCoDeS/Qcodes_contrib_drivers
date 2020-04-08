@@ -1,5 +1,5 @@
 import logging
-from typing import Optional, Dict, List
+from typing import Optional, Dict, List, cast
 
 from qcodes import Instrument, InstrumentChannel, ChannelList
 from qcodes.utils.validators import Enum
@@ -128,7 +128,8 @@ class SwitchChannel(InstrumentChannel):
 
     def disconnect_from_all(self) -> None:
         while len(self.connection_list) > 0:
-            self.disconnect_from(self.connection_list[0])
+            ch = cast(InstrumentChannel, self.connection_list[0])
+            self.disconnect_from(ch)
 
 
 class PXIe_2597(NationalInstrumentsSwitch):
