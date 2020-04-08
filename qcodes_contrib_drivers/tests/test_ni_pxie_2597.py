@@ -5,7 +5,7 @@ try:
 except ImportError:
     pytest.skip("niswitch not found", allow_module_level=True)
 
-from qcodes_contrib_drivers.drivers.NationalInstruments.NI_Switch import PXIe_2597
+from qcodes_contrib_drivers.drivers.NationalInstruments.Switch import PXIe_2597
 
 # NOTE: if running tests in parallel, a lock file should be used, see
 # https://github.com/ni/nimi-python/blob/master/src/niswitch/system_tests/test_system_niswitch.py
