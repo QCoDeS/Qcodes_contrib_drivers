@@ -2,6 +2,7 @@ from typing import Optional, Dict
 from qcodes.utils.validators import Enum
 from .Switch import NationalInstrumentsSwitch
 
+
 class NI_PXIe_2597(NationalInstrumentsSwitch):
     r"""
     QCoDeS driver for National Instruments RF switch PXIe-2597. The device

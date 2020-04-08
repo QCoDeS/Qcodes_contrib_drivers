@@ -36,8 +36,7 @@ def pxie_2597_with_shuffled_channels():
     instr = get_pxie_2597("PXIe-2597-sim-with-shuffled-channels",
                           name_mapping={"ch1": "ch2",
                                         "ch2": "ch3",
-                                        "ch3": "ch1"}
-                         )
+                                        "ch3": "ch1"})
     yield instr
     instr.close()
 
@@ -64,7 +63,7 @@ def test_disconnect_all(pxie_2597):
     for ch in range(1, 6+1):
         ch_name = f"ch{ch}"
         assert len(pxie_2597.channels.com.connection_list) == 0
-        assert len(getattr(pxie_2597.channels, ch_name).connection_list)  == 0
+        assert len(getattr(pxie_2597.channels, ch_name).connection_list) == 0
 
 
 def test_connect_to(pxie_2597, pxie_2597_with_name_map):
@@ -164,7 +163,7 @@ def test_channel(pxie_2597):
     pxie_2597.channel(None)
     assert pxie_2597.channel() is None
     assert len(pxie_2597.channels.com.connection_list) == 0
-    assert len(ch.connection_list)  == 0
+    assert len(ch.connection_list) == 0
 
 
 def test_com_alias_ignored(pxie_2597_with_name_map):
