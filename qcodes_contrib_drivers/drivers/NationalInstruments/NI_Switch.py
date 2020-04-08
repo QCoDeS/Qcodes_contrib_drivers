@@ -49,12 +49,12 @@ class NationalInstrumentsSwitch(Instrument):
                                **niswitch_kw)
 
         new_channels = ChannelList(self, "all_channels", SwitchChannel)
-        self.add_submodule("channels", new_channels)
         for i in range(self.session.channel_count):
-            api_name = self.session.get_channel_name(i + 1)
-            alias = name_mapping.get(api_name, api_name)
-            ch = SwitchChannel(self, alias, api_name)
+            raw_name = self.session.get_channel_name(i + 1)
+            alias = name_mapping.get(raw_name, raw_name)
+            ch = SwitchChannel(self, alias, raw_name)
             new_channels.append(ch)
+        self.add_submodule("channels", new_channels)
         self.snapshot(update=True)  # make all channels read their conenctions
 
         self.connect_message()
@@ -73,11 +73,11 @@ class NationalInstrumentsSwitch(Instrument):
 class SwitchChannel(InstrumentChannel):
     """ Represents one output or input terminal of a switch instrument. """
     def __init__(self, instrument: NationalInstrumentsSwitch,
-                 name: str, api_name: str):
+                 name: str, raw_name: str):
         super().__init__(instrument, name)
 
         self._session = self.root_instrument.session
-        self.api_name = api_name
+        self.raw_name = raw_name
         self.connection_list = ChannelList(self.root_instrument, "connections",
                                            type(self), snapshotable=False)
 
@@ -91,7 +91,7 @@ class SwitchChannel(InstrumentChannel):
         for ch in self.root_instrument.channels:
             if ch is self:
                 continue
-            status = self._session.can_connect(self.api_name, ch.api_name)
+            status = self._session.can_connect(self.raw_name, ch.raw_name)
             if status == PathCapability.PATH_EXISTS:
                 self.connection_list.append(ch)
 
@@ -105,7 +105,7 @@ class SwitchChannel(InstrumentChannel):
     def connect_to(self, other: "InstrumentChannel") -> None:
         self.root_instrument.channels.get_validator().validate(other)
 
-        status = self._session.can_connect(self.api_name, other.api_name)
+        status = self._session.can_connect(self.raw_name, other.raw_name)
         if status == PathCapability.PATH_EXISTS:
             # already connected, do nothing
             return
@@ -116,13 +116,13 @@ class SwitchChannel(InstrumentChannel):
             # connected to something else
             self.disconnect_from_all()
             other.disconnect_from_all()
-        self._session.connect(self.api_name, other.api_name)
+        self._session.connect(self.raw_name, other.raw_name)
         self.connection_list.append(other)
         other.connection_list.append(self)
 
     def disconnect_from(self, other: "InstrumentChannel") -> None:
         self.root_instrument.channels.get_validator().validate(other)
-        self._session.disconnect(self.api_name, other.api_name)
+        self._session.disconnect(self.raw_name, other.raw_name)
         other.connection_list.remove(self)
         self.connection_list.remove(other)
 
