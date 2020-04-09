@@ -95,11 +95,13 @@ class Vaunix_LDA(Instrument):
         self.connect_message()
 
     def _get_dll(self, dll_path: str = None) -> ctypes.CDLL:
-        r""" Load correct DLL from ``dll_path`` based on bitness of
-            the operating system.
+        r"""
+        Load correct DLL from ``dll_path`` based on bitness of the operating
+        system.
+
         Args:
             dll_path: path to the directory that contains the Vaunix LDA DLL.
-            By default, same as the directory of this file.
+                By default, same as the directory of this file.
         """
         if dll_path is None:
             dll_path = os.path.dirname(os.path.abspath(__file__))
@@ -114,7 +116,7 @@ class Vaunix_LDA(Instrument):
             dll_path = os.path.join(dll_path, "VNX_atten")
         else:
             raise OSError("Unknown bitness of system:", bitness)
-        #self.dll = ctypes.cdll.LoadLibrary(dll_path)
+
         return ctypes.cdll.LoadLibrary(dll_path)
 
     def get_idn(self) -> Dict[str, Optional[str]]:
@@ -134,15 +136,18 @@ class Vaunix_LDA(Instrument):
         super().close()
 
     def save_settings(self) -> None:
-        """ Save current settings to memory.
-        Settings are automatically loaded during power on.
+        """
+        Save current settings to memory. Settings are automatically loaded
+        during power on.
         """
         self.dll.fnLDA_SaveSettings(self.reference)
 
 
 class LdaChannel(InstrumentChannel):
-    """ Channel corresponding to one input-output pair of the LDA
-        digital attenuator. """
+    """
+    Channel corresponding to one input-output pair of the LDA digital
+    attenuator.
+    """
     def __init__(self, parent: Vaunix_LDA,
                  channel_number: int,
                  name: str):
@@ -166,12 +171,14 @@ class LdaParameter(Parameter):
                  instrument: Union[Vaunix_LDA, LdaChannel],
                  dll_get_function: Callable, dll_set_function: Callable,
                  **kwargs):
-        """ Parameter associated with one channel of the LDA.
-            Args:
-                name: parameter name
-                instrument: parent instrument, either LDA or LDA channel
-                dll_get_function: DLL function that gets the value
-                dll_get_function: DLL function that sets the value
+        """
+        Parameter associated with one channel of the LDA.
+
+        Args:
+            name: parameter name
+            instrument: parent instrument, either LDA or LDA channel
+            dll_get_function: DLL function that gets the value
+            dll_get_function: DLL function that sets the value
         """
         super().__init__(name, instrument, **kwargs)
         self.dll = instrument.root_instrument.dll
@@ -180,14 +187,18 @@ class LdaParameter(Parameter):
         self.dll_set_function = partial(dll_set_function, self.reference)
 
     def _switch_channel(self) -> None:
-        """ Switch to this channel. """
+        """
+        Switch to this channel.
+        """
         if hasattr(self.instrument, "channel_number"):
             instr = cast(Instrument, self.instrument)
             self.dll.fnLDA_SetChannel(self.reference,
                                       instr.channel_number)
 
     def get_raw(self) -> float:
-        """ Switch to this channel and return current value. """
+        """
+        Switch to this channel and return current value.
+        """
         self._switch_channel()
         value = self.dll_get_function()
         if value < 0:
@@ -196,7 +207,9 @@ class LdaParameter(Parameter):
         return value * self.scaling
 
     def set_raw(self, value: float) -> None:
-        """ Switch to this channel and set to ``value`` . """
+        """
+        Switch to this channel and set to ``value`` .
+        """
         self._switch_channel()
         value = round(value / self.scaling)
         error_msg = self.dll_set_function(value)
@@ -206,7 +219,9 @@ class LdaParameter(Parameter):
 
 
 class LdaAttenuation(LdaParameter):
-    """ Attenuation of one channel in the LDA. """
+    """
+    Attenuation of one channel in the LDA.
+    """
     scaling = 0.05  # integers returned by the API correspond to 0.05 dB
 
     def __init__(self, name: str,
@@ -229,19 +244,21 @@ class LdaAttenuation(LdaParameter):
 
 
 class LdaWorkingFrequency(LdaParameter):
-    """ Working frequency of one channel of the LDA.
-    Not supported on all models.
+    """
+    Working frequency of one channel of the LDA. Not supported on all models.
     """
     scaling = 100_000  # integers returned by the API correspond to 100kHz
 
     def __init__(self, name: str,
                  instrument: Union[Vaunix_LDA, LdaChannel],
                  **kwargs):
-        """Attenuation of one channel in the LDA.
-            Args:
-                name: parameter name
-                instrument: parent instrument, either LDA or LDA channel
-            """
+        """
+        Attenuation of one channel in the LDA.
+
+        Args:
+            name: parameter name
+            instrument: parent instrument, either LDA or LDA channel
+        """
         dll = instrument.root_instrument.dll
         super().__init__(name, instrument,
                          dll_get_function=dll.fnLDA_GetWorkingFrequency,
@@ -255,8 +272,9 @@ class LdaWorkingFrequency(LdaParameter):
 
     @classmethod
     def get_validator(cls, root_instrument: Vaunix_LDA) -> Optional[Numbers]:
-        """ Returns validator for working frequency, if ``root_instrument``
-            supports it. Else returns None.
+        """
+        Returns validator for working frequency, if ``root_instrument``
+        supports it. Else returns None.
         """
         max_freq = root_instrument.dll.fnLDA_GetMaxWorkingFrequency(
                     root_instrument.reference) * cls.scaling
