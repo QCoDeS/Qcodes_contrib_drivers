@@ -13,10 +13,10 @@
 from qcodes.instrument.visa import VisaInstrument
 from qcodes.utils.validators import Ints, Numbers, Bool, Strings, Enum
 from qcodes.utils.helpers import create_on_off_val_mapping
-import types
 import logging
 import warnings
 from functools import partial
+from typing import Tuple
 
 on_off_vals = create_on_off_val_mapping(on_val=1, off_val=0)
 
@@ -31,7 +31,8 @@ class Keithley_6430(VisaInstrument):
         address: Newtwork address or alias of the instrument
         reset: resets to default values
     """
-    def __init__(self, name, address, reset=False, **kwargs):
+    def __init__(self, name: str , address: str, reset: bool = False,
+                 **kwargs):
 
         super().__init__(name, address, terminator='\n', **kwargs)
 
@@ -317,7 +318,7 @@ class Keithley_6430(VisaInstrument):
         self.nplc(10)
         # self.set_averaging(False)
 
-    def read(self):
+    def read(self) -> Tuple[float, float, float]:
         '''
         Arm, trigger, and readout (voltage (V), current (A), resistance (Ohm)).
 
@@ -333,9 +334,10 @@ class Keithley_6430(VisaInstrument):
         logging.debug('Read: %s' % s)
 
         # We don't know what [3:5] are...
-        return [float(n) for n in s.split(',')][:3]
+        v, c, r = [float(n) for n in s.split(',')][:3]
+        return (v, c, r)
 
-    def _read_value(self, quantity: str):
+    def _read_value(self, quantity: str) -> float:
         '''
         Read voltage, current or resistance through the sensing module. Issues
         a warning if reading a value that does not correspond to the sensing
@@ -354,7 +356,7 @@ class Keithley_6430(VisaInstrument):
         '''
         self.write(':INIT')
 
-    def fetch_last(self):
+    def fetch_last(self) -> Tuple[float, float, float]:
         '''
         Fetch the last measured value. Typically used after send_init.
 
@@ -364,7 +366,8 @@ class Keithley_6430(VisaInstrument):
         s = self.ask(':FETC?')
 
         # We don't know what [-2:] are...
-        return [float(n) for n in s.split(',')][-5:-2]
+        v, c, r = [float(n) for n in s.split(',')][-5:-2]
+        return (v, c, r)
 
     def set_trigger_cont(self):
         '''
@@ -373,7 +376,7 @@ class Keithley_6430(VisaInstrument):
         self.trigger_source('IMM')
         self.arm_source('IMM')
 
-    def _set_sense_mode(self, mode):
+    def _set_sense_mode(self, mode: str):
         '''
         Set the sense_mode to the specified value
         Input:
@@ -381,19 +384,19 @@ class Keithley_6430(VisaInstrument):
                             Use comma to separate multiple modes.
         '''
 
-        mode = [m.strip(' ') for m in mode.split(',')]
+        modes = [m.strip(' ') for m in mode.split(',')]
 
-        if not all([m in ["RES", "CURR:DC", "VOLT:DC"] for m in mode]):
-            raise ValueError('invalid sense_mode %s' % mode)
+        if not all([m in ["RES", "CURR:DC", "VOLT:DC"] for m in modes]):
+            raise ValueError('invalid sense_mode %s' % modes)
 
-        mode = '"' + '","'.join(mode) + '"'
+        modes_str = '"' + '","'.join(modes) + '"'
 
-        string = ':SENS:FUNC %s' % mode
+        string = ':SENS:FUNC %s' % modes_str
 
         self.write(':SENS:FUNC:OFF:ALL')
         self.write(string)
 
-    def _get_sense_mode(self):
+    def _get_sense_mode(self) -> str:
         '''
         Read the sense_mode from the device
         '''
@@ -401,7 +404,7 @@ class Keithley_6430(VisaInstrument):
         ans = self.ask(string).replace('"', '')
         return ans
 
-    def _get_source_mode(self):
+    def _get_source_mode(self) -> str:
         '''
         Read the source_mode from the device
         '''
@@ -409,16 +412,16 @@ class Keithley_6430(VisaInstrument):
         ans = self.ask(string).strip('"')
         return ans
 
-    def _set_sense_autorange(self, val):
+    def _set_sense_autorange(self, val: bool):
         '''
         Switch sense_autorange on or off for all modes.
         '''
-        val = int(val)
-        self.write(f'SENS:CURR:RANG:AUTO {val}')
-        self.write(f'SENS:VOLT:RANG:AUTO {val}')
-        self.write(f'SENS:RES:RANG:AUTO {val}')
+        v = int(val)
+        self.write(f'SENS:CURR:RANG:AUTO {v}')
+        self.write(f'SENS:VOLT:RANG:AUTO {v}')
+        self.write(f'SENS:RES:RANG:AUTO {v}')
 
-    def _get_sense_autorange(self):
+    def _get_sense_autorange(self) -> bool:
         '''
         Get status of sense_autorange. Returns true iff true for all modes
         '''
