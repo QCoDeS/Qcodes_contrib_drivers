@@ -331,7 +331,7 @@ class Keithley_6430(VisaInstrument):
                     'to be enabled before calling read().'
                     )
         s = self.ask(':READ?')
-        logging.debug('Read: %s' % s)
+        logging.debug(f'Read: {s}')
 
         # We don't know what [3:5] are...
         v, c, r = [float(n) for n in s.split(',')][:3]
@@ -387,11 +387,11 @@ class Keithley_6430(VisaInstrument):
         modes = [m.strip(' ') for m in mode.split(',')]
 
         if not all([m in ["RES", "CURR:DC", "VOLT:DC"] for m in modes]):
-            raise ValueError('invalid sense_mode %s' % modes)
+            raise ValueError(f'invalid sense_mode {modes}')
 
         modes_str = '"' + '","'.join(modes) + '"'
 
-        string = ':SENS:FUNC %s' % modes_str
+        string = f':SENS:FUNC {modes_str}'
 
         self.write(':SENS:FUNC:OFF:ALL')
         self.write(string)
