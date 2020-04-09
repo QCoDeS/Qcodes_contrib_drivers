@@ -36,15 +36,18 @@ class Vaunix_LDA(Instrument):
                  channel_names: Optional[Dict[int, str]] = None,
                  test_mode: Optional[bool] = False,
                  **kwargs):
-        r"""  QCoDeS Instrument for Vaunix LDA digital attenuators.
+        r"""
+        QCoDeS Instrument for Vaunix LDA digital attenuators.
+
         Args:
             name: Qcodes name for this instrument
-            serial_number: Serial number of the instrument, used to identify it.
+            serial_number: Serial number of the instrument, used to identify
+                it.
             dll_path: Look for the LDA DLLs in this directory.
                 By default, the directory this file is in.
             channel_names: Optionally assign these names to the channels.
-            test_mode: If True, communicates with the API but not with the device.
-                For testing purposes.
+            test_mode: If True, communicates with the API but not with the
+                device. For testing purposes.
         """
 
         super().__init__(name=name, **kwargs)
@@ -62,7 +65,8 @@ class Vaunix_LDA(Instrument):
         device_IDs = ctypes.c_int * num_devices
         device_refs = device_IDs()
         self.dll.fnLDA_GetDevInfo(device_refs)
-        devices = {self.dll.fnLDA_GetSerialNumber(ref): ref for ref in device_refs}
+        devices = {self.dll.fnLDA_GetSerialNumber(ref): ref
+                   for ref in device_refs}
         self.reference = devices.get(self.serial_number, "not found")
         if self.reference == "not found":
             raise ValueError(f"LDA with serial number {self.serial_number}"
