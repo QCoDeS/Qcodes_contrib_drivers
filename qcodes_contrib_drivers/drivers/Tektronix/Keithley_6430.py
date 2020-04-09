@@ -50,12 +50,14 @@ class Keithley_6430(VisaInstrument):
         self.add_parameter('source_current_compliance_tripped',
                            get_cmd='SENS:CURR:PROT:TRIP?',
                            val_mapping=on_off_vals,
-                           docstring='True if current has reached specified compliance.',
+                           docstring='True if current has reached specified '
+                                     'compliance.',
                            )
         self.add_parameter('source_voltage_compliance_tripped',
                            get_cmd='SENS:VOLT:PROT:TRIP?',
                            val_mapping=on_off_vals,
-                           docstring='True if voltage has reached specified compliance.',
+                           docstring='True if voltage has reached specified '
+                                     'compliance.',
                            )
         self.add_parameter('source_current',
                            units='A',
@@ -64,7 +66,8 @@ class Keithley_6430(VisaInstrument):
                            set_cmd='SOUR:CURR:LEV {}',
                            get_cmd='SOUR:CURR:LEV?',
                            vals=Numbers(-105e-3, 105e-3),
-                           docstring='When in current sourcing mode, try to set current to this level.',
+                           docstring='When in current sourcing mode, try to '
+                                     'set current to this level.',
                            )
         self.add_parameter('sense_current',
                            units='A',
@@ -72,7 +75,8 @@ class Keithley_6430(VisaInstrument):
                            label='Measured current',
                            get_cmd=partial(self._read_value, 'CURR:DC'),
                            snapshot_value=False,
-                           docstring='Value of measured current, when in current sensing mode.',
+                           docstring='Value of measured current, when in '
+                                     'current sensing mode.',
                            )
         self.add_parameter('sense_voltage',
                            units='V',
@@ -80,7 +84,8 @@ class Keithley_6430(VisaInstrument):
                            label='Measured voltage',
                            get_cmd=partial(self._read_value, 'VOLT:DC'),
                            snapshot_value=False,
-                           docstring='Value of measured voltage, when in voltage sensing mode.',
+                           docstring='Value of measured voltage, when in '
+                                     'voltage sensing mode.',
                            )
         self.add_parameter('sense_resistance',
                            units='Ohm',
@@ -88,7 +93,8 @@ class Keithley_6430(VisaInstrument):
                            label='Measured resistance',
                            get_cmd=partial(self._read_value, 'RES'),
                            snapshot_value=False,
-                           docstring='Value of measured resistance, when in resistance sensing mode.',
+                           docstring='Value of measured resistance, when in '
+                                     'resistance sensing mode.',
                            )
         self.add_parameter('source_current_range',
                            units='A',
@@ -104,7 +110,8 @@ class Keithley_6430(VisaInstrument):
                            set_cmd='SOUR:VOLT:LEV {}',
                            get_cmd='SOUR:VOLT:LEV?',
                            vals=Numbers(-210, 210),
-                           docstring='When in voltage sourcing mode, try to set voltage to this level.',
+                           docstring='When in voltage sourcing mode, try to '
+                                     'set voltage to this level.',
                            )
         self.add_parameter('source_voltage_range',
                            units='V',
@@ -140,20 +147,23 @@ class Keithley_6430(VisaInstrument):
                            set_cmd='SOUR:FUNC {}',
                            get_cmd=self._get_source_mode,
                            vals=Enum('VOLT', 'CURR'),
-                           docstring="Either 'VOLT' to set source function voltage, or 'CURR' for current.",
+                           docstring="Either 'VOLT' to set source function "
+                                     "voltage, or 'CURR' for current.",
                            )
         self.add_parameter('sense_mode',
                            set_cmd=self._set_sense_mode,
                            get_cmd=self._get_sense_mode,
                            vals=Strings(),
-                           docstring="Sensing mode. Set to 'VOLT:DC', 'CURR:DC', or 'RES', or "
-                                     "a combination thereof by using comma."
+                           docstring="Sensing mode. Set to 'VOLT:DC', "
+                                     "'CURR:DC', or 'RES', or a combination "
+                                     "thereof by using comma."
                            )
         self.add_parameter('sense_autorange',
                            set_cmd=self._set_sense_autorange,
                            get_cmd=self._get_sense_autorange,
                            vals=Bool(),
-                           docstring="If True, all ranges in all modes are chosen automatically",
+                           docstring="If True, all ranges in all modes are "
+                                     "chosen automatically",
                            )
         self.add_parameter('sense_current_range',
                            units='A',
@@ -180,7 +190,8 @@ class Keithley_6430(VisaInstrument):
                            set_cmd=':SENS:RES:OCOM {}',
                            get_cmd=':SENS:RES:OCOM?',
                            val_mapping=on_off_vals,
-                           docstring="Set offset compensation on/off for resistance measurements."
+                           docstring="Set offset compensation on/off for "
+                                     "resistance measurements."
                            )
         self.add_parameter('trigger_source',
                            set_cmd=':TRIG:SOUR {}',
@@ -207,7 +218,8 @@ class Keithley_6430(VisaInstrument):
                            set_cmd=':NPLC {}',
                            get_cmd=':NPLC?',
                            vals=Numbers(0.01, 10),
-                           docstring="Set integration time to the specified value in Number of Powerline Cycles."
+                           docstring="Set integration time to the specified "
+                                     "value in Number of Powerline Cycles."
                            )
         self.add_parameter('digits',
                            get_parser=int,
@@ -307,26 +319,30 @@ class Keithley_6430(VisaInstrument):
         '''
         Arm, trigger, and readout (voltage (V), current (A), resistance (Ohm)).
 
-        Note that the values may not be valid if sense mode doesn't include them.
+        Note that the values may not be valid if sense mode doesn't include
+        them.
         '''
         if not (self.output_on() or self.output_auto_off()):
             raise Exception(
-                'Either source must be turned on manually or auto_off has to be enables before calling read().')
+                    'Either source must be turned on manually or auto_off has '
+                    'to be enabled before calling read().'
+                    )
         s = self.ask(':READ?')
         logging.debug('Read: %s' % s)
 
-        return [float(n) for n in s.split(',')][:3]  # We don't know what [3:5] are!!!
+        # We don't know what [3:5] are...
+        return [float(n) for n in s.split(',')][:3]
 
     def _read_value(self, quantity: str):
         '''
-        Read voltage, current or resistance through the sensing module.
-        Issues a warning if reading a value that does not correspond to the sensing mode
-        quantity: "VOLT:DC", "CURR:DC" or "RES"
+        Read voltage, current or resistance through the sensing module. Issues
+        a warning if reading a value that does not correspond to the sensing
+        mode quantity: "VOLT:DC", "CURR:DC" or "RES"
         '''
         mode_now = self.sense_mode()
         if quantity not in mode_now:
-            warnings.warn(self.short_name + f" tried reading {quantity}, but mode is set to {mode_now}."
-                                            f"Value might be old.")
+            warnings.warn(f"{self.short_name} tried reading {quantity}, but "
+                          f"mode is set to {mode_now}. Value might be old.")
         mapping = {"VOLT:DC": 0, "CURR:DC": 1, "RES": 2}
         return self.read()[mapping[quantity]]
 
@@ -339,11 +355,14 @@ class Keithley_6430(VisaInstrument):
     def fetch_last(self):
         '''
         Fetch the last measured value. Typically used after send_init.
-        Note that the values may not be valid if sense mode doesn't include them.
+
+        Note that the values may not be valid if sense mode doesn't include
+        them.
         '''
         s = self.ask(':FETC?')
 
-        return [float(n) for n in s.split(',')][-5:-2]  # We don't know what [-2:] are!!!
+        # We don't know what [-2:] are...
+        return [float(n) for n in s.split(',')][-5:-2]
 
     def set_trigger_cont(self):
         '''
@@ -405,5 +424,3 @@ class Keithley_6430(VisaInstrument):
         reply1 = bool(int(self.ask('SENS:VOLT:RANG:AUTO?')))
         reply2 = bool(int(self.ask('SENS:RES:RANG:AUTO?')))
         return reply0 and reply1 and reply2
-
-
