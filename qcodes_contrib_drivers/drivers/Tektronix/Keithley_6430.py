@@ -1,6 +1,6 @@
 # Qcodes driver Keithley 6430 SMU
 #
-# Based on qtlab legacy driver by
+# Joni Ikonnen <joni.2.ikonen@aalto.fi>, 2019 (port to Qcodes framework)
 # Russell Lake <russell.lake@aalto.fi>, 2012
 # Based on driver for Keithley 2700 by:
 # Pieter de Groot <pieterdegroot@gmail.com>, 2008
@@ -23,13 +23,15 @@ on_off_vals = create_on_off_val_mapping(on_val=1, off_val=0)
 
 class Keithley_6430(VisaInstrument):
 
+    r"""
+    This is the Qcodes driver for the Keithley 6430 SMU.
+
+    Args:
+        name: The name used internally by QCoDeS
+        address: Newtwork address or alias of the instrument
+        reset: resets to default values
+    """
     def __init__(self, name, address, reset=False, **kwargs):
-        r"""
-        Args:
-            name: The name used internally by QCoDeS
-            address: Newtwork address or alias of the instrument
-            reset: resets to default values
-        """
 
         super().__init__(name, address, terminator='\n', **kwargs)
 
