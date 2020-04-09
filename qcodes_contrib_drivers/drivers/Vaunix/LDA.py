@@ -16,7 +16,7 @@ Tested with with 64-bit system and
 """
 
 import logging
-from typing import Optional, Dict, Callable, Union
+from typing import Optional, Dict, Callable, Union, cast
 from functools import partial
 from platform import architecture
 import os
@@ -54,8 +54,7 @@ class Vaunix_LDA(Instrument):
         if channel_names is None:
             channel_names = {}
 
-        self.dll = None
-        self._load_dll(dll_path)
+        self.dll = self._get_dll(dll_path)
         self.dll.fnLDA_SetTestMode(test_mode)  # Test API without communication
 
         # Find all Vaunix devices, init the one with matching serial number.
@@ -91,7 +90,7 @@ class Vaunix_LDA(Instrument):
 
         self.connect_message()
 
-    def _load_dll(self, dll_path: str = None) -> None:
+    def _get_dll(self, dll_path: str = None) -> ctypes.CDLL:
         r""" Load correct DLL from ``dll_path`` based on bitness of
             the operating system.
         Args:
@@ -111,13 +110,14 @@ class Vaunix_LDA(Instrument):
             dll_path = os.path.join(dll_path, "VNX_atten")
         else:
             raise OSError("Unknown bitness of system:", bitness)
-        self.dll = ctypes.cdll.LoadLibrary(dll_path)
+        #self.dll = ctypes.cdll.LoadLibrary(dll_path)
+        return ctypes.cdll.LoadLibrary(dll_path)
 
     def get_idn(self) -> Dict[str, Optional[str]]:
 
-        model = ctypes.create_string_buffer(300)
-        self.dll.fnLDA_GetModelNameA(self.reference, model)
-        model = str(model.value.decode())
+        buf = ctypes.create_string_buffer(300)
+        self.dll.fnLDA_GetModelNameA(self.reference, buf)
+        model = str(buf.value.decode())
 
         return {"vendor": "Vaunix",
                 "model": model,
@@ -156,7 +156,7 @@ class LdaChannel(InstrumentChannel):
 
 
 class LdaParameter(Parameter):
-    scaling = 1  # Scaling from integers from API to physical quantities
+    scaling = 1.0  # Scaling from integers from API to physical quantities
 
     def __init__(self, name: str,
                  instrument: Union[Vaunix_LDA, LdaChannel],
@@ -178,16 +178,17 @@ class LdaParameter(Parameter):
     def _switch_channel(self) -> None:
         """ Switch to this channel. """
         if hasattr(self.instrument, "channel_number"):
+            instr = cast(Instrument, self.instrument)
             self.dll.fnLDA_SetChannel(self.reference,
-                                      self.instrument.channel_number)
+                                      instr.channel_number)
 
     def get_raw(self) -> float:
         """ Switch to this channel and return current value. """
         self._switch_channel()
         value = self.dll_get_function()
         if value < 0:
-            raise RuntimeError(f'{self.dll_get_function.__name__} returned'
-                               f' error {value}')
+            raise RuntimeError(f'{self.dll_get_function.func.__name__} '
+                               f'returned error {value}')
         return value * self.scaling
 
     def set_raw(self, value: float) -> None:
@@ -196,8 +197,8 @@ class LdaParameter(Parameter):
         value = round(value / self.scaling)
         error_msg = self.dll_set_function(value)
         if error_msg != 0:
-            raise RuntimeError(f'{self.dll_get_function.__name__} returned'
-                               f' error {error_msg}')
+            raise RuntimeError(f'{self.dll_set_function.func.__name__} '
+                               f'returned error {error_msg}')
 
 
 class LdaAttenuation(LdaParameter):
