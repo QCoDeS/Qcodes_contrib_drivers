@@ -10,8 +10,8 @@ class Keysight_J7211(VisaInstrument):
 
     Args:
         name: Instrument name
-        address: Address or alias of instrument
-        attenuation: Optional attenuation level to set on startup
+        address: Address or VISA alias of instrument
+        attenuation: Optional attenuation level (in dB) to set on startup
     """
 
     def __init__(self, name: str, address: str,
@@ -32,7 +32,7 @@ class Keysight_J7211(VisaInstrument):
         elif model in ["J7211C"]:
             self.attenuation.vals = Ints(0, 100)
         else:
-            raise RuntimeError("Model {} is not supported.".format(model))
+            raise RuntimeError(f"Model {model} is not supported.")
 
         if attenuation is not None:
             self.attenuation(attenuation)
