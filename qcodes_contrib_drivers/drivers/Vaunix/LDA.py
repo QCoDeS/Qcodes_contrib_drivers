@@ -7,7 +7,7 @@ created for each one. If the instrument has only one physical channel, no
 channels are created and the parameters will be assigned to this instrument
 instead. The sweep profiles available in the API are not implemented.
 
-Tested with with 64-bit system and
+Tested with 64-bit system and
 - LDA-133
 - LDA-802Q
 
