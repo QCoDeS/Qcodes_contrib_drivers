@@ -1,13 +1,11 @@
 r"""
-This is the QCoDeS driver for Vaunix LDA digital attenuators.
-It requires the DLL that comes with the instrument,
-`` VNX_atten64.dll``  and/or `` VNX_atten.dll``,
-for 64-bit Windows and 32-bit Windows, respectively.
-If the instrument has more than one physical channel,
-``InstrumentChannel``s are created for each one.
-If the instrument has only one physical channel, no channels are created
-and the parameters will be assigned to this instrument instead.
-The sweep profiles available in the API are not implemented.
+This is the QCoDeS driver for Vaunix LDA digital attenuators. It requires the
+DLL that comes with the instrument, ``VNX_atten64.dll`` and/or
+``VNX_atten.dll``, for 64-bit Windows and 32-bit Windows, respectively. If the
+instrument has more than one physical channel, ``InstrumentChannel``s are
+created for each one. If the instrument has only one physical channel, no
+channels are created and the parameters will be assigned to this instrument
+instead. The sweep profiles available in the API are not implemented.
 
 Tested with with 64-bit system and
 - LDA-133
