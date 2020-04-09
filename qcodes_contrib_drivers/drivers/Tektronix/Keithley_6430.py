@@ -31,7 +31,7 @@ class Keithley_6430(VisaInstrument):
         address: Newtwork address or alias of the instrument
         reset: resets to default values
     """
-    def __init__(self, name: str , address: str, reset: bool = False,
+    def __init__(self, name: str, address: str, reset: bool = False,
                  **kwargs):
 
         super().__init__(name, address, terminator='\n', **kwargs)
