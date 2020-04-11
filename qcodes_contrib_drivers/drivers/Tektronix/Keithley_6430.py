@@ -1,7 +1,7 @@
 # Qcodes driver Keithley 6430 SMU
 # Based on QtLab legacy driver
 # https://github.com/qdev-dk/qtlab/blob/master/instrument_plugins/Keithley_6430.py
-from typing import List
+from typing import List, Tuple
 
 from qcodes.instrument.visa import VisaInstrument
 from qcodes.utils.validators import Ints, Numbers, Bool, Strings, Enum
@@ -23,12 +23,16 @@ class Keithley_6430(VisaInstrument):
     Args:
         name: The name used internally by QCoDeS
         address: Network address or alias of the instrument
+        terminator: Termination character in VISA communication
         reset: resets to default values
     """
-    def __init__(self, name: str, address: str, reset: bool = False,
+    def __init__(self, name: str,
+                 address: str,
+                 terminator="\n",
+                 reset: bool = False,
                  **kwargs):
 
-        super().__init__(name, address, terminator='\n', **kwargs)
+        super().__init__(name, address, terminator=terminator, **kwargs)
 
         self.add_parameter('source_current_compliance',
                            units='A',
@@ -144,7 +148,7 @@ class Keithley_6430(VisaInstrument):
                            val_mapping=on_off_vals,
                            docstring='Turns the source on or off.',
                            )
-        self.add_parameter('output_auto_off',
+        self.add_parameter('output_auto_off_enabled',
                            set_cmd=':SOUR:CLE:AUTO {}',
                            get_cmd='OUTP?',
                            val_mapping=on_off_vals,
@@ -193,7 +197,7 @@ class Keithley_6430(VisaInstrument):
                            get_cmd=':SENS:RES:RANG?',
                            vals=Numbers(2, 2e13),
                            )
-        self.add_parameter('sense_resistance_ocomp',
+        self.add_parameter('sense_resistance_offset_comp_enabled',
                            set_cmd=':SENS:RES:OCOM {}',
                            get_cmd=':SENS:RES:OCOM?',
                            val_mapping=on_off_vals,
@@ -213,8 +217,8 @@ class Keithley_6430(VisaInstrument):
                            vals=Enum('IMM', 'TLIN', "TIM", "MAN", "BUS",
                                      "NST", "PST", "BST"),
                            docstring="Specify arm control source."
-                                     "IMMediate, or TLINk, TIMer, MANual, BUS, "
-                                     "NSTest, PSTest, or BSTest.",
+                                     "IMMediate, or TLINk, TIMer, MANual,"
+                                     " BUS, NSTest, PSTest, or BSTest.",
                            )
         self.add_parameter('trigger_count',
                            set_cmd=':TRIG:COUN {}',
@@ -311,23 +315,24 @@ class Keithley_6430(VisaInstrument):
         """
         self.write('*RST')
 
-    def read(self) -> List[float]:
+    def read(self) -> Tuple[float, float, float]:
         """
-        Arm, trigger, and readout.
-        Note that the values may not be valid if sense mode doesn't include them.
+        Arm, trigger, and readout. Note that the values may not be valid if
+        sense mode doesn't include them.
         Returns:
-            tuple of(voltage (V), current (A), resistance (Ohm))
+            tuple of (voltage (V), current (A), resistance (Ohm))
         """
-        if not (self.output_enabled() or self.output_auto_off()):
+        if not (self.output_enabled() or self.output_auto_off_enabled()):
             raise Exception(
-                    'Either source must be turned on manually or output_auto_off '
-                ' has '
-                    'to be enabled before measuring a sense parameter.'
+                    "Either source must be turned on manually "
+                    "or ``output_auto_off_enabled`` has to be enabled before"
+                    " measuring a sense parameter."
                     )
         s = self.ask(':READ?')
         logging.debug(f'Read: {s}')
 
-        return [float(n) for n in s.split(',')][:3]
+        v, i, r = [float(n) for n in s.split(',')][:3]
+        return v, i, r
 
     def _read_value(self, quantity: str) -> float:
         """
@@ -353,7 +358,7 @@ class Keithley_6430(VisaInstrument):
         """
         self.write(':INIT')
 
-    def set_trigger_cont(self) -> None:
+    def set_trigger_immediate(self) -> None:
         """
         Set trigger and arm modes to immediate.
         """
