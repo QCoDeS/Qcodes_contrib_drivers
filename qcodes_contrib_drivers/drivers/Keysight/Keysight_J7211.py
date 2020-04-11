@@ -12,27 +12,28 @@ class Keysight_J7211(VisaInstrument):
         name: Instrument name
         address: Address or VISA alias of instrument
         attenuation: Optional attenuation level (in dB) to set on startup
+        terminator: Termination character in VISA communication.
     """
 
     def __init__(self, name: str, address: str,
-                 attenuation: Optional[int] = None, **kwargs):
-        super().__init__(name=name, address=address, terminator='\r', **kwargs)
+                 attenuation: Optional[int] = None,
+                 terminator="\r", **kwargs):
+        super().__init__(name=name, address=address,
+                         terminator=terminator, **kwargs)
+
+        model = self.IDN()['model']
+        if model in ["J7211A", "J7211B"]:
+            vals = Ints(0, 120)
+        elif model in ["J7211C"]:
+            vals = Ints(0, 100)
+        else:
+            raise RuntimeError(f"Model {model} is not supported.")
 
         self.add_parameter('attenuation', unit='dB',
                            set_cmd='ATT {:03.0f}',
                            get_cmd='ATT?',
-                           get_parser=int)
+                           get_parser=int,
+                           vals=vals,
+                           initial_value=attenuation)
 
         self.connect_message()
-
-        model = self.IDN()['model']
-
-        if model in ["J7211A", "J7211B"]:
-            self.attenuation.vals = Ints(0, 120)
-        elif model in ["J7211C"]:
-            self.attenuation.vals = Ints(0, 100)
-        else:
-            raise RuntimeError(f"Model {model} is not supported.")
-
-        if attenuation is not None:
-            self.attenuation(attenuation)
