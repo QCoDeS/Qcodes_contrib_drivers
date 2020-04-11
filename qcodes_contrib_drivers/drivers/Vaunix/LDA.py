@@ -189,10 +189,9 @@ class LdaParameter(Parameter):
             dll_get_function: DLL function that sets the value
         """
         super().__init__(name, instrument, **kwargs)
-        self.dll = instrument.root_instrument.dll
-        self.reference = instrument.root_instrument.reference
-        self.dll_get_function = partial(dll_get_function, self.reference)
-        self.dll_set_function = partial(dll_set_function, self.reference)
+        self._reference = instrument.root_instrument.reference
+        self._dll_get_function = partial(dll_get_function, self._reference)
+        self._dll_set_function = partial(dll_set_function, self._reference)
 
     def _switch_channel(self) -> None:
         """
@@ -200,17 +199,18 @@ class LdaParameter(Parameter):
         """
         if hasattr(self.instrument, "channel_number"):
             instr = cast(Instrument, self.instrument)
-            self.dll.fnLDA_SetChannel(self.reference,
-                                      instr.channel_number)
+            self.instrument.root_instrument.dll.fnLDA_SetChannel(
+                self._reference, instr.channel_number
+            )
 
     def get_raw(self) -> float:
         """
         Switch to this channel and return current value.
         """
         self._switch_channel()
-        value = self.dll_get_function()
+        value = self._dll_get_function()
         if value < 0:
-            raise RuntimeError(f'{self.dll_get_function.func.__name__} '
+            raise RuntimeError(f'{self._dll_get_function.func.__name__} '
                                f'returned error {value}')
         return value * self.scaling
 
@@ -220,9 +220,9 @@ class LdaParameter(Parameter):
         """
         self._switch_channel()
         value = round(value / self.scaling)
-        error_msg = self.dll_set_function(value)
+        error_msg = self._dll_set_function(value)
         if error_msg != 0:
-            raise RuntimeError(f'{self.dll_set_function.func.__name__} '
+            raise RuntimeError(f'{self._dll_set_function.func.__name__} '
                                f'returned error {error_msg}')
 
 
@@ -246,8 +246,8 @@ class LdaAttenuation(LdaParameter):
                          )
 
         self._switch_channel()
-        min_att = dll.fnLDA_GetMinAttenuationHR(self.reference) * self.scaling
-        max_att = dll.fnLDA_GetMaxAttenuationHR(self.reference) * self.scaling
+        min_att = dll.fnLDA_GetMinAttenuationHR(self._reference) * self.scaling
+        max_att = dll.fnLDA_GetMaxAttenuationHR(self._reference) * self.scaling
         self.vals = Numbers(min_att, max_att)
 
 
