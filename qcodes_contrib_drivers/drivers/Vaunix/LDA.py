@@ -28,6 +28,8 @@ logger = logging.getLogger(__name__)
 
 
 class Vaunix_LDA(Instrument):
+    dll_path = None
+
     def __init__(self, name: str,
                  serial_number: int,
                  dll_path: Optional[str] = None,
@@ -41,11 +43,13 @@ class Vaunix_LDA(Instrument):
             name: Qcodes name for this instrument
             serial_number: Serial number of the instrument, used to identify
                 it.
-            dll_path: Look for the LDA DLLs in this directory.
-                By default, the directory this file is in.
+            dll_path: Look for the LDA DLLs in this directory. Sets the
+                dll path as class attribute that is used for future instances
+                for which ``dll_path`` is not given.
             channel_names: Optionally assign these names to the channels.
-            test_mode: If True, communicates with the API but not with the
-                device. For testing purposes.
+            test_mode: If True, simulates communication with an
+                LDA-102 (serial:55102). Does not communicate with physical
+                devices. For testing purposes.
         """
 
         super().__init__(name=name, **kwargs)
@@ -99,23 +103,26 @@ class Vaunix_LDA(Instrument):
 
         Args:
             dll_path: path to the directory that contains the Vaunix LDA DLL.
-                By default, same as the directory of this file.
+                By default, use class attribute ``Vaunix_LDA.dll_path``.
         """
-        if dll_path is None:
-            dll_path = os.path.dirname(os.path.abspath(__file__))
+        Vaunix_LDA.dll_path = dll_path or Vaunix_LDA.dll_path
+        if Vaunix_LDA.dll_path is None:
+            raise ValueError("DLL path for Vaunix LDA has not been set. "
+                             "Set it to ``Vaunix_LDA.dll_path`` or as "
+                             "init argument.")
 
         if sys.platform != "win32":
             raise OSError(f"LDA is not supported on {sys.platform}.")
 
         bitness = architecture()[0]
         if "64bit" in bitness:
-            dll_path = os.path.join(dll_path, "VNX_atten64")
+            full_path = os.path.join(Vaunix_LDA.dll_path, "VNX_atten64")
         elif "32bit" in bitness:
-            dll_path = os.path.join(dll_path, "VNX_atten")
+            full_path = os.path.join(Vaunix_LDA.dll_path, "VNX_atten")
         else:
             raise OSError("Unknown bitness of system:", bitness)
 
-        return ctypes.cdll.LoadLibrary(dll_path)
+        return ctypes.cdll.LoadLibrary(full_path)
 
     def get_idn(self) -> Dict[str, Optional[str]]:
 
