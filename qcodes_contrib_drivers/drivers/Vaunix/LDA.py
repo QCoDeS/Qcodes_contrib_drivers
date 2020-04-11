@@ -79,15 +79,7 @@ class Vaunix_LDA(Instrument):
         num_channels = self.dll.fnLDA_GetNumChannels(self.reference)
         if num_channels == 1:
             # don't add Channel objects, add parameters directly instead
-            self.add_parameter("attenuation",
-                               parameter_class=LdaAttenuation,
-                               )
-            wf_vals = LdaWorkingFrequency.get_validator(self)
-            if wf_vals:
-                self.add_parameter("working_frequency",
-                                   parameter_class=LdaWorkingFrequency,
-                                   vals=wf_vals,
-                                   )
+            _add_lda_parameters(self)
         else:
             for i in range(1, num_channels + 1):
                 name = channel_names.get(i, f"ch{i}")
@@ -158,15 +150,26 @@ class LdaChannel(InstrumentChannel):
                  name: str):
         super().__init__(parent=parent, name=name)
         self.channel_number = channel_number
-        self.add_parameter("attenuation",
-                           parameter_class=LdaAttenuation,
+        _add_lda_parameters(self)
+
+
+def _add_lda_parameters(inst: Union[Vaunix_LDA, LdaChannel]):
+    """
+    Helper function for adding parameters to either LDA root instrument,
+    or channels inside it.
+    Args:
+        inst: the instrument or channel to add the parameters to.
+    """
+    root_instrument = cast(Vaunix_LDA, inst.root_instrument)
+    inst.add_parameter("attenuation",
+                       parameter_class=LdaAttenuation,
+                       )
+    wf_vals = LdaWorkingFrequency.get_validator(root_instrument)
+    if wf_vals:
+        inst.add_parameter("working_frequency",
+                           parameter_class=LdaWorkingFrequency,
+                           vals=wf_vals,
                            )
-        wf_vals = LdaWorkingFrequency.get_validator(parent)
-        if wf_vals:
-            self.add_parameter("working_frequency",
-                               parameter_class=LdaWorkingFrequency,
-                               vals=wf_vals,
-                               )
 
 
 class LdaParameter(Parameter):
