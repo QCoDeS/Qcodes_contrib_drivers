@@ -153,7 +153,7 @@ class LdaChannel(InstrumentChannel):
         _add_lda_parameters(self)
 
 
-def _add_lda_parameters(inst: Union[Vaunix_LDA, LdaChannel]):
+def _add_lda_parameters(inst: Union[Vaunix_LDA, LdaChannel]) -> None:
     """
     Helper function for adding parameters to either LDA root instrument,
     or channels inside it.
@@ -236,19 +236,20 @@ class LdaAttenuation(LdaParameter):
                  instrument: Union[Vaunix_LDA, LdaChannel],
                  **kwargs):
         dll = instrument.root_instrument.dll
+
+        ref = instrument.root_instrument.reference
+        min_att = dll.fnLDA_GetMinAttenuationHR(ref) * self.scaling
+        max_att = dll.fnLDA_GetMaxAttenuationHR(ref) * self.scaling
+        vals = Numbers(min_att, max_att)
+
         super().__init__(name, instrument,
                          dll_get_function=dll.fnLDA_GetAttenuationHR,
                          dll_set_function=dll.fnLDA_SetAttenuationHR,
-                         vals=Numbers(0, 63),  # replace below
+                         vals=vals,
                          unit="dB",
                          label="Attenuation",
                          **kwargs,
                          )
-
-        self._switch_channel()
-        min_att = dll.fnLDA_GetMinAttenuationHR(self._reference) * self.scaling
-        max_att = dll.fnLDA_GetMaxAttenuationHR(self._reference) * self.scaling
-        self.vals = Numbers(min_att, max_att)
 
 
 class LdaWorkingFrequency(LdaParameter):
@@ -289,12 +290,10 @@ class LdaWorkingFrequency(LdaParameter):
         min_freq = root_instrument.dll.fnLDA_GetMinWorkingFrequency(
                     root_instrument.reference) * cls.scaling
         # if feature is not supported, these values will be equal
-        ret = None
-        try:
-            ret = Numbers(min_freq, max_freq)
-        except TypeError:
-            pass
-        return ret
+        if max_freq > min_freq:
+            return Numbers(min_freq, max_freq)
+        else:
+            return None
 
 
 # shorthand
