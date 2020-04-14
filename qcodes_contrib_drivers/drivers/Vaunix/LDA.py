@@ -88,7 +88,7 @@ class Vaunix_LDA(Instrument):
 
         self.connect_message()
 
-    def _get_dll(self, dll_path: str = None) -> ctypes.CDLL:
+    def _get_dll(self, dll_path: Optional[str] = None) -> ctypes.CDLL:
         r"""
         Load correct DLL from ``dll_path`` based on bitness of the operating
         system.
@@ -97,20 +97,20 @@ class Vaunix_LDA(Instrument):
             dll_path: path to the directory that contains the Vaunix LDA DLL.
                 By default, use class attribute ``Vaunix_LDA.dll_path``.
         """
-        Vaunix_LDA.dll_path = dll_path or Vaunix_LDA.dll_path
-        if Vaunix_LDA.dll_path is None:
-            raise ValueError("DLL path for Vaunix LDA has not been set. "
-                             "Set it to ``Vaunix_LDA.dll_path`` or as "
-                             "init argument.")
+        path = dll_path or Vaunix_LDA.dll_path
+        if path is None:
+            raise ValueError("DLL path for Vaunix LDA was not provided. "
+                             "Either set ``Vaunix_LDA.dll_path`` or provide "
+                             "it as an argument to the constructor.")
 
         if sys.platform != "win32":
             raise OSError(f"LDA is not supported on {sys.platform}.")
 
         bitness = architecture()[0]
         if "64bit" in bitness:
-            full_path = os.path.join(Vaunix_LDA.dll_path, "VNX_atten64")
+            full_path = os.path.join(path, "VNX_atten64")
         elif "32bit" in bitness:
-            full_path = os.path.join(Vaunix_LDA.dll_path, "VNX_atten")
+            full_path = os.path.join(path, "VNX_atten")
         else:
             raise OSError("Unknown bitness of system:", bitness)
 
