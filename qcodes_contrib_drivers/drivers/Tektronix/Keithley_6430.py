@@ -35,14 +35,14 @@ class Keithley_6430(VisaInstrument):
         super().__init__(name, address, terminator=terminator, **kwargs)
 
         self.add_parameter('source_current_compliance',
-                           units='A',
+                           unit='A',
                            get_parser=float,
                            set_cmd='SENS:CURR:PROT {}',
                            get_cmd='SENS:CURR:PROT?',
                            vals=Numbers(1e-9, 105e-3)
                            )
         self.add_parameter('source_voltage_compliance',
-                           units='V',
+                           unit='V',
                            get_parser=float,
                            set_cmd='SENS:VOLT:PROT {}',
                            get_cmd='SENS:VOLT:PROT?',
@@ -61,7 +61,7 @@ class Keithley_6430(VisaInstrument):
                                      'compliance.',
                            )
         self.add_parameter('source_current',
-                           units='A',
+                           unit='A',
                            get_parser=float,
                            label='Source current',
                            set_cmd='SOUR:CURR:LEV {}',
@@ -71,7 +71,7 @@ class Keithley_6430(VisaInstrument):
                                      'set current to this level.',
                            )
         self.add_parameter('sense_current',
-                           units='A',
+                           unit='A',
                            get_parser=float,
                            label='Measured current',
                            get_cmd=partial(self._read_value, 'CURR:DC'),
@@ -80,7 +80,7 @@ class Keithley_6430(VisaInstrument):
                                      'current sensing mode.',
                            )
         self.add_parameter('sense_voltage',
-                           units='V',
+                           unit='V',
                            get_parser=float,
                            label='Measured voltage',
                            get_cmd=partial(self._read_value, 'VOLT:DC'),
@@ -89,7 +89,7 @@ class Keithley_6430(VisaInstrument):
                                      'voltage sensing mode.',
                            )
         self.add_parameter('sense_resistance',
-                           units='Ohm',
+                           unit='Ohm',
                            get_parser=float,
                            label='Measured resistance',
                            get_cmd=partial(self._read_value, 'RES'),
@@ -98,14 +98,14 @@ class Keithley_6430(VisaInstrument):
                                      'resistance sensing mode.',
                            )
         self.add_parameter('source_current_range',
-                           units='A',
+                           unit='A',
                            get_parser=float,
                            set_cmd='SOUR:CURR:RANG {}',
                            get_cmd='SOUR:CURR:RANG?',
                            vals=Numbers(1e-12, 105e-3)
                            )
         self.add_parameter('source_voltage',
-                           units='V',
+                           unit='V',
                            get_parser=float,
                            label='Source voltage',
                            set_cmd='SOUR:VOLT:LEV {}',
@@ -115,7 +115,7 @@ class Keithley_6430(VisaInstrument):
                                      'set voltage to this level.',
                            )
         self.add_parameter('source_voltage_range',
-                           units='V',
+                           unit='V',
                            get_parser=float,
                            set_cmd='SOUR:VOLT:RANG {}',
                            get_cmd='SOUR:VOLT:RANG?',
@@ -130,7 +130,7 @@ class Keithley_6430(VisaInstrument):
                                      "source/measure setup configuration.",
                            )
         self.add_parameter('source_delay',
-                           units='s',
+                           unit='s',
                            get_parser=float,
                            set_cmd=':SOUR:DEL {}',
                            get_cmd=':SOUR:DEL?',
@@ -173,21 +173,21 @@ class Keithley_6430(VisaInstrument):
                                      " chosen automatically",
                            )
         self.add_parameter('sense_current_range',
-                           units='A',
+                           unit='A',
                            get_parser=float,
                            set_cmd=':SENS:CURR:RANG {}',
                            get_cmd=':SENS:CURR:RANG?',
                            vals=Numbers(1e-12, 1e-1),
                            )
         self.add_parameter('sense_voltage_range',
-                           units='V',
+                           unit='V',
                            get_parser=float,
                            set_cmd=':SENS:VOLT:RANG {}',
                            get_cmd=':SENS:VOLT:RANG?',
                            vals=Enum(200, 20, 2, 0.2),
                            )
         self.add_parameter('sense_resistance_range',
-                           units='Ohm',
+                           unit='Ohm',
                            get_parser=float,
                            set_cmd=':SENS:RES:RANG {}',
                            get_cmd=':SENS:RES:RANG?',
