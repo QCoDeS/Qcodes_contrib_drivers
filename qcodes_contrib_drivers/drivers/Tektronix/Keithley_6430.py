@@ -324,9 +324,9 @@ class Keithley_6430(VisaInstrument):
         """
         if not (self.output_enabled() or self.output_auto_off_enabled()):
             raise Exception(
-                    "Either source must be turned on manually "
-                    "or ``output_auto_off_enabled`` has to be enabled before"
-                    " measuring a sense parameter."
+                    "Either source must be turned on manually or "
+                    "``output_auto_off_enabled`` has to be enabled before "
+                    "measuring a sense parameter."
                     )
         s = self.ask(':READ?')
         logging.debug(f'Read: {s}')
@@ -346,9 +346,9 @@ class Keithley_6430(VisaInstrument):
         """
         mode_now = self.sense_mode()
         if quantity not in mode_now:
-            warnings.warn(f"{self.short_name} tried reading {quantity},"
-                          f"but "
-                          f"mode is set to {mode_now}. Value might be out of date.")
+            warnings.warn(f"{self.short_name} tried reading {quantity}, but "
+                          f"mode is set to {mode_now}. Value might be out of "
+                          f"date.")
         mapping = {"VOLT:DC": 0, "CURR:DC": 1, "RES": 2}
         return self.read()[mapping[quantity]]
 
@@ -405,10 +405,10 @@ class Keithley_6430(VisaInstrument):
         """
         Switch sense_autorange on or off for all modes.
         """
-        val = int(val)
-        self.write(f'SENS:CURR:RANG:AUTO {val}')
-        self.write(f'SENS:VOLT:RANG:AUTO {val}')
-        self.write(f'SENS:RES:RANG:AUTO {val}')
+        n = int(val)
+        self.write(f'SENS:CURR:RANG:AUTO {n}')
+        self.write(f'SENS:VOLT:RANG:AUTO {n}')
+        self.write(f'SENS:RES:RANG:AUTO {n}')
 
     def _get_sense_autorange(self) -> bool:
         """
