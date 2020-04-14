@@ -67,8 +67,7 @@ class Keithley_6430(VisaInstrument):
                            set_cmd='SOUR:CURR:LEV {}',
                            get_cmd='SOUR:CURR:LEV?',
                            vals=Numbers(-105e-3, 105e-3),
-                           docstring='When in current sourcing mode,'
-                                     'tries to '
+                           docstring='When in current sourcing mode, tries to '
                                      'set current to this level.',
                            )
         self.add_parameter('sense_current',
@@ -77,8 +76,7 @@ class Keithley_6430(VisaInstrument):
                            label='Measured current',
                            get_cmd=partial(self._read_value, 'CURR:DC'),
                            snapshot_value=False,
-                           docstring='Value of measured current,'
-                                     ' when in '
+                           docstring='Value of measured current, when in '
                                      'current sensing mode.',
                            )
         self.add_parameter('sense_voltage',
@@ -87,8 +85,7 @@ class Keithley_6430(VisaInstrument):
                            label='Measured voltage',
                            get_cmd=partial(self._read_value, 'VOLT:DC'),
                            snapshot_value=False,
-                           docstring='Value of measured voltage, '
-                                     'when in '
+                           docstring='Value of measured voltage, when in '
                                      'voltage sensing mode.',
                            )
         self.add_parameter('sense_resistance',
@@ -97,8 +94,7 @@ class Keithley_6430(VisaInstrument):
                            label='Measured resistance',
                            get_cmd=partial(self._read_value, 'RES'),
                            snapshot_value=False,
-                           docstring='Value of measured resistance, '
-                                     'when in '
+                           docstring='Value of measured resistance, when in '
                                      'resistance sensing mode.',
                            )
         self.add_parameter('source_current_range',
@@ -115,8 +111,7 @@ class Keithley_6430(VisaInstrument):
                            set_cmd='SOUR:VOLT:LEV {}',
                            get_cmd='SOUR:VOLT:LEV?',
                            vals=Numbers(-210, 210),
-                           docstring='When in voltage sourcing mode, '
-                                     'tries to '
+                           docstring='When in voltage sourcing mode, tries to '
                                      'set voltage to this level.',
                            )
         self.add_parameter('source_voltage_range',
@@ -130,9 +125,9 @@ class Keithley_6430(VisaInstrument):
                            set_cmd=':SOUR:DEL:AUTO {}',
                            get_cmd=':SOUR:DEL:AUTO?',
                            val_mapping=on_off_vals,
-                           docstring="Automatically set a delay period that is"
-                                     " appropriate for the present "
-                                     "source/measure setup configuration."
+                           docstring="Automatically set a delay period that "
+                                     "is appropriate for the present "
+                                     "source/measure setup configuration.",
                            )
         self.add_parameter('source_delay',
                            units='s',
@@ -140,7 +135,8 @@ class Keithley_6430(VisaInstrument):
                            set_cmd=':SOUR:DEL {}',
                            get_cmd=':SOUR:DEL?',
                            vals=Numbers(0, 9999.998),
-                           docstring="Settling time after setting source value."
+                           docstring="Settling time after setting source "
+                                     "value.",
                            )
         self.add_parameter('output_enabled',
                            set_cmd='OUTP {}',
