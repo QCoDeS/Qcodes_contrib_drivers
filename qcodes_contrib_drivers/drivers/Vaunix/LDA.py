@@ -34,7 +34,7 @@ class Vaunix_LDA(Instrument):
                  serial_number: int,
                  dll_path: Optional[str] = None,
                  channel_names: Optional[Dict[int, str]] = None,
-                 test_mode: Optional[bool] = False,
+                 test_mode: bool = False,
                  **kwargs):
         r"""
         QCoDeS Instrument for Vaunix LDA digital attenuators.
@@ -43,13 +43,13 @@ class Vaunix_LDA(Instrument):
             name: Qcodes name for this instrument
             serial_number: Serial number of the instrument, used to identify
                 it.
-            dll_path: Look for the LDA DLLs in this directory. Sets the
-                dll path as class attribute that is used for future instances
-                for which ``dll_path`` is not given.
+            dll_path: Look for the LDA DLLs in this directory. Sets the dll
+                path as class attribute that is used for future instances for
+                which ``dll_path`` is not given.
             channel_names: Optionally assign these names to the channels.
-            test_mode: If True, simulates communication with an
-                LDA-102 (serial:55102). Does not communicate with physical
-                devices. For testing purposes.
+            test_mode: If True, simulates communication with an LDA-102
+                (serial:55102). Does not communicate with physical devices. For
+                testing purposes.
         """
 
         super().__init__(name=name, **kwargs)
@@ -199,9 +199,8 @@ class LdaParameter(Parameter):
         """
         if hasattr(self.instrument, "channel_number"):
             instr = cast(Instrument, self.instrument)
-            self.instrument.root_instrument.dll.fnLDA_SetChannel(
-                self._reference, instr.channel_number
-            )
+            instr.root_instrument.dll.fnLDA_SetChannel(self._reference,
+                                                       instr.channel_number)
 
     def get_raw(self) -> float:
         """
