@@ -75,7 +75,7 @@ class Keithley_6430(VisaInstrument):
                            get_parser=float,
                            label='Measured current',
                            get_cmd=partial(self._read_value, 'CURR:DC'),
-                           snapshot_value=False,
+                           snapshot_get=False,
                            docstring='Value of measured current, when in '
                                      'current sensing mode.',
                            )
@@ -84,7 +84,7 @@ class Keithley_6430(VisaInstrument):
                            get_parser=float,
                            label='Measured voltage',
                            get_cmd=partial(self._read_value, 'VOLT:DC'),
-                           snapshot_value=False,
+                           snapshot_get=False,
                            docstring='Value of measured voltage, when in '
                                      'voltage sensing mode.',
                            )
@@ -93,7 +93,7 @@ class Keithley_6430(VisaInstrument):
                            get_parser=float,
                            label='Measured resistance',
                            get_cmd=partial(self._read_value, 'RES'),
-                           snapshot_value=False,
+                           snapshot_get=False,
                            docstring='Value of measured resistance, when in '
                                      'resistance sensing mode.',
                            )
