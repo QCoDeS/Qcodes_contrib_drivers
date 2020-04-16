@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from typing import List, Union
 import time
 import logging
+from functools import wraps
 
 import numpy as np
 
@@ -14,17 +15,25 @@ from .SD_AWG import SD_AWG
 from .memory_manager import MemoryManager
 
 
-def method_unavailable(func):
-    """
-    Decorator marking a method as unavailable.
-    It throws an exception when the method is called.
+def switchable(switch, enabled:bool):
+    '''
+    This decorator enables or disables a method depending on the value of an object's method.
+    It throws an exception when the invoked method is disabled.
+    '''
 
-    This decorator can be used to hide methods in a derived class.
-    """
-    def func_wrapper(self, *args, **kwargs):
-        raise Exception(f"{func.__name__} is not available in '{self.__class__.__name__}'")
+    def switchable_decorator(func):
 
-    return func_wrapper
+        @wraps(func)
+        def func_wrapper(self, *args, **kwargs):
+            if switch(self) != enabled:
+                switch_name = f'{type(self).__name__}.{switch.__name__}()'
+                raise Exception(f'{func.__name__} is not enabled when {switch_name} == {switch(self)}')
+            return func(self, *args, **kwargs)
+
+
+        return func_wrapper
+
+    return switchable_decorator
 
 
 class WaveformReference:
@@ -81,6 +90,7 @@ class _WaveformReferenceInternal(WaveformReference):
         self._uploaded = threading.Event()
         self._upload_error: str = None
         self._released: bool = False
+        self._queued_count = 0
 
 
     def release(self):
@@ -90,8 +100,8 @@ class _WaveformReferenceInternal(WaveformReference):
         if self._released:
             raise Exception('Reference already released')
 
-        self._allocated_slot.release()
         self._released = True
+        self._try_release_slot()
 
 
     def wait_uploaded(self):
@@ -118,6 +128,20 @@ class _WaveformReferenceInternal(WaveformReference):
         return self._uploaded.is_set()
 
 
+    def enqueued(self):
+        self._queued_count += 1
+
+
+    def dequeued(self):
+        self._queued_count -= 1
+        self._try_release_slot()
+
+
+    def _try_release_slot(self):
+        if self._released and self._queued_count <= 0:
+            self._allocated_slot.release()
+
+
     def __del__(self):
         if not self._released:
             logging.warn(f'WaveformReference was not released ({self.awg_name}:{self.wave_number}). '
@@ -136,6 +160,9 @@ class SD_AWG_Async(SD_AWG):
     Only one instance of this class per AWG module is allowed.
     By default the maximum size of a waveform is limited to 1e6 samples.
     This limit can be increased up to 1e8 samples at the cost of a longer startup time of the threads.
+
+    The memory manager and asynchronous functionality can be disabled to restore the behavior of
+    the parent class. The instrument can then be used with old synchronous code.
 
     Example:
         awg1 = SW_AWG_Async('awg1', 0, 1, channels=4, triggers=8)
@@ -163,6 +190,7 @@ class SD_AWG_Async(SD_AWG):
         legacy_channel_numbering (bool): indicates whether legacy channel number
             should be used. (Legacy numbering starts with channel 0)
         waveform_size_limit (int): maximum size of waveform that can be uploaded
+        asynchronous (bool): if False the memory manager and asynchronous functionality are disabled.
     """
 
     @dataclass
@@ -175,62 +203,85 @@ class SD_AWG_Async(SD_AWG):
     _ACTION_STOP = UploadAction('stop', None, None)
     _ACTION_INIT_AWG_MEMORY = UploadAction('init', None, None)
 
-    _uploaders = {}
-    """ All uploaders by unique module name. """
-
+    _modules = {}
+    """ All async modules by unique module id. """
 
     def __init__(self, name, chassis, slot, channels, triggers, waveform_size_limit=1e6,
-                 **kwargs):
+                 asynchronous=True, **kwargs):
         super().__init__(name, chassis, slot, channels, triggers, **kwargs)
 
+        self._asynchronous = False
+        self._waveform_size_limit = waveform_size_limit
+
         module_id = self._get_module_id()
-        if module_id in SD_AWG_Async._uploaders:
-            raise Exception(f'AWG uploader {module_id} already exists')
+        if module_id in SD_AWG_Async._modules:
+            raise Exception(f'AWG module {module_id} already exists')
 
         self.module_id = module_id
-        SD_AWG_Async._uploaders[self.module_id] = self
+        SD_AWG_Async._modules[self.module_id] = self
 
-        super().flush_waveform()
-        self._memory_manager = MemoryManager(self.log, waveform_size_limit)
+        self.set_asynchronous(asynchronous)
 
-        self._upload_queue = queue.Queue()
-        self._thread = threading.Thread(target=self._run, name=f'uploader-{module_id}')
-        self._thread.start()
 
+    def asynchronous(self):
+        return self._asynchronous
+
+
+    def set_asynchronous(self, asynchronous):
+        """
+        Enables asynchronous loading and memory manager if `asynchronous` is True.
+        Otherwise disables both.
+        """
+        if asynchronous == self._asynchronous:
+            return
+
+        self._asynchronous = asynchronous
+
+        if asynchronous:
+            self._start_asynchronous()
+        else:
+            self._stop_asynchronous()
 
     #
-    # hide synchronous method of parent class, because wave memory is managed by this class.
+    # disable synchronous method of parent class, when wave memory is managed by this class.
     #
-    @method_unavailable
-    def load_waveform(self, *args, **kwargs):
-        pass
+    @switchable(asynchronous, enabled=False)
+    def load_waveform(self, waveform_object, waveform_number, verbose=False):
+        super().load_waveform(waveform_object, waveform_number, verbose)
 
-    @method_unavailable
-    def load_waveform_int16(self, *args, **kwargs):
-        pass
+    @switchable(asynchronous, enabled=False)
+    def load_waveform_int16(self, waveform_type, data_raw, waveform_number, verbose=False):
+        super().load_waveform_int16(waveform_type, data_raw, waveform_number, verbose)
 
-    @method_unavailable
-    def reload_waveform(self, *args, **kwargs):
-        pass
+    @switchable(asynchronous, enabled=False)
+    def reload_waveform(self, waveform_object, waveform_number, padding_mode=0, verbose=False):
+        super().reload_waveform(waveform_object, waveform_number, padding_mode, verbose)
 
-    @method_unavailable
-    def reload_waveform_int16(self, *args, **kwargs):
-        pass
+    @switchable(asynchronous, enabled=False)
+    def reload_waveform_int16(self, waveform_type, data_raw, waveform_number, padding_mode=0, verbose=False):
+        super().reload_waveform_int16(waveform_type, data_raw, waveform_number, padding_mode, verbose)
 
-    @method_unavailable
-    def flush_waveform(self, *args, **kwargs):
-        """
-        Not available. Waveform memory is managed by memory manager.
-        """
-        pass
+    @switchable(asynchronous, enabled=False)
+    def flush_waveform(self, verbose=False):
+        super().flush_waveform(verbose)
 
-    @method_unavailable
-    def awg_from_file(self, *args, **kwargs):
-        pass
+    @switchable(asynchronous, enabled=False)
+    def awg_from_file(self, awg_number, waveform_file, trigger_mode, start_delay, cycles, prescaler, padding_mode=0,
+                      verbose=False):
+        super().awg_from_file(awg_number, waveform_file, trigger_mode, start_delay, cycles, prescaler, padding_mode,
+                              verbose)
 
-    @method_unavailable
-    def awg_from_array(self, *args, **kwargs):
-        pass
+    @switchable(asynchronous, enabled=False)
+    def awg_from_array(self, awg_number, trigger_mode, start_delay, cycles, prescaler, waveform_type, waveform_data_a,
+                       waveform_data_b=None, padding_mode=0, verbose=False):
+        super().awg_from_array(awg_number, trigger_mode, start_delay, cycles, prescaler, waveform_type, waveform_data_a,
+                       waveform_data_b, padding_mode, verbose)
+
+
+    def awg_flush(self, awg_number):
+        super().awg_flush(awg_number)
+        if self._asynchronous:
+            self._release_waverefs()
 
 
     def awg_queue_waveform(self, awg_number, waveform_ref, trigger_mode, start_delay, cycles, prescaler):
@@ -252,25 +303,29 @@ class SD_AWG_Async(SD_AWG):
                 zero = infinite repeats
             prescaler (int): waveform prescaler value, to reduce eff. sampling rate
         """
-        if waveform_ref.awg_name != self.name:
-            raise Exception(f'Waveform not uploaded to this AWG ({self.name}). '
-                            f'It is uploaded to {waveform_ref.awg_name}')
+        if self.asynchronous():
+            if waveform_ref.awg_name != self.name:
+                raise Exception(f'Waveform not uploaded to this AWG ({self.name}). '
+                                f'It is uploaded to {waveform_ref.awg_name}')
 
-        self.log.debug(f'Enqueue {waveform_ref.wave_number}')
-        if not waveform_ref.is_uploaded():
-            self.log.info('waiting till wave is uploaded')
-            waveform_ref.wait_uploaded()
+            self.log.debug(f'Enqueue {waveform_ref.wave_number}')
+            if not waveform_ref.is_uploaded():
+                start = time.perf_counter()
+                self.log.debug(f'Waiting till wave {waveform_ref.wave_number} is uploaded')
+                waveform_ref.wait_uploaded()
+                duration = time.perf_counter() - start
+                self.log.info(f'Waited {duration*1000:5.1f} ms for upload of wave {waveform_ref.wave_number}')
 
-        super().awg_queue_waveform(awg_number, waveform_ref.wave_number, trigger_mode, start_delay, cycles, prescaler)
+            waveform_ref.enqueued()
+            self._enqueued_waverefs.append(waveform_ref)
+            wave_number = waveform_ref.wave_number
+        else:
+            wave_number = waveform_ref
+
+        super().awg_queue_waveform(awg_number, wave_number, trigger_mode, start_delay, cycles, prescaler)
 
 
-    def _get_module_id(self):
-        """
-        Generates a unique name for this module.
-        """
-        return f'{self.module_name}:{self.chassis_number()}-{self.slot_number()}'
-
-
+    @switchable(asynchronous, enabled=True)
     def set_waveform_limit(self, requested_waveform_size_limit: int):
         """
         Increases the maximum size of waveforms that can be uploaded.
@@ -285,6 +340,7 @@ class SD_AWG_Async(SD_AWG):
         self._upload_queue.put(SD_AWG_Async._ACTION_INIT_AWG_MEMORY)
 
 
+    @switchable(asynchronous, enabled=True)
     def upload_waveform(self, wave: Union[List[float], List[int], np.ndarray]) -> WaveformReference:
         '''
         Upload the wave using the uploader thread for this AWG.
@@ -311,13 +367,54 @@ class SD_AWG_Async(SD_AWG):
         Closes the module and stops background thread.
         """
         self.log.info(f'stopping ({self.module_id})')
+        if self.asynchronous():
+            self._stop_asynchronous()
+
+        del SD_AWG_Async._modules[self.module_id]
+
+        super().close()
+
+
+    def _get_module_id(self):
+        """
+        Generates a unique name for this module.
+        """
+        return f'{self.module_name}:{self.chassis_number()}-{self.slot_number()}'
+
+
+    def _start_asynchronous(self):
+        """
+        Starts the asynchronous upload thread and memory manager.
+        """
+        super().flush_waveform()
+        self._memory_manager = MemoryManager(self.log, self._waveform_size_limit)
+        self._enqueued_waverefs = []
+
+        self._upload_queue = queue.Queue()
+        self._thread = threading.Thread(target=self._run, name=f'uploader-{self.module_id}')
+        self._thread.start()
+
+
+    def _stop_asynchronous(self):
+        """
+        Stops the asynchronous upload thread and memory manager.
+        """
         self._upload_queue.put(SD_AWG_Async._ACTION_STOP)
         # wait at most 15 seconds. Should be more enough for normal scenarios
         self._thread.join(15)
         if self._thread.is_alive():
             self.log.error(f'AWG upload thread {self.module_id} stop failed. Thread still running.')
-        del SD_AWG_Async._uploaders[self.module_id]
-        super().close()
+
+        self._release_waverefs()
+        self._memory_manager = None
+        self._upload_queue = None
+        self._thread = None
+
+
+    def _release_waverefs(self):
+        for waveref in self._enqueued_waverefs:
+            waveref.dequeued()
+        self._enqueued_waverefs = []
 
 
     def _init_awg_memory(self):
@@ -325,10 +422,14 @@ class SD_AWG_Async(SD_AWG):
         Initialize memory on the AWG by uploading waveforms with all zeros.
         '''
         new_slots = self._memory_manager.get_uninitialized_slots()
-        if len(new_slots) > 0:
-            self.log.info(f'Reserving awg memory for {len(new_slots)} slots')
+        if len(new_slots) == 0:
+            return
+
+        self.log.info(f'Reserving awg memory for {len(new_slots)} slots')
 
         zeros = []
+        total_size = 0
+        total_duration = 0
         for slot in new_slots:
             start = time.perf_counter()
             if len(zeros) != slot.size:
@@ -337,7 +438,12 @@ class SD_AWG_Async(SD_AWG):
                 result_parser(wave.newFromArrayDouble(keysightSD1.SD_WaveformTypes.WAVE_ANALOG, zeros))
             super().load_waveform(wave, slot.number)
             duration = time.perf_counter() - start
-            self.log.debug(f'uploaded {slot.size} in {duration*1000:5.2f} ({slot.size/duration/1e6:5.2f} MSa/s)')
+            total_duration += duration
+            total_size +=  slot.size
+            self.log.debug(f'uploaded {slot.size} in {duration*1000:5.2f} ms ({slot.size/duration/1e6:5.2f} MSa/s)')
+
+        self.log.info(f'Awg memory reserved: {len(new_slots)} slots, {total_size/1e6} MSa in '
+                      f'{total_duration*1000:5.2f} ms ({total_size/total_duration/1e6:5.2f} MSa/s)')
 
 
     def _run(self):
