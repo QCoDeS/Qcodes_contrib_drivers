@@ -23,11 +23,11 @@ class SD_AWG(SD_Module):
         slot (int): slot of the module in the chassis.
         channels (int): number of channels of the module.
         triggers (int): number of triggers of the module.
-        legacy_channel_numbering (bool): indicates whether legacy channel number 
+        legacy_channel_numbering (bool): indicates whether legacy channel number
             should be used. (Legacy numbering starts with channel 0)
     """
 
-    def __init__(self, name, chassis, slot, channels, triggers, 
+    def __init__(self, name, chassis, slot, channels, triggers,
                  legacy_channel_numbering=True, **kwargs):
         super().__init__(name, chassis, slot, **kwargs)
 
@@ -79,7 +79,7 @@ class SD_AWG(SD_Module):
                                vals=validator.Enum(0, 1))
 
         index_offset = 0 if legacy_channel_numbering else 1
-        
+
         for i in range(channels):
             ch = i + index_offset
             self.add_parameter('frequency_channel_{}'.format(ch),
@@ -742,6 +742,12 @@ class SD_AWG(SD_Module):
         """
         result = self.awg.AWGtriggerMultiple(awg_mask)
         result_parser(result, f'AWGtriggerMultiple({awg_mask})')
+
+    def awg_is_running(self, channel):
+        """
+        Returns True if awg on `channel` is running.
+        """
+        return self.awg.AWGisRunning(channel)
 
     #
     # Functions related to creation of SD_Wave objects
