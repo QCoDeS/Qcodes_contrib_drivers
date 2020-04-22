@@ -138,7 +138,8 @@ class Vaunix_LDA(Instrument):
                 }
 
     def close(self) -> None:
-        self.dll.fnLDA_CloseDevice(self.reference)
+        if hasattr(self, "dll"):
+            self.dll.fnLDA_CloseDevice(self.reference)
         super().close()
 
     def save_settings(self) -> None:
