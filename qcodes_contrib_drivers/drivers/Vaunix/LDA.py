@@ -114,7 +114,16 @@ class Vaunix_LDA(Instrument):
         else:
             raise OSError(f"Unknown bitness of system: {bitness}")
 
-        return ctypes.cdll.LoadLibrary(full_path)
+        try:
+            dll = ctypes.cdll.LoadLibrary(full_path)
+        except OSError as e:
+            if hasattr(e, "winerror") and e.winerror == 126:
+                # 'the specified module could not be found'
+                raise OSError(f"Could not find DLL at '{full_path}'")
+            else:
+                raise
+
+        return dll
 
     def get_idn(self) -> Dict[str, Optional[str]]:
 
