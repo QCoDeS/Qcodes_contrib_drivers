@@ -112,7 +112,7 @@ class Vaunix_LDA(Instrument):
         elif "32bit" in bitness:
             full_path = os.path.join(path, "VNX_atten")
         else:
-            raise OSError("Unknown bitness of system:", bitness)
+            raise OSError(f"Unknown bitness of system: {bitness}")
 
         return ctypes.cdll.LoadLibrary(full_path)
 
