@@ -28,7 +28,6 @@ class NI_PXIe_2597(NI_Switch):
 
         super().__init__(name, resource, name_mapping, reset_device, **kwargs)
 
-        self.channels.lock()
         valid_choices = [ch.short_name for ch in self.channels]
         valid_choices.remove("com")
 

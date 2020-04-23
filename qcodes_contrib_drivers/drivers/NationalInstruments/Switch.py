@@ -54,6 +54,7 @@ class NI_Switch(Instrument):
             alias = name_mapping.get(raw_name, raw_name)
             ch = SwitchChannel(self, alias, raw_name)
             new_channels.append(ch)
+        new_channels.lock()
         self.add_submodule("channels", new_channels)
         self.snapshot(update=True)  # make all channels read their conenctions
 
