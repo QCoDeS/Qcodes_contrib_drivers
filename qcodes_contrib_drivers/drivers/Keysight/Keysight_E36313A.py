@@ -10,10 +10,10 @@ class E36313AChannel(InstrumentChannel):
     def __init__(self, parent: Instrument, name: str, chan: int) -> None:
         """
         Args:
-            parent (Instrument): The instrument to which the channel is
+            parent: The instrument to which the channel is
             attached.
-            name (str): The name of the channel
-            channum (int): The number of the channel in question (1-2)
+            name: The name of the channel
+            chan: The number of the channel in question (1-3)
         """
         # Sanity Check inputs
         if name not in ['ch1', 'ch2', 'ch3']:
