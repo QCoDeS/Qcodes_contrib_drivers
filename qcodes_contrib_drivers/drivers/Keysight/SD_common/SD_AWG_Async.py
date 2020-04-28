@@ -118,7 +118,7 @@ class _WaveformReferenceInternal(WaveformReference):
             raise Exception(f'Timeout loading wave')
 
         if self._upload_error:
-            raise Exception(f'Error loading wave: {self.upload_error}')
+            raise Exception(f'Error loading wave: {self._upload_error}')
 
 
     def is_uploaded(self):
@@ -281,7 +281,7 @@ class SD_AWG_Async(SD_AWG):
     def awg_flush(self, awg_number):
         super().awg_flush(awg_number)
         if self._asynchronous:
-            self._release_waverefs()
+            self._release_waverefs_awg(awg_number)
 
 
     def awg_queue_waveform(self, awg_number, waveform_ref, trigger_mode, start_delay, cycles, prescaler):
@@ -317,7 +317,7 @@ class SD_AWG_Async(SD_AWG):
                 self.log.info(f'Waited {duration*1000:5.1f} ms for upload of wave {waveform_ref.wave_number}')
 
             waveform_ref.enqueued()
-            self._enqueued_waverefs.append(waveform_ref)
+            self._enqueued_waverefs[awg_number].append(waveform_ref)
             wave_number = waveform_ref.wave_number
         else:
             wave_number = waveform_ref
@@ -388,7 +388,9 @@ class SD_AWG_Async(SD_AWG):
         """
         super().flush_waveform()
         self._memory_manager = MemoryManager(self.log, self._waveform_size_limit)
-        self._enqueued_waverefs = []
+        self._enqueued_waverefs = {}
+        for i in range(self.channels):
+            self._enqueued_waverefs[i+1] = []
 
         self._upload_queue = queue.Queue()
         self._thread = threading.Thread(target=self._run, name=f'uploader-{self.module_id}')
@@ -412,9 +414,15 @@ class SD_AWG_Async(SD_AWG):
 
 
     def _release_waverefs(self):
-        for waveref in self._enqueued_waverefs:
+        for i in range(self.channels):
+            self._release_waverefs_awg(i + 1)
+
+
+    def _release_waverefs_awg(self, awg_number):
+        for waveref in self._enqueued_waverefs[awg_number]:
             waveref.dequeued()
-        self._enqueued_waverefs = []
+        self._enqueued_waverefs[awg_number] = []
+
 
 
     def _init_awg_memory(self):
