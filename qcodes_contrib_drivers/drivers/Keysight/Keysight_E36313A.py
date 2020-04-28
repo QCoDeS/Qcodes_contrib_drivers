@@ -29,14 +29,14 @@ class E36313AChannel(InstrumentChannel):
                            label="Channel {} Voltage".format(chan),
                            get_cmd='VOLT? (@{:d})'.format(chan),
                            get_parser=float,
-                           set_cmd='VOLT {{:.8G}} (@{:d})'.format(chan),
+                           set_cmd='VOLT {{:.8G}},(@{:d})'.format(chan),
                            unit='V')
 
         self.add_parameter('source_current',
                            label="Channel {} Current".format(chan),
                            get_cmd='CURR? (@{:d})'.format(chan),
                            get_parser=float,
-                           set_cmd='CURR {{:.8G}} (@{:d})'.format(chan),
+                           set_cmd='CURR {{:.8G}},(@{:d})'.format(chan),
                            unit='A')
 
         self.add_parameter('voltage',
@@ -53,7 +53,7 @@ class E36313AChannel(InstrumentChannel):
 
         self.add_parameter('enable',
                            get_cmd='OUTP? (@{:d})'.format(chan),
-                           set_cmd='OUTP {{:d}} (@{:d})'.format(chan),
+                           set_cmd='OUTP {{:d}},(@{:d})'.format(chan),
                            val_mapping={'on':  1, 'off': 0})
 
         self.channel = chan
