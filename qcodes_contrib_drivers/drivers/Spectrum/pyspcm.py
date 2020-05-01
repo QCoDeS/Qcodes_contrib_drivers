@@ -1,6 +1,7 @@
 import os
 import platform
 import sys
+import logging
 from ctypes import *
 
 # load registers for easier access
@@ -47,7 +48,7 @@ uptr64 = POINTER (uint64)
 
 # Windows
 if os.name == 'nt':
-    sys.stdout.write("Windows found")
+    logging.info("pyspcm: Windows found")
 
     # define card handle type
     if (bIs64Bit):
@@ -69,7 +70,7 @@ if os.name == 'nt':
     else:
         spcm_hOpen = getattr (spcmDll, "_spcm_hOpen@4")
     spcm_hOpen.argtype = [c_char_p]
-    spcm_hOpen.restype = drv_handle 
+    spcm_hOpen.restype = drv_handle
 
     # load spcm_vClose
     if (bIs64Bit):
@@ -153,19 +154,19 @@ if os.name == 'nt':
 
 
 elif os.name == 'posix':
-    sys.stdout.write("Linux found")
+    logging.info("pyspcm: Linux found")
 
     # define card handle type
     drv_handle = c_void_p
 
     # Load DLL into memory.
-    # use cdll because all driver access functions use cdecl calling convention under linux 
+    # use cdll because all driver access functions use cdecl calling convention under linux
     spcmDll = cdll.LoadLibrary ("libspcm_linux.so")
 
     # load spcm_hOpen
     spcm_hOpen = getattr (spcmDll, "spcm_hOpen")
     spcm_hOpen.argtype = [c_char_p]
-    spcm_hOpen.restype = drv_handle 
+    spcm_hOpen.restype = drv_handle
 
     # load spcm_vClose
     spcm_vClose = getattr (spcmDll, "spcm_vClose")
