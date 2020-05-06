@@ -254,7 +254,10 @@ class SD_Module(Instrument):
             register (int or str): register to set.
             value (int): new value.
         """
-        result = self.SD_module.writeRegisterByName(register, value)
+        if type(register) == int:
+            result = self.SD_module.writeRegisterByNumber(register, value)
+        else:
+            result = self.SD_module.writeRegisterByName(register, value)
         value_name = 'set HVI register {}:{}'.format(register, value)
         result_parser(result, value_name, verbose)
         
@@ -267,7 +270,11 @@ class SD_Module(Instrument):
         Returns:
             int: register value.
         """
-        error, result = self.SD_module.readRegisterByName(register)
+        if type(register) == int:
+            error, result = self.SD_module.readRegisterByNumber(register)
+        else:
+            error, result = self.SD_module.readRegisterByName(register)
+
         value_name = 'get HVI register {}'.format(register)
         result_parser(error, value_name, verbose)
         return result
