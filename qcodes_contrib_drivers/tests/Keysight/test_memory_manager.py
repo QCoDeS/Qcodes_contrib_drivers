@@ -94,8 +94,3 @@ class TestMemoryManager(unittest.TestCase):
         mm.set_waveform_limit(VERY_LARGE_SIZE)
         new_slots = mm.get_uninitialized_slots()
         self.assertEqual(len(new_slots), N_VERY_LARGE)
-
-
-if __name__ == '__main__':
-
-    unittest.main()
