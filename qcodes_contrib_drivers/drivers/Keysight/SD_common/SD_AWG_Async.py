@@ -198,7 +198,7 @@ class SD_AWG_Async(SD_AWG):
     @dataclass
     class UploadAction:
         action: str
-        wave: Union[List[float], List[int], np.ndarray]
+        wave: Optional[Union[List[float], List[int], np.ndarray]]
         wave_ref: Optional[WaveformReference]
 
 
