@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from dataclasses import dataclass
+from typing import List, Dict
 
 class MemoryManager:
     """
@@ -50,14 +51,14 @@ class MemoryManager:
             ]
 
 
-    def __init__(self, log, waveform_size_limit: int = 1e6):
+    def __init__(self, log, waveform_size_limit: int = int(1e6)):
         self._log = log
         self._allocation_ref_count = 0
         self._created_size = 0
         self._max_waveform_size = 0
 
-        self._free_memory_slots = {}
-        self._slots = []
+        self._free_memory_slots: Dict[int, MemoryManager._MemorySlot] = {}
+        self._slots: List[MemoryManager._MemorySlot] = []
         self._slot_sizes = sorted([size for size,_ in MemoryManager.memory_sizes])
 
         self.set_waveform_limit(waveform_size_limit)

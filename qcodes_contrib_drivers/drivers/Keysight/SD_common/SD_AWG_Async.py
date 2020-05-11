@@ -3,7 +3,7 @@ import threading
 import queue
 import sys
 from dataclasses import dataclass
-from typing import List, Union
+from typing import Dict, List, Union, Optional, TypeVar, Callable, Any
 import time
 import logging
 from functools import wraps
@@ -15,7 +15,9 @@ from .SD_AWG import SD_AWG
 from .memory_manager import MemoryManager
 
 
-def switchable(switch, enabled:bool):
+F = TypeVar('F', bound=Callable[..., Any])
+
+def switchable(switch, enabled:bool) -> Callable[[F], F]:
     '''
     This decorator enables or disables a method depending on the value of an object's method.
     It throws an exception when the invoked method is disabled.
@@ -88,7 +90,7 @@ class _WaveformReferenceInternal(WaveformReference):
         super().__init__(allocated_slot.number, awg_name)
         self._allocated_slot = allocated_slot
         self._uploaded = threading.Event()
-        self._upload_error: str = None
+        self._upload_error: Optional[str] = None
         self._released: bool = False
         self._queued_count = 0
 
@@ -197,13 +199,13 @@ class SD_AWG_Async(SD_AWG):
     class UploadAction:
         action: str
         wave: Union[List[float], List[int], np.ndarray]
-        wave_ref: WaveformReference
+        wave_ref: Optional[WaveformReference]
 
 
     _ACTION_STOP = UploadAction('stop', None, None)
     _ACTION_INIT_AWG_MEMORY = UploadAction('init', None, None)
 
-    _modules = {}
+    _modules: Dict[str, SD_AWG_Async] = {}
     """ All async modules by unique module id. """
 
     def __init__(self, name, chassis, slot, channels, triggers, waveform_size_limit=1e6,
