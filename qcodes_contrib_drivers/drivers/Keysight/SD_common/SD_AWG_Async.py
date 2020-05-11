@@ -205,7 +205,7 @@ class SD_AWG_Async(SD_AWG):
     _ACTION_STOP = UploadAction('stop', None, None)
     _ACTION_INIT_AWG_MEMORY = UploadAction('init', None, None)
 
-    _modules: Dict[str, SD_AWG_Async] = {}
+    _modules: Dict[str, 'SD_AWG_Async'] = {}
     """ All async modules by unique module id. """
 
     def __init__(self, name, chassis, slot, channels, triggers, waveform_size_limit=1e6,
