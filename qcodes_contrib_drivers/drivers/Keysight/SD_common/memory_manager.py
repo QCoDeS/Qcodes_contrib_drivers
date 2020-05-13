@@ -107,11 +107,15 @@ class MemoryManager:
         """
         if wave_size > self._max_waveform_size:
             raise Exception(f'AWG wave with {wave_size} samples is too long. ' +
-                            'Max size={self._max_waveform_size} ({self.name})')
+                            'Max size={self._max_waveform_size}. ' +
+                            'Increase waveform size limit with set_waveform_limit().')
 
         for slot_size in self._slot_sizes:
             if wave_size > slot_size:
                 continue
+            if slot_size > self._max_waveform_size:
+                # slots of this size are not initialized.
+                break
             if len(self._free_memory_slots[slot_size]) > 0:
                 slot = self._free_memory_slots[slot_size].pop(0)
                 self._allocation_ref_count += 1
@@ -120,7 +124,7 @@ class MemoryManager:
                 self._log.debug(f'Allocated slot {slot}')
                 return MemoryManager.AllocatedSlot(slot, self._slots[slot].allocation_ref, self)
 
-        raise Exception(f'No free memory slot for AWG wave with {wave_size} samples ({self.name})')
+        raise Exception(f'No free memory slots left for waveform with {wave_size} samples.')
 
 
     def release(self, allocated_slot):
