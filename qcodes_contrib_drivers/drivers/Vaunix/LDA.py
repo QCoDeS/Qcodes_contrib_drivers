@@ -173,6 +173,7 @@ def _add_lda_parameters(inst: Union[Vaunix_LDA, LdaChannel]) -> None:
     root_instrument = cast(Vaunix_LDA, inst.root_instrument)
     inst.add_parameter("attenuation",
                        parameter_class=LdaAttenuation,
+                       set_parser=float,
                        )
     wf_vals = LdaWorkingFrequency.get_validator(root_instrument)
     if wf_vals:
