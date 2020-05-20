@@ -76,8 +76,7 @@ class Thorlabs_APT:
 
     def list_available_devices(self, hw_type: Union[int, ThorlabsHWType] = None) \
             -> List[Tuple[int, int, int]]:
-        """
-        Lists all available Thorlabs devices, that can connect to the APT server.
+        """Lists all available Thorlabs devices, that can connect to the APT server.
 
         Args:
             hw_type: If this parameter is passed, the function only searches for a certain device
@@ -94,19 +93,20 @@ class Thorlabs_APT:
 
         if hw_type is not None:
             if isinstance(hw_type, ThorlabsHWType):
-                hw_type = hw_type.value
-            hw_type_range = [hw_type]
+                hw_type_range = [hw_type.value]
+            else:
+                hw_type_range = [int(hw_type)]
         else:
-            hw_type_range = range(100)
+            hw_type_range = list(range(100))
 
-        for hw_type in hw_type_range:
-            if self.dll.GetNumHWUnitsEx(hw_type, ctypes.byref(count)) == 0:
+        for hw_type_id in hw_type_range:
+            if self.dll.GetNumHWUnitsEx(hw_type_id, ctypes.byref(count)) == 0:
                 if count.value > 0:
                     serial_number = ctypes.c_long()
                     for ii in range(count.value):
-                        if (self.dll.GetHWSerialNumEx(hw_type, ii,
+                        if (self.dll.GetHWSerialNumEx(hw_type_id, ii,
                                                       ctypes.byref(serial_number)) == 0):
-                            devices.append((hw_type, ii, serial_number.value))
+                            devices.append((hw_type_id, ii, serial_number.value))
         return devices
 
     def enable_event_dlg(self, enable: bool) -> None:
@@ -156,9 +156,11 @@ class Thorlabs_APT:
             The device's serial number
         """
         if isinstance(hw_type, ThorlabsHWType):
-            hw_type = hw_type.value
+            hw_type_id = hw_type.value
+        else:
+            hw_type_id = int(hw_type)
 
-        c_hw_type = ctypes.c_long(hw_type)
+        c_hw_type = ctypes.c_long(hw_type_id)
         c_index = ctypes.c_long(index)
         c_serial_number = ctypes.c_long()
 
