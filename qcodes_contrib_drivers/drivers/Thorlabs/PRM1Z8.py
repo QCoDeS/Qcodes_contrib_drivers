@@ -1,5 +1,5 @@
 from qcodes import Instrument
-from .APT import Thorlabs_APT
+from .APT import Thorlabs_APT, ThorlabsHWType
 
 
 class Thorlabs_PRM1Z8(Instrument):
@@ -26,7 +26,7 @@ class Thorlabs_PRM1Z8(Instrument):
         self.apt = apt
 
         # initialization
-        self.serial_number: int = self.apt.get_hw_serial_num_ex(31, device_id)
+        self.serial_number: int = self.apt.get_hw_serial_num_ex(ThorlabsHWType.PRM1Z8, device_id)
         self.apt.init_hw_device(self.serial_number)
         self.model, self.version, _ = self.apt.get_hw_info(self.serial_number)
 
