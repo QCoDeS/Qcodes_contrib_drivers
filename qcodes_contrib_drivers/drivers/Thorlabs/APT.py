@@ -85,8 +85,7 @@ class Thorlabs_APT:
 
         Returns:
             A list of tuples. Each list-element is a tuple of 3 ints, containing the device's
-            hardware type, device id and serial number:
-                [(hw type, device id, serial), ...]
+            hardware type, device id and serial number: [(hw type id, device id, serial), ...]
         """
         devices = []
         count = ctypes.c_long()
