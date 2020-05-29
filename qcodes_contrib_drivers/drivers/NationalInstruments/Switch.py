@@ -4,7 +4,6 @@ from typing import Optional, Dict, List, cast
 from qcodes import Instrument, InstrumentChannel, ChannelList
 
 from niswitch import Session, PathCapability
-from niswitch.errors import DriverError
 
 logger = logging.getLogger(__name__)
 
