@@ -1,5 +1,5 @@
 from qcodes import Instrument
-from .APT import Thorlabs_APT
+from .APT import Thorlabs_APT, ThorlabsHWType
 
 
 class Thorlabs_MFF10x(Instrument):
@@ -26,7 +26,7 @@ class Thorlabs_MFF10x(Instrument):
         self.apt = apt
 
         # initialization
-        self.serial_number: int = self.apt.get_hw_serial_num_ex(48, device_id)
+        self.serial_number: int = self.apt.get_hw_serial_num_ex(ThorlabsHWType.MFF10x, device_id)
         self.apt.init_hw_device(self.serial_number)
         self.model, self.version, _ = self.apt.get_hw_info(self.serial_number)
 
