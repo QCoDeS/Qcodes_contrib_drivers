@@ -20,6 +20,7 @@ from platform import architecture
 import os
 import sys
 import ctypes
+import time
 
 from qcodes import Instrument, InstrumentChannel, Parameter
 from qcodes.utils.validators import Numbers
@@ -51,8 +52,8 @@ class Vaunix_LDA(Instrument):
                 (serial:55102). Does not communicate with physical devices. For
                 testing purposes.
         """
+        begin_time = time.time()
 
-        super().__init__(name=name, **kwargs)
         self.serial_number = serial_number
         self.reference = None
 
@@ -76,6 +77,9 @@ class Vaunix_LDA(Instrument):
 
         self.dll.fnLDA_InitDevice(self.reference)
 
+        # call superclass init only after DLL has been successfully loaded
+        super().__init__(name=name, **kwargs)
+
         num_channels = self.dll.fnLDA_GetNumChannels(self.reference)
         if num_channels == 1:
             # don't add Channel objects, add parameters directly instead
@@ -86,7 +90,7 @@ class Vaunix_LDA(Instrument):
                 ch = LdaChannel(parent=self, channel_number=i, name=name)
                 self.add_submodule(name, ch)
 
-        self.connect_message()
+        self.connect_message(begin_time=begin_time)
 
     def _get_dll(self, dll_path: Optional[str] = None) -> ctypes.CDLL:
         r"""
