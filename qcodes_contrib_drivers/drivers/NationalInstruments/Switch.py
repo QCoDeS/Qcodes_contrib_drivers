@@ -70,6 +70,11 @@ class NI_Switch(Instrument):
                 'serial': self.session.serial_number,
                 'firmware': self.session.instrument_firmware_revision}
 
+    def close(self):
+        if hasattr(self, "session"):
+            self.session.close()
+        super().close()
+
 
 class SwitchChannel(InstrumentChannel):
     """
