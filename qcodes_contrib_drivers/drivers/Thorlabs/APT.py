@@ -91,21 +91,25 @@ class Thorlabs_APT:
         count = ctypes.c_long()
 
         if hw_type is not None:
+            # Only search for devices of the passed hardware type (model)
             if isinstance(hw_type, ThorlabsHWType):
                 hw_type_range = [hw_type.value]
             else:
                 hw_type_range = [int(hw_type)]
         else:
+            # Search for all models
             hw_type_range = list(range(100))
 
         for hw_type_id in hw_type_range:
-            if self.dll.GetNumHWUnitsEx(hw_type_id, ctypes.byref(count)) == 0:
-                if count.value > 0:
-                    serial_number = ctypes.c_long()
-                    for ii in range(count.value):
-                        if (self.dll.GetHWSerialNumEx(hw_type_id, ii,
-                                                      ctypes.byref(serial_number)) == 0):
-                            devices.append((hw_type_id, ii, serial_number.value))
+            # Get number of devices of the specific hardware type
+            if self.dll.GetNumHWUnitsEx(hw_type_id, ctypes.byref(count)) == 0 and count.value > 0:
+                # Is there any device of the specified hardware type
+                serial_number = ctypes.c_long()
+                # Get the serial numbers of all devices of that hardware type
+                for ii in range(count.value):
+                    if self.dll.GetHWSerialNumEx(hw_type_id, ii, ctypes.byref(serial_number)) == 0:
+                        devices.append((hw_type_id, ii, serial_number.value))
+
         return devices
 
     def enable_event_dlg(self, enable: bool) -> None:
