@@ -1,9 +1,10 @@
 import enum
+from typing import Tuple
 
 import qcodes.utils.validators as vals
 from qcodes import Instrument
 
-from qcodes_contrib_drivers.drivers.Thorlabs.APT import Thorlabs_APT, ThorlabsHWType
+from .APT import Thorlabs_APT, ThorlabsHWType
 
 
 class RotationDirection(enum.Enum):
@@ -155,19 +156,20 @@ class Thorlabs_K10CR1(Instrument):
         return {"vendor": "Thorlabs", "model": self.model,
                 "firmware": self.version, "serial": self.serial_number}
 
-    def _get_position(self):
+    def _get_position(self) -> float:
         return self.apt.mot_get_position(self.serial_number)
 
-    def _set_position(self, position):
+    def _set_position(self, position: float):
         self.apt.mot_move_absolute_ex(self.serial_number, position, True)
 
-    def _set_position_async(self, position):
+    def _set_position_async(self, position: float):
         self.apt.mot_move_absolute_ex(self.serial_number, position, False)
 
-    def _get_velocity_parameters(self):
+    def _get_velocity_parameters(self) -> Tuple[float, float, float]:
         return self.apt.mot_get_velocity_parameters(self.serial_number)
 
-    def _set_velocity_parameters(self, min_vel=None, accn=None, max_vel=None):
+    def _set_velocity_parameters(self,
+                                 min_vel: float = None, accn: float = None, max_vel: float = None):
         if min_vel is None or accn is None or max_vel is None:
             old_min_vel, old_accn, old_max_vel = self._get_velocity_parameters()
             if min_vel is None:
@@ -178,32 +180,32 @@ class Thorlabs_K10CR1(Instrument):
                 max_vel = old_max_vel
         return self.apt.mot_set_velocity_parameters(self.serial_number, min_vel, accn, max_vel)
 
-    def _get_velocity_min(self):
+    def _get_velocity_min(self) -> float:
         min_vel, _, _ = self._get_velocity_parameters()
         return min_vel
 
-    def _set_velocity_min(self, min_vel):
+    def _set_velocity_min(self, min_vel: float):
         self._set_velocity_parameters(min_vel=min_vel)
 
-    def _get_velocity_acceleration(self):
+    def _get_velocity_acceleration(self) -> float:
         _, accn, _ = self._get_velocity_parameters()
         return accn
 
-    def _set_velocity_acceleration(self, accn):
+    def _set_velocity_acceleration(self, accn: float):
         self._set_velocity_parameters(accn=accn)
 
-    def _get_velocity_max(self):
+    def _get_velocity_max(self) -> float:
         _, _, max_vel = self._get_velocity_parameters()
         return max_vel
 
-    def _set_velocity_max(self, max_vel):
+    def _set_velocity_max(self, max_vel: float):
         self._set_velocity_parameters(max_vel=max_vel)
 
-    def _get_home_parameters(self):
+    def _get_home_parameters(self) -> Tuple[int, int, float, float]:
         return self.apt.mot_get_home_parameters(self.serial_number)
 
-    def _set_home_parameters(self,
-                             direction=None, lim_switch=None, velocity=None, zero_offset=None):
+    def _set_home_parameters(self, direction: int = None, lim_switch: int = None,
+                             velocity: float = None, zero_offset:float = None):
         if direction is None or lim_switch is None or velocity is None or zero_offset is None:
             old_direction, old_lim_switch, old_velocity, old_zero_offset = self._get_home_parameters()
             if direction is None:
@@ -218,38 +220,38 @@ class Thorlabs_K10CR1(Instrument):
         return self.apt.mot_set_home_parameters(self.serial_number,
                                                 direction, lim_switch, velocity, zero_offset)
 
-    def _get_home_direction(self):
+    def _get_home_direction(self) -> int:
         direction, _, _, _ = self._get_home_parameters()
         return direction
 
-    def _set_home_direction(self, direction):
+    def _set_home_direction(self, direction: int):
         self._set_home_parameters(direction=direction)
 
-    def _get_home_lim_switch(self):
+    def _get_home_lim_switch(self) -> int:
         _, lim_switch, _, _ = self._get_home_parameters()
         return lim_switch
 
-    def _set_home_lim_switch(self, lim_switch):
+    def _set_home_lim_switch(self, lim_switch: int):
         self._set_home_parameters(lim_switch=lim_switch)
 
-    def _get_home_velocity(self):
+    def _get_home_velocity(self) -> float:
         _, _, velocity, _ = self._get_home_parameters()
         return velocity
 
-    def _set_home_velocity(self, velocity):
+    def _set_home_velocity(self, velocity: float):
         self._set_home_parameters(velocity=velocity)
 
-    def _get_home_zero_offset(self):
+    def _get_home_zero_offset(self) -> float:
         _, _, _, zero_offset = self._get_home_parameters()
         return zero_offset
 
-    def _set_home_zero_offset(self, zero_offset):
+    def _set_home_zero_offset(self, zero_offset: float):
         self._set_home_parameters(zero_offset=zero_offset)
 
     def _stop(self):
         self.apt.mot_stop_profiled(self.serial_number)
 
-    def _move_direction(self, direction):
+    def _move_direction(self, direction: int):
         self.apt.mot_move_velocity(self.serial_number, direction)
 
     def _enable(self):
@@ -259,7 +261,7 @@ class Thorlabs_K10CR1(Instrument):
         self.apt.disable_hw_channel(self.serial_number)
 
     def _move_home(self):
-        self.apt.mot_move_home(self.serial_number, wait=True)
+        self.apt.mot_move_home(self.serial_number, True)
 
     def _move_home_async(self):
-        self.apt.mot_move_home(self.serial_number, wait=False)
+        self.apt.mot_move_home(self.serial_number, False)
