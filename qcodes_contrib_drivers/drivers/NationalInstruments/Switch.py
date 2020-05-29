@@ -4,7 +4,6 @@ from typing import Optional, Dict, List, cast
 from qcodes import Instrument, InstrumentChannel, ChannelList
 
 from niswitch import Session, PathCapability
-from niswitch.errors import DriverError
 
 logger = logging.getLogger(__name__)
 
@@ -69,6 +68,11 @@ class NI_Switch(Instrument):
                 'model': self.session.instrument_model,
                 'serial': self.session.serial_number,
                 'firmware': self.session.instrument_firmware_revision}
+
+    def close(self):
+        if hasattr(self, "session"):
+            self.session.close()
+        super().close()
 
 
 class SwitchChannel(InstrumentChannel):
