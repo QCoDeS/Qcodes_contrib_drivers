@@ -20,6 +20,7 @@ from platform import architecture
 import os
 import sys
 import ctypes
+import time
 
 from qcodes import Instrument, InstrumentChannel, Parameter
 from qcodes.utils.validators import Numbers
@@ -51,8 +52,8 @@ class Vaunix_LDA(Instrument):
                 (serial:55102). Does not communicate with physical devices. For
                 testing purposes.
         """
+        begin_time = time.time()
 
-        super().__init__(name=name, **kwargs)
         self.serial_number = serial_number
         self.reference = None
 
@@ -76,6 +77,9 @@ class Vaunix_LDA(Instrument):
 
         self.dll.fnLDA_InitDevice(self.reference)
 
+        # call superclass init only after DLL has been successfully loaded
+        super().__init__(name=name, **kwargs)
+
         num_channels = self.dll.fnLDA_GetNumChannels(self.reference)
         if num_channels == 1:
             # don't add Channel objects, add parameters directly instead
@@ -86,7 +90,7 @@ class Vaunix_LDA(Instrument):
                 ch = LdaChannel(parent=self, channel_number=i, name=name)
                 self.add_submodule(name, ch)
 
-        self.connect_message()
+        self.connect_message(begin_time=begin_time)
 
     def _get_dll(self, dll_path: Optional[str] = None) -> ctypes.CDLL:
         r"""
@@ -112,9 +116,18 @@ class Vaunix_LDA(Instrument):
         elif "32bit" in bitness:
             full_path = os.path.join(path, "VNX_atten")
         else:
-            raise OSError("Unknown bitness of system:", bitness)
+            raise OSError(f"Unknown bitness of system: {bitness}")
 
-        return ctypes.cdll.LoadLibrary(full_path)
+        try:
+            dll = ctypes.cdll.LoadLibrary(full_path)
+        except OSError as e:
+            if hasattr(e, "winerror") and e.winerror == 126:
+                # 'the specified module could not be found'
+                raise OSError(f"Could not find DLL at '{full_path}'")
+            else:
+                raise
+
+        return dll
 
     def get_idn(self) -> Dict[str, Optional[str]]:
 
@@ -129,7 +142,8 @@ class Vaunix_LDA(Instrument):
                 }
 
     def close(self) -> None:
-        self.dll.fnLDA_CloseDevice(self.reference)
+        if hasattr(self, "dll"):
+            self.dll.fnLDA_CloseDevice(self.reference)
         super().close()
 
     def save_settings(self) -> None:
@@ -163,6 +177,7 @@ def _add_lda_parameters(inst: Union[Vaunix_LDA, LdaChannel]) -> None:
     root_instrument = cast(Vaunix_LDA, inst.root_instrument)
     inst.add_parameter("attenuation",
                        parameter_class=LdaAttenuation,
+                       set_parser=float,
                        )
     wf_vals = LdaWorkingFrequency.get_validator(root_instrument)
     if wf_vals:
