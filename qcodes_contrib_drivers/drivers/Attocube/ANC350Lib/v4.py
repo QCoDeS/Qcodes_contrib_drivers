@@ -2,41 +2,22 @@
 
 It depends on anc350v4.dll (and libusb0.dll) which are provided by Attocube on the installation
 disc. You can find the dll files for 32-bit and 64-bit in folder ANC350_Library.
+Please the dlls into the working directory or specify the path when instantiating the ANC350v4Lib.
 
 Author:
     Lukas Lankes, Forschungszentrum Jülich GmbH / ZEA-2, l.lankes@fz-juelich.de
 """
-#
-#  ANC350lib is a Python implementation of the C++ header provided
-#     with the attocube ANC350 closed-loop positioner system.
-#
-#  It depends on anc350v4.dll and libusb0.dll, which are provided by attocube in the
-#     ANC350_Library folder on the driver disc. Place all
-#     of these in the same folder as this module (and that of ANC350lib).
-#     This should also work with anc350v3.dll, although this has not been thoroughly checked.
-#
-#                ANC350lib is written by Rob Heath
-#                      rob@robheath.me.uk
-#                         24-Feb-2015
-#                       robheath.me.uk
-#
-#                 ANC350v4lib by Brian Schaefer
-#                      bts72@cornell.edu
-#                         5-Jul-2016
-#              http://nowack.lassp.cornell.edu/
 
-import ctypes
-import ctypes.util
-from ctypes import c_int8, c_int32, c_uint32, c_double, c_void_p, byref
+from ctypes import c_int32, c_uint32, c_double, c_void_p, byref
 from ctypes import create_string_buffer as c_string
 from typing import Optional
 
-from .interface import ANC350LibError, ANC350DeviceType, ANC350TriggerMode, ANC350TriggerPolarity, \
-    ANC350ActuatorType
+from .interface import ANC350LibError, ANC350LibDeviceType, ANC350LibExternalTriggerMode, \
+    ANC350LibTriggerPolarity, ANC350LibActuatorType
 from .v3 import ANC350v3Lib, ANC350v3LibError
 
-_all__ = ["ANC350v4Lib", "ANC350v3LibError", "ANC350LibError", "ANC350DeviceType",
-          "ANC350TriggerMode", "ANC350TriggerPolarity", "ANC350ActuatorType"]
+__all__ = ["ANC350v4Lib", "ANC350v3LibError", "ANC350LibError", "ANC350LibDeviceType",
+           "ANC350LibExternalTriggerMode", "ANC350LibTriggerPolarity", "ANC350LibActuatorType"]
 
 
 class ANC350v4Lib(ANC350v3Lib):
@@ -77,7 +58,7 @@ class ANC350v4Lib(ANC350v3Lib):
         Raises:
             ANC350LibError is raised, if the function call fails
         """
-        c_hostname = c_string(hostname.encode("utf-8"))
+        c_hostname = c_string(hostname.encode(self._encoding))
 
         try:
             return_code = self._dll.ANC_registerExternalIp(byref(c_hostname))
@@ -169,7 +150,7 @@ class ANC350v4Lib(ANC350v3Lib):
             raise ANC350v3LibError("Unexpected error in ANC_getLutName") from exc
         ANC350v3LibError.check_error(return_code, "ANC_getLutName")
 
-        return c_name.value.decode("utf-8")
+        return c_name.value.decode(self._encoding)
 
     def load_lut_file(self, dev_handle: c_void_p, axis_no: int, file_name: str) -> None:
         """Load Lookup Table
@@ -186,7 +167,7 @@ class ANC350v4Lib(ANC350v3Lib):
             ANC350LibError is raised, if the function call fails
         """
         c_axis_no = c_uint32(axis_no)
-        c_file_name = c_string(file_name.encode("utf-8"))
+        c_file_name = c_string(file_name.encode(self._encoding))
 
         try:
             return_code = self._dll.ANC_loadLutFile(dev_handle, c_axis_no, byref(c_file_name))

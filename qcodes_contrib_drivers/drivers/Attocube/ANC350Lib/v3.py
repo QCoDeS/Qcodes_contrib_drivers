@@ -2,62 +2,68 @@
 
 It depends on anc350v3.dll (and libusb0.dll) which are provided by Attocube on the installation
 disc. You can find the dll files for 32-bit and 64-bit in folder ANC350_Library.
+Please the dlls into the working directory or specify the path when instantiating the ANC350v3Lib.
 
 Author:
     Lukas Lankes, Forschungszentrum Jülich GmbH / ZEA-2, l.lankes@fz-juelich.de
 """
-#
-#  ANC350lib is a Python implementation of the C++ header provided
-#     with the attocube ANC350 closed-loop positioner system.
-#
-#  It depends on anc350v3.dll and libusb0.dll, which are provided by attocube in the
-#     ANC350_Library folder on the driver disc. Place all
-#     of these in the same folder as this module (and that of ANC350lib).
-#     This should also work with anc350v3.dll, although this has not been thoroughly checked.
-#
-#                ANC350lib is written by Rob Heath
-#                      rob@robheath.me.uk
-#                         24-Feb-2015
-#                       robheath.me.uk
-#
-#                 ANC350v3lib by Brian Schaefer
-#                      bts72@cornell.edu
-#                         5-Jul-2016
-#              http://nowack.lassp.cornell.edu/
 
 import ctypes
 import ctypes.util
 from ctypes import c_int8, c_int32, c_uint32, c_double, c_void_p, byref
 from ctypes import create_string_buffer as c_string
+import locale
 from typing import Optional, Tuple, Union
 
-from .interface import ANC350LibError, ANC350DeviceType, ANC350TriggerMode, ANC350TriggerPolarity, \
-    ANC350ActuatorType
+from .interface import ANC350LibError, ANC350LibDeviceType, ANC350LibExternalTriggerMode, \
+    ANC350LibTriggerPolarity, ANC350LibActuatorType
 
-_all__ = ["ANC350v3Lib", "ANC350v3LibError", "ANC350LibError", "ANC350DeviceType",
-          "ANC350TriggerMode", "ANC350TriggerPolarity", "ANC350ActuatorType"]
+__all__ = ["ANC350v3Lib", "ANC350v3LibError", "ANC350LibError", "ANC350LibDeviceType",
+           "ANC350LibExternalTriggerMode", "ANC350LibTriggerPolarity", "ANC350LibActuatorType"]
 
 
 class ANC350v3LibError(ANC350LibError):
-    SUCCESS_CODES = [0]
-    WARNING_CODES = []
-    ERROR_MESSAGES = {
-        -1: "Unspecified error",
-        0: "Success",
-        1: "Communication timeout",
-        2: "Not connected",
-        3: "Driver error",
-        7: "Device locked",
-        8: "Unknown error",
-        9: "Invalid device number",
-        10: "Invalid axis number",
-        11: "Parameter out of range",
-        12: "Function not available",
-        13: "Can't open or parse file"
-    }
+    """Exception class for errors occurring in ``ANC350v3Lib`` and ``ANC350v4Lib``
+
+    Attributes:
+        message: Error message
+        code: Error code from dll (or None)
+    """
 
     def __init__(self, message: Optional[str] = None, code: Optional[int] = None):
+        """Create instance of ``ANC350v3LibError``
+
+        Args:
+            message: Error message
+            code: Error code from dll
+        """
         super().__init__(message, code)
+
+    @classmethod
+    def _get_message_for_code(cls, code: int) -> Optional[str]:
+        """Override this function to convert return codes into error messages
+
+        Args:
+            code: Occurred error code
+
+        Returns:
+            Corresponding error message for code
+        """
+        messages = {
+            -1: "Unspecified error",
+            0: "Success",
+            1: "Communication timeout",
+            2: "Not connected",
+            3: "Driver error",
+            7: "Device locked",
+            8: "Unknown error",
+            9: "Invalid device number",
+            10: "Invalid axis number",
+            11: "Parameter out of range",
+            12: "Function not available",
+            13: "Can't open or parse file"
+        }
+        return messages[code] if code in messages else None
 
 
 class ANC350v3Lib:
@@ -79,6 +85,9 @@ class ANC350v3Lib:
                 raise FileNotFoundError("Could not find " + self.DEFAULT_PATH_TO_DLL)
 
             self._dll = ctypes.windll.LoadLibrary(self._path_to_dll)
+
+            # String encoding
+            self._encoding = locale.getpreferredencoding(False)
         except Exception as exc:
             raise ANC350v3LibError("Error loading " + self.DEFAULT_PATH_TO_DLL) from exc
 
@@ -115,7 +124,7 @@ class ANC350v3Lib:
 
         return c_dev_count.value
 
-    def get_device_info(self, dev_no: int = 0) -> Tuple[ANC350DeviceType, int, str, str, bool]:
+    def get_device_info(self, dev_no: int = 0) -> Tuple[ANC350LibDeviceType, int, str, str, bool]:
         """Device Information
 
         Returns available information about a device. The function can not be called before
@@ -153,8 +162,9 @@ class ANC350v3Lib:
             raise ANC350v3LibError("Unexpected error in ANC_getDeviceInfo") from exc
         ANC350v3LibError.check_error(return_code, "ANC_getDeviceInfo")
 
-        return ANC350DeviceType(c_dev_type.value), c_id.value, c_serial.value.decode("utf-8"), \
-               c_address.value.decode("utf-8"), bool(c_connected.value)
+        return ANC350LibDeviceType(c_dev_type.value), c_id.value,\
+               c_serial.value.decode(self._encoding), c_address.value.decode(self._encoding),\
+               bool(c_connected.value)
 
     def connect(self, dev_no: int = 0) -> Optional[c_void_p]:
         """Connect Device
@@ -601,7 +611,7 @@ class ANC350v3Lib:
         return c_version.value
 
     def configure_ext_trigger(self, dev_handle: c_void_p, axis_no: int,
-                              mode: Union[ANC350TriggerMode, int]) -> None:
+                              mode: Union[ANC350LibExternalTriggerMode, int]) -> None:
         """Configure Trigger Input
 
         Enables the input trigger for steps.
@@ -679,7 +689,7 @@ class ANC350v3Lib:
         ANC350v3LibError.check_error(return_code, "ANC_configureAQuadBOut")
 
     def configure_rng_trigger_pol(self, dev_handle: c_void_p, axis_no: int,
-                                  polarity: Union[ANC350TriggerPolarity, int]) -> None:
+                                  polarity: Union[ANC350LibTriggerPolarity, int]) -> None:
         """Configure Polarity of Range Trigger
 
         Configure lower position for range trigger.
@@ -838,9 +848,9 @@ class ANC350v3Lib:
             raise ANC350v3LibError("Unexpected error in ANC_getActuatorName") from exc
         ANC350v3LibError.check_error(return_code, "ANC_getActuatorName")
 
-        return c_name.value.decode("utf-8")
+        return c_name.value.decode(self._encoding)
 
-    def get_actuator_type(self, dev_handle: c_void_p, axis_no: int) -> ANC350ActuatorType:
+    def get_actuator_type(self, dev_handle: c_void_p, axis_no: int) -> ANC350LibActuatorType:
         """Get Actuator Type
 
         Get the type of the currently selected actuator
@@ -864,7 +874,7 @@ class ANC350v3Lib:
             raise ANC350v3LibError("Unexpected error in ANC_getActuatorType") from exc
         ANC350v3LibError.check_error(return_code, "ANC_getActuatorType")
 
-        return ANC350ActuatorType(c_type.value)
+        return ANC350LibActuatorType(c_type.value)
 
     def measure_capacitance(self, dev_handle: c_void_p, axis_no: int) -> float:
         """Measure Motor Capacitance
