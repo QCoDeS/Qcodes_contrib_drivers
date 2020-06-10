@@ -127,6 +127,9 @@ class _WaveformReferenceInternal(WaveformReference):
         """
         Returns True if waveform has been loaded.
         """
+        if self._upload_error:
+            raise Exception(f'Error loading wave: {self._upload_error}')
+
         return self._uploaded.is_set()
 
 
@@ -484,6 +487,10 @@ class SD_AWG_Async(SD_AWG):
             except:
                 ex = sys.exc_info()
                 msg = f'{ex[0].__name__}:{ex[1]}'
+                min_value = np.min(entry.wave)
+                max_value = np.max(entry.wave)
+                if min_value < -1.0 or max_value > 1.0:
+                    msg += ': Voltage out of range'
                 self.log.error(f'Failure load waveform {wave_ref.wave_number}: {msg}' )
                 wave_ref._upload_error = msg
 
