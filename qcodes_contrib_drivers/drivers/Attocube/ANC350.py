@@ -5,6 +5,7 @@ from qcodes.utils.validators import Numbers
 from qcodes_contrib_drivers.drivers.Attocube.ANC350Lib import v3
 
 
+# TODO: Bei Docstrings einfach teilweise die Kommentare uebernehmen
 class Anc350Axis(InstrumentChannel):
 
     def __init__(self, parent: "ANC350", name: str, axis: int):
@@ -24,10 +25,9 @@ class Anc350Axis(InstrumentChannel):
                            label="Frequency",
                            get_cmd=self._get_frequency,
                            set_cmd=self._set_frequency,
-                           vals=,
                            unit="Hz",
                            docstring="""
-                           
+                           Sets the frequency parameter for an axis
                            """)
 
         self.add_parameter("amplitude",
@@ -44,14 +44,14 @@ class Anc350Axis(InstrumentChannel):
                            label="",
                            get_cmd=self._get_status,
                            docstring="""
-
-                            """)
+                           Reads status information about an axis of the device.
+                           """)
 
         self.add_parameter("output",
                            label="",
-                           #output True, false oder 0,1???
+                           # output True, false oder 0,1???
                            set_cmd=parent.lib.set_axis_output(dev_handle=parent.device_handle),
-                           vals=, #True und False / 0 und 1
+                           vals=,  # True und False / 0 und 1
                            docstring="""
                            
                            """)
@@ -59,8 +59,10 @@ class Anc350Axis(InstrumentChannel):
         self.add_parameter("voltage",
                            label="",
                            set_cmd=self._set_voltage,
+                           unit="V",
                            docstring="""
-                           
+                           Sets the DC level on the voltage output when no sawtooth based motion and no feedback loop
+                           is active.
                            """)
 
         self.add_parameter("target_postion",
@@ -70,6 +72,7 @@ class Anc350Axis(InstrumentChannel):
                            
                            """)
 
+        # TODO: Unit Angabe - Meter oder Grad oder gibt man bei unit beides an?
         self.add_parameter("target_range",
                            label="",
                            set_cmd=self._set_target_range,
@@ -101,9 +104,16 @@ class Anc350Axis(InstrumentChannel):
 
                             """)
 
-        # start_single_step
-        # start_continuous_move
-        # start_auto_move
+    #TODO: umsetztbar als Parameter?
+    def start_single_step(self, backward):
+        self._parent.lib.start_single_step(dev_handle=self._parent.device_handle, axis_no=self._axis,backward=backward)
+
+    def start_continuous_move(self, start, backward):
+        self._parent.lib.start_continuous_move(dev_handle=self._parent.device_handle, axis_no=self._axis,start= start,backward=backward)
+
+    def start_auto_move(self, enable, relative):
+        self._parent.lib.start_auto_move(dev_handle=self._parent.device_handle, axis_no=self._axis,enable = enable, relative = relative)
+
 
     def _get_position(self):
         self._parent.lib.set_target_postion(dev_handle=self._parent.device_handle, axis_no=self._axis)
@@ -123,18 +133,19 @@ class Anc350Axis(InstrumentChannel):
     def _get_status(self):
         self._parent.lib.get_axis_status(dev_handle=self._parent.device_handle, axis_no=self._axis)
 
-    #wie macht man das mit zwei unbekannten? in zwei parameter aufteilen? Und Problem mit True/ False
+    # wie macht man das mit zwei unbekannten? in zwei parameter aufteilen? Und Problem mit True/ False
     def _set_axis_output(self, enable):
-        self._parent.lib.get_axis_status(dev_handle=self._parent.device_handle, axis_no=self._axis, enable = enable)
+        self._parent.lib.get_axis_status(dev_handle=self._parent.device_handle, axis_no=self._axis, enable=enable)
 
     def _set_voltage(self, voltage):
-        self._parent.lib.set_dc_voltage(dev_handle=self._parent.device_handle,axis_no=self._axis,voltage = voltage)
+        self._parent.lib.set_dc_voltage(dev_handle=self._parent.device_handle, axis_no=self._axis, voltage=voltage)
 
     def _set_target_position(self, target):
-        self._parent.lib.set_target_postion(dev_handle=self._parent.device_handle,axis_no=self._axis, target = target)
+        self._parent.lib.set_target_postion(dev_handle=self._parent.device_handle, axis_no=self._axis, target=target)
 
     def _set_target_range(self, target_range):
-        self._parent.lib.set_target_range(dev_handle=self._parent.device_handle, axis_no=self._axis, target = target_range)
+        self._parent.lib.set_target_range(dev_handle=self._parent.device_handle, axis_no=self._axis,
+                                          target=target_range)
 
     def _set_actuator(self, actuator):
         self._parent.lib.select_actuator(dev_handle=self._parent.device_handle, axis_no=self._axis, actuator=actuator)
@@ -144,7 +155,6 @@ class Anc350Axis(InstrumentChannel):
 
     def _get_capacitance(self):
         self._parent.lib.measure_capacitance(dev_handle=self._parent.device_handle, axis_no=self._axis)
-
 
 
 class ANC350(Instrument):
