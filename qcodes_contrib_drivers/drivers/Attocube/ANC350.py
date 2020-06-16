@@ -1,5 +1,5 @@
 from qcodes import Instrument
-from qcodes.instrument.channel import InstrumentChannel
+from qcodes.instrument.channel import InstrumentChannel, ChannelList
 from qcodes.utils.validators import Numbers
 
 from qcodes_contrib_drivers.drivers.Attocube.ANC350Lib import v3
@@ -116,22 +116,22 @@ class Anc350Axis(InstrumentChannel):
 
 
     def _get_position(self):
-        self._parent.lib.set_target_postion(dev_handle=self._parent.device_handle, axis_no=self._axis)
+        return self._parent.lib.set_target_postion(dev_handle=self._parent.device_handle, axis_no=self._axis)
 
     def _get_frequency(self):
-        self._parent.lib.get_frequency(dev_handle=self._parent.device_handle, axis_no=self._axis)
+        return self._parent.lib.get_frequency(dev_handle=self._parent.device_handle, axis_no=self._axis)
 
     def _set_frequency(self, frequency):
         self._parent.lib.set_frequency(dev_handle=self._parent.device_handle, axis_no=self._axis, frequency=frequency)
 
     def _get_amplitude(self):
-        self._parent.lib.get_amplitude(dev_handle=self._parent.device_handle, axis_no=self._axis)
+        return self._parent.lib.get_amplitude(dev_handle=self._parent.device_handle, axis_no=self._axis)
 
     def _set_amplitude(self, amplitude):
         self._parent.lib.get_amplitude(dev_handle=self._parent.device_handle, axis_no=self._axis, amplitude=amplitude)
 
     def _get_status(self):
-        self._parent.lib.get_axis_status(dev_handle=self._parent.device_handle, axis_no=self._axis)
+        return self._parent.lib.get_axis_status(dev_handle=self._parent.device_handle, axis_no=self._axis)
 
     # wie macht man das mit zwei unbekannten? in zwei parameter aufteilen? Und Problem mit True/ False
     def _set_axis_output(self, enable):
@@ -151,10 +151,10 @@ class Anc350Axis(InstrumentChannel):
         self._parent.lib.select_actuator(dev_handle=self._parent.device_handle, axis_no=self._axis, actuator=actuator)
 
     def _get_actuator_name(self):
-        self._parent.lib.get_actuator_name(dev_handle=self._parent.device_handle, axis_no=self._axis)
+        return self._parent.lib.get_actuator_name(dev_handle=self._parent.device_handle, axis_no=self._axis)
 
     def _get_capacitance(self):
-        self._parent.lib.measure_capacitance(dev_handle=self._parent.device_handle, axis_no=self._axis)
+        return self._parent.lib.measure_capacitance(dev_handle=self._parent.device_handle, axis_no=self._axis)
 
 
 class ANC350(Instrument):
@@ -168,6 +168,19 @@ class ANC350(Instrument):
             # Eigene Excepition werfen
         else:
             self.device_handle = lib.connect(num)
+
+        #Kofiguration
+
+        #snapshotable?
+        axischannels = ChannelList(self,"Anc350Axis", Anc350Axis)
+        for nr, axis in enumerate(['x','y','z'], 1):
+            name = "{}-axis".format(axis)
+            axischannel = Anc350Axis(parent= self, name=name, axis= nr)
+            axischannels.append(axischannel)
+            self.add_submodule(name, axischannel)
+        axischannels.lock()
+        self.add_submodule("axis_channles", axischannels)
+
 
     # Postion x,y,z wahrscheinlich in einem Channel
     # _parse_direction_arg
