@@ -104,16 +104,17 @@ class Anc350Axis(InstrumentChannel):
 
                             """)
 
-    #TODO: umsetztbar als Parameter?
+    # TODO: umsetztbar als Parameter?
     def start_single_step(self, backward):
-        self._parent.lib.start_single_step(dev_handle=self._parent.device_handle, axis_no=self._axis,backward=backward)
+        self._parent.lib.start_single_step(dev_handle=self._parent.device_handle, axis_no=self._axis, backward=backward)
 
     def start_continuous_move(self, start, backward):
-        self._parent.lib.start_continuous_move(dev_handle=self._parent.device_handle, axis_no=self._axis,start= start,backward=backward)
+        self._parent.lib.start_continuous_move(dev_handle=self._parent.device_handle, axis_no=self._axis, start=start,
+                                               backward=backward)
 
     def start_auto_move(self, enable, relative):
-        self._parent.lib.start_auto_move(dev_handle=self._parent.device_handle, axis_no=self._axis,enable = enable, relative = relative)
-
+        self._parent.lib.start_auto_move(dev_handle=self._parent.device_handle, axis_no=self._axis, enable=enable,
+                                         relative=relative)
 
     def _get_position(self):
         return self._parent.lib.set_target_postion(dev_handle=self._parent.device_handle, axis_no=self._axis)
@@ -166,18 +167,17 @@ class ANC350(Instrument):
         self._dev_no = num
 
         if lib.discover(search_usb=search_usb, search_tcp=search_tcp) < num:
-            pass
-            # Eigene Excepition werfen
+            raise RuntimeError("No matching device found for this number")
         else:
             self.device_handle = lib.connect(num)
 
-        #Kofiguration
+        # Kofiguration
 
-        #snapshotable?
-        axischannels = ChannelList(self,"Anc350Axis", Anc350Axis)
-        for nr, axis in enumerate(['x','y','z'], 1):
+        # snapshotable?
+        axischannels = ChannelList(self, "Anc350Axis", Anc350Axis)
+        for nr, axis in enumerate(['x', 'y', 'z'], 1):
             axis_name = "{}-axis".format(axis)
-            axischannel = Anc350Axis(parent= self, name=axis_name, axis= nr)
+            axischannel = Anc350Axis(parent=self, name=axis_name, axis=nr)
             axischannels.append(axischannel)
             self.add_submodule(name, axischannel)
         axischannels.lock()
@@ -187,17 +187,15 @@ class ANC350(Instrument):
                            label="",
                            get_cmd=self._get_device_info,
                            docstring="""
-
+                           
                            """)
 
     def save_params(self):
-        self.lib.save_params(dev_handle= self.device_handle)
+        self.lib.save_params(dev_handle=self.device_handle)
 
     def disconnect(self):
-        self.lib.disconnect(dev_handle = self.device_handle)
-        del self.devce_handle
+        self.lib.disconnect(dev_handle=self.device_handle)
+        del self.device_handle
 
     def _get_device_info(self):
         return self.lib.get_device_info(self._dev_no)
-
-    # _parse_direction_arg
