@@ -163,6 +163,8 @@ class ANC350(Instrument):
 
         lib = v3.ANC350v3Lib()
 
+        self._dev_no = num
+
         if lib.discover(search_usb=search_usb, search_tcp=search_tcp) < num:
             pass
             # Eigene Excepition werfen
@@ -174,20 +176,28 @@ class ANC350(Instrument):
         #snapshotable?
         axischannels = ChannelList(self,"Anc350Axis", Anc350Axis)
         for nr, axis in enumerate(['x','y','z'], 1):
-            name = "{}-axis".format(axis)
-            axischannel = Anc350Axis(parent= self, name=name, axis= nr)
+            axis_name = "{}-axis".format(axis)
+            axischannel = Anc350Axis(parent= self, name=axis_name, axis= nr)
             axischannels.append(axischannel)
             self.add_submodule(name, axischannel)
         axischannels.lock()
         self.add_submodule("axis_channles", axischannels)
 
+        self.add_parameter("device_info",
+                           label="",
+                           get_cmd=self._get_device_info,
+                           docstring="""
 
-    # Postion x,y,z wahrscheinlich in einem Channel
+                           """)
+
+    def save_params(self):
+        self.lib.save_params(dev_handle= self.device_handle)
+
+    def disconnect(self):
+        self.lib.disconnect(dev_handle = self.device_handle)
+        del self.devce_handle
+
+    def _get_device_info(self):
+        return self.lib.get_device_info(self._dev_no)
+
     # _parse_direction_arg
-    # device info
-    # start_auto_move
-    # get acturator
-    # save params
-    # discconect
-
-    pass
