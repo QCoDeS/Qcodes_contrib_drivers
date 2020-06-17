@@ -17,6 +17,7 @@ class Anc350Axis(InstrumentChannel):
         self.add_parameter("position",
                            label="Position",
                            get_cmd=self._get_position,
+                           set_cmd=False,
                            docstring="""
                            
                            """)
@@ -25,31 +26,27 @@ class Anc350Axis(InstrumentChannel):
                            label="Frequency",
                            get_cmd=self._get_frequency,
                            set_cmd=self._set_frequency,
-                           unit="Hz",
-                           docstring="""
-                           Sets the frequency parameter for an axis
-                           """)
+                           unit="Hz")
 
         self.add_parameter("amplitude",
                            label="Amplitude",
                            get_cmd=self._get_amplitude,
                            set_cmd=self._set_amplitude,
                            vals=Numbers(0, 70),
-                           unit="V",
-                           docstring="""
-                           
-                           """)
+                           unit="V")
 
         self.add_parameter("status",
                            label="",
                            get_cmd=self._get_status,
+                           set_cmd=False,
                            docstring="""
-                           Reads status information about an axis of the device.
+                           Reads status information about an axis of the device. And returns them in a array.
                            """)
 
         self.add_parameter("output",
                            label="",
                            # output True, false oder 0,1???
+                           get_cmd=False,
                            set_cmd=parent.lib.set_axis_output(dev_handle=parent.device_handle),
                            vals=,  # True und False / 0 und 1
                            docstring="""
@@ -58,6 +55,7 @@ class Anc350Axis(InstrumentChannel):
 
         self.add_parameter("voltage",
                            label="",
+                           get_cmd=False,
                            set_cmd=self._set_voltage,
                            unit="V",
                            docstring="""
@@ -67,6 +65,7 @@ class Anc350Axis(InstrumentChannel):
 
         self.add_parameter("target_postion",
                            label="",
+                           get_cmd=False,
                            set_cmd=self._set_target_position,
                            docstring="""
                            
@@ -75,6 +74,7 @@ class Anc350Axis(InstrumentChannel):
         # TODO: Unit Angabe - Meter oder Grad oder gibt man bei unit beides an?
         self.add_parameter("target_range",
                            label="",
+                           get_cmd=False,
                            set_cmd=self._set_target_range,
                            docstring="""
                            
@@ -83,6 +83,7 @@ class Anc350Axis(InstrumentChannel):
         # Kann man actuator und actuator name kombinieren auch wenn sie nicht den selben Datentypen zurückgeben
         self.add_parameter("actuator",
                            label="",
+                           get_cmd=False,
                            set_cmd=self,
                            vals=Numbers(0, 255),
                            docstring="""
@@ -92,6 +93,7 @@ class Anc350Axis(InstrumentChannel):
         self.add_parameter("actuator_name",
                            label="",
                            get_cmd=self._get_actuator_name,
+                           set_cmd=False,
                            docstring="""
                            
                            """)
@@ -99,6 +101,7 @@ class Anc350Axis(InstrumentChannel):
         self.add_parameter("capacitance",
                            label="",
                            get_cmd=self._get_capacitance,
+                           set_cmd=False,
                            unit="F",
                            docstring="""
 
@@ -132,7 +135,14 @@ class Anc350Axis(InstrumentChannel):
         self._parent.lib.get_amplitude(dev_handle=self._parent.device_handle, axis_no=self._axis, amplitude=amplitude)
 
     def _get_status(self):
-        return self._parent.lib.get_axis_status(dev_handle=self._parent.device_handle, axis_no=self._axis)
+        names = ("connected","enabled","moving","target","eot_fwd","eot_bwf", "error")
+        status_list = self._parent.lib.get_axis_status(dev_handle=self._parent.device_handle, axis_no=self._axis)
+        status_dict = {}
+
+        for name, status in zip(names,status_list):
+            status_dict[name] = status
+
+        return status_dict
 
     # wie macht man das mit zwei unbekannten? in zwei parameter aufteilen? Und Problem mit True/ False
     def _set_axis_output(self, enable):
@@ -186,6 +196,7 @@ class ANC350(Instrument):
         self.add_parameter("device_info",
                            label="",
                            get_cmd=self._get_device_info,
+                           set_cmd=False,
                            docstring="""
                            
                            """)
