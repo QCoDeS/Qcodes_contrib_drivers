@@ -5,8 +5,32 @@ from qcodes.utils.validators import Numbers
 from qcodes_contrib_drivers.drivers.Attocube.ANC350Lib import v3
 
 
-# TODO: Bei Docstrings einfach teilweise die Kommentare uebernehmen
 class Anc350Axis(InstrumentChannel):
+    """
+    Representation of an axis of the ANC350
+
+    The Attocube ANC350 has 3 axis, one for every direction.
+
+    Args:
+        parent:
+        name:
+        axis: the index of the axis (1..3)
+
+    Attributes:
+        position:
+        frequency:
+        amplitude:
+        status:
+        voltage:
+        target_position:
+        target_range:
+        actuator:
+        actuator_name:
+        capacitance:
+
+
+
+    """
 
     def __init__(self, parent: "ANC350", name: str, axis: int):
         super().__init__(parent, name)
@@ -42,21 +66,19 @@ class Anc350Axis(InstrumentChannel):
                            docstring="""
                            Reads status information about an axis of the device. And returns them in a array.
                            """)
-
+        """
         self.add_parameter("output",
                            label="",
-                           # output True, false oder 0,1???
                            get_cmd=False,
-                           set_cmd=parent.lib.set_axis_output(dev_handle=parent.device_handle),
-                           vals=,  # True und False / 0 und 1
-                           docstring="""
-                           
-                           """)
+                           set_cmd=,
+                           vals=vals.enum(True, False))
+        """
 
         self.add_parameter("voltage",
                            label="",
                            get_cmd=False,
                            set_cmd=self._set_voltage,
+                           vals=Numbers(0, 70),
                            unit="V",
                            docstring="""
                            Sets the DC level on the voltage output when no sawtooth based motion and no feedback loop
@@ -80,14 +102,13 @@ class Anc350Axis(InstrumentChannel):
                            
                            """)
 
-        # Kann man actuator und actuator name kombinieren auch wenn sie nicht den selben Datentypen zurückgeben
         self.add_parameter("actuator",
                            label="",
                            get_cmd=False,
                            set_cmd=self,
                            vals=Numbers(0, 255),
                            docstring="""
-                           
+                           Selects the actuator to be used for the axis from actuator presets
                            """)
 
         self.add_parameter("actuator_name",
@@ -108,67 +129,91 @@ class Anc350Axis(InstrumentChannel):
                             """)
 
     # TODO: umsetztbar als Parameter?
-    def start_single_step(self, backward):
+    def set_output(self, enable, auto_disable) -> None:
+        self._parent.lib.set_axis_output(dev_handle=self._parent.device_handle, axis_no=self._axis, enable=enable,
+                                         auto_disable=auto_disable)
+
+    def start_single_step(self, backward) -> None:
         self._parent.lib.start_single_step(dev_handle=self._parent.device_handle, axis_no=self._axis, backward=backward)
 
-    def start_continuous_move(self, start, backward):
+    def start_continuous_move(self, start, backward) -> None:
         self._parent.lib.start_continuous_move(dev_handle=self._parent.device_handle, axis_no=self._axis, start=start,
                                                backward=backward)
 
-    def start_auto_move(self, enable, relative):
+    def start_auto_move(self, enable, relative) -> None:
         self._parent.lib.start_auto_move(dev_handle=self._parent.device_handle, axis_no=self._axis, enable=enable,
                                          relative=relative)
 
-    def _get_position(self):
-        return self._parent.lib.set_target_postion(dev_handle=self._parent.device_handle, axis_no=self._axis)
+    def _get_position(self) -> float:
+        return self._parent.lib.get_position(dev_handle=self._parent.device_handle, axis_no=self._axis)
 
-    def _get_frequency(self):
+    def _get_frequency(self) -> float:
         return self._parent.lib.get_frequency(dev_handle=self._parent.device_handle, axis_no=self._axis)
 
-    def _set_frequency(self, frequency):
+    def _set_frequency(self, frequency: float) -> None:
         self._parent.lib.set_frequency(dev_handle=self._parent.device_handle, axis_no=self._axis, frequency=frequency)
 
-    def _get_amplitude(self):
+    def _get_amplitude(self) -> float:
         return self._parent.lib.get_amplitude(dev_handle=self._parent.device_handle, axis_no=self._axis)
 
-    def _set_amplitude(self, amplitude):
+    def _set_amplitude(self, amplitude: float) -> None:
         self._parent.lib.get_amplitude(dev_handle=self._parent.device_handle, axis_no=self._axis, amplitude=amplitude)
 
+    #TODO: add typeHints for the dictionary
+    #TODO: add missing docstring explaining the dictionary
     def _get_status(self):
-        names = ("connected","enabled","moving","target","eot_fwd","eot_bwf", "error")
+        """
+
+        """
+        names = ("connected", "enabled", "moving", "target", "eot_fwd", "eot_bwf", "error")
         status_list = self._parent.lib.get_axis_status(dev_handle=self._parent.device_handle, axis_no=self._axis)
         status_dict = {}
 
-        for name, status in zip(names,status_list):
+        for name, status in zip(names, status_list):
             status_dict[name] = status
 
         return status_dict
 
-    # wie macht man das mit zwei unbekannten? in zwei parameter aufteilen? Und Problem mit True/ False
-    def _set_axis_output(self, enable):
-        self._parent.lib.get_axis_status(dev_handle=self._parent.device_handle, axis_no=self._axis, enable=enable)
-
-    def _set_voltage(self, voltage):
+    def _set_voltage(self, voltage: float) -> None:
         self._parent.lib.set_dc_voltage(dev_handle=self._parent.device_handle, axis_no=self._axis, voltage=voltage)
 
-    def _set_target_position(self, target):
+    def _set_target_position(self, target: float) -> None:
         self._parent.lib.set_target_postion(dev_handle=self._parent.device_handle, axis_no=self._axis, target=target)
 
-    def _set_target_range(self, target_range):
+    def _set_target_range(self, target_range: float) -> None:
         self._parent.lib.set_target_range(dev_handle=self._parent.device_handle, axis_no=self._axis,
                                           target=target_range)
 
-    def _set_actuator(self, actuator):
+    #TODO: add missing explaining for the actuator
+    def _set_actuator(self, actuator: int) -> None:
+        """
+        """
         self._parent.lib.select_actuator(dev_handle=self._parent.device_handle, axis_no=self._axis, actuator=actuator)
 
-    def _get_actuator_name(self):
+    def _get_actuator_name(self) -> str:
         return self._parent.lib.get_actuator_name(dev_handle=self._parent.device_handle, axis_no=self._axis)
 
-    def _get_capacitance(self):
+    def _get_capacitance(self) -> float:
         return self._parent.lib.measure_capacitance(dev_handle=self._parent.device_handle, axis_no=self._axis)
 
+    #TODO: add actuator_type?
 
 class ANC350(Instrument):
+    #TODO: device_info comment
+    """
+    Qcodes driver for the ANC350
+
+    functions:
+    - save_params:  Saves parameters to persistent flash memory in the device. They will be present as defaults
+                    after the next power-on.
+    - disconnect:   Closes the connection to the device. The device handle becomes invalid.
+
+    parameters:
+    - device_info: Returns available information about a device. The function can not be called before
+        ``discover`` but the devices don't have to be connected with ``connect``. All Pointers to
+        output parameters may be zero to ignore the respective value.
+    """
+
     def __init__(self, name: str, num: int = 0, search_usb: bool = True, search_tcp: bool = True):
         super().__init__(name)  # Fehlende Parameter?
 
@@ -180,8 +225,6 @@ class ANC350(Instrument):
             raise RuntimeError("No matching device found for this number")
         else:
             self.device_handle = lib.connect(num)
-
-        # Kofiguration
 
         # snapshotable?
         axischannels = ChannelList(self, "Anc350Axis", Anc350Axis)
@@ -202,9 +245,14 @@ class ANC350(Instrument):
                            """)
 
     def save_params(self):
+        """
+        Saves parameters to persistent flash memory in the device. They will be present as defaults after the next power-on.
+        """
         self.lib.save_params(dev_handle=self.device_handle)
 
     def disconnect(self):
+        """
+        """
         self.lib.disconnect(dev_handle=self.device_handle)
         del self.device_handle
 
