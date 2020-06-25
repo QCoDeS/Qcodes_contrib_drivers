@@ -14,8 +14,8 @@ class Anc350Axis(InstrumentChannel):
     The Attocube ANC350 has 3 axis, one for every direction.
 
     Args:
-        parent:
-        name:
+        parent: the Instrument that the channel is attached to
+        name: the name of the axis itself
         axis: the index of the axis (1..3)
 
     Attributes:
@@ -36,9 +36,6 @@ class Anc350Axis(InstrumentChannel):
         capacitance: Performs a measurement of the capacitance of the piezo motor and returns the result. If no
             motor is connected, the result will be 0.
             The function doesn't return before the measurement is complete; this will take a few seconds of time.
-
-
-
     """
 
     def __init__(self, parent: "ANC350", name: str, axis: int):
@@ -47,10 +44,51 @@ class Anc350Axis(InstrumentChannel):
         self._axis = axis
         self._parent = parent
 
+        if parent._version == 3 or parent._version == 4:
+            #Postion
+            self._get_position = self._get_position_v3
+            self._set_position = False
+            #Frequency
+            self._get_frequency = self._get_frequency_v3
+            self._set_frequency = self._set_frequency_v3
+            #Amplitude
+            self._get_amplitude = self._get_amplitude_v3
+            self._set_amplitude = self._set_amplitude_v3
+            #Status
+            self._get_status = self._get_status_v3
+            self._set_status = False
+            #Voltage
+            self._set_voltage = self._set_voltage_v3
+            self._get_voltage = False
+            #Target_position
+            self._set_target_position = self._set_target_position_v3
+            self._get_target_position = False
+            #Target_range
+            self._set_target_range = self._set_target_range_v3
+            self._get_target_range = False
+            #Actutaor
+            self._set_actuator = self._set_actuator_v3
+            self._get_actuator = False
+            #Actuator_name
+            self._set_actuator_name = self._set_actuator_name_v3
+            self._get_actuator_name = False
+            #Capacitance
+            self._set_capacitance = False
+            self._get_capacitance = self._get_capacitance_v3
+
+            if parent._version == 4:
+                pass
+        elif parent._version == 2:
+            #TODO: add support for version 2
+            pass
+        else:
+            #TODO: Throw a fitting Exception
+            pass
+
         self.add_parameter("position",
                            label="Position",
                            get_cmd=self._get_position,
-                           set_cmd=False,
+                           set_cmd=self._set_position,
                            docstring="""
                            
                            """)
@@ -71,14 +109,14 @@ class Anc350Axis(InstrumentChannel):
         self.add_parameter("status",
                            label="",
                            get_cmd=self._get_status,
-                           set_cmd=False,
+                           set_cmd=self._set_status,
                            docstring="""
                            Reads status information about an axis of the device. And returns them in a dictionary.
                            """)
 
         self.add_parameter("voltage",
                            label="",
-                           get_cmd=False,
+                           get_cmd=self._get_voltage,
                            set_cmd=self._set_voltage,
                            vals=Numbers(0, 70),
                            unit="V",
@@ -87,7 +125,7 @@ class Anc350Axis(InstrumentChannel):
                            is active.
                            """)
 
-        #TODO: possible to add two differtent units? -> linear actuatorsm, goniometers and rotators degree.
+        # TODO: possible to add two differtent units? -> linear actuatorsm, goniometers and rotators degree.
         self.add_parameter("target_postion",
                            label="",
                            get_cmd=False,
@@ -96,10 +134,10 @@ class Anc350Axis(InstrumentChannel):
                            Sets the target position for automatic motion (start_auto_move)
                            """)
 
-        #TODO: possible to add two differtent units? -> linear actuatorsm, goniometers and rotators degree.
+        # TODO: possible to add two differtent units? -> linear actuatorsm, goniometers and rotators degree.
         self.add_parameter("target_range",
                            label="",
-                           get_cmd=False,
+                           get_cmd=self._get_target_range,
                            set_cmd=self._set_target_range,
                            docstring="""
                            The range around the target position where the target is considered to be reached
@@ -117,9 +155,9 @@ class Anc350Axis(InstrumentChannel):
         self.add_parameter("actuator_name",
                            label="",
                            get_cmd=self._get_actuator_name,
-                           set_cmd=False)
+                           set_cmd=self._set_actuator_name)
 
-        #TODO: parameter actuator type?
+        # TODO: parameter actuator type?
 
         self.add_parameter("capacitance",
                            label="",
@@ -127,19 +165,21 @@ class Anc350Axis(InstrumentChannel):
                            set_cmd=False,
                            unit="F")
 
-    # TODO: umsetztbar als Parameter?
-    def set_output(self, enable, auto_disable) -> None:
+    # Version 3
+    # ---------
+    def set_output_v3(self, enable: bool, auto_disable: bool) -> None:
         """
         Enables or disables the voltage output of an axis.
 
         Args:
+            enable: True, to enable the voltage output. False, to disable it.
             auto_disable: True, if the voltage output is to be deactivated automatically when end of
                           travel is detected.
         """
         self._parent.lib.set_axis_output(dev_handle=self._parent.device_handle, axis_no=self._axis, enable=enable,
                                          auto_disable=auto_disable)
 
-    def start_single_step(self, backward) -> None:
+    def start_single_step_v3(self, backward) -> None:
         """
         Triggers a single step in desired direction.
 
@@ -148,7 +188,7 @@ class Anc350Axis(InstrumentChannel):
         """
         self._parent.lib.start_single_step(dev_handle=self._parent.device_handle, axis_no=self._axis, backward=backward)
 
-    def start_continuous_move(self, start, backward) -> None:
+    def start_continuous_move_v3(self, start, backward) -> None:
         """
         Starts or stops continous motion in forward or backward direction.
         Other kinds of motion are stopped.
@@ -160,7 +200,7 @@ class Anc350Axis(InstrumentChannel):
         self._parent.lib.start_continuous_move(dev_handle=self._parent.device_handle, axis_no=self._axis, start=start,
                                                backward=backward)
 
-    def start_auto_move(self, enable, relative) -> None:
+    def start_auto_move_v3(self, enable, relative) -> None:
         """
         Switches automatic moving (i.e. following the target position) on or off
 
@@ -172,22 +212,22 @@ class Anc350Axis(InstrumentChannel):
         self._parent.lib.start_auto_move(dev_handle=self._parent.device_handle, axis_no=self._axis, enable=enable,
                                          relative=relative)
 
-    def _get_position(self) -> float:
+    def _get_position_v3(self) -> float:
         return self._parent.lib.get_position(dev_handle=self._parent.device_handle, axis_no=self._axis)
 
-    def _get_frequency(self) -> float:
+    def _get_frequency_v3(self) -> float:
         return self._parent.lib.get_frequency(dev_handle=self._parent.device_handle, axis_no=self._axis)
 
-    def _set_frequency(self, frequency: float) -> None:
+    def _set_frequency_v3(self, frequency: float) -> None:
         self._parent.lib.set_frequency(dev_handle=self._parent.device_handle, axis_no=self._axis, frequency=frequency)
 
-    def _get_amplitude(self) -> float:
+    def _get_amplitude_v3(self) -> float:
         return self._parent.lib.get_amplitude(dev_handle=self._parent.device_handle, axis_no=self._axis)
 
-    def _set_amplitude(self, amplitude: float) -> None:
+    def _set_amplitude_v3(self, amplitude: float) -> None:
         self._parent.lib.get_amplitude(dev_handle=self._parent.device_handle, axis_no=self._axis, amplitude=amplitude)
 
-    def _get_status(self) -> Dict[str, bool]:
+    def _get_status_v3(self) -> Dict[str, bool]:
         """
         Reads status information about an axis
 
@@ -210,52 +250,65 @@ class Anc350Axis(InstrumentChannel):
 
         return status_dict
 
-    def _set_voltage(self, voltage: float) -> None:
+    def _set_voltage_v3(self, voltage: float) -> None:
         self._parent.lib.set_dc_voltage(dev_handle=self._parent.device_handle, axis_no=self._axis, voltage=voltage)
 
-    def _set_target_position(self, target: float) -> None:
+    def _set_target_position_v3(self, target: float) -> None:
         self._parent.lib.set_target_postion(dev_handle=self._parent.device_handle, axis_no=self._axis, target=target)
 
-    def _set_target_range(self, target_range: float) -> None:
+    def _set_target_range_v3(self, target_range: float) -> None:
         self._parent.lib.set_target_range(dev_handle=self._parent.device_handle, axis_no=self._axis,
                                           target=target_range)
 
     # TODO: add missing explaining for the actuator
-    def _set_actuator(self, actuator: int) -> None:
+    def _set_actuator_v3(self, actuator: int) -> None:
         """
         """
         self._parent.lib.select_actuator(dev_handle=self._parent.device_handle, axis_no=self._axis, actuator=actuator)
 
-    def _get_actuator_name(self) -> str:
+    def _get_actuator_name_v3(self) -> str:
         return self._parent.lib.get_actuator_name(dev_handle=self._parent.device_handle, axis_no=self._axis)
 
-    def _get_capacitance(self) -> float:
+    def _get_capacitance_v3(self) -> float:
         return self._parent.lib.measure_capacitance(dev_handle=self._parent.device_handle, axis_no=self._axis)
 
-    # TODO: add actuator_type?
+
+    # Version 4
+    # ---------
+
+    def _get_dc_voltage_v4(self) -> None:
+        pass
 
 
 class ANC350(Instrument):
     """
     Qcodes driver for the ANC350
 
-    parameters:
-    - device_info: Returns available information about a device as a tuple.
+    Args:
+        name: the name of the instrument itself
+        inst_num: Sequence number of the device to connect to
+        search_usb: True (default) to search for USB devices; False otherwise
+        search_tcp: True (default) to search for TCP/IP devices; False otherwise
+
+    Attributes:
+        device_info: Returns available information about a device as a tuple.
     """
 
-    def __init__(self, name: str, num: int = 0, search_usb: bool = True, search_tcp: bool = True):
-        super().__init__(name)  # Fehlende Parameter?
+    def __init__(self, name: str, version: int = 3, inst_num: int = 0, search_usb: bool = True,
+                 search_tcp: bool = True):
+        super().__init__(name)
 
         lib = v3.ANC350v3Lib()
 
-        self._dev_no = num
+        self._dev_no = inst_num
+        self._version = version
 
-        if lib.discover(search_usb=search_usb, search_tcp=search_tcp) < num:
+        if lib.discover(search_usb=search_usb, search_tcp=search_tcp) < inst_num:
             raise RuntimeError("No matching device found for this number")
         else:
-            self.device_handle = lib.connect(num)
+            self.device_handle = lib.connect(inst_num)
 
-        # snapshotable?
+        # TODO: is this snapshotable or should it be?
         axischannels = ChannelList(self, "Anc350Axis", Anc350Axis)
         for nr, axis in enumerate(['x', 'y', 'z'], 1):
             axis_name = "{}-axis".format(axis)
