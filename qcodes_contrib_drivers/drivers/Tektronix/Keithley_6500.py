@@ -8,22 +8,22 @@ class Keithley_Sense(InstrumentChannel):
     def __init__(self, parent: VisaInstrument, name: str, channel: str) -> None:
         valid_channels = ['VOLT', 'CURR', 'RES', 'FRES']
         if channel.upper() not in valid_channels:
-            raise ValueError('Channel must be one of the following: {}'.format(', '.join(valid_channels)))
+            raise ValueError(f"Channel must be one of the following: {', '.join(valid_channels)}")
         super().__init__(parent, name)
 
         self.add_parameter('measure',
                            unit=partial(self._get_unit, channel),
                            label=partial(self._get_label, channel),
                            get_parser=float,
-                           get_cmd=":MEAS:{}?".format(channel),
+                           get_cmd=f":MEAS:{channel}?",
                            docstring="Measure value of chosen quantity (Current/Voltage/Resistance)."
                            )
 
         self.add_parameter('nlpc',
                            label='NLPC',
                            get_parser=float,
-                           get_cmd="SENS:{}:NPLC?".format(channel),
-                           set_cmd="SENS:{}:NPLC {}".format(channel, "{:.4f}"),
+                           get_cmd=f"SENS:{channel}:NPLC?",
+                           set_cmd=f"SENS:{channel}:NPLC {{:.4f}}",
                            vals=Numbers(0.0005, 12)
                            )
 
