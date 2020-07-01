@@ -30,7 +30,7 @@ def result_parser(value, name='result', verbose=False):
     if isinstance(value, int) and (int(value) < 0):
         error_message = keysightSD1.SD_Error.getErrorMessage(value)
         call_message = f' ({name})' if name != 'result' else ''
-        raise Exception(f'Error in call to SD_Module ({value}): '
+        raise Exception(f'Error in call to module ({value}): '
                         f'{error_message}{call_message}')
     else:
         if verbose:
@@ -49,7 +49,7 @@ class SD_Module(Instrument):
     Specifically, this driver was written with the M3201A and M3300A cards in mind.
 
     This driver makes use of the Python library provided by Keysight as part of the SD1 Software package (v.2.01.00).
-    
+
     Args:
         name (str): an identifier for this instrument, particularly for
             attaching it to a Station.
@@ -57,23 +57,23 @@ class SD_Module(Instrument):
         slot (int): slot of the module in the chassis.
     """
 
-    def __init__(self, name, chassis, slot, **kwargs):
+    def __init__(self, name, chassis, slot, module_class=keysightSD1.SD_Module, **kwargs):
         super().__init__(name, **kwargs)
 
-        # Create instance of keysight SD_Module class
-        self.SD_module = keysightSD1.SD_Module()
+        # Create instance of keysight module class
+        self.module = module_class()
 
         # Open the device, using the specified chassis and slot number
-        self.module_name = self.SD_module.getProductNameBySlot(chassis, slot)
+        self.module_name = self.module.getProductNameBySlot(chassis, slot)
         result_parser(self.module_name, f'getProductNameBySlot({chassis}, {slot})')
 
-        result_code = self.SD_module.openWithSlot(self.module_name, chassis, slot)
+        result_code = self.module.openWithSlot(self.module_name, chassis, slot)
         result_parser(result_code, f'openWithSlot({self.module_name}, {chassis}, {slot})')
 
         self.add_parameter('module_count',
                            label='module count',
                            get_cmd=self.get_module_count,
-                           docstring='The number of Signadyne modules installed in the system')
+                           docstring='The number of Keysight modules installed in the system')
         self.add_parameter('product_name',
                            label='product name',
                            get_cmd=self.get_product_name,
@@ -117,61 +117,61 @@ class SD_Module(Instrument):
 
     def get_module_count(self, verbose=False):
         """Returns the number of SD modules installed in the system"""
-        value = self.SD_module.moduleCount()
+        value = self.module.moduleCount()
         value_name = 'module_count'
         return result_parser(value, value_name, verbose)
 
     def get_product_name(self, verbose=False):
         """Returns the product name of the device"""
-        value = self.SD_module.getProductName()
+        value = self.module.getProductName()
         value_name = 'product_name'
         return result_parser(value, value_name, verbose)
 
     def get_serial_number(self, verbose=False):
         """Returns the serial number of the device"""
-        value = self.SD_module.getSerialNumber()
+        value = self.module.getSerialNumber()
         value_name = 'serial_number'
         return result_parser(value, value_name, verbose)
 
     def get_chassis(self, verbose=False):
         """Returns the chassis number where the device is located"""
-        value = self.SD_module.getChassis()
+        value = self.module.getChassis()
         value_name = 'chassis_number'
         return result_parser(value, value_name, verbose)
 
     def get_slot(self, verbose=False):
         """Returns the slot number where the device is located"""
-        value = self.SD_module.getSlot()
+        value = self.module.getSlot()
         value_name = 'slot_number'
         return result_parser(value, value_name, verbose)
 
     def get_status(self, verbose=False):
         """Returns the status of the device"""
-        value = self.SD_module.getStatus()
+        value = self.module.getStatus()
         value_name = 'status'
         return result_parser(value, value_name, verbose)
 
     def get_firmware_version(self, verbose=False):
         """Returns the firmware version of the device"""
-        value = self.SD_module.getFirmwareVersion()
+        value = self.module.getFirmwareVersion()
         value_name = 'firmware_version'
         return result_parser(value, value_name, verbose)
 
     def get_hardware_version(self, verbose=False):
         """Returns the hardware version of the device"""
-        value = self.SD_module.getHardwareVersion()
+        value = self.module.getHardwareVersion()
         value_name = 'hardware_version'
         return result_parser(value, value_name, verbose)
 
     def get_type(self, verbose=False):
         """Returns the type of the device"""
-        value = self.SD_module.getType()
+        value = self.module.getType()
         value_name = 'type'
         return result_parser(value, value_name, verbose)
 
     def get_open(self, verbose=False):
         """Returns whether the device is open (True) or not (False)"""
-        value = self.SD_module.isOpen()
+        value = self.module.isOpen()
         value_name = 'open'
         return result_parser(value, value_name, verbose)
 
@@ -187,7 +187,7 @@ class SD_Module(Instrument):
             int: Digital value with negated logic, 0 (ON) or 1 (OFF),
             or negative numbers for errors
         """
-        value = self.SD_module.PXItriggerRead(pxi_trigger)
+        value = self.module.PXItriggerRead(pxi_trigger)
         value_name = 'pxi_trigger number {}'.format(pxi_trigger)
         return result_parser(value, value_name, verbose)
 
@@ -203,7 +203,7 @@ class SD_Module(Instrument):
             pxi_trigger (int): PXI trigger number (4000 + Trigger No.)
             value (int): Digital value with negated logic, 0 (ON) or 1 (OFF)
         """
-        result = self.SD_module.PXItriggerWrite(pxi_trigger, value)
+        result = self.module.PXItriggerWrite(pxi_trigger, value)
         value_name = 'set pxi_trigger {} to {}'.format(pxi_trigger, value)
         return result_parser(result, value_name, verbose)
 
@@ -222,7 +222,7 @@ class SD_Module(Instrument):
             address_mode (int): auto-increment (0), or fixed (1)
             access_mode (int): non-dma (0), or dma (1)
         """
-        data = self.SD_module.FPGAreadPCport(port, data_size, address, address_mode, access_mode)
+        data = self.module.FPGAreadPCport(port, data_size, address, address_mode, access_mode)
         value_name = 'data at PCport {}'.format(port)
         return result_parser(data, value_name, verbose)
 
@@ -237,7 +237,7 @@ class SD_Module(Instrument):
             address_mode (int): auto-increment (0), or fixed (1)
             access_mode (int): non-dma (0), or dma (1)
         """
-        result = self.SD_module.FPGAwritePCport(port, data, address, address_mode, access_mode)
+        result = self.module.FPGAwritePCport(port, data, address, address_mode, access_mode)
         value_name = 'set fpga PCport {} to data:{}, address:{}, address_mode:{}, access_mode:{}'\
             .format(port, data, address, address_mode, access_mode)
         return result_parser(result, value_name, verbose)
@@ -249,70 +249,70 @@ class SD_Module(Instrument):
     def set_hvi_register(self, register, value, verbose=False):
         """
         Sets value of specified HVI register.
-        
+
         Args:
             register (int or str): register to set.
             value (int): new value.
         """
         if type(register) == int:
-            result = self.SD_module.writeRegisterByNumber(register, value)
+            result = self.module.writeRegisterByNumber(register, value)
         else:
-            result = self.SD_module.writeRegisterByName(register, value)
+            result = self.module.writeRegisterByName(register, value)
         value_name = 'set HVI register {}:{}'.format(register, value)
         result_parser(result, value_name, verbose)
-        
+
     def get_hvi_register(self, register, verbose=False):
         """
         Returns value of specified HVI register.
-        
+
         Args:
             register (int or str): register to read.
         Returns:
             int: register value.
         """
         if type(register) == int:
-            error, result = self.SD_module.readRegisterByNumber(register)
+            error, result = self.module.readRegisterByNumber(register)
         else:
-            error, result = self.SD_module.readRegisterByName(register)
+            error, result = self.module.readRegisterByName(register)
 
         value_name = 'get HVI register {}'.format(register)
         result_parser(error, value_name, verbose)
         return result
-        
+
     #
     # The methods below are not used for setting or getting parameters, but can be used in the test functions of the
     # test suite e.g. The main reason they are defined is to make this driver more complete
     #
 
     def get_product_name_by_slot(self, chassis, slot, verbose=False):
-        value = self.SD_module.getProductNameBySlot(chassis, slot)
+        value = self.module.getProductNameBySlot(chassis, slot)
         value_name = 'product_name'
         return result_parser(value, value_name, verbose)
 
     def get_product_name_by_index(self, index, verbose=False):
-        value = self.SD_module.getProductNameByIndex(index)
+        value = self.module.getProductNameByIndex(index)
         value_name = 'product_name'
         return result_parser(value, value_name, verbose)
 
     def get_serial_number_by_slot(self, chassis, slot, verbose=False):
         warnings.warn('Returns faulty serial number due to error in Keysight lib v.2.01.00', UserWarning)
-        value = self.SD_module.getSerialNumberBySlot(chassis, slot)
+        value = self.module.getSerialNumberBySlot(chassis, slot)
         value_name = 'serial_number'
         return result_parser(value, value_name, verbose)
 
     def get_serial_number_by_index(self, index, verbose=False):
         warnings.warn('Returns faulty serial number due to error in Keysight lib v.2.01.00', UserWarning)
-        value = self.SD_module.getSerialNumberByIndex(index)
+        value = self.module.getSerialNumberByIndex(index)
         value_name = 'serial_number'
         return result_parser(value, value_name, verbose)
 
     def get_type_by_slot(self, chassis, slot, verbose=False):
-        value = self.awg.getTypeBySlot(chassis, slot)
+        value = self.module.getTypeBySlot(chassis, slot)
         value_name = 'type'
         return result_parser(value, value_name, verbose)
 
     def get_type_by_index(self, index, verbose=False):
-        value = self.awg.getTypeByIndex(index)
+        value = self.module.getTypeByIndex(index)
         value_name = 'type'
         return result_parser(value, value_name, verbose)
 
@@ -323,26 +323,26 @@ class SD_Module(Instrument):
     def close(self):
         """
         Closes the hardware device and frees resources.
-        
+
         If you want to open the instrument again, you have to initialize a new instrument object
         """
-        # Note: SD_module keeps track of open/close state. So, keep the reference.
-        self.SD_module.close()
+        # Note: module keeps track of open/close state. So, keep the reference.
+        self.module.close()
         super().close()
 
     # only closes the hardware device, does not delete the current instrument object
     def close_soft(self):
-        self.SD_module.close()
+        self.module.close()
 
     def open_with_serial_number(self, name, serial_number):
-        result = self.SD_module.openWithSerialNumber(name, serial_number)
+        result = self.module.openWithSerialNumber(name, serial_number)
         return result_parser(result, f'openWithSerialNumber({name}, {serial_number})')
 
     def open_with_slot(self, name, chassis, slot):
-        result = self.SD_module.openWithSlot(name, chassis, slot)        
+        result = self.module.openWithSlot(name, chassis, slot)
         return result_parser(result, f'openWithSlot({name}, {chassis}, {slot})')
 
     def run_self_test(self):
-        value = self.SD_module.runSelfTest()
+        value = self.module.runSelfTest()
         print('Did self test and got result: {}'.format(value))
         return value

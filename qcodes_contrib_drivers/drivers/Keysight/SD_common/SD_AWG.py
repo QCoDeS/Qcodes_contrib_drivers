@@ -1,3 +1,4 @@
+import logging
 from qcodes import validators as validator
 from functools import partial
 from threading import RLock
@@ -29,13 +30,9 @@ class SD_AWG(SD_Module):
 
     def __init__(self, name, chassis, slot, channels, triggers,
                  legacy_channel_numbering=True, **kwargs):
-        super().__init__(name, chassis, slot, **kwargs)
+        super().__init__(name, chassis, slot, module_class=keysightSD1.SD_AOU, **kwargs)
 
-        # Create instance of keysight SD_AOU class
-        self.awg = keysightSD1.SD_AOU()
-
-        # Create an instance of keysight SD_Wave class
-        self.wave = keysightSD1.SD_Wave()
+        self.awg = self.module
 
         # Lock to avoid concurrent access of waveformLoad()/waveformReLoad()
         self._lock = RLock()
@@ -112,14 +109,6 @@ class SD_AWG(SD_Module):
                                set_cmd=partial(self.set_channel_wave_shape, channel_number=ch),
                                docstring='The output waveform type of channel {}'.format(ch),
                                vals=validator.Enum(-1, 0, 1, 2, 4, 5, 6, 8))
-
-    def close(self):
-        """
-        Closes the hardware device and frees resources.
-        """
-        # Note: the awg module keeps track of open/close state. So, keep the reference to awg.
-        self.awg.close()
-        super().close()
 
     #
     # Get-commands
@@ -422,7 +411,7 @@ class SD_AWG(SD_Module):
         # Lock to avoid concurrent access of waveformLoad()/waveformReLoad()
         with self._lock:
             value = self.awg.waveformLoad(waveform_object, waveform_number)
-        value_name = 'Loaded waveform. available_RAM'
+        value_name = f'load_waveform_int({waveform_number})'
         return result_parser(value, value_name, verbose)
 
     def load_waveform_int16(self, waveform_type, data_raw, waveform_number, verbose=False):
@@ -443,7 +432,7 @@ class SD_AWG(SD_Module):
         # Lock to avoid concurrent access of waveformLoad()/waveformReLoad()
         with self._lock:
             value = self.awg.waveformLoadInt16(waveform_type, data_raw, waveform_number)
-        value_name = 'Loaded waveform. available_RAM'
+        value_name = f'load_waveform_int16({waveform_number})'
         return result_parser(value, value_name, verbose)
 
     def reload_waveform(self, waveform_object, waveform_number, padding_mode=0, verbose=False):
@@ -471,7 +460,7 @@ class SD_AWG(SD_Module):
         # Lock to avoid concurrent access of waveformLoad()/waveformReLoad()
         with self._lock:
             value = self.awg.waveformReLoad(waveform_object, waveform_number, padding_mode)
-        value_name = 'Reloaded waveform. available_RAM'
+        value_name = f'reload_waveform({waveform_number})'
         return result_parser(value, value_name, verbose)
 
     def reload_waveform_int16(self, waveform_type, data_raw, waveform_number, padding_mode=0, verbose=False):
@@ -500,7 +489,7 @@ class SD_AWG(SD_Module):
         # Lock to avoid concurrent access of waveformLoad()/waveformReLoad()
         with self._lock:
             value = self.awg.waveformReLoadArrayInt16(waveform_type, data_raw, waveform_number, padding_mode)
-        value_name = 'Reloaded waveform. available_RAM'
+        value_name = f'reload_waveform_int16({waveform_number})'
         return result_parser(value, value_name, verbose)
 
     def flush_waveform(self, verbose=False):
