@@ -42,56 +42,55 @@ class Anc350Axis(InstrumentChannel):
         super().__init__(parent, name)
 
         self._axis = axis
-        self._parent = parent
 
         if parent._version == 3 or parent._version == 4:
-            #Postion
+            # Postion
             self._get_position = self._get_position_v3
-            self._set_position = False
-            #Frequency
+            self._set_position = self._set_position_v3
+            # Frequency
             self._get_frequency = self._get_frequency_v3
             self._set_frequency = self._set_frequency_v3
-            #Amplitude
+            # Amplitude
             self._get_amplitude = self._get_amplitude_v3
             self._set_amplitude = self._set_amplitude_v3
-            #Status
+            # Status
             self._get_status = self._get_status_v3
             self._set_status = False
-            #Voltage
+            # Voltage
             self._set_voltage = self._set_voltage_v3
             self._get_voltage = False
-            #Target_position
+            # Target_position
             self._set_target_position = self._set_target_position_v3
             self._get_target_position = False
-            #Target_range
+            # Target_range
             self._set_target_range = self._set_target_range_v3
             self._get_target_range = False
-            #Actutaor
+            # Actutaor
             self._set_actuator = self._set_actuator_v3
             self._get_actuator = False
-            #Actuator_name
+            # Actuator_name
             self._set_actuator_name = self._set_actuator_name_v3
             self._get_actuator_name = False
-            #Capacitance
+            # Capacitance
             self._set_capacitance = False
             self._get_capacitance = self._get_capacitance_v3
 
             if parent._version == 4:
-                pass
+                # Voltage
+                self._get_voltage = self._get_dc_voltage_v4
+
         elif parent._version == 2:
-            #TODO: add support for version 2
-            pass
+            # TODO: add support for version 2
+            raise NotImplementedError
         else:
-            #TODO: Throw a fitting Exception
+            # TODO: Throw a fitting Exception
             pass
 
         self.add_parameter("position",
                            label="Position",
                            get_cmd=self._get_position,
                            set_cmd=self._set_position,
-                           docstring="""
-                           
-                           """)
+                           )
 
         self.add_parameter("frequency",
                            label="Frequency",
@@ -110,9 +109,7 @@ class Anc350Axis(InstrumentChannel):
                            label="",
                            get_cmd=self._get_status,
                            set_cmd=self._set_status,
-                           docstring="""
-                           Reads status information about an axis of the device. And returns them in a dictionary.
-                           """)
+                           )
 
         self.add_parameter("voltage",
                            label="",
@@ -120,37 +117,28 @@ class Anc350Axis(InstrumentChannel):
                            set_cmd=self._set_voltage,
                            vals=Numbers(0, 70),
                            unit="V",
-                           docstring="""
-                           Sets the DC level on the voltage output when no sawtooth based motion and no feedback loop
-                           is active.
-                           """)
+                           )
 
         # TODO: possible to add two differtent units? -> linear actuatorsm, goniometers and rotators degree.
         self.add_parameter("target_postion",
                            label="",
                            get_cmd=False,
                            set_cmd=self._set_target_position,
-                           docstring="""
-                           Sets the target position for automatic motion (start_auto_move)
-                           """)
+                           )
 
         # TODO: possible to add two differtent units? -> linear actuatorsm, goniometers and rotators degree.
         self.add_parameter("target_range",
                            label="",
                            get_cmd=self._get_target_range,
                            set_cmd=self._set_target_range,
-                           docstring="""
-                           The range around the target position where the target is considered to be reached
-                           """)
+                           )
 
         self.add_parameter("actuator",
                            label="",
                            get_cmd=False,
                            set_cmd=self,
                            vals=Numbers(0, 255),
-                           docstring="""
-                           Selects the actuator to be used for the axis from actuator presets
-                           """)
+                           )
 
         self.add_parameter("actuator_name",
                            label="",
@@ -213,19 +201,56 @@ class Anc350Axis(InstrumentChannel):
                                          relative=relative)
 
     def _get_position_v3(self) -> float:
+        """
+        Get the current position of this axis
+
+
+        Returns:
+            Current position in meters [m] (linear type actuators) or degrees [°] (goniometers and rotators)
+        """
         return self._parent.lib.get_position(dev_handle=self._parent.device_handle, axis_no=self._axis)
 
+    def _set_position_v3(self, poisition: float) -> None:
+        # TODO: is it needed to change the target range to a default?
+        # TODO: better block the setter and calls while moving
+        self._set_target_position_v3(poisition)
+        self.start_auto_move_v3(True, False)
+
     def _get_frequency_v3(self) -> float:
+        """
+        Returns the frequency parameter of this axis.
+
+        Returns:
+            Frequency in Hertz [Hz]
+        """
         return self._parent.lib.get_frequency(dev_handle=self._parent.device_handle, axis_no=self._axis)
 
     def _set_frequency_v3(self, frequency: float) -> None:
+        """
+        Sets the frequency parameter for this axis
+
+        Args:
+            frequency: Frequency in Hertz [Hz], internal resolution is 1 Hz
+        """
         self._parent.lib.set_frequency(dev_handle=self._parent.device_handle, axis_no=self._axis, frequency=frequency)
 
     def _get_amplitude_v3(self) -> float:
+        """
+        Returns the amplitude parameter of this axis.
+
+        Returns:
+            Amplitude in Volts [V]
+        """
         return self._parent.lib.get_amplitude(dev_handle=self._parent.device_handle, axis_no=self._axis)
 
     def _set_amplitude_v3(self, amplitude: float) -> None:
-        self._parent.lib.get_amplitude(dev_handle=self._parent.device_handle, axis_no=self._axis, amplitude=amplitude)
+        """
+        Sets the amplitude parameter for an axis
+
+        Args:
+            amplitude: Amplitude in Volts [V] (internal resolution is 1mV)
+        """
+        self._parent.lib.set_amplitude(dev_handle=self._parent.device_handle, axis_no=self._axis, amplitude=amplitude)
 
     def _get_status_v3(self) -> Dict[str, bool]:
         """
@@ -251,33 +276,64 @@ class Anc350Axis(InstrumentChannel):
         return status_dict
 
     def _set_voltage_v3(self, voltage: float) -> None:
+        """
+        Sets the DC level on the voltage output when no sawtooth based motion and no feedback loop
+        is active.
+
+        Args:
+            voltage: DC output voltage in Volts [V], internal resolution is 1 mV
+        """
         self._parent.lib.set_dc_voltage(dev_handle=self._parent.device_handle, axis_no=self._axis, voltage=voltage)
 
     def _set_target_position_v3(self, target: float) -> None:
-        self._parent.lib.set_target_postion(dev_handle=self._parent.device_handle, axis_no=self._axis, target=target)
+        """
+        Sets the target position for automatic motion, see ``start_auto_move``.
+        For linear type actuators the position unit is m, for goniometers and rotators it is degree.
+
+        Args:
+            target: Target position in meters [m] or degrees [°]. Internal resolution is 1 nm or
+                    1 µ°.
+        """
+        self._parent.lib.set_target_position(dev_handle=self._parent.device_handle, axis_no=self._axis, target=target)
 
     def _set_target_range_v3(self, target_range: float) -> None:
+        """
+        Sets the range around the target position where the target is considered to be reached.
+        For linear type actuators the position unit is m, for goniometers and rotators it is degree.
+
+        Args:
+             target_range: Target range in meters [m] or degrees [°]. Internal resolution is 1 nm or
+                          1 µ°.
+        """
         self._parent.lib.set_target_range(dev_handle=self._parent.device_handle, axis_no=self._axis,
                                           target=target_range)
 
     # TODO: add missing explaining for the actuator
     def _set_actuator_v3(self, actuator: int) -> None:
-        """
-        """
         self._parent.lib.select_actuator(dev_handle=self._parent.device_handle, axis_no=self._axis, actuator=actuator)
 
     def _get_actuator_name_v3(self) -> str:
+        """
+        Returns the name of the currently selected actuator
+
+        Returns:
+            Name of the actuator
+        """
         return self._parent.lib.get_actuator_name(dev_handle=self._parent.device_handle, axis_no=self._axis)
 
     def _get_capacitance_v3(self) -> float:
         return self._parent.lib.measure_capacitance(dev_handle=self._parent.device_handle, axis_no=self._axis)
 
-
     # Version 4
     # ---------
+    def _get_dc_voltage_v4(self) -> float:
+        """
+        Reads back the current DC level.
 
-    def _get_dc_voltage_v4(self) -> None:
-        pass
+        Returns:
+            DC output voltage in Volts [V]
+        """
+        return self._parent.lib.get_dc_voltage(dev_handle=self._parent.device_handle, axis_no=self._axis)
 
 
 class ANC350(Instrument):
@@ -289,24 +345,25 @@ class ANC350(Instrument):
         inst_num: Sequence number of the device to connect to
         search_usb: True (default) to search for USB devices; False otherwise
         search_tcp: True (default) to search for TCP/IP devices; False otherwise
+        library: library that fits to the version of the device and provides the appropriate dll wrappers
 
     Attributes:
         device_info: Returns available information about a device as a tuple.
     """
 
-    def __init__(self, name: str, version: int = 3, inst_num: int = 0, search_usb: bool = True,
+    def __init__(self, library, name: str, version: int = 3, inst_num: int = 0, search_usb: bool = True,
                  search_tcp: bool = True):
         super().__init__(name)
 
-        lib = v3.ANC350v3Lib()
+        self.lib = library
 
         self._dev_no = inst_num
         self._version = version
 
-        if lib.discover(search_usb=search_usb, search_tcp=search_tcp) < inst_num:
+        if self.lib.discover(search_usb=search_usb, search_tcp=search_tcp) < inst_num:
             raise RuntimeError("No matching device found for this number")
         else:
-            self.device_handle = lib.connect(inst_num)
+            self.device_handle = self.lib.connect(inst_num)
 
         # TODO: is this snapshotable or should it be?
         axischannels = ChannelList(self, "Anc350Axis", Anc350Axis)
