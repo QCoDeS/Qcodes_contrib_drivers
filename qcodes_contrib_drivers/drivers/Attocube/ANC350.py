@@ -6,8 +6,6 @@ from qcodes.utils.validators import Numbers
 
 from qcodes_contrib_drivers.drivers.Attocube.ANC350Lib import v3, ANC350LibDeviceType, ANC350LibActuatorType
 
-
-# TODO: axis zero based count
 class Anc350Axis(InstrumentChannel):
     """
     Representation of an axis of the ANC350
@@ -282,7 +280,6 @@ class Anc350Axis(InstrumentChannel):
         self._parent.lib.set_target_range(dev_handle=self._parent.device_handle, axis_no=self._axis,
                                           target=target_range)
 
-    # TODO: add missing explaining for the actuator
     def _set_actuator(self, actuator: int) -> None:
         """
         Selects the actuator to be used for the axis from actuator presets.
