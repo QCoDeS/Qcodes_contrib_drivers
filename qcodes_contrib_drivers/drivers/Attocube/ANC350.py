@@ -121,8 +121,7 @@ class Anc350Axis(InstrumentChannel):
                                    )
 
         else:
-            # TODO: Throw a fitting Exception
-            pass
+            raise NotImplementedError("Only version 3 and 4 are currently supported")
 
     # Version 3
     # ---------
