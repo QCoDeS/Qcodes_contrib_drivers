@@ -6,6 +6,7 @@ from qcodes.utils.validators import Numbers
 
 from qcodes_contrib_drivers.drivers.Attocube.ANC350Lib import v3, ANC350LibDeviceType, ANC350LibActuatorType
 
+
 class Anc350Axis(InstrumentChannel):
     """
     Representation of an axis of the ANC350
@@ -47,6 +48,7 @@ class Anc350Axis(InstrumentChannel):
                                label="Position",
                                get_cmd=self._get_position,
                                set_cmd=self._set_position,
+                               unit="m or °"
                                )
 
             self.add_parameter("frequency",
@@ -65,29 +67,25 @@ class Anc350Axis(InstrumentChannel):
             self.add_parameter("status",
                                label="Status",
                                get_cmd=self._get_status,
-                               set_cmd=False,
-                               )
+                               set_cmd=False)
 
             self.add_parameter("target_postion",
                                label="Target Position",
                                get_cmd=False,
                                set_cmd=self._set_target_position,
-                               unit="m or °"
-                               )
+                               unit="m or °")
 
             self.add_parameter("target_range",
                                label="Target Range",
                                get_cmd=False,
                                set_cmd=self._set_target_range,
-                               unit="m or °"
-                               )
+                               unit="m or °")
 
             self.add_parameter("actuator",
-                               label="Actuator Typ",
-                               get_cmd=self._get_actuator_type,
+                               label="Actuator Type",
+                               get_cmd=self._get_actuator,
                                set_cmd=self._set_actuator,
-                               vals=Numbers(0, 255),
-                               )
+                               vals=Numbers(0, 255))
 
             self.add_parameter("actuator_name",
                                label="Actuator Name",
@@ -100,23 +98,19 @@ class Anc350Axis(InstrumentChannel):
                                set_cmd=False,
                                unit="F")
 
-            if self.parent._version == 3:
-                self.add_parameter("voltage",
-                                   label="Voltage",
-                                   get_cmd=False,
-                                   set_cmd=self._set_voltage,
-                                   vals=Numbers(0, 70),
-                                   unit="V",
-                                   )
 
+            if self.parent._version >= 4:
+                voltage_get = self._get_voltage()
             else:
-                self.add_parameter("voltage",
-                                   label="Voltage",
-                                   get_cmd=self._get_voltage,
-                                   set_cmd=self._set_voltage,
-                                   vals=Numbers(0, 70),
-                                   unit="V",
-                                   )
+                voltage_get = False
+
+            self.add_parameter("voltage",
+                               label="Voltage",
+                               get_cmd=voltage_get,
+                               set_cmd=self._set_voltage,
+                               vals=Numbers(0, 70),
+                               unit="V")
+
 
         else:
             raise NotImplementedError("Only version 3 and 4 are currently supported")
@@ -289,7 +283,7 @@ class Anc350Axis(InstrumentChannel):
         """
         self._parent.lib.select_actuator(dev_handle=self._parent.device_handle, axis_no=self._axis, actuator=actuator)
 
-    def _get_actuator_type(self) -> ANC350LibActuatorType:
+    def _get_actuator(self) -> ANC350LibActuatorType:
         """
         Get the type of the currently selected actuator
 
@@ -371,11 +365,6 @@ class ANC350(Instrument):
         axischannels.lock()
         self.add_submodule("axis_channels", axischannels)
 
-        self.add_parameter("device_info",
-                           label="",
-                           get_cmd=self._get_device_info,
-                           set_cmd=False)
-
     def save_params(self) -> None:
         """
         Saves parameters to persistent flash memory in the device. They will be present as defaults after the next power-on.
@@ -389,17 +378,13 @@ class ANC350(Instrument):
         self.lib.disconnect(dev_handle=self.device_handle)
         self.device_handle = None
 
-    def _get_device_info(self) -> Tuple[ANC350LibDeviceType, int, str, str, bool]:
+    def get_idn(self):
         """
-        Returns available information about a device.
+        Returns a dictionary with information About the device
 
         Returns:
-            A tuple containing the device's information:
-                0. dev_type: Type of the ANC350 device
-                1. id: Programmed hardware ID of the device
-                2. serial: The device's serial number
-                3. address: The device's interface address if applicable. Returns the IP address in
-                         dotted-decimal notation or the string "USB", respectively
-                4. connected: True, if the device is already connected
+            A dictionary containing vendor, model, serial number and firmware version
         """
-        return self.lib.get_device_info(self._dev_no)
+        device_info = self.lib.get_device_info(self._dev_no)
+        return {"vendor": "Attocube", 'model': 'ANC350',
+                'serial': device_info["serial"], 'firmware': self.version}
