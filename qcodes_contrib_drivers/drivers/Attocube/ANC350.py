@@ -4,7 +4,7 @@ from qcodes import Instrument
 from qcodes.instrument.channel import InstrumentChannel, ChannelList
 from qcodes.utils.validators import Numbers
 
-from qcodes_contrib_drivers.drivers.Attocube.ANC350Lib import v3, ANC350LibDeviceType
+from qcodes_contrib_drivers.drivers.Attocube.ANC350Lib import v3, ANC350LibDeviceType, ANC350LibActuatorType
 
 
 # TODO: axis zero based count
@@ -86,7 +86,7 @@ class Anc350Axis(InstrumentChannel):
 
             self.add_parameter("actuator",
                                label="Actuator Typ",
-                               get_cmd=False,  # TODO: to Implement
+                               get_cmd=self._get_actuator_type,
                                set_cmd=self._set_actuator,
                                vals=Numbers(0, 255),
                                )
@@ -131,14 +131,14 @@ class Anc350Axis(InstrumentChannel):
         Enables or disables the voltage output of an axis.
 
         Args:
-            enable: True, to enable the voltage output. False, to disable it.
-            auto_disable: True, if the voltage output is to be deactivated automatically when end of
+            enable (bool): True, to enable the voltage output. False, to disable it.
+            auto_disable (bool): True, if the voltage output is to be deactivated automatically when end of
                           travel is detected.
         """
         self._parent.lib.set_axis_output(dev_handle=self._parent.device_handle, axis_no=self._axis, enable=enable,
                                          auto_disable=auto_disable)
 
-    def start_single_step(self, backward) -> None:
+    def start_single_step(self, backward: bool) -> None:
         """
         Triggers a single step in desired direction.
 
@@ -147,25 +147,25 @@ class Anc350Axis(InstrumentChannel):
         """
         self._parent.lib.start_single_step(dev_handle=self._parent.device_handle, axis_no=self._axis, backward=backward)
 
-    def start_continuous_move(self, start, backward) -> None:
+    def start_continuous_move(self, start: bool, backward: bool) -> None:
         """
         Starts or stops continous motion in forward or backward direction.
         Other kinds of motion are stopped.
 
         Args:
-            start: Starts (True) or stops (False) the motion
-            backward: Step direction forward (False) or backward (True)
+            start (bool): Starts (True) or stops (False) the motion
+            backward (bool): Step direction forward (False) or backward (True)
         """
         self._parent.lib.start_continuous_move(dev_handle=self._parent.device_handle, axis_no=self._axis, start=start,
                                                backward=backward)
 
-    def start_auto_move(self, enable, relative) -> None:
+    def start_auto_move(self, enable: bool, relative: bool) -> None:
         """
         Switches automatic moving (i.e. following the target position) on or off
 
         Args:
-            enable: Enables (True) or disables (False) automatic motion
-            relative: If the target position is to be interpreted absolute (False) or relative to
+            enable (bool): Enables (True) or disables (False) automatic motion
+            relative (bool): If the target position is to be interpreted absolute (False) or relative to
                       the current position (True)
         """
         self._parent.lib.start_auto_move(dev_handle=self._parent.device_handle, axis_no=self._axis, enable=enable,
@@ -182,8 +182,12 @@ class Anc350Axis(InstrumentChannel):
         return self._parent.lib.get_position(dev_handle=self._parent.device_handle, axis_no=self._axis)
 
     def _set_position(self, position: float) -> None:
-        # TODO: is it needed to change the target range to a default?
-        # TODO: better block the setter and calls while moving
+        """
+        The axis moves to the given position with the target range that is set before.
+
+        Args:
+            position (float): The position the axis moves to
+        """
         self._set_target_position_v3(position)
         self.start_auto_move_v3(True, False)
 
@@ -201,7 +205,7 @@ class Anc350Axis(InstrumentChannel):
         Sets the frequency parameter for this axis
 
         Args:
-            frequency: Frequency in Hertz [Hz], internal resolution is 1 Hz
+            frequency (float): Frequency in Hertz [Hz], internal resolution is 1 Hz
         """
         self._parent.lib.set_frequency(dev_handle=self._parent.device_handle, axis_no=self._axis, frequency=frequency)
 
@@ -219,7 +223,7 @@ class Anc350Axis(InstrumentChannel):
         Sets the amplitude parameter for an axis
 
         Args:
-            amplitude: Amplitude in Volts [V] (internal resolution is 1mV)
+            amplitude (float): Amplitude in Volts [V] (internal resolution is 1mV)
         """
         self._parent.lib.set_amplitude(dev_handle=self._parent.device_handle, axis_no=self._axis, amplitude=amplitude)
 
@@ -262,7 +266,7 @@ class Anc350Axis(InstrumentChannel):
         For linear type actuators the position unit is m, for goniometers and rotators it is degree.
 
         Args:
-            target: Target position in meters [m] or degrees [°]. Internal resolution is 1 nm or
+            target (float): Target position in meters [m] or degrees [°]. Internal resolution is 1 nm or
                     1 µ°.
         """
         self._parent.lib.set_target_position(dev_handle=self._parent.device_handle, axis_no=self._axis, target=target)
@@ -273,7 +277,7 @@ class Anc350Axis(InstrumentChannel):
         For linear type actuators the position unit is m, for goniometers and rotators it is degree.
 
         Args:
-             target_range: Target range in meters [m] or degrees [°]. Internal resolution is 1 nm or
+             target_range (float): Target range in meters [m] or degrees [°]. Internal resolution is 1 nm or
                           1 µ°.
         """
         self._parent.lib.set_target_range(dev_handle=self._parent.device_handle, axis_no=self._axis,
@@ -281,7 +285,22 @@ class Anc350Axis(InstrumentChannel):
 
     # TODO: add missing explaining for the actuator
     def _set_actuator(self, actuator: int) -> None:
+        """
+        Selects the actuator to be used for the axis from actuator presets.
+
+        Args:
+            actuator (int): Actuator selection (0..255)
+        """
         self._parent.lib.select_actuator(dev_handle=self._parent.device_handle, axis_no=self._axis, actuator=actuator)
+
+    def _get_actuator_type(self) -> ANC350LibActuatorType:
+        """
+        Get the type of the currently selected actuator
+
+        Returns:
+            Type of the actuator
+        """
+        return self._parent.lib.get_actuator_type(dev_handle=self._parent.device_handle, axis_no=self._axis)
 
     def _get_actuator_name(self) -> str:
         """
@@ -292,7 +311,17 @@ class Anc350Axis(InstrumentChannel):
         """
         return self._parent.lib.get_actuator_name(dev_handle=self._parent.device_handle, axis_no=self._axis)
 
-    def _get_capacitance_v3(self) -> float:
+    def _get_capacitance(self) -> float:
+        """
+        Returns the motor capacitance
+        Performs a measurement of the capacitance of the piezo motor and returns the result. If no
+        motor is connected, the result will be 0.
+        The function doesn't return before the measurement is complete; this will take a few seconds
+        of time.
+
+        Returns:
+            Capacitance in Farad [F]
+        """
         return self._parent.lib.measure_capacitance(dev_handle=self._parent.device_handle, axis_no=self._axis)
 
     # Version 4
@@ -365,4 +394,16 @@ class ANC350(Instrument):
         self.device_handle = None
 
     def _get_device_info(self) -> Tuple[ANC350LibDeviceType, int, str, str, bool]:
+        """
+        Returns available information about a device.
+
+        Returns:
+            A tuple containing the device's information:
+                0. dev_type: Type of the ANC350 device
+                1. id: Programmed hardware ID of the device
+                2. serial: The device's serial number
+                3. address: The device's interface address if applicable. Returns the IP address in
+                         dotted-decimal notation or the string "USB", respectively
+                4. connected: True, if the device is already connected
+        """
         return self.lib.get_device_info(self._dev_no)
