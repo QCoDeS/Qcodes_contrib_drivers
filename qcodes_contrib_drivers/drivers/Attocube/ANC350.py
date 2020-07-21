@@ -1,10 +1,25 @@
 ﻿from typing import Tuple, Dict, Any
 
-from qcodes import Instrument
+from qcodes import Instrument, Parameter
 from qcodes.instrument.channel import InstrumentChannel, ChannelList
+from qcodes.instrument.parameter import ParamRawDataType
 from qcodes.utils.validators import Numbers
 
-from qcodes_contrib_drivers.drivers.Attocube.ANC350Lib import v3, ANC350LibDeviceType, ANC350LibActuatorType
+from qcodes_contrib_drivers.drivers.Attocube.ANC350Lib import v3, ANC350LibDeviceType, ANC350LibActuatorType, \
+    ANC350v3Lib
+
+
+class ANC350OutputParameter(Parameter):
+    def __init__(self, axis: "Anc350Axis" = None, **kwargs):
+        super().__init__(**kwargs)
+        if axis is not None:
+            if isinstance(axis, Anc350Axis):
+                self._axis = axis
+            else:
+                raise TypeError("Given Type is not fitting - " + axis)
+
+    def set_raw(self, value: ParamRawDataType, auto_disable: bool = True) -> None:
+        self._axis._set_output(value, auto_disable)
 
 
 class Anc350Axis(InstrumentChannel):
@@ -47,7 +62,7 @@ class Anc350Axis(InstrumentChannel):
             self.add_parameter("position",
                                label="Position",
                                get_cmd=self._get_position,
-                               set_cmd=self._set_position,
+                               set_cmd=False,
                                unit="m or °"
                                )
 
@@ -98,7 +113,6 @@ class Anc350Axis(InstrumentChannel):
                                set_cmd=False,
                                unit="F")
 
-
             if self.parent._version >= 4:
                 voltage_get = self._get_voltage
             else:
@@ -111,13 +125,18 @@ class Anc350Axis(InstrumentChannel):
                                vals=Numbers(0, 70),
                                unit="V")
 
+            self.add_parameter("output",
+                               label="Output",
+                               parameter_class=ANC350OutputParameter,
+                               axis=self,
+                               get_cmd=False)
 
         else:
             raise NotImplementedError("Only version 3 and 4 are currently supported")
 
     # Version 3
     # ---------
-    def set_output(self, enable: bool, auto_disable: bool) -> None:
+    def _set_output(self, enable: bool, auto_disable: bool = True) -> None:
         """
         Enables or disables the voltage output of an axis.
 
@@ -175,12 +194,11 @@ class Anc350Axis(InstrumentChannel):
     def _set_position(self, position: float) -> None:
         """
         The axis moves to the given position with the target range that is set before.
-
         Args:
             position (float): The position the axis moves to
         """
         self._set_target_position(position)
-        self.start_auto_move(True, False)
+        self.start_auto_move(True, True)
 
     def _get_frequency(self) -> float:
         """
@@ -355,7 +373,6 @@ class ANC350(Instrument):
         else:
             self.device_handle = self.lib.connect(inst_num)
 
-        # TODO: is this snapshotable or should it be?
         axischannels = ChannelList(self, "Anc350Axis", Anc350Axis)
         for nr, axis in enumerate(['x', 'y', 'z'], 0):
             axis_name = "{}_axis".format(axis)
