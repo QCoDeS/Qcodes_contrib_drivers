@@ -5,8 +5,7 @@ from qcodes.instrument.channel import InstrumentChannel, ChannelList
 from qcodes.instrument.parameter import ParamRawDataType
 from qcodes.utils.validators import Numbers
 
-from qcodes_contrib_drivers.drivers.Attocube.ANC350Lib import v3, ANC350LibDeviceType, ANC350LibActuatorType, \
-    ANC350v3Lib
+from qcodes_contrib_drivers.drivers.Attocube.ANC350Lib import ANC350LibActuatorType
 
 
 class ANC350OutputParameter(Parameter):
@@ -16,7 +15,7 @@ class ANC350OutputParameter(Parameter):
             if isinstance(axis, Anc350Axis):
                 self._axis = axis
             else:
-                raise TypeError("Given Type is not fitting - " + axis)
+                raise TypeError("Given Type is not fitting")
 
     def set_raw(self, value: ParamRawDataType, auto_disable: bool = True) -> None:
         self._axis._set_output(value, auto_disable)
@@ -368,10 +367,10 @@ class ANC350(Instrument):
         self._dev_no = inst_num
         self._version = version
 
-        if self.lib.discover(search_usb=search_usb, search_tcp=search_tcp) < inst_num:
-            raise RuntimeError("No matching device found for this number")
-        else:
-            self.device_handle = self.lib.connect(inst_num)
+        # if self.lib.discover(search_usb=search_usb, search_tcp=search_tcp) < inst_num:
+        #     raise RuntimeError("No matching device found for this number")
+        # else:
+        #     self.device_handle = self.lib.connect(inst_num)
 
         axischannels = ChannelList(self, "Anc350Axis", Anc350Axis)
         for nr, axis in enumerate(['x', 'y', 'z'], 0):
