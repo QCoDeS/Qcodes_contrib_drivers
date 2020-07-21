@@ -1,4 +1,4 @@
-from typing import Tuple, Dict, Any
+﻿from typing import Tuple, Dict, Any
 
 from qcodes import Instrument
 from qcodes.instrument.channel import InstrumentChannel, ChannelList
@@ -89,8 +89,8 @@ class Anc350Axis(InstrumentChannel):
 
             self.add_parameter("actuator_name",
                                label="Actuator Name",
-                               get_cmd=False,
-                               set_cmd=self._set_actuator_name)
+                               get_cmd=self._get_actuator_name,
+                               set_cmd=False)
 
             self.add_parameter("capacitance",
                                label="Capacitance",
@@ -100,7 +100,7 @@ class Anc350Axis(InstrumentChannel):
 
 
             if self.parent._version >= 4:
-                voltage_get = self._get_voltage()
+                voltage_get = self._get_voltage
             else:
                 voltage_get = False
 
@@ -179,8 +179,8 @@ class Anc350Axis(InstrumentChannel):
         Args:
             position (float): The position the axis moves to
         """
-        self._set_target_position_v3(position)
-        self.start_auto_move_v3(True, False)
+        self._set_target_position(position)
+        self.start_auto_move(True, False)
 
     def _get_frequency(self) -> float:
         """
@@ -361,7 +361,7 @@ class ANC350(Instrument):
             axis_name = "{}_axis".format(axis)
             axischannel = Anc350Axis(parent=self, name=axis_name, axis=nr)
             axischannels.append(axischannel)
-            self.add_submodule(name, axischannel)
+            self.add_submodule(axis_name, axischannel)
         axischannels.lock()
         self.add_submodule("axis_channels", axischannels)
 
@@ -387,4 +387,4 @@ class ANC350(Instrument):
         """
         device_info = self.lib.get_device_info(self._dev_no)
         return {"vendor": "Attocube", 'model': 'ANC350',
-                'serial': device_info["serial"], 'firmware': self.version}
+                'serial': device_info[2], 'firmware': self._version}
