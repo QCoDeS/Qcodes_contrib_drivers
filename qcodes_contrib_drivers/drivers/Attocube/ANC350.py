@@ -5,7 +5,7 @@ from qcodes.instrument.channel import InstrumentChannel, ChannelList
 from qcodes.instrument.parameter import ParamRawDataType
 from qcodes.utils.validators import Numbers
 
-from qcodes_contrib_drivers.drivers.Attocube.ANC350Lib import ANC350LibActuatorType
+from qcodes_contrib_drivers.drivers.Attocube.ANC350Lib import ANC350LibActuatorType, ANC350v3Lib, ANC350v4Lib
 
 
 class ANC350OutputParameter(Parameter):
@@ -55,7 +55,7 @@ class Anc350Axis(InstrumentChannel):
     def __init__(self, parent: "ANC350", name: str, axis: int):
         super().__init__(parent, name)
 
-        if self.parent._version in [3, 4]:
+        if isinstance(self.parent.lib, ANC350v3Lib):
             self._axis = axis
 
             self.add_parameter("position",
@@ -112,7 +112,7 @@ class Anc350Axis(InstrumentChannel):
                                set_cmd=False,
                                unit="F")
 
-            if self.parent._version >= 4:
+            if isinstance(self.parent.lib, ANC350v4Lib):
                 voltage_get = self._get_voltage
             else:
                 voltage_get = False
@@ -156,7 +156,7 @@ class Anc350Axis(InstrumentChannel):
         """
         self._parent.lib.start_single_step(dev_handle=self._parent.device_handle, axis_no=self._axis, backward=backward)
 
-    def start_continuous_move(self, start: bool, backward: bool) -> None:
+    def start_continuous_move(self, start: bool, backward: bool = False) -> None:
         """
         Starts or stops continous motion in forward or backward direction.
         Other kinds of motion are stopped.
@@ -168,7 +168,7 @@ class Anc350Axis(InstrumentChannel):
         self._parent.lib.start_continuous_move(dev_handle=self._parent.device_handle, axis_no=self._axis, start=start,
                                                backward=backward)
 
-    def start_auto_move(self, enable: bool, relative: bool) -> None:
+    def start_auto_move(self, enable: bool, relative: bool = False) -> None:
         """
         Switches automatic moving (i.e. following the target position) on or off
 
@@ -358,14 +358,13 @@ class ANC350(Instrument):
         device_info: Returns available information about a device as a tuple.
     """
 
-    def __init__(self, library, name: str, version: int = 3, inst_num: int = 0, search_usb: bool = True,
+    def __init__(self, library, name: str, inst_num: int = 0, search_usb: bool = True,
                  search_tcp: bool = True):
         super().__init__(name)
 
         self.lib = library
 
         self._dev_no = inst_num
-        self._version = version
 
         # if self.lib.discover(search_usb=search_usb, search_tcp=search_tcp) < inst_num:
         #     raise RuntimeError("No matching device found for this number")
@@ -402,5 +401,9 @@ class ANC350(Instrument):
             A dictionary containing vendor, model, serial number and firmware version
         """
         device_info = self.lib.get_device_info(self._dev_no)
+        version_nr = 3
+        if isinstance(self.parent.lib, ANC350v4Lib):
+            version_nr = 4
+
         return {"vendor": "Attocube", 'model': 'ANC350',
-                'serial': device_info[2], 'firmware': self._version}
+                'serial': device_info[2], 'firmware': version_nr}
