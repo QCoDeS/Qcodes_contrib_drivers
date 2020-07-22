@@ -371,8 +371,7 @@ class Anc350Axis(InstrumentChannel):
             self.target_position = unit
             self.target_range = unit
         else:
-            pass
-            # TODO: throw fitting exception
+            raise ValueError("Unit is invalid - " + unit)
 
     def _get_actuator_type(self) -> ANC350LibActuatorType:
         """
