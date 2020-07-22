@@ -62,7 +62,7 @@ class Anc350Axis(InstrumentChannel):
                                label="Position",
                                get_cmd=self._get_position,
                                set_cmd=False,
-                               unit="m or °"
+                               unit="mm or °"
                                )
 
             self.add_parameter("frequency",
@@ -83,23 +83,28 @@ class Anc350Axis(InstrumentChannel):
                                get_cmd=self._get_status,
                                set_cmd=False)
 
-            self.add_parameter("target_postion",
+            self.add_parameter("target_position",
                                label="Target Position",
-                               get_cmd=False,
+                               get_cmd=None,
                                set_cmd=self._set_target_position,
-                               unit="m or °")
+                               unit="mm or °")
 
             self.add_parameter("target_range",
                                label="Target Range",
-                               get_cmd=False,
+                               get_cmd=None,
                                set_cmd=self._set_target_range,
-                               unit="m or °")
+                               unit="mm or °")
 
             self.add_parameter("actuator",
-                               label="Actuator Type",
-                               get_cmd=self._get_actuator,
+                               label="Actuator",
+                               get_cmd=None,
                                set_cmd=self._set_actuator,
                                vals=Numbers(0, 255))
+
+            self.add_parameter("actuator_type",
+                               label="Actuator Type",
+                               get_cmd=self._get_actuator_type,
+                               set_cmd=False)
 
             self.add_parameter("actuator_name",
                                label="Actuator Name",
@@ -128,7 +133,7 @@ class Anc350Axis(InstrumentChannel):
                                label="Output",
                                parameter_class=ANC350OutputParameter,
                                axis=self,
-                               get_cmd=False)
+                               get_cmd=None)
 
         else:
             raise NotImplementedError("Only version 3 and 4 are currently supported")
@@ -147,48 +152,86 @@ class Anc350Axis(InstrumentChannel):
         self._parent.lib.set_axis_output(dev_handle=self._parent.device_handle, axis_no=self._axis, enable=enable,
                                          auto_disable=auto_disable)
 
-    def start_single_step(self, backward: bool) -> None:
+    _direction_dic = {
+        "foreward": False,
+        "backward": True,
+        +1: False,
+        -1: True,
+        True: True,
+        False: False
+    }
+
+    def single_step(self, backward: bool) -> None:
         """
         Triggers a single step in desired direction.
 
         Args:
             backward: Step direction forward (False) or backward (True)
         """
-        self._parent.lib.start_single_step(dev_handle=self._parent.device_handle, axis_no=self._axis, backward=backward)
+        self._parent.lib.start_single_step(dev_handle=self._parent.device_handle, axis_no=self._axis,
+                                           backward=self._direction_dic[backward])
 
-    def start_continuous_move(self, start: bool, backward: bool = False) -> None:
+    def start_continuous_move(self, backward):
         """
-        Starts or stops continous motion in forward or backward direction.
+        Starts continuous motion in forward or backward direction.
         Other kinds of motion are stopped.
 
         Args:
-            start (bool): Starts (True) or stops (False) the motion
-            backward (bool): Step direction forward (False) or backward (True)
+            backward: Step direction forward (False) or backward (True)
         """
-        self._parent.lib.start_continuous_move(dev_handle=self._parent.device_handle, axis_no=self._axis, start=start,
-                                               backward=backward)
+        self._parent.lib.start_continuous_move(dev_handle=self._parent.device_handle, axis_no=self._axis, start=True,
+                                               backward=self._direction_dic[backward])
 
-    def start_auto_move(self, enable: bool, relative: bool = False) -> None:
+    def stop_continuous_move(self, backward: bool):
         """
-        Switches automatic moving (i.e. following the target position) on or off
+        Stops continuous motion in forward or backward direction.
 
         Args:
-            enable (bool): Enables (True) or disables (False) automatic motion
-            relative (bool): If the target position is to be interpreted absolute (False) or relative to
-                      the current position (True)
+            backward: Step direction forward (False) or backward (True)
         """
-        self._parent.lib.start_auto_move(dev_handle=self._parent.device_handle, axis_no=self._axis, enable=enable,
+        self._parent.lib.start_continuous_move(dev_handle=self._parent.device_handle, axis_no=self._axis, start=False,
+                                               backward=self._direction_dic[backward])
+
+    _relativ_dic = {
+        "absolute": True,
+        "relative": False,
+        True: True,
+        False: False
+    }
+
+    def enable_auto_move(self, relative=False) -> None:
+        """
+        Enables automatic moving
+
+        Args:
+            relative: If the target position is to be interpreted absolute (False) or relative to the current position (True)
+        """
+        self._parent.lib.start_auto_move(dev_handle=self._parent.device_handle, axis_no=self._axis, enable=True,
+                                         relative=self._relativ_dic[relative])
+
+    def disable_auto_move(self, relative: bool = False) -> None:
+        """
+        Disables automatic moving
+
+        Args:
+            relative (bool): If the target position is to be interpreted absolute (False) or relative to the current position (True)
+        """
+        self._parent.lib.start_auto_move(dev_handle=self._parent.device_handle, axis_no=self._axis, enable=False,
                                          relative=relative)
 
     def _get_position(self) -> float:
         """
         Get the current position of this axis
 
-
         Returns:
-            Current position in meters [m] (linear type actuators) or degrees [°] (goniometers and rotators)
+            Current position in millimeters [mm] (linear type actuators) or degrees [°] (goniometers and rotators)
         """
-        return self._parent.lib.get_position(dev_handle=self._parent.device_handle, axis_no=self._axis)
+        if self.position.unit == "mm":
+            # Conversion from meters to millimeters because the wrapper works with meters
+            return self._parent.lib.get_position(dev_handle=self._parent.device_handle, axis_no=self._axis) * 10E2
+        else:
+            # Degrees don't need to be converted for the wrapper
+            return self._parent.lib.get_position(dev_handle=self._parent.device_handle, axis_no=self._axis)
 
     def _set_position(self, position: float) -> None:
         """
@@ -196,7 +239,12 @@ class Anc350Axis(InstrumentChannel):
         Args:
             position (float): The position the axis moves to
         """
-        self._set_target_position(position)
+        if self.position.unit == "mm":
+            # Conversion from meters to millimeters because the wrapper works with meters
+            self._set_target_position(position / 10E2)
+        else:
+            # Degrees don't need to be converted for the wrapper
+            self._set_target_position(position)
         self.start_auto_move(True, True)
 
     def _get_frequency(self) -> float:
@@ -270,37 +318,63 @@ class Anc350Axis(InstrumentChannel):
 
     def _set_target_position(self, target: float) -> None:
         """
-        Sets the target position for automatic motion, see ``start_auto_move``.
-        For linear type actuators the position unit is m, for goniometers and rotators it is degree.
+        Sets the target position for automatic motion.
+        For linear type actuators the position unit is mm, for goniometers and rotators it is degree.
 
         Args:
-            target (float): Target position in meters [m] or degrees [°]. Internal resolution is 1 nm or
+            target (float): Target position in meters [mm] or degrees [°]. Internal resolution is 1 nm or
                     1 µ°.
         """
-        self._parent.lib.set_target_position(dev_handle=self._parent.device_handle, axis_no=self._axis, target=target)
+        if self.position.unit == "mm":
+            self._parent.lib.set_target_position(dev_handle=self._parent.device_handle, axis_no=self._axis,
+                                                 target=target / 10E2)
+        else:
+            self._parent.lib.set_target_position(dev_handle=self._parent.device_handle, axis_no=self._axis,
+                                                 target=target)
 
     def _set_target_range(self, target_range: float) -> None:
         """
         Sets the range around the target position where the target is considered to be reached.
-        For linear type actuators the position unit is m, for goniometers and rotators it is degree.
+        For linear type actuators the position unit is mm, for goniometers and rotators it is degree.
 
         Args:
-             target_range (float): Target range in meters [m] or degrees [°]. Internal resolution is 1 nm or
+             target_range (float): Target range in millimeters [mm] or degrees [°]. Internal resolution is 1 nm or
                           1 µ°.
         """
-        self._parent.lib.set_target_range(dev_handle=self._parent.device_handle, axis_no=self._axis,
-                                          target=target_range)
+        if self.position.unit == "mm":
+            self._parent.lib.set_target_range(dev_handle=self._parent.device_handle, axis_no=self._axis,
+                                              target=target_range / 10E2)
+        else:
+            self._parent.lib.set_target_range(dev_handle=self._parent.device_handle, axis_no=self._axis,
+                                              target=target_range)
 
     def _set_actuator(self, actuator: int) -> None:
         """
-        Selects the actuator to be used for the axis from actuator presets.
+        Selects the actuator to be used for the axis from actuator presets. And changes the unit of the position
+        parameters if necessary.
 
         Args:
             actuator (int): Actuator selection (0..255)
         """
+        old_actuator_type = self._get_actuator_type()
         self._parent.lib.select_actuator(dev_handle=self._parent.device_handle, axis_no=self._axis, actuator=actuator)
+        current_actuator_type = self._get_actuator_type()
+        if current_actuator_type != old_actuator_type:
+            if current_actuator_type == ANC350LibActuatorType(0):
+                self._change_position_unit("mm")
+            elif (old_actuator_type is ANC350LibActuatorType(1)) or (old_actuator_type is ANC350LibActuatorType(2)):
+                self._change_position_unit("°")
 
-    def _get_actuator(self) -> ANC350LibActuatorType:
+    def _change_position_unit(self, unit: str):
+        if str in ["mm", "°"]:
+            self.position.unit = unit
+            self.target_position = unit
+            self.target_range = unit
+        else:
+            pass
+            # TODO: throw fitting exception
+
+    def _get_actuator_type(self) -> ANC350LibActuatorType:
         """
         Get the type of the currently selected actuator
 
@@ -362,14 +436,14 @@ class ANC350(Instrument):
                  search_tcp: bool = True):
         super().__init__(name)
 
-        self.lib = library
+        self._lib = library
 
         self._dev_no = inst_num
 
-        # if self.lib.discover(search_usb=search_usb, search_tcp=search_tcp) < inst_num:
-        #     raise RuntimeError("No matching device found for this number")
-        # else:
-        #     self.device_handle = self.lib.connect(inst_num)
+        if self._lib.discover(search_usb=search_usb, search_tcp=search_tcp) < inst_num:
+            raise RuntimeError("No matching device found for this number")
+        else:
+            self._device_handle = self._lib.connect(inst_num)
 
         axischannels = ChannelList(self, "Anc350Axis", Anc350Axis)
         for nr, axis in enumerate(['x', 'y', 'z'], 0):
@@ -384,14 +458,14 @@ class ANC350(Instrument):
         """
         Saves parameters to persistent flash memory in the device. They will be present as defaults after the next power-on.
         """
-        self.lib.save_params(dev_handle=self.device_handle)
+        self._lib.save_params(dev_handle=self._device_handle)
 
     def disconnect(self) -> None:
         """
         Closes the connection to the device. The device handle becomes invalid.
         """
-        self.lib.disconnect(dev_handle=self.device_handle)
-        self.device_handle = None
+        self._lib.disconnect(dev_handle=self._device_handle)
+        self._device_handle = None
 
     def get_idn(self):
         """
@@ -400,10 +474,10 @@ class ANC350(Instrument):
         Returns:
             A dictionary containing vendor, model, serial number and firmware version
         """
-        device_info = self.lib.get_device_info(self._dev_no)
-        version_nr = 3
-        if isinstance(self.parent.lib, ANC350v4Lib):
-            version_nr = 4
+        device_info = self._lib.get_device_info(self._dev_no)
+        version_no = 3
+        if isinstance(self.parent._lib, ANC350v4Lib):
+            version_no = 4
 
         return {"vendor": "Attocube", 'model': 'ANC350',
-                'serial': device_info[2], 'firmware': version_nr}
+                'serial': device_info[2], 'firmware': version_no}
