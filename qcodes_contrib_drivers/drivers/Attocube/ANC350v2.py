@@ -9,6 +9,19 @@ import qcodes.utils.validators as vals
 from qcodes_contrib_drivers.drivers.Attocube.ANC350Lib import ANC350v2Lib
 
 
+class ANC350OutputParameterV2(Parameter):
+    def __init__(self, axis: "Anc350Axis" = None, **kwargs):
+        super().__init__(**kwargs)
+        if axis is not None:
+            if isinstance(axis, Anc350Axis):
+                self._axis = axis
+            else:
+                raise TypeError("Given Type is not fitting")
+
+    def set_raw(self, value: ParamRawDataType) -> None:
+        self._axis._set_output(value)
+
+
 class Anc350Axis(InstrumentChannel):
     def __init__(self, parent: "ANC350", name: str, axis: int):
         super().__init__(parent, name)
@@ -39,8 +52,8 @@ class Anc350Axis(InstrumentChannel):
             # TODO: to implement
             self.add_parameter("status",
                                label="Status",
-                               get_cmd=,
-                               set_cmd=)
+                               get_cmd=self._get_status,
+                               set_cmd=False)
 
             self.add_parameter("actuator",
                                label="Actuator",
@@ -56,15 +69,18 @@ class Anc350Axis(InstrumentChannel):
 
             self.add_parameter("voltage",
                                label="Voltage",
-                               get_cmd=,
-                               set_cmd=,
+                               get_cmd=self._get_voltage,
+                               set_cmd=self._set_voltage,
                                vals=Numbers(0, 70),
                                unit="V")
 
             self.add_parameter("output",
+                               label="Output",
+                               parameter_class=ANC350OutputParameterV2,
+                               axis=self,
                                val_mapping={True: True, False: False, "On": True, "Off": False, "on": True,
                                             "off": False},
-                               get_cmd=)
+                               get_cmd=None)
 
         else:
             raise NotImplementedError("Driver for devices with version 2")
@@ -133,6 +149,10 @@ class Anc350Axis(InstrumentChannel):
         self._parent._lib.set_amplitude(dev_handle=self._parent._device_handle, axis_no=self._axis,
                                         amplitude=(amplitude * 1E3))
 
+    def _get_status(self):
+        # status is divided into several methods in version 2
+        raise NotImplementedError
+
         # TODO: implement missing methods for the parameters
 
     def _get_capacitance(self) -> float:
@@ -146,6 +166,36 @@ class Anc350Axis(InstrumentChannel):
         # 1E3 as factor for the conversion from F to nF because the library v2 returns pF
         return self._parent._lib.measure_capacity(dev_handle=self._parent._deivce_handle, axis_no=self._axis) / 1E3
 
+    def _set_voltage(self, voltage: float):
+        """
+        Sets the DC level
+
+        Args:
+            dc_level: DC level in volts [V]
+        """
+        # Conversion from V to mV for the library of Version 2
+        self._parent._lib.set_dc_level(dev_handle=self._parent._deivce_handle, axis_no=self._axis,
+                                       dc_level=int(round(voltage * 1E3)))
+
+    def _get_voltage(self) -> float:
+        """
+        Sets the actual DC level
+
+        Returns:
+            DC level in volts [V]
+        """
+        # 1E3 as factor for the conversion from mV to V
+        return self._parent._lib.get_dc_level(dev_handle=self._parent._deivce_handle, axis_no=self._axis) / 1E3
+
+    def _set_output(self, enable: bool):
+        """
+        Enables or disables the voltage output of this axis.
+
+        Args:
+            enable (bool): True, to enable the voltage output. False, to disable it.
+        """
+        self._parent._lib.set_output(dev_handle=self._parent._deivce_handle, axis_no=self._axis, enable=enable)
+
 
 class ANC350(Instrument):
     def __init__(self, library: ANC350v2Lib, name: str, inst_num: int = 0):
@@ -157,7 +207,7 @@ class ANC350(Instrument):
         self._device_handle = self._lib.connect(inst_num)
 
         axischannels = ChannelList(self, "Anc350Axis", Anc350Axis)
-        for nr, axis in enumerate(['x', 'y', 'z'], 0):
+        for nr, axis in enumerate(['x', 'y', 'z']):
             axis_name = "{}_axis".format(axis)
             axischannel = Anc350Axis(parent=self, name=axis_name, axis=nr)
             axischannels.append(axischannel)

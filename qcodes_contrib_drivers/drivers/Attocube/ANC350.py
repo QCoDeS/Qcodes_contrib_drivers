@@ -145,7 +145,7 @@ class Anc350Axis(InstrumentChannel):
     # ---------
     def _set_output(self, enable: bool, auto_disable: bool = True) -> None:
         """
-        Enables or disables the voltage output of an axis.
+        Enables or disables the voltage output of this axis.
 
         Args:
             enable (bool): True, to enable the voltage output. False, to disable it.
@@ -372,8 +372,8 @@ class Anc350Axis(InstrumentChannel):
     def _change_position_unit(self, unit: str):
         if str in ["mm", "°"]:
             self.position.unit = unit
-            self.target_position = unit
-            self.target_range = unit
+            self.target_position.unit = unit
+            self.target_range.unit = unit
         else:
             raise ValueError("Unit is invalid - " + unit)
 
@@ -450,7 +450,7 @@ class ANC350(Instrument):
             self._device_handle = self._lib.connect(inst_num)
 
         axischannels = ChannelList(self, "Anc350Axis", Anc350Axis)
-        for nr, axis in enumerate(['x', 'y', 'z'], 0):
+        for nr, axis in enumerate(['x', 'y', 'z']):
             axis_name = "{}_axis".format(axis)
             axischannel = Anc350Axis(parent=self, name=axis_name, axis=nr)
             axischannels.append(axischannel)
