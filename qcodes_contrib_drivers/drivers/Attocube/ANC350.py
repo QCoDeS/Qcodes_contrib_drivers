@@ -116,7 +116,7 @@ class Anc350Axis(InstrumentChannel):
                                label="Capacitance",
                                get_cmd=self._get_capacitance,
                                set_cmd=False,
-                               unit="F")
+                               unit="nF")
 
             if isinstance(self.parent.lib, ANC350v4Lib):
                 voltage_get = self._get_voltage
@@ -403,9 +403,10 @@ class Anc350Axis(InstrumentChannel):
         of time.
 
         Returns:
-            Capacitance in Farad [F]
+            Capacitance in Farad [nF]
         """
-        return self._parent.lib.measure_capacitance(dev_handle=self._parent.device_handle, axis_no=self._axis)
+        #10E9 as factor for the conversion from F to nF
+        return self._parent.lib.measure_capacitance(dev_handle=self._parent.device_handle, axis_no=self._axis) * 10E9
 
     # Version 4
     # ---------
