@@ -36,24 +36,11 @@ class Anc350Axis(InstrumentChannel):
                                vals=Numbers(0, 70),
                                unit="V")
 
-            #TODO: to implement
+            # TODO: to implement
             self.add_parameter("status",
                                label="Status",
                                get_cmd=,
                                set_cmd=)
-
-
-            self.add_parameter("target_position",
-                               label="Target Position",
-                               get_cmd=,
-                               set_cmd=,
-                               unit="mm or °")
-
-            self.add_parameter("target_range",
-                               label="Target Range",
-                               get_cmd=None,
-                               set_cmd=,
-                               unit="mm or °")
 
             self.add_parameter("actuator",
                                label="Actuator",
@@ -82,6 +69,33 @@ class Anc350Axis(InstrumentChannel):
         else:
             raise NotImplementedError("Driver for devices with version 2")
 
+    _direction_dic = {
+        "foreward": False,
+        "backward": True,
+        +1: False,
+        -1: True,
+        True: True,
+        False: False
+    }
+
+    def start_continuous_move(self, backward=False):
+        """
+        Starts continuously positioning with set parameters for amplitude and speed and amplitude
+        control respectively.
+
+        Args:
+            backward: Direction for positioning (False: forward, True: backward)
+        """
+        self._parent._lib.move_continuously(self, self._parent._device_handle, axis_no=self._axis,
+                                            backward=self._direction_dic[backward])
+
+    def stop_continuous_move(self):
+        """
+        Stops any positioning.
+
+        DC level of affected axis is zero after stopping
+        """
+        self._parent._lib.stop_moving(self, self._parent._device_handle, axis_no=self._axis)
 
     def _get_frequency(self) -> float:
         """
@@ -119,7 +133,7 @@ class Anc350Axis(InstrumentChannel):
         self._parent._lib.set_amplitude(dev_handle=self._parent._device_handle, axis_no=self._axis,
                                         amplitude=(amplitude * 1E3))
 
-        #TODO: implement missing methods for the parameters
+        # TODO: implement missing methods for the parameters
 
     def _get_capacitance(self) -> float:
         """
@@ -129,8 +143,8 @@ class Anc350Axis(InstrumentChannel):
         Returns:
             Measured capacity in picofarad [nF] or None, in case of an error
         """
-        #1E3 as factor for the conversion from F to nF because the library v2 returns pF
-        return self._parent._lib.measure_capacity(dev_handle=self._parent._deivce_handle, axis_no= self._axis) /1E3
+        # 1E3 as factor for the conversion from F to nF because the library v2 returns pF
+        return self._parent._lib.measure_capacity(dev_handle=self._parent._deivce_handle, axis_no=self._axis) / 1E3
 
 
 class ANC350(Instrument):
@@ -139,7 +153,7 @@ class ANC350(Instrument):
 
         self._lib = library
 
-        #TODO: How to check if the inst_num is viable?
+        # TODO: How to check if the inst_num is viable?
         self._device_handle = self._lib.connect(inst_num)
 
         axischannels = ChannelList(self, "Anc350Axis", Anc350Axis)

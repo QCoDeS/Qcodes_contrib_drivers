@@ -164,7 +164,7 @@ class Anc350Axis(InstrumentChannel):
         False: False
     }
 
-    def single_step(self, backward: bool) -> None:
+    def single_step(self, backward=False) -> None:
         """
         Triggers a single step in desired direction.
 
@@ -174,7 +174,7 @@ class Anc350Axis(InstrumentChannel):
         self._parent._lib.start_single_step(dev_handle=self._parent._device_handle, axis_no=self._axis,
                                             backward=self._direction_dic[backward])
 
-    def start_continuous_move(self, backward):
+    def start_continuous_move(self, backward=False):
         """
         Starts continuous motion in forward or backward direction.
         Other kinds of motion are stopped.
@@ -185,7 +185,7 @@ class Anc350Axis(InstrumentChannel):
         self._parent._lib.start_continuous_move(dev_handle=self._parent._device_handle, axis_no=self._axis, start=True,
                                                 backward=self._direction_dic[backward])
 
-    def stop_continuous_move(self, backward: bool):
+    def stop_continuous_move(self, backward=False):
         """
         Stops continuous motion in forward or backward direction.
 
