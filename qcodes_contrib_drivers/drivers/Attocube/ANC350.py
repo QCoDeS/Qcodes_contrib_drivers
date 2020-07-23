@@ -4,6 +4,7 @@ from qcodes import Instrument, Parameter
 from qcodes.instrument.channel import InstrumentChannel, ChannelList
 from qcodes.instrument.parameter import ParamRawDataType
 from qcodes.utils.validators import Numbers
+import qcodes.utils.validators as vals
 
 from qcodes_contrib_drivers.drivers.Attocube.ANC350Lib import ANC350LibActuatorType, ANC350v3Lib, ANC350v4Lib
 
@@ -133,6 +134,8 @@ class Anc350Axis(InstrumentChannel):
                                label="Output",
                                parameter_class=ANC350OutputParameter,
                                axis=self,
+                               val_mapping={True: True, False: False, "On": True, "Off": False, "on": True,
+                                            "off": False},
                                get_cmd=None)
 
         else:
