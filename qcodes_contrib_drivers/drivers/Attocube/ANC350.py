@@ -1,25 +1,24 @@
-﻿from typing import Tuple, Dict, Any
-
-from qcodes import Instrument, Parameter
+﻿from qcodes import Instrument, Parameter
 from qcodes.instrument.channel import InstrumentChannel, ChannelList
-from qcodes.instrument.parameter import ParamRawDataType
 from qcodes.utils.validators import Numbers
-import qcodes.utils.validators as vals
-
 from qcodes_contrib_drivers.drivers.Attocube.ANC350Lib import ANC350LibActuatorType, ANC350v3Lib, ANC350v4Lib
+from typing import Callable, Dict, Optional, Union
 
 
 class ANC350OutputParameter(Parameter):
-    def __init__(self, axis: "Anc350Axis" = None, **kwargs):
-        super().__init__(**kwargs)
-        if axis is not None:
-            if isinstance(axis, Anc350Axis):
-                self._axis = axis
-            else:
-                raise TypeError("Given Type is not fitting")
+    def __init__(self, name: str, *,
+                 get_cmd: Callable[[], bool], set_cmd: Callable[[bool, Optional[bool]], None],
+                 **kwargs):
+        super().__init__(name, **kwargs)
 
-    def set_raw(self, value: ParamRawDataType, auto_disable: bool = True) -> None:
-        self._axis._set_output(value, auto_disable)
+        self._get_cmd = get_cmd
+        self._set_cmd = set_cmd
+
+    def set_raw(self, value: bool, auto_off: Optional[bool] = None) -> None:
+        self._set_cmd(value, auto_off)
+
+    def get_raw(self) -> bool:
+        return self._get_cmd()
 
 
 class Anc350Axis(InstrumentChannel):
@@ -56,125 +55,131 @@ class Anc350Axis(InstrumentChannel):
     def __init__(self, parent: "ANC350", name: str, axis: int):
         super().__init__(parent, name)
 
-        if isinstance(self.parent.lib, ANC350v3Lib):
-            self._axis = axis
+        self._axis = axis
 
-            self.add_parameter("position",
-                               label="Position",
-                               get_cmd=self._get_position,
-                               set_cmd=False,
-                               unit="mm or °"
-                               )
+        self.add_parameter("position",
+                           label="Position",
+                           get_cmd=self._get_position,
+                           set_cmd=False,
+                           unit="mm or m°")
 
-            self.add_parameter("frequency",
-                               label="Frequency",
-                               get_cmd=self._get_frequency,
-                               set_cmd=self._set_frequency,
-                               unit="Hz")
+        self.add_parameter("frequency",
+                           label="Frequency",
+                           get_cmd=self._get_frequency,
+                           set_cmd=self._set_frequency,
+                           unit="Hz")
 
-            self.add_parameter("amplitude",
-                               label="Amplitude",
-                               get_cmd=self._get_amplitude,
-                               set_cmd=self._set_amplitude,
-                               vals=Numbers(0, 70),
-                               unit="V")
+        self.add_parameter("amplitude",
+                           label="Amplitude",
+                           get_cmd=self._get_amplitude,
+                           set_cmd=self._set_amplitude,
+                           vals=Numbers(0, 70),
+                           unit="V")
 
-            self.add_parameter("status",
-                               label="Status",
-                               get_cmd=self._get_status,
-                               set_cmd=False)
+        self.add_parameter("status",
+                           label="Status",
+                           get_cmd=self._get_status,
+                           set_cmd=False)
 
-            self.add_parameter("target_position",
-                               label="Target Position",
-                               get_cmd=None,
-                               set_cmd=self._set_target_position,
-                               unit="mm or °")
+        self.add_parameter("target_position",
+                           label="Target Position",
+                           get_cmd=None,
+                           set_cmd=self._set_target_position,
+                           unit="mm or m°")
 
-            self.add_parameter("target_range",
-                               label="Target Range",
-                               get_cmd=None,
-                               set_cmd=self._set_target_range,
-                               unit="mm or °")
+        self.add_parameter("target_range",
+                           label="Target Range",
+                           get_cmd=None,
+                           set_cmd=self._set_target_range,
+                           unit="mm or m°")
 
-            self.add_parameter("actuator",
-                               label="Actuator",
-                               get_cmd=None,
-                               set_cmd=self._set_actuator,
-                               vals=Numbers(0, 255))
+        self.add_parameter("actuator",
+                           label="Actuator",
+                           get_cmd=None,
+                           set_cmd=self._set_actuator,
+                           vals=Numbers(0, 255))
 
-            self.add_parameter("actuator_type",
-                               label="Actuator Type",
-                               get_cmd=self._get_actuator_type,
-                               set_cmd=False)
+        self.add_parameter("actuator_type",
+                           label="Actuator Type",
+                           get_cmd=self._get_actuator_type,
+                           set_cmd=False)
 
-            self.add_parameter("actuator_name",
-                               label="Actuator Name",
-                               get_cmd=self._get_actuator_name,
-                               set_cmd=False)
+        self.add_parameter("actuator_name",
+                           label="Actuator Name",
+                           get_cmd=self._get_actuator_name,
+                           set_cmd=False)
 
-            self.add_parameter("capacitance",
-                               label="Capacitance",
-                               get_cmd=self._get_capacitance,
-                               set_cmd=False,
-                               unit="nF")
+        self.add_parameter("capacitance",
+                           label="Capacitance",
+                           get_cmd=self._get_capacitance,
+                           set_cmd=False,
+                           unit="nF")
 
-            if isinstance(self.parent._lib, ANC350v4Lib):
-                voltage_get = self._get_voltage
-            else:
-                voltage_get = False
-
-            self.add_parameter("voltage",
-                               label="Voltage",
-                               get_cmd=voltage_get,
-                               set_cmd=self._set_voltage,
-                               vals=Numbers(0, 70),
-                               unit="V")
-
-            self.add_parameter("output",
-                               label="Output",
-                               parameter_class=ANC350OutputParameter,
-                               axis=self,
-                               val_mapping={True: True, False: False, "On": True, "Off": False, "on": True,
-                                            "off": False},
-                               get_cmd=None)
-
+        if self._parent._version_no >= 4:
+            voltage_get = self._get_voltage
         else:
-            raise NotImplementedError("Only version 3 and 4 are currently supported")
+            voltage_get = None
+
+        self.add_parameter("voltage",
+                           label="Voltage",
+                           get_cmd=voltage_get,
+                           set_cmd=self._set_voltage,
+                           vals=Numbers(0, 70),
+                           unit="V")
+
+        self.add_parameter("output",
+                           label="Output",
+                           parameter_class=ANC350OutputParameter,
+                           val_mapping={True: True,
+                                        False: False,
+                                        "on": True,
+                                        "off": False},
+                           get_cmd=self._get_output,
+                           set_cmd=self._set_output)
+
+        self._update_position_unit()
 
     # Version 3
     # ---------
-    def _set_output(self, enable: bool, auto_disable: bool = True) -> None:
-        """
-        Enables or disables the voltage output of this axis.
-
-        Args:
-            enable (bool): True, to enable the voltage output. False, to disable it.
-            auto_disable (bool): True, if the voltage output is to be deactivated automatically when end of
-                          travel is detected.
-        """
-        self._parent._lib.set_axis_output(dev_handle=self._parent._device_handle, axis_no=self._axis, enable=enable,
-                                          auto_disable=auto_disable)
-
-    _direction_dic = {
-        "foreward": False,
+    _direction_mapping = {
+        "forward": False,
         "backward": True,
         +1: False,
         -1: True,
-        True: True,
-        False: False
+        False: False,
+        True: True
     }
 
-    def single_step(self, backward=False) -> None:
+    def single_step(self, backward: Union[bool, str, int] = False) -> None:
         """
         Triggers a single step in desired direction.
 
         Args:
             backward: Step direction forward (False) or backward (True)
         """
-        self._parent._lib.start_single_step(dev_handle=self._parent._device_handle, axis_no=self._axis,
-                                            backward=self._direction_dic[backward])
+        if backward not in self._direction_mapping:
+            raise ValueError("Unexpected value for argument `backward`. Allowed values are: " +
+                             "{}".format(list(self._direction_mapping.keys())))
+        
+        backward = self._direction_mapping[backward]
 
-    def start_continuous_move(self, backward=False):
+        self._parent._lib.start_single_step(dev_handle=self._parent._device_handle,
+                                            axis_no=self._axis, backward=backward)
+
+    def multiple_steps(self, steps: int) -> None:
+        """
+        Performs multiple steps. The direction depends on the sign (+: forward, -: backward)
+
+        Args:
+            steps: Number of steps to move. The sign indicates the moving direction (+: forward,
+                   -: backward)
+        """
+        backward = (steps < 0)
+        
+        for i in range(abs(steps)):
+            self.single_step(backward)
+
+    def start_continuous_move(self, backward: Union[bool, str, int] = True):
         """
         Starts continuous motion in forward or backward direction.
         Other kinds of motion are stopped.
@@ -182,73 +187,81 @@ class Anc350Axis(InstrumentChannel):
         Args:
             backward: Step direction forward (False) or backward (True)
         """
-        self._parent._lib.start_continuous_move(dev_handle=self._parent._device_handle, axis_no=self._axis, start=True,
-                                                backward=self._direction_dic[backward])
+        if backward not in self._direction_mapping:
+            raise ValueError("Unexpected value for argument `backward`. Allowed values are: " +
+                             "{}".format(list(self._direction_mapping.keys())))
 
-    def stop_continuous_move(self, backward=False):
+        backward = self._direction_mapping[backward]
+
+        self._parent._lib.start_continuous_move(dev_handle=self._parent._device_handle,
+                                                axis_no=self._axis, start=True, backward=backward)
+
+    def stop_continuous_move(self, backward: Union[bool, str, int] = True):
         """
         Stops continuous motion in forward or backward direction.
 
         Args:
             backward: Step direction forward (False) or backward (True)
         """
-        self._parent._lib.start_continuous_move(dev_handle=self._parent._device_handle, axis_no=self._axis, start=False,
-                                                backward=self._direction_dic[backward])
+        if backward not in self._direction_mapping:
+            raise ValueError("Unexpected value for argument `backward`. Allowed values are: " +
+                             "{}".format(list(self._direction_mapping.keys())))
 
-    _relativ_dic = {
-        "absolute": True,
-        "relative": False,
+        backward = self._direction_mapping[backward]
+
+        self._parent._lib.start_continuous_move(dev_handle=self._parent._device_handle,
+                                                axis_no=self._axis, start=False, backward=backward)
+
+    _relative_mapping = {
+        "absolute": False,
+        "relative": True,
         True: True,
         False: False
     }
 
-    def enable_auto_move(self, relative=False) -> None:
+    def enable_auto_move(self, relative: Union[bool, str] = False) -> None:
         """
         Enables automatic moving
 
         Args:
             relative: If the target position is to be interpreted absolute (False) or relative to the current position (True)
         """
-        self._parent._lib.start_auto_move(dev_handle=self._parent._device_handle, axis_no=self._axis, enable=True,
-                                          relative=self._relativ_dic[relative])
+        if relative not in self._direction_mapping:
+            raise ValueError("Unexpected value for argument `relative`. Allowed values are: " +
+                             "{}".format(list(self._relative_mapping.keys())))
 
-    def disable_auto_move(self, relative: bool = False) -> None:
-        """
-        Disables automatic moving
+        relative = self._relative_mapping[relative]
 
-        Args:
-            relative (bool): If the target position is to be interpreted absolute (False) or relative to the current position (True)
-        """
-        self._parent._lib.start_auto_move(dev_handle=self._parent._device_handle, axis_no=self._axis, enable=False,
-                                          relative=relative)
+        self._parent._lib.start_auto_move(dev_handle=self._parent._device_handle,
+                                          axis_no=self._axis, enable=True, relative=relative)
+
+    def disable_auto_move(self) -> None:
+        """Disables automatic moving"""
+        self._parent._lib.start_auto_move(dev_handle=self._parent._device_handle,
+                                          axis_no=self._axis, enable=False, relative=False)
 
     def _get_position(self) -> float:
         """
         Get the current position of this axis
 
         Returns:
-            Current position in millimeters [mm] (linear type actuators) or degrees [°] (goniometers and rotators)
+            Current position in millimeters [mm] (linear type actuators) or millidegrees [m°]
+            (goniometers and rotators)
         """
-        if self.position.unit == "mm":
-            # Conversion from meters to millimeters because the wrapper works with meters
-            return self._parent._lib.get_position(dev_handle=self._parent._device_handle, axis_no=self._axis) * 1E3
-        else:
-            # Degrees don't need to be converted for the wrapper
-            return self._parent._lib.get_position(dev_handle=self._parent._device_handle, axis_no=self._axis)
+        # Conversion from meters (degrees) to millimeters (millidegrees) because the wrapper works
+        # with meters (degrees)
+        return self._parent._lib.get_position(dev_handle=self._parent._device_handle,
+                                              axis_no=self._axis) * 1e3
 
     def _set_position(self, position: float) -> None:
-        """
+        """(EXPERIMENTAL FUNCTION)
         The axis moves to the given position with the target range that is set before.
+
         Args:
-            position (float): The position the axis moves to
+            position: The position the axis moves to
         """
-        if self.position.unit == "mm":
-            # Conversion from meters to millimeters because the wrapper works with meters
-            self._set_target_position(position / 1E3)
-        else:
-            # Degrees don't need to be converted for the wrapper
-            self._set_target_position(position)
-        self.start_auto_move(True, True)
+        self._set_target_position(position)
+        self._set_output(True, auto_off=True)
 
     def _get_frequency(self) -> float:
         """
@@ -276,16 +289,18 @@ class Anc350Axis(InstrumentChannel):
         Returns:
             Amplitude in Volts [V]
         """
-        return self._parent._lib.get_amplitude(dev_handle=self._parent._device_handle, axis_no=self._axis)
+        return self._parent._lib.get_amplitude(dev_handle=self._parent._device_handle,
+                                               axis_no=self._axis)
 
     def _set_amplitude(self, amplitude: float) -> None:
         """
         Sets the amplitude parameter for an axis
 
         Args:
-            amplitude (float): Amplitude in Volts [V] (internal resolution is 1mV)
+            amplitude: Amplitude in Volts [V] (internal resolution is 1mV)
         """
-        self._parent._lib.set_amplitude(dev_handle=self._parent._device_handle, axis_no=self._axis, amplitude=amplitude)
+        self._parent._lib.set_amplitude(dev_handle=self._parent._device_handle, axis_no=self._axis,
+                                        amplitude=amplitude)
 
     def _get_status(self) -> Dict[str, bool]:
         """
@@ -301,14 +316,10 @@ class Anc350Axis(InstrumentChannel):
                 eot_bwd: True, if end of travel detected in backward direction.
                 error: True, if the axis' sensor is in error state.
         """
-        names = ("connected", "enabled", "moving", "target", "eot_fwd", "eot_bwf", "error")
-        status_list = self._parent._lib.get_axis_status(dev_handle=self._parent._device_handle, axis_no=self._axis)
-        status_dict = {}
+        keys = ("connected", "enabled", "moving", "target", "eot_fwd", "eot_bwf", "error")
+        status = self._parent._lib.get_axis_status(dev_handle=self._parent._device_handle, axis_no=self._axis)
 
-        for name, status in zip(names, status_list):
-            status_dict[name] = status
-
-        return status_dict
+        return {key: status for key, status in zip(keys, status)}
 
     def _set_voltage(self, voltage: float) -> None:
         """
@@ -323,34 +334,30 @@ class Anc350Axis(InstrumentChannel):
     def _set_target_position(self, target: float) -> None:
         """
         Sets the target position for automatic motion.
-        For linear type actuators the position unit is mm, for goniometers and rotators it is degree.
+        For linear type actuators the position unit is mm, for goniometers and rotators it is m°.
 
         Args:
-            target (float): Target position in meters [mm] or degrees [°]. Internal resolution is 1 nm or
-                    1 µ°.
+            target: Target position in millimeters [mm] or millidegrees [m°]. Internal resolution is
+                    1 nm or 1 µ°.
         """
-        if self.position.unit == "mm":
-            self._parent._lib.set_target_position(dev_handle=self._parent._device_handle, axis_no=self._axis,
-                                                  target=target / 1E3)
-        else:
-            self._parent._lib.set_target_position(dev_handle=self._parent._device_handle, axis_no=self._axis,
-                                                  target=target)
+        # Conversion from meters (degrees) to millimeters (millidegrees) because the wrapper works
+        # with meters (degrees)
+        self._parent._lib.set_target_position(dev_handle=self._parent._device_handle,
+                                              axis_no=self._axis, target=target * 1e-3)
 
     def _set_target_range(self, target_range: float) -> None:
         """
         Sets the range around the target position where the target is considered to be reached.
-        For linear type actuators the position unit is mm, for goniometers and rotators it is degree.
+        For linear type actuators the position unit is mm, for goniometers and rotators it is m°.
 
         Args:
-             target_range (float): Target range in millimeters [mm] or degrees [°]. Internal resolution is 1 nm or
-                          1 µ°.
+             target_range: Target range in millimeters [mm] or millidegrees [m°]. Internal
+                           resolution is 1 nm or 1 µ°.
         """
-        if self.position.unit == "mm":
-            self._parent._lib.set_target_range(dev_handle=self._parent._device_handle, axis_no=self._axis,
-                                               target=target_range / 1E3)
-        else:
-            self._parent._lib.set_target_range(dev_handle=self._parent._device_handle, axis_no=self._axis,
-                                               target=target_range)
+        # Conversion from meters (degrees) to millimeters (millidegrees) because the wrapper works
+        # with meters (degrees)
+        self._parent._lib.set_target_range(dev_handle=self._parent._device_handle,
+                                           axis_no=self._axis, target=target_range * 1e-3)
 
     def _set_actuator(self, actuator: int) -> None:
         """
@@ -358,24 +365,32 @@ class Anc350Axis(InstrumentChannel):
         parameters if necessary.
 
         Args:
-            actuator (int): Actuator selection (0..255)
+            actuator: Actuator selection (0..255)
         """
         old_actuator_type = self._get_actuator_type()
-        self._parent._lib.select_actuator(dev_handle=self._parent._device_handle, axis_no=self._axis, actuator=actuator)
-        current_actuator_type = self._get_actuator_type()
-        if current_actuator_type != old_actuator_type:
-            if current_actuator_type == ANC350LibActuatorType(0):
-                self._change_position_unit("mm")
-            elif (old_actuator_type is ANC350LibActuatorType(1)) or (old_actuator_type is ANC350LibActuatorType(2)):
-                self._change_position_unit("°")
+        self._parent._lib.select_actuator(dev_handle=self._parent._device_handle,
+                                          axis_no=self._axis, actuator=actuator)
+        self._update_position_unit(old_actuator_type)
 
-    def _change_position_unit(self, unit: str):
-        if str in ["mm", "°"]:
+    def _update_position_unit(self, old_actuator_type: Optional[ANC350LibActuatorType] = None):
+        """Checks the current actuator type and sets the corresponding unit for position-parameters.
+
+        Args:
+            old_actuator_type: Actuator type before changing it. This parameter is used to determine,
+                               if the actuator type has changed. If not, there is no need to update
+                               the unit. This parameter is optional. If it is None, the unit is
+                               always updated.
+        """
+        actuator_type = self._get_actuator_type()
+        if actuator_type != old_actuator_type:
+            if actuator_type == ANC350LibActuatorType.Linear:
+                unit = "mm"
+            else:
+                unit = "m°"
+
             self.position.unit = unit
             self.target_position.unit = unit
             self.target_range.unit = unit
-        else:
-            raise ValueError("Unit is invalid - " + unit)
 
     def _get_actuator_type(self) -> ANC350LibActuatorType:
         """
@@ -384,7 +399,8 @@ class Anc350Axis(InstrumentChannel):
         Returns:
             Type of the actuator
         """
-        return self._parent._lib.get_actuator_type(dev_handle=self._parent._device_handle, axis_no=self._axis)
+        return self._parent._lib.get_actuator_type(dev_handle=self._parent._device_handle,
+                                                   axis_no=self._axis)
 
     def _get_actuator_name(self) -> str:
         """
@@ -393,7 +409,8 @@ class Anc350Axis(InstrumentChannel):
         Returns:
             Name of the actuator
         """
-        return self._parent._lib.get_actuator_name(dev_handle=self._parent._device_handle, axis_no=self._axis)
+        return self._parent._lib.get_actuator_name(dev_handle=self._parent._device_handle,
+                                                   axis_no=self._axis)
 
     def _get_capacitance(self) -> float:
         """
@@ -406,8 +423,29 @@ class Anc350Axis(InstrumentChannel):
         Returns:
             Capacitance in Farad [nF]
         """
-        # 1E9 as factor for the conversion from F to nF
-        return self._parent._lib.measure_capacitance(dev_handle=self._parent._device_handle, axis_no=self._axis) * 1E9
+        # 1e9 as factor for the conversion from F to nF
+        return self._parent._lib.measure_capacitance(dev_handle=self._parent._device_handle,
+                                                     axis_no=self._axis) * 1e9
+
+    def _set_output(self, enable: bool, auto_off: bool = None) -> None:
+        """
+        Enables or disables the voltage output of this axis.
+
+        Args:
+            enable: True, to enable the voltage output. False, to disable it.
+            auto_off: True, if the voltage output is to be deactivated automatically when end of
+                      travel is detected.
+        """
+        self._parent._lib.set_axis_output(dev_handle=self._parent._device_handle, axis_no=self._axis,
+                                          enable=enable, auto_disable=auto_off or False)
+
+    def _get_output(self) -> bool:
+        """Reads the voltage output status.
+
+        Returns:
+            True, if the axis voltage output is enabled.
+        """
+        return self._get_status()["enabled"]
 
     # Version 4
     # ---------
@@ -418,7 +456,8 @@ class Anc350Axis(InstrumentChannel):
         Returns:
             DC output voltage in Volts [V]
         """
-        return self._parent._lib.get_dc_voltage(dev_handle=self._parent._device_handle, axis_no=self._axis)
+        return self._parent._lib.get_dc_voltage(dev_handle=self._parent._device_handle,
+                                                axis_no=self._axis)
 
 
 class ANC350(Instrument):
@@ -430,19 +469,24 @@ class ANC350(Instrument):
         inst_num: Sequence number of the device to connect to
         search_usb: True (default) to search for USB devices; False otherwise
         search_tcp: True (default) to search for TCP/IP devices; False otherwise
-        library: library that fits to the version of the device and provides the appropriate dll wrappers
-
-    Attributes:
-        device_info: Returns available information about a device as a tuple.
+        library: library that fits to the version of the device and provides the appropriate dll
+                 wrappers
     """
 
-    def __init__(self, library: ANC350v3Lib, name: str, inst_num: int = 0, search_usb: bool = True,
-                 search_tcp: bool = True):
+    def __init__(self, name: str, library: ANC350v3Lib, inst_num: int = 0,
+                 search_usb: bool = True, search_tcp: bool = True):
         super().__init__(name)
 
         self._lib = library
-
         self._dev_no = inst_num
+
+        if isinstance(self.parent._lib, ANC350v4Lib):
+            self._version_no = 4
+        elif isinstance(self.parent._lib, ANC350v3Lib):
+            self._version_no = 3
+        else:
+            raise NotImplementedError("Only version 3 and 4 of ANC350's driver-DLL are currently "
+                                      "supported")
 
         if self._lib.discover(search_usb=search_usb, search_tcp=search_tcp) < inst_num:
             raise RuntimeError("No matching device found for this number")
@@ -460,7 +504,8 @@ class ANC350(Instrument):
 
     def save_params(self) -> None:
         """
-        Saves parameters to persistent flash memory in the device. They will be present as defaults after the next power-on.
+        Saves parameters to persistent flash memory in the device. They will be present as defaults
+        after the next power-on.
         """
         self._lib.save_params(dev_handle=self._device_handle)
 
@@ -479,9 +524,6 @@ class ANC350(Instrument):
             A dictionary containing vendor, model, serial number and firmware version
         """
         device_info = self._lib.get_device_info(self._dev_no)
-        version_no = 3
-        if isinstance(self.parent._lib, ANC350v4Lib):
-            version_no = 4
 
         return {"vendor": "Attocube", 'model': 'ANC350',
-                'serial': device_info[2], 'firmware': version_no}
+                'serial': device_info[2], 'firmware': self._version_no}
