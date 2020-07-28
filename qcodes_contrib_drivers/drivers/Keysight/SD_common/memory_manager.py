@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from dataclasses import dataclass
 from typing import List, Dict
+import logging
 
 class MemoryManager:
     """
@@ -113,7 +114,7 @@ class MemoryManager:
         for slot_size in self._slot_sizes:
             if wave_size > slot_size:
                 continue
-            if slot_size > self._max_waveform_size:
+            if slot_size > self._created_size:
                 # slots of this size are not initialized.
                 break
             if len(self._free_memory_slots[slot_size]) > 0:
@@ -148,7 +149,11 @@ class MemoryManager:
         slot.allocation_ref = 0
         self._free_memory_slots[slot.size].append(slot_number)
 
-        self._log.debug(f'Released slot {slot_number}')
+        try:
+            self._log.debug(f'Released slot {slot_number}')
+        except:
+            # self._log throws exception when instrument has been closed.
+            logging.debug(f'Released slot {slot_number}')
 
 
     def _create_memory_slots(self, max_size):
