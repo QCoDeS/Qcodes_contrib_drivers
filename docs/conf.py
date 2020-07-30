@@ -137,6 +137,7 @@ nitpick_ignore = [('py:class', 'Optional'),
                   # don't resolve.
                   ('py:class', 'json.encoder.JSONEncoder'),
                   ('py:class', 'SPI_rack'),
+                  ('py:class', 'spirack.SPI_rack'),
                   ('py:class', 'unittest.case.TestCase'),
                   ('py:class', 'builtins.AssertionError'),
                   ('py:class', '_ctypes.Structure'),
