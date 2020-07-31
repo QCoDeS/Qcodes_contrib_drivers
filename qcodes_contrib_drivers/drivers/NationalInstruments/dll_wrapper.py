@@ -177,7 +177,7 @@ class NIDLLWrapper(object):
         ``wrap_dll_function`` before this method can be used.
         """
         if error_code != 0:
-            msg = self.error_message(error_code=error_code)
+            msg = self.error_message(error_code=ViStatus(error_code))
             if error_code < 0:
                 # negative error codes are errors
                 raise RuntimeError(f"({error_code}) {msg}")
