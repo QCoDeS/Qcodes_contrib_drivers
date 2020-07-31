@@ -190,11 +190,9 @@ class NIDLLWrapper(object):
                                   argtypes: List[NamedArgType]) -> Callable:
         """
         Same as ``wrap_dll_function``, but check the return value and convert
-        it to a Python exception or warning if it is nonzero. Calls
-        ``self.error_message``, which must be initialized with
-        ``wrap_dll_function`` before this method can be used. The arguments are
-        the same as for ``wrap_dll_function``, except that ``restype`` is
-        always ``ViStatus``.
+        it to a Python exception or warning if it is nonzero using
+        ``self._check_error``. The arguments are the same as for
+        ``wrap_dll_function``, except that ``restype`` is always ``ViStatus``.
         """
 
         func = self.wrap_dll_function(
@@ -203,23 +201,10 @@ class NIDLLWrapper(object):
                 restype=ViStatus,
                 )
 
-        def func_checked(*args, **kwargs):
-            error_code = func(*args, **kwargs)
-            if error_code != 0:
-                msg = self.error_message(error_code=error_code)
-                if error_code < 0:
-                    # negative error codes are errors
-                    raise RuntimeError(f"({error_code}) {msg}")
-                else:
-                    warnings.warn(f"({error_code}) {msg}", RuntimeWarning,
-                                  stacklevel=3)
+        # see https://docs.python.org/3/library/ctypes.html#return-types
+        func.restype = self._check_error
 
-        # annotate function so that it is compatible with ctypes func pointer
-        func_checked.restype = func.restype
-        func_checked.argtypes = func.argtypes
-        func_checked.argnames = func.argnames
-
-        return func_checked
+        return func
 
     def init(self, resource: str, id_query: bool = True,
              reset_device: bool = False) -> ViSession:
