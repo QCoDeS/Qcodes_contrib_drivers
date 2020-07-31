@@ -282,7 +282,7 @@ class NIDLLWrapper(object):
             func(session, b"", attr.value, set_value)
 
     def error_message(self, session: Optional[ViSession] = None,
-                      error_code: ViStatus = 0) -> str:
+                      error_code: ViStatus = ViStatus(0)) -> str:
         """
         Convenience wrapper around libName_error_message (which is wrapped as
         self._error_message).
