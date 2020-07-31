@@ -145,7 +145,7 @@ class NIDLLWrapper(object):
     def wrap_dll_function(self, name_in_library: str,
                           argtypes: List[NamedArgType],
                           restype: Any = ViStatus,
-                          ) -> ctypes._FuncPointer:
+                          ) -> Any:
         """
         Convenience method for wrapping a function in a NI C API.
 
