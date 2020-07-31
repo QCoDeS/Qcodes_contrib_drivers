@@ -142,6 +142,21 @@ class NIDLLWrapper(object):
                     argtypes=setter_argtypes)
             setattr(self, setter_name, setter_func)
 
+    def __setattr__(self, name: str, value: Any):
+        """
+        This allows setting attributes without mypy complaining
+
+        (see https://stackoverflow.com/a/50889782)
+        """
+        super().__setattr__(name, value)
+
+    def __getattr__(self, name: str) -> Any:
+        """
+        See __setattr__
+        """
+        msg = f"'{self.__class__.__name__}' object has no attribute '{name}'"
+        raise AttributeError(msg)
+
     def wrap_dll_function(self, name_in_library: str,
                           argtypes: List[NamedArgType],
                           restype: Any = ViStatus,
