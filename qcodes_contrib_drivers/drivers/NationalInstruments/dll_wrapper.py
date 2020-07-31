@@ -169,6 +169,23 @@ class NIDLLWrapper(object):
 
         return func
 
+    def _check_error(self, error_code: int):
+        """
+        If the error code is nonzero, convert it to a string using
+        ``self.error_message`` and raise an exception or issue a warning as
+        appropriate. ``self.error_message`` must be initialized with
+        ``wrap_dll_function`` before this method can be used.
+        """
+        if error_code != 0:
+            msg = self.error_message(error_code=error_code)
+            if error_code < 0:
+                # negative error codes are errors
+                raise RuntimeError(f"({error_code}) {msg}")
+            else:
+                warnings.warn(f"({error_code}) {msg}", RuntimeWarning,
+                              stacklevel=3)
+
+
     def wrap_dll_function_checked(self, name_in_library: str,
                                   argtypes: List[NamedArgType]) -> Callable:
         """
