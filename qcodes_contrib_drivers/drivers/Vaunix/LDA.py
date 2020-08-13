@@ -122,7 +122,9 @@ class Vaunix_LDA(Instrument):
         try:
             dll = ctypes.cdll.LoadLibrary(full_path)
         except OSError as e:
-            if hasattr(e, "winerror") and e.winerror == 126:
+            # typeshead seems to be unaware that winerror is an attribute
+            # under windows
+            if hasattr(e, "winerror") and e.winerror == 126:  # type: ignore[attr-defined]
                 # 'the specified module could not be found'
                 raise OSError(f"Could not find DLL at '{full_path}'")
             else:
