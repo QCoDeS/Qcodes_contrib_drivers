@@ -28,7 +28,6 @@ from qcodes.utils.validators import Numbers
 
 logger = logging.getLogger(__name__)
 
-assert sys.platform == "win32"
 class Vaunix_LDA(Instrument):
     dll_path = None
 
@@ -123,7 +122,8 @@ class Vaunix_LDA(Instrument):
         except OSError as e:
             # typeshead seems to be unaware that winerror is an attribute
             # under windows
-            if hasattr(e, "winerror") and e.winerror == 126:  # type: ignore[attr-defined]
+            winerror = getattr(e, "winerror", None)
+            if winerror is not None and winerror == 126:
                 # 'the specified module could not be found'
                 raise OSError(f"Could not find DLL at '{full_path}'")
             else:
