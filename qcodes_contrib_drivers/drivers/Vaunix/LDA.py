@@ -110,7 +110,8 @@ class Vaunix_LDA(Instrument):
 
         if sys.platform != "win32":
             raise OSError(f"LDA is not supported on {sys.platform}.")
-
+        
+        assert sys.platform == "win32"
         bitness = architecture()[0]
         if "64bit" in bitness:
             full_path = os.path.join(path, "VNX_atten64")
