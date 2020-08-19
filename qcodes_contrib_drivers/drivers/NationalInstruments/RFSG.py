@@ -81,16 +81,16 @@ class NationalInstruments_RFSG(NIDLLInstrument):
                          lib_prefix="niRFSG", **kwargs)
 
         # Wrap DLL calls
-        self.wrapper.Initiate = self.wrapper.wrap_dll_function_checked(
+        self.wrapper.Initiate = self.wrapper.wrap_dll_function_checked(  # type: ignore
                 name_in_library="Initiate",
                 argtypes=[NamedArgType("vi", ViSession)]
                 )
 
-        self.wrapper.Abort = self.wrapper.wrap_dll_function_checked(
+        self.wrapper.Abort = self.wrapper.wrap_dll_function_checked(  # type: ignore
                 name_in_library="Abort",
                 argtypes=[NamedArgType("vi", ViSession)])
 
-        self.wrapper.ConfigureRF = self.wrapper.wrap_dll_function_checked(
+        self.wrapper.ConfigureRF = self.wrapper.wrap_dll_function_checked(  # type: ignore
                 name_in_library="ConfigureRF",
                 argtypes=[
                     NamedArgType("vi", ViSession),
@@ -184,8 +184,12 @@ class NationalInstruments_RFSG(NIDLLInstrument):
             initiate: if True, call self.initiate after configuring, which
                 starts RF output
         """
-        self.wrapper.ConfigureRF(self._handle, ViReal64(frequency),
-                                 ViReal64(power_level))
+        self.wrapper.ConfigureRF(  # type: ignore
+            self._handle,
+            ViReal64(frequency),
+            ViReal64(power_level)
+        )
+
         if initiate:
             self.initiate()
 
