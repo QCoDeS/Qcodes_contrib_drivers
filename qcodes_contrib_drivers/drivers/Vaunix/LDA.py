@@ -2,12 +2,13 @@ r"""
 This is the QCoDeS driver for Vaunix LDA digital attenuators. It requires the
 DLL that comes with the instrument, ``VNX_atten64.dll`` and/or
 ``VNX_atten.dll``, for 64-bit Windows and 32-bit Windows, respectively. If the
-instrument has more than one physical channel, ``InstrumentChannel``s are
+instrument has more than one physical channel, ``InstrumentChannel`` s are
 created for each one. If the instrument has only one physical channel, no
 channels are created and the parameters will be assigned to this instrument
 instead. The sweep profiles available in the API are not implemented.
 
 Tested with 64-bit system and
+
 - LDA-133
 - LDA-802Q
 
@@ -26,7 +27,6 @@ from qcodes import Instrument, InstrumentChannel, Parameter
 from qcodes.utils.validators import Numbers
 
 logger = logging.getLogger(__name__)
-
 
 class Vaunix_LDA(Instrument):
     dll_path = None
@@ -109,7 +109,6 @@ class Vaunix_LDA(Instrument):
 
         if sys.platform != "win32":
             raise OSError(f"LDA is not supported on {sys.platform}.")
-
         bitness = architecture()[0]
         if "64bit" in bitness:
             full_path = os.path.join(path, "VNX_atten64")
@@ -121,7 +120,10 @@ class Vaunix_LDA(Instrument):
         try:
             dll = ctypes.cdll.LoadLibrary(full_path)
         except OSError as e:
-            if hasattr(e, "winerror") and e.winerror == 126:
+            # typeshead seems to be unaware that winerror is an attribute
+            # under windows
+            winerror = getattr(e, "winerror", None)
+            if winerror is not None and winerror == 126:
                 # 'the specified module could not be found'
                 raise OSError(f"Could not find DLL at '{full_path}'")
             else:
