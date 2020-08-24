@@ -88,8 +88,6 @@ release = version
 # want to store them locally.
 suppress_warnings = ['image.nonlocal_uri']
 
-nitpicky = True
-
 pygments_style = 'sphinx'
 
 numfig = True
