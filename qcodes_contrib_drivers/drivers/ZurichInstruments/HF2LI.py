@@ -80,6 +80,15 @@ class HF2LI(Instrument):
             self._set_output_select(ch)
             
         self.add_parameter(
+            name='clock',
+            label='Clock',
+            get_cmd=self._get_clock,
+            get_parser=str,
+            set_cmd=self._set_clock,
+            vals=vals.Enum('internal', 'external'),
+            docstring='Clock of the device.'
+        )
+        self.add_parameter(
             name='phase',
             label='Phase',
             unit='deg',
@@ -102,8 +111,17 @@ class HF2LI(Instrument):
             label='Frequency',
             unit='Hz',
             get_cmd=self._get_frequency,
+            set_cmd=self._set_frequency,
             get_parser=float
         ) 
+        self.add_parameter(
+            name='sigout_status',
+            label='Signal output status',
+            get_cmd=self._get_sigout_status,
+            get_parser=str,
+            set_cmd=self._set_sigout_status,
+            vals=vals.Enum('on', 'off'),
+        )
         self.add_parameter(
             name='sigout_range',
             label='Signal output range',
@@ -122,6 +140,15 @@ class HF2LI(Instrument):
             set_cmd=self._set_sigout_offset,
             vals=vals.Numbers(-1, 1),
             docstring='Multiply by sigout_range to get actual offset voltage.'
+        )
+        self.add_parameter(
+            name='sigout_oscillator',
+            label='Signal output oscillator',
+            get_cmd=self._get_sigout_oscillator,
+            get_parser=int,
+            set_cmd=self._set_sigout_oscillator,
+            vals=vals.Numbers(0),
+            docstring='Reference oscillator used for the signal output.'
         )
         for i in range(num_sigout_mixer_channels):
             self.add_parameter(
@@ -148,6 +175,22 @@ class HF2LI(Instrument):
                 vals=vals.Numbers(-1, 1),
                 docstring='Multiply by sigout_range to get actual output voltage.'
             )
+
+    def _get_clock(self) -> str:
+        path = f'/{self.dev_id}/system/extclk/'
+        clock = self.daq.getDouble(path)
+        if clock:
+            return 'external'
+        else:
+            return 'internal'
+
+    def _set_clock(self, clock: str) -> None:
+        path = f'/{self.dev_id}/system/extclk/'
+        if clock=='internal':
+            self.daq.setInt(path, 0)
+        else:
+            self.daq.setInt(path, 1)
+        
 
     def _get_phase(self) -> float:
         path = f'/{self.dev_id}/demods/{self.demod}/phaseshift/'
@@ -196,6 +239,22 @@ class HF2LI(Instrument):
         path = f'/{self.dev_id}/demods/{self.demod}/timeconstant/'
         self.daq.setDouble(path, tc)
 
+    def _get_sigout_status(self) -> str:
+        path = f'/{self.dev_id}/sigouts/{self.sigout}/on/'
+        status = self.daq.getInt(path)
+        if status:
+            return 'on'
+        else:
+            return 'off'
+
+    def _set_sigout_status(self, status: str) -> None:
+        path = f'/{self.dev_id}/sigouts/{self.sigout}/on/'
+        
+        if status=='on':
+            self.daq.setInt(path, 1)
+        else:
+            self.daq.setInt(path, 0)
+
     def _get_sigout_range(self) -> float:
         path = f'/{self.dev_id}/sigouts/{self.sigout}/range/'
         return self.daq.getDouble(path)
@@ -211,6 +270,14 @@ class HF2LI(Instrument):
     def _set_sigout_offset(self, offset: float) -> None:
         path = f'/{self.dev_id}/sigouts/{self.sigout}/offset/'
         self.daq.setDouble(path, offset)
+
+    def _get_sigout_oscillator(self) -> int:
+        path = f'/{self.dev_id}/demods/{self.sigout}/oscselect/'
+        return self.daq.getInt(path)
+
+    def _set_sigout_oscillator(self, oscillator: int) -> None:
+        path = f'/{self.dev_id}/demods/{self.sigout}/oscselect/'
+        self.daq.setInt(path, oscillator)
 
     def _get_sigout_amplitude(self, mixer_channel: int) -> float:
         path = f'/{self.dev_id}/sigouts/{self.sigout}/amplitudes/{mixer_channel}/'
@@ -231,6 +298,10 @@ class HF2LI(Instrument):
     def _get_frequency(self) -> float:
         path = f'/{self.dev_id}/demods/{self.demod}/freq/'
         return self.daq.getDouble(path)
+
+    def _set_frequency(self, freq: float) -> None:
+        path = f'/{self.dev_id}/oscs/{self.demod}/freq/'
+        self.daq.setDouble(path, freq)
 
     def sample(self) -> dict:
         path = f'/{self.dev_id}/demods/{self.demod}/sample/'
