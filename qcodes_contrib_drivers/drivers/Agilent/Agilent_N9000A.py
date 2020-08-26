@@ -11,9 +11,8 @@ class Agilent_N9000A(VisaInstrument):
     This is the QCoDeS python driver for the Agilent CXA N9000A power spectrum
     analyzer.
     """
-    
-    
-    
+
+
     def __init__(self, name       : str,
                        address    : str,
                        terminator : str="\n",
@@ -27,20 +26,17 @@ class Agilent_N9000A(VisaInstrument):
         terminator (str, optional, by default "\n"): Terminator character of
             the string reply.
         """
-    
 
-        
-        
+
         super().__init__(name       = name,
                          address    = address,
                          terminator = terminator,
                          **kwargs)
-        
-        
+
 
         self.add_function('reset', call_cmd='*RST')
-        
-        
+
+
         self.add_parameter(name       = 'rf_center_frequency',
                            unit       = 'GHz',
                            get_parser = float,
