@@ -1,7 +1,7 @@
 """
 The MIT License (MIT)
 
-Copyright (c) 2020 Single Quantum B. V. and Andreas Fognini
+Copyright (c) 2020 Single Quantum B. V.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -17,40 +17,10 @@ import threading
 import time
 import sys
 
-from qcodes.instrument.ip import IPInstrument
+from qcodes.instrument.ip import Instrument
 from qcodes.instrument.base import Parameter
 from qcodes.instrument.parameter import ParameterWithSetpoints, MultiParameter
 from qcodes.utils.validators import Arrays
-
-
-def synchronized_method(method, *args, **kws):
-    outer_lock = threading.Lock()
-    lock_name = "__" + method.__name__ + "_lock" + "__"
-
-    def sync_method(self, *args, **kws):
-        with outer_lock:
-            if not hasattr(self, lock_name):
-                setattr(self, lock_name, threading.Lock())
-            lock = getattr(self, lock_name)
-            with lock:
-                return method(self, *args, **kws)
-    sync_method.__name__ = method.__name__
-    sync_method.__doc__ = method.__doc__
-    sync_method.__module__ = method.__module__
-    return sync_method
-
-
-def synchronized_with_attr(lock_name):
-    def decorator(method):
-        def synced_method(self, *args, **kws):
-            lock = getattr(self, lock_name)
-            with lock:
-                return method(self, *args, **kws)
-        synced_method.__name__ = method.__name__
-        synced_method.__doc__ = method.__doc__
-        synced_method.__module__ = method.__module__
-        return synced_method
-    return decorator
 
 
 class SQTalk(threading.Thread):
@@ -72,18 +42,13 @@ class SQTalk(threading.Thread):
 
         self.lock = threading.Lock()
 
-    @synchronized_method
     def close(self):
         # Print("Closing Socket")
         self.socket.close()
         self.shutdown = True
 
-    @synchronized_method
     def send(self, msg):
-        if sys.version_info.major == 3:
-            self.socket.send(bytes(msg, "utf-8"))
-        if sys.version_info.major == 2:
-            self.socket.send(msg)
+        self.socket.send(bytes(msg, "utf-8"))
 
     def sub_jsons(self, msg):
         """Return sub json strings.
@@ -104,7 +69,6 @@ class SQTalk(threading.Thread):
             i += 1
         return result
 
-    @synchronized_method
     def add_labelProps(self, data):
         if "label" in data.keys():
             # After get labelProps, queries also bounds, units etc...
@@ -118,13 +82,11 @@ class SQTalk(threading.Thread):
                 except Exception:
                     None
 
-    @synchronized_method
     def check_error(self, data):
         if "label" in data.keys():
             if "Error" in data["label"]:
                 self.error_callback(data["value"])
 
-    @synchronized_method
     def get_label(self, label):
         timeout = 10
         dt = .1
@@ -140,12 +102,10 @@ class SQTalk(threading.Thread):
                 time.sleep(dt)
             i += 1
 
-    @synchronized_method
     def get_all_labels(self, label):
         return self.labelProps
 
     def run(self):
-
         self.send(json.dumps(
             {"request": "labelProps", "value": "None"}))
         rcv_msg = []
@@ -159,12 +119,7 @@ class SQTalk(threading.Thread):
             r = ""
             while "\x17" not in rcv:
                 try:
-                    if sys.version_info.major == 3:
-                        r = str(
-                            self.socket.recv(
-                                self.BUFFER), 'utf-8')
-                    elif sys.version_info.major == 2:
-                        r = self.socket.recv(self.BUFFER)
+                    r = str(self.socket.recv(self.BUFFER), 'utf-8')
                 except Exception:
                     None
                 rcv = rcv + r
@@ -207,13 +162,11 @@ class SQCounts(threading.Thread):
         self.CNTS_BUFFER = CNTS_BUFFER
         self.n = 0
 
-    @synchronized_method
     def close(self):
         # print("Closing Socket")
         self.socket.close()
         self.shutdown = True
 
-    @synchronized_method
     def get_n(self, n):
         n0 = self.n
         while self.n < n0 + n:
@@ -223,10 +176,7 @@ class SQCounts(threading.Thread):
 
     def run(self):
         while self.shutdown is False:
-            if sys.version_info.major == 3:
-                data_raw = str(self.socket.recv(self.BUFFER), 'utf-8')
-            elif sys.version_info.major == 2:
-                data_raw = self.socket.recv(self.BUFFER)
+            data_raw = str(self.socket.recv(self.BUFFER), 'utf-8')
 
             data_newline = data_raw.split('\n')
 
@@ -277,19 +227,42 @@ class TimeArray(Parameter):
             self._channel])
 
 
-class WebSQControlqcode(IPInstrument):
-    """The instrument.
-    The first part are functions to talk in JSON style with the instrument.
-    The second part contains QCoDeS init and parameters.
+class CommunicationHandler(object):
+    """Handles the communication, creates JSON strings"""
 
-    IMPORTANT: the QCoDeS parameter 'counters' updates the time stamp and counters from the detectors.
-    Always call 'counters' if you want to fetch the next 'npts' counts.
-    """
+    def __init__(
+            self,
+            root_instrument,
+            log,
+            TCP_IP_ADR='localhost',
+            CONTROL_PORT=12000,
+            COUNTS_PORT=12345):
+        self.root_instrument = root_instrument
+        self.log = log
+        self.TCP_IP_ADR = TCP_IP_ADR
+        self.CONTROL_PORT = CONTROL_PORT
+        self.COUNTS_PORT = COUNTS_PORT
+        self.NUMBER_OF_DETECTORS = 0
+
+        self.talk = SQTalk(
+            TCP_IP_ADR=self.TCP_IP_ADR,
+            TCP_IP_PORT=self.CONTROL_PORT,
+            error_callback=self.error)
+        # Daemonic Thread close when main progam is closed
+        self.talk.daemon = True
+        self.talk.start()
+
+        self.cnts = SQCounts(TCP_IP_ADR=self.TCP_IP_ADR,
+                             TCP_IP_PORT=self.COUNTS_PORT)
+        # Daemonic Thread close when main progam is closed
+        self.cnts.daemon = True
+        self.cnts.start()
+
+        self.NUMBER_OF_DETECTORS = self.talk.get_label(
+            "NumberOfDetectors")["value"]
 
     def acquire_cnts_t(self):
         """Acquire n count measurments transposed.
-        Args:
-             n (int): number of count measurments
         Return (numpy_array): Acquired counts with timestamp in first row.
         """
         n = self.root_instrument.npts()
@@ -376,43 +349,37 @@ class WebSQControlqcode(IPInstrument):
 
     def error(self, error_msg):
         """Called in case of an error"""
-        print("ERROR DETECTED")
-        print(error_msg)
+        self.log.warning("ERROR DETECTED")
+        self.log.warning(error_msg)
 
-    """Second part.
-    QCoDeS init and parameters.
+
+class WebSQControlqcode(Instrument):
+    """The instrument.
+
+    IMPORTANT: the QCoDeS parameter 'counters' updates the time stamp and counters from the detectors.
+    Always call 'counters' if you want to fetch the next 'npts' counts.
     """
 
     def __init__(self, name, address, port, **kwargs):
-        super().__init__(name, address, port, **kwargs)
+        # super().__init__(name, address, port, **kwargs)
+        super().__init__(name, **kwargs)
 
         self.TCP_IP_ADR = address
         self.CONTROL_PORT = port
         self.COUNTS_PORT = 12345
         self.NUMBER_OF_DETECTORS = 0
 
-        self.talk = SQTalk(
-            TCP_IP_ADR=self.TCP_IP_ADR,
-            TCP_IP_PORT=self.CONTROL_PORT,
-            error_callback=self.error)
-        # Daemonic Thread close when main progam is closed
-        self.talk.daemon = True
-        self.talk.start()
+        self.comm = CommunicationHandler(self.root_instrument, self.log,
+                                         self.TCP_IP_ADR, self.CONTROL_PORT, self.COUNTS_PORT)
 
-        self.cnts = SQCounts(TCP_IP_ADR=self.TCP_IP_ADR,
-                             TCP_IP_PORT=self.COUNTS_PORT)
-        # Daemonic Thread close when main progam is closed
-        self.cnts.daemon = True
-        self.cnts.start()
-
-        self.NUMBER_OF_DETECTORS = self.talk.get_label(
+        self.NUMBER_OF_DETECTORS = self.comm.talk.get_label(
             "NumberOfDetectors")["value"]
 
         self.add_parameter(
             'bias_current',
             unit='uA',
-            get_cmd=self.get_bias_current,
-            set_cmd=self.set_bias_current,
+            get_cmd=self.comm.get_bias_current,
+            set_cmd=self.comm.set_bias_current,
             docstring='Bias current setting'
         )
 
@@ -423,33 +390,33 @@ class WebSQControlqcode(IPInstrument):
             get_cmd=None,
             set_cmd=None,
             docstring='Number of points to acquire (see measurement_periode)'
-            )
+        )
 
         self.add_parameter(
             'detectors',
-            get_cmd=self.enable_detectors,
+            get_cmd=self.comm.enable_detectors,
             set_cmd=None,
             docstring='Enables/disables the detectors'
         )
 
         self.add_parameter(
             'number_of_detectors',
-            get_cmd=self.get_number_of_detectors,
+            get_cmd=self.comm.get_number_of_detectors,
             set_cmd=None,
             docstring='Gets the number of detectors in the instrument'
         )
 
         self.add_parameter(
             'counters',
-            get_cmd=self.acquire_cnts_t,
+            get_cmd=self.comm.acquire_cnts_t,
             docstring='Acquire points'
         )
 
         self.add_parameter(
             'measurement_periode',
             unit='ms',
-            get_cmd=self.get_measurement_periode,
-            set_cmd=self.set_measurement_periode,
+            get_cmd=self.comm.get_measurement_periode,
+            set_cmd=self.comm.set_measurement_periode,
             docstring='Measurement periode setting, determines the time that each point counts'
         )
 
@@ -483,14 +450,14 @@ class WebSQControlqcode(IPInstrument):
             'trigger_level',
             unit='mV',
             get_cmd=None,
-            set_cmd=self.set_trigger_level,
+            set_cmd=self.comm.set_trigger_level,
             docstring='Trigger level setting'
         )
 
         self.add_parameter(
             'bias_voltage',
             unit='mV',
-            get_cmd=self.get_bias_voltage,
+            get_cmd=self.comm.get_bias_voltage,
             set_cmd=None,
             docstring='Gets the bias voltage'
         )
