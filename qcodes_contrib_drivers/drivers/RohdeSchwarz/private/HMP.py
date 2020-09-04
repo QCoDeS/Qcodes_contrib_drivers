@@ -47,7 +47,7 @@ class RohdeSchwarzHMPChannel(InstrumentChannel):
                            )
         self.add_parameter("power",
                            label='Measured power',
-                           get_cmd=partial(self.send_cmd, "power", None),
+                           get_cmd=self.get_power,
                            get_parser=float,
                            unit='W',
                            )
@@ -75,9 +75,13 @@ class RohdeSchwarzHMPChannel(InstrumentChannel):
             "state": "OUTPut:STATe",
             "voltage": "MEASure:SCALar:VOLTage:DC",
             "current": "MEASure:SCALar:CURRent:DC",
-            "power": "MEASure:SCALar:POWer",
         }
         return commands.get(param)
+
+    def get_power(self):
+        curr = float(self.send_cmd("current", None))
+        volt = float(self.send_cmd("voltage", None))
+        return curr * volt
 
 
 class _RohdeSchwarzHMP(VisaInstrument):
