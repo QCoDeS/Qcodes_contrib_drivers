@@ -9,6 +9,12 @@ class RohdeSchwarzHMPChannel(InstrumentChannel):
         self.channel = channel
         self.max_current = self.get_max_current()
 
+        self._scpi_commands = {"set_voltage": "SOURce:VOLTage:LEVel:IMMediate:AMPLitude",
+                               "set_current": "SOURce:CURRent:LEVel:IMMediate:AMPLitude",
+                               "state": "OUTPut:STATe",
+                               "voltage": "MEASure:SCALar:VOLTage:DC",
+                               "current": "MEASure:SCALar:CURRent:DC"
+                               }
 
         self.add_parameter("set_voltage",
                            label='Target voltage output',
@@ -38,7 +44,7 @@ class RohdeSchwarzHMPChannel(InstrumentChannel):
                            get_cmd=partial(self.send_cmd, "voltage", None),
                            get_parser=float,
                            unit='V',
-                          )
+                           )
         self.add_parameter("current",
                            label='Measured current',
                            get_cmd=partial(self.send_cmd, "current", None),
@@ -47,7 +53,7 @@ class RohdeSchwarzHMPChannel(InstrumentChannel):
                            )
         self.add_parameter("power",
                            label='Measured power',
-                           get_cmd=self.get_power,
+                           get_cmd=self._get_power,
                            get_parser=float,
                            unit='W',
                            )
@@ -62,23 +68,11 @@ class RohdeSchwarzHMPChannel(InstrumentChannel):
     def send_cmd(self, param, value):
         self.write(f"INSTrument:NSELect {self.channel:d}")
         if value is None:
-            return self.ask(f"{self.get_scpi_command(param)}?")
+            return self.ask(f"{self._scpi_commands[param]}?")
         else:
-            return self.write(f"{self.get_scpi_command(param)} {value}")
+            return self.write(f"{self._scpi_commands[param]} {value}")
 
-
-    @staticmethod
-    def get_scpi_command(param):
-        commands = {
-            "set_voltage": "SOURce:VOLTage:LEVel:IMMediate:AMPLitude",
-            "set_current": "SOURce:CURRent:LEVel:IMMediate:AMPLitude",
-            "state": "OUTPut:STATe",
-            "voltage": "MEASure:SCALar:VOLTage:DC",
-            "current": "MEASure:SCALar:CURRent:DC",
-        }
-        return commands.get(param)
-
-    def get_power(self):
+    def _get_power(self):
         curr = float(self.send_cmd("current", None))
         volt = float(self.send_cmd("voltage", None))
         return curr * volt
@@ -107,7 +101,7 @@ class _RohdeSchwarzHMP(VisaInstrument):
         num_channels = (self.model_no % 100) // 10
         # channel-specific parameters
         channels = ChannelList(self, "SupplyChannel", RohdeSchwarzHMPChannel, snapshotable=False)
-        for ch_num in range(1, num_channels+1):
+        for ch_num in range(1, num_channels + 1):
             ch_name = "ch{}".format(ch_num)
             channel = RohdeSchwarzHMPChannel(self, ch_name, ch_num)
             channels.append(channel)
