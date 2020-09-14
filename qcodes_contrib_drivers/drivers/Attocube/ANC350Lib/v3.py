@@ -81,10 +81,9 @@ class ANC350v3Lib:
             path_to_dll: Path to anc350v3.dll or None, if it's stored in the working directory
         """
         if sys.platform != 'win32':
-            self.dll: Any = None
+            self._dll: Any = None
+            self._encoding: Any = None
             raise OSError("\"anc350v3.dll\" is only compatible with Microsoft Windows")
-        else:
-            self._dll: ctypes.WinDLL
 
         try:
             self._path_to_dll = ctypes.util.find_library(path_to_dll or self.DEFAULT_PATH_TO_DLL)

@@ -118,7 +118,7 @@ class Anc350Axis(InstrumentChannel):
         if self._parent._version_no >= 4:
             voltage_get: Optional[Callable] = self._get_voltage
         else:
-            voltage_get: Optional[Callable] = None
+            voltage_get = None
 
         self.add_parameter("voltage",
                            label="Voltage",
