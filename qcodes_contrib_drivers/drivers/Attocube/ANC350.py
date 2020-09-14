@@ -493,19 +493,19 @@ class ANC350(Instrument):
         axischannels.lock()
         self.add_submodule("axis_channels", axischannels)
 
+    def close(self) -> None:
+        """
+        Closes the connection to the device. The device handle becomes invalid.
+        """
+        self._lib.disconnect(self._device_handle)
+        super().close()
+
     def save_params(self) -> None:
         """
         Saves parameters to persistent flash memory in the device. They will be present as defaults
         after the next power-on.
         """
         self._lib.save_params(self._device_handle)
-
-    def disconnect(self) -> None:
-        """
-        Closes the connection to the device. The device handle becomes invalid.
-        """
-        self._lib.disconnect(self._device_handle)
-        self._device_handle = None
 
     def get_idn(self) -> Dict[str, Optional[str]]:
         """
