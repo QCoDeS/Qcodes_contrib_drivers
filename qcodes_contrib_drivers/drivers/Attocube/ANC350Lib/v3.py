@@ -13,7 +13,8 @@ import ctypes.util
 from ctypes import c_int8, c_int32, c_uint32, c_double, c_void_p, byref
 from ctypes import create_string_buffer as c_string
 import locale
-from typing import Optional, Tuple, Union
+from typing import Any, Optional, Tuple, Union
+import sys
 
 from .interface import ANC350LibError, ANC350LibDeviceType, ANC350LibExternalTriggerMode, \
     ANC350LibTriggerPolarity, ANC350LibActuatorType
@@ -79,6 +80,12 @@ class ANC350v3Lib:
         Args:
             path_to_dll: Path to anc350v3.dll or None, if it's stored in the working directory
         """
+        if sys.platform != 'win32':
+            self.dll: Any = None
+            raise OSError("\"anc350v3.dll\" is only compatible with Microsoft Windows")
+        else:
+            self._dll: ctypes.WinDLL
+
         try:
             self._path_to_dll = ctypes.util.find_library(path_to_dll or self.DEFAULT_PATH_TO_DLL)
             if self._path_to_dll is None:
@@ -95,7 +102,7 @@ class ANC350v3Lib:
         """Discover Devices
 
         The function searches for connected ANC350RES devices on USB and LAN and initializes
-        internal data structures per device. Devices that are in use by another application or PC
+        internal data structures per device. Devices that arwe in use by another application or PC
         are not found. The function must be called before connecting to a device and must not be
         called as long as any devices are connected.
 
@@ -166,7 +173,7 @@ class ANC350v3Lib:
                c_serial.value.decode(self._encoding), c_address.value.decode(self._encoding),\
                bool(c_connected.value)
 
-    def connect(self, dev_no: int = 0) -> Optional[c_void_p]:
+    def connect(self, dev_no: int = 0) -> c_void_p:
         """Connect Device
 
         Initializes and connects the selected device.
@@ -191,7 +198,10 @@ class ANC350v3Lib:
             raise ANC350v3LibError("Unexpected error in ANC_connect") from exc
         ANC350v3LibError.check_error(return_code, "ANC_connect")
 
-        return c_dev_handle if c_dev_handle else None
+        if not c_dev_handle:
+            raise ANC350v3LibError("Received invalid handle from ANC_connect")
+
+        return c_dev_handle
 
     def disconnect(self, dev_handle: c_void_p) -> None:
         """Disconnect Device
@@ -1006,7 +1016,7 @@ class ANC350v3Lib:
 
         # TODO: Could we only return position if valid is True and return None, if valid is False?
         # Then, one return value would be enough
-        return c_position.value, c_valid.value
+        return c_position.value, bool(c_valid.value)
 
     def configure_duty_cycle(self, dev_handle: c_void_p, axis_no: int, period: float,
                              off_time: float) -> None:

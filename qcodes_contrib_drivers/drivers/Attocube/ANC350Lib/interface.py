@@ -6,7 +6,7 @@ Author:
 
 from abc import ABC, abstractmethod
 from enum import IntEnum
-from typing import Optional
+from typing import List, Optional
 import warnings
 
 __all__ = ["ANC350LibError", "ANC350LibDeviceType", "ANC350LibExternalTriggerMode",
@@ -21,10 +21,10 @@ class ANC350LibError(Exception, ABC):
         message: Error message
         code: Error code from dll (or None)
     """
-    SUCCESS_CODES = [0]
-    WARNING_CODES = []
+    SUCCESS_CODES: List[int] = [0]
+    WARNING_CODES: List[int] = []
 
-    def __init__(self, message: str, code: Optional[int]):
+    def __init__(self, message: Optional[str], code: Optional[int]):
         """Create instance of ``ANC350LibError``
 
         Args:

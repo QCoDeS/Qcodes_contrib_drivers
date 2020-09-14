@@ -2,7 +2,7 @@
 from qcodes.instrument.channel import InstrumentChannel, ChannelList
 from qcodes.utils.validators import Numbers
 from qcodes_contrib_drivers.drivers.Attocube.ANC350Lib import ANC350LibActuatorType, ANC350v3Lib, ANC350v4Lib
-from typing import Callable, Dict, Optional, Union
+from typing import Any, Callable, Dict, Optional, Union
 
 
 class ANC350OutputParameter(Parameter):
@@ -116,9 +116,9 @@ class Anc350Axis(InstrumentChannel):
                            unit="nF")
 
         if self._parent._version_no >= 4:
-            voltage_get = self._get_voltage
+            voltage_get: Optional[Callable] = self._get_voltage
         else:
-            voltage_get = None
+            voltage_get: Optional[Callable] = None
 
         self.add_parameter("voltage",
                            label="Voltage",
@@ -186,6 +186,13 @@ class Anc350Axis(InstrumentChannel):
         self._parent._lib.start_continuous_move(self._parent._device_handle, self._axis, False,
                                                 False)
 
+    _direction_mapping: Dict[Any, bool] = {
+        "forward": False,
+        "backward": True,
+        +1: False,
+        -1: True
+    }
+
     @classmethod
     def _map_direction_parameter(cls, backward: Optional[Union[bool, str, int]]) -> bool:
         if backward is None:
@@ -193,20 +200,13 @@ class Anc350Axis(InstrumentChannel):
         if backward in [False, True]:
             return bool(backward)
 
-        if not hasattr(cls, "_direction_mapping"):
-            cls._direction_mapping = {
-                "forward": False,
-                "backward": True,
-                +1: False,
-                -1: True
-            }
         if backward in cls._direction_mapping:
             return cls._direction_mapping[backward]
 
         raise ValueError("Unexpected value for argument `backward`. Allowed values are: {}".format(
             [None, False, True, *cls._direction_mapping.keys()]))
 
-    _relative_mapping = {
+    _relative_mapping: Dict[Any, bool] = {
         "absolute": True,
         "relative": False
     }
@@ -234,11 +234,6 @@ class Anc350Axis(InstrumentChannel):
         if relative in [False, True]:
             return bool(relative)
 
-        if not hasattr(cls, "_relative_mapping"):
-            cls._relative_mapping = {
-                "absolute": False,
-                "relative": True
-            }
         if relative in cls._relative_mapping:
             return cls._relative_mapping[relative]
 
