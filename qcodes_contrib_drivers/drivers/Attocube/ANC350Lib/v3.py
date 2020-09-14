@@ -80,22 +80,25 @@ class ANC350v3Lib:
         Args:
             path_to_dll: Path to anc350v3.dll or None, if it's stored in the working directory
         """
-        if sys.platform != 'win32':
-            self._dll: Any = None
-            self._encoding: Any = None
-            raise OSError("\"anc350v3.dll\" is only compatible with Microsoft Windows")
+        if not path_to_dll:
+            path_to_dll = self.DEFAULT_PATH_TO_DLL
 
         try:
+            if sys.platform != 'win32':
+                self._dll: Any = None
+                self._encoding: Any = None
+                raise OSError("\"anc350v3.dll\" is only compatible with Microsoft Windows")
+
             self._path_to_dll = ctypes.util.find_library(path_to_dll or self.DEFAULT_PATH_TO_DLL)
             if self._path_to_dll is None:
-                raise FileNotFoundError("Could not find " + self.DEFAULT_PATH_TO_DLL)
+                raise FileNotFoundError("Could not find " + path_to_dll)
 
             self._dll = ctypes.windll.LoadLibrary(self._path_to_dll)
 
             # String encoding
             self._encoding = locale.getpreferredencoding(False)
         except Exception as exc:
-            raise ANC350v3LibError("Error loading " + self.DEFAULT_PATH_TO_DLL) from exc
+            raise ANC350v3LibError("Error loading " + path_to_dll) from exc
 
     def discover(self, search_usb: bool = True, search_tcp: bool = True) -> int:
         """Discover Devices
