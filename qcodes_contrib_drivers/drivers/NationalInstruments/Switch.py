@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 class NI_Switch(Instrument):
     r"""
     This is the QCoDeS driver for National Instruments RF switch devices based
-    on the NI-SWITCH driver, using the ``niswitch`` module. ``Parameter``s for
+    on the NI-SWITCH driver, using the ``niswitch`` module. ``Parameter`` s for
     specific instruments should be defined in subclasses.
 
     This main class mostly just maintains a reference to a

@@ -88,8 +88,6 @@ release = version
 # want to store them locally.
 suppress_warnings = ['image.nonlocal_uri']
 
-nitpicky = True
-
 pygments_style = 'sphinx'
 
 numfig = True
@@ -104,6 +102,8 @@ nbsphinx_execute = 'always'
 autodoc_mock_imports = ['spirack',
                         'pyspcm',
                         'keysightSD1',
+                        'nidaqmx',
+                        'niswitch',
                         'zhinst']
 
 # we allow most types from the typing modules to be used in
@@ -137,6 +137,8 @@ nitpick_ignore = [('py:class', 'Optional'),
                   # don't resolve.
                   ('py:class', 'json.encoder.JSONEncoder'),
                   ('py:class', 'SPI_rack'),
+                  ('py:class', 'spirack.SPI_rack'),
+                  ('py:class', 'ViAttr'),
                   ('py:class', 'unittest.case.TestCase'),
                   ('py:class', 'builtins.AssertionError'),
                   ('py:class', '_ctypes.Structure'),
