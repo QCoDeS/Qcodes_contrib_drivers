@@ -145,7 +145,7 @@ class NIDLLWrapper(object):
     def wrap_dll_function(self, name_in_library: str,
                           argtypes: List[NamedArgType],
                           restype: Any = ViStatus,
-                          ) -> Callable:
+                          ) -> Any:
         """
         Convenience method for wrapping a function in a NI C API.
 
@@ -169,15 +169,30 @@ class NIDLLWrapper(object):
 
         return func
 
+    def _check_error(self, error_code: int):
+        """
+        If the error code is nonzero, convert it to a string using
+        ``self.error_message`` and raise an exception or issue a warning as
+        appropriate. ``self.error_message`` must be initialized with
+        ``wrap_dll_function`` before this method can be used.
+        """
+        if error_code != 0:
+            msg = self.error_message(error_code=ViStatus(error_code))
+            if error_code < 0:
+                # negative error codes are errors
+                raise RuntimeError(f"({error_code}) {msg}")
+            else:
+                warnings.warn(f"({error_code}) {msg}", RuntimeWarning,
+                              stacklevel=3)
+
+
     def wrap_dll_function_checked(self, name_in_library: str,
                                   argtypes: List[NamedArgType]) -> Callable:
         """
         Same as ``wrap_dll_function``, but check the return value and convert
-        it to a Python exception or warning if it is nonzero. Calls
-        ``self.error_message``, which must be initialized with
-        ``wrap_dll_function`` before this method can be used. The arguments are
-        the same as for ``wrap_dll_function``, except that ``restype`` is
-        always ``ViStatus``.
+        it to a Python exception or warning if it is nonzero using
+        ``self._check_error``. The arguments are the same as for
+        ``wrap_dll_function``, except that ``restype`` is always ``ViStatus``.
         """
 
         func = self.wrap_dll_function(
@@ -186,23 +201,10 @@ class NIDLLWrapper(object):
                 restype=ViStatus,
                 )
 
-        def func_checked(*args, **kwargs):
-            error_code = func(*args, **kwargs)
-            if error_code != 0:
-                msg = self.error_message(error_code=error_code)
-                if error_code < 0:
-                    # negative error codes are errors
-                    raise RuntimeError(f"({error_code}) {msg}")
-                else:
-                    warnings.warn(f"({error_code}) {msg}", RuntimeWarning,
-                                  stacklevel=3)
+        # see https://docs.python.org/3/library/ctypes.html#return-types
+        func.restype = self._check_error
 
-        # annotate function so that it is compatible with ctypes func pointer
-        func_checked.restype = func.restype
-        func_checked.argtypes = func.argtypes
-        func_checked.argnames = func.argnames
-
-        return func_checked
+        return func
 
     def init(self, resource: str, id_query: bool = True,
              reset_device: bool = False) -> ViSession:
@@ -280,7 +282,7 @@ class NIDLLWrapper(object):
             func(session, b"", attr.value, set_value)
 
     def error_message(self, session: Optional[ViSession] = None,
-                      error_code: ViStatus = 0) -> str:
+                      error_code: ViStatus = ViStatus(0)) -> str:
         """
         Convenience wrapper around libName_error_message (which is wrapped as
         self._error_message).
