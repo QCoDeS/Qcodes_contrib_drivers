@@ -15,13 +15,10 @@ class Triton(Instrument):
     from a Oxford Triton fridge.
     """
 
-    def __init__(self, name                  : str,
-                       file_path             : str,
-                       converter_path        : str   = 'VCL_2_ASCII_CONVERTER.exe',
-                       threshold_temperature : float = 4,
-                       conversion_timer      : float = 30,
-                       magnet                : bool  = False,
-                       **kwargs) -> None:
+    def __init__(self, name: str, file_path: str,
+                 converter_path: str = 'VCL_2_ASCII_CONVERTER.exe',
+                 threshold_temperature: float = 4, conversion_timer: float = 30,
+                 magnet: bool = False, **kwargs) -> None:
         """
         QCoDeS driver for Oxford Triton fridges.
         ! This driver get parameters from the fridge log files.
@@ -46,81 +43,70 @@ class Triton(Instrument):
                 Default True.
         """
 
-        super().__init__(name = name, **kwargs)
+        super().__init__(name=name, **kwargs)
         
-        self.file_path             = os.path.abspath(file_path)
+        self.file_path = os.path.abspath(file_path)
         self.threshold_temperature = threshold_temperature
-        self.converter_path        = converter_path
-        self.conversion_timer      = conversion_timer
-        self._timer                = time.time()
+        self.converter_path = converter_path
+        self.conversion_timer = conversion_timer
+        self._timer = time.time()
 
+        self.add_parameter(name='pressure_condensation_line',
+                           unit='Bar',
+                           get_parser=float,
+                           get_cmd=lambda: self.get_pressure('condensation'),
+                           docstring='Pressure of the condensation line',)
 
-        self.add_parameter(name       = 'pressure_condensation_line',
-                           unit       = 'Bar',
-                           get_parser = float,
-                           get_cmd    = lambda: self.get_pressure('condensation'),
-                           docstring  = 'Pressure of the condensation line',
-                          )
+        self.add_parameter(name='pressure_mixture_tank',
+                           unit='Bar',
+                           get_parser=float,
+                           get_cmd=lambda: self.get_pressure('tank'),
+                           docstring='Pressure of the mixture tank',)
 
-        self.add_parameter(name       = 'pressure_mixture_tank',
-                           unit       = 'Bar',
-                           get_parser = float,
-                           get_cmd    = lambda: self.get_pressure('tank'),
-                           docstring  = 'Pressure of the mixture tank',
-                          )
+        self.add_parameter(name='pressure_forepump_back',
+                           unit='Bar',
+                           get_parser=float,
+                           get_cmd=lambda: self.get_pressure('forepump'),
+                           docstring='Pressure of the forepump back',)
 
-        self.add_parameter(name       = 'pressure_forepump_back',
-                           unit       = 'Bar',
-                           get_parser = float,
-                           get_cmd    = lambda: self.get_pressure('forepump'),
-                           docstring  = 'Pressure of the forepump back',
-                          )
+        self.add_parameter(name='temperature_50k_plate',
+                           unit='K',
+                           get_parser=float,
+                           get_cmd=lambda: self.get_temperature('50k'),
+                           docstring='Temperature of the 50K plate',)
 
-        self.add_parameter(name       = 'temperature_50k_plate',
-                           unit       = 'K',
-                           get_parser = float,
-                           get_cmd    = lambda: self.get_temperature('50k'),
-                           docstring  = 'Temperature of the 50K plate',
-                          )
-
-        self.add_parameter(name       = 'temperature_4k_plate',
-                           unit       = 'K',
-                           get_parser = float,
-                           get_cmd    = lambda: self.get_temperature('4k'),
-                           docstring  = 'Temperature of the 4K plate',
-                          )
+        self.add_parameter(name='temperature_4k_plate',
+                           unit='K',
+                           get_parser=float,
+                           get_cmd=lambda: self.get_temperature('4k'),
+                           docstring='Temperature of the 4K plate',)
 
         if magnet:
-            self.add_parameter(name       = 'temperature_magnet',
-                               unit       = 'K',
-                               get_parser = float,
-                               get_cmd    = lambda: self.get_temperature('magnet'),
-                               docstring  = 'Temperature of the magnet',
-                               )
+            self.add_parameter(name='temperature_magnet',
+                               unit='K',
+                               get_parser=float,
+                               get_cmd=lambda: self.get_temperature('magnet'),
+                               docstring='Temperature of the magnet',)
 
-        self.add_parameter(name       = 'temperature_still',
-                           unit       = 'K',
-                           get_parser = float,
-                           get_cmd    = lambda: self.get_temperature('still'),
-                           docstring  = 'Temperature of the still',
-                          )
+        self.add_parameter(name='temperature_still',
+                           unit='K',
+                           get_parser=float,
+                           get_cmd=lambda: self.get_temperature('still'),
+                           docstring='Temperature of the still',)
 
-        self.add_parameter(name       = 'temperature_100mk',
-                           unit       = 'K',
-                           get_parser = float,
-                           get_cmd    = lambda: self.get_temperature('100mk'),
-                           docstring  = 'Temperature of the 100mk plate',
-                          )
+        self.add_parameter(name='temperature_100mk',
+                           unit='K',
+                           get_parser=float,
+                           get_cmd=lambda: self.get_temperature('100mk'),
+                           docstring='Temperature of the 100mk plate',)
 
-        self.add_parameter(name       = 'temperature_mixing_chamber',
-                           unit       = 'K',
-                           get_parser = float,
-                           get_cmd    = lambda: self.get_temperature('mc'),
-                           docstring  = 'Temperature of the mixing chamber',
-                          )
+        self.add_parameter(name='temperature_mixing_chamber',
+                           unit='K',
+                           get_parser=float,
+                           get_cmd=lambda: self.get_temperature('mc'),
+                           docstring='Temperature of the mixing chamber',)
         
         self.connect_message()
-
 
     def vcl2csv(self) -> str:
         """
@@ -143,12 +129,13 @@ class Triton(Instrument):
             
             # Run a bash command to convert vcl into csv
             cp = subprocess.run([self.converter_path, self.file_path],
-                                stdout             = subprocess.PIPE,
-                                universal_newlines = True,
-                                shell              = True)
+                                stdout=subprocess.PIPE,
+                                universal_newlines=True,
+                                shell=True)
     
             return cp.stdout
 
+        assert False
 
     def get_temperature(self, channel: str) -> float:
         """
@@ -166,28 +153,27 @@ class Triton(Instrument):
         
         df = pd.read_csv(self.file_path[:-3]+'txt', delimiter="\t")
 
-        if channel=='50k':
+        if channel == '50k':
             return df.iloc[-1]['PT1 Plate T(K)']
-        elif channel=='4k':
+        elif channel == '4k':
             return df.iloc[-1]['PT2 Plate T(K)']
-        elif channel=='magnet':
+        elif channel == 'magnet':
             return df.iloc[-1]['Magnet T(K)']
-        elif channel=='still':
+        elif channel == 'still':
             return df.iloc[-1]['Still T(K)']
-        elif channel=='100mk':
+        elif channel == '100mk':
             return df.iloc[-1]['100mK Plate T(K)']
-        elif channel=='mc':
+        elif channel == 'mc':
             # There are two thermometers for the mixing chamber.
             # Depending of the threshold temperature we return one or the other
             temp = df.iloc[-1]['MC cernox T(K)']
             
-            if temp>self.threshold_temperature:
+            if temp > self.threshold_temperature:
                 return temp
             else:
                 return df.iloc[-1]['MC RuO2 T(K)']
         else:
             raise ValueError('Unknown channel: '+channel)
-
 
     def get_pressure(self, channel: str) -> float:
         """
@@ -205,12 +191,11 @@ class Triton(Instrument):
         
         df = pd.read_csv(self.file_path[:-3]+'txt', delimiter="\t")
         
-        if channel=='condensation':
+        if channel == 'condensation':
             return df.iloc[-1]['P2 Condense (Bar)']
-        elif channel=='tank':
+        elif channel == 'tank':
             return df.iloc[-1]['P1 Tank (Bar)']
-        elif channel=='forepump':
+        elif channel == 'forepump':
             return df.iloc[-1]['P5 ForepumpBack (Bar)']
         else:
             raise ValueError('Unknown channel: '+channel)
-
