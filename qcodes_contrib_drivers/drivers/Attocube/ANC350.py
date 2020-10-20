@@ -60,13 +60,14 @@ class Anc350Axis(InstrumentChannel):
         self.add_parameter("position",
                            label="Position",
                            get_cmd=self._get_position,
-                           set_cmd=False,
+                           vals=Numbers(),
                            unit="mm or m°")
 
         self.add_parameter("frequency",
                            label="Frequency",
                            get_cmd=self._get_frequency,
                            set_cmd=self._set_frequency,
+                           vals=Numbers(),
                            unit="Hz")
 
         self.add_parameter("amplitude",
@@ -79,18 +80,20 @@ class Anc350Axis(InstrumentChannel):
         self.add_parameter("status",
                            label="Status",
                            get_cmd=self._get_status,
-                           set_cmd=False)
+                           vals=Numbers())
 
         self.add_parameter("target_position",
                            label="Target Position",
                            get_cmd=None,
                            set_cmd=self._set_target_position,
+                           vals=Numbers(),
                            unit="mm or m°")
 
         self.add_parameter("target_range",
                            label="Target Range",
                            get_cmd=None,
                            set_cmd=self._set_target_range,
+                           vals=Numbers(),
                            unit="mm or m°")
 
         self.add_parameter("actuator",
@@ -102,17 +105,17 @@ class Anc350Axis(InstrumentChannel):
         self.add_parameter("actuator_type",
                            label="Actuator Type",
                            get_cmd=self._get_actuator_type,
-                           set_cmd=False)
+                           vals=Numbers())
 
         self.add_parameter("actuator_name",
                            label="Actuator Name",
                            get_cmd=self._get_actuator_name,
-                           set_cmd=False)
+                           vals=Numbers())
 
         self.add_parameter("capacitance",
                            label="Capacitance",
                            get_cmd=self._get_capacitance,
-                           set_cmd=False,
+                           vals=Numbers(),
                            unit="nF")
 
         if self._parent._version_no >= 4:
@@ -432,7 +435,6 @@ class Anc350Axis(InstrumentChannel):
             auto_off: True, if the voltage output is to be deactivated automatically when end of
                       travel is detected (default: False)
         """
-        print("Called: set_output(enable={}, auto_off={})".format(enable, auto_off))
         if auto_off is None:
             auto_off = False
         self._parent._lib.set_axis_output(self._parent._device_handle, self._axis, enable, auto_off)
@@ -443,7 +445,6 @@ class Anc350Axis(InstrumentChannel):
         Returns:
             True, if the axis voltage output is enabled.
         """
-        print("Called: get_output")
         return self._get_status()["enabled"]
 
     # Version 4
