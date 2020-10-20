@@ -5,22 +5,6 @@ from qcodes_contrib_drivers.drivers.Attocube.ANC350Lib import ANC350LibActuatorT
 from typing import Any, Callable, Dict, Optional, Union
 
 
-class ANC350OutputParameter(Parameter):
-    def __init__(self, name: str, *,
-                 get_cmd: Callable[[], bool], set_cmd: Callable[[bool, Optional[bool]], None],
-                 **kwargs):
-        super().__init__(name, get_cmd=False, set_cmd=False, **kwargs)
-
-        self._get_cmd = get_cmd
-        self._set_cmd = set_cmd
-
-    def set_raw(self, value: bool, *, auto_off: Optional[bool] = None) -> None:
-        self._set_cmd(value, auto_off)
-
-    def get_raw(self) -> bool:
-        return self._get_cmd()
-
-
 class Anc350Axis(InstrumentChannel):
     """
     Representation of an axis of the ANC350
@@ -60,7 +44,6 @@ class Anc350Axis(InstrumentChannel):
         self.add_parameter("position",
                            label="Position",
                            get_cmd=self._get_position,
-                           vals=Numbers(),
                            unit="mm or m°")
 
         self.add_parameter("frequency",
@@ -79,8 +62,7 @@ class Anc350Axis(InstrumentChannel):
 
         self.add_parameter("status",
                            label="Status",
-                           get_cmd=self._get_status,
-                           vals=Numbers())
+                           get_cmd=self._get_status)
 
         self.add_parameter("target_position",
                            label="Target Position",
@@ -104,18 +86,15 @@ class Anc350Axis(InstrumentChannel):
 
         self.add_parameter("actuator_type",
                            label="Actuator Type",
-                           get_cmd=self._get_actuator_type,
-                           vals=Numbers())
+                           get_cmd=self._get_actuator_type)
 
         self.add_parameter("actuator_name",
                            label="Actuator Name",
-                           get_cmd=self._get_actuator_name,
-                           vals=Numbers())
+                           get_cmd=self._get_actuator_name)
 
         self.add_parameter("capacitance",
                            label="Capacitance",
                            get_cmd=self._get_capacitance,
-                           vals=Numbers(),
                            unit="nF")
 
         if self._parent._version_no >= 4:
@@ -132,11 +111,11 @@ class Anc350Axis(InstrumentChannel):
 
         self.add_parameter("output",
                            label="Output",
-                           parameter_class=ANC350OutputParameter,
-                           val_mapping={True: True,
-                                        False: False,
-                                        "on": True,
-                                        "off": False},
+                           val_mapping={False: 0,
+                                        True: 1,
+                                        "off": 0,
+                                        "on": 1,
+                                        "auto": 2},
                            get_cmd=self._get_output,
                            set_cmd=self._set_output)
 
@@ -263,7 +242,7 @@ class Anc350Axis(InstrumentChannel):
             position: The position the axis moves to
         """
         self._set_target_position(position)
-        self._set_output(True, auto_off=True)
+        self._set_output(2)  # 2 = "auto"
 
     def _get_frequency(self) -> float:
         """
@@ -426,26 +405,36 @@ class Anc350Axis(InstrumentChannel):
         # 1e9 as factor for the conversion from F to nF
         return self._parent._lib.measure_capacitance(self._parent._device_handle, self._axis) * 1e9
 
-    def _set_output(self, enable: bool, auto_off: Optional[bool] = None) -> None:
+    def _set_output(self, enable: int) -> None:
         """
         Enables or disables the voltage output of this axis.
 
         Args:
-            enable: True, to enable the voltage output. False, to disable it.
-            auto_off: True, if the voltage output is to be deactivated automatically when end of
-                      travel is detected (default: False)
+            enable: Enable/disable voltage output:
+                    - 0: disable
+                    - 1: enable
+                    - 2: enable until end of travel is detected
         """
-        if auto_off is None:
-            auto_off = False
+        auto_off = False
+
+        if enable == 0:
+            enable = False
+        elif enable == 1 or enable == 2:
+            if enable == 2:  # enable, but automatically disable when end of travel is detected
+                auto_off = True
+            enable = True
+        else:
+            raise ValueError("enable")
+
         self._parent._lib.set_axis_output(self._parent._device_handle, self._axis, enable, auto_off)
 
-    def _get_output(self) -> bool:
+    def _get_output(self) -> int:
         """Reads the voltage output status.
 
         Returns:
-            True, if the axis voltage output is enabled.
+            1, if the axis voltage output is enabled. 0, if it is disabled.
         """
-        return self._get_status()["enabled"]
+        return 1 if self._get_status()["enabled"] else 0
 
     # Version 4
     # ---------
