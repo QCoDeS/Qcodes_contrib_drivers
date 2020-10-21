@@ -26,6 +26,9 @@ class Triton(Instrument):
         Since Oxford fridges use binary format for their log file "vcl", this
         driver convert vcl log files into csv files before returning fridge
         parameters.
+        The conversion is done by using a binary file named
+        "VCL_2_ASCII_CONVERTER" that is provided by Oxford Instrument along
+        with other binaries to handle the fridge log files.
 
         Args:
             name: Name of the instrument.
@@ -112,7 +115,7 @@ class Triton(Instrument):
         """
         Convert vcl file into csv file using proprietary binary exe.
         The executable is called through the python subprocess library.
-        To avoid to frequent file conversion, a timer of self._conversion_time
+        To avoid to frequent file conversion, a timer of self.conversion_timer
         second is used.
 
         Returns:
@@ -120,7 +123,7 @@ class Triton(Instrument):
         """
         
         conversion = False
-        if self._timer+self.conversion_timer <= time.time():
+        if self._timer+self.rr <= time.time():
             conversion = True
         elif not os.path.isfile(self.file_path[:-3]+'txt'):
             conversion = True
