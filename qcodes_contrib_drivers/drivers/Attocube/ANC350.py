@@ -1,8 +1,8 @@
-﻿from qcodes import Instrument, Parameter
+﻿from qcodes import Instrument
 from qcodes.instrument.channel import InstrumentChannel, ChannelList
-from qcodes.utils.validators import Numbers
 from qcodes_contrib_drivers.drivers.Attocube.ANC350Lib import ANC350LibActuatorType, ANC350v3Lib, ANC350v4Lib
 from typing import Any, Callable, Dict, Optional, Union
+import qcodes.utils.validators as vals
 
 
 class Anc350Axis(InstrumentChannel):
@@ -50,14 +50,14 @@ class Anc350Axis(InstrumentChannel):
                            label="Frequency",
                            get_cmd=self._get_frequency,
                            set_cmd=self._set_frequency,
-                           vals=Numbers(),
+                           vals=vals.Ints(1, 5000),
                            unit="Hz")
 
         self.add_parameter("amplitude",
                            label="Amplitude",
                            get_cmd=self._get_amplitude,
                            set_cmd=self._set_amplitude,
-                           vals=Numbers(0, 70),
+                           vals=vals.Numbers(0, 70),
                            unit="V")
 
         self.add_parameter("status",
@@ -68,21 +68,21 @@ class Anc350Axis(InstrumentChannel):
                            label="Target Position",
                            get_cmd=None,
                            set_cmd=self._set_target_position,
-                           vals=Numbers(),
+                           vals=vals.Numbers(),
                            unit="mm or m°")
 
         self.add_parameter("target_range",
                            label="Target Range",
                            get_cmd=None,
                            set_cmd=self._set_target_range,
-                           vals=Numbers(),
+                           vals=vals.Numbers(),
                            unit="mm or m°")
 
         self.add_parameter("actuator",
                            label="Actuator",
                            get_cmd=None,
                            set_cmd=self._set_actuator,
-                           vals=Numbers(0, 255))
+                           vals=vals.Numbers(0, 255))
 
         self.add_parameter("actuator_type",
                            label="Actuator Type",
@@ -106,7 +106,7 @@ class Anc350Axis(InstrumentChannel):
                            label="Voltage",
                            get_cmd=voltage_get,
                            set_cmd=self._set_voltage,
-                           vals=Numbers(0, 70),
+                           vals=vals.Numbers(0, 70),
                            unit="V")
 
         self.add_parameter("output",
