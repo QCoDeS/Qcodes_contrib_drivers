@@ -82,7 +82,7 @@ class Anc350Axis(InstrumentChannel):
                            label="Actuator",
                            get_cmd=None,
                            set_cmd=self._set_actuator,
-                           vals=vals.Numbers(0, 255))
+                           vals=vals.Ints(0, 255))
 
         self.add_parameter("actuator_type",
                            label="Actuator Type",
@@ -107,7 +107,7 @@ class Anc350Axis(InstrumentChannel):
                            get_cmd=voltage_get,
                            set_cmd=self._set_voltage,
                            vals=vals.Numbers(0, 70),
-                           unit="V")
+                           unit="V")  # Internal resolution: mV (0.001)
 
         self.add_parameter("output",
                            label="Output",
