@@ -359,7 +359,8 @@ class ANC350v3Lib:
         Args:
             dev_handle: Handle of the device to access
             axis_no: Axis number (0..2)
-            frequency: Frequency in Hertz [Hz], internal resolution is 1 Hz
+            frequency: Frequency in Hertz [Hz], internal resolution is 1 Hz (although DLL accepts
+                       double-values)
 
         Raises:
             ANC350LibError is raised, if the function call fails
