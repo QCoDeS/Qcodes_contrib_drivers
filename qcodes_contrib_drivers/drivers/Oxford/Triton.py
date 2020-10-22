@@ -123,7 +123,7 @@ class Triton(Instrument):
         """
         
         conversion = False
-        if self._timer+self.rr <= time.time():
+        if self._timer+self.conversion_timer <= time.time():
             conversion = True
         elif not os.path.isfile(self.file_path[:-3]+'txt'):
             conversion = True
@@ -137,8 +137,6 @@ class Triton(Instrument):
                                 shell=True)
     
             return cp.stdout
-
-        assert False
 
     def get_temperature(self, channel: str) -> float:
         """
