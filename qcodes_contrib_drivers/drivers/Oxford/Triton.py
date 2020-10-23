@@ -1,6 +1,7 @@
 # This Python file uses the following encoding: utf-8
 # Etienne Dumur <etienne.dumur@gmail.com>, october 2020
 import os
+from typing import Optional
 import pandas as pd
 import subprocess
 import time
@@ -15,8 +16,7 @@ class Triton(Instrument):
     from a Oxford Triton fridge.
     """
 
-    def __init__(self, name: str, file_path: str,
-                 converter_path: str = 'VCL_2_ASCII_CONVERTER.exe',
+    def __init__(self, name: str, file_path: str, converter_path: str,
                  threshold_temperature: float = 4, conversion_timer: float = 30,
                  magnet: bool = False, **kwargs) -> None:
         """
@@ -27,14 +27,16 @@ class Triton(Instrument):
         driver convert vcl log files into csv files before returning fridge
         parameters.
         The conversion is done by using a binary file named
-        "VCL_2_ASCII_CONVERTER" that is provided by Oxford Instrument along
+        "VCL_2_ASCII_CONVERTER.exe" that is provided by Oxford Instrument along
         with other binaries to handle the fridge log files.
+        You must provide a valid path toward the VCL converter and consequently
+        we advice users to make sure the converter is always reachable by the
+        driver.
 
         Args:
             name: Name of the instrument.
             file_path: Path of the vcl log file.
-            converter_path: Path of the vcl converter.
-                Defaults to 'VCL_2_ASCII_CONVERTER.exe'.
+            converter_path: Path of the vcl converter file.
             threshold_temperature: Threshold temperature of
                 the mixing chamber thermometers.
                 Defaults to 4K.
@@ -46,11 +48,17 @@ class Triton(Instrument):
                 Default True.
         """
 
+        if not os.path.isfile(converter_path):
+            raise ValueError('converter_path is not a valid file path.')
+
+        if not os.path.isfile(file_path):
+            raise ValueError('file_path is not a valid file path.')
+        
         super().__init__(name=name, **kwargs)
         
         self.file_path = os.path.abspath(file_path)
         self.threshold_temperature = threshold_temperature
-        self.converter_path = converter_path
+        self.converter_path = os.path.abspath(converter_path)
         self.conversion_timer = conversion_timer
         self._timer = time.time()
 
@@ -111,7 +119,7 @@ class Triton(Instrument):
         
         self.connect_message()
 
-    def vcl2csv(self) -> str:
+    def vcl2csv(self) -> Optional[str]:
         """
         Convert vcl file into csv file using proprietary binary exe.
         The executable is called through the python subprocess library.
@@ -127,6 +135,7 @@ class Triton(Instrument):
             conversion = True
         elif not os.path.isfile(self.file_path[:-3]+'txt'):
             conversion = True
+
         if conversion:
             self._timer = time.time()
             
@@ -137,6 +146,8 @@ class Triton(Instrument):
                                 shell=True)
     
             return cp.stdout
+        else:
+            return None
 
     def get_temperature(self, channel: str) -> float:
         """
