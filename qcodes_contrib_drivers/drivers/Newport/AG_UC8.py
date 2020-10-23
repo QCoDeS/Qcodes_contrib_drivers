@@ -6,6 +6,8 @@ import logging
 import time
 from typing import Optional, Dict, Callable
 
+from pyvisa.resources.serial import SerialInstrument
+
 from qcodes import VisaInstrument, InstrumentChannel, ChannelList
 from qcodes.utils.validators import Ints
 
@@ -266,6 +268,7 @@ class Newport_AG_UC8(VisaInstrument):
                          address,
                          timeout=self.default_timeout,
                          terminator="\r\n")
+        assert isinstance(self.visa_handle, SerialInstrument)
         self.visa_handle.baud_rate = 912600
 
         self._current_channel: Optional[int] = None
