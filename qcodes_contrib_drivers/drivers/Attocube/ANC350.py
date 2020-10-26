@@ -149,7 +149,7 @@ class Anc350Axis(InstrumentChannel):
         for i in range(abs(steps)):
             self.single_step(backward)
 
-    def start_continuous_move(self, backward: Optional[Union[bool, str, int]] = None):
+    def start_continuous_move(self, backward: Optional[Union[bool, str, int]] = None) -> None:
         """
         Starts continuous motion in forward or backward direction.
         Other kinds of motion are stopped.
@@ -163,7 +163,7 @@ class Anc350Axis(InstrumentChannel):
         self._parent._lib.start_continuous_move(self._parent._device_handle, self._axis, True,
                                                 backward)
 
-    def stop_continuous_move(self):
+    def stop_continuous_move(self) -> None:
         """Stops continuous motion in forward or backward direction."""
         self._parent._lib.start_continuous_move(self._parent._device_handle, self._axis, False,
                                                 False)
@@ -185,8 +185,8 @@ class Anc350Axis(InstrumentChannel):
         if backward in cls._direction_mapping:
             return cls._direction_mapping[backward]
 
-        raise ValueError("Unexpected value for argument `backward`. Allowed values are: {}".format(
-            [None, False, True, *cls._direction_mapping.keys()]))
+        raise ValueError(f"Unexpected value for argument `backward`. Allowed values are: "
+                         f"{[None, False, True, *cls._direction_mapping.keys()]}")
 
     _relative_mapping: Dict[Any, bool] = {
         "absolute": True,
