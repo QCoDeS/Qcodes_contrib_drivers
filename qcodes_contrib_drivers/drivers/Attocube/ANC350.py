@@ -352,7 +352,8 @@ class Anc350Axis(InstrumentChannel):
 
         self._update_position_unit(old_actuator_type)
 
-    def _update_position_unit(self, old_actuator_type: Optional[ANC350LibActuatorType] = None):
+    def _update_position_unit(self, old_actuator_type: Optional[ANC350LibActuatorType] = None) \
+            -> None:
         """Checks the current actuator type and sets the corresponding unit for position-parameters.
 
         Args:
