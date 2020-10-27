@@ -1,8 +1,10 @@
-﻿from qcodes import Instrument
-from qcodes.instrument.channel import InstrumentChannel, ChannelList
-from qcodes_contrib_drivers.drivers.Attocube.ANC350Lib import ANC350LibActuatorType, ANC350v3Lib, ANC350v4Lib
-from typing import Any, Callable, Dict, Optional, Union
+﻿from typing import Any, Callable, Dict, Optional, Union
+
 import qcodes.utils.validators as vals
+from qcodes.instrument.base import Instrument
+from qcodes.instrument.channel import InstrumentChannel, ChannelList
+
+from .ANC350Lib import ANC350LibActuatorType, ANC350v3Lib, ANC350v4Lib
 
 
 class Anc350Axis(InstrumentChannel):
@@ -457,7 +459,7 @@ class ANC350(Instrument):
         name: the name of the instrument itself
         library: library that fits to the version of the device and provides the appropriate dll
                  wrappers
-        inst_num: Sequence number of the device to connect to (default: 0, the first device found)
+        inst_no: Sequence number of the device to connect to (default: 0, the first device found)
     """
 
     def __init__(self, name: str, library: ANC350v3Lib, inst_no: int = 0):
