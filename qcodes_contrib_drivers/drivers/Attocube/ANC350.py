@@ -220,9 +220,10 @@ class Anc350Axis(InstrumentChannel):
 
         if relative in cls._relative_mapping:
             return cls._relative_mapping[relative]
-
-        raise ValueError("Unexpected value for argument `relative`. Allowed values are: {}".format(
-            [None, False, True, *cls._relative_mapping.keys()]))
+        
+        allowed_values = ", ".join(cls._relative_mapping.keys())
+        raise ValueError(f"Unexpected value for argument `relative`. Allowed values are: None, "
+                         f"False, True, {allowed_values}")
 
     def _get_position(self) -> float:
         """
@@ -479,7 +480,7 @@ class ANC350(Instrument):
 
         axischannels = ChannelList(self, "Anc350Axis", Anc350Axis)
         for nr, axis in enumerate(['x', 'y', 'z']):
-            axis_name = "{}_axis".format(axis)
+            axis_name = f"{axis}_axis"
             axischannel = Anc350Axis(parent=self, name=axis_name, axis=nr)
             axischannels.append(axischannel)
             self.add_submodule(axis_name, axischannel)
