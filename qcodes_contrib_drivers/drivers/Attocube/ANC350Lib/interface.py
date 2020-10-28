@@ -72,7 +72,7 @@ class ANC350LibError(Exception, ABC):
         """
         message_out = "Error in ANC350Lib"
         if code is not None:
-            message_out += " ({}): ".format(code)
+            message_out += f" ({code}): "
             message_out += cls._get_message_for_code(code) or "Unknown error"
         if message:
             message_out += ": " + message
