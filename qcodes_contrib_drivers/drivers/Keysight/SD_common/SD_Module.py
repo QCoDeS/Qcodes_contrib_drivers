@@ -1,4 +1,5 @@
 import warnings
+import os
 
 from qcodes.instrument.base import Instrument
 
@@ -7,6 +8,9 @@ try:
 except ImportError:
     raise ImportError('to use the Keysight SD drivers install the keysightSD1 module '
                       '(http://www.keysight.com/main/software.jspx?ckey=2784055)')
+
+# check whether SD1 version 2.x or 3.x
+is_sd1_3x = 'SD_SandBoxRegister' in dir(keysightSD1)
 
 
 def result_parser(value, name='result', verbose=False):
@@ -241,6 +245,12 @@ class SD_Module(Instrument):
         value_name = 'set fpga PCport {} to data:{}, address:{}, address_mode:{}, access_mode:{}'\
             .format(port, data, address, address_mode, access_mode)
         return result_parser(result, value_name, verbose)
+
+    def load_fpga_image(self, filename):
+        if not os.path.exists(filename):
+            raise Exception(f'FPGA bitstream {filename} not found')
+        return result_parser(self.module.FPGAload(filename), f'loading FPGA bitstream: {filename}')
+
 
     #
     # HVI related functions

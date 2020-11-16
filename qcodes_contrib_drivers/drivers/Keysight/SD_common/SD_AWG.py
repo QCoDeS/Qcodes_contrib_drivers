@@ -3,7 +3,7 @@ from qcodes import validators as validator
 from functools import partial
 from threading import RLock
 
-from .SD_Module import SD_Module, result_parser, keysightSD1
+from .SD_Module import SD_Module, result_parser, keysightSD1, is_sd1_3x
 
 
 class SD_AWG(SD_Module):
@@ -813,3 +813,55 @@ class SD_AWG(SD_Module):
         value = waveform.getType()
         value_name = 'waveform_type'
         return result_parser(value, value_name, verbose)
+
+
+    def load_fpga_image(self, filename):
+        with self._lock:
+            super().load_fpga_image(filename)
+
+
+    def convert_sample_rate_to_prescaler(self, sample_rate):
+        """
+        Args:
+            sample_rate (float) : sample rate
+        Returns:
+            prescaler (int) : prescaler set to the awg.
+        """
+        if is_sd1_3x:
+            # 0 = 1000e6, 1 = 200e6, 2 = 100e6, 3=66.7e6
+           prescaler = int(200e6/sample_rate)
+        else:
+            # 0 = 1000e6, 1 = 200e6, 2 = 50e6, 3=33.3e6
+            if sample_rate > 200e6:
+                prescaler = 0
+            elif sample_rate > 50e6:
+                prescaler = 1
+            else:
+                prescaler = int(100e6/sample_rate)
+
+        return prescaler
+
+
+    def convert_prescaler_to_sample_rate(self, prescaler):
+        """
+        Args:
+            prescaler (int) : prescaler set to the awg.
+
+        Returns:
+            sample_rate (float) : effective sample rate the AWG will be running
+        """
+        if is_sd1_3x:
+            # 0 = 1000e6, 1 = 200e6, 2 = 100e6, 3=66.7e6
+            if prescaler == 0:
+                return 1e9
+            else:
+                return 200e6/prescaler
+        else:
+            # 0 = 1000e6, 1 = 200e6, 2 = 50e6, 3=33.3e6
+            if prescaler == 0:
+                return 1e9
+            if prescaler == 1:
+                return 200e6
+            else:
+                return 100e6/prescaler
+
