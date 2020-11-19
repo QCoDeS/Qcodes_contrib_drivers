@@ -817,7 +817,9 @@ class SD_AWG(SD_Module):
 
     def load_fpga_image(self, filename):
         with self._lock:
+            logging.info(f'loading fpga image "{filename}" ...')
             super().load_fpga_image(filename)
+            logging.info(f'loaded fpga image.')
 
 
     def convert_sample_rate_to_prescaler(self, sample_rate):
