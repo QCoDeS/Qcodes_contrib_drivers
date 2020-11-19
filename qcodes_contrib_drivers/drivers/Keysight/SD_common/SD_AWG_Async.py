@@ -497,4 +497,8 @@ class SD_AWG_Async(SD_AWG):
             # signal upload done, either successful or with error
             wave_ref._uploaded.set()
 
+            # release memory
+            wave = None
+            entry = None
+
         self.log.info('Uploader terminated')
