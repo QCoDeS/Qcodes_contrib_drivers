@@ -1,6 +1,5 @@
 from typing import List, Dict, Union, Optional, Sequence, Any, Tuple
 import numpy as np
-import visa
 import time
 
 from qcodes.instrument.visa import VisaInstrument

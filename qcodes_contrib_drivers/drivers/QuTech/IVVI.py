@@ -1,7 +1,7 @@
 import time
 import logging
 import numpy as np
-import visa  # used for the parity constant
+import pyvisa  # used for the parity constant
 import traceback
 import threading
 import math
@@ -74,7 +74,7 @@ class IVVI(VisaInstrument):
 
         # values based on descriptor
         self.visa_handle.baud_rate = 115200
-        self.visa_handle.parity = visa.constants.Parity(1)  # odd parity
+        self.visa_handle.parity = pyvisa.constants.Parity(1)  # odd parity
         self.visa_handle.write_termination = ''
         self.visa_handle.read_termination = ''
 
@@ -152,10 +152,10 @@ class IVVI(VisaInstrument):
         # See http://www.ni.com/tutorial/4256/en/#toc2 on Termination Character
         # Enabled
         v = self.visa_handle
-        v.set_visa_attribute(visa.constants.VI_ATTR_TERMCHAR_EN, 0)
-        v.set_visa_attribute(visa.constants.VI_ATTR_ASRL_END_IN, 0)
-        v.set_visa_attribute(visa.constants.VI_ATTR_ASRL_END_OUT, 0)
-        v.set_visa_attribute(visa.constants.VI_ATTR_SEND_END_EN, 0)
+        v.set_visa_attribute(pyvisa.constants.VI_ATTR_TERMCHAR_EN, 0)
+        v.set_visa_attribute(pyvisa.constants.VI_ATTR_ASRL_END_IN, 0)
+        v.set_visa_attribute(pyvisa.constants.VI_ATTR_ASRL_END_OUT, 0)
+        v.set_visa_attribute(pyvisa.constants.VI_ATTR_SEND_END_EN, 0)
 
         # basic test to confirm we are properly connected
         try:
@@ -459,7 +459,7 @@ class IVVI(VisaInstrument):
 
     def _read_raw_bytes_direct(self, size):
         """ Read raw data using the visa lib """
-        with(self.visa_handle.ignore_warning(visa.constants.VI_SUCCESS_MAX_CNT)):
+        with(self.visa_handle.ignore_warning(pyvisa.constants.VI_SUCCESS_MAX_CNT)):
             data, statuscode = self.visa_handle.visalib.read(
                 self.visa_handle.session, size)
 
@@ -483,7 +483,7 @@ class IVVI(VisaInstrument):
         """
         ret = []
         instr = self.visa_handle
-        with self.visa_handle.ignore_warning(visa.constants.VI_SUCCESS_MAX_CNT):
+        with self.visa_handle.ignore_warning(pyvisa.constants.VI_SUCCESS_MAX_CNT):
             nread = 0
             while nread < size:
                 nn = min(maxread, size - nread)
