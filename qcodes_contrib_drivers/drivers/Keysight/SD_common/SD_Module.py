@@ -249,7 +249,11 @@ class SD_Module(Instrument):
     def load_fpga_image(self, filename):
         if not os.path.exists(filename):
             raise Exception(f'FPGA bitstream {filename} not found')
-        return result_parser(self.module.FPGAload(filename), f'loading FPGA bitstream: {filename}')
+        result = result_parser(self.module.FPGAload(filename), f'loading FPGA bitstream: {filename}')
+        if isinstance(result, int) and result < 0:
+            raise Exception(f'Failed to load FPGA bitstream')
+        return result
+
 
 
     #
