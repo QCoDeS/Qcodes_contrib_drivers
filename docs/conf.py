@@ -72,7 +72,7 @@ intersphinx_mapping = {
     'pandas': ('https://pandas.pydata.org/pandas-docs/stable/', None),
     'matplotlib': ('https://matplotlib.org/', None),
     'python': ('https://docs.python.org/3.6', None),
-    'numpy': ('https://docs.scipy.org/doc/numpy', None),
+    'numpy': ('https://numpy.org/doc/stable', None),
     'py': ('https://pylib.readthedocs.io/en/stable/', None),
     'pyvisa': ('https://pyvisa.readthedocs.io/en/master/', None),
     'IPython': ('https://ipython.readthedocs.io/en/stable/', None,),
