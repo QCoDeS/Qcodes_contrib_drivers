@@ -15,7 +15,6 @@ This magnet PS driver has been tested with FTDI chip drivers (USB to serial),
     SMS60C are: coil_constant=0.0380136, current_rating=52.61
 """
 
-import visa
 import re
 import logging
 import time
@@ -70,8 +69,8 @@ class CryogenicSMS120C(VisaInstrument):
         super().__init__(name, address, terminator='\r\n', **kwargs)
 
         self.visa_handle.baud_rate = 9600
-        self.visa_handle.parity = visa.constants.Parity.none
-        self.visa_handle.stop_bits = visa.constants.StopBits.one
+        self.visa_handle.parity = vi_const.Parity.none
+        self.visa_handle.stop_bits = vi_const.StopBits.one
         self.visa_handle.data_bits = 8
         self.visa_handle.flow_control = 0
         self.visa_handle.flush(vi_const.VI_READ_BUF_DISCARD |
