@@ -1,5 +1,6 @@
 import logging
 import time
+from typing import Union, Tuple
 
 
 from qcodes import VisaInstrument
@@ -9,7 +10,7 @@ log = logging.getLogger(__name__)
 
 class Lakeshore625(VisaInstrument):
     """
-    Driver for the Lakeshore 625 magnet power supply.
+    Driver for the Lakeshore Model 625 spuerconducting magnet power supply.
 
     This class uses T/A and A/s as units.
 
@@ -19,8 +20,8 @@ class Lakeshore625(VisaInstrument):
         current_ramp_limit: A current ramp limit, in units of A/s
     """
 
-    def __init__(self, name, coil_constant,  field_ramp_rate, address=None,
-                 reset=False, terminator='', **kwargs):
+    def __init__(self, name: str, coil_constant: float,  field_ramp_rate: float, address: str=None,
+                 reset: bool=False, terminator:str='', **kwargs) -> None:
 
         super().__init__(name, address, terminator=terminator, **kwargs)
     
@@ -29,119 +30,141 @@ class Lakeshore625(VisaInstrument):
         if reset:
             self.reset()
 
-        # Add solenoid parameters    
-        self.add_parameter('coil_constant_unit',
-                           set_cmd=self._set_coil_constant_unit,
-                           get_cmd=self._get_coil_constant_unit,
-                           get_parser=float,
-                           val_mapping={'T/A': 0,
-                                        'kG/A': 1})
-    
-        self.add_parameter('coil_constant',
-                           unit = self.coil_constant_unit,
-                           get_cmd=self._get_coil_constant,
-                           set_cmd=self._update_coil_constant,
-                           vals=Numbers(0.001, 999.99999))  # what are good numbers here?
-
-        self.add_parameter('current_limit',
+        # Add power supply parameters
+        self.add_parameter(name='current_limit',
                            unit="A",
                            set_cmd=lambda x: self._set_curent_limit(x),
                            get_cmd=self._get_current_limit,
                            get_parser=float,
-                           vals=Numbers(0, 60.1))
-                
-        self.add_parameter('field_ramp_rate',
-                           unit = 'T/min',
-                           get_cmd=self._get_field_ramp_rate,
-                           set_cmd=self._set_field_ramp_rate)
+                           vals=Numbers(0, 60.1),
+                           docstring="Maximum output current"
+                           )
         
-        self.add_parameter('voltage_limit',
+        self.add_parameter(name='voltage_limit',
                            unit="V",
                            set_cmd=lambda x: self._set_voltage_limit(x),
                            get_cmd=self._get_voltage_limit,
                            get_parser=float,
-                           vals=Numbers(0, 5))  # what are good numbers here?
+                           vals=Numbers(0, 5),
+                           docstring="Maximum compliance voltage"
+                           )
         
-        self.add_parameter('current_rate_limit',
+        self.add_parameter(name='current_rate_limit',
                            unit="A/s",
                            set_cmd=lambda x: self._set_current_rate_limit(x),
                            get_cmd=self._get_current_rate_limit,
                            get_parser=float,
-                           vals=Numbers(0, 99.999))  # what are good numbers here?
-
- 
-
-
-        # Add current solenoid parameters
-        # Note that field is validated in set_field
-        self.add_parameter('field',
-                           unit = 'T',
-                           full_name = self.name + '_' + 'field',
-                           set_cmd=self.set_field,
-                           get_cmd='RDGF?',
-                           get_parser=float)
+                           vals=Numbers( 0.0001, 99.999),
+                           docstring="Maximum current ramp rate"
+                           )
         
-        self.add_parameter('voltage',
+        self.add_parameter(name='voltage',
                            unit = 'V',
                            set_cmd="SETV {}",
                            get_cmd='RDGV?',
                            get_parser=float,
-                           vals=Numbers(-5, 5))
+                           vals=Numbers(-5, 5)
+                           )
         
-        self.add_parameter('current',
+        self.add_parameter(name='current',
                            unit = 'A',
                            set_cmd="SETI {}",
                            get_cmd='RDGI?',
                            get_parser=float,
-                           vals=Numbers(-60, 60))
+                           vals=Numbers(-60, 60)
+                           )
         
-        self.add_parameter('current_ramp_rate',
+        self.add_parameter(name='current_ramp_rate',
                            unit = 'A/s',
                            set_cmd="RATE {}",
                            get_cmd='RATE?',
-                           get_parser=float)
+                           get_parser=float
+                           )
         
-        self.add_parameter('ramp_segments',
+        self.add_parameter(name='ramp_segments',
                            set_cmd="RSEG {}",
                            get_cmd='RSEG?',
                            get_parser=float,
                            val_mapping={'disabled': 0,
-                                        'enabled': 1})
+                                        'enabled': 1}
+                           )
         
-        self.add_parameter('persistent_switch_heater',
+        self.add_parameter(name='persistent_switch_heater',
                            set_cmd=lambda x: self._set_persistent_switch_heater_status(x),
                            get_cmd=self._get_persistent_switch_heater_status,
                            get_parser=float,
                            val_mapping={'disabled': 0,
-                                        'enabled': 1})
+                                        'enabled': 1}
+                           )
     
-        self.add_parameter('quench_detection',
+        self.add_parameter(name='quench_detection',
                            set_cmd=lambda x: self._set_quench_detection_status(x),
                            get_cmd=self._get_quench_detection_status,
                            get_parser=float,
                            val_mapping={'disabled': 0,
-                                        'enabled': 1})
+                                        'enabled': 1}
+                           )
     
-        self.add_parameter('quench_current_step_limit',
+        self.add_parameter(name='quench_current_step_limit',
                            unit = 'A/s',
                            set_cmd=lambda x: self._set_quench_current_step_limit(x),
                            get_cmd=self._get_quench_current_step_limit,
                            get_parser=float,
-                           vals=Numbers(0.01, 10))
-        
-        self.add_parameter('ramping_state',
+                           vals=Numbers(0.01, 10)
+                           )
+
+        self.add_parameter(name='ramping_state',
                            get_cmd=self._get_ramping_state,
-                           vals=Enum('ramping', 'not ramping'))
+                           vals=Enum('ramping', 'not ramping')
+                           )
         
-        self.add_parameter('operational_error_status',
+        self.add_parameter(name='operational_error_status',
                            get_cmd=self._get_operational_errors,
-                           get_parser=str)
+                           get_parser=str
+                           )
         
-        self.add_parameter('oer_quench',
+        self.add_parameter(name='oer_quench',
                            get_cmd=self._get_oer_quench_bit,
                            get_parser=int,
                            val_mapping={'no quench detected': 0,
-                                        'quench detected': 1})
+                                        'quench detected': 1}
+                           )
+
+
+        # Add solenoid parameters
+        self.add_parameter(name='coil_constant_unit',
+                           set_cmd=self._set_coil_constant_unit,
+                           get_cmd=self._get_coil_constant_unit,
+                           get_parser=float,
+                           val_mapping={'T/A': 0,
+                                        'kG/A': 1},
+                           docstring="unit of the coil constant, either T/A (default) or kG/A"
+                           )
+    
+        self.add_parameter(name='coil_constant',
+                           unit = self.coil_constant_unit,
+                           set_cmd=self._update_coil_constant,
+                           get_cmd=self._get_coil_constant,
+                           get_parser=float,
+                           vals=Numbers(0.001, 999.99999)  # what are good numbers here?
+                           )
+        
+        self.add_parameter(name='field',
+                           full_name = self.name + '_' + 'field',
+                           unit = 'T',
+                           set_cmd=self.set_field,
+                           get_cmd='RDGF?',
+                           get_parser=float
+                           )
+        
+        self.add_parameter(name='field_ramp_rate',
+                           unit = 'T/min',
+                           set_cmd=self._set_field_ramp_rate,
+                           get_cmd=self._get_field_ramp_rate,
+                           get_parser=float,
+                           docstring="Field ramp rate (T/min)"
+                           )
+
    
         # Add clear function
         self.add_function('clear', call_cmd='*CLS')
@@ -159,128 +182,195 @@ class Lakeshore625(VisaInstrument):
         self.coil_constant(coil_constant)
         self.field_ramp_rate(field_ramp_rate)
 
+        # print connect message
         self.connect_message()
 
 
-
-
-    def _sleep(self, t):
+    def _sleep(self, t: float) -> None:
         """
         Sleep for a number of seconds t. If we are or using
         the PyVISA 'sim' backend, omit this
         """
-
         simmode = getattr(self, 'visabackend', False) == 'sim'
 
         if simmode:
             return
         else:
             time.sleep(t)
-            
+
+
     # get functions returning several values
-    def _get_limit(self):
+    def _get_limit(self) -> Tuple[float, float, float]:
         """
-        Gets the limits of the supply
+        Limit Output Settings Query
+
+        Returns
+        -------
+            <current>, <voltage>, <rate>
         """
         raw_string = self.ask('LIMIT?')
         current_limit, voltage_limit, current_rate_limit = raw_string.split(',')
         return float(current_limit), float(voltage_limit), float(current_rate_limit)
-    
-    def _get_persistent_switch_heater_setup(self):
+
+
+    def _get_persistent_switch_heater_setup(self) -> Tuple[float, float, float]:
         """
-        Gets the persistant switch heater setup
+        Persistent Switch Heater Parameter Query
+
+        Returns
+        -------
+            <enable>, <current>, <delay>
         """
         raw_string = self.ask('PSHS?')
         status, psh_current, psh_delay = raw_string.split(',')
         return float(status), float(psh_current), float(psh_delay)
-    
-    def _get_quench_detection_setup(self):
+
+
+    def _get_quench_detection_setup(self) -> Tuple[float, float]:
         """
-        Gets the quench detections setup, returns 'status' and 'current step limit'
+        Quench Parameter Query
+
+        Returns
+        -------
+            <enable>, <rate>
         """
         raw_string = self.ask('QNCH?')
         status, current_step_limit = raw_string.split(',')
         return float(status), float(current_step_limit)
 
-    def _get_field_setup(self):
+
+    def _get_field_setup(self) -> Tuple[str, float]:
         """
-        Gets the field setup, returns 'coil constant unit' and 'coil constant'
+        Computed Magnetic Field Parameter Query
+
+        Returns
+        -------
+            <units>, <constant>
         """
         raw_string = self.ask('FLDS?')
         unit, coil_constant = raw_string.split(',')
         return str(unit), float(coil_constant)    
-    
-    
+
+
     # get functions for parameters
-    def _get_current_limit(self):
+    def _get_current_limit(self) -> float:
         """
-        Gets the current limit of the coil
+        Get maximum allowed output current setting.
+
+        Returns
+        -------
+            <current>
         """
         current_limit, voltage_limit, current_rate_limit = self._get_limit()
         return current_limit
-    
-    def _get_voltage_limit(self):
+
+
+    def _get_voltage_limit(self) -> float:
         """
-        Gets the current limit of the coil
+        Gets maximum allowed compliance voltage setting
+        
+        Returns
+        -------
+            <voltage>
         """
         current_limit, voltage_limit, current_rate_limit = self._get_limit()
         return voltage_limit
 
-    def _get_current_rate_limit(self):
+
+    def _get_current_rate_limit(self) -> float:
         """
-        Gets the current limit of the coil
+        Gets maximum allowed output current ramp rate setting
+
+        Returns
+        -------
+            <rate>
         """
         current_limit, voltage_limit, current_rate_limit = self._get_limit()
         return current_rate_limit
-    
-    def _get_persistent_switch_heater_status(self):
+
+
+    def _get_persistent_switch_heater_status(self) -> float:
         """
-        Sets the status of the persistant switch heater
+        Queries if there is a persistent switch: 0 = Disabled (no PSH), 1 = Enabled
+
+        Returns
+        -------
+            status
         """
         status, psh_current, psh_delay = self._get_persistent_switch_heater_setup()
         return status
-    
-    def _get_quench_detection_status(self):
+
+
+    def _get_quench_detection_status(self) -> float:
         """
-        Gets the quench detections status
+        Queries if quench detection is to be used: 0 = Disabled, 1 = Enabled
+
+        Returns
+        -------
+            status
         """
         status, current_step_limit = self._get_quench_detection_setup()
         return float(status)
-    
-    def _get_quench_current_step_limit(self):
+
+
+    def _get_quench_current_step_limit(self) -> float:
         """
-        Gets the quench detections status
+        Gets current step limit for quench detection
+
+        Returns
+        -------
+            <rate>
         """
         status, current_step_limit = self._get_quench_detection_setup()
         return float(current_step_limit)
-    
-    def _get_coil_constant(self):
+
+
+    def _get_coil_constant(self) -> float:
         """
-        Gets the coil_constant
+        Gets magnetic field constant in either T/A or kG/A depending on units
+
+        Returns
+        -------
+            <constant>
         """
         coil_constant_unit, coil_constant = self._get_field_setup()
         return float(coil_constant)
-    
-    def _get_coil_constant_unit(self):
+
+
+    def _get_coil_constant_unit(self) -> str:
         """
-        Gets the coil_constant
+        Gets the units of the magnetic field constant: 0 = T/A, 1 = kG/A
+
+        Returns
+        -------
+            <units>
         """
         coil_constant_unit, coil_constant = self._get_field_setup()
         return str(coil_constant_unit)
-    
-    def _get_field_ramp_rate(self):
+
+
+    def _get_field_ramp_rate(self) -> float:
         """
-        Gets the field ramp rate
+        Gets the field ramp rate in units of T/min
+
+        Returns
+        -------
+            field_ramp_rate (T/min)
         """
         coil_constant_unit, coil_constant = self._get_field_setup() # in T/A by default
         current_ramp_rate = self.current_ramp_rate()    # in A/s
         field_ramp_rate = current_ramp_rate * coil_constant * 60 # in T/min
         return float(field_ramp_rate)
-    
-    def _get_ramping_state(self):
+
+
+    def _get_ramping_state(self) -> str:
         """
         Gets the ramping state of the power supply (corresponds to blue LED on panel)
         Is inferred from the status bit register
+
+        Returns
+        -------
+            ramping state
         """
         operation_condition_register = self.ask('OPST?')
         bin_OPST = bin(int(operation_condition_register))[2:]
@@ -293,10 +383,15 @@ class Lakeshore625(VisaInstrument):
             return 'not ramping'
         else:
             return 'ramping'
-            
-    def _get_operational_errors(self):
+
+
+    def _get_operational_errors(self) -> bin:
         """
-        Reads the Error status register to infer the operational errors
+        Error Status Query
+
+        Returns
+        -------
+            error status
         """
         error_status_register = self.ask('ERST?')
         # three bytes are read at the same time, the middle one is the operational error status
@@ -305,72 +400,85 @@ class Lakeshore625(VisaInstrument):
         #prepend zeros to bit-string such that it always has length 9
         oer_bit = bin(int(operational_error_registor))[2:].zfill(9)
         return(oer_bit)
-        
+
+
     def _get_oer_quench_bit(self):
         """
         Returns the oer quench bit
+
+        Returns
+        -------
+            quench bit
         """
         return self._get_operational_errors()[3]
-    
-    
+
+
     # set functions for parameters
-    def _set_curent_limit(self, current_limit_setpoint):
+    def _set_curent_limit(self, current_limit_setpoint: float) -> None:
         """
-        Sets the current limit of the coil
+        Sets maximum allowed output current
         """
         current_limit, voltage_limit, current_rate_limit = self._get_limit()
         self.write_raw('LIMIT {}, {}, {}'.format(current_limit_setpoint, voltage_limit, current_rate_limit))
 
-    def _set_voltage_limit(self, voltage_limit_setpoint):
+
+    def _set_voltage_limit(self, voltage_limit_setpoint: float) -> None:
         """
-        Sets the current limit of the coil
+        Sets maximum allowed compliance voltage
         """
         current_limit, voltage_limit, current_rate_limit = self._get_limit()
         self.write_raw('LIMIT {}, {}, {}'.format(current_limit, voltage_limit_setpoint, current_rate_limit))
-        
-    def _set_current_rate_limit(self, current_rate_limit_setpoint):
+
+
+    def _set_current_rate_limit(self, current_rate_limit_setpoint: float) -> None:
         """
-        Sets the current limit of the coil
+        Sets maximum allowed output current ramp rate
         """
         current_limit, voltage_limit, current_rate_limit = self._get_limit()
         self.write_raw('LIMIT {}, {}, {}'.format(current_limit, voltage_limit, current_rate_limit_setpoint))
-        
-    def _set_persistent_switch_heater_status(self, status_setpoint):
+
+
+    def _set_persistent_switch_heater_status(self, status_setpoint: float) -> None:
         """
-        Sets the status of the persistant switch heater
+        Specifies if there is a persistent switch: 0 = Disabled (no PSH), 1 = Enabled
         """
         status, psh_current, psh_delay = self._get_persistent_switch_heater_setup()
         self.write_raw('PSHS {}, {}, {}'.format(status_setpoint, psh_current, psh_delay))
-        
-    def _set_quench_detection_status(self, status_setpoint):
+
+
+    def _set_quench_detection_status(self, status_setpoint: float) -> None:
         """
-        Sets the quench detections status
+        Specifies if quench detection is to be used: 0 = Disabled, 1 = Enabled
         """
         status, current_step_limit = self._get_quench_detection_setup()
         self.write_raw('QNCH {}, {}'.format(status_setpoint, current_step_limit))
-        
-    def _set_quench_current_step_limit(self, current_step_limit_setpoint):
+
+
+    def _set_quench_current_step_limit(self, current_step_limit_setpoint: float) -> None:
         """
-        Sets the quench detections status
+        Specifies the current step limit for quench detection
         """
         status, current_step_limit = self._get_quench_detection_setup()
         self.write_raw('QNCH {}, {}'.format(status, current_step_limit_setpoint))
-        
-    def _set_coil_constant(self, coil_constant_setpoint):
+
+
+    def _set_coil_constant(self, coil_constant_setpoint: float) -> None:
         """
-        Sets the coil_constant
+        Specifies the magnetic field constant in either T/A or kG/A depending on units
         """
         coil_constant_unit, coil_constant = self._get_field_setup()
         self.write_raw('FLDS {}, {}'.format(coil_constant_unit, coil_constant_setpoint))
-    
-    def _set_coil_constant_unit(self, coil_constant_unit_setpoint):
+
+
+    def _set_coil_constant_unit(self, coil_constant_unit_setpoint: str) -> None:
         """
-        Sets the coil_constant
+        Specifies the units of the magnetic field constant: 0 = T/A, 1 = kG/A
         """
         coil_constant_unit, coil_constant = self._get_field_setup()
         self.write_raw('FLDS {}, {}'.format(coil_constant_unit_setpoint, coil_constant))
-        
-    def _update_coil_constant(self, coil_constant_setpoint):
+
+
+    def _update_coil_constant(self, coil_constant_setpoint: float) -> None:
         """
         Updates the coil_constant and with it all linked parameters
         """
@@ -382,7 +490,8 @@ class Lakeshore625(VisaInstrument):
         current_ramp_rate_setpoint = field_ramp_rate / coil_constant_setpoint / 60   # current_ramp_rate is in A/s
         self.current_ramp_rate(current_ramp_rate_setpoint)
 
-    def _set_field_ramp_rate(self, field_ramp_rate_setpoint):
+
+    def _set_field_ramp_rate(self, field_ramp_rate_setpoint: float) -> None:
         """
         Sets the field ramp rate in units of T/min by setting the corresponding current_ramp_rate
         """
@@ -391,17 +500,13 @@ class Lakeshore625(VisaInstrument):
         self.current_ramp_rate(current_ramp_rate_setpoint)
 
 
-
-
-    def set_field(self, value, block=True):
+    def set_field(self, value: float, block: bool=True) -> None:
         """
         Ramp to a certain field
 
         Args:
-            block (bool): Whether to wait unit the field has finished setting
-            perform_safety_check (bool): Whether to set the field via a parent
-                driver (if present), which might perform additional safety
-                checks.
+            value: field setpoint
+            block: Whether to wait until the field has finished setting
         """
 
         self.write('SETF {}'.format(value))
