@@ -49,8 +49,41 @@ class Keithley_6500(VisaInstrument):
                  **kwargs):
         super().__init__(name, address, terminator=terminator, **kwargs)
 
-        for sense in ['VOLT', 'CURR', 'RES', 'FRES']:
-            channel = Keithley_Sense(self, sense.lower(), sense)
-            self.add_submodule(sense.lower(), channel)
+        for quantity in ['VOLT', 'CURR', 'RES', 'FRES']:
+            channel = Keithley_Sense(self, quantity.lower(), quantity)
+            self.add_submodule(quantity.lower(), channel)
+
+        self.add_parameter('active_terminal',
+                           label='active terminal',
+                           get_cmd="ROUTe:TERMinals?",
+                           docstring="Active terminal of instrument. Can only be switched via knob on front panel.")
+
+        self.add_parameter('resistance',
+                           unit='Ohm',
+                           label='Measured resistance',
+                           get_parser=float,
+                           get_cmd=f"MEAS:RES?"
+                           )
+
+        self.add_parameter('resistance_4w',
+                           unit='Ohm',
+                           label='Measured resistance',
+                           get_parser=float,
+                           get_cmd=f"MEAS:FRES?"
+                           )
+
+        self.add_parameter('volt',
+                           unit='V',
+                           label='Measured DC voltage',
+                           get_parser=float,
+                           get_cmd=f"MEAS:VOLT?"
+                           )
+
+        self.add_parameter('curr',
+                           unit='A',
+                           label='Measured DC current',
+                           get_parser=float,
+                           get_cmd=f"MEAS:CURR?"
+                           )
 
         self.connect_message()
