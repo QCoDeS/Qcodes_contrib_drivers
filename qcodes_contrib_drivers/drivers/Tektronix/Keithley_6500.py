@@ -72,14 +72,14 @@ class Keithley_6500(VisaInstrument):
                            get_cmd=f"MEAS:FRES?"
                            )
 
-        self.add_parameter('volt',
+        self.add_parameter('voltage_dc',
                            unit='V',
                            label='Measured DC voltage',
                            get_parser=float,
                            get_cmd=f"MEAS:VOLT?"
                            )
 
-        self.add_parameter('curr',
+        self.add_parameter('current_dc',
                            unit='A',
                            label='Measured DC current',
                            get_parser=float,
@@ -87,3 +87,14 @@ class Keithley_6500(VisaInstrument):
                            )
 
         self.connect_message()
+
+        # check if scanner card is connected
+        # If no scanner card is connected, the query below returns "Empty Slot".
+        # For the Scanner Card 2000-SCAN used for development of this driver the output was
+        # "2000,10-Chan Mux,0.0.0a,00000000".
+        scan_idn_msg = self.ask(":SYSTem:CARD1:IDN?")
+        if scan_idn_msg != "Empty Slot":
+            msg_parts = scan_idn_msg.split(",")
+            print(f"Scanner card {msg_parts[0]}-SCAN detected.")
+
+
