@@ -16,7 +16,7 @@ class Keithley_Sense(InstrumentChannel):
                            unit=partial(self._get_unit, channel),
                            label=partial(self._get_label, channel),
                            get_parser=float,
-                           get_cmd=f":MEAS:{channel}?",
+                           get_cmd=partial(self.parent.measure, channel),
                            docstring="Measure value of chosen quantity (Current/Voltage/Resistance)."
                            )
 
@@ -63,28 +63,28 @@ class Keithley_6500(VisaInstrument):
                            unit='Ohm',
                            label='Measured resistance',
                            get_parser=float,
-                           get_cmd=f"MEAS:RES?"
+                           get_cmd=partial(self.measure, 'RES')
                            )
 
         self.add_parameter('resistance_4w',
                            unit='Ohm',
                            label='Measured resistance',
                            get_parser=float,
-                           get_cmd=f"MEAS:FRES?"
+                           get_cmd=partial(self.measure, 'FRES')
                            )
 
         self.add_parameter('voltage_dc',
                            unit='V',
                            label='Measured DC voltage',
                            get_parser=float,
-                           get_cmd=f"MEAS:VOLT?"
+                           get_cmd=partial(self.measure, 'VOLT')
                            )
 
         self.add_parameter('current_dc',
                            unit='A',
                            label='Measured DC current',
                            get_parser=float,
-                           get_cmd=f"MEAS:CURR?"
+                           get_cmd=partial(self.measure, 'CURR')
                            )
 
         self.connect_message()
@@ -101,5 +101,10 @@ class Keithley_6500(VisaInstrument):
                 channel = Keithley_2000_Scan_Channel(self, ch_number)
                 self.add_submodule(f"ch{ch_number:d}", channel)
 
-
-
+    # only measure if front terminal is active
+    def measure(self, quantity: str) -> str:
+        if self.active_terminal.get() == 'FRON':
+            return self.ask(f"MEAS:{quantity}?")
+        else:
+            print("WARNING: Rear terminal is active instead of front terminal.")
+            return "nan"

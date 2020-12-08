@@ -7,6 +7,7 @@ class Keithley_2000_Scan_Channel(InstrumentChannel):
     def __init__(self, dmm, channel: int, **kwargs):
         super().__init__(dmm, f"ch{channel}", **kwargs)
         self.channel = channel
+        self.dmm = dmm
 
         self.add_parameter('resistance',
                            unit='Ohm',
@@ -33,6 +34,10 @@ class Keithley_2000_Scan_Channel(InstrumentChannel):
                            get_cmd=partial(self.measure, 'CURR'))
 
     def measure(self, measurement_func: str) -> str:
-        self.write(f"SENS:FUNC '{measurement_func}', (@{self.channel:d})")
-        self.write(f"ROUT:CLOS (@{self.channel:d})")
-        return self.ask("READ?")
+        if self.dmm.active_terminal.get() == 'REAR':
+            self.write(f"SENS:FUNC '{measurement_func}', (@{self.channel:d})")
+            self.write(f"ROUT:CLOS (@{self.channel:d})")
+            return self.ask("READ?")
+        else:
+            print("WARNING: Front terminal is active instead of rear terminal.")
+            return "nan"
