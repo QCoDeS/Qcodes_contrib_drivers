@@ -98,8 +98,8 @@ class Keithley_6500(VisaInstrument):
             msg_parts = scan_idn_msg.split(",")
             print(f"Scanner card {msg_parts[0]}-SCAN detected.")
             for ch_number in range(1, 11):
-                channel = Keithley_2000_Scan_Channel(self, ch_number)
-                self.add_submodule(f"ch{ch_number:d}", channel)
+                scan_channel = Keithley_2000_Scan_Channel(self, ch_number)
+                self.add_submodule(f"ch{ch_number:d}", scan_channel)
 
     # only measure if front terminal is active
     def measure(self, quantity: str) -> str:
