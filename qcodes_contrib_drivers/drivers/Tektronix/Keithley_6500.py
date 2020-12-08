@@ -2,6 +2,7 @@ from qcodes.instrument.visa import VisaInstrument
 from qcodes.instrument import InstrumentChannel
 from qcodes.utils.validators import Numbers
 from functools import partial
+from .Keithley_2000_Scan import Keithley_2000_Scan_Channel
 
 
 class Keithley_Sense(InstrumentChannel):
@@ -96,5 +97,9 @@ class Keithley_6500(VisaInstrument):
         if scan_idn_msg != "Empty Slot":
             msg_parts = scan_idn_msg.split(",")
             print(f"Scanner card {msg_parts[0]}-SCAN detected.")
+            for ch_number in range(1, 11):
+                channel = Keithley_2000_Scan_Channel(self, ch_number)
+                self.add_submodule(f"ch{ch_number:d}", channel)
+
 
 
