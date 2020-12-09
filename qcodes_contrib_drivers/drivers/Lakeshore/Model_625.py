@@ -10,7 +10,7 @@ log = logging.getLogger(__name__)
 
 class Lakeshore625(VisaInstrument):
     """
-    Driver for the Lakeshore Model 625 spuerconducting magnet power supply.
+    Driver for the Lakeshore Model 625 superconducting magnet power supply.
 
     This class uses T/A and A/s as units.
 
@@ -385,7 +385,7 @@ class Lakeshore625(VisaInstrument):
             return 'ramping'
 
 
-    def _get_operational_errors(self) -> bin:
+    def _get_operational_errors(self) -> str:
         """
         Error Status Query
 
@@ -398,8 +398,8 @@ class Lakeshore625(VisaInstrument):
         operational_error_registor = error_status_register.split(',')[1]
         
         #prepend zeros to bit-string such that it always has length 9
-        oer_bit = bin(int(operational_error_registor))[2:].zfill(9)
-        return(oer_bit)
+        oer_bit_str = bin(int(operational_error_registor))[2:].zfill(9)
+        return oer_bit_str
 
 
     def _get_oer_quench_bit(self):
