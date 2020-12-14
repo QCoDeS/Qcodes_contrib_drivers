@@ -14,130 +14,120 @@ class BlueFors(Instrument):
 
     def __init__(self, name                      : str,
                        folder_path               : str,
-                       channel_vacuum_can        : int=None,
-                       channel_pumping_line      : int=None,
-                       channel_compressor_outlet : int=None,
-                       channel_compressor_inlet  : int=None,
-                       channel_mixture_tank      : int=None,
-                       channel_venting_line      : int=None,
-                       channel_50k_plate         : int=None,
-                       channel_4k_plate          : int=None,
+                       channel_vacuum_can        : int,
+                       channel_pumping_line      : int,
+                       channel_compressor_outlet : int,
+                       channel_compressor_inlet  : int,
+                       channel_mixture_tank      : int,
+                       channel_venting_line      : int,
+                       channel_50k_plate         : int,
+                       channel_4k_plate          : int,
+                       channel_still             : int,
+                       channel_mixing_chamber    : int,
                        channel_magnet            : int=None,
-                       channel_still             : int=None,
-                       channel_mixing_chamber    : int=None,
                        **kwargs) -> None:
         """
         QCoDeS driver for BlueFors fridges.
-        When a channel is set to None, it will not appear has an available 
-        parameter, this is usefull for fridge not having magnet.
+        ! This driver get parameters from the fridge log files.
+        ! It does not interact with the fridge electronics.
 
         Args:
-        name (str): Name of the instrument.
-        folder_path (str): Valid path toward the BlueFors log folder.
-        channel_vacuum_can (int, optional): channel of the vacuum can. Defaults to None.
-        channel_pumping_line (int, optional): channel of the pumping line. Defaults to None.
-        channel_compressor_outlet (int, optional): channel of the compressor outlet. Defaults to None.
-        channel_compressor_inlet (int, optional): channel of the compressor inlet. Defaults to None.
-        channel_mixture_tank (int, optional): channel of the mixture tank. Defaults to None.
-        channel_venting_line (int, optional): channel of the venting line. Defaults to None.
-        channel_50k_plate (int, optional): channel of the 50k plate. Defaults to None.
-        channel_4k_plate (int, optional): channel of the 4k plate. Defaults to None.
-        channel_magnet (int, optional): channel of the magnet. Defaults to None.
-        channel_still (int, optional): channel of the still. Defaults to None.
-        channel_mixing_chamber (int, optional): channel of the mixing chamber. Defaults to None.
+        name: Name of the instrument.
+        folder_path: Valid path toward the BlueFors log folder.
+        channel_vacuum_can: channel of the vacuum can
+        channel_pumping_line: channel of the pumping line.
+        channel_compressor_outlet: channel of the compressor outlet.
+        channel_compressor_inlet: channel of the compressor inlet.
+        channel_mixture_tank: channel of the mixture tank.
+        channel_venting_line: channel of the venting line.
+        channel_50k_plate: channel of the 50k plate.
+        channel_4k_plate: channel of the 4k plate.
+        channel_still: channel of the still.
+        channel_mixing_chamber: channel of the mixing chamber.
+        channel_magnet: channel of the magnet.
         """
 
         super().__init__(name = name, **kwargs)
         
         self.folder_path = os.path.abspath(folder_path)
 
-        if channel_vacuum_can is not None:
-            self.add_parameter(name       = 'pressure_vacuum_can',
-                               unit       = 'mBar',
-                               get_parser = float,
-                               get_cmd    = lambda: self.get_pressure(channel_vacuum_can),
-                               docstring  = 'Pressure of the vacuum can',
-                            )
+        self.add_parameter(name       = 'pressure_vacuum_can',
+                           unit       = 'mBar',
+                           get_parser = float,
+                           get_cmd    = lambda: self.get_pressure(channel_vacuum_can),
+                           docstring  = 'Pressure of the vacuum can',
+                           )
 
-        if channel_pumping_line is not None:
-            self.add_parameter(name       = 'pressure_pumping_line',
-                               unit       = 'mBar',
-                               get_parser = float,
-                               get_cmd    = lambda: self.get_pressure(channel_pumping_line),
-                               docstring  = 'Pressure of the pumping line',
-                            )
+        self.add_parameter(name       = 'pressure_pumping_line',
+                           unit       = 'mBar',
+                           get_parser = float,
+                           get_cmd    = lambda: self.get_pressure(channel_pumping_line),
+                           docstring  = 'Pressure of the pumping line',
+                           )
 
-        if channel_compressor_outlet is not None:
-            self.add_parameter(name       = 'pressure_compressor_outlet',
-                               unit       = 'mBar',
-                               get_parser = float,
-                               get_cmd    = lambda: self.get_pressure(channel_compressor_outlet),
-                               docstring  = 'Pressure of the compressor outlet',
-                            )
+        self.add_parameter(name       = 'pressure_compressor_outlet',
+                           unit       = 'mBar',
+                           get_parser = float,
+                           get_cmd    = lambda: self.get_pressure(channel_compressor_outlet),
+                           docstring  = 'Pressure of the compressor outlet',
+                           )
 
-        if channel_compressor_inlet is not None:
-            self.add_parameter(name       = 'pressure_compressor_inlet',
-                               unit       = 'mBar',
-                               get_parser = float,
-                               get_cmd    = lambda: self.get_pressure(channel_compressor_inlet),
-                               docstring  = 'Pressure of the compressor inlet',
-                            )
+        self.add_parameter(name       = 'pressure_compressor_inlet',
+                           unit       = 'mBar',
+                           get_parser = float,
+                           get_cmd    = lambda: self.get_pressure(channel_compressor_inlet),
+                           docstring  = 'Pressure of the compressor inlet',
+                           )
 
-        if channel_mixture_tank is not None:
-            self.add_parameter(name       = 'pressure_mixture_tank',
-                               unit       = 'mBar',
-                               get_parser = float,
-                               get_cmd    = lambda: self.get_pressure(channel_mixture_tank),
-                               docstring  = 'Pressure of the mixture tank',
-                            )
+        self.add_parameter(name       = 'pressure_mixture_tank',
+                           unit       = 'mBar',
+                           get_parser = float,
+                           get_cmd    = lambda: self.get_pressure(channel_mixture_tank),
+                           docstring  = 'Pressure of the mixture tank',
+                           )
 
-        if channel_venting_line is not None:
-            self.add_parameter(name       = 'pressure_venting_line',
-                               unit       = 'mBar',
-                               get_parser = float,
-                               get_cmd    = lambda: self.get_pressure(channel_venting_line),
-                               docstring  = 'Pressure of the venting line',
-                            )
+        self.add_parameter(name       = 'pressure_venting_line',
+                           unit       = 'mBar',
+                           get_parser = float,
+                           get_cmd    = lambda: self.get_pressure(channel_venting_line),
+                           docstring  = 'Pressure of the venting line',
+                           )
 
-        if channel_50k_plate is not None:
-            self.add_parameter(name       = 'temperature_50k_plate',
-                               unit       = 'K',
-                               get_parser = float,
-                               get_cmd    = lambda: self.get_temperature(1),
-                               docstring  = 'Temperature of the 50K plate',
-                               )
+        self.add_parameter(name       = 'temperature_50k_plate',
+                           unit       = 'K',
+                           get_parser = float,
+                           get_cmd    = lambda: self.get_temperature(channel_50k_plate),
+                           docstring  = 'Temperature of the 50K plate',
+                           )
 
-        if channel_4k_plate is not None:
-            self.add_parameter(name       = 'temperature_4k_plate',
-                               unit       = 'K',
-                               get_parser = float,
-                               get_cmd    = lambda: self.get_temperature(2),
-                               docstring  = 'Temperature of the 4K plate',
-                               )
+        self.add_parameter(name       = 'temperature_4k_plate',
+                           unit       = 'K',
+                           get_parser = float,
+                           get_cmd    = lambda: self.get_temperature(channel_4k_plate),
+                           docstring  = 'Temperature of the 4K plate',
+                           )
 
         if channel_magnet is not None:
             self.add_parameter(name       = 'temperature_magnet',
                                unit       = 'K',
                                get_parser = float,
-                               get_cmd    = lambda: self.get_temperature(3),
+                               get_cmd    = lambda: self.get_temperature(channel_magnet),
                                docstring  = 'Temperature of the magnet',
                                )
 
-        if channel_still is not None:
-            self.add_parameter(name       = 'temperature_still',
-                               unit       = 'K',
-                               get_parser = float,
-                               get_cmd    = lambda: self.get_temperature(6),
-                               docstring  = 'Temperature of the still',
-                               )
+        self.add_parameter(name       = 'temperature_still',
+                           unit       = 'K',
+                           get_parser = float,
+                           get_cmd    = lambda: self.get_temperature(channel_still),
+                           docstring  = 'Temperature of the still',
+                           )
 
-        if channel_mixing_chamber is not None:
-            self.add_parameter(name       = 'temperature_mixing_chamber',
-                               unit       = 'K',
-                               get_parser = float,
-                               get_cmd    = lambda: self.get_temperature(5),
-                               docstring  = 'Temperature of the mixing chamber',
-                            )
+        self.add_parameter(name       = 'temperature_mixing_chamber',
+                           unit       = 'K',
+                           get_parser = float,
+                           get_cmd    = lambda: self.get_temperature(channel_mixing_chamber),
+                           docstring  = 'Temperature of the mixing chamber',
+                           )
         
         self.connect_message()
 
