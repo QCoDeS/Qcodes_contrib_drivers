@@ -41,10 +41,6 @@ def switchable(switch, enabled:bool) -> Callable[[F], F]:
 class WaveformReference:
     """
     This is a reference to a waveform (being) uploaded to the AWG.
-
-    Attributes:
-        wave_number: number refering to the wave in AWG memory
-        awg_name: name of the awg the waveform is uploaded to
     """
     def __init__(self, wave_number: int, awg_name: str):
         self._wave_number = wave_number
@@ -52,10 +48,16 @@ class WaveformReference:
 
     @property
     def wave_number(self):
+        """
+        Number of the wave in AWG memory.
+        """
         return self._wave_number
 
     @property
     def awg_name(self):
+        """
+        Name of the AWG the waveform is uploaded to
+        """
         return self._awg_name
 
     def release(self):
