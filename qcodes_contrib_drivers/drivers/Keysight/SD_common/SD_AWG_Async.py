@@ -59,9 +59,6 @@ class WaveformReference:
 
     @property
     def awg_name(self):
-        """
-        Name of the AWG the waveform is uploaded to
-        """
         return self._awg_name
 
     def release(self):
