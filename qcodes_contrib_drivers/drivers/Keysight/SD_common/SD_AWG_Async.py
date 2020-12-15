@@ -52,9 +52,6 @@ class WaveformReference:
 
     @property
     def wave_number(self):
-        """
-        Number of the wave in AWG memory.
-        """
         return self._wave_number
 
     @property
