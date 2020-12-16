@@ -238,6 +238,9 @@ class SD_AWG(SD_Module):
         value_name = 'set wave shape channel {} to {}'.format(channel_number, wave_shape)
         return result_parser(value, value_name, verbose)
 
+    def set_digital_filter_mode(self, filter_mode):
+        result_parser(self.awg.setDigitalFilterMode(filter_mode), f'filter_mode({filter_mode})')
+
     def set_trigger_io(self, value, verbose=False):
         """
         Sets the trigger output. The trigger must be configured as output using
@@ -820,6 +823,35 @@ class SD_AWG(SD_Module):
             logging.info(f'loading fpga image "{filename}" ...')
             super().load_fpga_image(filename)
             logging.info(f'loaded fpga image.')
+
+    def write_fpga(self, reg_name, value):
+        logging.debug(f'write {reg_name}, {value}')
+        with self._lock:
+            reg = result_parser(self.awg.FPGAgetSandBoxRegister(reg_name), reg_name)
+            reg.writeRegisterInt32(value)
+
+    def read_fpga(self, reg_name):
+        with self._lock:
+            reg = result_parser(self.awg.FPGAgetSandBoxRegister(reg_name), reg_name)
+            if reg.Address > 2**24 or reg.Address < 0:
+                raise Exception(f'Register out of range: Reg {reg.Address:6} ({reg.Length:6}) {reg_name}')
+            return reg.readRegisterInt32()
+
+    def write_fpga_array(self, reg_name, offset, data):
+        logging.debug(f'write {reg_name}, {offset}, {data}')
+        with self._lock:
+            reg = result_parser(self.awg.FPGAgetSandBoxRegister(reg_name), reg_name)
+            result_parser(reg.writeRegisterBuffer(offset, data,
+                                                  keysightSD1.SD_AddressingMode.AUTOINCREMENT,
+                                                  keysightSD1.SD_AccessMode.NONDMA))
+
+    def read_fpga_array(self, reg_name, offset, data_size):
+        with self._lock:
+            reg = result_parser(self.awg.FPGAgetSandBoxRegister(reg_name), reg_name)
+            data = result_parser(reg.readRegisterBuffer(offset, data_size,
+                                                        keysightSD1.SD_AddressingMode.AUTOINCREMENT,
+                                                        keysightSD1.SD_AccessMode.NONDMA))
+            return data
 
 
     def convert_sample_rate_to_prescaler(self, sample_rate):
