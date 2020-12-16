@@ -20,7 +20,7 @@ class Lakeshore625(VisaInstrument):
         current_ramp_limit: A current ramp limit, in units of A/s
     """
 
-    def __init__(self, name: str, coil_constant: float,  field_ramp_rate: float, address: str=None,
+    def __init__(self, name: str, coil_constant: float,  field_ramp_rate: float, address: str,
                  reset: bool=False, terminator:str='', **kwargs) -> None:
 
         super().__init__(name, address, terminator=terminator, **kwargs)
