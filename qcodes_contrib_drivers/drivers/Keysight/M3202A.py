@@ -32,7 +32,7 @@ class M3202A(SD_AWG_Async):
         super().__init__(name, chassis, slot, channels=4, triggers=8,
                          legacy_channel_numbering=False, **kwargs)
 
-        module_name = self.__class__.__name__
+        module_name = 'M3202A'
         if self.module_name != module_name:
             raise Exception(f"Found module '{self.module_name}' in chassis {chassis} slot {slot}; expected '{module_name}'")
 
