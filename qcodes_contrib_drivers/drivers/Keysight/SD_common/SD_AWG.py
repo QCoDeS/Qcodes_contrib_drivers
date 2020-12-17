@@ -68,10 +68,11 @@ class SD_AWG(SD_Module):
                            docstring='The frequency of the internal CLKsync in Hz')
 
         for i in range(triggers):
+            pxi_trigger_offset = 0 if is_sd1_3x else 4000
             self.add_parameter('pxi_trigger_number_{}'.format(i),
                                label='pxi trigger number {}'.format(i),
-                               get_cmd=partial(self.get_pxi_trigger, pxi_trigger=(4000 + i)),
-                               set_cmd=partial(self.set_pxi_trigger, pxi_trigger=(4000 + i)),
+                               get_cmd=partial(self.get_pxi_trigger, pxi_trigger=(pxi_trigger_offset + i)),
+                               set_cmd=partial(self.set_pxi_trigger, pxi_trigger=(pxi_trigger_offset + i)),
                                docstring='The digital value of pxi trigger no. {}, 0 (ON) of 1 (OFF)'.format(i),
                                vals=validator.Enum(0, 1))
 
@@ -825,7 +826,6 @@ class SD_AWG(SD_Module):
             logging.info(f'loaded fpga image.')
 
     def write_fpga(self, reg_name, value):
-        logging.debug(f'write {reg_name}, {value}')
         with self._lock:
             reg = result_parser(self.awg.FPGAgetSandBoxRegister(reg_name), reg_name)
             reg.writeRegisterInt32(value)
@@ -838,7 +838,6 @@ class SD_AWG(SD_Module):
             return reg.readRegisterInt32()
 
     def write_fpga_array(self, reg_name, offset, data):
-        logging.debug(f'write {reg_name}, {offset}, {data}')
         with self._lock:
             reg = result_parser(self.awg.FPGAgetSandBoxRegister(reg_name), reg_name)
             result_parser(reg.writeRegisterBuffer(offset, data,
