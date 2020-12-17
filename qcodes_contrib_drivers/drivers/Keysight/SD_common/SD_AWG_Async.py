@@ -453,7 +453,7 @@ class SD_AWG_Async(SD_AWG):
             duration = time.perf_counter() - start
             total_duration += duration
             total_size +=  slot.size
-            self.log.debug(f'uploaded {slot.size} in {duration*1000:5.2f} ms ({slot.size/duration/1e6:5.2f} MSa/s)')
+#            self.log.debug(f'uploaded {slot.size} in {duration*1000:5.2f} ms ({slot.size/duration/1e6:5.2f} MSa/s)')
 
         self.log.info(f'Awg memory reserved: {len(new_slots)} slots, {total_size/1e6} MSa in '
                       f'{total_duration*1000:5.2f} ms ({total_size/total_duration/1e6:5.2f} MSa/s)')
