@@ -5,6 +5,9 @@ from .Keithley_6500 import Keithley_6500
 
 
 class Keithley_2000_Scan_Channel(InstrumentChannel):
+    """
+    This is the qcodes driver for a channel of the 2000-SCAN scanner card.
+    """
     def __init__(self, dmm: Keithley_6500, channel: int, **kwargs) -> None:
         """
         Initialize instance of scanner card Keithley 2000-SCAN

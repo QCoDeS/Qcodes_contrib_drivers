@@ -6,6 +6,9 @@ from .Keithley_2000_Scan import Keithley_2000_Scan_Channel
 
 
 class Keithley_Sense(InstrumentChannel):
+    """
+    This is the class for a measurement channel, i.e. the quantity to be measured (e.g. resistance, voltage).
+    """
     def __init__(self, parent: VisaInstrument, name: str, quantity: str) -> None:
         """
 
@@ -67,7 +70,9 @@ class Keithley_Sense(InstrumentChannel):
 
 
 class Keithley_6500(VisaInstrument):
-
+    """
+    This is the qcodes driver for a Keithley DMM6500 digital multimeter.
+    """
     def __init__(self, name: str,
                  address: str,
                  terminator="\n",
