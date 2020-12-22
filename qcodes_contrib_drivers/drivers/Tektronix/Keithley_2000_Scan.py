@@ -1,14 +1,17 @@
 from functools import partial
+from typing import TYPE_CHECKING
 
 from qcodes.instrument import InstrumentChannel
-from .Keithley_6500 import Keithley_6500
+
+if TYPE_CHECKING:
+    from .Keithley_6500 import Keithley_6500
 
 
 class Keithley_2000_Scan_Channel(InstrumentChannel):
     """
     This is the qcodes driver for a channel of the 2000-SCAN scanner card.
     """
-    def __init__(self, dmm: Keithley_6500, channel: int, **kwargs) -> None:
+    def __init__(self, dmm: "Keithley_6500", channel: int, **kwargs) -> None:
         """
         Initialize instance of scanner card Keithley 2000-SCAN
         Args:
