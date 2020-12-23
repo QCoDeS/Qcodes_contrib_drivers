@@ -296,7 +296,8 @@ class SD_AWG_Async(SD_AWG):
 
         Args:
             awg_number (int): awg number (channel) where the waveform is queued
-            waveform_ref (_WaveformReferenceInternal): reference to a waveform
+            waveform_ref (Union[int, _WaveformReferenceInternal)]:
+                reference to a waveform
             trigger_mode (int): trigger method to launch the waveform
                 Auto                        :   0
                 Software/HVI                :   1
