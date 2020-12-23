@@ -70,7 +70,7 @@ class SD_Module(Instrument):
         super().__init__(name, **kwargs)
 
         # Create instance of keysight module class
-        self.module = module_class()
+        self.SD_module = module_class()
 
         # Open the device, using the specified chassis and slot number
         self.module_name = self.module.getProductNameBySlot(chassis, slot)
