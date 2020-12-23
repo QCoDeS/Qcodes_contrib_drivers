@@ -18,10 +18,10 @@ from .memory_manager import MemoryManager
 F = TypeVar('F', bound=Callable[..., Any])
 
 def switchable(switch, enabled:bool) -> Callable[[F], F]:
-    '''
+    """
     This decorator enables or disables a method depending on the value of an object's method.
     It throws an exception when the invoked method is disabled.
-    '''
+    """
 
     def switchable_decorator(func):
 
@@ -149,8 +149,9 @@ class _WaveformReferenceInternal(WaveformReference):
 
     def __del__(self):
         if not self._released:
-            logging.warn(f'WaveformReference was not released ({self.awg_name}:{self.wave_number}). '
-                         'Automatic release in destructor.')
+            logging.warning(f'WaveformReference was not released '
+                            f'({self.awg_name}:{self.wave_number}). Automatic '
+                            f'release in destructor.')
             self.release()
 
 
@@ -295,7 +296,7 @@ class SD_AWG_Async(SD_AWG):
 
         Args:
             awg_number (int): awg number (channel) where the waveform is queued
-            waveform_ref (WaveformReference): reference to a waveform
+            waveform_ref (_WaveformReferenceInternal): reference to a waveform
             trigger_mode (int): trigger method to launch the waveform
                 Auto                        :   0
                 Software/HVI                :   1
@@ -346,14 +347,16 @@ class SD_AWG_Async(SD_AWG):
 
 
     @switchable(asynchronous, enabled=True)
-    def upload_waveform(self, wave: Union[List[float], List[int], np.ndarray]) -> WaveformReference:
-        '''
+    def upload_waveform(self, wave: Union[List[float],
+                                          List[int], np.ndarray]
+                        ) -> _WaveformReferenceInternal:
+        """
         Upload the wave using the uploader thread for this AWG.
         Args:
             wave: wave data to upload.
         Returns:
             reference to the wave
-        '''
+        """
         if len(wave) < 2000:
             raise Exception(f'{len(wave)} is less than 2000 samples required for proper functioning of AWG')
 
@@ -431,9 +434,9 @@ class SD_AWG_Async(SD_AWG):
 
 
     def _init_awg_memory(self):
-        '''
+        """
         Initialize memory on the AWG by uploading waveforms with all zeros.
-        '''
+        """
         new_slots = self._memory_manager.get_uninitialized_slots()
         if len(new_slots) == 0:
             return
@@ -449,11 +452,10 @@ class SD_AWG_Async(SD_AWG):
                 zeros = np.zeros(slot.size, np.float)
                 wave = keysightSD1.SD_Wave()
                 result_parser(wave.newFromArrayDouble(keysightSD1.SD_WaveformTypes.WAVE_ANALOG, zeros))
-            super().load_waveform(wave, slot.number)
+                super().load_waveform(wave, slot.number)
             duration = time.perf_counter() - start
             total_duration += duration
-            total_size +=  slot.size
-#            self.log.debug(f'uploaded {slot.size} in {duration*1000:5.2f} ms ({slot.size/duration/1e6:5.2f} MSa/s)')
+            total_size += slot.size
 
         self.log.info(f'Awg memory reserved: {len(new_slots)} slots, {total_size/1e6} MSa in '
                       f'{total_duration*1000:5.2f} ms ({total_size/total_duration/1e6:5.2f} MSa/s)')
