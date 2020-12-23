@@ -30,7 +30,7 @@ class SD_DIG(SD_Module):
         self.n_channels = channels
         self.n_triggers = triggers
 
-        self.SD_AIN = self.module
+        self.SD_AIN = self.SD_module
 
         #
         # Create a set of internal variables to aid set/get cmds in params

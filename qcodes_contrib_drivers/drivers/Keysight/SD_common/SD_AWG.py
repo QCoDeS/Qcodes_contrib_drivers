@@ -38,7 +38,7 @@ class SD_AWG(SD_Module):
         super().__init__(name, chassis, slot,
                          module_class=keysightSD1.SD_AOU, **kwargs)
 
-        self.awg = self.module
+        self.awg = self.SD_module
 
         # Lock to avoid concurrent access of waveformLoad()/waveformReLoad()
         self._lock = RLock()
