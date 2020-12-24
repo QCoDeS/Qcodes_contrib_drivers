@@ -1,7 +1,7 @@
 from functools import partial
 from typing import TYPE_CHECKING
 
-from qcodes.instrument import InstrumentChannel
+from qcodes.instrument.channel import InstrumentChannel
 
 if TYPE_CHECKING:
     from .Keithley_6500 import Keithley_6500
@@ -27,27 +27,27 @@ class Keithley_2000_Scan_Channel(InstrumentChannel):
                            unit='Ohm',
                            label=f'Resistance CH{self.channel}',
                            get_parser=float,
-                           get_cmd=partial(self.measure, 'RES'))
+                           get_cmd=partial(self._measure, 'RES'))
 
         self.add_parameter('resistance_4w',
                            unit='Ohm',
                            label=f'Resistance (4-wire) CH{self.channel}',
                            get_parser=float,
-                           get_cmd=partial(self.measure, 'FRES'))
+                           get_cmd=partial(self._measure, 'FRES'))
 
         self.add_parameter('voltage_dc',
                            unit='V',
                            label=f'DC Voltage CH{self.channel}',
                            get_parser=float,
-                           get_cmd=partial(self.measure, 'VOLT'))
+                           get_cmd=partial(self._measure, 'VOLT'))
 
         self.add_parameter('current_dc',
                            unit='A',
                            label=f'DC current CH{self.channel}',
                            get_parser=float,
-                           get_cmd=partial(self.measure, 'CURR'))
+                           get_cmd=partial(self._measure, 'CURR'))
 
-    def measure(self, quantity: str) -> str:
+    def _measure(self, quantity: str) -> str:
         """
         Measure given quantity at rear terminal of the instrument. Only perform measurement if rear terminal is
         active. Send SCPI command to measure and read out given quantity.
@@ -62,5 +62,4 @@ class Keithley_2000_Scan_Channel(InstrumentChannel):
             self.write(f"ROUT:CLOS (@{self.channel:d})")
             return self.ask("READ?")
         else:
-            print("WARNING: Front terminal is active instead of rear terminal.")
-            return "nan"
+            raise RuntimeError("Front terminal is active instead of rear terminal.")

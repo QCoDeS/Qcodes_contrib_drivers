@@ -1,5 +1,5 @@
 from qcodes.instrument.visa import VisaInstrument
-from qcodes.instrument import InstrumentChannel
+from qcodes.instrument.channel import InstrumentChannel
 from qcodes.utils.validators import Numbers
 from functools import partial
 from .Keithley_2000_Scan import Keithley_2000_Scan_Channel
@@ -9,34 +9,34 @@ class Keithley_Sense(InstrumentChannel):
     """
     This is the class for a measurement channel, i.e. the quantity to be measured (e.g. resistance, voltage).
     """
-    def __init__(self, parent: VisaInstrument, name: str, quantity: str) -> None:
+    def __init__(self, parent: VisaInstrument, name: str, channel: str) -> None:
         """
 
         Args:
             parent: VisaInstrument instance of the Keithley Digital Multimeter
             name: Channel name (e.g. 'CH1')
-            quantity: Name of the quantity to measure (e.g. 'VOLT' for DC voltage measurement)
+            channel: Name of the quantity to measure (e.g. 'VOLT' for DC voltage measurement)
         """
         valid_channels = ['VOLT', 'CURR', 'RES', 'FRES']
-        if quantity.upper() not in valid_channels:
+        if channel.upper() not in valid_channels:
             raise ValueError(f"Channel must be one of the following: {', '.join(valid_channels)}")
         super().__init__(parent, name)
 
         self.add_parameter('measure',
-                           unit=partial(self._get_unit, quantity),
-                           label=partial(self._get_label, quantity),
+                           unit=partial(self._get_unit, channel),
+                           label=partial(self._get_label, channel),
                            get_parser=float,
-                           get_cmd=partial(self.parent.measure, quantity),
+                           get_cmd=partial(self.parent.measure, channel),
                            docstring="Measure value of chosen quantity (Current/Voltage/Resistance)."
                            )
 
         self.add_parameter('nplc',
                            label='NPLC',
                            get_parser=float,
-                           get_cmd=f"SENS:{quantity}:NPLC?",
-                           set_cmd=f"SENS:{quantity}:NPLC {{:.4f}}",
+                           get_cmd=f"SENS:{channel}:NPLC?",
+                           set_cmd=f"SENS:{channel}:NPLC {{:.4f}}",
                            vals=Numbers(0.0005, 12),
-                           docstring="Integration rate (Numbers Per Line Cycle)"
+                           docstring="Integration rate (Number of Power Line Cycles)"
                            )
 
     @staticmethod
@@ -99,28 +99,28 @@ class Keithley_6500(VisaInstrument):
                            unit='Ohm',
                            label='Measured resistance',
                            get_parser=float,
-                           get_cmd=partial(self.measure, 'RES'),
+                           get_cmd=partial(self._measure, 'RES'),
                            )
 
         self.add_parameter('resistance_4w',
                            unit='Ohm',
                            label='Measured resistance',
                            get_parser=float,
-                           get_cmd=partial(self.measure, 'FRES')
+                           get_cmd=partial(self._measure, 'FRES')
                            )
 
         self.add_parameter('voltage_dc',
                            unit='V',
                            label='Measured DC voltage',
                            get_parser=float,
-                           get_cmd=partial(self.measure, 'VOLT')
+                           get_cmd=partial(self._measure, 'VOLT')
                            )
 
         self.add_parameter('current_dc',
                            unit='A',
                            label='Measured DC current',
                            get_parser=float,
-                           get_cmd=partial(self.measure, 'CURR')
+                           get_cmd=partial(self._measure, 'CURR')
                            )
 
         self.connect_message()
@@ -138,7 +138,7 @@ class Keithley_6500(VisaInstrument):
                 self.add_submodule(f"ch{ch_number:d}", scan_channel)
 
     # only measure if front terminal is active
-    def measure(self, quantity: str) -> str:
+    def _measure(self, quantity: str) -> str:
         """
         Measure given quantity at front terminal of the instrument. Only perform measurement if front terminal is
         active. Send SCPI command to measure and read out given quantity.
@@ -151,5 +151,4 @@ class Keithley_6500(VisaInstrument):
         if self.active_terminal.get() == 'FRON':
             return self.ask(f"MEAS:{quantity}?")
         else:
-            print("WARNING: Rear terminal is active instead of front terminal.")
-            return "nan"
+            raise RuntimeError("Rear terminal is active instead of front terminal.")
