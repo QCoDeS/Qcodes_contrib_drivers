@@ -453,7 +453,7 @@ class SD_AWG_Async(SD_AWG):
                 zeros = np.zeros(slot.size, np.float)
                 wave = keysightSD1.SD_Wave()
                 result_parser(wave.newFromArrayDouble(keysightSD1.SD_WaveformTypes.WAVE_ANALOG, zeros))
-                super().load_waveform(wave, slot.number)
+            super().load_waveform(wave, slot.number)
             duration = time.perf_counter() - start
             total_duration += duration
             total_size += slot.size
