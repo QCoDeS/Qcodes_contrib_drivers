@@ -445,11 +445,12 @@ class SD_AWG_Async(SD_AWG):
         self.log.info(f'Reserving awg memory for {len(new_slots)} slots')
 
         zeros = []
+        wave = None
         total_size = 0
         total_duration = 0
         for slot in new_slots:
             start = time.perf_counter()
-            if len(zeros) != slot.size:
+            if len(zeros) != slot.size or wave is None:
                 zeros = np.zeros(slot.size, np.float)
                 wave = keysightSD1.SD_Wave()
                 result_parser(wave.newFromArrayDouble(keysightSD1.SD_WaveformTypes.WAVE_ANALOG, zeros))
