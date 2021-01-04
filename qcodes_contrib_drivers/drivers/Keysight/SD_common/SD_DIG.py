@@ -23,25 +23,14 @@ class SD_DIG(SD_Module):
                 channels (int)  : the number of input channels the specified card has
                 triggers (int)  : the number of trigger inputs the specified card has
         """
-        super().__init__(name, chassis, slot, **kwargs)
+        super().__init__(name, chassis, slot, module_class=keysightSD1.SD_AIN, **kwargs)
 
-        # Create instance of keysight SD_AIN class
-        self.SD_AIN = keysightSD1.SD_AIN()
 
         # store card-specifics
         self.n_channels = channels
         self.n_triggers = triggers
 
-        # Open the device, using the specified chassis and slot number
-        dig_name = self.SD_AIN.getProductNameBySlot(chassis, slot)
-        if isinstance(dig_name, str):
-            result_code = self.SD_AIN.openWithSlot(dig_name, chassis, slot)
-            if result_code <= 0:
-                raise Exception('Could not open SD_DIG '
-                                'error code {}'.format(result_code))
-        else:
-            raise Exception('No SD_DIG found at '
-                            'chassis {}, slot {}'.format(chassis, slot))
+        self.SD_AIN = self.SD_module
 
         #
         # Create a set of internal variables to aid set/get cmds in params
