@@ -297,7 +297,7 @@ class Lakeshore625(VisaInstrument):
             status
         """
         status, psh_current, psh_delay = self._get_persistent_switch_heater_setup()
-        return int(status)
+        return status
 
 
     def _get_quench_detection_status(self) -> int:
@@ -309,7 +309,7 @@ class Lakeshore625(VisaInstrument):
             status
         """
         status, current_step_limit = self._get_quench_detection_setup()
-        return int(status)
+        return status
 
 
     def _get_quench_current_step_limit(self) -> float:
@@ -321,7 +321,7 @@ class Lakeshore625(VisaInstrument):
             <rate>
         """
         status, current_step_limit = self._get_quench_detection_setup()
-        return float(current_step_limit)
+        return current_step_limit
 
 
     def _get_coil_constant(self) -> float:
@@ -333,7 +333,7 @@ class Lakeshore625(VisaInstrument):
             <constant>
         """
         coil_constant_unit, coil_constant = self._get_field_setup()
-        return float(coil_constant)
+        return coil_constant
 
 
     def _get_coil_constant_unit(self) -> str:
@@ -345,7 +345,7 @@ class Lakeshore625(VisaInstrument):
             <units>
         """
         coil_constant_unit, coil_constant = self._get_field_setup()
-        return str(coil_constant_unit)
+        return coil_constant_unit
 
 
     def _get_field_ramp_rate(self) -> float:
@@ -359,7 +359,7 @@ class Lakeshore625(VisaInstrument):
         coil_constant_unit, coil_constant = self._get_field_setup() # in T/A by default
         current_ramp_rate = self.current_ramp_rate()    # in A/s
         field_ramp_rate = current_ramp_rate * coil_constant * 60 # in T/min
-        return float(field_ramp_rate)
+        return field_ramp_rate
 
 
     def _get_ramping_state(self) -> str:
