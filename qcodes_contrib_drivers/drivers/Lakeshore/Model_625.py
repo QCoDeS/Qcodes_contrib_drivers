@@ -6,7 +6,6 @@ from typing import Union, Tuple
 from qcodes import VisaInstrument
 from qcodes.utils.validators import  Numbers, Enum
 
-log = logging.getLogger(__name__)
 
 class Lakeshore625(VisaInstrument):
     """
@@ -16,8 +15,9 @@ class Lakeshore625(VisaInstrument):
 
     Args:
         name (str): a name for the instrument
+        coil_constant (float): Coil contant of magnet, in untis of T/A
+        field_ramp_rate (float): Magnetic field ramp rate, in units of T/min
         address (str): VISA address of the device
-        current_ramp_limit: A current ramp limit, in units of A/s
     """
 
     def __init__(self, name: str, coil_constant: float,  field_ramp_rate: float, address: str,
