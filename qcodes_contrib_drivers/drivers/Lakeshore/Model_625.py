@@ -409,7 +409,7 @@ class Lakeshore625(VisaInstrument):
         -------
             quench bit
         """
-        return self._get_operational_errors()[3]
+        return int(self._get_operational_errors()[3])
 
 
     # set functions for parameters
