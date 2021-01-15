@@ -26,7 +26,7 @@ class Keithley_Sense(InstrumentChannel):
                            unit=partial(self._get_unit, channel),
                            label=partial(self._get_label, channel),
                            get_parser=float,
-                           get_cmd=partial(self.parent.measure, channel),
+                           get_cmd=partial(self.parent._measure, channel),
                            docstring="Measure value of chosen quantity (Current/Voltage/Resistance)."
                            )
 
