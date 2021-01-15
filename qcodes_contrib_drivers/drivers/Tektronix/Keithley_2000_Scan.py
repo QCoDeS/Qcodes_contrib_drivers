@@ -1,7 +1,7 @@
 from functools import partial
 from typing import TYPE_CHECKING
 
-from qcodes.instrument.channel import InstrumentChannel
+from qcodes.instrument import InstrumentChannel
 
 if TYPE_CHECKING:
     from .Keithley_6500 import Keithley_6500
