@@ -50,7 +50,7 @@ class iTestChannel(InstrumentChannel):
                            label='Channel {} voltage'.format(chan_num),
                            unit='V',
                            get_cmd=partial(self._parent._get_voltage,chan_num),
-                           set_cmd=partial(self._parent._set_voltage,chan_num,trigger=True),
+                           set_cmd=partial(self._parent._set_voltage,chan_num,trigger=True,block=True),
                            get_parser=float
                            )
            
@@ -184,7 +184,7 @@ class ITest(VisaInstrument):
 
         self.connect_message()
         
-    def _set_voltage(self,chan,v_set,trigger=False):
+    def _set_voltage(self,chan,v_set,trigger=False,block=False):
         """
         Set cmd for the chXX_v parameter
         
@@ -197,6 +197,12 @@ class ITest(VisaInstrument):
         
         if trigger:
             self._trig_chan(chan)
+            if block:
+                v = self.channels[chan-1].v()
+                while(abs(v_set - v)>=10e-5):
+                    time.sleep(1e-3)
+                    v = self.channels[chan-1].v()
+                
             
     def _get_voltage(self,chan):
         """
