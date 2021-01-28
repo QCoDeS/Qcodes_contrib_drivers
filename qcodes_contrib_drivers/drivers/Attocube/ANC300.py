@@ -15,7 +15,7 @@ Author:
 
 import time
 import logging
-import visa
+import pyvisa
 
 # real mode:
 from qcodes import VisaInstrument
@@ -360,8 +360,8 @@ class ANC300(VisaInstrument):
         # configure the port
         if 'ASRL' not in address:
             self.visa_handle.baud_rate = 38400 # USB has no baud rate parameter
-        self.visa_handle.stop_bits = visa.constants.StopBits.one
-        self.visa_handle.parity = visa.constants.Parity.none
+        self.visa_handle.stop_bits = pyvisa.constants.StopBits.one
+        self.visa_handle.parity = pyvisa.constants.Parity.none
         self.visa_handle.read_termination = '\r\n'
         self.parameters.pop('IDN') # Get rid of this parameter
 

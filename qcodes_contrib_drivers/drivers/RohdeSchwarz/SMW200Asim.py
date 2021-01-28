@@ -8,7 +8,7 @@ is not available.
 Authors:
     Michael Wagener, ZEA-2, m.wagener@fz-juelich.de
 """
-import visa
+import pyvisa
 from qcodes.instrument.visa import VisaInstrument
 from qcodes.utils.validators import Numbers
 
@@ -200,7 +200,7 @@ class MockVisaHandle:
             raise ValueError('be more positive!')
 
         if num == 0:
-            ret_code = visa.constants.VI_ERROR_TMO
+            ret_code = pyvisa.constants.VI_ERROR_TMO
         else:
             ret_code = 0
 
