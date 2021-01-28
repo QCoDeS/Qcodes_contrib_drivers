@@ -556,7 +556,11 @@ class PNABase(VisaInstrument):
                            get_parser=float,
                            set_cmd='SENS:BAND {:.2f}',
                            unit='Hz',
-                           vals=Numbers(min_value=10, max_value=15e6))
+                           #vals=Numbers(min_value=10, max_value=15e6))
+                           vals=Enum(
+                           *np.append([10 ** 6, 15 * 10 ** 5],
+                           np.kron([10, 15, 20, 30, 50, 70], 10 ** np.arange(5)))))
+                           
 
         # Number of averages (also resets averages)
         self.add_parameter('averages_enabled',
