@@ -2,7 +2,7 @@ import numpy as np
 from qcodes import VisaInstrument, validators as vals
 from qcodes.utils.validators import Numbers
 from qcodes.utils.helpers import create_on_off_val_mapping
-
+from qcodes.instrument.parameter import DelegateParameter
 
 def parse_on_off(stat):
     if stat.startswith('0'):
@@ -82,12 +82,18 @@ class Keysight_E8267D(VisaInstrument):
                            get_parser=float,
                            vals=Numbers(min_value=-200e9,
                                         max_value=200e9))
+        self.add_parameter(name='freq_offset',
+                           source=self.frequency_offset,
+                           parameter_class=DelegateParameter)
         self.add_parameter('frequency_mode',
                            label='Frequency mode',
                            set_cmd='FREQ:MODE {}',
                            get_cmd='FREQ:MODE?',
                            get_parser=lambda s: s.strip(),
                            vals=vals.Enum('FIX', 'CW', 'SWE', 'LIST'))
+        self.add_parameter(name='freq_mode',
+                           source=self.frequency_mode,
+                           parameter_class=DelegateParameter)
         self.add_parameter(name='phase',
                            label='Phase',
                            unit='deg',
@@ -109,10 +115,16 @@ class Keysight_E8267D(VisaInstrument):
                            set_cmd='OUTP {}',
                            get_parser=parse_on_off,
                            vals=on_off_validator)
+        self.add_parameter(name='output_rf',
+                           source=self.status,
+                           parameter_class=DelegateParameter)
         self.add_parameter(name='modulation_rf_enabled',
                            get_cmd='OUTP:MOD?',
                            set_cmd='OUTP:MOD {}',
                            val_mapping=on_off_mapping)
+        self.add_parameter(name='modulation_rf',
+                           source=self.modulation_rf_enabled,
+                           parameter_class=DelegateParameter)
         self.add_parameter('IQmodulator_enabled',
                            get_cmd='DM:STATe?',
                            set_cmd='DM:STATe {}',
@@ -142,10 +154,10 @@ class Keysight_E8267D(VisaInstrument):
         self.connect_message()
 
     def on(self):
-        self.set('status', 'on')
+        self.set('output_rf', 'on')
 
     def off(self):
-        self.set('status', 'off')
+        self.set('output_rf', 'off')
 
     @staticmethod
     def deg_to_rad(angle_deg):
