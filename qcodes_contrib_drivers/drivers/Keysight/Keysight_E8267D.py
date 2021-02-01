@@ -3,6 +3,8 @@ from qcodes import VisaInstrument, validators as vals
 from qcodes.utils.validators import Numbers
 from qcodes.utils.helpers import create_on_off_val_mapping
 from qcodes.instrument.parameter import DelegateParameter
+from qcodes.utils.deprecate import issue_deprecation_warning
+
 
 def parse_on_off(stat):
     if stat.startswith('0'):
@@ -74,7 +76,7 @@ class Keysight_E8267D(VisaInstrument):
                            set_parser=float,
                            vals=vals.Numbers(1e5, 20e9),
                            docstring='Adjust the RF output frequency')
-        self.add_parameter(name='frequency_offset',
+        self.add_parameter(name='freq_offset',
                            label='Frequency offset',
                            unit='Hz',
                            get_cmd='FREQ:OFFS?',
@@ -82,17 +84,27 @@ class Keysight_E8267D(VisaInstrument):
                            get_parser=float,
                            vals=Numbers(min_value=-200e9,
                                         max_value=200e9))
-        self.add_parameter(name='freq_offset',
-                           source=self.frequency_offset,
+        issue_deprecation_warning('frequency_offset',
+                                  reason='similar param exists in qcodes '
+                                         'Agilent (Keysight) E8267C driver '
+                                         'with different name',
+                                  alternative='freq_offset')
+        self.add_parameter(name='frequency_offset',
+                           source=self.freq_offset,
                            parameter_class=DelegateParameter)
-        self.add_parameter('frequency_mode',
+        self.add_parameter('freq_mode',
                            label='Frequency mode',
                            set_cmd='FREQ:MODE {}',
                            get_cmd='FREQ:MODE?',
                            get_parser=lambda s: s.strip(),
                            vals=vals.Enum('FIX', 'CW', 'SWE', 'LIST'))
-        self.add_parameter(name='freq_mode',
-                           source=self.frequency_mode,
+        issue_deprecation_warning('frequency_mode',
+                                  reason='similar param exists in qcodes '
+                                         'Agilent (Keysight) E8267C driver '
+                                         'with different name',
+                                  alternative='freq_mode')
+        self.add_parameter(name='frequency_mode',
+                           source=self.freq_mode,
                            parameter_class=DelegateParameter)
         self.add_parameter(name='phase',
                            label='Phase',
@@ -110,20 +122,30 @@ class Keysight_E8267D(VisaInstrument):
                            get_parser=float,
                            set_parser=float,
                            vals=vals.Numbers(-130, 25))
-        self.add_parameter('status',
+        self.add_parameter('output_rf',
                            get_cmd=':OUTP?',
                            set_cmd='OUTP {}',
                            get_parser=parse_on_off,
                            vals=on_off_validator)
-        self.add_parameter(name='output_rf',
-                           source=self.status,
+        issue_deprecation_warning('status',
+                                  reason='similar param exists in qcodes '
+                                         'Agilent (Keysight) E8267C driver '
+                                         'with different name',
+                                  alternative='output_rf')
+        self.add_parameter(name='status',
+                           source=self.output_rf,
                            parameter_class=DelegateParameter)
-        self.add_parameter(name='modulation_rf_enabled',
+        self.add_parameter(name='modulation_rf',
                            get_cmd='OUTP:MOD?',
                            set_cmd='OUTP:MOD {}',
                            val_mapping=on_off_mapping)
-        self.add_parameter(name='modulation_rf',
-                           source=self.modulation_rf_enabled,
+        issue_deprecation_warning('modulation_rf_enabled',
+                                  reason='similar param exists in qcodes '
+                                         'Agilent (Keysight) E8267C driver '
+                                         'with different name',
+                                  alternative='modulation_rf')
+        self.add_parameter(name='modulation_rf_enabled',
+                           source=self.modulation_rf,
                            parameter_class=DelegateParameter)
         self.add_parameter('IQmodulator_enabled',
                            get_cmd='DM:STATe?',
@@ -154,7 +176,7 @@ class Keysight_E8267D(VisaInstrument):
         self.connect_message()
 
     def on(self):
-        self.set('output_rf', 'on')
+        self.output_rf('on')
 
     def off(self):
         self.output_rf('off')
