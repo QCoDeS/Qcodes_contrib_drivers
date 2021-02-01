@@ -157,7 +157,7 @@ class Keysight_E8267D(VisaInstrument):
         self.set('output_rf', 'on')
 
     def off(self):
-        self.set('output_rf', 'off')
+        self.output_rf('off')
 
     @staticmethod
     def deg_to_rad(angle_deg):
