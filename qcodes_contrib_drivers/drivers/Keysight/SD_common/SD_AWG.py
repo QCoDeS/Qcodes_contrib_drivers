@@ -297,7 +297,7 @@ class SD_AWG(SD_Module):
         index_offset = 0 if self.legacy_channel_numbering else 1
 
         for i in range(self.channels):
-            ch = index_offset
+            ch = i + index_offset
             awg_response = self.awg.AWGstop(ch)
             result_parser(awg_response, f'AWGstop({ch})')
             channel_response = self.awg.channelWaveShape(ch, SD_Waveshapes.AOU_OFF)
