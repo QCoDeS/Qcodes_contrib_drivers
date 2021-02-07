@@ -199,7 +199,8 @@ class SD_AWG(SD_Module):
             frequency: frequency in Hz
             verbose: boolean indicating verbose mode
         """
-        value = self.awg.channelFrequency(channel_number, frequency)
+        with self._lock:
+            value = self.awg.channelFrequency(channel_number, frequency)
         value_name = f'set frequency channel {channel_number} to {frequency} Hz'
         return result_parser(value, value_name, verbose)
 
@@ -213,7 +214,8 @@ class SD_AWG(SD_Module):
             phase: phase in degrees
             verbose: boolean indicating verbose mode
         """
-        value = self.awg.channelPhase(channel_number, phase)
+        with self._lock:
+            value = self.awg.channelPhase(channel_number, phase)
         value_name = f'set phase channel {channel_number} to {phase} degrees'
         return result_parser(value, value_name, verbose)
 
@@ -227,7 +229,8 @@ class SD_AWG(SD_Module):
             amplitude: amplitude in Volts
             verbose: boolean indicating verbose mode
         """
-        value = self.awg.channelAmplitude(channel_number, amplitude)
+        with self._lock:
+            value = self.awg.channelAmplitude(channel_number, amplitude)
         value_name = f'set amplitude channel {channel_number} to {amplitude} V'
         return result_parser(value, value_name, verbose)
 
@@ -241,7 +244,8 @@ class SD_AWG(SD_Module):
             offset: DC offset in Volts
             verbose: boolean indicating verbose mode
         """
-        value = self.awg.channelOffset(channel_number, offset)
+        with self._lock:
+            value = self.awg.channelOffset(channel_number, offset)
         value_name = f'set offset channel {channel_number} to {offset} V'
         return result_parser(value, value_name, verbose)
 
@@ -263,7 +267,8 @@ class SD_AWG(SD_Module):
             wave_shape: wave shape type
             verbose: boolean indicating verbose mode
         """
-        value = self.awg.channelWaveShape(channel_number, wave_shape)
+        with self._lock:
+            value = self.awg.channelWaveShape(channel_number, wave_shape)
         value_name = f'set wave shape channel {channel_number} to {wave_shape}'
         return result_parser(value, value_name, verbose)
 
@@ -288,7 +293,6 @@ class SD_AWG(SD_Module):
     # The methods below are useful for controlling the device, but are not
     # used for setting or getting parameters
     #
-
     def off(self) -> None:
         """
         Stops the AWGs and sets the waveform of all channels to 'No Signal'
@@ -675,9 +679,10 @@ class SD_AWG(SD_Module):
         Queues the specified waveform in one of the AWGs of the module.
         The waveform must be already loaded in the module onboard RAM.
         """
-        result = self.awg.AWGqueueWaveform(awg_number, waveform_number,
-                                           trigger_mode, start_delay, cycles,
-                                           prescaler)
+        with self._lock:
+            result = self.awg.AWGqueueWaveform(awg_number, waveform_number,
+                                               trigger_mode, start_delay, cycles,
+                                               prescaler)
         result_parser(result,
                       f'AWGqueueWaveform({awg_number}, {waveform_number})')
 
@@ -690,7 +695,8 @@ class SD_AWG(SD_Module):
             awg_number: awg number where the waveform is queued
             mode: operation mode of the queue: One Shot (0), Cyclic (1)
         """
-        result = self.awg.AWGqueueConfig(awg_number, mode)
+        with self._lock:
+            result = self.awg.AWGqueueConfig(awg_number, mode)
         result_parser(result, f'AWGqueueConfig({awg_number}, {mode})')
 
     def awg_flush(self, awg_number: int) -> None:
@@ -698,7 +704,8 @@ class SD_AWG(SD_Module):
         Empties the queue of the selected AWG.
         Waveforms are not removed from the onboard RAM.
         """
-        result = self.awg.AWGflush(awg_number)
+        with self._lock:
+            result = self.awg.AWGflush(awg_number)
         result_parser(result, f'AWGflush({awg_number})')
 
     def awg_start(self, awg_number: int) -> None:
@@ -708,7 +715,8 @@ class SD_AWG(SD_Module):
         depending on the trigger selection of the first waveform in the queue
         and provided that at least one waveform is queued in the AWG.
         """
-        result = self.awg.AWGstart(awg_number)
+        with self._lock:
+            result = self.awg.AWGstart(awg_number)
         result_parser(result, f'AWGstart({awg_number})')
 
     def awg_start_multiple(self, awg_mask: int) -> None:
@@ -722,7 +730,8 @@ class SD_AWG(SD_Module):
             awg_mask: Mask to select the awgs to start (LSB is awg 0,
                 bit 1 is awg 1 etc.)
         """
-        result = self.awg.AWGstartMultiple(awg_mask)
+        with self._lock:
+            result = self.awg.AWGstartMultiple(awg_mask)
         result_parser(result, f'AWGstartMultiple({awg_mask})')
 
     def awg_pause(self, awg_number: int) -> None:
@@ -731,7 +740,8 @@ class SD_AWG(SD_Module):
         and ignoring all incoming triggers.
         The waveform generation can be resumed calling awg_resume
         """
-        result = self.awg.AWGpause(awg_number)
+        with self._lock:
+            result = self.awg.AWGpause(awg_number)
         result_parser(result, f'AWGpause({awg_number})')
 
     def awg_pause_multiple(self, awg_mask: int) -> None:
@@ -744,14 +754,16 @@ class SD_AWG(SD_Module):
             awg_mask: Mask to select the awgs to pause (LSB is awg 0,
                 bit 1 is awg 1 etc.)
         """
-        result = self.awg.AWGpauseMultiple(awg_mask)
+        with self._lock:
+            result = self.awg.AWGpauseMultiple(awg_mask)
         result_parser(result, f'AWGpauseMultiple({awg_mask})')
 
     def awg_resume(self, awg_number: int) -> None:
         """
         Resumes the selected AWG, from the current position of the queue.
         """
-        result = self.awg.AWGresume(awg_number)
+        with self._lock:
+            result = self.awg.AWGresume(awg_number)
         result_parser(result, f'AWGresume({awg_number})')
 
     def awg_resume_multiple(self, awg_mask: int) -> None:
@@ -763,7 +775,8 @@ class SD_AWG(SD_Module):
             awg_mask: Mask to select the awgs to resume (LSB is awg 0,
                 bit 1 is awg 1 etc.)
         """
-        result = self.awg.AWGresumeMultiple(awg_mask)
+        with self._lock:
+            result = self.awg.AWGresumeMultiple(awg_mask)
         result_parser(result, f'AWGresumeMultiple({awg_mask})')
 
     def awg_stop(self, awg_number: int) -> None:
@@ -772,7 +785,8 @@ class SD_AWG(SD_Module):
         AWG queue to its initial position.
         All following incoming triggers are ignored.
         """
-        result = self.awg.AWGstop(awg_number)
+        with self._lock:
+            result = self.awg.AWGstop(awg_number)
         result_parser(result, f'AWGstop({awg_number})')
 
     def awg_stop_multiple(self, awg_mask: int) -> None:
@@ -785,7 +799,8 @@ class SD_AWG(SD_Module):
             awg_mask: Mask to select the awgs to stop (LSB is awg 0, bit 1 is
                 awg 1 etc.)
         """
-        result = self.awg.AWGstopMultiple(awg_mask)
+        with self._lock:
+            result = self.awg.AWGstopMultiple(awg_mask)
         result_parser(result, f'AWGstopMultiple({awg_mask})')
 
     def awg_jump_next_waveform(self, awg_number: int) -> None:
@@ -794,7 +809,8 @@ class SD_AWG(SD_Module):
         The jump is executed once the current waveform has finished a
         complete cycle.
         """
-        result = self.awg.AWGjumpNextWaveform(awg_number)
+        with self._lock:
+            result = self.awg.AWGjumpNextWaveform(awg_number)
         result_parser(result, f'AWGjumpNextWaveform({awg_number})')
 
     def awg_config_external_trigger(self, awg_number: int, external_source: int,
@@ -845,7 +861,8 @@ class SD_AWG(SD_Module):
         """
         Returns True if awg on `channel` is running.
         """
-        return self.awg.AWGisRunning(channel)
+        with self._lock:
+            return self.awg.AWGisRunning(channel)
 
     #
     # Functions related to creation of SD_Wave objects

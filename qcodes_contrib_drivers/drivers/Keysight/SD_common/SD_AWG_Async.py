@@ -2,7 +2,6 @@
 import threading
 import queue
 import sys
-from dataclasses import dataclass
 from typing import Dict, List, Union, Optional, TypeVar, Callable, Any
 import time
 import logging
@@ -36,6 +35,63 @@ def switchable(switch, enabled:bool) -> Callable[[F], F]:
         return func_wrapper
 
     return switchable_decorator
+
+
+class Task:
+    def __init__(self, f, instance, *args, **kwargs):
+        self._event = threading.Event()
+        self._f = f
+        self._instance = instance
+        self._args = args
+        self._kwargs = kwargs
+
+    def run(self):
+        start = time.perf_counter()
+        if not self._instance._start_time:
+            self._instance._start_time = start
+
+#        logging.debug(f'[{self._instance.name}] > {self._f.__name__}')
+        self._result = self._f(self._instance, *self._args, **self._kwargs)
+        total = time.perf_counter() - self._instance._start_time
+        logging.debug(f'[{self._instance.name}] < {self._f.__name__} ({(time.perf_counter()-start)*1000:5.2f} ms '
+                      f'/ {total*1000:5.2f} ms)')
+        self._event.set()
+
+    @property
+    def result(self):
+        self._event.wait()
+        return self._result
+
+def threaded(wait:bool=False) -> Callable[[F], F]:
+    def threaded_decorator(func):
+
+        @wraps(func)
+        def func_wrapper(self, *args, **kwargs):
+#            # NOT THREADED
+#            start = time.perf_counter()
+#            if not self._start_time:
+#                self._start_time = start
+#            logging.debug(f'[{self.name}] > {func.__name__}')
+#            result = func(self, *args, **kwargs)
+#            total = time.perf_counter() - self._start_time
+#            logging.debug(f'[{self.name}] < {func.__name__} ({(time.perf_counter()-start)*1000:5.2f} ms '
+#                          f'/ {total*1000:5.2f} ms)')
+#            if wait:
+#                self._start_time = None
+#            return result
+
+#            logging.debug(f'>>> {func.__name__}')
+            task = Task(func, self, *args, **kwargs)
+            self._task_queue.put(task)
+            if wait:
+                result = task.result
+                self._start_time = None
+                return result
+            return (None, 'async task')
+
+        return func_wrapper
+
+    return threaded_decorator
 
 
 class WaveformReference:
@@ -199,16 +255,6 @@ class SD_AWG_Async(SD_AWG):
         asynchronous (bool): if False the memory manager and asynchronous functionality are disabled.
     """
 
-    @dataclass
-    class UploadAction:
-        action: str
-        wave: Optional[Union[List[float], List[int], np.ndarray]]
-        wave_ref: Optional[WaveformReference]
-
-
-    _ACTION_STOP = UploadAction('stop', None, None)
-    _ACTION_INIT_AWG_MEMORY = UploadAction('init', None, None)
-
     _modules: Dict[str, 'SD_AWG_Async'] = {}
     """ All async modules by unique module id. """
 
@@ -218,6 +264,7 @@ class SD_AWG_Async(SD_AWG):
 
         self._asynchronous = False
         self._waveform_size_limit = waveform_size_limit
+        self._start_time = None
 
         module_id = self._get_module_id()
         if module_id in SD_AWG_Async._modules:
@@ -283,13 +330,28 @@ class SD_AWG_Async(SD_AWG):
         super().awg_from_array(awg_number, trigger_mode, start_delay, cycles, prescaler, waveform_type, waveform_data_a,
                        waveform_data_b, padding_mode, verbose)
 
-
+#    @threaded()
     def awg_flush(self, awg_number):
+        self.log.debug(f'flush {awg_number}')
         super().awg_flush(awg_number)
         if self._asynchronous:
             self._release_waverefs_awg(awg_number)
 
+    @threaded(wait=True)
+    def uploader_ready(self):
+        return True
 
+#    @threaded()
+    def set_channel_amplitude(self, amplitude: int, channel_number: int,
+                              verbose: bool = False) -> Any:
+        return super().set_channel_amplitude(amplitude, channel_number, verbose)
+
+#    @threaded()
+    def set_channel_offset(self, offset: int, channel_number: int,
+                           verbose: bool = False) -> Any:
+        return super().set_channel_offset(offset, channel_number, verbose)
+
+#    @threaded()
     def awg_queue_waveform(self, awg_number, waveform_ref, trigger_mode, start_delay, cycles, prescaler):
         """
         Enqueus the waveform.
@@ -344,7 +406,7 @@ class SD_AWG_Async(SD_AWG):
             requested_waveform_size_limit (int): maximum size of waveform that can be uploaded
         """
         self._memory_manager.set_waveform_limit(requested_waveform_size_limit)
-        self._upload_queue.put(SD_AWG_Async._ACTION_INIT_AWG_MEMORY)
+        self._init_awg_memory()
 
 
     @switchable(asynchronous, enabled=True)
@@ -364,10 +426,7 @@ class SD_AWG_Async(SD_AWG):
         allocated_slot = self._memory_manager.allocate(len(wave))
         ref = _WaveformReferenceInternal(allocated_slot, self.name)
         self.log.debug(f'upload: {ref.wave_number}')
-
-        entry = SD_AWG_Async.UploadAction('upload', wave, ref)
-        self._upload_queue.put(entry)
-
+        self._upload(wave, ref)
         return ref
 
 
@@ -401,7 +460,8 @@ class SD_AWG_Async(SD_AWG):
         for i in range(self.channels):
             self._enqueued_waverefs[i+1] = []
 
-        self._upload_queue = queue.Queue()
+        self._task_queue = queue.Queue()
+        self._init_awg_memory()
         self._thread = threading.Thread(target=self._run, name=f'uploader-{self.module_id}')
         self._thread.start()
 
@@ -410,7 +470,9 @@ class SD_AWG_Async(SD_AWG):
         """
         Stops the asynchronous upload thread and memory manager.
         """
-        self._upload_queue.put(SD_AWG_Async._ACTION_STOP)
+        if self._task_queue:
+            self._task_queue.put('STOP')
+
         # wait at most 15 seconds. Should be more enough for normal scenarios
         self._thread.join(15)
         if self._thread.is_alive():
@@ -418,7 +480,7 @@ class SD_AWG_Async(SD_AWG):
 
         self._release_waverefs()
         self._memory_manager = None
-        self._upload_queue = None
+        self._task_queue = None
         self._thread = None
 
 
@@ -433,7 +495,7 @@ class SD_AWG_Async(SD_AWG):
         self._enqueued_waverefs[awg_number] = []
 
 
-
+    @threaded()
     def _init_awg_memory(self):
         """
         Initialize memory on the AWG by uploading waveforms with all zeros.
@@ -456,53 +518,51 @@ class SD_AWG_Async(SD_AWG):
                 result_parser(wave.newFromArrayDouble(keysightSD1.SD_WaveformTypes.WAVE_ANALOG, zeros))
             super().load_waveform(wave, slot.number)
             duration = time.perf_counter() - start
+#            self.log.debug(f'uploaded {slot.size} in  {duration*1000:5.2f} ms ({slot.size/duration/1e6:5.2f} MSa/s)')
             total_duration += duration
             total_size += slot.size
 
         self.log.info(f'Awg memory reserved: {len(new_slots)} slots, {total_size/1e6} MSa in '
                       f'{total_duration*1000:5.2f} ms ({total_size/total_duration/1e6:5.2f} MSa/s)')
 
+    @threaded()
+    def _upload(self, wave_data, wave_ref):
+        self.log.debug(f'Uploading {wave_ref.wave_number}')
+        try:
+            start = time.perf_counter()
+
+            wave = keysightSD1.SD_Wave()
+            result_parser(wave.newFromArrayDouble(keysightSD1.SD_WaveformTypes.WAVE_ANALOG, wave_data))
+            super().reload_waveform(wave, wave_ref.wave_number)
+
+            duration = time.perf_counter() - start
+            speed = len(wave_data)/duration
+            self.log.debug(f'Uploaded {wave_ref.wave_number} in {duration*1000:5.2f} ms ({speed/1e6:5.2f} MSa/s)')
+        except:
+            ex = sys.exc_info()
+            msg = f'{ex[0].__name__}:{ex[1]}'
+            min_value = np.min(wave_data)
+            max_value = np.max(wave_data)
+            if min_value < -1.0 or max_value > 1.0:
+                msg += ': Voltage out of range'
+            self.log.error(f'Failure load waveform {wave_ref.wave_number}: {msg}' )
+            wave_ref._upload_error = msg
+
+        # signal upload done, either successful or with error
+        wave_ref._uploaded.set()
+
 
     def _run(self):
-        self._init_awg_memory()
         self.log.info('Uploader ready')
 
         while True:
-            entry: SD_AWG_Async.UploadItem = self._upload_queue.get()
-            if entry == SD_AWG_Async._ACTION_STOP:
+            task: Task = self._task_queue.get()
+            if task == 'STOP':
                 break
-
-            if entry == SD_AWG_Async._ACTION_INIT_AWG_MEMORY:
-                self._init_awg_memory()
-                continue
-
-            wave_ref = entry.wave_ref
-            self.log.debug(f'Uploading {wave_ref.wave_number}')
             try:
-                start = time.perf_counter()
-
-                wave = keysightSD1.SD_Wave()
-                result_parser(wave.newFromArrayDouble(keysightSD1.SD_WaveformTypes.WAVE_ANALOG, entry.wave))
-                super().reload_waveform(wave, wave_ref.wave_number)
-
-                duration = time.perf_counter() - start
-                speed = len(entry.wave)/duration
-                self.log.debug(f'Uploaded {wave_ref.wave_number} in {duration*1000:5.2f} ms ({speed/1e6:5.2f} MSa/s)')
+                task.run()
             except:
-                ex = sys.exc_info()
-                msg = f'{ex[0].__name__}:{ex[1]}'
-                min_value = np.min(entry.wave)
-                max_value = np.max(entry.wave)
-                if min_value < -1.0 or max_value > 1.0:
-                    msg += ': Voltage out of range'
-                self.log.error(f'Failure load waveform {wave_ref.wave_number}: {msg}' )
-                wave_ref._upload_error = msg
-
-            # signal upload done, either successful or with error
-            wave_ref._uploaded.set()
-
-            # release memory
-            wave = None
-            entry = None
+                logging.error('Task thread error', exc_info=True)
+            task = None
 
         self.log.info('Uploader terminated')
