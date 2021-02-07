@@ -5,7 +5,7 @@ from typing import List, Union, Optional, Any
 from qcodes import validators as validator
 
 from .SD_Module import SD_Module, result_parser, keysightSD1, is_sd1_3x
-from keysightSD1 import SD_Wave
+from keysightSD1 import SD_Wave, SD_Waveshapes
 
 class SD_AWG(SD_Module):
     """
@@ -39,6 +39,7 @@ class SD_AWG(SD_Module):
                          module_class=keysightSD1.SD_AOU, **kwargs)
 
         self.awg = self.SD_module
+        self.legacy_channel_numbering = legacy_channel_numbering
 
         # Lock to avoid concurrent access of waveformLoad()/waveformReLoad()
         self._lock = RLock()
@@ -293,12 +294,14 @@ class SD_AWG(SD_Module):
         """
         Stops the AWGs and sets the waveform of all channels to 'No Signal'
         """
+        index_offset = 0 if self.legacy_channel_numbering else 1
 
         for i in range(self.channels):
-            awg_response = self.awg.AWGstop(i)
-            result_parser(awg_response, f'AWGstop({i})')
-            channel_response = self.awg.channelWaveShape(i, 0)
-            result_parser(channel_response, f'channelWaveShape({i}, 0)')
+            ch = index_offset
+            awg_response = self.awg.AWGstop(ch)
+            result_parser(awg_response, f'AWGstop({ch})')
+            channel_response = self.awg.channelWaveShape(ch, SD_Waveshapes.AOU_OFF)
+            result_parser(channel_response, f'channelWaveShape({ch}, SD_Waveshapes.AOU_OFF)')
 
     def reset_clock_phase(self, trigger_behaviour: int, trigger_source: int,
                           skew: float = 0.0, verbose: bool = False) -> Any:
