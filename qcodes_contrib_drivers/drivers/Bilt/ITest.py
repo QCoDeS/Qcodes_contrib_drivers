@@ -5,6 +5,7 @@
 from typing import Union, Tuple
 from functools import partial
 from math import ceil
+from time import sleep
 
 from qcodes.instrument.base import Instrument
 from qcodes.instrument.channel import InstrumentChannel, ChannelList
@@ -32,22 +33,13 @@ class iTestChannel(InstrumentChannel):
         # Get channel id
         i, c = round(chan_num/4.)+1, chan_num%4
         self.chan_id = 'i{};c{};'.format(i,c)
-
+        
         self.add_parameter('v',
                            label='Channel {} voltage'.format(chan_num),
                            unit='V',
                            docstring='Voltage of the channel in volt.',
                            get_cmd=partial(self._parent._get_voltage, chan_num),
                            set_cmd=partial(self._parent._set_voltage, chan_num),
-                           get_parser=float
-                           )
-        
-        self.add_parameter('v_and_trig',
-                           label='Channel {} voltage'.format(chan_num),
-                           unit='V',
-                           docstring='Voltage of the channel in volt. Send a trigger after setting the voltage.',
-                           get_cmd=partial(self._parent._get_voltage, chan_num),
-                           set_cmd=partial(self._parent._set_voltage, chan_num, trigger=True),
                            get_parser=float
                            )
            
@@ -101,13 +93,17 @@ class iTestChannel(InstrumentChannel):
                            get_cmd=partial(self._parent._get_chan_neg_sat, chan_num),
                            get_parser=str,
                            set_cmd=partial(self._parent._set_chan_neg_sat, chan_num))
-        
-        self.add_parameter('trigger',
-                           get_cmd=partial(self._parent._trig_chan, chan_num))
-        
+    
         self.add_parameter('bilt_name',
                            set_cmd=partial(self._parent._set_chan_name, chan_num),
                            set_parser=str)
+
+        self.add_parameter('synchronous',
+                           set_cmd=partial(self._parent._set_chan_synchronous, chan_num),
+                           get_cmd=partial(self._parent._get_chan_synchronous, chan_num),
+                           get_parser=bool,
+                           set_parser=bool)
+        
         
         self.add_function('start',
                           call_cmd=lambda: self._parent._set_chan_state(self.chan_num, 1))
@@ -138,6 +134,9 @@ class ITest(VisaInstrument):
                       address:str,
                       num_chans:int=16,
                       init_start:bool=False,
+                      synchronous:bool=True,
+                      synchronous_delay:float=1,
+                      synchronous_threshold:float=1e-5,
                       **kwargs) -> None:
         """
         Instantiate the instrument.
@@ -148,6 +147,13 @@ class ITest(VisaInstrument):
             num_chans: Number of channels to assign. Default: 16
             init_start: If true set all channels to 0V, 1.2V range and switch
                 then on.
+            synchronous: If true, block the communication until the set voltage
+                is reached. The communication is block through a simple while loop
+                with a waiting time "synchronous_delay" at each iteration until the
+                set voltage and the measured voltage difference is below
+                "synchronous_threshold".
+            synchronous_delay: Time between to voltage measurement in second.
+            synchronous_threshold: Threshold to unblock communication in volt.
             
         Returns:
             ITest object
@@ -159,6 +165,13 @@ class ITest(VisaInstrument):
         self.idn = self.get_idn()
         self.num_chans = num_chans
         self.chan_range = range(1,self.num_chans+1)
+        # Fake parameter allowing to control the synchronicity of every channels
+        self._synchronous_delay = synchronous_delay
+        self._synchronous_threshold = synchronous_threshold
+        self._synchronous = {}
+        for chan in range(num_chans+1):
+            chan_id = self.chan_to_id(chan)
+            self._synchronous[chan_id] = synchronous
         
         # Create the channels
         channels = ChannelList(parent=self,
@@ -184,21 +197,22 @@ class ITest(VisaInstrument):
 
 
     def _set_voltage(self, chan:int,
-                           v_set:float,
-                           trigger:bool=False) -> None:
+                           v_set:float) -> None:
         """
         Set cmd for the chXX_v parameter
         
         Args:
             chan: The 1-indexed channel number
             v_set: The target voltage
-            trigger: If True, send a trigger signal after the voltage is set.
         """
-        i,c = self.chan_to_ic(chan)
-        self.write('i{};c{};VOLT {:.8f}'.format(i,c,v_set))
-        
-        if trigger:
-            self._trig_chan(chan)
+        chan_id = self.chan_to_id(chan)
+        self.write('{}VOLT {:.8f}'.format(chan_id, v_set))
+        self.write(chan_id + 'TRIG:INPUT:INIT')
+        if self._get_chan_synchronous(chan):
+            v = self._get_voltage(chan)
+            while abs(v_set - v)>=self._synchronous_threshold:
+                sleep(self._synchronous_delay)
+                v = self._get_voltage(chan)
 
 
     def _get_voltage(self, chan:int) -> float:
@@ -211,9 +225,9 @@ class ITest(VisaInstrument):
         Returns:
             Voltage
         """
-        i,c = self.chan_to_ic(chan)
+        chan_id = self.chan_to_id(chan)
         
-        return float(self.ask('i{};c{};MEAS:VOLT?'.format(i,c)))
+        return float(self.ask('{}MEAS:VOLT?'.format(chan_id)))
 
 
     def _get_current(self, chan:int) -> float:
@@ -226,9 +240,9 @@ class ITest(VisaInstrument):
         Returns:
             Current
         """
-        i,c = self.chan_to_ic(chan)
+        chan_id = self.chan_to_id(chan)
         
-        return float(self.ask('i{};c{};MEAS:CURR?'.format(i,c)))
+        return float(self.ask('{}MEAS:CURR?'.format(chan_id)))
 
 
     def _set_ramp_slope(self, chan:int,
@@ -241,7 +255,7 @@ class ITest(VisaInstrument):
             slope Slope of chXX in V/ms
         """
         chan_id = self.chan_to_id(chan)
-        self.write(chan_id + 'VOLT:SLOP {:.8f}'.format(slope))
+        self.write('{}VOLT:SLOP {:.8f}'.format(chan_id, slope))
 
 
     def _get_ramp_slope(self, chan:int) -> float:
@@ -255,7 +269,7 @@ class ITest(VisaInstrument):
             chXX_slope parameter
         """
         chan_id = self.chan_to_id(chan)
-        return self.ask(chan_id + 'VOLT:SLOP?')
+        return self.ask('{}VOLT:SLOP?'.format(chan_id))
 
 
     def _set_output_function(self, chan:int,
@@ -356,17 +370,6 @@ class ITest(VisaInstrument):
         return self.ask(chan_id + 'VOLT:SAT:NEG ?')
 
 
-    def _trig_chan(self, chan:int) -> None:
-        """
-        Send trigger signals
-        
-        Args:
-            chan: The 1-indexed channel number
-        """
-        chan_id = self.chan_to_id(chan)
-        self.write(chan_id + 'TRIG:INPUT:INIT')
-
-
     def _get_chan_state(self, chan:int) -> bool:
         """
         Get channel power state
@@ -435,3 +438,30 @@ class ITest(VisaInstrument):
         i,c = self.chan_to_ic(chan)
 
         return 'i{};c{};'.format(i,c)
+
+
+    def _set_chan_synchronous(self, chan: int,
+                                    synchronous: bool) -> None:
+        """
+        Set channel synchronicity.
+
+        Args:
+            chan: The 1-indexed channel number
+            synchronous: If the channel is synchronous.
+        """
+        
+        chan_id = self.chan_to_id(chan)
+        self._synchronous[chan_id] = synchronous
+
+
+    def _get_chan_synchronous(self, chan: int) -> None:
+        """
+        Get channel synchronicity.
+
+        Args:
+            chan: The 1-indexed channel number
+            synchronous: If the channel is synchronous.
+        """
+        
+        chan_id = self.chan_to_id(chan)
+        return self._synchronous[chan_id]
