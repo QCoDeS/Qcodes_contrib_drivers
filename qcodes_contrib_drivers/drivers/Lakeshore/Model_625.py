@@ -6,7 +6,6 @@ from typing import Union, Tuple
 from qcodes import VisaInstrument
 from qcodes.utils.validators import  Numbers, Enum
 
-log = logging.getLogger(__name__)
 
 class Lakeshore625(VisaInstrument):
     """
@@ -16,8 +15,9 @@ class Lakeshore625(VisaInstrument):
 
     Args:
         name (str): a name for the instrument
+        coil_constant (float): Coil contant of magnet, in untis of T/A
+        field_ramp_rate (float): Magnetic field ramp rate, in units of T/min
         address (str): VISA address of the device
-        current_ramp_limit: A current ramp limit, in units of A/s
     """
 
     def __init__(self, name: str, coil_constant: float,  field_ramp_rate: float, address: str,
@@ -33,7 +33,7 @@ class Lakeshore625(VisaInstrument):
         # Add power supply parameters
         self.add_parameter(name='current_limit',
                            unit="A",
-                           set_cmd=lambda x: self._set_curent_limit(x),
+                           set_cmd=self._set_curent_limit,
                            get_cmd=self._get_current_limit,
                            get_parser=float,
                            vals=Numbers(0, 60.1),
@@ -42,7 +42,7 @@ class Lakeshore625(VisaInstrument):
         
         self.add_parameter(name='voltage_limit',
                            unit="V",
-                           set_cmd=lambda x: self._set_voltage_limit(x),
+                           set_cmd=self._set_voltage_limit,
                            get_cmd=self._get_voltage_limit,
                            get_parser=float,
                            vals=Numbers(0, 5),
@@ -51,7 +51,7 @@ class Lakeshore625(VisaInstrument):
         
         self.add_parameter(name='current_rate_limit',
                            unit="A/s",
-                           set_cmd=lambda x: self._set_current_rate_limit(x),
+                           set_cmd=self._set_current_rate_limit,
                            get_cmd=self._get_current_rate_limit,
                            get_parser=float,
                            vals=Numbers( 0.0001, 99.999),
@@ -84,30 +84,30 @@ class Lakeshore625(VisaInstrument):
         self.add_parameter(name='ramp_segments',
                            set_cmd="RSEG {}",
                            get_cmd='RSEG?',
-                           get_parser=float,
+                           get_parser=int,
                            val_mapping={'disabled': 0,
                                         'enabled': 1}
                            )
         
         self.add_parameter(name='persistent_switch_heater',
-                           set_cmd=lambda x: self._set_persistent_switch_heater_status(x),
+                           set_cmd=self._set_persistent_switch_heater_status,
                            get_cmd=self._get_persistent_switch_heater_status,
-                           get_parser=float,
+                           get_parser=int,
                            val_mapping={'disabled': 0,
                                         'enabled': 1}
                            )
     
         self.add_parameter(name='quench_detection',
-                           set_cmd=lambda x: self._set_quench_detection_status(x),
+                           set_cmd=self._set_quench_detection_status,
                            get_cmd=self._get_quench_detection_status,
-                           get_parser=float,
+                           get_parser=int,
                            val_mapping={'disabled': 0,
                                         'enabled': 1}
                            )
     
         self.add_parameter(name='quench_current_step_limit',
                            unit = 'A/s',
-                           set_cmd=lambda x: self._set_quench_current_step_limit(x),
+                           set_cmd=self._set_quench_current_step_limit,
                            get_cmd=self._get_quench_current_step_limit,
                            get_parser=float,
                            vals=Numbers(0.01, 10)
@@ -135,7 +135,7 @@ class Lakeshore625(VisaInstrument):
         self.add_parameter(name='coil_constant_unit',
                            set_cmd=self._set_coil_constant_unit,
                            get_cmd=self._get_coil_constant_unit,
-                           get_parser=float,
+                           get_parser=int,
                            val_mapping={'T/A': 0,
                                         'kG/A': 1},
                            docstring="unit of the coil constant, either T/A (default) or kG/A"
@@ -150,7 +150,6 @@ class Lakeshore625(VisaInstrument):
                            )
         
         self.add_parameter(name='field',
-                           full_name = self.name + '_' + 'field',
                            unit = 'T',
                            set_cmd=self.set_field,
                            get_cmd='RDGF?',
@@ -213,7 +212,7 @@ class Lakeshore625(VisaInstrument):
         return float(current_limit), float(voltage_limit), float(current_rate_limit)
 
 
-    def _get_persistent_switch_heater_setup(self) -> Tuple[float, float, float]:
+    def _get_persistent_switch_heater_setup(self) -> Tuple[int, float, float]:
         """
         Persistent Switch Heater Parameter Query
 
@@ -223,10 +222,10 @@ class Lakeshore625(VisaInstrument):
         """
         raw_string = self.ask('PSHS?')
         status, psh_current, psh_delay = raw_string.split(',')
-        return float(status), float(psh_current), float(psh_delay)
+        return int(status), float(psh_current), float(psh_delay)
 
 
-    def _get_quench_detection_setup(self) -> Tuple[float, float]:
+    def _get_quench_detection_setup(self) -> Tuple[int, float]:
         """
         Quench Parameter Query
 
@@ -236,7 +235,7 @@ class Lakeshore625(VisaInstrument):
         """
         raw_string = self.ask('QNCH?')
         status, current_step_limit = raw_string.split(',')
-        return float(status), float(current_step_limit)
+        return int(status), float(current_step_limit)
 
 
     def _get_field_setup(self) -> Tuple[str, float]:
@@ -289,7 +288,7 @@ class Lakeshore625(VisaInstrument):
         return current_rate_limit
 
 
-    def _get_persistent_switch_heater_status(self) -> float:
+    def _get_persistent_switch_heater_status(self) -> int:
         """
         Queries if there is a persistent switch: 0 = Disabled (no PSH), 1 = Enabled
 
@@ -301,7 +300,7 @@ class Lakeshore625(VisaInstrument):
         return status
 
 
-    def _get_quench_detection_status(self) -> float:
+    def _get_quench_detection_status(self) -> int:
         """
         Queries if quench detection is to be used: 0 = Disabled, 1 = Enabled
 
@@ -310,7 +309,7 @@ class Lakeshore625(VisaInstrument):
             status
         """
         status, current_step_limit = self._get_quench_detection_setup()
-        return float(status)
+        return status
 
 
     def _get_quench_current_step_limit(self) -> float:
@@ -322,7 +321,7 @@ class Lakeshore625(VisaInstrument):
             <rate>
         """
         status, current_step_limit = self._get_quench_detection_setup()
-        return float(current_step_limit)
+        return current_step_limit
 
 
     def _get_coil_constant(self) -> float:
@@ -334,7 +333,7 @@ class Lakeshore625(VisaInstrument):
             <constant>
         """
         coil_constant_unit, coil_constant = self._get_field_setup()
-        return float(coil_constant)
+        return coil_constant
 
 
     def _get_coil_constant_unit(self) -> str:
@@ -346,7 +345,7 @@ class Lakeshore625(VisaInstrument):
             <units>
         """
         coil_constant_unit, coil_constant = self._get_field_setup()
-        return str(coil_constant_unit)
+        return coil_constant_unit
 
 
     def _get_field_ramp_rate(self) -> float:
@@ -360,7 +359,7 @@ class Lakeshore625(VisaInstrument):
         coil_constant_unit, coil_constant = self._get_field_setup() # in T/A by default
         current_ramp_rate = self.current_ramp_rate()    # in A/s
         field_ramp_rate = current_ramp_rate * coil_constant * 60 # in T/min
-        return float(field_ramp_rate)
+        return field_ramp_rate
 
 
     def _get_ramping_state(self) -> str:
@@ -402,7 +401,7 @@ class Lakeshore625(VisaInstrument):
         return oer_bit_str
 
 
-    def _get_oer_quench_bit(self):
+    def _get_oer_quench_bit(self) -> int:
         """
         Returns the oer quench bit
 
@@ -410,7 +409,7 @@ class Lakeshore625(VisaInstrument):
         -------
             quench bit
         """
-        return self._get_operational_errors()[3]
+        return int(self._get_operational_errors()[3])
 
 
     # set functions for parameters
@@ -438,7 +437,7 @@ class Lakeshore625(VisaInstrument):
         self.write_raw('LIMIT {}, {}, {}'.format(current_limit, voltage_limit, current_rate_limit_setpoint))
 
 
-    def _set_persistent_switch_heater_status(self, status_setpoint: float) -> None:
+    def _set_persistent_switch_heater_status(self, status_setpoint: int) -> None:
         """
         Specifies if there is a persistent switch: 0 = Disabled (no PSH), 1 = Enabled
         """
@@ -446,7 +445,7 @@ class Lakeshore625(VisaInstrument):
         self.write_raw('PSHS {}, {}, {}'.format(status_setpoint, psh_current, psh_delay))
 
 
-    def _set_quench_detection_status(self, status_setpoint: float) -> None:
+    def _set_quench_detection_status(self, status_setpoint: int) -> None:
         """
         Specifies if quench detection is to be used: 0 = Disabled, 1 = Enabled
         """
