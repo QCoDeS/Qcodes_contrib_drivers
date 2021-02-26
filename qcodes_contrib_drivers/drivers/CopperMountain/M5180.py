@@ -41,8 +41,8 @@ class M5180(VisaInstrument):
         self.add_parameter(name='output',
                            label='Output',
                            get_parser=str,
-                           get_cmd=lambda : self._get_output,
-                           set_cmd=lambda a: self._set_output(a),
+                           get_cmd=self._get_output,
+                           set_cmd=self._set_output,
                            vals=Enum('on', 'off'))
         
         self.add_parameter(name='power',
@@ -120,8 +120,8 @@ class M5180(VisaInstrument):
         self.add_parameter(name='trigger_source',
                            label='Trigger source',
                            get_parser=str,
-                           get_cmd=lambda : self._get_trigger,
-                           set_cmd =lambda a: self._set_trigger(a),
+                           get_cmd=self._get_trigger,
+                           set_cmd=self._set_trigger,
                            vals = Enum('bus', 'external', 'internal', 'manual'))
         
         self.add_parameter(name='data_transfer_format',
@@ -153,7 +153,7 @@ class M5180(VisaInstrument):
 
     def _get_output(self) -> str:
         
-        r = self.ask('OUTP:STAT?')
+        r = int(self.ask('OUTP:STAT?'))
         
         if r==1:
             return 'on'
