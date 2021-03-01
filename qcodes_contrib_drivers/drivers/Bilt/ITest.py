@@ -387,6 +387,8 @@ class ITest(VisaInstrument):
             return True
         elif state == '0':
             return False
+        else:
+            raise ValueError('Unknown state output: {}'.format(state))
 
 
     def _set_chan_state(self, chan:int,
@@ -419,7 +421,7 @@ class ITest(VisaInstrument):
         self.write(chan_id + 'chan:name "{}"'.format(name))
 
 
-    def chan_to_ic(self, chan:int) -> Tuple[int]:
+    def chan_to_ic(self, chan:int) -> Tuple[int, int]:
         """
         Indexing conversion from channel number (1 to 16)
         to iX;c;
@@ -454,7 +456,7 @@ class ITest(VisaInstrument):
         self._synchronous[chan_id] = synchronous
 
 
-    def _get_chan_synchronous(self, chan: int) -> None:
+    def _get_chan_synchronous(self, chan: int) -> bool:
         """
         Get channel synchronicity.
 
