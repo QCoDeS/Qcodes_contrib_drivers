@@ -258,7 +258,7 @@ class ITest(VisaInstrument):
         self.write('{}VOLT:SLOP {:.8f}'.format(chan_id, slope))
 
 
-    def _get_ramp_slope(self, chan:int) -> float:
+    def _get_ramp_slope(self, chan:int) -> str:
         """
         Get slope of chXX
         
