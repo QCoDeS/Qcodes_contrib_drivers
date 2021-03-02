@@ -42,7 +42,7 @@ class iTestChannel(InstrumentChannel):
                            get_cmd=partial(self._parent._get_voltage, chan_num),
                            get_parser=float,
                            set_cmd=partial(self._parent._set_voltage, chan_num),
-                           set_parser=vals.Numbers(-50, 50)
+                           vals=vals.Numbers(-50, 50)
                            )
            
         self.add_parameter('i',
@@ -60,7 +60,7 @@ class iTestChannel(InstrumentChannel):
                            get_cmd=partial(self._parent._get_ramp_slope, chan_num),
                            get_parser=float,
                            set_cmd=partial(self._parent._set_ramp_slope, chan_num),
-                           set_parser=vals.Numbers(0, 1)
+                           vals=vals.Numbers(0, 1)
                            )
         
         self.add_parameter('output_mode',
@@ -85,7 +85,7 @@ class iTestChannel(InstrumentChannel):
                            get_cmd=partial(self._parent._get_chan_state, chan_num),
                            get_parser=bool,
                            set_cmd=partial(self._parent._set_chan_state, chan_num),
-                           set_parser=bool)
+                           vals=vals.OnOff())
         
         self.add_parameter('pos_sat',
                            get_cmd=partial(self._parent._get_chan_pos_sat, chan_num),
@@ -107,7 +107,7 @@ class iTestChannel(InstrumentChannel):
                            get_cmd=partial(self._parent._get_chan_synchronous, chan_num),
                            get_parser=bool,
                            set_cmd=partial(self._parent._set_chan_synchronous, chan_num),
-                           set_parser=bool)
+                           vals=vals.Bool())
         
         
         self.add_function('start',
