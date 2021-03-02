@@ -2,7 +2,7 @@
 # Loick Le Guevel, 2019
 # Etienne Dumur <etienne.dumur@gmail.com>, 2021
 
-from typing import Union, Tuple
+from typing import Union, Tuple, Any
 from functools import partial
 from math import ceil
 from time import sleep
@@ -11,6 +11,7 @@ from qcodes.instrument.base import Instrument
 from qcodes.instrument.channel import InstrumentChannel, ChannelList
 from qcodes.instrument.channel import MultiChannelInstrumentParameter
 from qcodes.instrument.visa import VisaInstrument
+from qcodes.utils import validators as vals
 
 
 class iTestChannel(InstrumentChannel):
@@ -39,8 +40,9 @@ class iTestChannel(InstrumentChannel):
                            unit='V',
                            docstring='Voltage of the channel in volt.',
                            get_cmd=partial(self._parent._get_voltage, chan_num),
+                           get_parser=float,
                            set_cmd=partial(self._parent._set_voltage, chan_num),
-                           get_parser=float
+                           set_parser=vals.Numbers(-50, 50)
                            )
            
         self.add_parameter('i',
@@ -58,20 +60,21 @@ class iTestChannel(InstrumentChannel):
                            get_cmd=partial(self._parent._get_ramp_slope, chan_num),
                            get_parser=float,
                            set_cmd=partial(self._parent._set_ramp_slope, chan_num),
-                           set_parser=float
+                           set_parser=vals.Numbers(0, 1)
                            )
         
         self.add_parameter('output_mode',
                            label='Channel {} output mode'.format(chan_num),
                            docstring='Mode of the output {exp, ramp}.',
                            get_cmd=partial(self._parent._get_output_function, chan_num),
+                           get_parser=str,
                            set_cmd=partial(self._parent._set_output_function, chan_num),
-                           get_parser=str
+                           set_parser=str
                            )
         
-        self.add_parameter('range',
+        self.add_parameter('v_range',
                            label = 'Channel {} voltage range'.format(chan_num),
-                           docstring='Range of the channelin volt.',
+                           docstring='Range of the channel in volt.',
                            set_cmd=partial(self._parent._set_chan_range, chan_num),
                            set_parser=float,
                            get_cmd=partial(self._parent._get_chan_range, chan_num),
@@ -87,21 +90,23 @@ class iTestChannel(InstrumentChannel):
         self.add_parameter('pos_sat',
                            get_cmd=partial(self._parent._get_chan_pos_sat, chan_num),
                            get_parser=str,
-                           set_cmd=partial(self._parent._set_chan_pos_sat, chan_num))
+                           set_cmd=partial(self._parent._set_chan_pos_sat, chan_num),
+                           set_parser=str,)
         
         self.add_parameter('neg_sat',
                            get_cmd=partial(self._parent._get_chan_neg_sat, chan_num),
                            get_parser=str,
-                           set_cmd=partial(self._parent._set_chan_neg_sat, chan_num))
+                           set_cmd=partial(self._parent._set_chan_neg_sat, chan_num),
+                           set_parser=str,)
     
         self.add_parameter('bilt_name',
                            set_cmd=partial(self._parent._set_chan_name, chan_num),
                            set_parser=str)
 
         self.add_parameter('synchronous',
-                           set_cmd=partial(self._parent._set_chan_synchronous, chan_num),
                            get_cmd=partial(self._parent._get_chan_synchronous, chan_num),
                            get_parser=bool,
+                           set_cmd=partial(self._parent._set_chan_synchronous, chan_num),
                            set_parser=bool)
         
         
@@ -137,7 +142,7 @@ class ITest(VisaInstrument):
                       synchronous:bool=True,
                       synchronous_delay:float=1,
                       synchronous_threshold:float=1e-5,
-                      **kwargs) -> None:
+                      **kwargs: Any) -> None:
         """
         Instantiate the instrument.
         
@@ -160,7 +165,8 @@ class ITest(VisaInstrument):
         """
         super().__init__(name, address=address,
                                terminator='\n',
-                               device_clear=False)
+                               device_clear=False,
+                               **kwargs)
         
         self.idn = self.get_idn()
         self.num_chans = num_chans
