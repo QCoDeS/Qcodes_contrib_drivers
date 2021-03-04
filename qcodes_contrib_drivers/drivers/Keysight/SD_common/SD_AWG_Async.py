@@ -332,7 +332,6 @@ class SD_AWG_Async(SD_AWG):
 
 #    @threaded()
     def awg_flush(self, awg_number):
-        self.log.debug(f'flush {awg_number}')
         super().awg_flush(awg_number)
         if self._asynchronous:
             self._release_waverefs_awg(awg_number)

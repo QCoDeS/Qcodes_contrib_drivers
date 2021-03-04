@@ -21,6 +21,7 @@ class MemoryManager:
     Args:
         waveform_size_limit: maximum waveform size to support.
     """
+    verbose = False
 
     @dataclass
     class AllocatedSlot:
@@ -81,7 +82,7 @@ class MemoryManager:
         self._max_waveform_size = waveform_size_limit
         self._create_memory_slots(waveform_size_limit)
 
-    def get_uninitialized_slots(self) -> List[_MemorySlot]:
+    def get_uninitialized_slots(self) -> List['MemoryManager._MemorySlot']:
         """
         Returns list of slots that must be initialized (reserved in AWG)
         """
@@ -95,7 +96,7 @@ class MemoryManager:
 
         return new_slots
 
-    def allocate(self, wave_size: int) -> AllocatedSlot:
+    def allocate(self, wave_size: int) -> 'MemoryManager.AllocatedSlot':
         """
         Allocates a memory slot with at least the specified wave size.
 
@@ -120,7 +121,8 @@ class MemoryManager:
                 self._allocation_ref_count += 1
                 self._slots[slot].allocation_ref = self._allocation_ref_count
                 self._slots[slot].allocated = True
-                self._log.debug(f'Allocated slot {slot}')
+                if MemoryManager.verbose:
+                    self._log.debug(f'Allocated slot {slot}')
                 return MemoryManager.AllocatedSlot(slot, self._slots[slot].allocation_ref, self)
 
         raise Exception(f'No free memory slots left for waveform with'
@@ -145,11 +147,12 @@ class MemoryManager:
         slot.allocation_ref = 0
         self._free_memory_slots[slot.size].append(slot_number)
 
-        try:
-            self._log.debug(f'Released slot {slot_number}')
-        except:
-            # self._log throws exception when instrument has been closed.
-            logging.debug(f'Released slot {slot_number}')
+        if MemoryManager.verbose:
+            try:
+                self._log.debug(f'Released slot {slot_number}')
+            except:
+                # self._log throws exception when instrument has been closed.
+                logging.debug(f'Released slot {slot_number}')
 
     def _create_memory_slots(self, max_size: int) -> None:
 
