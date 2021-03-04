@@ -52,9 +52,9 @@ class Task:
 
 #        logging.debug(f'[{self._instance.name}] > {self._f.__name__}')
         self._result = self._f(self._instance, *self._args, **self._kwargs)
-        total = time.perf_counter() - self._instance._start_time
-        logging.debug(f'[{self._instance.name}] < {self._f.__name__} ({(time.perf_counter()-start)*1000:5.2f} ms '
-                      f'/ {total*1000:5.2f} ms)')
+#        total = time.perf_counter() - self._instance._start_time
+#        logging.debug(f'[{self._instance.name}] < {self._f.__name__} ({(time.perf_counter()-start)*1000:5.2f} ms '
+#                      f'/ {total*1000:5.2f} ms)')
         self._event.set()
 
     @property
@@ -526,7 +526,7 @@ class SD_AWG_Async(SD_AWG):
 
     @threaded()
     def _upload(self, wave_data, wave_ref):
-        self.log.debug(f'Uploading {wave_ref.wave_number}')
+        # self.log.debug(f'Uploading {wave_ref.wave_number}')
         try:
             start = time.perf_counter()
 
