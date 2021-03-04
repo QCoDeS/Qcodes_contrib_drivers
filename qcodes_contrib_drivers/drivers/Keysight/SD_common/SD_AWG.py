@@ -5,7 +5,11 @@ from typing import List, Union, Optional, Any
 from qcodes import validators as validator
 
 from .SD_Module import SD_Module, result_parser, keysightSD1, is_sd1_3x
-from keysightSD1 import SD_Wave, SD_Waveshapes
+from keysightSD1 import (
+        SD_Wave, SD_Waveshapes, SD_TriggerExternalSources, SD_FpgaTriggerDirection,
+        SD_TriggerPolarity, SD_SyncModes
+        )
+
 
 class SD_AWG(SD_Module):
     """
@@ -954,13 +958,13 @@ class SD_AWG(SD_Module):
             super().load_fpga_image(filename)
             logging.info(f'loaded fpga image.')
 
-    def write_fpga(self, reg_name, value):
+    def write_fpga(self, reg_name:str, value:int) -> None:
         with self._lock:
             reg = result_parser(self.awg.FPGAgetSandBoxRegister(reg_name),
                                 reg_name)
             reg.writeRegisterInt32(value)
 
-    def read_fpga(self, reg_name):
+    def read_fpga(self, reg_name:str) -> int:
         with self._lock:
             reg = result_parser(self.awg.FPGAgetSandBoxRegister(reg_name),
                                 reg_name)
@@ -969,7 +973,7 @@ class SD_AWG(SD_Module):
                                 f'({reg.Length:6}) {reg_name}')
             return reg.readRegisterInt32()
 
-    def write_fpga_array(self, reg_name, offset, data):
+    def write_fpga_array(self, reg_name:str, offset:int, data:List[int]) -> None:
         with self._lock:
             reg = result_parser(self.awg.FPGAgetSandBoxRegister(reg_name),
                                 reg_name)
@@ -980,7 +984,7 @@ class SD_AWG(SD_Module):
                 )
             )
 
-    def read_fpga_array(self, reg_name, offset, data_size):
+    def read_fpga_array(self, reg_name:str, offset:int, data_size:int) -> List[int]:
         with self._lock:
             reg = result_parser(self.awg.FPGAgetSandBoxRegister(reg_name),
                                 reg_name)
@@ -992,6 +996,15 @@ class SD_AWG(SD_Module):
                 )
             )
             return data
+
+    def config_fpga_trigger(self,
+                            trigger:SD_TriggerExternalSources,
+                            direction:SD_FpgaTriggerDirection,
+                            polarity:SD_TriggerPolarity=SD_TriggerPolarity.ACTIVE_HIGH,
+                            sync_mode:SD_SyncModes=SD_SyncModes.SYNC_NONE,
+                            delay:int=0) -> None:
+        with self._lock:
+            self.awg.FPGATriggerConfig(trigger, direction, polarity, sync_mode, delay)
 
     def convert_sample_rate_to_prescaler(self, sample_rate: float) -> int:
         """
