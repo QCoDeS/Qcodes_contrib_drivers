@@ -1,7 +1,7 @@
 import logging
 from functools import partial
 from threading import RLock
-from typing import List, Union, Optional, Any
+from typing import List, Union, Optional, Any, Dict
 from qcodes import validators as validator
 
 from .SD_Module import SD_Module, result_parser, keysightSD1, is_sd1_3x
@@ -132,6 +132,13 @@ class SD_AWG(SD_Module):
                                          f'channel {ch}',
                                vals=validator.Enum(-1, 0, 1, 2, 4, 5, 6, 8))
 
+        # initialize settings cache
+        cache: Dict[str,Dict[int,float]] = dict()
+        for setting in ['offset', 'amplitude']:
+            cache[setting] = {(i+index_offset):None for i in range(4)}
+
+        self._settings_cache = cache
+
     #
     # Get-commands
     #
@@ -224,7 +231,7 @@ class SD_AWG(SD_Module):
         value_name = f'set phase channel {channel_number} to {phase} degrees'
         return result_parser(value, value_name, verbose)
 
-    def set_channel_amplitude(self, amplitude: int, channel_number: int,
+    def set_channel_amplitude(self, amplitude: float, channel_number: int,
                               verbose: bool = False) -> Any:
         """
         Sets the amplitude for the specified channel.
@@ -234,12 +241,18 @@ class SD_AWG(SD_Module):
             amplitude: amplitude in Volts
             verbose: boolean indicating verbose mode
         """
+        if self._settings_cache['amplitude'][channel_number] == amplitude:
+            return 0
+
         with self._lock:
             value = self.awg.channelAmplitude(channel_number, amplitude)
         value_name = f'set amplitude channel {channel_number} to {amplitude} V'
-        return result_parser(value, value_name, verbose)
+        result = result_parser(value, value_name, verbose)
+        self._settings_cache['amplitude'][channel_number] = amplitude
+        return result
 
-    def set_channel_offset(self, offset: int, channel_number: int,
+
+    def set_channel_offset(self, offset: float, channel_number: int,
                            verbose: bool = False) -> Any:
         """
         Sets the DC offset for the specified channel.
@@ -249,10 +262,14 @@ class SD_AWG(SD_Module):
             offset: DC offset in Volts
             verbose: boolean indicating verbose mode
         """
+        if self._settings_cache['offset'][channel_number] == offset:
+            return 0
         with self._lock:
             value = self.awg.channelOffset(channel_number, offset)
         value_name = f'set offset channel {channel_number} to {offset} V'
-        return result_parser(value, value_name, verbose)
+        result = result_parser(value, value_name, verbose)
+        self._settings_cache['offset'][channel_number] = offset
+        return result
 
     def set_channel_wave_shape(self, wave_shape: int, channel_number: int,
                                verbose: bool = False) -> Any:
