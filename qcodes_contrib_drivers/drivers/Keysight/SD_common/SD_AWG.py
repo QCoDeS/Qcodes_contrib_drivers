@@ -1030,7 +1030,8 @@ class SD_AWG(SD_Module):
         """
         if is_sd1_3x:
             # 0 = 1000e6, 1 = 200e6, 2 = 100e6, 3=66.7e6
-            prescaler = int(200e6/sample_rate)
+            # round towards the lower prescaler, unless the value is close to the higher one (margin 0.5 ns)
+            prescaler = int(200e6/sample_rate + 0.1)
         else:
             # 0 = 1000e6, 1 = 200e6, 2 = 50e6, 3=33.3e6
             if sample_rate > 200e6:
@@ -1038,7 +1039,8 @@ class SD_AWG(SD_Module):
             elif sample_rate > 50e6:
                 prescaler = 1
             else:
-                prescaler = int(100e6/sample_rate)
+                # round towards the lower prescaler, unless the value is close to the higher one
+                prescaler = int(100e6/sample_rate + 0.1)
 
         return prescaler
 
