@@ -21,18 +21,11 @@ class iTestChannel(InstrumentChannel):
     
     def __init__(self, parent: Instrument,
                        name: str,
-                       chan_num: int,
-                       synchronous_enable: bool=True,
-                       synchronous_delay: float=1,
-                       synchronous_threshold: float=1e-5) -> None:
+                       chan_num: int) -> None:
         """
         Args:
             parent: The instrument to which the channel is attached.
             name: The name of the channel.
-            chan_num: The number of the channel in question
-            synchronous: If the channel is synchronous, see ITest class.
-            synchronous_delay: Time between to voltage measurement in second.
-            synchronous_threshold: Threshold to unblock communication in volt.
         """
         super().__init__(parent, name)
         
@@ -116,7 +109,7 @@ class iTestChannel(InstrumentChannel):
                            get_parser=bool,
                            set_cmd=None,
                            vals=vals.Bool(),
-                           initial_value=synchronous_enable)
+                           initial_value=True)
 
         self.add_parameter('synchronous_delay',
                            docstring='Time between to voltage measurement in second.',
@@ -124,7 +117,7 @@ class iTestChannel(InstrumentChannel):
                            get_parser=float,
                            set_cmd=None,
                            vals=vals.Numbers(1e-3, 10),
-                           initial_value=synchronous_delay)
+                           initial_value=1)
 
         self.add_parameter('synchronous_threshold',
                            docstring='Threshold to unblock communication in volt.',
@@ -132,7 +125,7 @@ class iTestChannel(InstrumentChannel):
                            get_parser=float,
                            set_cmd=None,
                            vals=vals.Numbers(0, 1e-3),
-                           initial_value=synchronous_threshold)
+                           initial_value=1e-5)
 
 
     def start(self) -> None:
@@ -209,10 +202,10 @@ class ITest(VisaInstrument):
         for i in self.chan_range:
             
             channel = iTestChannel(self, name='chan{:02}'.format(i),
-                                         chan_num=i,
-                                         synchronous_enable=synchronous_enable,
-                                         synchronous_delay=synchronous_delay,
-                                         synchronous_threshold=synchronous_threshold)
+                                         chan_num=i)
+            channel.synchronous_enable(synchronous_enable)
+            channel.synchronous_delay(synchronous_delay)
+            channel.synchronous_threshold(synchronous_threshold)
             channels.append(channel)
             self.add_submodule('ch{:02}'.format(i),channel)
         
