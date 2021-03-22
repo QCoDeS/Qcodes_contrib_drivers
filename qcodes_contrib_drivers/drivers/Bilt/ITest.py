@@ -26,6 +26,7 @@ class iTestChannel(InstrumentChannel):
         Args:
             parent: The instrument to which the channel is attached.
             name: The name of the channel.
+            chan_num: The number of the channel in question.
         """
         super().__init__(parent, name)
         
