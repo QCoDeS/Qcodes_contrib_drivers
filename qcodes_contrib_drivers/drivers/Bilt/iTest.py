@@ -1,131 +1,147 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Jan  8 10:07:31 2019
+# This Python file uses the following encoding: utf-8
+# Loick Le Guevel, 2019
+# Etienne Dumur <etienne.dumur@gmail.com>, 2021
 
-@author: ll252805
-"""
-
-import time
-import visa
-import numpy as np
+from typing import Union, Tuple, Any
 from functools import partial
 from math import ceil
+from time import sleep
 
+from qcodes.instrument.base import Instrument
 from qcodes.instrument.channel import InstrumentChannel, ChannelList
 from qcodes.instrument.channel import MultiChannelInstrumentParameter
 from qcodes.instrument.visa import VisaInstrument
 from qcodes.utils import validators as vals
+from qcodes.utils.helpers import create_on_off_val_mapping
 
 class iTestChannel(InstrumentChannel):
     """
-    A single channel of iTest
+    A single channel of iTest.
     """
     
-    def __init__(self,parent,name,chan_num):
+    def __init__(self, parent: Instrument,
+                       name: str,
+                       chan_num: int) -> None:
         """
         Args:
-            parent (Instrument): The instrument to which the channel is
-                attached.
-            name (str): The name of the channel.
-            chan_num (int): The number of the channel in question
+            parent: The instrument to which the channel is attached.
+            name: The name of the channel.
+            chan_num: The number of the channel in question.
         """
-        super().__init__(parent,name)
-        self.chan_num = chan_num
+        super().__init__(parent, name)
         
-        i,c = round(chan_num/4.)+1,chan_num%4
+        self.chan_num = chan_num
+        # Get channel id
+        i, c = round(chan_num/4.)+1, chan_num%4
         self.chan_id = 'i{};c{};'.format(i,c)
         
-        # Channel Voltages
         self.add_parameter('v',
                            label='Channel {} voltage'.format(chan_num),
                            unit='V',
-                           get_cmd=partial(self._parent._get_voltage,chan_num),
-                           set_cmd=partial(self._parent._set_voltage,chan_num),
-                           get_parser=float
-                           )
-        
-        
-        # Channel Voltages and trigger
-        self.add_parameter('v_and_trig',
-                           label='Channel {} voltage'.format(chan_num),
-                           unit='V',
-                           get_cmd=partial(self._parent._get_voltage,chan_num),
-                           set_cmd=partial(self._parent._set_voltage,chan_num,trigger=True,block=True),
-                           get_parser=float
+                           docstring='Voltage of the channel in volt.',
+                           get_cmd=partial(self._parent._get_voltage, chan_num),
+                           get_parser=float,
+                           set_cmd=partial(self._parent._set_voltage, chan_num),
+                           vals=vals.Numbers(-50, 50)
                            )
            
         self.add_parameter('i',
                            label='Channel {} current'.format(chan_num),
                            unit='A',
-                           get_cmd=partial(self._parent._get_current,chan_num),
+                           docstring='Current of the channel in ampere.',
+                           get_cmd=partial(self._parent._get_current, chan_num),
                            get_parser=float
                            )
-        # Channel Slopes
+        
         self.add_parameter('ramp_slope',
                            label='Channel {} ramp slope'.format(chan_num),
                            unit='V/ms',
-                           get_cmd=partial(self._parent._get_ramp_slope,chan_num),
-                           set_cmd=partial(self._parent._set_ramp_slope,chan_num),
+                           docstring='Slope of the ramp in V/ms.',
+                           get_cmd=partial(self._parent._get_ramp_slope, chan_num),
                            get_parser=float,
-                           set_parser = float
+                           set_cmd=partial(self._parent._set_ramp_slope, chan_num),
+                           vals=vals.Numbers(0, 1)
                            )
         
         self.add_parameter('output_mode',
                            label='Channel {} output mode'.format(chan_num),
-                           get_cmd=partial(self._parent._get_output_function,chan_num),
-                           set_cmd=partial(self._parent._set_output_function,chan_num),
-                           get_parser=str
+                           docstring='Mode of the output {exp, ramp}.',
+                           get_cmd=partial(self._parent._get_output_function, chan_num),
+                           get_parser=str,
+                           set_cmd=partial(self._parent._set_output_function, chan_num),
+                           set_parser=str,
+                           vals=vals.Enum('ramp', 'exp')
                            )
         
-        self.add_parameter('range',
+        self.add_parameter('v_range',
                            label = 'Channel {} voltage range'.format(chan_num),
-                           set_cmd = partial(self._parent._set_chan_range,chan_num),
-                           get_cmd = partial(self._parent._get_chan_range,chan_num),
-                           get_parser = float)
+                           docstring='Range of the channel in volt.',
+                           set_cmd=partial(self._parent._set_chan_range, chan_num),
+                           set_parser=float,
+                           get_cmd=partial(self._parent._get_chan_range, chan_num),
+                           get_parser=float)
         
         self.add_parameter('state',
-                           get_cmd = partial(self._parent._get_chan_state,chan_num),
-                           get_parser = bool,
-                           set_cmd = partial(self._parent._set_chan_state,chan_num),
-                           set_parser = bool)
+                           docstring='State of the channel {on, off}.',
+                           get_cmd=partial(self._parent._get_chan_state, chan_num),
+                           set_cmd=partial(self._parent._set_chan_state, chan_num),
+                           val_mapping=create_on_off_val_mapping(on_val='on', off_val='off'))
         
         self.add_parameter('pos_sat',
-                           get_cmd = partial(self._parent._get_chan_pos_sat,
-                                             chan_num),
-                           get_parser = str,
-                           set_cmd = partial(self._parent._set_chan_pos_sat,
-                                             chan_num))
+                           get_cmd=partial(self._parent._get_chan_pos_sat, chan_num),
+                           get_parser=str,
+                           set_cmd=partial(self._parent._set_chan_pos_sat, chan_num),
+                           set_parser=str,)
         
         self.add_parameter('neg_sat',
-                           get_cmd = partial(self._parent._get_chan_neg_sat,
-                                             chan_num),
-                           get_parser = str,
-                           set_cmd = partial(self._parent._set_chan_neg_sat,
-                                             chan_num))    
-                           
-                           
-        self.add_parameter('trigger',
-                           get_cmd = partial(self._parent._trig_chan,chan_num))
-                           
+                           get_cmd=partial(self._parent._get_chan_neg_sat, chan_num),
+                           get_parser=str,
+                           set_cmd=partial(self._parent._set_chan_neg_sat, chan_num),
+                           set_parser=str,)
+    
         self.add_parameter('bilt_name',
-                           set_cmd = partial(self._parent._set_chan_name,chan_num),
-                           set_parser = str)    
-    
-        self.bilt_name(f'Chan{chan_num:02d}')
+                           set_cmd=partial(self._parent._set_chan_name, chan_num),
+                           set_parser=str,
+                           initial_value=f'Chan{chan_num:02d}')
 
-        self.chan_num = chan_num
-        # self.full_name = self._parent.name + "_" + name
-#    def trigger(self):
-#        """
-#        Send trigger signals for channel
-#        """
-#        self._parent._trig_chan(self.chan_num)
-        
-    def start(self):
-        self._parent._set_chan_state(self.chan_num,1)
-    
-    def stop(self):
-        self._parent._set_chan_state(self.chan_num,0)
+        self.add_parameter('synchronous_enable',
+                           docstring='Is the channel in synchronous mode.',
+                           get_cmd=None,
+                           get_parser=bool,
+                           set_cmd=None,
+                           vals=vals.Bool(),
+                           initial_value=True)
+
+        self.add_parameter('synchronous_delay',
+                           docstring='Time between to voltage measurement in second.',
+                           get_cmd=None,
+                           get_parser=float,
+                           set_cmd=None,
+                           vals=vals.Numbers(1e-3, 10),
+                           initial_value=1)
+
+        self.add_parameter('synchronous_threshold',
+                           docstring='Threshold to unblock communication in volt.',
+                           get_cmd=None,
+                           get_parser=float,
+                           set_cmd=None,
+                           vals=vals.Numbers(0, 1e-3),
+                           initial_value=1e-5)
+
+
+    def start(self) -> None:
+        """
+        Switch on the channel.
+        """
+        self._parent._set_chan_state(self.chan_num, '1')
+
+
+    def stop(self) -> None:
+        """
+        Switch off the channel.
+        """
+        self._parent._set_chan_state(self.chan_num, '0')
+
 
 
 class iTestMultiChannelParameter(MultiChannelInstrumentParameter):
@@ -135,157 +151,180 @@ class iTestMultiChannelParameter(MultiChannelInstrumentParameter):
     def __init__(self, channels, param_name, *args, **kwargs):
         super().__init__(channels, param_name, *args, **kwargs)
 
-    def trigger(self,*args,**kwargs):
-        print(args,kwargs)
-        
+
 class ITest(VisaInstrument):
     """
-    
+    This is the QCoDeS python driver for the iTest device from Bilt.
     """
     
-    def __init__(self,name,address,num_chans=16,init_start=False,**kwargs):
+    def __init__(self,name:str,
+                      address:str,
+                      num_chans:int=16,
+                      init_start:bool=False,
+                      synchronous_enable:bool=True,
+                      synchronous_delay:float=1,
+                      synchronous_threshold:float=1e-5,
+                      **kwargs: Any) -> None:
         """
         Instantiate the instrument.
         
         Args:
-            name (str): The instrument name used by qcodes
-            address (str): The VISA name of the resource
-            num_chans (int): Number of channels to assign. Default: 16
+            name: The instrument name used by qcodes
+            address: The VISA name of the resource
+            num_chans: Number of channels to assign. Default: 16
+            init_start: If true set all channels to 0V, 1.2V range and switch
+                then on.
+            synchronous_enable: If true, block the communication until the set voltage
+                is reached. The communication is block through a simple while loop
+                with a waiting time "synchronous_delay" at each iteration until the
+                set voltage and the measured voltage difference is below
+                "synchronous_threshold".
+            synchronous_delay: Time between to voltage measurement in second.
+            synchronous_threshold: Threshold to unblock communication in volt.
             
         Returns:
             ITest object
         """
-        super().__init__(name,address=address,terminator='\n',
-                         device_clear=False) #[?]  Needed, else NotImplementedError
-        
-    
-
+        super().__init__(name, address=address,
+                               terminator='\n',
+                               device_clear=False,
+                               **kwargs)
         
         self.idn = self.get_idn()
         self.num_chans = num_chans
         self.chan_range = range(1,self.num_chans+1)
         
-        channels = ChannelList(self, "Channels", iTestChannel,
+        # Create the channels
+        channels = ChannelList(parent=self,
+                               name='Channels',
+                               chan_type=iTestChannel,
                                multichan_paramclass=iTestMultiChannelParameter)
         
         for i in self.chan_range:
-            channel = iTestChannel(self,'chan{:02}'.format(i),i)
+            
+            channel = iTestChannel(self, name='chan{:02}'.format(i),
+                                         chan_num=i)
+            channel.synchronous_enable(synchronous_enable)
+            channel.synchronous_delay(synchronous_delay)
+            channel.synchronous_threshold(synchronous_threshold)
             channels.append(channel)
-            
             self.add_submodule('ch{:02}'.format(i),channel)
-            
+        
         channels.lock()
         self.add_submodule('channels',channels)
         
         if init_start:
-            self.channels[:].v.set(0)
-            self.channels[:].range(1.2)
-            self.channels[:].start()
+            for channel in self.channels:
+                channel.v.set(0)
+                channel.v_range(1.2)
+                channel.start()
 
         self.connect_message()
-        
-    def _set_voltage(self,chan,v_set,trigger=False,block=False):
+
+
+    def _set_voltage(self, chan:int,
+                           v_set:float) -> None:
         """
         Set cmd for the chXX_v parameter
         
         Args:
-            chan (int): The 1-indexed channel number
-            v_set (float): The target voltage
+            chan: The 1-indexed channel number
+            v_set: The target voltage
         """
-        i,c = self.chan_to_ic(chan)
-        self.write('i{};c{};VOLT {:.8f}'.format(i,c,v_set))
-        
-        if trigger:
-            self._trig_chan(chan)
-            if block:
-                v = self.channels[chan-1].v()
-                while(abs(v_set - v)>=10e-5):
-                    time.sleep(1e-3)
-                    v = self.channels[chan-1].v()
-                
-            
-    def _get_voltage(self,chan):
+        chan_id = self.chan_to_id(chan)
+        self.write('{}VOLT {:.8f}'.format(chan_id, v_set))
+        self.write(chan_id + 'TRIG:INPUT:INIT')
+        if self.channels[chan-1].synchronous_enable():
+            v = self._get_voltage(chan)
+            while abs(v_set - v)>=self.channels[chan-1].synchronous_threshold():
+                sleep(self.channels[chan-1].synchronous_delay())
+                v = self._get_voltage(chan)
+
+
+    def _get_voltage(self, chan:int) -> float:
         """
         Get cmd for the chXX_v parameter
         
         Args:
-            chan (int): The 1-indexed channel number
+            chan: The 1-indexed channel number
 
         Returns:
-            (float) Voltage
+            Voltage
         """
-        i,c = self.chan_to_ic(chan)
-        v = self.ask('i{};c{};MEAS:VOLT?'.format(i,c))
-        return float(v)
-    
-    def _get_current(self,chan):
+        chan_id = self.chan_to_id(chan)
+        
+        return float(self.ask('{}MEAS:VOLT?'.format(chan_id)))
+
+
+    def _get_current(self, chan:int) -> float:
         """
         Get cmd for the chXX_i parameter
         
         Args:
-            chan (int): The 1-indexed channel number
+            chan: The 1-indexed channel number
 
         Returns:
-            (float) Current
+            Current
         """
-        i,c = self.chan_to_ic(chan)
-        curr = self.ask('i{};c{};MEAS:CURR?'.format(i,c))
-        return float(curr)
-    
-    
+        chan_id = self.chan_to_id(chan)
+        
+        return float(self.ask('{}MEAS:CURR?'.format(chan_id)))
 
-    def _set_ramp_slope(self,chan,slope):
+
+    def _set_ramp_slope(self, chan:int,
+                              slope:float) -> None:
         """
         Set slope of chXX for ramp mode
         
         Args:
-            chan (int): The 1-indexed channel number
-            slope (float): Slope of chXX in V/ms
-            
-        Returns:
-            (float): chXX_slope parameter
+            chan The 1-indexed channel number
+            slope Slope of chXX in V/ms
         """
         chan_id = self.chan_to_id(chan)
-        self.write(chan_id + 'VOLT:SLOP {:.8f}'.format(slope))
+        self.write('{}VOLT:SLOP {:.8f}'.format(chan_id, slope))
 
 
-    def _get_ramp_slope(self,chan):
+    def _get_ramp_slope(self, chan:int) -> str:
         """
         Get slope of chXX
         
         Args:
-            chan (int): The 1-indexed channel number
+            chan: The 1-indexed channel number
             
         Returns:
-            (float): chXX_slope parameter
+            chXX_slope parameter
         """
         chan_id = self.chan_to_id(chan)
-        slope = self.ask(chan_id + 'VOLT:SLOP?')
-        return slope
+        return self.ask('{}VOLT:SLOP?'.format(chan_id))
 
-    def _set_output_function(self,chan,outf):
+
+    def _set_output_function(self, chan:int,
+                                   outf:str) -> None:
         """
         Set how to perform output voltage update
         
         Args:
-            chan (int): The 1-indexed channel number
-            ouf (int or str): Mode
+            chan: The 1-indexed channel number
+            ouf: Mode
         """
         chan_id = self.chan_to_id(chan)
-        if isinstance(outf,(int,float)):
-            mode = str(outf)
+        
+        if outf=='exp':
+            mode = '0'
+        elif outf=='ramp':
+            mode = '1'
         else:
-            if outf=="exp":
-                mode = "0"
-            elif outf=="ramp":
-                mode = "1"
-        self.write(chan_id + "trig:input " + mode)
+            raise ValueError('Got unexpected output function mode: {}.'.format(mode))
+        
+        self.write(chan_id + 'trig:input ' + mode)
 
-    def _get_output_function(self,chan):
+
+    def _get_output_function(self, chan:int) -> str:
         """
         Get output volage update  function
+        
         Args:
-            chan (int): The 1-indexed channel number
+            chan: The 1-indexed channel number
         
         Returns:
             mode
@@ -293,82 +332,78 @@ class ITest(VisaInstrument):
         chan_id = self.chan_to_id(chan)
         mode = int(self.ask(chan_id + 'TRIG:INPUT?'))
         if mode == 0:
-            return "exp"
+            return 'exp'
         elif mode == 1:
-            return "ramp"
+            return 'ramp'
         else:
-            return "ERROR"
-    
-    def _set_chan_range(self,chan,volt):
+            raise ValueError('Got unexpected output function mode: {}.'.format(mode))
+
+
+    def _set_chan_range(self, chan:int,
+                              volt: float) -> None:
         """
         Set output voltage range
         
         Args:
-            chan (int): The 1-indexed channel number
-            volt (float): Voltage range (1.2 or 12)
+            chan : The 1-indexed channel number
+            volt : Voltage range (1.2 or 12)
         """
         chan_id = self.chan_to_id(chan)
-        self.write(chan_id + "VOLT:RANGE " + str(volt))
-    
-    def _get_chan_range(self,chan):
+        self.write(chan_id + 'VOLT:RANGE ' + str(volt))
+
+
+    def _get_chan_range(self, chan:int) -> str:
         """
         Get output voltage range
         
         Args:
-            chan (int): The 1-indexed channel number
+            chan: The 1-indexed channel number
             
         Returns:
-            volt (str): Output voltage range
+            volt: Output voltage range
         """
         chan_id = self.chan_to_id(chan)
-        volt = self.ask(chan_id + "VOLT:RANGE?")
-        return volt[:-2]
-    
-    def _set_chan_pos_sat(self,chan,pos_sat):
+        
+        return self.ask(chan_id + 'VOLT:RANGE?')[:-2]
+
+
+    def _set_chan_pos_sat(self, chan:int,
+                                pos_sat: Union[float, str]) -> None:
         chan_id = self.chan_to_id(chan)
         if isinstance(pos_sat,(int,float)):
-            self.write(chan_id + "VOLT:SAT:POS {:.8f}".format(pos_sat))
+            self.write(chan_id + 'VOLT:SAT:POS {:.8f}'.format(pos_sat))
         elif isinstance(pos_sat,str):
-            self.write(chan_id + "VOLT:SAT:POS MAX")
-    
-    def _set_chan_neg_sat(self,chan,neg_sat):
+            self.write(chan_id + 'VOLT:SAT:POS MAX')
+
+
+    def _set_chan_neg_sat(self, chan:int,
+                                neg_sat: Union[float, str]) -> None:
         chan_id = self.chan_to_id(chan)
         if isinstance(neg_sat,(int,float)):
-            self.write(chan_id + "VOLT:SAT:NEG {:.8f}".format(neg_sat))
+            self.write(chan_id + 'VOLT:SAT:NEG {:.8f}'.format(neg_sat))
         elif isinstance(neg_sat,str):
-            self.write(chan_id + "VOLT:SAT:NEG MIN")
-    
-    def _get_chan_pos_sat(self,chan):
+            self.write(chan_id + 'VOLT:SAT:NEG MIN')
+
+
+    def _get_chan_pos_sat(self, chan:int) -> str:
         chan_id = self.chan_to_id(chan)
-        pos_sat = self.ask(chan_id + "VOLT:SAT:POS ?")
-        return pos_sat
-    
-    def _get_chan_neg_sat(self,chan):
+        return self.ask(chan_id + 'VOLT:SAT:POS ?')
+
+
+    def _get_chan_neg_sat(self, chan:int) -> str:
         chan_id = self.chan_to_id(chan)
-        neg_sat = self.ask(chan_id + "VOLT:SAT:NEG ?")
-        return neg_sat
-    
-    def _trig_chan(self,chan):
-        """
-        Send trigger signals
-        
-        Args:
-            chan (int): The 1-indexed channel number
-        """
-        chan_id = self.chan_to_id(chan)
-        self.write(chan_id + "TRIG:INPUT:INIT")
-    
-    
-    
-    def _get_chan_state(self,chan):
+        return self.ask(chan_id + 'VOLT:SAT:NEG ?')
+
+
+    def _get_chan_state(self, chan:int) -> bool:
         """
         Get channel power state
         
         Args:
-            chan (int): The 1-indexed channel number
+            chan: The 1-indexed channel number
             
         Returns:
-            state (bool): Power state 
+            state: Power state 
         """
         chan_id = self.chan_to_id(chan)
         state = self.ask(chan_id + 'OUTP ?')
@@ -377,63 +412,52 @@ class ITest(VisaInstrument):
             return True
         elif state == '0':
             return False
+        else:
+            raise ValueError('Unknown state output: {}'.format(state))
 
-    
-    def _set_chan_state(self,chan,state):
+
+    def _set_chan_state(self, chan:int,
+                              state:str) -> None:
         """
         Set channel power state
         
         Args:
-            chan (int): The 1-indexed channel number
-            state (bool): power state
+            chan: The 1-indexed channel number
+            state: power state
         """
         chan_id = self.chan_to_id(chan)
-        if state:
-            state_str = 'on'
-        else:
-            state_str = 'off'
-        self.write(chan_id + 'OUTP ' + state_str)
+        self.write(chan_id + 'OUTP ' + state)
 
 
-    def _set_chan_name(self,chan,name):
+    def _set_chan_name(self, chan:int,
+                             name: str) -> None:
         """
+        Set the name of the channel
+
+        Args:
+            chan: Channel to be named
+            name: Name of the channel
         """
         chan_id = self.chan_to_id(chan)
         self.write(chan_id + 'chan:name "{}"'.format(name))
-        
-    def chan_to_ic(self,chan):
+
+
+    def chan_to_ic(self, chan:int) -> Tuple[int, int]:
         """
         Indexing conversion from channel number (1 to 16)
         to iX;c;
         Args:
-            chan (int): The 1-indexed channel number
+            chan: The 1-indexed channel number
             
         Returns:
-            i,c (int tuple): i=card number, c=channel number of card i
+            i,c: i=card number, c=channel number of card i
         """
         i = ceil(chan/4.)
         c = chan-(i-1)*4
         return i,c
-    
 
-    def chan_to_id(self,chan):
+
+    def chan_to_id(self, chan:int) -> str:
         i,c = self.chan_to_ic(chan)
+
         return 'i{};c{};'.format(i,c)
-    
-
-
-
-if __name__=='__main__':    
-     import random    
-
-     iTest_address = "TCPIP0::192.168.150.102::5025::SOCKET"
-
-     instr = ITest('DAC' + str(random.randint(0,1000)), iTest_address)
-#
-#     instr.channels[:].start.get()
-#     instr.ch03.v.get()
-#     instr.channels[2].v.get()
-#     instr.channels[:].v.set(0.2)
-#     instr.channels[1:3].v.set(0.1)
-#     print(instr.channels[:].v.get())
-#     instr.channels[:].stop.get()
