@@ -34,8 +34,8 @@ class SpectrumArray(ParameterWithSetpoints):
     generated frequency axis.
     Args:
         ParameterWithSetpoints (Parameter): This Parameter class is intended
-                                            for anything where a call to the 
-                                            instrument returns an array of 
+                                            for anything where a call to the
+                                            instrument returns an array of
                                             values.
     """
     def get_raw(self, ) -> np.array:
@@ -65,7 +65,7 @@ class FSL(VisaInstrument):
     def __init__(self, name       : str,
                        address    : str,
                        terminator : str="\n",
-                       timeout    : int=100,
+                       timeout    : int=10000,
                        **kwargs):
         """[summary]
 
@@ -73,7 +73,7 @@ class FSL(VisaInstrument):
             name (str): Name of the instrument
             address (str): Address of instrument
             terminator (str, optional): Terminator. Defaults to "\n".
-            timeout (int, optional): Communication timeout in untis of s. 
+            timeout (int, optional): Communication timeout in untis of s.
                                      Defaults to 100.
         """
 
