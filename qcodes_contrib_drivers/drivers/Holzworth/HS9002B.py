@@ -1,13 +1,8 @@
 # This Python file uses the following encoding: utf-8
 
-import numpy as np
-from typing import Tuple
-
-from qcodes import (Instrument, VisaInstrument,
-                    ManualParameter, MultiParameter,
-                    validators as vals)
+from qcodes import Instrument, VisaInstrument
 from qcodes.instrument.channel import InstrumentChannel
-from qcodes.utils.validators import Numbers, Enum, Ints
+from qcodes.utils.validators import Numbers, Enum
 
 
 class HS9002BChannel(InstrumentChannel):
@@ -23,25 +18,40 @@ class HS9002BChannel(InstrumentChannel):
                 to be attached.
             name: The 'colloquial' name of the channel
             channel: The name used by the Holzworth, i.e. either
-                'CH1' or 'CH2'
+                     'CH1' or 'CH2'
         """
 
         super().__init__(parent, name)
 
-        '''
-        This block of function is there to determine the maximum and minimum values
-        of the RF source and give it as a float in Hz, dBm and degree
-        '''
-        self._min_f = self._parse_f_unit(self.ask_raw(':{}:Freq:MIN?'.format(channel)))
-        self._max_f = self._parse_f_unit(self.ask_raw(':{}:Freq:MAX?'.format(channel)))
-        self._min_pwr = self._parse_pwr_unit(self.ask_raw(':{}:PWR:MIN?'.format(channel)))
-        self._max_pwr = self._parse_pwr_unit(self.ask_raw(':{}:PWR:MAX?'.format(channel)))
-        self._min_phase = self._parse_phase_unit(self.ask_raw(':{}:PHASE:MIN?'.format(channel)))
-        self._max_phase = self._parse_phase_unit(self.ask_raw(':{}:PHASE:MAX?'.format(channel)))
+        """
+        This block of function is there to determine the maximum and minimum 
+        values of the RF source and give it as a float in Hz, dBm and degree
+        """
+        self._min_f = self._parse_f_unit(
+                      self.ask_raw(':{}:Freq:MIN?'.format(channel)))
+        self._max_f = self._parse_f_unit(
+                      self.ask_raw(':{}:Freq:MAX?'.format(channel)))
+        self._min_pwr = self._parse_pwr_unit(
+                        self.ask_raw(':{}:PWR:MIN?'.format(channel)))
+        self._max_pwr = self._parse_pwr_unit(
+                        self.ask_raw(':{}:PWR:MAX?'.format(channel)))
+        self._min_phase = self._parse_phase_unit(
+                          self.ask_raw(':{}:PHASE:MIN?'.format(channel)))
+        self._max_phase = self._parse_phase_unit(
+                          self.ask_raw(':{}:PHASE:MAX?'.format(channel)))
 
         '''
-        All parameters of the RF source are added. Since the command set_cmd cannot handle
-        a response from the device, we have created a function to deal with its reply
+        All parameters of the RF source are added. Since the command set_cmd 
+        cannot handle a response from the device, we use the functions
+        previously defined.
+        Args:
+            name: name when parameter needs to be called
+            label: Label appearing on plot
+            get_parser: Converting output into indicated dtype
+            get_cmd: Parameter value from the source
+            set_cmd: Setting the parameter value from the source
+            vals: maximum and minimum values of the parameters
+            unit: Unit of the parameter
         '''
         self.add_parameter(name='state',
                            label='State',
@@ -93,9 +103,15 @@ class HS9002BChannel(InstrumentChannel):
             'kHz': 1e3
         }
         if unit not in unit_dict.keys():
-            raise RuntimeError('{} is not in {}. Cannot parse {}.'.format(unit, unit_dict.keys(), unit))
+            raise RuntimeError('{} is not in {}. Cannot parse {}.'
+                               .format(unit, unit_dict.keys(), unit))
         frequency = float(f) * unit_dict[unit]
         return frequency
+        """
+        Function that converts strings consisting of a number and a unit into 
+        frequencies in Hz and returing it as a float:
+            raw_str: String of the form '100 MHz'
+        """
 
     def _parse_pwr_unit(self, raw_str:str) -> float:
         try:
@@ -104,6 +120,11 @@ class HS9002BChannel(InstrumentChannel):
             pwr, unit = raw_str.split(' ')
             power = float(pwr)
         return power
+        """
+        Function that converts strings consisting of a number only or 
+        a number plus a unit dBm into a float in dBm:
+            raw_str: String of the form '-10' or '-10 dBm'
+        """
 
     def _parse_phase_unit(self, raw_str:str) -> float:
         try:
@@ -111,15 +132,22 @@ class HS9002BChannel(InstrumentChannel):
         except:
             phase = float(raw_str[:-3])
         return phase
+        """
+        Function that converts strings consisting of a number only or 
+        a number plus a unit deg into a float in deg:
+            raw_str: String of the form '90' or '90deg'
+        """
 
     def _get_state(self) -> float:
-        return self.ask(':{}:PWR:RF?'.format(self.channel))
+        return self.ask(':{}:PWR:RF?'.format(self.channel)) # 'ON' or 'OFF'
 
     def _set_state(self, st) -> None:
         write_str = ':{}:PWR:RF:'.format(self.channel) + str(st)
         read_str = self.ask(write_str)
         if read_str != 'RF POWER '+str(st):
-            raise RuntimeError('{} is not \'State Set\'. Setting state did not work'.format(read_str))
+            raise RuntimeError(
+                         '{} is not \'State Set\'. Setting state did not work'
+                         .format(read_str))
 
     def _get_f(self) -> float:
         raw_str = self.ask(':{}:FREQ?'.format(self.channel))
@@ -129,7 +157,9 @@ class HS9002BChannel(InstrumentChannel):
         write_str = ':{}:FREQ:'.format(self.channel) + str(f/1e9) + 'GHz'
         read_str = self.ask(write_str)
         if read_str != 'Frequency Set':
-            raise RuntimeError('{} is not \'Frequency Set\'. Setting frequency did not work'.format(read_str))
+            raise RuntimeError(
+                 '{} is not \'Frequency Set\'. Setting frequency did not work'
+                 .format(read_str))
 
     def _get_pwr(self) -> float:
         raw_str = self.ask(':{}:PWR?'.format(self.channel))
@@ -139,7 +169,9 @@ class HS9002BChannel(InstrumentChannel):
         write_str = ':{}:PWR:'.format(self.channel) + str(pwr) + 'dBm'
         read_str = self.ask(write_str)
         if read_str != 'Power Set':
-            raise RuntimeError('{} is not \'Power Set\'. Setting power did not work'.format(read_str))
+            raise RuntimeError(
+                         '{} is not \'Power Set\'. Setting power did not work'
+                         .format(read_str))
 
     def _get_phase(self) -> float:
         raw_str = self.ask(':{}:PHASE?'.format(self.channel))
@@ -149,7 +181,9 @@ class HS9002BChannel(InstrumentChannel):
         write_str = ':{}:PHASE:'.format(self.channel) + str(float(ph)) + 'deg'
         read_str = self.ask(write_str)
         if read_str != 'Phase Set':
-            raise RuntimeError('{} is not \'Phase Set\'. Setting phase did not work'.format(read_str))
+            raise RuntimeError(
+                         '{} is not \'Phase Set\'. Setting phase did not work'
+                         .format(read_str))
 
     def _get_temp(self) -> float:
         raw_str = self.ask(':{}:TEMP?'.format(self.channel))
@@ -159,7 +193,8 @@ class HS9002BChannel(InstrumentChannel):
 
 class HS9002B(VisaInstrument):
     """
-    This is the qcodes driver for the
+    QCoDeS driver for the Holzworth HS9002B RF power source. 
+    It contains all parameters of the instrument.
     """
     def __init__(self, name: str, address: str, **kwargs) -> None:
         """
@@ -174,11 +209,6 @@ class HS9002B(VisaInstrument):
                            get_parser=str,
                            get_cmd=self._get_channels) #No of ports
 
-        """
-        The driver has been tried to be written also for other similar models from Holzworth
-        however we could not test it. Hence only the bulletproof version have been listed as
-        known models
-        """
         model = self.ask_raw(':IDN?').split(', ')[1]
         knownmodels = ['HS9002B']
         if model not in knownmodels:
@@ -191,10 +221,6 @@ class HS9002B(VisaInstrument):
         for ch_name in channels:
             channel = HS9002BChannel(self, ch_name, ch_name)
             self.add_submodule(ch_name, channel)
-
-        # display parameter
-        # Parameters NOT specific to a channel still belong on the Instrument object
-        # In this case, the Parameter controls the text on the display
 
         self.connect_message()
 
