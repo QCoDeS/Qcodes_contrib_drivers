@@ -1,4 +1,5 @@
 # This Python file uses the following encoding: utf-8
+import warnings
 
 from qcodes import Instrument, VisaInstrument
 from qcodes.instrument.channel import InstrumentChannel
