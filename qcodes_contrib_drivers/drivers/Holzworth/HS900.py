@@ -3,6 +3,7 @@
 from qcodes import Instrument, VisaInstrument
 from qcodes.instrument.channel import InstrumentChannel
 from qcodes.utils.validators import Numbers, Enum
+from qcodes.utils.helpers import create_on_off_val_mapping
 
 
 class HS900Channel(InstrumentChannel):
@@ -43,12 +44,13 @@ class HS900Channel(InstrumentChannel):
                            get_parser=str,
                            get_cmd=':{}:PWR:RF?'.format(self.channel),
                            set_cmd=self._set_state,
-                           vals=Enum('ON', 'OFF'))
+                           val_mapping=create_on_off_val_mapping(on_val='ON',
+                                                                 off_val='OFF'))
 
         self.add_parameter(name='power',
                            label='Power',
                            get_parser=float,
-                           get_cmd=self._get_pwr,
+                           get_cmd=':{}:PWR?'.format(self.channel),
                            set_cmd= self._set_pwr,
                            unit='dBm',
                            vals=Numbers(min_value=self._min_pwr,
@@ -66,7 +68,7 @@ class HS900Channel(InstrumentChannel):
         self.add_parameter(name='phase',
                            label='Phase',
                            get_parser=float,
-                           get_cmd=self._get_phase,
+                           get_cmd=':{}:PHASE?'.format(self.channel),
                            set_cmd= self._set_phase,
                            unit='deg',
                            vals=Numbers(min_value=self._min_phase,
@@ -175,15 +177,6 @@ class HS900Channel(InstrumentChannel):
                  '{} is not \'Frequency Set\'. Setting frequency did not work'
                  .format(read_str))
 
-    def _get_pwr(self) -> float:
-        """Getting the power in dBm of the RF source channel. Instrument returns
-        a string without unit, e.g. '-10'
-
-        Returns:
-            float: Power in dBm
-        """
-        return float(self.ask(':{}:PWR?'.format(self.channel)))
-
     def _set_pwr(self, pwr:float) -> None:
         """Setting the power of the RF source channel in dBm.
 
@@ -200,16 +193,6 @@ class HS900Channel(InstrumentChannel):
             raise RuntimeError(
                          '{} is not \'Power Set\'. Setting power did not work'
                          .format(read_str))
-
-    def _get_phase(self) -> float:
-        """Getting the phase from the RF source channel and converting
-        it into a float in deg. Instrument returns it as a string
-        in the form '70.8'.
-
-        Returns:
-            float: phase in deg, e.g. 70.8
-        """
-        return float(self.ask(':{}:PHASE?'.format(self.channel)))
 
     def _set_phase(self, ph:float) -> None:
         """Setting the phase in deg.
@@ -265,7 +248,7 @@ class HS900(VisaInstrument):
         if model not in knownmodels:
             kmstring = ('{}, '*(len(knownmodels)-1)).format(*knownmodels[:-1])
             kmstring += 'and {}.'.format(knownmodels[-1])
-            raise ValueError('Unknown model. Known models are: ' + kmstring)
+            warnings.warn('Unknown model. Known models are: ' + kmstring)
 
         # Add the channel to the instrument
         channels = self.ask_raw(':ATTACH?').split(':')[2:-1]
