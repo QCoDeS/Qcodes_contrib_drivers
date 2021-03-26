@@ -209,7 +209,7 @@ class HS900Channel(InstrumentChannel):
         Returns:
             float: phase in deg, e.g. 70.8
         """
-        return float(raw_str = self.ask(':{}:PHASE?'.format(self.channel)))
+        return float(self.ask(':{}:PHASE?'.format(self.channel)))
 
     def _set_phase(self, ph:float) -> None:
         """Setting the phase in deg.
