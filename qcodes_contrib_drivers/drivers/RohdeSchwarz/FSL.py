@@ -65,7 +65,7 @@ class FSL(VisaInstrument):
     def __init__(self, name       : str,
                        address    : str,
                        terminator : str="\n",
-                       timeout    : int=10000,
+                       timeout    : int=100000,
                        **kwargs):
         """[summary]
 
@@ -173,7 +173,7 @@ class FSL(VisaInstrument):
 
         self.add_parameter(name = 'freq_axis',
                            unit = 'Hz',
-                           label = 'Freq Axis',
+                           label = 'Analyzer Frequency',
                            parameter_class = GeneratedSetPoints,
                            startparam = self.f_start,
                            stopparam = self.f_stop,
