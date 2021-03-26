@@ -5,10 +5,10 @@ from qcodes.instrument.channel import InstrumentChannel
 from qcodes.utils.validators import Numbers, Enum
 
 
-class HS9002BChannel(InstrumentChannel):
+class HS900Channel(InstrumentChannel):
     """
     Class to hold the Holzworth channels, i.e.
-    CH1 and CH2.
+    CH1, CH2, ...
     """
 
     def __init__(self, parent: Instrument, name: str, channel: str) -> None:
@@ -23,10 +23,8 @@ class HS9002BChannel(InstrumentChannel):
 
         super().__init__(parent, name)
 
-        """
-        This block of function is there to determine the maximum and minimum 
-        values of the RF source and give it as a float in Hz, dBm and degree
-        """
+        self.channel = channel
+
         self._min_f = self._parse_f_unit(
                       self.ask_raw(':{}:Freq:MIN?'.format(channel)))
         self._max_f = self._parse_f_unit(
@@ -40,23 +38,10 @@ class HS9002BChannel(InstrumentChannel):
         self._max_phase = self._parse_phase_unit(
                           self.ask_raw(':{}:PHASE:MAX?'.format(channel)))
 
-        '''
-        All parameters of the RF source are added. Since the command set_cmd 
-        cannot handle a response from the device, we use the functions
-        previously defined.
-        Args:
-            name: name when parameter needs to be called
-            label: Label appearing on plot
-            get_parser: Converting output into indicated dtype
-            get_cmd: Parameter value from the source
-            set_cmd: Setting the parameter value from the source
-            vals: maximum and minimum values of the parameters
-            unit: Unit of the parameter
-        '''
         self.add_parameter(name='state',
                            label='State',
                            get_parser=str,
-                           get_cmd=self._get_state,
+                           get_cmd=':{}:PWR:RF?'.format(self.channel),
                            set_cmd=self._set_state,
                            vals=Enum('ON', 'OFF'))
 
@@ -93,9 +78,14 @@ class HS9002BChannel(InstrumentChannel):
                            get_cmd=self._get_temp,
                            unit='C')
 
-        self.channel = channel
-
     def _parse_f_unit(self, raw_str:str) -> float:
+        """
+        Function that converts strings consisting of a number and a unit into 
+        frequencies in Hz and returing it as a float:
+
+        Args:
+            raw_str: String of the form '100 MHz'
+        """
         f, unit = raw_str.split(' ')
         unit_dict = {
             'GHz': 1e9,
@@ -107,41 +97,48 @@ class HS9002BChannel(InstrumentChannel):
                                .format(unit, unit_dict.keys(), unit))
         frequency = float(f) * unit_dict[unit]
         return frequency
-        """
-        Function that converts strings consisting of a number and a unit into 
-        frequencies in Hz and returing it as a float:
-            raw_str: String of the form '100 MHz'
-        """
+
 
     def _parse_pwr_unit(self, raw_str:str) -> float:
+        """
+        Function that converts strings consisting of a number only or 
+        a number plus a unit dBm into a float in dBm:
+
+        Args:
+            raw_str: String of the form '-10' or '-10 dBm'
+        """
         try:
             power = float(raw_str)
         except:
             pwr, unit = raw_str.split(' ')
             power = float(pwr)
         return power
-        """
-        Function that converts strings consisting of a number only or 
-        a number plus a unit dBm into a float in dBm:
-            raw_str: String of the form '-10' or '-10 dBm'
-        """
 
     def _parse_phase_unit(self, raw_str:str) -> float:
+        """
+        Function that converts strings consisting of a number only or
+        a number plus a unit deg into a float in deg:
+
+        Args:
+            raw_str: String of the form '90' or '90deg'
+        """
         try:
             phase = float(raw_str)
         except:
             phase = float(raw_str[:-3])
         return phase
-        """
-        Function that converts strings consisting of a number only or 
-        a number plus a unit deg into a float in deg:
-            raw_str: String of the form '90' or '90deg'
-        """
 
-    def _get_state(self) -> float:
-        return self.ask(':{}:PWR:RF?'.format(self.channel)) # 'ON' or 'OFF'
+    def _set_state(self, st:{'ON','OFF'}) -> None:
+        """
+        Function that turns the channel on or off
 
-    def _set_state(self, st) -> None:
+        Args:
+            st (str): accepts as argument 'ON' or 'OFF', only in CAPITAL letters
+
+        Raises:
+            RuntimeError: Function compares reply from instrument and raises
+            RuntimeError if state setting was not performed sucessfully
+        """
         write_str = ':{}:PWR:RF:'.format(self.channel) + str(st)
         read_str = self.ask(write_str)
         if read_str != 'RF POWER '+str(st):
@@ -150,10 +147,27 @@ class HS9002BChannel(InstrumentChannel):
                          .format(read_str))
 
     def _get_f(self) -> float:
+        """
+        Getting the fundamental frequency from the RF source channel
+        in Hz. Instrument gives frequency as a string in the format
+        '800.0 MHz'.
+
+        Returns:
+            float: frequency in Hz, e.g. 0.8e9
+        """
         raw_str = self.ask(':{}:FREQ?'.format(self.channel))
         return self._parse_f_unit(raw_str)
 
-    def _set_f(self, f) -> None:
+    def _set_f(self, f:float) -> None:
+        """Function that sets the frequency of a channel.
+
+        Args:
+            f (float): RF source channel fundamental frequency in Hz
+
+        Raises:
+            RuntimeError: Instrument tells us if frequency has been set correctly.
+            Otherwise RuntimeError.
+        """
         write_str = ':{}:FREQ:'.format(self.channel) + str(f/1e9) + 'GHz'
         read_str = self.ask(write_str)
         if read_str != 'Frequency Set':
@@ -162,10 +176,24 @@ class HS9002BChannel(InstrumentChannel):
                  .format(read_str))
 
     def _get_pwr(self) -> float:
-        raw_str = self.ask(':{}:PWR?'.format(self.channel))
-        return self._parse_pwr_unit(raw_str)
+        """Getting the power in dBm of the RF source channel. Instrument returns
+        a string without unit, e.g. '-10'
 
-    def _set_pwr(self, pwr) -> None:
+        Returns:
+            float: Power in dBm
+        """
+        return float(self.ask(':{}:PWR?'.format(self.channel)))
+
+    def _set_pwr(self, pwr:float) -> None:
+        """Setting the power of the RF source channel in dBm.
+
+        Args:
+            pwr (float): power in dBm
+
+        Raises:
+            RuntimeError: Instrument tells us if frequency has been set correctly.
+            Otherwise RuntimeError.
+        """
         write_str = ':{}:PWR:'.format(self.channel) + str(pwr) + 'dBm'
         read_str = self.ask(write_str)
         if read_str != 'Power Set':
@@ -174,10 +202,25 @@ class HS9002BChannel(InstrumentChannel):
                          .format(read_str))
 
     def _get_phase(self) -> float:
-        raw_str = self.ask(':{}:PHASE?'.format(self.channel))
-        return self._parse_phase_unit(raw_str)
+        """Getting the phase from the RF source channel and converting
+        it into a float in deg. Instrument returns it as a string
+        in the form '70.8'.
 
-    def _set_phase(self, ph) -> None:
+        Returns:
+            float: phase in deg, e.g. 70.8
+        """
+        return float(raw_str = self.ask(':{}:PHASE?'.format(self.channel)))
+
+    def _set_phase(self, ph:float) -> None:
+        """Setting the phase in deg.
+
+        Args:
+            ph (float): phase angle in deg
+
+        Raises:
+            RuntimeError: Instrument tells us if phase has been set correctly.
+            Otherwise RuntimeError.
+        """
         write_str = ':{}:PHASE:'.format(self.channel) + str(float(ph)) + 'deg'
         read_str = self.ask(write_str)
         if read_str != 'Phase Set':
@@ -186,14 +229,20 @@ class HS9002BChannel(InstrumentChannel):
                          .format(read_str))
 
     def _get_temp(self) -> float:
+        """Getting the temperature of a channel input/output in deg Celsius.
+        Instrument returns string in the form 'Temp = 54C'
+
+        Returns:
+            float: Temperature in C, e.g. 54
+        """
         raw_str = self.ask(':{}:TEMP?'.format(self.channel))
         T = raw_str.split(' ')[-1][:-1]
         return T
 
 
-class HS9002B(VisaInstrument):
+class HS900(VisaInstrument):
     """
-    QCoDeS driver for the Holzworth HS9002B RF power source. 
+    QCoDeS driver for the Holzworth HS9002B RF power source.
     It contains all parameters of the instrument.
     """
     def __init__(self, name: str, address: str, **kwargs) -> None:
@@ -209,22 +258,30 @@ class HS9002B(VisaInstrument):
                            get_parser=str,
                            get_cmd=self._get_channels) #No of ports
 
-        model = self.ask_raw(':IDN?').split(', ')[1]
-        knownmodels = ['HS9002B']
+        model = self.IDN()['model']
+        knownmodels = ['HS9001B', 'HS9002B', 'HS9003B', 'HS9004B',
+                       'HS9005B', 'HS9006B', 'HS9007B', 'HS9008B']
+        # Driver was only tested with 'HS9002B'.
         if model not in knownmodels:
             kmstring = ('{}, '*(len(knownmodels)-1)).format(*knownmodels[:-1])
             kmstring += 'and {}.'.format(knownmodels[-1])
-            raise ValueError('Unknown model. Known model are: ' + kmstring)
+            raise ValueError('Unknown model. Known models are: ' + kmstring)
 
         # Add the channel to the instrument
         channels = self.ask_raw(':ATTACH?').split(':')[2:-1]
         for ch_name in channels:
-            channel = HS9002BChannel(self, ch_name, ch_name)
+            channel = HS900Channel(self, ch_name, ch_name)
             self.add_submodule(ch_name, channel)
 
         self.connect_message()
 
-    def _get_channels(self) -> float:
+    def _get_channels(self) -> list:
+        """Getting the available channel names. Instrument returns string
+        in the form :REF:CH1:CH2:'
+
+        Returns:
+            list: list with available channel names, e.g. ['CH1', 'CH2']
+        """
         raw_str = self.ask(':ATTACH?')
         channels = raw_str.split(':')[2:-1]
         return channels
