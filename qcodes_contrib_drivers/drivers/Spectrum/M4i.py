@@ -802,8 +802,9 @@ class M4i(Instrument):
             pretrigger_size = self.pretrigger_memory_size()
         else:
             self.pretrigger_memory_size(pretrigger_size)
-        seg_size = posttrigger_size+pretrigger_size
-        memsize = n_triggers * seg_size
+        posttrigger_size = self._hw_memsize(posttrigger_size)
+        seg_size = self._hw_memsize(posttrigger_size+pretrigger_size)
+        memsize = self._hw_memsize(n_triggers * seg_size)
         self.data_memory_size(memsize)
         self.segment_size(seg_size)
         self.posttrigger_memory_size(posttrigger_size)
@@ -811,8 +812,7 @@ class M4i(Instrument):
     def start_triggered(self):
         '''Starts triggered acquisition
         '''
-        self.general_command(pyspcm.M2CMD_CARD_START |
-                             pyspcm.M2CMD_CARD_ENABLETRIGGER)
+        self.general_command(pyspcm.M2CMD_CARD_START | pyspcm.M2CMD_CARD_ENABLETRIGGER)
 
     def get_data(self):
         ''' Reads measurement data from the digitizer.
@@ -832,8 +832,10 @@ class M4i(Instrument):
         elif res != pyspcm.ERR_OK:
             raise Exception(f'Error waiting for data: (0x{res:04x})')
 
-        raw_data = self._transfer_buffer_numpy(memsize, numch)
-        self._stop_acquisition()
+        try:
+            raw_data = self._transfer_buffer_numpy(memsize, numch)
+        finally:
+            self._stop_acquisition()
 
         resolution = self.ADC_to_voltage.cache()
         voltages = np.zeros((numch, len(raw_data)//numch))
@@ -881,10 +883,10 @@ class M4i(Instrument):
         self.wait_ready()
 
         # convert transfer data to numpy array
-        output = self._transfer_buffer_numpy(
-            memsize, numch, bytes_per_sample=2)
-
-        self._stop_acquisition()
+        try:
+            output = self._transfer_buffer_numpy(memsize, numch, bytes_per_sample=2)
+        finally:
+            self._stop_acquisition()
 
         voltages = self.convert_to_voltage(output, mV_range / 1000)
 
@@ -969,9 +971,10 @@ class M4i(Instrument):
         mV_range = trace['mV_range']
 
         self.wait_ready()
-
-        output = self._transfer_buffer_numpy(memsize, numch)
-        self._stop_acquisition()
+        try:
+            output = self._transfer_buffer_numpy(memsize, numch)
+        finally:
+            self._stop_acquisition()
 
         voltages = self.convert_to_voltage(output, mV_range / 1000)
 
@@ -999,8 +1002,10 @@ class M4i(Instrument):
         self.general_command(pyspcm.M2CMD_CARD_START | pyspcm.M2CMD_CARD_ENABLETRIGGER)
         self.wait_ready()
 
-        output = self._transfer_buffer_numpy(memsize, numch)
-        self._stop_acquisition()
+        try:
+            output = self._transfer_buffer_numpy(memsize, numch)
+        finally:
+            self._stop_acquisition()
 
         voltages = self.convert_to_voltage(output, mV_range / 1000)
 
@@ -1023,9 +1028,10 @@ class M4i(Instrument):
         self.general_command(pyspcm.M2CMD_CARD_START | pyspcm.M2CMD_CARD_ENABLETRIGGER )
         self.wait_ready()
 
-        output = self._transfer_buffer_numpy(memsize, numch)
-
-        self._stop_acquisition()
+        try:
+            output = self._transfer_buffer_numpy(memsize, numch)
+        finally:
+            self._stop_acquisition()
 
         voltages = self.convert_to_voltage(output, mV_range / 1000)
 
@@ -1052,9 +1058,10 @@ class M4i(Instrument):
         self.general_command(pyspcm.M2CMD_CARD_START | pyspcm.M2CMD_CARD_ENABLETRIGGER)
         self.wait_ready()
 
-        output = self._transfer_buffer_numpy(
-            memsize, numch, bytes_per_sample=4)
-        self._stop_acquisition()
+        try:
+            output = self._transfer_buffer_numpy(memsize, numch, bytes_per_sample=4)
+        finally:
+            self._stop_acquisition()
 
         voltages = self.convert_to_voltage(
             output, mV_range / 1000) / self.box_averages()
@@ -1082,8 +1089,10 @@ class M4i(Instrument):
         self.general_command(pyspcm.M2CMD_CARD_START | pyspcm.M2CMD_CARD_ENABLETRIGGER)
         self.wait_ready()
 
-        output = self._transfer_buffer_numpy(memsize, numch)
-        self._stop_acquisition()
+        try:
+            output = self._transfer_buffer_numpy(memsize, numch)
+        finally:
+            self._stop_acquisition()
 
         voltages = self.convert_to_voltage(output, mV_range / 1000)
 
@@ -1163,9 +1172,10 @@ class M4i(Instrument):
         self.general_command(pyspcm.M2CMD_CARD_START | pyspcm.M2CMD_CARD_ENABLETRIGGER)
         self.wait_ready()
 
-        output = self._transfer_buffer_numpy(memsize, numch, bytes_per_sample=4) / nr_averages
-
-        self._stop_acquisition()
+        try:
+            output = self._transfer_buffer_numpy(memsize, numch, bytes_per_sample=4) / nr_averages
+        finally:
+            self._stop_acquisition()
 
         voltages = self.convert_to_voltage(output, mV_range / 1000)
 
@@ -1267,3 +1277,5 @@ class M4i(Instrument):
             print('card_memory: %s' % (data.value))
         return (data.value)
 
+    def _hw_memsize(self, size):
+        return (size + 15) // 16 * 16
