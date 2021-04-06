@@ -735,35 +735,47 @@ class M4i(Instrument):
         Args:
             channel_index (int): channel to update
             mV_range (float): measurement range for the channel
-            input_path (int): input path
+                (buffered path: 200, 500, 1000, 2000, 5000, or 10000)
+                (HF path: 500, 1000, 2500, or 5000)
+            input_path (int): input path (0: default/buffered; 1: HF/50 Ohm)
             termination (None or int): If None, then do not update the
-                termination
+                termination (0: 1 MOhm; 1: 50 Ohm)
             coupling (None or int): Set the ACDC_coupling.If None, then do not
-                update the coupling
+                update the coupling (0: DC; 1 AC)
             compensation (None or int): If None, then do not update the
-                compensation
+                compensation (0: off, 1: off)
         """
         # initialize
-        self.set(f'input_path_{channel_index}', input_path)  # 0: default; 1: HF/50 Ohm
+        self.set(f'input_path_{channel_index}', input_path)
         if termination is not None:
-            self.set(f'termination_{channel_index}', termination)  # 0: 1 MOhm; 1: 50 Ohm
+            self.set(f'termination_{channel_index}', termination)
         if coupling is not None:
-            self.set(f'ACDC_coupling_{channel_index}', coupling)  # 0: DC; 1 AC
+            self.set(f'ACDC_coupling_{channel_index}', coupling)
         self.set(f'range_channel_{channel_index}', mV_range)  # note: set after voltage range
         # can only be used with DC coupling and 50 Ohm path (hf)
         if compensation is not None:
             self.set(f'ACDC_offs_compensation_{channel_index}', compensation)
 
     def set_ext0_OR_trigger_settings(self, trig_mode, termination, coupling, level0, level1=None):
+        ''' Configures ext0 trigger
 
+        Args:
+            trig_mode: 0: None, 1: Positive edge, 2: Negative edge, 4: Both, 8: High, 16: Low,
+                32: Enter window, 64: Leave window, 128: Inside window, 256: Outside window,
+                0x01000001: Positive + re-arm, 0x01000002: Negative + re-arm
+            termination: input termination 0: 1 MOhm, 1: 50 Ohm
+            coupling: DC/AC input coupling (0: DC, 1: AC)
+            level0: trigger level [mV]
+            level1: 2nd level for re-arm and windowed modes. [mV]
+        '''
         self.channel_or_mask(0)
-        self.external_trigger_mode(trig_mode)  # trigger mode
-        self.trigger_or_mask(pyspcm.SPC_TMASK_EXT0)  # external trigger
-        self.external_trigger_termination(termination)  # 1: 50 Ohm
-        self.external_trigger_input_coupling(coupling)  # 0: DC
-        self.external_trigger_level_0(level0)  # mV
+        self.external_trigger_mode(trig_mode)
+        self.trigger_or_mask(pyspcm.SPC_TMASK_EXT0)
+        self.external_trigger_termination(termination)
+        self.external_trigger_input_coupling(coupling)
+        self.external_trigger_level_0(level0)
         if(level1 != None):
-            self.external_trigger_level_1(level1)  # mV
+            self.external_trigger_level_1(level1)
 
     # Note: the levels need to be set in bits, not voltages! (between -8191 to
     # 8191 for 14 bits)
