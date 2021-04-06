@@ -800,8 +800,6 @@ class M4i(Instrument):
         self.card_mode(pyspcm.SPC_REC_STD_MULTI)
         if not pretrigger_size:
             pretrigger_size = self.pretrigger_memory_size()
-        else:
-            self.pretrigger_memory_size(pretrigger_size)
         posttrigger_size = self._hw_memsize(posttrigger_size)
         seg_size = self._hw_memsize(posttrigger_size+pretrigger_size)
         memsize = self._hw_memsize(n_triggers * seg_size)
