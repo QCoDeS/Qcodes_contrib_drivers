@@ -408,9 +408,11 @@ class M4i(Instrument):
                                            pyspcm.SPC_CARDMODE),
                            set_cmd=partial(self._set_param32bit,
                                            pyspcm.SPC_CARDMODE),
-                           vals=Enum(pyspcm.SPC_REC_STD_SINGLE, pyspcm.SPC_REC_STD_MULTI, pyspcm.SPC_REC_STD_GATE, pyspcm.SPC_REC_STD_ABA,
-                                     pyspcm.SPC_REC_FIFO_SINGLE, pyspcm.SPC_REC_FIFO_MULTI, pyspcm.SPC_REC_FIFO_GATE,
-                                     pyspcm.SPC_REC_FIFO_ABA, pyspcm.SPC_REC_STD_AVERAGE, pyspcm.SPC_REC_STD_BOXCAR),
+                           vals=Enum(pyspcm.SPC_REC_STD_SINGLE, pyspcm.SPC_REC_STD_MULTI,
+                                     pyspcm.SPC_REC_STD_GATE, pyspcm.SPC_REC_STD_ABA,
+                                     pyspcm.SPC_REC_FIFO_SINGLE, pyspcm.SPC_REC_FIFO_MULTI,
+                                     pyspcm.SPC_REC_FIFO_GATE, pyspcm.SPC_REC_FIFO_ABA,
+                                     pyspcm.SPC_REC_STD_AVERAGE, pyspcm.SPC_REC_STD_BOXCAR),
                            docstring='defines the used operating mode')
 
         # wait command
@@ -669,7 +671,8 @@ class M4i(Instrument):
 
     def initialize_channels(self, channels=None, mV_range=1000, input_path=0,
                             termination=0, coupling=0, compensation=None,
-                            memsize=2**12, pretrigger_memsize=16):
+                            memsize=2**12, pretrigger_memsize=16,
+                            lp_filter=None):
         """ Setup channels of the digitizer for simple readout using Parameters
 
         The channels can be read out using the Parameters `channel_0`,
@@ -692,7 +695,8 @@ class M4i(Instrument):
             channels = range(4)
         for ch in channels:
             self.set_channel_settings(ch, mV_range, input_path=input_path,
-                                      termination=termination, coupling=coupling, compensation=compensation)
+                                      termination=termination, coupling=coupling,
+                                      compensation=compensation, lp_filter=lp_filter)
             allchannels = allchannels + getattr(pyspcm, 'CHANNEL%d' % ch)
 
         self.enable_channels(allchannels)
@@ -729,7 +733,9 @@ class M4i(Instrument):
         value = np.mean(data[:, channel])
         return value
 
-    def set_channel_settings(self, channel_index, mV_range, input_path, termination, coupling, compensation=None):
+    def set_channel_settings(self, channel_index, mV_range, input_path,
+                             termination, coupling, compensation=None,
+                             lp_filter=None):
         """ Update settings of the specified channel
 
         Args:
@@ -744,6 +750,7 @@ class M4i(Instrument):
                 update the coupling (0: DC; 1 AC)
             compensation (None or int): If None, then do not update the
                 compensation (0: off, 1: off)
+            lp_filter (Optional[int]): enable (1) or disable (0) the 20 MHz low pass filter
         """
         # initialize
         self.set(f'input_path_{channel_index}', input_path)
@@ -751,6 +758,8 @@ class M4i(Instrument):
             self.set(f'termination_{channel_index}', termination)
         if coupling is not None:
             self.set(f'ACDC_coupling_{channel_index}', coupling)
+        if lp_filter is not None:
+            self.set(f'anti_aliasing_filter_{channel_index}', lp_filter)
         self.set(f'range_channel_{channel_index}', mV_range)  # note: set after voltage range
         # can only be used with DC coupling and 50 Ohm path (hf)
         if compensation is not None:
@@ -789,7 +798,8 @@ class M4i(Instrument):
             self.set(f'trigger_channel_{i}_level_1', bitlevel1)
         self.set(f'trigger_mode_channel_{i}', trig_mode)  # trigger mode
 
-    def setup_multi_recording(self, posttrigger_size, n_triggers=1, pretrigger_size=None):
+    def setup_multi_recording(self, posttrigger_size, n_triggers=1,
+                              pretrigger_size=None, boxcar_average=False):
         """ Setup multi recording.
 
         Triggering must have been configured separately.
@@ -800,6 +810,7 @@ class M4i(Instrument):
             posttrigger_size (int): size of data trace after triggering
             n_triggers (int): total number of triggers
             pretrigger_size (int): size of data trace before triggering
+            boxcar_average (bool): use mode 'boxcar average'
 
         Example:
             digitizer.setup_multi_recording(size, n_triggers)
@@ -809,7 +820,14 @@ class M4i(Instrument):
             data = digitizer.get_data()
 
         """
-        self.card_mode(pyspcm.SPC_REC_STD_MULTI)
+        if boxcar_average:
+            if self.oversampling_factor() != 1:
+                raise Exception('Averaging with BOXCAR can only be used with '
+                                'maximum sample rate')
+            self.card_mode(pyspcm.SPC_REC_STD_BOXCAR)
+        else:
+            self.card_mode(pyspcm.SPC_REC_STD_MULTI)
+
         if not pretrigger_size:
             pretrigger_size = self.pretrigger_memory_size()
         posttrigger_size = self._hw_memsize(posttrigger_size)
@@ -822,12 +840,14 @@ class M4i(Instrument):
     def start_triggered(self):
         '''Starts triggered acquisition
         '''
-        self.general_command(pyspcm.M2CMD_CARD_START | pyspcm.M2CMD_CARD_ENABLETRIGGER)
+        self.general_command(pyspcm.M2CMD_CARD_START
+                             | pyspcm.M2CMD_CARD_ENABLETRIGGER)
 
     def get_data(self):
         ''' Reads measurement data from the digitizer.
 
-        The data acquisition must have been started by start_acquisition() or start_triggered().
+        The data acquisition must have been started by start_acquisition() or
+        start_triggered().
 
         Returns:
             2D array with voltages per channel in V.
@@ -843,7 +863,12 @@ class M4i(Instrument):
             raise Exception(f'Error waiting for data: (0x{res:04x})')
 
         try:
-            raw_data = self._transfer_buffer_numpy(memsize, numch)
+            if self.card_mode() == pyspcm.SPC_REC_STD_BOXCAR:
+                box_averages = self.box_averages()
+                raw_data = self._transfer_buffer_numpy(memsize, numch, bytes_per_sample=4)
+            else:
+                box_averages = 1
+                raw_data = self._transfer_buffer_numpy(memsize, numch)
         finally:
             self._stop_acquisition()
 
@@ -851,7 +876,7 @@ class M4i(Instrument):
         voltages = np.zeros((numch, len(raw_data)//numch))
         for i,ch in enumerate(active_channels):
             mV_range = self.get(f'range_channel_{ch}')
-            voltages[i,:] = raw_data[i::numch] * (mV_range / 1000 / resolution)
+            voltages[i,:] = raw_data[i::numch] * (mV_range / 1000 / resolution / box_averages)
         return voltages
 
 
@@ -1251,8 +1276,10 @@ class M4i(Instrument):
         value = int(value)  # convert floating point to int if necessary
         res = pyspcm.spcm_dwSetParam_i32(self.hCard, param, value)
         self._last_set_result = res
-        if res != pyspcm.ERR_OK:
-            logging.warning(f'SetParam failed. param:0x{param:08X} value:0x{value:08X}: '
+        if res == pyspcm.ERR_TIMEOUT:
+            logging.warning('SetParam timeout')
+        elif res != pyspcm.ERR_OK:
+            raise Exception(f'SetParam failed. param:0x{param:08X} value:0x{value:08X}: '
                             f'result: {_errormsg_dict[res]} (0x{res:08X})')
 
     def _invalidate_buf(self, buf_type):
