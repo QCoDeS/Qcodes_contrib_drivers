@@ -26,7 +26,7 @@ class FrequencySweepMagPhase(MultiParameter):
         start: float,
         stop: float,
         npts: int,
-        instrument: str = "M5180",
+        instrument: Optional[InstrumentBase] = "M5180",
         ) -> None:
         """
         Linear frequency sweep that returns magnitude and phase for a single
@@ -37,7 +37,8 @@ class FrequencySweepMagPhase(MultiParameter):
             start (float): Start frequency of linear sweep
             stop (float): Stop frequency of linear sweep
             npts (float): Number of points of linear sweep
-            instrument (str, optional): Instrument to which sweep is bound to.
+            instrument (InstrumentBase, optional): Instrument to which sweep
+            is bound to.
                 Defaults to "M5180".
         """
         super().__init__(
@@ -112,7 +113,7 @@ class PointMagPhase(MultiParameter):
         start: float,
         stop: float,
         npts: int,
-        instrument: str = "M5180",
+        instrument: Optional[InstrumentBase] = "M5180",
         ) -> None:
         """Magnitude and phase measurement of a single point at start
         frequency.
@@ -122,7 +123,8 @@ class PointMagPhase(MultiParameter):
             start (float): Start frequency (frequency at which it will measure)
             stop (float): Stop frequency, ideally start - 1 Hz
             npts (int): Number of points of the sweep, ideally 2
-            instrument (str, optional):  Instrument to which sweep is bound to.
+            instrument (InstrumentBase, optional):  Instrument to which sweep
+            is bound to.
             Defaults to "M5180".
         """
 
