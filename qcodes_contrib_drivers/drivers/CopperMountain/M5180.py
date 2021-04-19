@@ -3,9 +3,10 @@
 # Simon Zihlmannr <zihlmann.simon@gmail.com>, february/march 2021
 import logging
 import numpy as np
-from typing import Tuple
+from typing import Tuple, Optional
 
 from qcodes import VisaInstrument
+from qcodes.instrument import InstrumentBase
 from qcodes.utils.validators import Numbers, Enum, Ints
 from qcodes.utils.helpers import create_on_off_val_mapping
 
@@ -26,7 +27,7 @@ class FrequencySweepMagPhase(MultiParameter):
         start: float,
         stop: float,
         npts: int,
-        instrument: Optional[InstrumentBase] = "M5180",
+        instrument: InstrumentBase = "M5180,
         ) -> None:
         """
         Linear frequency sweep that returns magnitude and phase for a single
@@ -37,9 +38,7 @@ class FrequencySweepMagPhase(MultiParameter):
             start (float): Start frequency of linear sweep
             stop (float): Stop frequency of linear sweep
             npts (float): Number of points of linear sweep
-            instrument (InstrumentBase, optional): Instrument to which sweep
-            is bound to.
-                Defaults to "M5180".
+            instrument (InstrumentBase): Instrument to which sweep is bound to.
         """
         super().__init__(
             name,
@@ -113,7 +112,7 @@ class PointMagPhase(MultiParameter):
         start: float,
         stop: float,
         npts: int,
-        instrument: Optional[InstrumentBase] = "M5180",
+        instrument: InstrumentBase = "M5180",
         ) -> None:
         """Magnitude and phase measurement of a single point at start
         frequency.
@@ -506,21 +505,21 @@ class M5180(VisaInstrument):
         self.ask('*OPC?') # Wait for measurement to complete
 
         # Get data as string
-        freq = self.ask("SENS1:FREQ:DATA?")
-        s11 = self.ask("CALC1:TRAC1:DATA:FDAT?")
-        s12 = self.ask("CALC1:TRAC2:DATA:FDAT?")
-        s21 = self.ask("CALC1:TRAC3:DATA:FDAT?")
-        s22 = self.ask("CALC1:TRAC4:DATA:FDAT?")
+        freq_raw = self.ask("SENS1:FREQ:DATA?")
+        s11_raw = self.ask("CALC1:TRAC1:DATA:FDAT?")
+        s12_raw = self.ask("CALC1:TRAC2:DATA:FDAT?")
+        s21_raw = self.ask("CALC1:TRAC3:DATA:FDAT?")
+        s22_raw = self.ask("CALC1:TRAC4:DATA:FDAT?")
 
         # Get data as numpy array
-        freq = np.fromstring(freq, dtype=float, sep=',')
-        s11 = np.fromstring(s11, dtype=float, sep=',')
+        freq = np.fromstring(freq_raw, dtype=float, sep=',')
+        s11 = np.fromstring(s11_raw, dtype=float, sep=',')
         s11 = s11[0::2] + 1j*s11[1::2]
-        s12 = np.fromstring(s12, dtype=float, sep=',')
+        s12 = np.fromstring(s12_raw, dtype=float, sep=',')
         s12 = s12[0::2] + 1j*s12[1::2]
-        s21 = np.fromstring(s21, dtype=float, sep=',')
+        s21 = np.fromstring(s21_raw, dtype=float, sep=',')
         s21 = s21[0::2] + 1j*s21[1::2]
-        s22 = np.fromstring(s22, dtype=float, sep=',')
+        s22 = np.fromstring(s22_raw, dtype=float, sep=',')
         s22 = s22[0::2] + 1j*s22[1::2]
 
         return (freq, self._db(s11), np.angle(s11),
