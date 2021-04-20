@@ -6,7 +6,7 @@ import numpy as np
 from typing import Tuple, Optional
 
 from qcodes import VisaInstrument
-from qcodes.instrument import InstrumentBase
+from qcodes.instrument.base import InstrumentBase
 from qcodes.utils.validators import Numbers, Enum, Ints
 from qcodes.utils.helpers import create_on_off_val_mapping
 
@@ -27,7 +27,7 @@ class FrequencySweepMagPhase(MultiParameter):
         start: float,
         stop: float,
         npts: int,
-        instrument: InstrumentBase = "M5180,
+        instrument: "M5180",
         ) -> None:
         """
         Linear frequency sweep that returns magnitude and phase for a single
@@ -38,7 +38,7 @@ class FrequencySweepMagPhase(MultiParameter):
             start (float): Start frequency of linear sweep
             stop (float): Stop frequency of linear sweep
             npts (float): Number of points of linear sweep
-            instrument (InstrumentBase): Instrument to which sweep is bound to.
+            instrument: Instrument to which sweep is bound to.
         """
         super().__init__(
             name,
@@ -82,6 +82,7 @@ class FrequencySweepMagPhase(MultiParameter):
         Returns:
             Tuple[ParamRawDataType, ...]: magnitude, phase
         """
+        assert isinstance(self.instrument, M5180)
         self.instrument.write('CALC1:PAR:COUN 1') # 1 trace
         self.instrument.write('CALC1:PAR1:DEF {}'.format(self.name))
         self.instrument.write('CALC1:TRAC1:FORM SMITH')  # Trace format
@@ -90,10 +91,10 @@ class FrequencySweepMagPhase(MultiParameter):
         self.instrument.ask('*OPC?') # Wait for measurement to complete
 
         # get data from instrument
-        sxx = self.instrument.ask("CALC1:TRAC1:DATA:FDAT?")
+        sxx_raw = self.instrument.ask("CALC1:TRAC1:DATA:FDAT?")
 
         # Get data as numpy array
-        sxx = np.fromstring(sxx, dtype=float, sep=',')
+        sxx = np.fromstring(sxx_raw, dtype=float, sep=',')
         sxx = sxx[0::2] + 1j*sxx[1::2]
 
         return self.instrument._db(sxx), np.unwrap(np.angle(sxx))
@@ -112,7 +113,7 @@ class PointMagPhase(MultiParameter):
         start: float,
         stop: float,
         npts: int,
-        instrument: InstrumentBase = "M5180",
+        instrument: "M5180",
         ) -> None:
         """Magnitude and phase measurement of a single point at start
         frequency.
@@ -122,9 +123,7 @@ class PointMagPhase(MultiParameter):
             start (float): Start frequency (frequency at which it will measure)
             stop (float): Stop frequency, ideally start - 1 Hz
             npts (int): Number of points of the sweep, ideally 2
-            instrument (InstrumentBase, optional):  Instrument to which sweep
-            is bound to.
-            Defaults to "M5180".
+            instrument:  Instrument to which sweep is bound to.
         """
 
         super().__init__(
@@ -169,6 +168,7 @@ class PointMagPhase(MultiParameter):
         Returns:
             Tuple[ParamRawDataType, ...]: magnitude, phase
         """
+        assert isinstance(self.instrument, M5180)
         self.instrument.write('CALC1:PAR:COUN 1') # 1 trace
         self.instrument.write('CALC1:PAR1:DEF {}'.format(self.name[-3:]))
         self.instrument.write('CALC1:TRAC1:FORM SMITH')  # Trace format
@@ -177,15 +177,14 @@ class PointMagPhase(MultiParameter):
         self.instrument.ask('*OPC?') # Wait for measurement to complete
 
         # get data from instrument
-        sxx = self.instrument.ask("CALC1:TRAC1:DATA:FDAT?")
+        sxx_raw = self.instrument.ask("CALC1:TRAC1:DATA:FDAT?")
 
         # Get data as numpy array
-        sxx = np.fromstring(sxx, dtype=float, sep=',')
+        sxx = np.fromstring(sxx_raw, dtype=float, sep=',')
         sxx = sxx[0::2] + 1j*sxx[1::2]
 
         # Return only the first point of the trace, which will have "start" as
         # its setpoint
-        # Do we need to take modulo pi of the phase??
         return self.instrument._db(sxx[0]), np.angle(sxx[0])
 
 
@@ -458,13 +457,17 @@ class M5180(VisaInstrument):
         """Sets number of points and updates linear trace parameters.
 
         Args:
-            val (int): number of points to be set
+            val (int): number of points to be set.
         """
         self.write("SENS1:SWE:POIN {}".format(val))
         self.update_lin_traces()
 
     def _get_trigger(self) -> str:
+        """Gets trigger source.
 
+        Returns:
+            str: Trigger source.
+        """
         r = self.ask('TRIG:SOUR?')
 
         if r.lower()=='int':
@@ -477,12 +480,18 @@ class M5180(VisaInstrument):
             return 'bus'
 
     def _set_trigger(self, trigger: str) -> None:
+        """Sets trigger source.
 
+        Args:
+            trigger (str): Trigger source
+        """
         self.write('TRIG:SOUR '+trigger.upper())
 
-    def get_s(self) -> Tuple[np.ndarray]:
+    def get_s(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray,
+                             np.ndarray, np.ndarray, np.ndarray, np.ndarray,
+                             np.ndarray]:
         """
-        Return S parameter as magnitude in dB and phase in rad.
+        Return all S parameters as magnitude in dB and phase in rad.
 
         Returns:
             Tuple[np.ndarray]: frequency [GHz],
@@ -522,10 +531,10 @@ class M5180(VisaInstrument):
         s22 = np.fromstring(s22_raw, dtype=float, sep=',')
         s22 = s22[0::2] + 1j*s22[1::2]
 
-        return (freq, self._db(s11), np.angle(s11),
-                      self._db(s12), np.angle(s12),
-                      self._db(s21), np.angle(s21),
-                      self._db(s22), np.angle(s22))
+        return (np.array(freq), self._db(s11), np.array(np.angle(s11)),
+                                self._db(s12), np.array(np.angle(s12)),
+                                self._db(s21), np.array(np.angle(s21)),
+                                self._db(s22), np.array(np.angle(s22)))
 
     def update_lin_traces(self) -> None:
         """
