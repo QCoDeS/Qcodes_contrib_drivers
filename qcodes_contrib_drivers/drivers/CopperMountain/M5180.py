@@ -6,7 +6,6 @@ import numpy as np
 from typing import Tuple, Optional
 
 from qcodes import VisaInstrument
-from qcodes.instrument.base import InstrumentBase
 from qcodes.utils.validators import Numbers, Enum, Ints
 from qcodes.utils.helpers import create_on_off_val_mapping
 
@@ -37,7 +36,7 @@ class FrequencySweepMagPhase(MultiParameter):
             name (str): Name of the linear frequency sweep
             start (float): Start frequency of linear sweep
             stop (float): Stop frequency of linear sweep
-            npts (float): Number of points of linear sweep
+            npts (int): Number of points of linear sweep
             instrument: Instrument to which sweep is bound to.
         """
         super().__init__(
