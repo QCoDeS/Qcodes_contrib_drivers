@@ -983,7 +983,8 @@ class M4i(Instrument):
             pyspcm.SPCM_BUF_DATA, pyspcm.SPCM_DIR_CARDTOPC, 0, data_pointer, 0, bytes_per_sample * memsize * numch)
         self.general_command(pyspcm.M2CMD_DATA_STARTDMA | pyspcm.M2CMD_DATA_WAITDMA)
         if self._last_set_result != pyspcm.ERR_OK:
-            raise Exception(f'Error transferring data: (0x{self._last_set_result:04x})')
+            res = self._last_set_result
+            raise Exception(f'Error transferring data: {_errormsg_dict[res]} (0x{res:04x})')
 
         # convert buffer to numpy array
         output = np.frombuffer(data_buffer, dtype=sample_ctype)
