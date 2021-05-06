@@ -990,27 +990,34 @@ class SD_AWG(SD_Module):
                                 f'({reg.Length:6}) {reg_name}')
             return reg.readRegisterInt32()
 
-    def write_fpga_array(self, reg_name:str, offset:int, data:List[int]) -> None:
+    def write_fpga_array(self, reg_name:str, offset:int, data:List[int],
+                         fixed_address:bool=False) -> None:
         with self._lock:
             reg = result_parser(self.awg.FPGAgetSandBoxRegister(reg_name),
                                 reg_name)
             result_parser(
                 reg.writeRegisterBuffer(
-                    offset, data, keysightSD1.SD_AddressingMode.AUTOINCREMENT,
-                    keysightSD1.SD_AccessMode.NONDMA
-                )
+                    offset, data,
+                    keysightSD1.SD_AddressingMode.FIXED
+                    if fixed_address else keysightSD1.SD_AddressingMode.AUTOINCREMENT,
+                    keysightSD1.SD_AccessMode.DMA
+                ),
+                f'write_fpga_array({reg_name})'
             )
 
-    def read_fpga_array(self, reg_name:str, offset:int, data_size:int) -> List[int]:
+    def read_fpga_array(self, reg_name:str, offset:int, data_size:int,
+                        fixed_address:bool=False) -> List[int]:
         with self._lock:
             reg = result_parser(self.awg.FPGAgetSandBoxRegister(reg_name),
                                 reg_name)
             data = result_parser(
                 reg.readRegisterBuffer(
                     offset, data_size,
-                    keysightSD1.SD_AddressingMode.AUTOINCREMENT,
-                    keysightSD1.SD_AccessMode.NONDMA
-                )
+                    keysightSD1.SD_AddressingMode.FIXED
+                    if fixed_address else keysightSD1.SD_AddressingMode.AUTOINCREMENT,
+                    keysightSD1.SD_AccessMode.DMA
+                ),
+                f'read_fpga_array({reg_name})'
             )
             return data
 
