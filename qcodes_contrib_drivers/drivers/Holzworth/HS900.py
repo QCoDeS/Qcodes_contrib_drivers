@@ -242,6 +242,22 @@ class HS900(VisaInstrument):
                            get_parser=str,
                            get_cmd=self._get_channels) #No of ports
 
+        self.add_parameter(name='ref_ext',
+                           label='External Reference',
+                           get_cmd=self._get_ext_ref,
+                           set_cmd=self._set_ext_ref) # in Hz
+
+        self.add_parameter(name='ref_int',
+                           label='Internal Reference',
+                           get_cmd=self._get_int_ref,
+                           set_cmd=self._set_int_ref) # in Hz
+
+        self.add_parameter(name='ref_PLL',
+                           label='PLL Lock Status',
+                           get_parser=str,
+                           get_cmd=':REF:PLL?')
+
+
         model = self.IDN()['model']
         knownmodels = ['HS9001B', 'HS9002B', 'HS9003B', 'HS9004B',
                        'HS9005B', 'HS9006B', 'HS9007B', 'HS9008B']
@@ -269,3 +285,73 @@ class HS900(VisaInstrument):
         raw_str = self.ask(':ATTACH?')
         channels = raw_str.split(':')[2:-1]
         return channels
+
+    def _get_int_ref(self) -> float:
+        """
+        Getting the internal reference frequency from the RF source channel
+        in Hz. Instrument gives reference as a string in the format
+        'Internal 100MHz'.
+
+        Returns:
+            float: frequency in Hz, e.g. 100e6
+        """
+        raw_str = self.ask(':REF:STATUS?')
+        status = raw_str.split(' ')
+        if status[0] == 'Internal':
+            f_int_ref = float(status[1][:-3]) * 1e6
+        else:
+            f_int_ref = False
+        return f_int_ref   
+
+    def _set_int_ref(self, f_ref:{100e6}) -> None:
+        """
+        Function that sets internal reference
+
+        Args:
+            f_ref (float): accepts as argument 100e6
+
+        Raises:
+            RuntimeError: Function compares reply from instrument and raises
+            RuntimeError if reference setting was not performed sucessfully
+        """
+        write_str = ':REF:INT:{}MHz'.format(str(int(f_ref / 1e6)))
+        read_str = self.ask(write_str)
+        if read_str != 'Reference Set to 100MHz Internal, PLL Disabled':
+            raise RuntimeError(
+                '{} is not \'Reference Set to {}MHz External, PLL Disabled\'. Setting reference did not work'
+                               .format((read_str), str(int(f_ref / 1e6))))
+
+    def _get_ext_ref(self) -> float:
+        """
+        Getting the internal reference frequency from the RF source channel
+        in Hz. Instrument gives reference as a string in the format
+        'Internal 100MHz'.
+
+        Returns:
+            float: frequency in Hz, e.g. 100e6
+        """
+        raw_str = self.ask(':REF:STATUS?')
+        status = raw_str.split(' ')
+        if status[0] == 'External':
+            f_ext_ref = float(status[1][:-3]) * 1e6
+        else:
+            f_ext_ref = False
+        return f_ext_ref  
+
+    def _set_ext_ref(self, f_ref:{10e6, 100e6}) -> None:
+        """
+        Function that sets internal reference
+
+        Args:
+            f_ref (float): accepts as argument 100e6
+
+        Raises:
+            RuntimeError: Function compares reply from instrument and raises
+            RuntimeError if reference setting was not performed sucessfully
+        """
+        write_str = ':REF:EXT:{}MHz'.format(str(int(f_ref / 1e6)))
+        read_str = self.ask(write_str)
+        if read_str != 'Reference Set to {}MHz External, PLL Enabled'.format(str(int(f_ref / 1e6))):
+            raise RuntimeError(
+                '{} is not \'Reference Set to {}MHz External, PLL Enabled\'. Setting reference did not work'
+                               .format((read_str), str(int(f_ref / 1e6))))
