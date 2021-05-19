@@ -396,7 +396,7 @@ class ITest(VisaInstrument):
         return self.ask(chan_id + 'VOLT:SAT:NEG ?')
 
 
-    def _get_chan_state(self, chan:int) -> bool:
+    def _get_chan_state(self, chan:int) -> str:
         """
         Get channel power state
 
