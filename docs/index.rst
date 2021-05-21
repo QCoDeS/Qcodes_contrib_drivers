@@ -8,7 +8,7 @@
 Welcome to QCoDeS Contributed Drivers's documentation!
 ======================================================
 
-.. include:: ../readme.rst
+.. include:: ../README.rst
 
 The documentation here contains API documentation of the individual drivers as well as examples of how
 to use the drivers. For general documentation please refer to the QCoDeS documentation.
