@@ -3,6 +3,7 @@
 
 import os
 import pandas as pd
+import numpy as np
 from datetime import date
 from qcodes.instrument.base import Instrument
 
@@ -48,7 +49,7 @@ class BlueFors(Instrument):
         """
 
         super().__init__(name = name, **kwargs)
-        
+
         self.folder_path = os.path.abspath(folder_path)
 
         self.add_parameter(name       = 'pressure_vacuum_can',
@@ -128,7 +129,7 @@ class BlueFors(Instrument):
                            get_cmd    = lambda: self.get_temperature(channel_mixing_chamber),
                            docstring  = 'Temperature of the mixing chamber',
                            )
-        
+
         self.connect_message()
 
 
@@ -136,55 +137,61 @@ class BlueFors(Instrument):
         """
         Return the last registered temperature of the current day for the
         channel.
-        
+
         Args:
             channel (int): Channel from which the temperature is extracted.
 
         Returns:
             temperature (float): Temperature of the channel in Kelvin.
         """
-        
+
         folder_name = date.today().strftime("%y-%m-%d")
         file_path = os.path.join(self.folder_path, folder_name, 'CH'+str(channel)+' T '+folder_name+'.log')
-        
-        df = pd.read_csv(file_path,
-                            delimiter = ',',
-                            names     = ['date', 'time', 'y'],
-                            header    = None)
 
-        # There is a space before the day
-        df.index = pd.to_datetime(df['date']+'-'+df['time'], format=' %d-%m-%y-%H:%M:%S')
-        
-        return df.iloc[-1]['y']
+        try:
+            df = pd.read_csv(file_path,
+                                delimiter = ',',
+                                names     = ['date', 'time', 'y'],
+                                header    = None)
+
+            # There is a space before the day
+            df.index = pd.to_datetime(df['date']+'-'+df['time'], format=' %d-%m-%y-%H:%M:%S')
+
+            return df.iloc[-1]['y']
+        except PermissionError:
+            return np.nan
 
 
     def get_pressure(self, channel: int) -> float:
         """
         Return the last registered pressure of the current day for the
         channel.
-        
+
         Args:
             channel (int): Channel from which the pressure is extracted.
 
         Returns:
             pressure (float): Pressure of the channel in mBar.
         """
-        
+
         folder_name = date.today().strftime("%y-%m-%d")
         file_path = os.path.join(self.folder_path, folder_name, 'maxigauge '+folder_name+'.log')
 
-        df = pd.read_csv(file_path,
-                        delimiter=',',
-                        names=['date', 'time',
-                                'ch1_name', 'ch1_void1', 'ch1_status', 'ch1_pressure', 'ch1_void2', 'ch1_void3',
-                                'ch2_name', 'ch2_void1', 'ch2_status', 'ch2_pressure', 'ch2_void2', 'ch2_void3',
-                                'ch3_name', 'ch3_void1', 'ch3_status', 'ch3_pressure', 'ch3_void2', 'ch3_void3',
-                                'ch4_name', 'ch4_void1', 'ch4_status', 'ch4_pressure', 'ch4_void2', 'ch4_void3',
-                                'ch5_name', 'ch5_void1', 'ch5_status', 'ch5_pressure', 'ch5_void2', 'ch5_void3',
-                                'ch6_name', 'ch6_void1', 'ch6_status', 'ch6_pressure', 'ch6_void2', 'ch6_void3',
-                                'void'],
-                        header=None)
+        try:
+            df = pd.read_csv(file_path,
+                            delimiter=',',
+                            names=['date', 'time',
+                                    'ch1_name', 'ch1_void1', 'ch1_status', 'ch1_pressure', 'ch1_void2', 'ch1_void3',
+                                    'ch2_name', 'ch2_void1', 'ch2_status', 'ch2_pressure', 'ch2_void2', 'ch2_void3',
+                                    'ch3_name', 'ch3_void1', 'ch3_status', 'ch3_pressure', 'ch3_void2', 'ch3_void3',
+                                    'ch4_name', 'ch4_void1', 'ch4_status', 'ch4_pressure', 'ch4_void2', 'ch4_void3',
+                                    'ch5_name', 'ch5_void1', 'ch5_status', 'ch5_pressure', 'ch5_void2', 'ch5_void3',
+                                    'ch6_name', 'ch6_void1', 'ch6_status', 'ch6_pressure', 'ch6_void2', 'ch6_void3',
+                                    'void'],
+                            header=None)
 
-        df.index = pd.to_datetime(df['date']+'-'+df['time'], format='%d-%m-%y-%H:%M:%S')
-        
-        return df.iloc[-1]['ch'+str(channel)+'_pressure']
+            df.index = pd.to_datetime(df['date']+'-'+df['time'], format='%d-%m-%y-%H:%M:%S')
+
+            return df.iloc[-1]['ch'+str(channel)+'_pressure']
+        except PermissionError:
+            return np.nan
