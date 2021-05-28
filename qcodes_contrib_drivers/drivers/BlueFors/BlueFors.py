@@ -160,6 +160,8 @@ class BlueFors(Instrument):
             return df.iloc[-1]['y']
         except PermissionError:
             return np.nan
+        except OSError:
+            return np.nan
 
 
     def get_pressure(self, channel: int) -> float:
@@ -194,4 +196,6 @@ class BlueFors(Instrument):
 
             return df.iloc[-1]['ch'+str(channel)+'_pressure']
         except PermissionError:
+            return np.nan
+        except OSError:
             return np.nan
