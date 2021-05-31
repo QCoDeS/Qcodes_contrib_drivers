@@ -4,8 +4,11 @@
 import os
 import pandas as pd
 import numpy as np
+import logging
 from datetime import date
 from qcodes.instrument.base import Instrument
+
+log = logging.getLogger(__name__)
 
 class BlueFors(Instrument):
     """
@@ -158,7 +161,8 @@ class BlueFors(Instrument):
             df.index = pd.to_datetime(df['date']+'-'+df['time'], format=' %d-%m-%y-%H:%M:%S')
 
             return df.iloc[-1]['y']
-        except (PermissionError, OSError):
+        except (PermissionError, OSError) as err:
+            log.warning('Cannot access log file: {}. Returning np.nan instead of the temperature value.'.format(err))
             return np.nan
 
 
@@ -193,5 +197,6 @@ class BlueFors(Instrument):
             df.index = pd.to_datetime(df['date']+'-'+df['time'], format='%d-%m-%y-%H:%M:%S')
 
             return df.iloc[-1]['ch'+str(channel)+'_pressure']
-        except (PermissionError, OSError):
+        except (PermissionError, OSError) as err:
+            log.warning('Cannot access log file: {}. Returning np.nan instead of the pressure value.'.format(err))
             return np.nan
