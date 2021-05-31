@@ -158,9 +158,7 @@ class BlueFors(Instrument):
             df.index = pd.to_datetime(df['date']+'-'+df['time'], format=' %d-%m-%y-%H:%M:%S')
 
             return df.iloc[-1]['y']
-        except PermissionError:
-            return np.nan
-        except OSError:
+        except (PermissionError, OSError):
             return np.nan
 
 
@@ -195,7 +193,5 @@ class BlueFors(Instrument):
             df.index = pd.to_datetime(df['date']+'-'+df['time'], format='%d-%m-%y-%H:%M:%S')
 
             return df.iloc[-1]['ch'+str(channel)+'_pressure']
-        except PermissionError:
-            return np.nan
-        except OSError:
+        except (PermissionError, OSError):
             return np.nan
