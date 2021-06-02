@@ -2,7 +2,7 @@
 from dataclasses import dataclass
 from typing import List, Dict
 import logging
-
+import time
 
 class MemoryManager:
     """
@@ -42,6 +42,7 @@ class MemoryManager:
         '''Unique reference value when allocated.
         Used to check for incorrect or missing release calls.
         '''
+        allocation_time: float = None
 
     # Note (M3202A): size must be multiples of 10 and >= 2000
     memory_sizes = [
@@ -121,6 +122,7 @@ class MemoryManager:
                 self._allocation_ref_count += 1
                 self._slots[slot].allocation_ref = self._allocation_ref_count
                 self._slots[slot].allocated = True
+                self._slots[slot].allocation_time = time.time()
                 if MemoryManager.verbose:
                     self._log.debug(f'Allocated slot {slot}')
                 return MemoryManager.AllocatedSlot(slot, self._slots[slot].allocation_ref, self)
@@ -183,3 +185,8 @@ class MemoryManager:
                 return slot_size
 
         raise Exception(f'Requested waveform size {size} is too big')
+
+    def allocation_state(self):
+        result = {}
+        result['free'] = {size:len(slots) for size,slots in self._free_memory_slots.items()}
+        result['allocated'] = [slot for slot in self._slots if slot.allocated]
