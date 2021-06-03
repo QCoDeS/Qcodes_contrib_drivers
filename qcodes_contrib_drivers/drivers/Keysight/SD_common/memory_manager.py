@@ -2,7 +2,7 @@
 from dataclasses import dataclass
 from typing import List, Dict
 import logging
-import time
+from datetime import datetime
 
 class MemoryManager:
     """
@@ -42,7 +42,7 @@ class MemoryManager:
         '''Unique reference value when allocated.
         Used to check for incorrect or missing release calls.
         '''
-        allocation_time: float = None
+        allocation_time: str = None
 
     # Note (M3202A): size must be multiples of 10 and >= 2000
     memory_sizes = [
@@ -122,7 +122,7 @@ class MemoryManager:
                 self._allocation_ref_count += 1
                 self._slots[slot].allocation_ref = self._allocation_ref_count
                 self._slots[slot].allocated = True
-                self._slots[slot].allocation_time = time.time()
+                self._slots[slot].allocation_time = datetime.now().strftime('%H:%M:%S.%f')
                 if MemoryManager.verbose:
                     self._log.debug(f'Allocated slot {slot}')
                 return MemoryManager.AllocatedSlot(slot, self._slots[slot].allocation_ref, self)
@@ -186,7 +186,28 @@ class MemoryManager:
 
         raise Exception(f'Requested waveform size {size} is too big')
 
-    def allocation_state(self):
+    def mem_usage(self):
+        '''
+        Example:
+            pprint(awg._memory_manager.mem_usage(), sort_dicts=False)
+        '''
         result = {}
-        result['free'] = {size:len(slots) for size,slots in self._free_memory_slots.items()}
-        result['allocated'] = [slot for slot in self._slots if slot.allocated]
+        result[' Block size'] = ['Created', 'Allocated']
+        for size in self._slot_sizes:
+            result[str(size)] = [0,0,0]
+        for slot in self._slots:
+            stats = result[str(slot.size)]
+            stats[0] += 1
+            stats[1] += slot.allocated
+        result['Free'] = {size:len(slots) for size,slots in self._free_memory_slots.items()}
+        return result
+
+    def allocation_state(self):
+        '''
+        Example:
+            pprint(awg._memory_manager.allocation_state())
+        '''
+        result = {}
+        result[' Free'] = {size:len(slots) for size,slots in self._free_memory_slots.items()}
+        result['Allocated'] = [slot for slot in self._slots if slot.allocated]
+        return result
