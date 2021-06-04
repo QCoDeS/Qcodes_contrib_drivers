@@ -1,5 +1,5 @@
 import ctypes
-from typing import Dict
+from typing import Dict, Optional
 from qcodes import Instrument
 from qcodes.utils.validators import Enum
 
@@ -210,7 +210,7 @@ class SC5521A(Instrument):
         """
         
         if msg!=0:
-            raise BaseException("Couldn't set the devise due to {}.".format(error_dict[msg]))
+            raise BaseException("Couldn't set the devise due to {}.".format(error_dict[str(msg)]))
         else:
             pass
 
@@ -296,7 +296,7 @@ class SC5521A(Instrument):
             return 'single_tone'
         return 'sweep'
 
-    def get_idn(self) -> Dict[(str, str)]:
+    def get_idn(self) -> Dict[str, Optional[str]]:
         self._dll.sc5520a_uhfsFetchDeviceInfo(self._handle, ctypes.byref(device_info_t))
 
         return {'vendor':'SignalCore',
