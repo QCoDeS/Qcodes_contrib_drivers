@@ -199,24 +199,44 @@ class SC5521A(Instrument):
     def _close(self) -> None:
         self._dll.sc5520a_uhfsCloseDevice(self._handle)
 
+    def _error_handler(self, msg: int) -> None:
+        """Display error when setting the device fail.
+
+        Args:
+            msg (int): error key, see error_dict dict.
+
+        Raises:
+            BaseException
+        """
+        
+        if msg!=0:
+            raise BaseException("Couldn't set the devise due to {}.".format(error_dict[msg]))
+        else:
+            pass
+
     def _get_temperature(self) -> float:
         temperature = ctypes.c_float()
         self._dll.sc5520a_uhfsFetchTemperature(self._handle, ctypes.byref(temperature))
         return temperature.value
 
-    def _set_status(self, status: bool) -> None:
+    def _set_status(self, status: str) -> None:
         if status.lower() == 'on':
             status_ = 1
         else:
             status_ = 0
-        self._dll.sc5520a_uhfsSetOutputEnable(self._handle, ctypes.c_int(status_))
+        msg = self._dll.sc5520a_uhfsSetOutputEnable(self._handle, ctypes.c_int(status_))
+        self._error_handler(msg)
 
-    def _get_status(self) -> bool:
+    def _get_status(self) -> str:
         self._dll.sc5520a_uhfsFetchDeviceStatus(self._handle, ctypes.byref(device_status_t))
-        return bool(device_status_t.operate_status_t.output_enable)
+        if device_status_t.operate_status_t.output_enable:
+            return 'on'
+        else:
+            return 'off'
 
     def _set_power(self, power: float) -> None:
-        self._dll.sc5520a_uhfsSetPowerLevel(self._handle, ctypes.c_float(power))
+        msg = self._dll.sc5520a_uhfsSetPowerLevel(self._handle, ctypes.c_float(power))
+        self._error_handler(msg)
 
     def _get_power(self) -> float:
         self._dll.sc5520a_uhfsFetchRfParameters(self._handle, ctypes.byref(device_rf_params_t))
@@ -224,7 +244,7 @@ class SC5521A(Instrument):
 
     def _set_frequency(self, frequency: float) -> None:
         msg = self._dll.sc5520a_uhfsSetFrequency(self._handle, ctypes.c_double(frequency))
-        print(msg)
+        self._error_handler(msg)
 
     def _get_frequency(self) -> float:
         device_rf_params_t = DeviceRFParamsT()
@@ -236,7 +256,8 @@ class SC5521A(Instrument):
             self._select_high = 0
         else:
             self._select_high = 1
-        self._dll.sc5520a_uhfsSetReferenceMode(self._handle, ctypes.c_int(self._pxi10Enable), ctypes.c_int(self._select_high), ctypes.c_int(self._lock_external))
+        msg = self._dll.sc5520a_uhfsSetReferenceMode(self._handle, ctypes.c_int(self._pxi10Enable), ctypes.c_int(self._select_high), ctypes.c_int(self._lock_external))
+        self._error_handler(msg)
 
     def _get_clock_frequency(self) -> float:
         self._dll.sc5520a_uhfsFetchDeviceStatus(self._handle, ctypes.byref(device_status_t))
@@ -250,7 +271,8 @@ class SC5521A(Instrument):
             self._lock_external = 0
         else:
             self._lock_external = 1
-        self._dll.sc5520a_uhfsSetReferenceMode(self._handle, ctypes.c_int(self._pxi10Enable), ctypes.c_int(self._select_high), ctypes.c_int(self._lock_external))
+        msg = self._dll.sc5520a_uhfsSetReferenceMode(self._handle, ctypes.c_int(self._pxi10Enable), ctypes.c_int(self._select_high), ctypes.c_int(self._lock_external))
+        self._error_handler(msg)
 
     def _get_clock_reference(self) -> str:
         self._dll.sc5520a_uhfsFetchDeviceStatus(self._handle, ctypes.byref(device_status_t))
@@ -264,7 +286,8 @@ class SC5521A(Instrument):
             self.rf_mode_ = 0
         else:
             self.rf_mode_ = 1
-        self._dll.sc5520a_uhfsSetRfMode(self._handle, ctypes.c_int(self.rf_mode_))
+        msg = self._dll.sc5520a_uhfsSetRfMode(self._handle, ctypes.c_int(self.rf_mode_))
+        self._error_handler(msg)
 
     def _get_rf_mode(self) -> str:
         self._dll.sc5520a_uhfsFetchDeviceStatus(self._handle, ctypes.byref(device_status_t))
