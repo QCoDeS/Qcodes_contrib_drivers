@@ -240,37 +240,15 @@ class HS900(VisaInstrument):
         self.add_parameter(name='channel_names',
                            label='Channels',
                            get_parser=str,
-                           get_cmd=self._get_channels) #No of ports
-
-        self.add_parameter(name='ref_ext',
-                           label='External Reference',
-                           get_parser=float,
-                           get_cmd=self._get_ext_ref,
-                           set_cmd=self._set_ext_ref,
-                           unit='Hz',
-                           vals={10e6, 100e6})
-
-        self.add_parameter(name='ref_int',
-                           label='Internal Reference',
-                           get_parser=float,
-                           get_cmd=self._get_int_ref,
-                           set_cmd=self._set_int_ref,
-                           unit='Hz',
-                           vals={100e6})
-
-        self.add_parameter(name='ref_PLL',
-                           label='PLL Lock Status',
-                           get_parser=str,
-                           get_cmd=':REF:PLL?',
-                           unit='Hz')
+                           get_cmd=self._get_channels) # No of ports
 
         self.add_parameter(name='ref',
                            label='Reference',
                            get_parser=str,
-                           get_cmd=self.ask(':REF:STATUS?'),
+                           get_cmd=':REF:STATUS?',
                            set_cmd=self._set_ref,
-                           vals={'ext10M', 'ext100M', 'int100M'})
-        
+                           vals=Enum('ext10', 'ext100', 'int100'))
+
         self.add_parameter(name='ref_locked',
                            label='Clock Locked',
                            get_parser=str,
@@ -306,107 +284,39 @@ class HS900(VisaInstrument):
 
     def _set_ref(self, f_ref_str:str) -> None:
         """
-        Function that sets internal reference
+        Function that sets clock reference
 
         Args:
-            f_ref (float): accepts as argument 100e6
+            f_ref_str (str): accepts as argument ext10, ext100 and int100,
+                             for internal and external reference with a clock
+                             reference frequency of 10 or 100 MHz
 
         Raises:
             RuntimeError: Function compares reply from instrument and raises
-            RuntimeError if reference setting was not performed sucessfully
+                          RuntimeError if reference setting was not performed 
+                          sucessfully
         """
         location = f_ref_str[:3]
-        f_ref = f_ref_str[3:-1]
+        f_ref = f_ref_str[3:]
         write_str = ':REF:{}:{}MHz'.format(location.swapcase(), str(f_ref))
         read_str = self.ask(write_str)
-        PLL = {'ext':'PLL Enabled', 'int':'PLL Disabled'}
-        if read_str != 'Reference Set to {}MHz {}ernal, {}':
+        PLL = {'ext10':'PLL Enabled', 'ext100':'PLL Enabled', 'int100':'PLL Disabled'}
+        reference_response = 'Reference Set to {}MHz {}ernal, {}'.format(str(f_ref), location.capitalize(), PLL[f_ref_str])
+        if read_str != reference_response:
             raise RuntimeError(
-                '{} is not \'Reference Set to {}MHz {}ernal, {}\'. Setting reference did not work'
-                .format(read_str, str(f_ref), location.capitalize(), PLL[location])))
-    
+                '\'{}\' is not \'Reference Set to {}MHz {}ernal, {}\'. Setting reference did not work'
+                .format(read_str, str(f_ref), location.capitalize(), PLL[f_ref_str]))
+
     def _get_ref_locked(self) -> bool:
         """
         Function that checks whether the Holzworth is locked through a PLL
         with an external reference
 
         Returns:
-            bool: True if properly locked, False if not
+            bool: True if properly locked via the phase locked loop (PLL), False if not
         """
         locked = False
-        raw_str = self.ask(':REF:PLL?')
-        if read_str = '0 PLL Disabled'
+        read_str = self.ask(':REF:PLL?')
+        if read_str == '1 PLL Locked, 0 errors':
             locked = True
         return locked
-    
-
-    def _get_int_ref(self) -> float:
-        """
-        Getting the internal reference frequency from the RF source channel
-        in Hz. Instrument gives reference as a string in the format
-        'Internal 100MHz'.
-
-        Returns:
-            float: frequency in Hz, e.g. 100e6
-        """
-        raw_str = self.ask(':REF:STATUS?')
-        status = raw_str.split(' ')
-        if status[0] == 'Internal':
-            f_int_ref = float(status[1][:-3]) * 1e6
-        else:
-            f_int_ref = False
-        return f_int_ref   
-
-    def _set_int_ref(self, f_ref:float) -> None:
-        """
-        Function that sets internal reference
-
-        Args:
-            f_ref (float): accepts as argument 100e6
-
-        Raises:
-            RuntimeError: Function compares reply from instrument and raises
-            RuntimeError if reference setting was not performed sucessfully
-        """
-        write_str = ':REF:INT:{}MHz'.format(str(int(f_ref / 1e6)))
-        read_str = self.ask(write_str)
-        if read_str != 'Reference Set to 100MHz Internal, PLL Disabled':
-            raise RuntimeError(
-                '{} is not \'Reference Set to {}MHz External, PLL Disabled\'. Setting reference did not work'
-                               .format((read_str), str(int(f_ref / 1e6))))
-
-    def _get_ext_ref(self) -> float, bool:
-        """
-        Getting the internal reference frequency from the RF source channel
-        in Hz. Instrument gives reference as a string in the format
-        'Internal 100MHz'.
-
-        Returns:
-            float: frequency in Hz, e.g. 100e6, if set to external reference
-            bool: False if set to internal reference
-        """
-        raw_str = self.ask(':REF:STATUS?')
-        status = raw_str.split(' ')
-        if status[0] == 'External':
-            f_ext_ref = float(status[1][:-3]) * 1e6
-        else:
-            f_ext_ref = False
-        return f_ext_ref  
-
-    def _set_ext_ref(self, f_ref:float) -> None:
-        """
-        Function that sets internal reference
-
-        Args:
-            f_ref (float): accepts as argument 100e6
-
-        Raises:
-            RuntimeError: Function compares reply from instrument and raises
-            RuntimeError if reference setting was not performed sucessfully
-        """
-        write_str = ':REF:EXT:{}MHz'.format(str(int(f_ref / 1e6)))
-        read_str = self.ask(write_str)
-        if read_str != 'Reference Set to {}MHz External, PLL Enabled'.format(str(int(f_ref / 1e6))):
-            raise RuntimeError(
-                '{} is not \'Reference Set to {}MHz External, PLL Enabled\'. Setting reference did not work'
-                               .format((read_str), str(int(f_ref / 1e6))))
