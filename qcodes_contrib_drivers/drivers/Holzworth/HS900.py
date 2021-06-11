@@ -240,7 +240,19 @@ class HS900(VisaInstrument):
         self.add_parameter(name='channel_names',
                            label='Channels',
                            get_parser=str,
-                           get_cmd=self._get_channels) #No of ports
+                           get_cmd=self._get_channels) # No of ports
+
+        self.add_parameter(name='ref',
+                           label='Reference',
+                           get_parser=str,
+                           get_cmd=':REF:STATUS?',
+                           set_cmd=self._set_ref,
+                           vals=Enum('ext10', 'ext100', 'int100'))
+
+        self.add_parameter(name='ref_locked',
+                           label='Clock Locked',
+                           get_parser=str,
+                           get_cmd=self._get_ref_locked)
 
         model = self.IDN()['model']
         knownmodels = ['HS9001B', 'HS9002B', 'HS9003B', 'HS9004B',
@@ -269,3 +281,42 @@ class HS900(VisaInstrument):
         raw_str = self.ask(':ATTACH?')
         channels = raw_str.split(':')[2:-1]
         return channels
+
+    def _set_ref(self, f_ref_str:str) -> None:
+        """
+        Function that sets clock reference
+
+        Args:
+            f_ref_str (str): accepts as argument ext10, ext100 and int100,
+                             for internal and external reference with a clock
+                             reference frequency of 10 or 100 MHz
+
+        Raises:
+            RuntimeError: Function compares reply from instrument and raises
+                          RuntimeError if reference setting was not performed 
+                          sucessfully
+        """
+        location = f_ref_str[:3]
+        f_ref = f_ref_str[3:]
+        write_str = ':REF:{}:{}MHz'.format(location.swapcase(), str(f_ref))
+        read_str = self.ask(write_str)
+        PLL = {'ext10':'PLL Enabled', 'ext100':'PLL Enabled', 'int100':'PLL Disabled'}
+        reference_response = 'Reference Set to {}MHz {}ernal, {}'.format(str(f_ref), location.capitalize(), PLL[f_ref_str])
+        if read_str != reference_response:
+            raise RuntimeError(
+                '\'{}\' is not \'Reference Set to {}MHz {}ernal, {}\'. Setting reference did not work'
+                .format(read_str, str(f_ref), location.capitalize(), PLL[f_ref_str]))
+
+    def _get_ref_locked(self) -> bool:
+        """
+        Function that checks whether the Holzworth is locked through a PLL
+        with an external reference
+
+        Returns:
+            bool: True if properly locked via the phase locked loop (PLL), False if not
+        """
+        locked = False
+        read_str = self.ask(':REF:PLL?')
+        if read_str == '1 PLL Locked, 0 errors':
+            locked = True
+        return locked
