@@ -54,8 +54,19 @@ copyright = "2019, QCoDeS Users"
 author = "QCoDeS Users"
 
 # include special __xxx__ that DO have a docstring
-# it probably means something important
 napoleon_include_special_with_doc = True
+
+# NB the line below could be used instead of `napoleon_include_init_with_doc`
+# BUT the line below ALWAYS includes the __init__ docstring even if it comes from the
+# parent class which might be undesired.
+# autoclass_content = "both"
+
+# Document __init__ docstring together with class doctring (when __init__ is present)
+napoleon_include_init_with_doc = True
+
+autodoc_default_options = {
+    "member-order": "groupwise",
+}
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
