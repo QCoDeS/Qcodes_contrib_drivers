@@ -7,24 +7,20 @@ For official instrument support visit:
 - https://erainstruments.com
 - https://github.com/erainstruments/
 
-NB this driver adds parameters using the new `@add_paramter` decorator-style.
-See QCoDeS docs on writing drivers for more details.
+This module provides the following drivers:
+
+- :class:`qcodes_contrib_drivers.drivers.ERAInstruments.ERASynth <qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynth>`,
+- :class:`qcodes_contrib_drivers.drivers.ERAInstruments.ERASynthPlus <qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthPlus>`, and
+- :class:`qcodes_contrib_drivers.drivers.ERAInstruments.ERASynthPlusPlus <qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthPlusPlus>`.
 """
-# pylint: disable=dangerous-default-value
 from __future__ import annotations
 
-from typing import Union
+from typing import Any, Union, Tuple
 import time
 import json
-from qcodes import validators
-from qcodes import VisaInstrument
+import logging
 
-try:
-    from qcodes.instrument.base import InstanceAttr, add_parameter
-except ImportError as e:
-    raise ImportError(
-        "This (decorator-style) driver requires qcodes version > 0.26.0."
-    ) from e
+from qcodes import VisaInstrument, Parameter, validators
 
 try:
     import pyvisa
@@ -34,14 +30,11 @@ except ModuleNotFoundError as e:
         "Install it with `pip install pyvisa` and try again."
     ) from e
 
-import logging
-
 logger = logging.getLogger(__name__)
 
 BAUDRATE = 115200
 
-
-_cmd_to_json_mapping: dict = {
+_CMD_TO_JSON_MAPPING: dict = {
     # We will treat these differently when confirming the value
     # because the instrument replies with a sentence containing the value.
     # which is much faster than reading the full SJON
@@ -81,27 +74,24 @@ A mapping used to read back certain commands to ensure they have been set.
 This is necessary due to non-deterministic communication times.
 """
 
-
 class ERASynthBase(VisaInstrument):
-    """
+    r"""
     A Base class for the ERASynth/ERASynth+/ERASynth++ instruments.
 
     Example:
 
     .. code-block::
 
-        from importlib import reload
         from qcodes import Instrument
-        from qcodes_contrib_drivers.drivers.ERAInstruments import erasynth
+        from qcodes_contrib_drivers.drivers.ERAInstruments import ERASynthPlus
 
         Instrument.close_all()
-        reload(erasynth)
 
         # list communication ports
-        erasynth.ERASynth.print_pyvisa_resources()
+        ERASynthPlus.print_pyvisa_resources()
 
         # Instantiate the instrument
-        lo = erasynth.ERASynthPlus("erasynth", 'ASRL/dev/cu.usbmodem14101::INSTR')
+        lo = ERASynthPlus("ERASynthPlus", 'ASRL/dev/cu.usbmodem14101::INSTR')
 
         lo.off()  # Turn off the output
 
@@ -121,15 +111,20 @@ class ERASynthBase(VisaInstrument):
         The raw serial commands can be found here:
         https://github.com/erainstruments/erasynth-docs/blob/master/erasynth-command-list.pdf
 
-        `self.visa_handle` can be used to interact directly with the serial pyvisa
+        ``self.visa_handle`` can be used to interact directly with the serial pyvisa
         communication.
     """
 
     @staticmethod
-    def print_pyvisa_resources():
+    def print_pyvisa_resources() -> None:
         """Utility to list all."""
         resource_manager = pyvisa.ResourceManager()
         print(resource_manager.list_resources())
+
+    def _prep_communication(self):
+        """Makes sure the instrument config is compatible with this driver."""
+        self.debug_messages_en(False)  # Print less messages to improve communication
+        self.wifi_off()  # print less messages to improve communication
 
     def __init__(self, name: str, address: str, **kwargs):
         """
@@ -138,7 +133,7 @@ class ERASynthBase(VisaInstrument):
         Args:
             name: Instrument name.
             address: Used to connect to the instrument.
-                Run `ERASynthBase.print_pyvisa_resources()` to list available list.
+                Run :meth:`.ERASynthBase.print_pyvisa_resources` to list available list.
         """
         super().__init__(name=name, address=address, terminator="\r\n", **kwargs)
 
@@ -147,352 +142,347 @@ class ERASynthBase(VisaInstrument):
         self._prep_communication()
         self.connect_message()
 
-    def _prep_communication(self):
-        """Makes sure the instrument config is compatible with this driver."""
-        self.debug_messages_en(False)  # Print less messages to improve communication
-        self.wifi_off()  # print less messages to improve communication
+        # ##############################################################################
+        # Standard LO parameters
+        # ##############################################################################
 
-    # ##############################################################################
-    # Standard LO parameters
-    # ##############################################################################
+        # NB `initial_value` is not used because that would make the initialization slow
 
-    # NB `initial_value` is not used because that would make the initialization slow
-
-    @add_parameter
-    def _parameter_status(
-        self,
-        val_mapping={False: "0", True: "1"},
-        get_cmd="RA:rfoutput",
-        set_cmd=InstanceAttr("_set_status"),
-    ):
+        self.status = Parameter(
+            name="status",
+            instrument=self,
+            val_mapping={False: "0", True: "1"},
+            get_cmd="RA:rfoutput",
+            set_cmd=self._set_status,
+        )
         """Sets the output state (`True`/`False`)."""
 
-    @add_parameter
-    def _parameter_power(
-        self,
-        label="Power",
-        unit="dBm",
-        vals=validators.Numbers(min_value=-60.0, max_value=20.0),
-        get_cmd="RA:amplitude",
-        get_parser=float,
-        set_parser=lambda power: f"{power:.2f}",  # only to decimal points supported
-        set_cmd=InstanceAttr("_set_power"),
-    ):
+        self.power = Parameter(
+            name="power",
+            instrument=self,
+            label="Power",
+            unit="dBm",
+            vals=validators.Numbers(min_value=-60.0, max_value=20.0),
+            get_cmd="RA:amplitude",
+            get_parser=float,
+            set_parser=lambda power: f"{power:.2f}",
+            set_cmd=self._set_power,
+        )
         """Signal power in dBm of the ERASynth signal, 'amplitude' in EraSynth docs."""
 
-    @add_parameter
-    def _parameter_ref_osc_source(
-        self,
-        val_mapping={"int": "0", "ext": "1"},
-        get_cmd=f"RA:{_cmd_to_json_mapping['P1']}",
-        set_cmd="P1{}",
-    ):
+        self.ref_osc_source = Parameter(
+            name="ref_osc_source",
+            instrument=self,
+            val_mapping={"int": "0", "ext": "1"},
+            get_cmd=f"RA:{_CMD_TO_JSON_MAPPING['P1']}",
+            set_cmd="P1{}",
+        )
         """
         Set to external if a 10 MHz reference is connected to the REF input connector.
         """
 
-    # ##############################################################################
-    # ERASynth specific parameters
-    # ##############################################################################
+        # ##############################################################################
+        # ERASynth specific parameters
+        # ##############################################################################
 
-    @add_parameter
-    def _parameter_temperature(
-        self,
-        label="Temperature",
-        unit="\u00B0C",
-        get_cmd="RD:temperature",
-    ):
+        self.temperature = Parameter(
+            name="temperature",
+            instrument=self,
+            label="Temperature",
+            unit="\u00B0C",
+            get_cmd="RD:temperature",
+        )
         """Temperature of the device."""
 
-    @add_parameter
-    def _parameter_voltage(
-        self,
-        label="Voltage",
-        unit="V",
-        get_cmd="RD:voltage",
-    ):
+        self.voltage = Parameter(
+            name="voltage",
+            instrument=self,
+            label="Voltage",
+            unit="V",
+            get_cmd="RD:voltage",
+        )
         """The input voltage value from power input of the ERASynth."""
 
-    @add_parameter
-    def _parameter_current(
-        self,
-        label="Current",
-        unit="V",
-        get_cmd="RD:current",
-    ):
+        self.current = Parameter(
+            name="current",
+            instrument=self,
+            label="Current",
+            unit="V",
+            get_cmd="RD:current",
+        )
         """The current value drawn by the ERASynth."""
 
-    @add_parameter
-    def _parameter_em(
-        self,
-        label="Embedded version",
-        get_cmd="RD:em",
-    ):
+        self.embedded_version = Parameter(
+            name="embedded_version",
+            instrument=self,
+            label="Embedded version",
+            get_cmd="RD:em",
+        )
         """The firmware version of the ERASynth."""
 
-    @add_parameter
-    def _parameter_wifi_rssi(
-        self,
-        label="WiFi RSSI",
-        get_cmd="RD:rssi",
-    ):
+        self.wifi_rssi = Parameter(
+            name="wifi_rssi",
+            instrument=self,
+            label="WiFi RSSI",
+            get_cmd="RD:rssi",
+        )
         """The Wifi received signal power."""
 
-    @add_parameter
-    def _parameter_pll_lmx1_status(
-        self,
-        label="PLL LMX1 status",
-        val_mapping={"locked": "1", "unlocked": "0"},
-        get_cmd="RD:lock_lmx1",
-    ):
+        self.pll_lmx1_status = Parameter(
+            name="pll_lmx1_status",
+            instrument=self,
+            label="PLL LMX1 status",
+            val_mapping={"locked": "1", "unlocked": "0"},
+            get_cmd="RD:lock_lmx1",
+        )
         """PLL lock status of LMX1."""
 
-    @add_parameter
-    def _parameter_pll_lmx2_status(
-        self,
-        label="PLL LMX2 status",
-        val_mapping={"locked": "1", "unlocked": "0"},
-        get_cmd="RD:lock_lmx2",
-    ):
+        self.pll_lmx2_status = Parameter(
+            name="pll_lmx2_status",
+            instrument=self,
+            label="PLL LMX2 status",
+            val_mapping={"locked": "1", "unlocked": "0"},
+            get_cmd="RD:lock_lmx2",
+        )
         """PLL lock status of LMX2."""
 
-    @add_parameter
-    def _parameter_pll_xtal_status(
-        self,
-        label="PLL XTAL status",
-        val_mapping={"locked": "1", "unlocked": "0"},
-        get_cmd="RD:lock_xtal",
-    ):
+        self.pll_xtal_status = Parameter(
+            name="pll_xtal_status",
+            instrument=self,
+            label="PLL XTAL status",
+            val_mapping={"locked": "1", "unlocked": "0"},
+            get_cmd="RD:lock_xtal",
+        )
         """PLL lock status of XTAL."""
 
-    @add_parameter
-    def _parameter_modulation_en(
-        self,
-        val_mapping={False: "0", True: "1"},
-        get_cmd=f"RA:{_cmd_to_json_mapping['MS']}",
-        set_cmd="MS{}",
-    ):
+        self.modulation_en = Parameter(
+            name="modulation_en",
+            instrument=self,
+            val_mapping={False: "0", True: "1"},
+            get_cmd=f"RA:{_CMD_TO_JSON_MAPPING['MS']}",
+            set_cmd="MS{}",
+        )
         """Modulation on/off."""
 
-    @add_parameter
-    def _parameter_modulation_signal_waveform(
-        self,
-        val_mapping={"sine": "0", "triangle": "1", "ramp": "2", "square": "3"},
-        get_cmd=f"RA:{_cmd_to_json_mapping['M2']}",
-        set_cmd="M2{}",
-    ):
+        self.modulation_signal_waveform = Parameter(
+            name="modulation_signal_waveform",
+            instrument=self,
+            val_mapping={"sine": "0", "triangle": "1", "ramp": "2", "square": "3"},
+            get_cmd=f"RA:{_CMD_TO_JSON_MAPPING['M2']}",
+            set_cmd="M2{}",
+        )
         """Internal modulation waveform."""
 
-    @add_parameter
-    def _parameter_modulation_source(
-        self,
-        val_mapping={"internal": "0", "external": "1", "microphone": "2"},
-        get_cmd=f"RA:{_cmd_to_json_mapping['M1']}",
-        set_cmd="M1{}",
-    ):
+        self.modulation_source = Parameter(
+            name="modulation_source",
+            instrument=self,
+            val_mapping={"internal": "0", "external": "1", "microphone": "2"},
+            get_cmd=f"RA:{_CMD_TO_JSON_MAPPING['M1']}",
+            set_cmd="M1{}",
+        )
         """Modulation source."""
 
-    @add_parameter
-    def _parameter_modulation_type(
-        self,
-        val_mapping={
-            "narrowband_fm": "0",
-            "wideband_fm": "1",
-            "am": "2",
-            "pulse": "3",
-        },
-        get_cmd=f"RA:{_cmd_to_json_mapping['M0']}",
-        set_cmd="M0{}",
-    ):
+        self.modulation_type = Parameter(
+            name="modulation_type",
+            instrument=self,
+            val_mapping={
+                "narrowband_fm": "0",
+                "wideband_fm": "1",
+                "am": "2",
+                "pulse": "3",
+            },
+            get_cmd=f"RA:{_CMD_TO_JSON_MAPPING['M0']}",
+            set_cmd="M0{}",
+        )
         """Modulation type."""
 
-    @add_parameter
-    def _parameter_modulation_freq(
-        self,
-        label="Modulation frequency",
-        unit="Hz",
-        vals=validators.Numbers(min_value=0, max_value=20e9),
-        get_cmd=f"RA:{_cmd_to_json_mapping['M3']}",
-        get_parser=int,
-        set_cmd="M3{}",
-        set_parser=lambda freq: str(int(freq)),
-    ):
+        self.modulation_freq = Parameter(
+            name="modulation_freq",
+            instrument=self,
+            label="Modulation frequency",
+            unit="Hz",
+            vals=validators.Numbers(min_value=0, max_value=20e9),
+            get_cmd=f"RA:{_CMD_TO_JSON_MAPPING['M3']}",
+            get_parser=int,
+            set_cmd="M3{}",
+            set_parser=lambda freq: str(int(freq)),
+        )
         """Internal modulation frequency in Hz."""
 
-    @add_parameter
-    def _parameter_modulation_am_depth(
-        self,
-        label="AM depth",
-        unit="%",
-        vals=validators.Numbers(min_value=0, max_value=100),
-        get_cmd=f"RA:{_cmd_to_json_mapping['M5']}",
-        get_parser=int,
-        set_cmd="M5{}",
-        set_parser=lambda depth: str(int(depth)),
-    ):
+        self.modulation_am_depth = Parameter(
+            name="modulation_am_depth",
+            instrument=self,
+            label="AM depth",
+            unit="%",
+            vals=validators.Numbers(min_value=0, max_value=100),
+            get_cmd=f"RA:{_CMD_TO_JSON_MAPPING['M5']}",
+            get_parser=int,
+            set_cmd="M5{}",
+            set_parser=lambda depth: str(int(depth)),
+        )
         """AM modulation depth."""
 
-    @add_parameter
-    def _parameter_modulation_fm_deviation(
-        self,
-        label="FM deviation",
-        unit="Hz",
-        vals=validators.Numbers(min_value=0, max_value=20e9),
-        get_cmd=f"RA:{_cmd_to_json_mapping['M4']}",
-        get_parser=int,
-        set_cmd="M4{}",
-        set_parser=lambda freq: str(int(freq)),
-    ):
+        self.modulation_fm_deviation = Parameter(
+            name="modulation_fm_deviation",
+            instrument=self,
+            label="FM deviation",
+            unit="Hz",
+            vals=validators.Numbers(min_value=0, max_value=20e9),
+            get_cmd=f"RA:{_CMD_TO_JSON_MAPPING['M4']}",
+            get_parser=int,
+            set_cmd="M4{}",
+            set_parser=lambda freq: str(int(freq)),
+        )
         """FM modulation deviation."""
 
-    @add_parameter
-    def _parameter_modulation_pulse_period(
-        self,
-        label="Pulse period",
-        unit="s",
-        vals=validators.Numbers(min_value=1e-6, max_value=10),
-        get_cmd=f"RA:{_cmd_to_json_mapping['M6']}",
-        get_parser=lambda val: int(val) * 1e-6,
-        set_cmd="M6{}",
-        set_parser=lambda period: str(int(period * 1e6)),
-    ):
+        self.modulation_pulse_period = Parameter(
+            name="modulation_pulse_period",
+            instrument=self,
+            label="Pulse period",
+            unit="s",
+            vals=validators.Numbers(min_value=1e-6, max_value=10),
+            get_cmd=f"RA:{_CMD_TO_JSON_MAPPING['M6']}",
+            get_parser=lambda val: int(val) * 1e-6,
+            set_cmd="M6{}",
+            set_parser=lambda period: str(int(period * 1e6)),
+        )
         """Pulse period in seconds."""
 
-    @add_parameter
-    def _parameter_modulation_pulse_width(
-        self,
-        label="Pulse width",
-        unit="s",
-        vals=validators.Numbers(min_value=1e-6, max_value=10),
-        get_cmd=f"RA:{_cmd_to_json_mapping['M7']}",
-        get_parser=lambda val: int(val) * 1e-6,
-        set_cmd="M7{}",
-        set_parser=lambda period: str(int(period * 1e6)),
-    ):
+        self.modulation_pulse_width = Parameter(
+            name="modulation_pulse_width",
+            instrument=self,
+            label="Pulse width",
+            unit="s",
+            vals=validators.Numbers(min_value=1e-6, max_value=10),
+            get_cmd=f"RA:{_CMD_TO_JSON_MAPPING['M7']}",
+            get_parser=lambda val: int(val) * 1e-6,
+            set_cmd="M7{}",
+            set_parser=lambda period: str(int(period * 1e6)),
+        )
         """Pulse width in s."""
 
-    @add_parameter
-    def _parameter_sweep_en(
-        self,
-        val_mapping={False: "0", True: "1"},
-        get_cmd=f"RA:{_cmd_to_json_mapping['SS']}",
-        set_cmd="SS{}",
-    ):
+        self.sweep_en = Parameter(
+            name="sweep_en",
+            instrument=self,
+            val_mapping={False: "0", True: "1"},
+            get_cmd=f"RA:{_CMD_TO_JSON_MAPPING['SS']}",
+            set_cmd="SS{}",
+        )
         """Sweep on/off."""
 
-    @add_parameter
-    def _parameter_sweep_trigger(
-        self,
-        val_mapping={"freerun": "0", "external": "1"},
-        get_cmd=f"RA:{_cmd_to_json_mapping['S0']}",
-        set_cmd="S0{}",
-    ):
+        self.sweep_trigger = Parameter(
+            name="sweep_trigger",
+            instrument=self,
+            val_mapping={"freerun": "0", "external": "1"},
+            get_cmd=f"RA:{_CMD_TO_JSON_MAPPING['S0']}",
+            set_cmd="S0{}",
+        )
         """Sweep trigger freerun/external."""
 
-    @add_parameter
-    def _parameter_sweep_dwell(
-        self,
-        label="Sweep dwell",
-        unit="s",
-        vals=validators.Numbers(min_value=1e-3, max_value=10),
-        get_cmd=f"RA:{_cmd_to_json_mapping['S4']}",
-        get_parser=lambda val: int(val) * 1e-3,
-        set_cmd="S4{}",
-        set_parser=lambda period: str(int(period * 1e3)),
-    ):
+        self.sweep_dwell = Parameter(
+            name="sweep_dwell",
+            instrument=self,
+            label="Sweep dwell",
+            unit="s",
+            vals=validators.Numbers(min_value=1e-3, max_value=10),
+            get_cmd=f"RA:{_CMD_TO_JSON_MAPPING['S4']}",
+            get_parser=lambda val: int(val) * 1e-3,
+            set_cmd="S4{}",
+            set_parser=lambda period: str(int(period * 1e3)),
+        )
         """Sweep dwell time in s. Requires sweep_trigger('freerun')."""
 
-    @add_parameter
-    def _parameter_synthesizer_mode(
-        self,
-        val_mapping={"low_spurious": "0", "low_phase_noise": "1"},
-        get_cmd=f"RA:{_cmd_to_json_mapping['P9']}",
-        set_cmd="P9{}",
-    ):
-        """Synthesizer mode: low spurious/low phase noise."""
+        self.synthesizer_mode = Parameter(
+            name="synthesizer_mode",
+            instrument=self,
+            val_mapping={"low_spurious": "0", "low_phase_noise": "1"},
+            get_cmd=f"RA:{_CMD_TO_JSON_MAPPING['P9']}",
+            set_cmd="P9{}",
+        )
+        """Synthesizer mode, low spurious/low phase noise."""
 
-    # WiFi control, NB initial_cache_value is used to avoid overriding these values
+        # WiFi control, NB initial_cache_value is used to avoid overriding these values
 
-    @add_parameter
-    def _parameter_wifi_mode(
-        self,
-        val_mapping={"station": "0", "hotspot": "1", "": ""},
-        get_cmd=f"RA:{_cmd_to_json_mapping['PEW']}",
-        set_cmd="PEW{}",
-    ):
-        """WiFi Mode: station/hotspot."""
+        self.wifi_mode = Parameter(
+            name="wifi_mode",
+            instrument=self,
+            val_mapping={"station": "0", "hotspot": "1", "": ""},
+            get_cmd=f"RA:{_CMD_TO_JSON_MAPPING['PEW']}",
+            set_cmd="PEW{}",
+        )
+        """WiFi Mode, station/hotspot."""
 
-    @add_parameter
-    def _parameter_wifi_station_ssid(
-        self,
-        vals=validators.Strings(),
-        get_cmd=f"RA:{_cmd_to_json_mapping['PES0']}",
-        set_cmd="PES0{}",
-    ):
+        self.wifi_station_ssid = Parameter(
+            name="wifi_station_ssid",
+            instrument=self,
+            vals=validators.Strings(),
+            get_cmd=f"RA:{_CMD_TO_JSON_MAPPING['PES0']}",
+            set_cmd="PES0{}",
+        )
         """Sets network SSID for WiFi module."""
 
-    @add_parameter
-    def _parameter_wifi_station_password(
-        self,
-        vals=validators.Strings(),
-        get_cmd=f"RA:{_cmd_to_json_mapping['PEP0']}",
-        set_cmd="PEP0{}",
-    ):
+        self.wifi_station_password = Parameter(
+            name="wifi_station_password",
+            instrument=self,
+            vals=validators.Strings(),
+            get_cmd=f"RA:{_CMD_TO_JSON_MAPPING['PEP0']}",
+            set_cmd="PEP0{}",
+        )
         """Sets network password for WiFi module."""
 
-    @add_parameter
-    def _parameter_wifi_hotspot_ssid(
-        self,
-        vals=validators.Strings(),
-        get_cmd=f"RA:{_cmd_to_json_mapping['PES1']}",
-        set_cmd="PES1{}",
-    ):
+        self.wifi_hotspot_ssid = Parameter(
+            name="wifi_hotspot_ssid",
+            instrument=self,
+            vals=validators.Strings(),
+            get_cmd=f"RA:{_CMD_TO_JSON_MAPPING['PES1']}",
+            set_cmd="PES1{}",
+        )
         """Sets hotspot SSID for WiFi module."""
 
-    @add_parameter
-    def _parameter_wifi_hotspot_password(
-        self,
-        vals=validators.Strings(),
-        get_cmd=f"RA:{_cmd_to_json_mapping['PEP1']}",
-        set_cmd="PEP1{}",
-    ):
+        self.wifi_hotspot_password = Parameter(
+            name="wifi_hotspot_password",
+            instrument=self,
+            vals=validators.Strings(),
+            get_cmd=f"RA:{_CMD_TO_JSON_MAPPING['PEP1']}",
+            set_cmd="PEP1{}",
+        )
         """Sets hotspot password for WiFi module."""
 
-    @add_parameter
-    def _parameter_wifi_ip_address(
-        self,
-        vals=validators.Strings(),
-        get_cmd=f"RA:{_cmd_to_json_mapping['PEI']}",
-        set_cmd="PEI{}",
-    ):
+        self.wifi_ip_address = Parameter(
+            name="wifi_ip_address",
+            instrument=self,
+            vals=validators.Strings(),
+            get_cmd=f"RA:{_CMD_TO_JSON_MAPPING['PEI']}",
+            set_cmd="PEI{}",
+        )
         """Sets IP address for WiFi module."""
 
-    @add_parameter
-    def _parameter_wifi_subnet_address(
-        self,
-        vals=validators.Strings(),
-        get_cmd=f"RA:{_cmd_to_json_mapping['PEN']}",
-        set_cmd="PEN{}",
-    ):
+        self.wifi_subnet_address = Parameter(
+            name="wifi_subnet_address",
+            instrument=self,
+            vals=validators.Strings(),
+            get_cmd=f"RA:{_CMD_TO_JSON_MAPPING['PEN']}",
+            set_cmd="PEN{}",
+        )
         """Sets Subnet mask for WiFi module."""
 
-    @add_parameter
-    def _parameter_wifi_gateway_address(
-        self,
-        vals=validators.Strings(),
-        get_cmd=f"RA:{_cmd_to_json_mapping['PEG']}",
-        set_cmd="PEG{}",
-    ):
+        self.wifi_gateway_address = Parameter(
+            name="wifi_gateway_address",
+            instrument=self,
+            vals=validators.Strings(),
+            get_cmd=f"RA:{_CMD_TO_JSON_MAPPING['PEG']}",
+            set_cmd="PEG{}",
+        )
         """Sets default gateway for WiFi module."""
 
-    @add_parameter
-    def _parameter_debug_messages_en(
-        self,
-        vals=validators.Strings(),
-        initial_cache_value=None,
-        val_mapping={True: "1", False: "0"},
-        set_cmd="PD{}",
-    ):
+        self.debug_messages_en = Parameter(
+            name="debug_messages_en",
+            instrument=self,
+            vals=validators.Strings(),
+            initial_cache_value=None,
+            val_mapping={True: "1", False: "0"},
+            set_cmd="PD{}",
+        )
         """Enables/disables debug printing on the serial port."""
 
     # ##################################################################################
@@ -515,7 +505,7 @@ class ERASynthBase(VisaInstrument):
 
     # Custom communication
 
-    def get_idn(self):
+    def get_idn(self) -> Dict[str, str]:
         models = {"0": "ERASynth", "1": "ERASynth+", "2": "ERASynth++"}
         d_status = self.get_diagnostic_status()
         return {
@@ -563,7 +553,7 @@ class ERASynthBase(VisaInstrument):
 
         return response
 
-    def write(self, cmd: str):
+    def write(self, cmd: str) -> None:
         """Writes a command to the communication channel of the instrument.
 
         Commands are prefixed with `">"` as required by the ERASynth.
@@ -574,7 +564,7 @@ class ERASynthBase(VisaInstrument):
         super().write(f">{cmd}")
         self.clear_read_buffer()
 
-    def write_raw(self, cmd: str):
+    def write_raw(self, cmd: str) -> None:
         """
         For some commands we confirm that the value has been set correctly.
 
@@ -582,13 +572,13 @@ class ERASynthBase(VisaInstrument):
         instrument.
         """
         is_readable_cmd = False
-        for command in _cmd_to_json_mapping.keys():
+        for command in _CMD_TO_JSON_MAPPING:
             if cmd[1:].startswith(command):
                 is_readable_cmd = True
                 break
 
         if is_readable_cmd:
-            json_key = _cmd_to_json_mapping[command]
+            json_key = _CMD_TO_JSON_MAPPING[command]
             cmd_arg = cmd[1 + len(command) :]
             while True:
                 super().write_raw(cmd)
@@ -598,7 +588,7 @@ class ERASynthBase(VisaInstrument):
         else:
             super().write_raw(cmd)
 
-    def _get_json(self, cmd: str, first_key: str):
+    def _get_json(self, cmd: str, first_key: str) -> str:
         """
         Sends command and reads result until the result looks like a JSON.
         """
@@ -628,14 +618,14 @@ class ERASynthBase(VisaInstrument):
 
         return config_json if par_name is None else config_json[par_name]
 
-    def get_diagnostic_status(self, par_name: str = None):
+    def get_diagnostic_status(self, par_name: str = None) -> Union[dict, str]:
         """
         Returns the diagnostic JSON.
         """
         config_json = json.loads(self._get_json("RD", "temperature"))
         return config_json if par_name is None else config_json[par_name]
 
-    def preset(self):
+    def preset(self) -> None:
         """
         Presets the device to known values.
 
@@ -646,26 +636,26 @@ class ERASynthBase(VisaInstrument):
         self.write("PP")
         self._prep_communication()
 
-    def factory_reset(self):
+    def factory_reset(self) -> None:
         """
         Does factory reset on the device.
         """
         self.write("PR")
         self._prep_communication()
 
-    def esp8266_upload_mode(self):
+    def esp8266_upload_mode(self) -> None:
         """Sets the ESP8266 module in upload mode."""
         self.write("U")
 
-    def wifi_on(self):
+    def wifi_on(self) -> None:
         """Turn ESP8266 WiFi module on."""
         self.write("PE01")
 
-    def wifi_off(self):
+    def wifi_off(self) -> None:
         """Turn ESP8266 WiFi module off."""
         self.write("PE00")
 
-    def run_self_test(self):
+    def run_self_test(self) -> None:
         """
         Sets all settable parameters to different values.
 
@@ -704,129 +694,107 @@ class ERASynthBase(VisaInstrument):
             if str_back in read_line:
                 break
 
-    def _set_frequency(self, value: str):
+    def _set_frequency(self, value: str) -> None:
         self._set_and_confirm(cmd="F", cmd_arg=value)
 
-    def _set_power(self, value: str):
+    def _set_power(self, value: str) -> None:
         self._set_and_confirm(cmd="A", cmd_arg=value)
 
-    def _set_status(self, value: str):
+    def _set_status(self, value: str) -> None:
         str_back = {"0": "OFF", "1": "ON"}[value]
         self._set_and_confirm(cmd="P0", cmd_arg=value, str_back=str_back)
 
 
-def _mk_parameter_frequency(max_frequency: float):
-    """
-    Convenience decorator to minimize code repetition.
+def _mk_frequency(self, max_frequency: float) -> Parameter:
+    frequency = Parameter(
+        name="frequency",
+        instrument=self,
+        label="Frequency",
+        unit="Hz",
+        vals=validators.Numbers(min_value=250e3, max_value=max_frequency),
+        get_cmd="RA:frequency",
+        get_parser=int,
+        set_cmd=self._set_frequency,
+        set_parser=lambda freq: str(int(freq)),
+    )
+    frequency.__doc__ = "The RF Frequency in Hz."
+    return frequency
 
-    Args:
-        max_frequency: maximum frequency for the validator
-    """
 
-    # NB nested functions is necessary in order to have a "parametrized" decorator
-    def wrapper(method):
-        @add_parameter
-        def _parameter_frequency(
-            self,
-            label="Frequency",
-            unit="Hz",
-            vals=validators.Numbers(min_value=250e3, max_value=max_frequency),
-            get_cmd="RA:frequency",
-            get_parser=int,
-            set_cmd=InstanceAttr("_set_frequency"),
-            set_parser=lambda freq: str(int(freq)),
-        ):
-            """The RF Frequency in Hz."""
-        return _parameter_frequency
+def _mk_sweep_start_frequency(self, max_frequency: float) -> Parameter:
+    sweep_start_frequency = Parameter(
+        name="sweep_start_frequency",
+        instrument=self,
+        label="Sweep start",
+        unit="Hz",
+        vals=validators.Numbers(min_value=250e3, max_value=max_frequency),
+        get_cmd=f"RA:{_CMD_TO_JSON_MAPPING['S1']}",
+        get_parser=int,
+        set_cmd="S1{}",
+        set_parser=lambda freq: str(int(freq)),
+    )
+    sweep_start_frequency.__doc__ = "Sweep start frequency in Hz."
+    return sweep_start_frequency
 
-    return wrapper
 
-def _mk_parameter_sweep_start_frequency(max_frequency: float):
-    def wrapper(method):
-        @add_parameter
-        def _parameter_sweep_start_frequency(
-            self,
-            label="Sweep start",
-            unit="Hz",
-            vals=validators.Numbers(min_value=250e3, max_value=max_frequency),
-            get_cmd=f"RA:{_cmd_to_json_mapping['S1']}",
-            get_parser=int,
-            set_cmd="S1{}",
-            set_parser=lambda freq: str(int(freq)),
-        ):
-            """Sweep start frequency in Hz."""
-        return _parameter_sweep_start_frequency
+def _mk_sweep_stop_frequency(self, max_frequency: float) -> Parameter:
+    sweep_stop_frequency = Parameter(
+        name="sweep_stop_frequency",
+        instrument=self,
+        label="Sweep stop",
+        unit="Hz",
+        vals=validators.Numbers(min_value=250e3, max_value=max_frequency),
+        get_cmd=f"RA:{_CMD_TO_JSON_MAPPING['S2']}",
+        get_parser=int,
+        set_cmd="S2{}",
+        set_parser=lambda freq: str(int(freq)),
+    )
+    sweep_stop_frequency.__doc__ = "Sweep stop frequency in Hz."
+    return sweep_stop_frequency
 
-    return wrapper
 
-def _mk_parameter_sweep_stop_frequency(max_frequency: float):
-    def wrapper(method):
-        @add_parameter
-        def _parameter_sweep_stop_frequency(
-            self,
-            label="Sweep stop",
-            unit="Hz",
-            vals=validators.Numbers(min_value=250e3, max_value=max_frequency),
-            get_cmd=f"RA:{_cmd_to_json_mapping['S2']}",
-            get_parser=int,
-            set_cmd="S2{}",
-            set_parser=lambda freq: str(int(freq)),
-        ):
-            """Sweep stop frequency in Hz."""
-        return _parameter_sweep_stop_frequency
-
-    return wrapper
-
-def _mk_parameter_sweep_step_frequency(max_frequency: float):
-    def wrapper(method):
-        @add_parameter
-        def _parameter_sweep_step_frequency(
-            self,
-            label="Sweep step",
-            unit="Hz",
-            vals=validators.Numbers(min_value=0, max_value=max_frequency),
-            get_cmd=f"RA:{_cmd_to_json_mapping['S3']}",
-            get_parser=int,
-            set_cmd="S3{}",
-            set_parser=lambda freq: str(int(freq)),
-        ):
-            """Sweep step frequency in Hz."""
-        return _parameter_sweep_step_frequency
-
-    return wrapper
+def _mk_sweep_step_frequency(self, max_frequency: float) -> Parameter:
+    sweep_step_frequency = Parameter(
+        name="sweep_step_frequency",
+        instrument=self,
+        label="Sweep step",
+        unit="Hz",
+        vals=validators.Numbers(min_value=0, max_value=max_frequency),
+        get_cmd=f"RA:{_CMD_TO_JSON_MAPPING['S3']}",
+        get_parser=int,
+        set_cmd="S3{}",
+        set_parser=lambda freq: str(int(freq)),
+    )
+    sweep_step_frequency.__doc__ = "Sweep step frequency in Hz."
+    return sweep_step_frequency
 
 
 class ERASynth(ERASynthBase):
     """
     Driver for the ERASynth model instrument.
 
-    For ERASynth+/ERASynth++ see `EraSynthPlus`/`EraSynthPlusPlus` classes.
+    For ERASynth+/ERASynth++ see :class:`.EraSynthPlus`/:class:`.EraSynthPlusPlus`
+    classes.
     """
 
-    @_mk_parameter_frequency(max_frequency=6e9)
-    def _parameter_frequency(self):
-        pass
+    def __init__(self, name: str, address: str, **kwargs):
+        super().__init__(name=name, address=address, **kwargs)
 
-    @_mk_parameter_sweep_start_frequency(max_frequency=6e9)
-    def _parameter_sweep_start_frequency(self):
-        pass
+        self.frequency = _mk_frequency(self, max_frequency=6e9)
+        self.sweep_start_frequency = _mk_sweep_start_frequency(self, max_frequency=6e9)
+        self.sweep_stop_frequency = _mk_sweep_stop_frequency(self, max_frequency=6e9)
+        self.sweep_step_frequency = _mk_sweep_step_frequency(
+            self, max_frequency=6e9 - 250e3
+        )
 
-    @_mk_parameter_sweep_stop_frequency(max_frequency=6e9)
-    def _parameter_sweep_stop_frequency(self):
-        pass
-
-    @_mk_parameter_sweep_step_frequency(max_frequency=6e9-250e3)
-    def _parameter_sweep_step_frequency(self):
-        pass
-
-    @add_parameter
-    def _parameter_reference_tcxo_ocxo(
-        self,
-        val_mapping={"tcxo": "0", "ocxo": "1"},
-        get_cmd=f"RA:{_cmd_to_json_mapping['P5']}",
-    ):
+        self.reference_tcxo_ocxo = Parameter(
+            name="reference_tcxo_ocxo",
+            instrument=self,
+            val_mapping={"tcxo": "0", "ocxo": "1"},
+            get_cmd=f"RA:{_CMD_TO_JSON_MAPPING['P5']}",
+        )
         """
-        NB not tested if this parameter is available for ERASynth model (<6GHz)!
+        NB not tested if this parameter is available for the ERASynth model (<6GHz)!
         """
 
 
@@ -834,32 +802,26 @@ class ERASynthPlus(ERASynthBase):
     """
     Driver for the ERASynth+ model instrument.
 
-    For ERASynth/ERASynth++ see `EraSynth`/`EraSynthPlusPlus` classes.
+    For ERASynth/ERASynth++ see :class:`.EraSynth`/:class:`.EraSynthPlusPlus` classes.
     """
 
-    @_mk_parameter_frequency(max_frequency=15e9)
-    def _parameter_frequency(self):
-        pass
+    def __init__(self, name: str, address: str, **kwargs):
+        super().__init__(name=name, address=address, **kwargs)
 
-    @_mk_parameter_sweep_start_frequency(max_frequency=15e9)
-    def _parameter_sweep_start_frequency(self):
-        pass
+        self.frequency = _mk_frequency(self, max_frequency=15e9)
+        self.sweep_start_frequency = _mk_sweep_start_frequency(self, max_frequency=15e9)
+        self.sweep_stop_frequency = _mk_sweep_stop_frequency(self, max_frequency=15e9)
+        self.sweep_step_frequency = _mk_sweep_step_frequency(
+            self, max_frequency=15e9 - 250e3
+        )
 
-    @_mk_parameter_sweep_stop_frequency(max_frequency=15e9)
-    def _parameter_sweep_stop_frequency(self):
-        pass
-
-    @_mk_parameter_sweep_step_frequency(max_frequency=15e9-250e3)
-    def _parameter_sweep_step_frequency(self):
-        pass
-
-    @add_parameter
-    def _parameter_reference_tcxo_ocxo(
-        self,
-        val_mapping={"tcxo": "0", "ocxo": "1"},
-        get_cmd=f"RA:{_cmd_to_json_mapping['P5']}",
-        set_cmd="P5{}",
-    ):
+        self.reference_tcxo_ocxo = Parameter(
+            name="reference_tcxo_ocxo",
+            instrument=self,
+            val_mapping={"tcxo": "0", "ocxo": "1"},
+            get_cmd=f"RA:{_CMD_TO_JSON_MAPPING['P5']}",
+            set_cmd="P5{}",
+        )
         """Chooses reference type."""
 
 
@@ -867,27 +829,21 @@ class ERASynthPlusPlus(ERASynthPlus):
     """
     Driver for the ERASynth++ model instrument.
 
-    For ERASynth/ERASynth+ see `EraSynth`/`EraSynthPlus` classes.
+    For ERASynth/ERASynth+ see :class:`.EraSynth`/:class:`.EraSynthPlus` classes.
     """
 
-    @_mk_parameter_frequency(max_frequency=20e9)
-    def _parameter_frequency(self):
-        pass
+    def __init__(self, name: str, address: str, **kwargs):
+        super().__init__(name=name, address=address, **kwargs)
 
-    @_mk_parameter_sweep_start_frequency(max_frequency=20e9)
-    def _parameter_sweep_start_frequency(self):
-        pass
-
-    @_mk_parameter_sweep_stop_frequency(max_frequency=20e9)
-    def _parameter_sweep_stop_frequency(self):
-        pass
-
-    @_mk_parameter_sweep_step_frequency(max_frequency=20e9-250e3)
-    def _parameter_sweep_step_frequency(self):
-        pass
+        self.frequency = _mk_frequency(self, max_frequency=20e9)
+        self.sweep_start_frequency = _mk_sweep_start_frequency(self, max_frequency=20e9)
+        self.sweep_stop_frequency = _mk_sweep_stop_frequency(self, max_frequency=20e9)
+        self.sweep_step_frequency = _mk_sweep_step_frequency(
+            self, max_frequency=20e9 - 250e3
+        )
 
 
-_SELF_TEST_LIST = [
+_SELF_TEST_LIST: Tuple[str, Any] = [
     ("frequency", 3.3e9),
     ("modulation_am_depth", 30),
     ("modulation_fm_deviation", 1e3),

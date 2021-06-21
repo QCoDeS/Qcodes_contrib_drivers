@@ -15,16 +15,10 @@
 # sys.path.insert(0, os.path.abspath('.'))
 
 
-# -- Project information -----------------------------------------------------
-
-project = 'qcodes_contrib_drivers'
-copyright = '2019, QCoDeS Users'
-author = 'QCoDeS Users'
-
 
 # -- General configuration ---------------------------------------------------
-import qcodes_contrib_drivers
 import sphinx_rtd_theme
+import qcodes_contrib_drivers
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
@@ -42,17 +36,22 @@ extensions = [
 
 try:
     # pylint: disable=unused-import
-    from qcodes.sphinx_extensions import add_parameter  # noqa: F401
-    extensions.append('qcodes.sphinx_extensions.add_parameter')
+    from qcodes.sphinx_extensions import parse_parameter_attr  # noqa: F401
+    extensions.append('qcodes.sphinx_extensions.parse_parameter_attr')
 except ModuleNotFoundError:
     import warnings
     warnings.warn(
-        "Could not import 'qcodes.sphinx_extensions.add_parameter'\n"
-        "The documentation of decorator-style parameters will not be rendered "
-        "correctly.\n"
-        "Upgrade to latest QCoDeS to make use of this functionality.",
+        "Could not import 'qcodes.sphinx_extensions.parse_parameter_attr'\n"
+        "The documentation parameters will not be rendered correctly.\n"
+        "Upgrade to qcodes>=0.28.0 to make use of this functionality.",
         RuntimeWarning
     )
+
+# -- Project information -----------------------------------------------------
+
+project = 'qcodes_contrib_drivers'
+copyright = '2019, QCoDeS Users'
+author = 'QCoDeS Users'
 
 # include special __xxx__ that DO have a docstring
 # it probably means something important
