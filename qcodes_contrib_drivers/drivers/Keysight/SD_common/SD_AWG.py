@@ -311,7 +311,7 @@ class SD_AWG(SD_Module):
             length=length,
             delay=delay
         )
-        return result_parser(result, verbose)
+        return result
 
     #
     # The methods below are useful for controlling the device, but are not
