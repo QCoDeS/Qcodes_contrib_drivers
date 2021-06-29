@@ -258,12 +258,17 @@ class LdaAttenuation(LdaParameter):
         max_att = dll.fnLDA_GetMaxAttenuationHR(ref) * self.scaling
         vals = Numbers(min_att, max_att)
 
+        label = "Attenuation"
+        if isinstance(instrument, LdaChannel):
+            # prefix label to make channels more easily distinguishable in plots
+            label = f"{instrument.short_name} {label}"
+
         super().__init__(name, instrument,
                          dll_get_function=dll.fnLDA_GetAttenuationHR,
                          dll_set_function=dll.fnLDA_SetAttenuationHR,
                          vals=vals,
                          unit="dB",
-                         label="Attenuation",
+                         label=label,
                          **kwargs,
                          )
 
