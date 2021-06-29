@@ -1,4 +1,5 @@
 import ctypes
+import os
 from typing import Dict, Optional
 from qcodes import Instrument
 from qcodes.utils.validators import Enum
@@ -113,7 +114,7 @@ class SC5521A(Instrument):
     __doc__ = 'QCoDeS python driver for the Signal Core SC5521A.'
 
     def __init__(self, name: str,
-                       dll_path: str='C:\\Program Files\\SignalCore\\SC5520A\\api\\c\\scipci\\x64\\sc5520a_uhfs.dll',
+                       dll_path: str='SignalCore\\SC5520A\\api\\c\\scipci\\x64\\sc5520a_uhfs.dll',
                        **kwargs):
         """
         QCoDeS driver for the Signal Core SC5521A.
@@ -127,6 +128,9 @@ class SC5521A(Instrument):
         
         (super().__init__)(name, **kwargs)
         
+        # Adapt the path to the computer language
+        dll_path = os.path.join(os.environ['PROGRAMFILES'], dll_path)
+
         self._dll = ctypes.WinDLL(dll_path)
         self._devices_number = ctypes.c_uint()
         self._pxi10Enable = 0
