@@ -290,11 +290,17 @@ class LdaWorkingFrequency(LdaParameter):
             instrument: parent instrument, either LDA or LDA channel
         """
         dll = instrument.root_instrument.dll
+
+        label = "Working frequency"
+        if isinstance(instrument, LdaChannel):
+            # prefix label to make channels more easily distinguishable in plots
+            label = f"{instrument.short_name} {label}"
+
         super().__init__(name, instrument,
                          dll_get_function=dll.fnLDA_GetWorkingFrequency,
                          dll_set_function=dll.fnLDA_SetWorkingFrequency,
                          unit="Hz",
-                         label="Working frequency",
+                         label=label,
                          docstring="Frequency at which the "
                                    "attenuation is most accurate.",
                          **kwargs
