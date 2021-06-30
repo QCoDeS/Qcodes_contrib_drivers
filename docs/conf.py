@@ -74,7 +74,7 @@ intersphinx_mapping = {
     'python': ('https://docs.python.org/3.6', None),
     'numpy': ('https://numpy.org/doc/stable', None),
     'py': ('https://pylib.readthedocs.io/en/stable/', None),
-    'pyvisa': ('https://pyvisa.readthedocs.io/en/master/', None),
+    'pyvisa': ('https://pyvisa.readthedocs.io/en/stable/', None),
     'IPython': ('https://ipython.readthedocs.io/en/stable/', None,),
     'qcodes': ('https://qcodes.github.io/Qcodes/', None)
 }
