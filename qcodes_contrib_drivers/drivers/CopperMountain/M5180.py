@@ -198,7 +198,8 @@ class M5180(VisaInstrument):
                        timeout    : int=100000,
                        **kwargs):
         """
-        QCoDeS driver for the VNA S5180 from Copper Mountain
+        QCoDeS driver for the VNA S5180 from Copper Mountain.
+        This driver only uses one channel.
 
         Args:
         name (str): Name of the instrument.
@@ -216,6 +217,9 @@ class M5180(VisaInstrument):
                          **kwargs)
 
         self.add_function('reset', call_cmd='*RST')
+
+        # set the unit of the electrical distance to meter
+        self.write('CALC1:CORR:EDEL:DIST:UNIT MET')
 
         self.add_parameter(name='output',
                            label='Output',
@@ -265,6 +269,24 @@ class M5180(VisaInstrument):
                            set_parser=int,
                            unit='',
                            vals=Numbers(min_value=1, max_value=999))
+
+        self.add_parameter('electrical_delay',
+                           label='Electrical delay',
+                           get_cmd='CALC1:CORR:EDEL:TIME?',
+                           set_cmd='CALC1:CORR:EDEL:TIME {}',
+                           get_parser=float,
+                           set_parser=float,
+                           unit='s',
+                           vals=Numbers(-10, 10))
+
+        self.add_parameter('electrical_distance',
+                           label='Electrical distance',
+                           get_cmd='CALC1:CORR:EDEL:DIST?',
+                           set_cmd='CALC1:CORR:EDEL:DIST {}',
+                           get_parser=float,
+                           set_parser=float,
+                           unit='m',
+                           vals=Numbers())
 
         self.add_parameter(name='start',
                            label='Start Frequency',
