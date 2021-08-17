@@ -167,7 +167,7 @@ class PointMagPhase(MultiParameter):
         Returns:
             Tuple[ParamRawDataType, ...]: magnitude, phase
         """
-        assert isinstance(self.instrument, M5180)
+
         self.instrument.write('CALC1:PAR:COUN 1') # 1 trace
         self.instrument.write('CALC1:PAR1:DEF {}'.format(self.name[-3:]))
         self.instrument.write('CALC1:TRAC1:FORM SMITH')  # Trace format
