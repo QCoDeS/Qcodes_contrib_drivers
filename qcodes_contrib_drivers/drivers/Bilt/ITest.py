@@ -237,8 +237,11 @@ class ITest(VisaInstrument):
 
         if init_start:
             for channel in self.channels:
+                channel.stop()
                 channel.v.set(0)
-                channel.v_range(1.2)
+                channel.v_range(12)
+                channel.synchronous_enable(False)
+                channel.output_mode('exp')
                 channel.start()
 
         self.connect_message()
