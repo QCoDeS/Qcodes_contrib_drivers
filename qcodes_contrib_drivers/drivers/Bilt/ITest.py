@@ -1,6 +1,7 @@
 # This Python file uses the following encoding: utf-8
 # Loick Le Guevel, 2019
 # Etienne Dumur <etienne.dumur@gmail.com>, 2021
+# Simon Zihlmann <zihlmann.simon@gmail.com>, 2021
 
 from typing import Union, Tuple, Any
 from functools import partial
@@ -179,8 +180,8 @@ class ITest(VisaInstrument):
                       synchronous_enable:bool=True,
                       synchronous_delay:float=1,
                       synchronous_threshold:float=1e-5,
-                      v_inter_delay:float=50e-3, # from Triton setup
-                      v_step:float=10e-3, # from Triton setup
+                      v_inter_delay:float=50e-3,
+                      v_step:float=10e-3,
                       **kwargs: Any) -> None:
         """
         Instantiate the instrument.
@@ -198,6 +199,8 @@ class ITest(VisaInstrument):
                 "synchronous_threshold".
             synchronous_delay: Time between to voltage measurement in second.
             synchronous_threshold: Threshold to unblock communication in volt.
+            v_inter_delay: delay in units of s between setting new value of the voltage parameter.
+            v_step: max step size of the voltage parameter in units of V.
 
         Returns:
             ITest object
