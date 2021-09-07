@@ -29,37 +29,19 @@ class GeneratedSetPoints(Parameter):
 
 class SpectrumArray(ParameterWithSetpoints):
     """
-    Conducting the measurement and obtain the measurement from the
-    instrument. It is used to obtain the spectrum with the previoulsy
-    generated frequency axis.
-    Args:
-        ParameterWithSetpoints (Parameter): This Parameter class is intended
-                                            for anything where a call to the
-                                            instrument returns an array of
-                                            values.
+    Freequency sweep that returns a spectrum.
     """
-    def get_raw(self, ) -> np.array:
-        self.root_instrument.write_raw("INIT:CONT OFF")
-        self.root_instrument.write_raw("ABOR")
-        self.root_instrument.write_raw("INIT")
-        self.root_instrument.ask_raw("*OPC?")
+    def get_raw(self) -> np.array:
+        self.root_instrument.write_raw("INIT:CONT OFF") #set single sweep mode
+        self.root_instrument.write_raw("ABOR") #abort and reset trigger
+        self.root_instrument.write_raw("INIT") #start measurement
+        self.root_instrument.ask_raw("*OPC?") #wait for measurement to complete
         spec = self.root_instrument.ask_raw("TRAC1? TRACE1").split(',')
         return np.array(spec).astype(np.float64)
-        """
-        Instrument is initialized, starts measurement and data is obtained.
-        Args:
-            'INIT:CONT OFF': Switching to single sweep mode
-            'ABOR': Aborting current measurement and resetting trigger system
-            'INIT': Starting new measurement
-            '*OPC?': Checks bit in the event status register  which is only 0 
-                     after all preceding commands have been executed
-            'TRAC1? TRACE1': Reading measurement data of trace 1
-        """
 
 class FSL(VisaInstrument):
     """
-    QCoDeS driver for the Rhode & Schwarz spectrum analyzer FSL. 
-    It contains all parameters of the instrument.
+    QCoDeS driver for the Rhode & Schwarz spectrum analyzer FSL.
     """
 
     def __init__(self, name       : str,
@@ -67,23 +49,23 @@ class FSL(VisaInstrument):
                        terminator : str="\n",
                        timeout    : int=100000,
                        **kwargs):
-        """[summary]
+        """Initializes the instrument
 
         Args:
             name (str): Name of the instrument
             address (str): Address of instrument
             terminator (str, optional): Terminator. Defaults to "\n".
             timeout (int, optional): Communication timeout in untis of s.
-                                     Defaults to 100.
+                                     Defaults to 100000.
         """
 
-        super().__init__(name       = name,
-                         address    = address,
-                         terminator = terminator,
-                         timeout    = timeout,
+        super().__init__(name=name,
+                         address=address,
+                         terminator=terminator,
+                         timeout=timeout,
                          **kwargs)
 
-        self.add_parameter(name = 'frequency',
+        self.add_parameter(name = 'center',
                            label = 'Center Frequency',
                            get_parser = float,
                            get_cmd = 'FREQ:CENT?',
@@ -105,7 +87,7 @@ class FSL(VisaInstrument):
                                           max_value=float(self.ask_raw(
                                                     'SENS:FREQ:SPAN? MAX'))))
 
-        self.add_parameter(name = 'f_start',
+        self.add_parameter(name = 'start',
                            label = 'Start Frequency',
                            get_parser = float,
                            get_cmd = 'FREQ:START?',
@@ -114,10 +96,9 @@ class FSL(VisaInstrument):
                            vals = Numbers(min_value=float(self.ask_raw(
                                                     'SENS:FREQ:START? MIN')),
                                           max_value=float(self.ask_raw(
-                                                    'SENS:FREQ:START? MAX'))
-                                          ))
+                                                    'SENS:FREQ:START? MAX'))))
 
-        self.add_parameter(name = 'f_stop',
+        self.add_parameter(name = 'stop',
                            label = 'Stop Frequency',
                            get_parser = float,
                            get_cmd = 'FREQ:STOP?',
@@ -180,7 +161,7 @@ class FSL(VisaInstrument):
                            numpointsparam = self.n_points,
                            vals = Arrays(shape=(self.n_points,)))
 
-        self.add_parameter(name = 'spectrum', 
+        self.add_parameter(name = 'spectrum',
                            unit = 'dBm',
                            setpoints = (self.freq_axis,),
                            label = 'Spectrum',
