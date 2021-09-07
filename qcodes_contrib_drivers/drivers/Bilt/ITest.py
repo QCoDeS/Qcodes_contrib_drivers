@@ -180,8 +180,9 @@ class ITest(VisaInstrument):
                       synchronous_enable:bool=True,
                       synchronous_delay:float=1,
                       synchronous_threshold:float=1e-5,
-                      v_inter_delay:float=50e-3,
-                      v_step:float=10e-3,
+                      v_inter_delay:float=0,
+                      v_post_delay:float=45e-3, # settling time to 99%
+                      v_step:float=20e-3,
                       **kwargs: Any) -> None:
         """
         Instantiate the instrument.
