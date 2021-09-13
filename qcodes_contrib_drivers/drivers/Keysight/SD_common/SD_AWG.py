@@ -133,7 +133,7 @@ class SD_AWG(SD_Module):
                                vals=validator.Enum(-1, 0, 1, 2, 4, 5, 6, 8))
 
         # initialize settings cache
-        cache: Dict[str,Dict[int,float]] = dict()
+        cache: Dict[str,Dict[int,Optional[float]]] = dict()
         for setting in ['offset', 'amplitude']:
             cache[setting] = {(i+index_offset):None for i in range(4)}
 
@@ -242,7 +242,7 @@ class SD_AWG(SD_Module):
             verbose: boolean indicating verbose mode
         """
         if self._settings_cache['amplitude'][channel_number] == amplitude:
-            return 0
+            return
 
         with self._lock:
             value = self.awg.channelAmplitude(channel_number, amplitude)
@@ -262,7 +262,7 @@ class SD_AWG(SD_Module):
             verbose: boolean indicating verbose mode
         """
         if self._settings_cache['offset'][channel_number] == offset:
-            return 0
+            return
         with self._lock:
             value = self.awg.channelOffset(channel_number, offset)
         value_name = f'set offset channel {channel_number} to {offset} V'

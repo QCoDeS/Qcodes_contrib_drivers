@@ -42,7 +42,7 @@ class MemoryManager:
         '''Unique reference value when allocated.
         Used to check for incorrect or missing release calls.
         '''
-        allocation_time: str = None
+        allocation_time: str = ''
 
     # Note (M3202A): size must be multiples of 10 and >= 2000
     memory_sizes = [

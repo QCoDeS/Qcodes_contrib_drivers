@@ -2,7 +2,7 @@
 import threading
 import queue
 import sys
-from typing import Dict, List, Union, Optional, TypeVar, Callable, Any
+from typing import Dict, List, Union, Optional, TypeVar, Callable, Any, cast
 import time
 import logging
 from functools import wraps
@@ -16,7 +16,7 @@ from .memory_manager import MemoryManager
 
 F = TypeVar('F', bound=Callable[..., Any])
 
-def switchable(switch: Callable[[object], bool], enabled: bool) -> Callable[[F], F]:
+def switchable(switch: Callable[[Any], bool], enabled: bool) -> Callable[[F], F]:
     """
     This decorator enables or disables a method depending on the value of an object's method.
     It throws an exception when the invoked method is disabled.
@@ -28,7 +28,7 @@ def switchable(switch: Callable[[object], bool], enabled: bool) -> Callable[[F],
 
     """
 
-    def switchable_decorator(func: F) -> F:
+    def switchable_decorator(func):
 
         @wraps(func)
         def func_wrapper(self, *args, **kwargs):
@@ -99,7 +99,7 @@ def threaded(wait: bool = False) -> Callable[[F], F]:
         wait: if True waits till the function has been executed.
     """
 
-    def threaded_decorator(func: F) -> F:
+    def threaded_decorator(func):
 
         @wraps(func)
         def func_wrapper(self, *args, **kwargs):
@@ -156,7 +156,7 @@ class WaveformReference:
         """
         raise NotImplementedError()
 
-    def is_uploaded(self) -> None:
+    def is_uploaded(self) -> bool:
         """
         Returns True if waveform has been loaded.
         """
@@ -209,7 +209,7 @@ class _WaveformReferenceInternal(WaveformReference):
             raise Exception(f'Error loading wave: {self._upload_error}')
 
 
-    def is_uploaded(self) -> None:
+    def is_uploaded(self) -> bool:
         """
         Returns True if waveform has been loaded.
         """
@@ -349,7 +349,7 @@ class SD_AWG_Async(SD_AWG):
             available onboard RAM in waveform points, or negative numbers for
                 errors
         """
-        super().load_waveform(waveform_object, waveform_number, verbose)
+        return super().load_waveform(waveform_object, waveform_number, verbose)
 
     @switchable(asynchronous, enabled=False)
     def load_waveform_int16(self, waveform_type: int, data_raw: List[int],
@@ -369,7 +369,7 @@ class SD_AWG_Async(SD_AWG):
             available onboard RAM in waveform points, or negative numbers for
                 errors
         """
-        super().load_waveform_int16(waveform_type, data_raw, waveform_number, verbose)
+        return super().load_waveform_int16(waveform_type, data_raw, waveform_number, verbose)
 
     @switchable(asynchronous, enabled=False)
     def reload_waveform(self, waveform_object: keysightSD1.SD_Wave, waveform_number: int,
@@ -396,7 +396,7 @@ class SD_AWG_Async(SD_AWG):
             available onboard RAM in waveform points, or negative numbers for
                 errors
         """
-        super().reload_waveform(waveform_object, waveform_number, padding_mode, verbose)
+        return super().reload_waveform(waveform_object, waveform_number, padding_mode, verbose)
 
     @switchable(asynchronous, enabled=False)
     def reload_waveform_int16(self, waveform_type: int, data_raw: List[int],
@@ -425,6 +425,7 @@ class SD_AWG_Async(SD_AWG):
             available onboard RAM in waveform points, or negative numbers for
                 errors
         """
+        return super().reload_waveform_int16(waveform_type, data_raw, waveform_number, padding_mode, verbose)
 
     @switchable(asynchronous, enabled=False)
     def flush_waveform(self, verbose: bool = False) -> None:
@@ -464,8 +465,8 @@ class SD_AWG_Async(SD_AWG):
             available onboard RAM in waveform points, or negative numbers for
                 errors
         """
-        super().awg_from_file(awg_number, waveform_file, trigger_mode, start_delay, cycles, prescaler, padding_mode,
-                              verbose)
+        return super().awg_from_file(awg_number, waveform_file, trigger_mode, start_delay,
+                                     cycles, prescaler, padding_mode, verbose)
 
     @switchable(asynchronous, enabled=False)
     def awg_from_array(self, awg_number: int, trigger_mode: int,
@@ -503,8 +504,8 @@ class SD_AWG_Async(SD_AWG):
             available onboard RAM in waveform points, or negative numbers for
                 errors
         """
-        super().awg_from_array(awg_number, trigger_mode, start_delay, cycles, prescaler, waveform_type, waveform_data_a,
-                       waveform_data_b, padding_mode, verbose)
+        return super().awg_from_array(awg_number, trigger_mode, start_delay, cycles, prescaler,
+                                      waveform_type, waveform_data_a,waveform_data_b, padding_mode, verbose)
 
     def awg_flush(self, awg_number: int) -> None:
         """
@@ -543,6 +544,7 @@ class SD_AWG_Async(SD_AWG):
             prescaler: waveform prescaler value, to reduce eff. sampling rate
         """
         if self.asynchronous():
+            waveform_ref = cast(_WaveformReferenceInternal, waveform_ref)
             if waveform_ref.awg_name != self.name:
                 raise Exception(f'Waveform not uploaded to this AWG ({self.name}). '
                                 f'It is uploaded to {waveform_ref.awg_name}')
@@ -559,7 +561,7 @@ class SD_AWG_Async(SD_AWG):
             self._enqueued_waverefs[awg_number].append(waveform_ref)
             wave_number = waveform_ref.wave_number
         else:
-            wave_number = waveform_ref
+            wave_number = cast(int, waveform_ref)
 
         super().awg_queue_waveform(awg_number, wave_number, trigger_mode, start_delay, cycles, prescaler)
 
@@ -624,14 +626,14 @@ class SD_AWG_Async(SD_AWG):
         Starts the asynchronous upload thread and memory manager.
         """
         super().flush_waveform()
-        self._memory_manager = MemoryManager(self.log, self._waveform_size_limit)
-        self._enqueued_waverefs = {}
+        self._memory_manager: MemoryManager = MemoryManager(self.log, self._waveform_size_limit)
+        self._enqueued_waverefs:Dict[int, List[_WaveformReferenceInternal]] = {}
         for i in range(self.channels):
             self._enqueued_waverefs[i+1] = []
 
-        self._task_queue = queue.Queue()
+        self._task_queue: queue.Queue = queue.Queue()
         self._init_awg_memory()
-        self._thread = threading.Thread(target=self._run, name=f'uploader-{self.module_id}')
+        self._thread: threading.Thread = threading.Thread(target=self._run, name=f'uploader-{self.module_id}')
         self._thread.start()
 
 
@@ -648,9 +650,9 @@ class SD_AWG_Async(SD_AWG):
             self.log.error(f'AWG upload thread {self.module_id} stop failed. Thread still running.')
 
         self._release_waverefs()
-        self._memory_manager = None
-        self._task_queue = None
-        self._thread = None
+        del self._memory_manager
+        del self._task_queue
+        del self._thread
 
 
     def _release_waverefs(self) -> None:
@@ -675,10 +677,10 @@ class SD_AWG_Async(SD_AWG):
 
         self.log.info(f'Reserving awg memory for {len(new_slots)} slots')
 
-        zeros = []
+        zeros: np.ndarray = np.zeros(0)
         wave = None
         total_size = 0
-        total_duration = 0
+        total_duration = 0.0
         for slot in new_slots:
             start = time.perf_counter()
             if len(zeros) != slot.size or wave is None:
@@ -709,9 +711,8 @@ class SD_AWG_Async(SD_AWG):
             duration = time.perf_counter() - start
             speed = len(wave_data)/duration
             self.log.debug(f'Uploaded {wave_ref.wave_number} in {duration*1000:5.2f} ms ({speed/1e6:5.2f} MSa/s)')
-        except:
-            ex = sys.exc_info()
-            msg = f'{ex[0].__name__}:{ex[1]}'
+        except Exception as ex:
+            msg = f'{type(ex).__name__}:{ex}'
             min_value = np.min(wave_data)
             max_value = np.max(wave_data)
             if min_value < -1.0 or max_value > 1.0:
@@ -734,6 +735,6 @@ class SD_AWG_Async(SD_AWG):
                 task.run()
             except:
                 logging.error('Task thread error', exc_info=True)
-            task = None
+            del task
 
         self.log.info('Uploader terminated')
