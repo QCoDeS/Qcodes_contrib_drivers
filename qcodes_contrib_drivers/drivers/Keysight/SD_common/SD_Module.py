@@ -130,61 +130,61 @@ class SD_Module(Instrument):
     # Get-commands
     #
 
-    def get_module_count(self, verbose: bool = False) -> Any:
+    def get_module_count(self, verbose: bool = False) -> int:
         """Returns the number of SD modules installed in the system"""
         value = self.SD_module.moduleCount()
         value_name = 'module_count'
         return result_parser(value, value_name, verbose)
 
-    def get_product_name(self, verbose: bool = False) -> Any:
+    def get_product_name(self, verbose: bool = False) -> str:
         """Returns the product name of the device"""
         value = self.SD_module.getProductName()
         value_name = 'product_name'
         return result_parser(value, value_name, verbose)
 
-    def get_serial_number(self, verbose: bool = False) -> Any:
+    def get_serial_number(self, verbose: bool = False) -> str:
         """Returns the serial number of the device"""
         value = self.SD_module.getSerialNumber()
         value_name = 'serial_number'
         return result_parser(value, value_name, verbose)
 
-    def get_chassis(self, verbose: bool = False) -> Any:
+    def get_chassis(self, verbose: bool = False) -> int:
         """Returns the chassis number where the device is located"""
         value = self.SD_module.getChassis()
         value_name = 'chassis_number'
         return result_parser(value, value_name, verbose)
 
-    def get_slot(self, verbose: bool = False) -> Any:
+    def get_slot(self, verbose: bool = False) -> int:
         """Returns the slot number where the device is located"""
         value = self.SD_module.getSlot()
         value_name = 'slot_number'
         return result_parser(value, value_name, verbose)
 
-    def get_status(self, verbose: bool = False) -> Any:
+    def get_status(self, verbose: bool = False) -> int:
         """Returns the status of the device"""
         value = self.SD_module.getStatus()
         value_name = 'status'
         return result_parser(value, value_name, verbose)
 
-    def get_firmware_version(self, verbose: bool = False) -> Any:
+    def get_firmware_version(self, verbose: bool = False) -> str:
         """Returns the firmware version of the device"""
         value = self.SD_module.getFirmwareVersion()
         value_name = 'firmware_version'
         return result_parser(value, value_name, verbose)
 
-    def get_hardware_version(self, verbose: bool = False) -> Any:
+    def get_hardware_version(self, verbose: bool = False) -> str:
         """Returns the hardware version of the device"""
         value = self.SD_module.getHardwareVersion()
         value_name = 'hardware_version'
         return result_parser(value, value_name, verbose)
 
-    def get_type(self, verbose: bool = False) -> Any:
+    def get_type(self, verbose: bool = False) -> int:
         """Returns the type of the device"""
         value = self.SD_module.getType()
         value_name = 'type'
         return result_parser(value, value_name, verbose)
 
-    def get_open(self, verbose: bool = False) -> Any:
+    def get_open(self, verbose: bool = False) -> bool:
         """Returns whether the device is open (True) or not (False)"""
         value = self.SD_module.isOpen()
         value_name = 'open'
@@ -211,7 +211,7 @@ class SD_Module(Instrument):
     #
 
     def set_pxi_trigger(self, value: int, pxi_trigger: int,
-                        verbose: bool = False) -> Any:
+                        verbose: bool = False) -> None:
         """
         Sets the digital value of the specified PXI trigger
 
@@ -222,7 +222,7 @@ class SD_Module(Instrument):
         """
         result = self.SD_module.PXItriggerWrite(pxi_trigger, value)
         value_name = f'set pxi_trigger {pxi_trigger} to {value}'
-        return result_parser(result, value_name, verbose)
+        result_parser(result, value_name, verbose)
 
     #
     # FPGA related functions
@@ -241,6 +241,8 @@ class SD_Module(Instrument):
             address_mode: auto-increment (0), or fixed (1)
             access_mode: non-dma (0), or dma (1)
             verbose: boolean indicating verbose mode
+        Returns:
+            register data.
         """
         data = self.SD_module.FPGAreadPCport(port, data_size, address,
                                           address_mode, access_mode)
@@ -249,7 +251,7 @@ class SD_Module(Instrument):
 
     def set_fpga_pc_port(self, port: int, data: List[int], address: int,
                          address_mode: int, access_mode: int,
-                         verbose: bool = False) -> Any:
+                         verbose: bool = False) -> None:
         """
         Writes data at the PCport FPGA Block
 
@@ -267,23 +269,26 @@ class SD_Module(Instrument):
         value_name = f'set fpga PCport {port} to data:{data}, ' \
                      f'address:{address}, address_mode:{address_mode}, ' \
                      f'access_mode:{access_mode}'
-        return result_parser(result, value_name, verbose)
+        result_parser(result, value_name, verbose)
 
-    def load_fpga_image(self, filename: str) -> Any:
+    def load_fpga_image(self, filename: str) -> None:
+        """
+        Loads FPGA binary image in module.
+
+        Args:
+            filename: name of the FPGA image.
+        """
         if not os.path.exists(filename):
             raise Exception(f'FPGA bitstream {filename} not found')
-        result = result_parser(self.SD_module.FPGAload(filename),
-                               f'loading FPGA bitstream: {filename}')
-        if isinstance(result, int) and result < 0:
-            raise Exception(f'Failed to load FPGA bitstream')
-        return result
+        result_parser(self.SD_module.FPGAload(filename),
+                      f'loading FPGA bitstream: {filename}')
 
     #
     # HVI related functions
     #
 
     def set_hvi_register(self, register: Union[int, str], value: int,
-                         verbose: bool = False) -> Any:
+                         verbose: bool = False) -> None:
         """
         Sets value of specified HVI register.
 
@@ -326,19 +331,19 @@ class SD_Module(Instrument):
     #
 
     def get_product_name_by_slot(self, chassis: int, slot: int,
-                                 verbose: bool = False) -> Any:
+                                 verbose: bool = False) -> str:
         value = self.SD_module.getProductNameBySlot(chassis, slot)
         value_name = 'product_name'
         return result_parser(value, value_name, verbose)
 
     def get_product_name_by_index(self, index: Any,
-                                  verbose: bool = False) -> Any:
+                                  verbose: bool = False) -> str:
         value = self.SD_module.getProductNameByIndex(index)
         value_name = 'product_name'
         return result_parser(value, value_name, verbose)
 
     def get_serial_number_by_slot(self, chassis: int, slot: int,
-                                  verbose: bool = False) -> Any:
+                                  verbose: bool = False) -> str:
         warnings.warn('Returns faulty serial number due to error in Keysight '
                       'lib v.2.01.00', UserWarning)
         value = self.SD_module.getSerialNumberBySlot(chassis, slot)
@@ -346,7 +351,7 @@ class SD_Module(Instrument):
         return result_parser(value, value_name, verbose)
 
     def get_serial_number_by_index(self, index: Any,
-                                   verbose: bool = False) -> Any:
+                                   verbose: bool = False) -> str:
         warnings.warn('Returns faulty serial number due to error in Keysight '
                       'lib v.2.01.00', UserWarning)
         value = self.SD_module.getSerialNumberByIndex(index)
@@ -354,12 +359,12 @@ class SD_Module(Instrument):
         return result_parser(value, value_name, verbose)
 
     def get_type_by_slot(self, chassis: int, slot: int,
-                         verbose: bool = False) -> Any:
+                         verbose: bool = False) -> int:
         value = self.SD_module.getTypeBySlot(chassis, slot)
         value_name = 'type'
         return result_parser(value, value_name, verbose)
 
-    def get_type_by_index(self, index: Any, verbose: bool = False) -> Any:
+    def get_type_by_index(self, index: Any, verbose: bool = False) -> int:
         value = self.SD_module.getTypeByIndex(index)
         value_name = 'type'
         return result_parser(value, value_name, verbose)
@@ -394,7 +399,7 @@ class SD_Module(Instrument):
         result = self.SD_module.openWithSlot(name, chassis, slot)
         return result_parser(result, f'openWithSlot({name}, {chassis}, {slot})')
 
-    def run_self_test(self) -> Any:
+    def run_self_test(self) -> int:
         value = self.SD_module.runSelfTest()
         print(f'Did self test and got result: {value}')
         return value
