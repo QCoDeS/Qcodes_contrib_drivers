@@ -83,7 +83,7 @@ class HS900Channel(InstrumentChannel):
 
         self.add_parameter(name='temp',
                            label='Temperature',
-                           get_parser=str,
+                           get_parser=float,
                            get_cmd=self._get_temp,
                            unit='C')
 
