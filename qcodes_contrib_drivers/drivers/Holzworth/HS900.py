@@ -270,7 +270,9 @@ class HS900(VisaInstrument):
         if model not in knownmodels:
             kmstring = ('{}, '*(len(knownmodels)-1)).format(*knownmodels[:-1])
             kmstring += 'and {}.'.format(knownmodels[-1])
-            warnings.warn('Unknown model. Known models are: ' + kmstring)
+            warnings.warn('This model {} is unknown and might not be'
+                          'compatible with the driver. Known models'
+                          'are: {}'.format(model, kmstring))
 
         # Add the channel to the instrument
         channels = self.ask_raw(':ATTACH?').split(':')[2:-1]
