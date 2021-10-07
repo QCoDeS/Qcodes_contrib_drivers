@@ -227,9 +227,6 @@ class ITest(VisaInstrument):
 
             channel = iTestChannel(self, name='chan{:02}'.format(i),
                                          chan_num=i)
-            channel.synchronous_enable(synchronous_enable)
-            channel.synchronous_delay(synchronous_delay)
-            channel.synchronous_threshold(synchronous_threshold)
             channels.append(channel)
             self.add_submodule('ch{:02}'.format(i),channel)
 
