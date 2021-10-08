@@ -1,4 +1,6 @@
 # This Python file uses the following encoding: utf-8
+# Valentin John, spring 2021
+# Simon Zihlmannr <zihlmann.simon@gmail.com>, spring 2021
 import warnings
 
 from qcodes import Instrument, VisaInstrument
@@ -46,7 +48,8 @@ class HS900Channel(InstrumentChannel):
                            get_cmd=':{}:PWR:RF?'.format(self.channel),
                            set_cmd=self._set_state,
                            val_mapping=create_on_off_val_mapping(on_val='ON',
-                                                                 off_val='OFF'))
+                                                                 off_val='OFF')
+                           )
 
         self.add_parameter(name='power',
                            label='Power',
@@ -55,7 +58,8 @@ class HS900Channel(InstrumentChannel):
                            set_cmd= self._set_pwr,
                            unit='dBm',
                            vals=Numbers(min_value=self._min_pwr,
-                                        max_value=self._max_pwr))
+                                        max_value=self._max_pwr)
+                           )
 
         self.add_parameter(name='frequency',
                            label='Frequency',
@@ -64,7 +68,8 @@ class HS900Channel(InstrumentChannel):
                            set_cmd= self._set_f,
                            unit='Hz',
                            vals=Numbers(min_value=self._min_f,
-                                        max_value=self._max_f))
+                                        max_value=self._max_f)
+                           )
 
         self.add_parameter(name='phase',
                            label='Phase',
@@ -73,17 +78,18 @@ class HS900Channel(InstrumentChannel):
                            set_cmd= self._set_phase,
                            unit='deg',
                            vals=Numbers(min_value=self._min_phase,
-                                        max_value=self._max_phase))
+                                        max_value=self._max_phase)
+                           )
 
         self.add_parameter(name='temp',
                            label='Temperature',
-                           get_parser=str,
+                           get_parser=float,
                            get_cmd=self._get_temp,
                            unit='C')
 
     def _parse_f_unit(self, raw_str:str) -> float:
         """
-        Function that converts strings consisting of a number and a unit into 
+        Function that converts strings consisting of a number and a unit into
         frequencies in Hz and returing it as a float:
 
         Args:
@@ -104,7 +110,7 @@ class HS900Channel(InstrumentChannel):
 
     def _parse_pwr_unit(self, raw_str:str) -> float:
         """
-        Function that converts strings consisting of a number only or 
+        Function that converts strings consisting of a number only or
         a number plus a unit dBm into a float in dBm:
 
         Args:
@@ -131,12 +137,13 @@ class HS900Channel(InstrumentChannel):
             phase = float(raw_str[:-3])
         return phase
 
-    def _set_state(self, st:{'ON','OFF'}) -> None:
+    def _set_state(self, st:str) -> None:
         """
         Function that turns the channel on or off
 
         Args:
-            st (str): accepts as argument 'ON' or 'OFF', only in CAPITAL letters
+            st (str): accepts as argument 'ON' or 'OFF', only in CAPITAL
+            letters
 
         Raises:
             RuntimeError: Function compares reply from instrument and raises
@@ -168,7 +175,8 @@ class HS900Channel(InstrumentChannel):
             f (float): RF source channel fundamental frequency in Hz
 
         Raises:
-            RuntimeError: Instrument tells us if frequency has been set correctly.
+            RuntimeError: Instrument tells us if frequency has been set
+            correctly.
             Otherwise RuntimeError.
         """
         write_str = ':{}:FREQ:'.format(self.channel) + str(f/1e9) + 'GHz'
@@ -185,7 +193,8 @@ class HS900Channel(InstrumentChannel):
             pwr (float): power in dBm
 
         Raises:
-            RuntimeError: Instrument tells us if frequency has been set correctly.
+            RuntimeError: Instrument tells us if frequency has been set
+            correctly.
             Otherwise RuntimeError.
         """
         write_str = ':{}:PWR:'.format(self.channel) + str(pwr) + 'dBm'
@@ -221,13 +230,12 @@ class HS900Channel(InstrumentChannel):
         """
         raw_str = self.ask(':{}:TEMP?'.format(self.channel))
         T = raw_str.split(' ')[-1][:-1]
-        return T
+        return float(T)
 
 
 class HS900(VisaInstrument):
     """
-    QCoDeS driver for the Holzworth HS9002B RF power source.
-    It contains all parameters of the instrument.
+    QCoDeS driver for the Holzworth HS900 RF synthesizer.
     """
     def __init__(self, name: str, address: str, **kwargs) -> None:
         """
@@ -258,10 +266,13 @@ class HS900(VisaInstrument):
         knownmodels = ['HS9001B', 'HS9002B', 'HS9003B', 'HS9004B',
                        'HS9005B', 'HS9006B', 'HS9007B', 'HS9008B']
         # Driver was only tested with 'HS9002B'.
+        # Other modesl in 'knownmodels' seem to work according to manual.
         if model not in knownmodels:
             kmstring = ('{}, '*(len(knownmodels)-1)).format(*knownmodels[:-1])
             kmstring += 'and {}.'.format(knownmodels[-1])
-            warnings.warn('Unknown model. Known models are: ' + kmstring)
+            warnings.warn('This model {} is unknown and might not be'
+                          'compatible with the driver. Known models'
+                          'are: {}'.format(model, kmstring))
 
         # Add the channel to the instrument
         channels = self.ask_raw(':ATTACH?').split(':')[2:-1]
@@ -293,19 +304,28 @@ class HS900(VisaInstrument):
 
         Raises:
             RuntimeError: Function compares reply from instrument and raises
-                          RuntimeError if reference setting was not performed 
+                          RuntimeError if reference setting was not performed
                           sucessfully
         """
         location = f_ref_str[:3]
         f_ref = f_ref_str[3:]
         write_str = ':REF:{}:{}MHz'.format(location.swapcase(), str(f_ref))
         read_str = self.ask(write_str)
-        PLL = {'ext10':'PLL Enabled', 'ext100':'PLL Enabled', 'int100':'PLL Disabled'}
-        reference_response = 'Reference Set to {}MHz {}ernal, {}'.format(str(f_ref), location.capitalize(), PLL[f_ref_str])
-        if read_str != reference_response:
+        PLL = {'ext10':'PLL Enabled',
+               'ext100':'PLL Enabled',
+               'int100':'PLL Disabled'
+               }
+        response = 'Reference Set to {}MHz {}ernal, {}.'.format(str(f_ref),
+                                                                location.capitalize(),
+                                                                PLL[f_ref_str])
+        if read_str != response:
             raise RuntimeError(
-                '\'{}\' is not \'Reference Set to {}MHz {}ernal, {}\'. Setting reference did not work'
-                .format(read_str, str(f_ref), location.capitalize(), PLL[f_ref_str]))
+                '\'{}\' is not \'Reference Set to {}MHz {}ernal, {}\'.'\
+                'Setting reference did not work.'
+                .format(read_str,
+                        str(f_ref),
+                        location.capitalize(),
+                        PLL[f_ref_str]))
 
     def _get_ref_locked(self) -> bool:
         """
@@ -313,7 +333,8 @@ class HS900(VisaInstrument):
         with an external reference
 
         Returns:
-            bool: True if properly locked via the phase locked loop (PLL), False if not
+            bool: True if properly locked via the phase locked loop (PLL),
+            False if not.
         """
         locked = False
         read_str = self.ask(':REF:PLL?')

@@ -3,7 +3,7 @@
 # Simon Zihlmannr <zihlmann.simon@gmail.com>, february/march 2021
 import logging
 import numpy as np
-from typing import Tuple, Optional
+from typing import Tuple, Optional, Any
 
 from qcodes import VisaInstrument
 from qcodes.utils.validators import Numbers, Enum, Ints
@@ -27,6 +27,7 @@ class FrequencySweepMagPhase(MultiParameter):
         stop: float,
         npts: int,
         instrument: "M5180",
+        **kwargs: Any,
         ) -> None:
         """
         Linear frequency sweep that returns magnitude and phase for a single
@@ -60,6 +61,7 @@ class FrequencySweepMagPhase(MultiParameter):
                 (f"{instrument.short_name}_frequency",),
             ),
             shapes=((npts,), (npts,),),
+            **kwargs,
         )
         self.set_sweep(start, stop, npts)
 
@@ -114,6 +116,7 @@ class PointMagPhase(MultiParameter):
         stop: float,
         npts: int,
         instrument: "M5180",
+        **kwargs: Any,
         ) -> None:
         """Magnitude and phase measurement of a single point at start
         frequency.
@@ -147,6 +150,7 @@ class PointMagPhase(MultiParameter):
                 (f"{instrument.short_name}_frequency",),
             ),
             shapes=((npts,), (npts,),),
+            **kwargs,
         )
         self.set_sweep(start, stop, npts)
 
