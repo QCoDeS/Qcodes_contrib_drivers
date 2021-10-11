@@ -766,7 +766,7 @@ class M4i(Instrument):
             self.set(f'ACDC_offs_compensation_{channel_index}', compensation)
 
     def set_ext0_OR_trigger_settings(self, trig_mode, termination, coupling, level0, level1=None):
-        ''' Configures ext0 trigger
+        """ Configures ext0 trigger
 
         Args:
             trig_mode: 0: None, 1: Positive edge, 2: Negative edge, 4: Both, 8: High, 16: Low,
@@ -776,7 +776,7 @@ class M4i(Instrument):
             coupling: DC/AC input coupling (0: DC, 1: AC)
             level0: trigger level [mV]
             level1: 2nd level for re-arm and windowed modes. [mV]
-        '''
+        """
         self.channel_or_mask(0)
         self.external_trigger_mode(trig_mode)
         self.trigger_or_mask(pyspcm.SPC_TMASK_EXT0)
@@ -816,6 +816,7 @@ class M4i(Instrument):
             digitizer.setup_multi_recording(size, n_triggers)
             digitizer.start_triggered()
             data = digitizer.get_data()
+            # do another measurement with same settings
             digitizer.start_triggered()
             data = digitizer.get_data()
 
@@ -838,20 +839,20 @@ class M4i(Instrument):
         self.posttrigger_memory_size(posttrigger_size)
 
     def start_triggered(self):
-        '''Starts triggered acquisition
-        '''
+        """ Starts triggered acquisition
+        """
         self.general_command(pyspcm.M2CMD_CARD_START
                              | pyspcm.M2CMD_CARD_ENABLETRIGGER)
 
     def get_data(self):
-        ''' Reads measurement data from the digitizer.
+        """ Reads measurement data from the digitizer.
 
         The data acquisition must have been started by start_acquisition() or
         start_triggered().
 
         Returns:
             2D array with voltages per channel in V.
-        '''
+        """
         active_channels = self.active_channels()
         memsize = self.data_memory_size.cache()
         numch = len(active_channels)
