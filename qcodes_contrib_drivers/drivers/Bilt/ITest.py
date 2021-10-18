@@ -44,6 +44,7 @@ class iTestChannel(InstrumentChannel):
                            get_parser=float,
                            set_cmd=partial(self._parent._set_voltage, chan_num),
                            inter_delay=self._parent._v_inter_delay,
+                           post_delay=self._parent._v_post_delay,
                            step=self._parent._v_step,
                            vals=vals.Numbers(-12, 12)
                            )
@@ -180,7 +181,7 @@ class ITest(VisaInstrument):
                       synchronous_enable:bool=True,
                       synchronous_delay:float=1,
                       synchronous_threshold:float=1e-5,
-                      v_inter_delay:float=0,
+                      v_inter_delay:float=5e-3,
                       v_post_delay:float=45e-3, # settling time to 99%
                       v_step:float=20e-3,
                       **kwargs: Any) -> None:
@@ -214,6 +215,7 @@ class ITest(VisaInstrument):
         self.idn = self.get_idn()
         self.num_chans = num_chans
         self._v_inter_delay = v_inter_delay
+        self._v_post_delay = v_post_delay
         self._v_step = v_step
         self.chan_range = range(1,self.num_chans+1)
 
