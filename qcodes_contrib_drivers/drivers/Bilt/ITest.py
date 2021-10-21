@@ -178,7 +178,7 @@ class ITest(VisaInstrument):
                       address:str,
                       num_chans:int=16,
                       init_start:bool=False,
-                      synchronous_enable:bool=True,
+                      synchronous_enable:bool=False,
                       synchronous_delay:float=1,
                       synchronous_threshold:float=1e-5,
                       v_inter_delay:float=5e-3,
@@ -201,8 +201,9 @@ class ITest(VisaInstrument):
                 "synchronous_threshold".
             synchronous_delay: Time between to voltage measurement in second.
             synchronous_threshold: Threshold to unblock communication in volt.
-            v_inter_delay: delay in units of s between setting new value of the voltage parameter.
-            v_step: max step size of the voltage parameter in units of V.
+            v_inter_delay: delay in units of s between setting new value of the voltage parameter, defaults to 5e-3.
+            v_post_delay: delay in units of s after setting voltage parameter to final value, defaults to 45e-3.
+            v_step: max step size of the voltage parameter in units of V, defaults to 20e-3.
 
         Returns:
             ITest object
