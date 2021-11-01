@@ -85,8 +85,6 @@ class ERASynthBase(VisaInstrument):
         from qcodes import Instrument
         from qcodes_contrib_drivers.drivers.ERAInstruments import ERASynthPlus
 
-        Instrument.close_all()
-
         # list communication ports
         ERASynthPlus.print_pyvisa_resources()
 
