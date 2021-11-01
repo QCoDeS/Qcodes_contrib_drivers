@@ -15,7 +15,7 @@ This module provides the following drivers:
 """
 from __future__ import annotations
 
-from typing import Any, Dict, Union, Tuple
+from typing import Dict, List, Union, Tuple
 import time
 import json
 import logging
@@ -504,8 +504,8 @@ class ERASynthBase(VisaInstrument):
     # Custom communication
 
     def get_idn(self) -> Dict[str, str]:
-        models = {"0": "ERASynth", "1": "ERASynth+", "2": "ERASynth++"}
-        d_status = self.get_diagnostic_status()
+        models: Dict[str, str] = {"0": "ERASynth", "1": "ERASynth+", "2": "ERASynth++"}
+        d_status: Dict[str, str] = self.get_diagnostic_status()
         return {
             "vendor": "ERA Instruments",
             "model": models[d_status["model"]],
@@ -536,7 +536,7 @@ class ERASynthBase(VisaInstrument):
 
         return response
 
-    def ask_raw(self, cmd: str) -> str:
+    def ask_raw(self, cmd: str) -> Union[Dict[str, str], str]:
         """
         Detects special commands for which the `get_configuration` will be used.
 
@@ -608,7 +608,7 @@ class ERASynthBase(VisaInstrument):
 
     # ERASynth specific methods
 
-    def get_configuration(self, par_name: str = None) -> Union[dict, str]:
+    def get_configuration(self, par_name: str = None) -> Union[Dict[str, str], str]:
         """
         Returns the configuration JSON that contains all parameters.
         """
@@ -616,7 +616,7 @@ class ERASynthBase(VisaInstrument):
 
         return config_json if par_name is None else config_json[par_name]
 
-    def get_diagnostic_status(self, par_name: str = None) -> Union[dict, str]:
+    def get_diagnostic_status(self, par_name: str = None) -> Union[Dict[str, str], str]:
         """
         Returns the diagnostic JSON.
         """
@@ -841,7 +841,7 @@ class ERASynthPlusPlus(ERASynthPlus):
         )
 
 
-_SELF_TEST_LIST: Tuple[str, Any] = [
+_SELF_TEST_LIST: List[Tuple[str, Union[bool, float, int, str]]] = [
     ("frequency", 3.3e9),
     ("modulation_am_depth", 30),
     ("modulation_fm_deviation", 1e3),
