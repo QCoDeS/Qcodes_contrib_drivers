@@ -137,11 +137,6 @@ class ERASynthBase(VisaInstrument):
         """
         super().__init__(name=name, address=address, terminator="\r\n", **kwargs)
 
-        self.visa_handle.baud_rate = BAUDRATE
-        self.timeout(10)  # generous timeout to avoid disrupting measurements
-        self._prep_communication()
-        self.connect_message()
-
         # ##############################################################################
         # Standard LO parameters
         # ##############################################################################
@@ -484,6 +479,11 @@ class ERASynthBase(VisaInstrument):
             set_cmd="PD{}",
         )
         """Enables/disables debug printing on the serial port."""
+
+        self.visa_handle.baud_rate = BAUDRATE
+        self.timeout(10)  # generous timeout to avoid disrupting measurements
+        self.connect_message()
+        self._prep_communication()
 
     # ##################################################################################
     # Public methods
