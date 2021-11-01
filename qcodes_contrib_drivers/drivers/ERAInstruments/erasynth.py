@@ -15,7 +15,7 @@ This module provides the following drivers:
 """
 from __future__ import annotations
 
-from typing import Any, Union, Tuple
+from typing import Any, Dict, Union, Tuple
 import time
 import json
 import logging
@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 
 BAUDRATE = 115200
 
-_CMD_TO_JSON_MAPPING: dict = {
+_CMD_TO_JSON_MAPPING: Dict[str, str] = {
     # We will treat these differently when confirming the value
     # because the instrument replies with a sentence containing the value.
     # which is much faster than reading the full SJON
