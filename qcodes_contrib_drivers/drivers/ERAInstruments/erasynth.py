@@ -37,7 +37,7 @@ BAUDRATE = 115200
 _CMD_TO_JSON_MAPPING: dict = {
     # We will treat these differently when confirming the value
     # because the instrument replies with a sentence containing the value.
-    # which is much faster than reading the full SJON
+    # which is much faster than reading the full JSON
     # as fast as possible
     # "P0": "rfoutput",
     # "A": "amplitude",
