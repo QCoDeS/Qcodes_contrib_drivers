@@ -15,7 +15,7 @@ This module provides the following drivers:
 """
 from __future__ import annotations
 
-from typing import Dict, List, Union, Tuple
+from typing import Dict, List, Union, Tuple, Optional
 import time
 import json
 import logging
@@ -504,8 +504,8 @@ class ERASynthBase(VisaInstrument):
     # Custom communication
 
     def get_idn(self) -> Dict[str, Optional[str]]:
-        models: Dict[str, str] = {"0": "ERASynth", "1": "ERASynth+", "2": "ERASynth++"}
-        d_status: Dict[str, str] = self.get_diagnostic_status()
+        models = {"0": "ERASynth", "1": "ERASynth+", "2": "ERASynth++"}
+        d_status = self.get_diagnostic_status()
         return {
             "vendor": "ERA Instruments",
             "model": models[d_status["model"]],
@@ -536,7 +536,7 @@ class ERASynthBase(VisaInstrument):
 
         return response
 
-    def ask_raw(self, cmd: str) -> Union[Dict[str, str], str]:
+    def ask_raw(self, cmd: str) -> str:
         """
         Detects special commands for which the `get_configuration` will be used.
 
