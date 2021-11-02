@@ -503,7 +503,7 @@ class ERASynthBase(VisaInstrument):
 
     # Custom communication
 
-    def get_idn(self) -> Dict[str, str]:
+    def get_idn(self) -> Dict[str, Optional[str]]:
         models: Dict[str, str] = {"0": "ERASynth", "1": "ERASynth+", "2": "ERASynth++"}
         d_status: Dict[str, str] = self.get_diagnostic_status()
         return {
