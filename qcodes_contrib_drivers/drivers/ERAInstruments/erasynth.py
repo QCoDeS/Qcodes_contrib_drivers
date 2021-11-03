@@ -478,7 +478,7 @@ class ERASynthBase(VisaInstrument):
         )
         """Enables/disables debug printing on the serial port."""
 
-        self.visa_handle.baud_rate = BAUDRATE
+        setattr(self.visa_handle, "baud_rate", BAUDRATE)
         self.timeout(10)  # generous timeout to avoid disrupting measurements
         self.connect_message()
         self._prep_communication()
