@@ -15,7 +15,7 @@ This module provides the following drivers:
 """
 from __future__ import annotations
 
-from typing import Dict, List, Union, Tuple, Optional
+from typing import Dict, List, Union, Tuple, Optional, cast
 import time
 import json
 import logging
@@ -506,6 +506,7 @@ class ERASynthBase(VisaInstrument):
     def get_idn(self) -> Dict[str, Optional[str]]:
         models = {"0": "ERASynth", "1": "ERASynth+", "2": "ERASynth++"}
         d_status = self.get_diagnostic_status()
+        assert isinstance(d_status, Dict)
         return {
             "vendor": "ERA Instruments",
             "model": models[d_status["model"]],
@@ -548,7 +549,7 @@ class ERASynthBase(VisaInstrument):
             response = self.get_diagnostic_status(cmd[1 + len("RD:") :])
         else:
             response = super().ask_raw(cmd)
-
+        assert isinstance(response, str)
         return response
 
     def write(self, cmd: str) -> None:
