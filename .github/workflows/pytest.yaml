@@ -37,7 +37,7 @@ jobs:
 
     - name: download requirements
       run: |
-        curl https://raw.githubusercontent.com/QCoDeS/Qcodes/master/environment.yml > environment.yml
+        curl https://raw.githubusercontent.com/QCoDeS/Qcodes/master/requirements.txt > requirements.txt
         curl https://raw.githubusercontent.com/QCoDeS/Qcodes/master/test_requirements.txt > test_requirements.txt
         curl https://raw.githubusercontent.com/QCoDeS/Qcodes/master/docs_requirements.txt > docs_requirements.txt
 
