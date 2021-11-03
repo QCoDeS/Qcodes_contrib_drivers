@@ -57,14 +57,14 @@ jobs:
     - name: install test_requirements.txt
       run: |
         pip install -r test_requirements.txt
-    - name: install qcodes
+    - name: install package
       run: |
         pip install .
     - name: Run Mypy
-      run: mypy qcodes
+      run: mypy qcodes_contrib_drivers
     - name: Run tests
       run: |
-        pytest --cov=qcodes --cov-report xml --cov-config=setup.cfg --hypothesis-profile ci qcodes
+        pytest --cov=qcodes_contrib_drivers --cov-report xml --cov-config=setup.cfg qcodes_contrib_drivers
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v2.1.0
       with:
