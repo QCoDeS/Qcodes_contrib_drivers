@@ -15,7 +15,7 @@ This module provides the following drivers:
 """
 from __future__ import annotations
 
-from typing import Dict, List, Union, Tuple, Optional, cast
+from typing import Dict, List, Union, Tuple, Optional
 import time
 import json
 import logging
