@@ -210,10 +210,11 @@ class M5180(VisaInstrument):
         Args:
             name (str): Name of the instrument.
             address (str): Address of the instrument.
-            terminator (str, optional, default "\n"): Terminator character of
-                the string reply.
-            timeout (int, optional, default 100000): VISA timeout is set purposely
+            terminator (str): Terminator character of
+                the string reply. Optional, default ``"\\n"``
+            timeout (int): VISA timeout is set purposely
                 to a long time to allow long spectrum measurement.
+                Optional, default 100000
         """
 
         super().__init__(name       = name,
@@ -535,10 +536,10 @@ class M5180(VisaInstrument):
 
         Returns:
             Tuple[np.ndarray]: frequency [GHz],
-                               s11 magnitude [dB], s11 phase [rad],
-                               s12 magnitude [dB], s12 phase [rad],
-                               s21 magnitude [dB], s21 phase [rad],
-                               s22 magnitude [dB], s22 phase [rad]
+            s11 magnitude [dB], s11 phase [rad],
+            s12 magnitude [dB], s12 phase [rad],
+            s21 magnitude [dB], s21 phase [rad],
+            s22 magnitude [dB], s22 phase [rad]
         """
 
         self.write('CALC1:PAR:COUN 4') # 4 trace
