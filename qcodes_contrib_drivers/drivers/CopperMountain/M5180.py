@@ -210,7 +210,7 @@ class M5180(VisaInstrument):
         Args:
             name (str): Name of the instrument.
             address (str): Address of the instrument.
-            terminator (str, optional, default ``"\n"``): Terminator character of
+            terminator (str, optional, default "\n"): Terminator character of
                 the string reply.
             timeout (int, optional, default 100000): VISA timeout is set purposely
                 to a long time to allow long spectrum measurement.
