@@ -520,8 +520,9 @@ class ERASynthBase(VisaInstrument):
         about in this driver. This function discards the entire read buffer by reading
         it.
         """
-        while self.visa_handle.bytes_in_buffer:
-            self.visa_handle.read_bytes(self.visa_handle.bytes_in_buffer)
+        bytes_in_buffer = getattr(self.visa_handle, "bytes_in_buffer")
+        while bytes_in_buffer:
+            self.visa_handle.read_bytes(bytes_in_buffer)
 
     def ask(self, cmd: str) -> str:
         """Writes a command to the communication channel of the instrument and return
