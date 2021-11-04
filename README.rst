@@ -23,6 +23,11 @@ Install the contrib drivers with ``pip``
 
   pip install qcodes_contrib_drivers
 
+Drivers documentation
+*********************
+
+The documentations of the drivers in this repository can be read `here <https://qcodes.github.io/Qcodes_contrib_drivers>`_.
+
 Contributing
 ############
 
