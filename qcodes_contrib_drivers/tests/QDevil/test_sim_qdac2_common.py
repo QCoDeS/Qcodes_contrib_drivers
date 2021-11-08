@@ -1,5 +1,5 @@
 import numpy
-from qcodes.instrument_drivers.QDevil.QDevil_QDAC2 import (
+from qcodes_contrib_drivers.drivers.QDevil.QDAC2 import (
     comma_sequence_to_list, floats_to_comma_separated_list)
 
 

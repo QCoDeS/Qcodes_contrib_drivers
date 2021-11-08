@@ -1,16 +1,26 @@
 # QDevil tests
 
-## Run tests
+This directory tests the QDevil QDAC-II driver.
+
+## Linux/MacOS
+
+### Run tests
+
+Simulated instrument:
 
     $ source venv/bin/activate
-    $ pytest -v qcodes_contrib_drivers/tests/QDevil/test_*.py
+    $ pytest qcodes_contrib_drivers/tests/QDevil/test_sim_qdac2_*.py
 
-## One-time setup
+Real instrument:
 
-### Linux/MacOS
+    $ source venv/bin/activate
+    $ export QDAC_IP_ADDR=192.168.8.153
+    $ pytest qcodes_contrib_drivers/tests/QDevil/test_real_qdac2_*.py
+
+
+### One-time setup
 
     $ python3 -m venv venv
     $ source venv/bin/activate
     $ pip install --upgrade pip
-    $ pip install qcodes pytest
-
+    $ pip install qcodes pytest pyvisa-sim pyvisa-py

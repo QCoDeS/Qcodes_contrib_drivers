@@ -1,11 +1,11 @@
 import pytest
 import uuid
-import qcodes.instrument_drivers.QDevil.QDevil_QDAC2 as QDAC2
-import qcodes.instrument.sims as sims
+from qcodes_contrib_drivers.drivers.QDevil import QDAC2
+import qcodes_contrib_drivers.sims as sims
 from qcodes.instrument.base import Instrument
 
 # Use simulated instruments for the tests.
-visalib = sims.__file__.replace('__init__.py', 'QDevil_QDAC2.yaml@sim')
+visalib = sims.__file__.replace('__init__.py', 'QDAC2.yaml@sim')
 
 
 @pytest.fixture(scope='function')

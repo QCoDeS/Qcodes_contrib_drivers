@@ -1,7 +1,7 @@
 import pytest
 import numpy
 from .sim_qdac2_fixtures import qdac  # noqa
-from qcodes.instrument_drivers.QDevil.QDevil_QDAC2 import ExternalInput
+from qcodes_contrib_drivers.drivers.QDevil.QDAC2 import ExternalInput
 
 
 def test_trace_remove_all(qdac):  # noqa

@@ -3,7 +3,6 @@ from .sim_qdac2_fixtures import qdac  # noqa
 import numpy as np
 
 
-@pytest.mark.wip
 def test_arrangement_default_correction(qdac):  # noqa
     # -----------------------------------------------------------------------
     arrangement = qdac.arrange(gates={'plunger1': 1, 'plunger2': 2, 'plunger3': 3})
@@ -12,7 +11,6 @@ def test_arrangement_default_correction(qdac):  # noqa
                           np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]]))
 
 
-@pytest.mark.wip
 def test_arrangement_default_actuals(qdac):  # noqa
     arrangement = qdac.arrange(gates={'plunger1': 1, 'plunger2': 2, 'plunger3': 3})
     # -----------------------------------------------------------------------
@@ -29,7 +27,6 @@ def test_arrangement_default_actuals(qdac):  # noqa
                        np.repeat([-0.7, -0.4875, -0.275, -0.0625, 0.15], 5))
 
 
-@pytest.mark.wip
 def test_arrangement_sweep(qdac):  # noqa
     arrangement = qdac.arrange(gates={'plunger1': 1, 'plunger2': 2, 'plunger3': 3})
     sweep = arrangement.virtual_sweep2d(
@@ -94,7 +91,6 @@ def test_arrangement_sweep(qdac):  # noqa
     ]
 
 
-@pytest.mark.wip
 def test_arrangement_context_releases_trigger(qdac):  # noqa
     before = len(qdac._internal_triggers)
     # -----------------------------------------------------------------------
@@ -105,7 +101,6 @@ def test_arrangement_context_releases_trigger(qdac):  # noqa
     assert before == after
 
 
-@pytest.mark.wip
 def test_sweep_context_releases_trigger(qdac):  # noqa
     before = len(qdac._internal_triggers)
     # -----------------------------------------------------------------------
@@ -121,7 +116,6 @@ def test_sweep_context_releases_trigger(qdac):  # noqa
     assert before == after
 
 
-@pytest.mark.wip
 def test_stability_diagram_external(qdac):  # noqa
     arrangement = qdac.arrange(
         # QDAC channels 3, 6, 7, 8 connected to sample

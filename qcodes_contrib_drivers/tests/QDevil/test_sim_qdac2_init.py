@@ -1,5 +1,5 @@
 import pytest
-import qcodes.instrument_drivers.QDevil.QDevil_QDAC2 as QDAC2
+from qcodes_contrib_drivers.drivers.QDevil import QDAC2
 from qcodes.instrument.base import Instrument
 from .sim_qdac2_fixtures import visalib
 

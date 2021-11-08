@@ -1,7 +1,7 @@
 import pytest
 import os
 from time import strftime, sleep
-import qcodes.instrument_drivers.QDevil.QDevil_QDAC2 as QDAC2
+from qcodes_contrib_drivers.drivers.QDevil import QDAC2
 
 # Pick up the VISA address for the actual instrument.  If left undefined, then
 # the tests that require a real instrument are not run.
