@@ -4,7 +4,7 @@ from qcodes.instrument.channel import InstrumentChannel, ChannelList
 from qcodes.instrument.visa import VisaInstrument
 from pyvisa.errors import VisaIOError
 from qcodes.utils import validators
-from typing import Any, NewType, Sequence
+from typing import Any, NewType, Sequence, Optional
 from packaging.version import parse
 
 # Version 0.10.0
@@ -170,11 +170,12 @@ class _Dc_Context(_Channel_Context):
     def __init__(self, channel: 'QDac2Channel'):
         super().__init__(channel)
         self._write_channel('sour{0}:dc:trig:sour hold')
-        self._trigger_start = None  # TODO: should be sum type of Internal/External?  rename to start_on
-        self._marker_start = None
-        self._marker_end = None
-        self._marker_step_start = None
-        self._marker_step_end = None
+        # TODO: should be sum type of Internal/External?  rename to start_on
+        self._trigger_start: Optional[QDac2Trigger_Context] = None
+        self._marker_start: Optional[QDac2Trigger_Context] = None
+        self._marker_end: Optional[QDac2Trigger_Context] = None
+        self._marker_step_start: Optional[QDac2Trigger_Context] = None
+        self._marker_step_end: Optional[QDac2Trigger_Context] = None
 
     def start_on(self, trigger: QDac2Trigger_Context) -> None:
         self._trigger_start = trigger
@@ -274,10 +275,10 @@ class Sweep_Context(_Dc_Context):
     def start(self) -> None:
         self._start('DC sweep')
 
-    def points(self) -> str:
+    def points(self) -> int:
         return int(self._ask_channel('sour{0}:swe:poin?'))
 
-    def cycles_remaining(self) -> str:
+    def cycles_remaining(self) -> int:
         return int(self._ask_channel('sour{0}:swe:ncl?'))
 
     def time_s(self) -> float:
@@ -340,11 +341,11 @@ class _Waveform_Context(_Channel_Context):
 
     def __init__(self, channel: 'QDac2Channel'):
         super().__init__(channel)
-        self._trigger_start = None
-        self._marker_start = None
-        self._marker_end = None
-        self._marker_period_start = None
-        self._marker_period_end = None
+        self._trigger_start: Optional[QDac2Trigger_Context] = None
+        self._marker_start: Optional[QDac2Trigger_Context] = None
+        self._marker_end: Optional[QDac2Trigger_Context] = None
+        self._marker_period_start: Optional[QDac2Trigger_Context] = None
+        self._marker_period_end: Optional[QDac2Trigger_Context] = None
 
     def _start(self, wave_kind: str, description: str) -> None:
         if self._trigger_start:
@@ -472,7 +473,7 @@ class Square_Context(_Waveform_Context):
     def start_on(self, trigger: QDac2Trigger_Context) -> None:
         return super()._start_on(trigger, 'squ')
 
-    def start_on_external(self, trigger: QDac2Trigger_Context) -> None:
+    def start_on_external(self, trigger: ExternalInput) -> None:
         return super()._start_on_external(trigger, 'squ')
 
 
@@ -532,7 +533,7 @@ class Sine_Context(_Waveform_Context):
     def start_on(self, trigger: QDac2Trigger_Context) -> None:
         return super()._start_on(trigger, 'sin')
 
-    def start_on_external(self, trigger: QDac2Trigger_Context) -> None:
+    def start_on_external(self, trigger: ExternalInput) -> None:
         return super()._start_on_external(trigger, 'sin')
 
 
@@ -601,7 +602,7 @@ class Triangle_Context(_Waveform_Context):
     def start_on(self, trigger: QDac2Trigger_Context) -> None:
         return super()._start_on(trigger, 'tri')
 
-    def start_on_external(self, trigger: QDac2Trigger_Context) -> None:
+    def start_on_external(self, trigger: ExternalInput) -> None:
         return super()._start_on_external(trigger, 'tri')
 
 
@@ -647,7 +648,7 @@ class Awg_Context(_Waveform_Context):
     def start_on(self, trigger: QDac2Trigger_Context) -> None:
         return super()._start_on(trigger, 'awg')
 
-    def start_on_external(self, trigger: QDac2Trigger_Context) -> None:
+    def start_on_external(self, trigger: ExternalInput) -> None:
         return super()._start_on_external(trigger, 'awg')
 
 
@@ -656,7 +657,7 @@ class Measurement_Context(_Channel_Context):
     def __init__(self, channel: 'QDac2Channel',
                  delay_s, repetitions, current_range, aperture_s, nplc):
         super().__init__(channel)
-        self._trigger_start = None
+        self._trigger_start: Optional[QDac2Trigger_Context] = None
         #self._write_channel('sens{0}:trig:sour hold')
         self._write_channel(f'sens{"{0}"}:del {delay_s}')
         self._write_channel(f'sens{"{0}"}:rang {current_range}')
@@ -919,7 +920,7 @@ class QDac2Channel(InstrumentChannel):
             call_cmd=f'sour{channum}:all:abor'
         )
 
-    def clear_measurements(self) -> int:
+    def clear_measurements(self) -> Sequence[float]:
         # Bug fix
         if int(self.ask_channel('sens{0}:data:poin?')) == 0:
             return []
@@ -1368,7 +1369,7 @@ class QDac2(VisaInstrument):
         """
         return comma_sequence_to_list(self.ask('trac:cat?'))
 
-    def allocate_trace(self, name, size) -> None:
+    def allocate_trace(self, name, size) -> Trace_Context:
         """Reserve memory for a new trace
         """
         return Trace_Context(self, name, size)
