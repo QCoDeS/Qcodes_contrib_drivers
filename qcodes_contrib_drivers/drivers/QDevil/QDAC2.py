@@ -228,10 +228,12 @@ class _Dc_Context(_Channel_Context):
         self._write_channel('sour{0}:dc:abor')
 
     def end_marker(self) -> QDac2Trigger_Context:
-        """Summary
+        """Internal trigger that will mark the end of the DC generator
+
+        A new internal trigger is allocated if necessary.
 
         Returns:
-            QDac2Trigger_Context: Description
+            QDac2Trigger_Context: trigger that will mark the end
         """
         if not self._marker_end:
             self._marker_end = self.allocate_trigger()
@@ -239,18 +241,39 @@ class _Dc_Context(_Channel_Context):
         return self._marker_end
 
     def start_marker(self) -> QDac2Trigger_Context:
+        """Internal trigger that will mark the beginning of the DC generator
+
+        A new internal trigger is allocated if necessary.
+
+        Returns:
+            QDac2Trigger_Context: trigger that will mark the beginning
+        """
         if not self._marker_start:
             self._marker_start = self.allocate_trigger()
         self._write_channel(f'sour{"{0}"}:dc:mark:star {self._marker_start.value}')
         return self._marker_start
 
     def step_end_marker(self) -> QDac2Trigger_Context:
+        """Internal trigger that will mark the end of each step
+
+        A new internal trigger is allocated if necessary.
+
+        Returns:
+            QDac2Trigger_Context: trigger that will mark the end of each step
+        """
         if not self._marker_step_end:
             self._marker_step_end = self.allocate_trigger()
         self._write_channel(f'sour{"{0}"}:dc:mark:send {self._marker_step_end.value}')
         return self._marker_step_end
 
     def step_start_marker(self) -> QDac2Trigger_Context:
+        """Internal trigger that will mark the beginning of each step
+
+        A new internal trigger is allocated if necessary.
+
+        Returns:
+            QDac2Trigger_Context: trigger that will mark the end of each step
+        """
         if not self._marker_step_start:
             self._marker_step_start = self.allocate_trigger()
         self._write_channel(f'sour{"{0}"}:dc:mark:sst {self._marker_step_start.value}')
@@ -313,15 +336,29 @@ class Sweep_Context(_Dc_Context):
         return self._repetitions < 0
 
     def start(self) -> None:
+        """Start the DC sweep
+        """
         self._start('DC sweep')
 
     def points(self) -> int:
+        """
+        Returns:
+            int: Number of steps in the DC sweep
+        """
         return int(self._ask_channel('sour{0}:swe:poin?'))
 
     def cycles_remaining(self) -> int:
+        """
+        Returns:
+            int: Number of cycles remaining in the DC sweep
+        """
         return int(self._ask_channel('sour{0}:swe:ncl?'))
 
     def time_s(self) -> float:
+        """
+        Returns:
+            float: Seconds that it will take to do the sweep
+        """
         return float(self._ask_channel('sour{0}:swe:time?'))
 
 
@@ -359,21 +396,31 @@ class List_Context(_Dc_Context):
         return self._repetitions < 0
 
     def start(self) -> None:
+        """Start the DC list generator
+        """
         self._start('DC list')
 
     def append(self, voltages: Sequence[float]):
-        """Append voltages to any existing list
+        """Append voltages to the existing list
 
         Arguments:
-            voltages {Sequence[float]} -- Sequence of voltages
+            voltages (Sequence[float]): Sequence of voltages
         """
         self._write_channel_floats('sour{0}:list:volt:app ', voltages)
         self._make_ready_to_start()
 
     def points(self) -> int:
+        """
+        Returns:
+            int: Number of steps in the DC list
+        """
         return int(self._ask_channel('sour{0}:list:poin?'))
 
     def cycles_remaining(self) -> int:
+        """
+        Returns:
+            int: Number of cycles remaining in the DC list
+        """
         return int(self._ask_channel('sour{0}:list:ncl?'))
 
 
@@ -466,12 +513,20 @@ class Square_Context(_Waveform_Context):
         self._set_triggering()
 
     def start(self) -> None:
+        """Start the square wave generator
+        """
         self._start('squ', 'square wave')
 
     def abort(self) -> None:
+        """Abort any running square wave generator
+        """
         self._write_channel('sour{0}:squ:abor')
 
     def cycles_remaining(self) -> int:
+        """
+        Returns:
+            int: Number of cycles remaining in the square wave
+        """
         return int(self._ask_channel('sour{0}:squ:ncl?'))
 
     def _set_frequency(self, frequency_Hz, period_s):
@@ -499,21 +554,59 @@ class Square_Context(_Waveform_Context):
         self._make_ready_to_start('squ')
 
     def end_marker(self) -> QDac2Trigger_Context:
+        """Internal trigger that will mark the end of the square wave
+
+        A new internal trigger is allocated if necessary.
+
+        Returns:
+            QDac2Trigger_Context: trigger that will mark the end
+        """
         return super()._end_marker('squ')
 
     def start_marker(self) -> QDac2Trigger_Context:
+        """Internal trigger that will mark the beginning of the square wave
+
+        A new internal trigger is allocated if necessary.
+
+        Returns:
+            QDac2Trigger_Context: trigger that will mark the beginning
+        """
         return super()._start_marker('squ')
 
     def period_end_marker(self) -> QDac2Trigger_Context:
+        """Internal trigger that will mark the end of each period
+
+        A new internal trigger is allocated if necessary.
+
+        Returns:
+            QDac2Trigger_Context: trigger that will mark the end of each period
+        """
         return super()._period_end_marker('squ')
 
     def period_start_marker(self) -> QDac2Trigger_Context:
+        """Internal trigger that will mark the beginning of each period
+
+        A new internal trigger is allocated if necessary.
+
+        Returns:
+            QDac2Trigger_Context: trigger that will mark the beginning of each period
+        """
         return super()._period_start_marker('squ')
 
     def start_on(self, trigger: QDac2Trigger_Context) -> None:
+        """Attach internal trigger to start the square wave generator
+
+        Args:
+            trigger (QDac2Trigger_Context): trigger that will start square wave
+        """
         return super()._start_on(trigger, 'squ')
 
     def start_on_external(self, trigger: ExternalInput) -> None:
+        """Attach external trigger to start the square wave generator
+
+        Args:
+            trigger (ExternalInput): external trigger that will start square wave
+        """
         return super()._start_on_external(trigger, 'squ')
 
 
@@ -534,12 +627,20 @@ class Sine_Context(_Waveform_Context):
         self._set_triggering()
 
     def start(self) -> None:
+        """Start the sine wave generator
+        """
         self._start('sin', 'sine wave')
 
     def abort(self) -> None:
+        """Abort any running sine wave generator
+        """
         self._write_channel('sour{0}:sin:abor')
 
     def cycles_remaining(self) -> int:
+        """
+        Returns:
+            int: Number of cycles remaining in the sine wave
+        """
         return int(self._ask_channel('sour{0}:sin:ncl?'))
 
     def _set_frequency(self, frequency_Hz, period_s):
@@ -559,21 +660,59 @@ class Sine_Context(_Waveform_Context):
         self._make_ready_to_start('sin')
 
     def end_marker(self) -> QDac2Trigger_Context:
+        """Internal trigger that will mark the end of the sine wave
+
+        A new internal trigger is allocated if necessary.
+
+        Returns:
+            QDac2Trigger_Context: trigger that will mark the end
+        """
         return super()._end_marker('sin')
 
     def start_marker(self) -> QDac2Trigger_Context:
+        """Internal trigger that will mark the beginning of the sine wave
+
+        A new internal trigger is allocated if necessary.
+
+        Returns:
+            QDac2Trigger_Context: trigger that will mark the beginning
+        """
         return super()._start_marker('sin')
 
     def period_end_marker(self) -> QDac2Trigger_Context:
+        """Internal trigger that will mark the end of each period
+
+        A new internal trigger is allocated if necessary.
+
+        Returns:
+            QDac2Trigger_Context: trigger that will mark the end of each period
+        """
         return super()._period_end_marker('sin')
 
     def period_start_marker(self) -> QDac2Trigger_Context:
+        """Internal trigger that will mark the beginning of each period
+
+        A new internal trigger is allocated if necessary.
+
+        Returns:
+            QDac2Trigger_Context: trigger that will mark the beginning of each period
+        """
         return super()._period_start_marker('sin')
 
     def start_on(self, trigger: QDac2Trigger_Context) -> None:
+        """Attach internal trigger to start the sine wave generator
+
+        Args:
+            trigger (QDac2Trigger_Context): trigger that will start sine wave
+        """
         return super()._start_on(trigger, 'sin')
 
     def start_on_external(self, trigger: ExternalInput) -> None:
+        """Attach external trigger to start the sine wave generator
+
+        Args:
+            trigger (ExternalInput): external trigger that will start sine wave
+        """
         return super()._start_on_external(trigger, 'sin')
 
 
@@ -595,12 +734,20 @@ class Triangle_Context(_Waveform_Context):
         self._set_triggering()
 
     def start(self) -> None:
+        """Start the triangle wave generator
+        """
         self._start('tri', 'triangle wave')
 
     def abort(self) -> None:
+        """Abort any running triangle wave generator
+        """
         self._write_channel('sour{0}:tri:abor')
 
     def cycles_remaining(self) -> int:
+        """
+        Returns:
+            int: Number of cycles remaining in the triangle wave
+        """
         return int(self._ask_channel('sour{0}:tri:ncl?'))
 
     def _set_frequency(self, frequency_Hz, period_s):
@@ -628,21 +775,59 @@ class Triangle_Context(_Waveform_Context):
         self._make_ready_to_start('tri')
 
     def end_marker(self) -> QDac2Trigger_Context:
+        """Internal trigger that will mark the end of the triangle wave
+
+        A new internal trigger is allocated if necessary.
+
+        Returns:
+            QDac2Trigger_Context: trigger that will mark the end
+        """
         return super()._end_marker('tri')
 
     def start_marker(self) -> QDac2Trigger_Context:
+        """Internal trigger that will mark the beginning of the triangle wave
+
+        A new internal trigger is allocated if necessary.
+
+        Returns:
+            QDac2Trigger_Context: trigger that will mark the beginning
+        """
         return super()._start_marker('tri')
 
     def period_end_marker(self) -> QDac2Trigger_Context:
+        """Internal trigger that will mark the end of each period
+
+        A new internal trigger is allocated if necessary.
+
+        Returns:
+            QDac2Trigger_Context: trigger that will mark the end of each period
+        """
         return super()._period_end_marker('tri')
 
     def period_start_marker(self) -> QDac2Trigger_Context:
+        """Internal trigger that will mark the beginning of each period
+
+        A new internal trigger is allocated if necessary.
+
+        Returns:
+            QDac2Trigger_Context: trigger that will mark the beginning of each period
+        """
         return super()._period_start_marker('tri')
 
     def start_on(self, trigger: QDac2Trigger_Context) -> None:
+        """Attach internal trigger to start the triangle wave generator
+
+        Args:
+            trigger (QDac2Trigger_Context): trigger that will start triangle
+        """
         return super()._start_on(trigger, 'tri')
 
     def start_on_external(self, trigger: ExternalInput) -> None:
+        """Attach external trigger to start the triangle wave generator
+
+        Args:
+            trigger (ExternalInput): external trigger that will start triangle
+        """
         return super()._start_on_external(trigger, 'tri')
 
 
@@ -661,12 +846,20 @@ class Awg_Context(_Waveform_Context):
         self._set_triggering()
 
     def start(self) -> None:
+        """Start the AWG
+        """
         self._start('awg', 'AWG')
 
     def abort(self) -> None:
+        """Abort any running AWG
+        """
         self._write_channel('sour{0}:awg:abor')
 
     def cycles_remaining(self) -> int:
+        """
+        Returns:
+            int: Number of cycles remaining in the AWG
+        """
         return int(self._ask_channel('sour{0}:awg:ncl?'))
 
     def _set_triggering(self):
@@ -674,21 +867,59 @@ class Awg_Context(_Waveform_Context):
         self._make_ready_to_start('awg')
 
     def end_marker(self) -> QDac2Trigger_Context:
+        """Internal trigger that will mark the end of the AWG
+
+        A new internal trigger is allocated if necessary.
+
+        Returns:
+            QDac2Trigger_Context: trigger that will mark the end
+        """
         return super()._end_marker('awg')
 
     def start_marker(self) -> QDac2Trigger_Context:
+        """Internal trigger that will mark the beginning of the AWG
+
+        A new internal trigger is allocated if necessary.
+
+        Returns:
+            QDac2Trigger_Context: trigger that will mark the beginning
+        """
         return super()._start_marker('awg')
 
     def period_end_marker(self) -> QDac2Trigger_Context:
+        """Internal trigger that will mark the end of each period
+
+        A new internal trigger is allocated if necessary.
+
+        Returns:
+            QDac2Trigger_Context: trigger that will mark the end of each period
+        """
         return super()._period_end_marker('awg')
 
     def period_start_marker(self) -> QDac2Trigger_Context:
+        """Internal trigger that will mark the beginning of each period
+
+        A new internal trigger is allocated if necessary.
+
+        Returns:
+            QDac2Trigger_Context: trigger that will mark the beginning of each period
+        """
         return super()._period_start_marker('awg')
 
     def start_on(self, trigger: QDac2Trigger_Context) -> None:
+        """Attach internal trigger to start the AWG
+
+        Args:
+            trigger (QDac2Trigger_Context): trigger that will start AWG
+        """
         return super()._start_on(trigger, 'awg')
 
     def start_on_external(self, trigger: ExternalInput) -> None:
+        """Attach external trigger to start the AWG
+
+        Args:
+            trigger (ExternalInput): external trigger that will start AWG
+        """
         return super()._start_on_external(trigger, 'awg')
 
 
@@ -706,6 +937,8 @@ class Measurement_Context(_Channel_Context):
         self._set_triggering()
 
     def start(self) -> None:
+        """Start a current measurement
+        """
         # TODO: complain if external trigger
         if self._trigger_start:
             return self._write_channel(f'tint {self._trigger_start.value}')
@@ -717,6 +950,11 @@ class Measurement_Context(_Channel_Context):
         self._write_channel('sens{0}:trig:sour imm')
 
     def start_on(self, trigger: QDac2Trigger_Context) -> None:
+        """Attach internal trigger to start the current measurement
+
+        Args:
+            trigger (QDac2Trigger_Context): trigger that will start measurement
+        """
         self._trigger_start = trigger
         internal = _trigger_context_to_value(trigger)
         self._write_channel(f'sens{"{0}"}:trig:sour int{internal}')
@@ -724,26 +962,53 @@ class Measurement_Context(_Channel_Context):
         self._write_channel(f'sens{"{0}"}:init')
 
     def start_on_external(self, trigger: ExternalInput) -> None:
+        """Attach external trigger to start the current measurement
+
+        Args:
+            trigger (ExternalInput): trigger that will start measurement
+        """
         self._write_channel(f'sens{"{0}"}:trig:sour ext{trigger}')
         self._write_channel(f'sens{"{0}"}:init:cont on')
         self._write_channel(f'sens{"{0}"}:init')
 
     def abort(self) -> None:
+        """Abort current measurement
+        """
         self._write_channel('sens{0}:abor')
 
     def n_cycles_remaining(self) -> int:
+        """
+        Returns:
+            int: Number of measurements remaining
+        """
         return int(self._ask_channel('sens{0}:ncl?'))
 
     def n_available(self) -> int:
+        """
+        Returns:
+            int: Number of measurements available
+        """
         return int(self._ask_channel('sens{0}:data:poin?'))
 
     def available_A(self) -> Sequence[float]:
+        """Retrieve current measurements
+
+        The available measurements will be removed from measurement queue.
+
+        Returns:
+            Sequence[float]: list of available current measurements
+        """
         # Bug fix
         if self.n_available() == 0:
             return []
         return comma_sequence_to_list(self._ask_channel('sens{0}:data:rem?'))
 
     def peek_A(self) -> float:
+        """Peek at the first available current measurement
+
+        Returns:
+            float: current in Amperes
+        """
         return float(self._ask_channel('sens{0}:data:last?'))
 
     def _set_aperture(self, aperture_s, nplc):
@@ -961,6 +1226,13 @@ class QDac2Channel(InstrumentChannel):
         )
 
     def clear_measurements(self) -> Sequence[float]:
+        """Retrieve current measurements
+
+        The available measurements will be removed from measurement queue.
+
+        Returns:
+            Sequence[float]: list of available current measurements
+        """
         # Bug fix
         if int(self.ask_channel('sens{0}:data:poin?')) == 0:
             return []
