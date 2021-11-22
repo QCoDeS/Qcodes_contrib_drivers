@@ -1042,7 +1042,7 @@ class PhaseModulation(InstrumentChannel):
                            set_cmd=f'SOUR{self.hwchan}:' + 'PM:RAT {}',
                            get_cmd=f'SOUR{self.hwchan}:' + 'PM:RAT?',
                            vals=vals.Numbers(0, 100),
-                           unti='%',
+                           unit='%',
                            docstring="Sets the deviation ratio (path2 to path1) in percent.")
 
         self.add_parameter('sensitivity',
