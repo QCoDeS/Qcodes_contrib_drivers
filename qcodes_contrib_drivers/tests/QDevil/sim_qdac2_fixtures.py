@@ -8,21 +8,39 @@ from qcodes.instrument.base import Instrument
 visalib = sims.__file__.replace('__init__.py', 'QDAC2.yaml@sim')
 
 
+class DUT:
+    _instance = None
+
+    @staticmethod
+    def instance():
+        if not DUT._instance:
+            DUT()
+        return DUT._instance
+
+    def __init__(self):
+        if DUT._instance:
+            raise ValueError('DUT is a singleton, call instance()')
+        DUT._instance = self
+        name = 'dac-' + str(uuid.uuid4())
+        try:
+            self.dac = QDAC2.QDac2(name, address='GPIB::1::INSTR', visalib=visalib)
+        except Exception as error:
+            # Circumvent Instrument not handling exceptions in constructor.
+            Instrument._all_instruments.pop(name)
+            print(f'CAUGHT: {error}')
+            raise
+        else:
+            self.dac._no_binary_values = True
+
+    def __exit__(self):
+        self.dac.close()
+
+
 @pytest.fixture(scope='function')
 def qdac():
-    name = 'dac-' + str(uuid.uuid4())
-    try:
-        dac = QDAC2.QDac2(name, address='GPIB::1::INSTR', visalib=visalib)
-    except Exception as error:
-        # Circumvent Instrument not handling exceptions in constructor.
-        Instrument._all_instruments.pop(name)
-        print(f'CAUGHT: {error}')
-        raise
-    else:
-        dac._no_binary_values = True
-        dac.start_recording_scpi()
-        yield dac
-        lingering = dac.clear_read_queue()
-        dac.close()
-        if lingering:
-            raise ValueError(f'Lingering messages in visa queue: {lingering}')
+    dac = DUT.instance().dac
+    dac.start_recording_scpi()
+    yield dac
+    lingering = dac.clear_read_queue()
+    if lingering:
+        raise ValueError(f'Lingering messages in visa queue: {lingering}')

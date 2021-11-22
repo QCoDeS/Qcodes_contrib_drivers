@@ -1,6 +1,6 @@
 import pytest
 import os
-from time import strftime, sleep
+from time import strftime
 from qcodes_contrib_drivers.drivers.QDevil import QDAC2
 
 # Pick up the VISA address for the actual instrument.  If left undefined, then
@@ -8,11 +8,9 @@ from qcodes_contrib_drivers.drivers.QDevil import QDAC2
 qdac_ip_addr = os.environ.get('QDAC_IP_ADDR', '')
 
 
-def instrument_connected(func):
-    return pytest.mark.skipif(
-        qdac_ip_addr == '',
-        reason='IP address of QDAC-II instrument missing (QDAC_IP_ADDR)'
-    )(pytest.mark.serial(func))
+instrument_connected = pytest.mark.skipif(
+    qdac_ip_addr == '',
+    reason='IP address of QDAC-II instrument missing (QDAC_IP_ADDR)')
 
 
 not_implemented = pytest.mark.skip(reason="Not implemented")

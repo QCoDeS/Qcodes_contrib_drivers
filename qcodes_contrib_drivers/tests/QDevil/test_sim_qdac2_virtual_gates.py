@@ -28,6 +28,7 @@ def test_arrangement_default_actuals(qdac):  # noqa
 
 
 def test_arrangement_sweep(qdac):  # noqa
+    qdac.free_all_triggers()
     arrangement = qdac.arrange(gates={'plunger1': 1, 'plunger2': 2, 'plunger3': 3})
     sweep = arrangement.virtual_sweep2d(
         inner_gate='plunger2',
@@ -40,9 +41,6 @@ def test_arrangement_sweep(qdac):  # noqa
     sweep.start()
     # -----------------------------------------------------------------------
     commands = qdac.get_recorded_scpi_commands()
-    import pprint
-    pp = pprint.PrettyPrinter()
-    pp.pprint(commands)
     assert commands == [
         # Sensor 1
         'sour1:dc:trig:sour hold',
@@ -117,6 +115,7 @@ def test_sweep_context_releases_trigger(qdac):  # noqa
 
 
 def test_stability_diagram_external(qdac):  # noqa
+    qdac.free_all_triggers()
     arrangement = qdac.arrange(
         # QDAC channels 3, 6, 7, 8 connected to sample
         gates={'sensor1': 3, 'plunger2': 6, 'plunger3': 7, 'plunger4': 8},
@@ -184,11 +183,6 @@ def test_stability_diagram_external(qdac):  # noqa
     sweep.start()
     # -----------------------------------------------------------------------
     commands = qdac.get_recorded_scpi_commands()
-
-    import pprint
-    pp = pprint.PrettyPrinter()
-    pp.pprint(commands)
-
     assert commands == [
         'outp:trig4:sour int1',
         'outp:trig4:widt 1e-06',

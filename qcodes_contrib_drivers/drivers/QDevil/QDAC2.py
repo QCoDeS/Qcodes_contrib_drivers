@@ -7,7 +7,7 @@ from qcodes.utils import validators
 from typing import Any, NewType, Sequence, Optional
 from packaging.version import parse
 
-# Version 0.10.0
+# Version 0.10.1
 #
 # Guiding principles for this driver for QDevil QDAC-II
 # -----------------------------------------------------
@@ -26,8 +26,8 @@ from packaging.version import parse
 #        qdac.n_channels()
 #
 # 3. Allocation of resources should be automated as much as possible, preferably
-#    by python contexts that automatically clean up on exit.  Such contexts have
-#    a name with a '_Context' suffix.
+#    by python context managers that automatically clean up on exit.  Such
+#    context managers have a name with a '_Context' suffix.
 #
 # 4. Any generator should by default be set to start on the bus trigger
 #    (*TRG) so that it is possible to synchronise several generators without
@@ -37,11 +37,19 @@ from packaging.version import parse
 error_ambiguous_wave = 'Only one of frequency_Hz or period_s can be ' \
                        'specified for a wave form'
 
+
+"""External input trigger
+
+There are four 3V3 non-isolated triggers on the back (1, 2, 3, 4).
+"""
 ExternalInput = NewType('ExternalInput', int)
 
 
 class QDac2Trigger_Context:
-    """Internal Triggers with automatic deallocation.
+    """Internal Triggers with automatic deallocation
+
+    This context manager wraps an already-allocated internal trigger number so
+    that the trigger can be automatically reclaimed when the context exits.
     """
 
     def __init__(self, parent: 'QDac2', value: int):
@@ -58,6 +66,11 @@ class QDac2Trigger_Context:
 
     @property
     def value(self):
+        """Get the internal SCPI trigger number
+
+        Returns:
+            int: internal trigger number
+        """
         return self._value
 
 
@@ -66,6 +79,11 @@ def _trigger_context_to_value(trigger: QDac2Trigger_Context) -> int:
 
 
 class QDac2ExternalTrigger(InstrumentChannel):
+    """External output trigger
+
+    There are three 5V isolated triggers on the front (1, 2, 3) and two
+    non-isolated 3V3 on the back (4, 5).
+    """
 
     def __init__(self, parent, name, external):
         super().__init__(parent, name)
@@ -150,6 +168,11 @@ class _Channel_Context():
         return False
 
     def allocate_trigger(self) -> QDac2Trigger_Context:
+        """Allocate internal trigger
+
+        Returns:
+            QDac2Trigger_Context: Context that wraps the trigger
+        """
         return self._channel._parent.allocate_trigger()
 
     def _write_channel(self, cmd: str) -> None:
@@ -178,21 +201,38 @@ class _Dc_Context(_Channel_Context):
         self._marker_step_end: Optional[QDac2Trigger_Context] = None
 
     def start_on(self, trigger: QDac2Trigger_Context) -> None:
+        """Attach internal trigger to DC generator
+
+        Args:
+            trigger (QDac2Trigger_Context): trigger that will start DC
+        """
         self._trigger_start = trigger
         internal = _trigger_context_to_value(trigger)
         self._write_channel(f'sour{"{0}"}:dc:trig:sour int{internal}')
         self._make_ready_to_start()
 
     def start_on_external(self, trigger: ExternalInput) -> None:
-        # TODO: Internal/External?
+        """Attach external trigger to DC generator
+
+        Args:
+            trigger (ExternalInput): trigger that will start DC generator
+        """
+        # TODO: Internal/External?  Deallocate internal
         self._trigger_start = None
         self._write_channel(f'sour{"{0}"}:dc:trig:sour ext{trigger}')
         self._make_ready_to_start()
 
     def abort(self) -> None:
+        """Abort any DC running generator on the channel
+        """
         self._write_channel('sour{0}:dc:abor')
 
     def end_marker(self) -> QDac2Trigger_Context:
+        """Summary
+
+        Returns:
+            QDac2Trigger_Context: Description
+        """
         if not self._marker_end:
             self._marker_end = self.allocate_trigger()
         self._write_channel(f'sour{"{0}"}:dc:mark:end {self._marker_end.value}')
@@ -1305,7 +1345,7 @@ class QDac2(VisaInstrument):
         try:
             number = self._internal_triggers.pop()
         except KeyError:
-            raise KeyError('no free internal triggers')
+            raise ValueError('no free internal triggers')
         return QDac2Trigger_Context(self, number)
 
     def free_trigger(self, trigger: QDac2Trigger_Context) -> None:
@@ -1315,6 +1355,13 @@ class QDac2(VisaInstrument):
         """
         internal = _trigger_context_to_value(trigger)
         self._internal_triggers.add(internal)
+
+    def free_all_triggers(self) -> None:
+        """Free all an internal triggers
+
+        Does not have any effect on the instrument, only the driver.
+        """
+        self._set_up_internal_triggers()
 
     def connect_external_trigger(self, port: int, trigger: QDac2Trigger_Context,
                                  width_s=1e-6

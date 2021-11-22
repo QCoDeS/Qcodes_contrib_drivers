@@ -3,6 +3,8 @@ from .sim_qdac2_fixtures import qdac  # noqa
 
 
 def test_trigger_all_free(qdac):  # noqa
+    qdac.free_all_triggers()
+    # -----------------------------------------------------------------------
     assert qdac.n_triggers() == len(qdac._internal_triggers)
 
 
@@ -37,11 +39,10 @@ def test_trigger_deallocation(qdac):  # noqa
 
 
 def test_no_more_triggers(qdac):  # noqa
-    for _ in range(qdac.n_triggers()):
-        qdac.allocate_trigger()
     # -----------------------------------------------------------------------
-    with pytest.raises(KeyError) as error:
-        qdac.allocate_trigger()
+    with pytest.raises(ValueError) as error:
+        for _ in range(qdac.n_triggers()):
+            qdac.allocate_trigger()
     # -----------------------------------------------------------------------
     assert 'no free internal triggers' in repr(error)
 
@@ -55,6 +56,7 @@ def test_external_ouputs(qdac):  # noqa
 
 
 def test_connect_external_trigger_default(qdac):  # noqa
+    qdac.free_all_triggers()
     port = qdac.n_external_outputs()
     internal = qdac.allocate_trigger()
     # -----------------------------------------------------------------------
