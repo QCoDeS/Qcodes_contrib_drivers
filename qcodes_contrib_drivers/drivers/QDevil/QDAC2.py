@@ -4,7 +4,7 @@ from qcodes.instrument.channel import InstrumentChannel, ChannelList
 from qcodes.instrument.visa import VisaInstrument
 from pyvisa.errors import VisaIOError
 from qcodes.utils import validators
-from typing import Any, NewType, Sequence, Set, Tuple, Optional
+from typing import Any, NewType, Sequence, List, Dict, Tuple, Optional
 from packaging.version import parse
 
 # Version 0.10.1
@@ -43,11 +43,6 @@ error_ambiguous_wave = 'Only one of frequency_Hz or period_s can be ' \
 There are four 3V3 non-isolated triggers on the back (1, 2, 3, 4).
 """
 ExternalInput = NewType('ExternalInput', int)
-
-
-"""Set of named output channels
-"""
-Gates = NewType('Gates', Set[Tuple[str, int]])
 
 
 class QDac2Trigger_Context:
@@ -1603,8 +1598,8 @@ class Sweep_2D_Context:
 
 
 class Arrangement_Context:
-    def __init__(self, qdac: 'QDac2', gates: Gates,
-                 output_triggers: Optional[Sequence[Tuple[str, int]]],
+    def __init__(self, qdac: 'QDac2', gates: Dict[str, int],
+                 output_triggers: Optional[Dict[str, int]],
                  internal_triggers: Optional[Sequence[str]]):
         self._qdac = qdac
         self._fix_gate_order(gates)
@@ -1635,11 +1630,12 @@ class Arrangement_Context:
         return self._correction
 
     def _allocate_internal_triggers(self,
-                                   internal_triggers: Optional[Sequence[str]]
-                                   ) -> None:
-        if internal_triggers:
-            for name in internal_triggers:
-                self._internal_triggers[name] = self._qdac.allocate_trigger()
+                                    internal_triggers: Optional[Sequence[str]]
+                                    ) -> None:
+        if not internal_triggers:
+            return
+        for name in internal_triggers:
+            self._internal_triggers[name] = self._qdac.allocate_trigger()
 
     def initiate_correction(self, gate: str, factors: Sequence[float]):
         """Override how much a particular gate influences the other gates
@@ -1673,7 +1669,7 @@ class Arrangement_Context:
         multiplier[index] = factors
         self._correction = np.matmul(multiplier, self._correction)
 
-    def _fix_gate_order(self, gates: Gates) -> None:
+    def _fix_gate_order(self, gates: Dict[str, int]) -> None:
         self._gates = {}
         self._channels = []
         index = 0
@@ -1722,7 +1718,7 @@ class Arrangement_Context:
                         outer_gate: str, outer_voltages: Sequence[float],
                         start_sweep_trigger=None, inner_step_time_s=1e-5,
                         inner_step_trigger=None
-                        ) -> None:
+                        ) -> Sweep_2D_Context:
         """Sweep two gates to create a 2D sweep
 
         Args:
@@ -1733,6 +1729,9 @@ class Arrangement_Context:
             start_sweep_trigger (None, optional): Trigger that starts sweep
             inner_step_time_s (float, optional): Delay between voltage changes
             inner_step_trigger (None, optional): Trigger that marks each step
+
+        Returns:
+            Sweep_2D_Context: context manager
         """
         sweep = self._calculate_sweep_values(inner_gate, inner_voltages,
                                              outer_gate, outer_voltages)
@@ -1757,14 +1756,14 @@ class Arrangement_Context:
         return self._gates[gate]
 
     def _allocate_triggers(self, internal_triggers: Optional[Sequence[str]],
-                           output_triggers: Optional[Sequence[Tuple[str, int]]]
+                           output_triggers: Optional[Dict[str, int]]
                            ) -> None:
-        self._internal_triggers = {}
+        self._internal_triggers: Dict[str, QDac2Trigger_Context] = {}
         self._allocate_internal_triggers(internal_triggers)
         self._allocate_external_triggers(output_triggers)
 
     def _allocate_external_triggers(self, output_triggers:
-                                    Optional[Sequence[Tuple[str, int]]]
+                                    Optional[Dict[str, int]]
                                     ) -> None:
         self._external_triggers = {}
         if not output_triggers:
@@ -1960,10 +1959,10 @@ class QDac2(VisaInstrument):
         return f'{mac[1:3]}-{mac[3:5]}-{mac[5:7]}-{mac[7:9]}-{mac[9:11]}' \
                f'-{mac[11:13]}'
 
-    def arrange(self, gates: Gates,
-                output_triggers: Optional[Sequence[Tuple[str, int]]]=None,
+    def arrange(self, gates: Dict[str, int],
+                output_triggers: Optional[Dict[str, int]]=None,
                 internal_triggers: Optional[Sequence[str]]=None
-               ) -> Arrangement_Context:
+                ) -> Arrangement_Context:
         """An arrangement of gates and triggers for virtual 2D sweeps
 
         Each gate corresponds to a particular output channel and each trigger
@@ -2001,10 +2000,10 @@ class QDac2(VisaInstrument):
         Any previous recordings are removed.  To inspect the SCPI commands sent
         to the instrument, call get_recorded_scpi_commands().
         """
-        self._scpi_sent = []
+        self._scpi_sent: List[str] = []
         self._record_commands = True
 
-    def get_recorded_scpi_commands(self) -> Sequence[str]:
+    def get_recorded_scpi_commands(self) -> List[str]:
         """
         Returns:
             Sequence[str]: SCPI commands sent to the instrument
@@ -2067,8 +2066,10 @@ class QDac2(VisaInstrument):
         answer = super().ask(cmd)
         return answer
 
-    def write_floats(self, cmd: str, values: Sequence[float]):
-        """Append a list of values to command
+    def write_floats(self, cmd: str, values: Sequence[float]) -> None:
+        """Append a list of values to a SCPI command
+
+        By default, the values are IEEE binary encoded.
 
         Remember to include separating space in command if needed.
         """
@@ -2083,31 +2084,31 @@ class QDac2(VisaInstrument):
 
     # -----------------------------------------------------------------------
 
-    def _set_up_debug_settings(self):
+    def _set_up_debug_settings(self) -> None:
         self._record_commands = False
         self._scpi_sent = []
         self._message_flush_timeout_ms = 1
         self._round_off = None
         self._no_binary_values = False
 
-    def _set_up_serial(self):
+    def _set_up_serial(self) -> None:
         # No harm in setting the speed even if the connection is not serial.
-        self.visa_handle.baud_rate = 921600
+        self.visa_handle.baud_rate = 921600 # type: ignore
 
-    def _check_for_wrong_model(self):
+    def _check_for_wrong_model(self) -> None:
         model = self.IDN()['model']
         if model != 'QDAC-II':
             raise ValueError(f'Unknown model {model}. Are you using the right'
                              ' driver for your instrument?')
 
-    def _check_for_incompatiable_firmware(self):
+    def _check_for_incompatiable_firmware(self) -> None:
         least_compatible_fw = '3-0.9.16'
         firmware = self.IDN()['firmware']
         if parse(firmware) < parse(least_compatible_fw):
             raise ValueError(f'Incompatible firmware {firmware}. You need at '
                              f'least {least_compatible_fw}')
 
-    def _set_up_channels(self):
+    def _set_up_channels(self) -> None:
         channels = ChannelList(self, 'Channels', QDac2Channel, snapshotable=False)
         for i in range(1, 24 + 1):
             name = f'ch{i:02}'
@@ -2117,7 +2118,7 @@ class QDac2(VisaInstrument):
         channels.lock()
         self.add_submodule('channels', channels)
 
-    def _set_up_external_triggers(self):
+    def _set_up_external_triggers(self) -> None:
         triggers = ChannelList(self, 'Channels', QDac2ExternalTrigger,
                                snapshotable=False)
         for i in range(1, 5 + 1):
@@ -2128,11 +2129,11 @@ class QDac2(VisaInstrument):
         triggers.lock()
         self.add_submodule('external_triggers', triggers)
 
-    def _set_up_internal_triggers(self):
+    def _set_up_internal_triggers(self) -> None:
         # A set of the available 16 internal triggers
         self._internal_triggers = set(range(1, self.n_triggers() + 1))
 
-    def _set_up_manual_triggers(self):
+    def _set_up_manual_triggers(self) -> None:
         self.add_parameter(
             name='trigger',
             # Manually trigger event
@@ -2140,6 +2141,6 @@ class QDac2(VisaInstrument):
             set_cmd='tint {}',
         )
 
-    def _set_up_simple_functions(self):
+    def _set_up_simple_functions(self) -> None:
         self.add_function('reset', call_cmd='*rst')
         self.add_function('abort', call_cmd='abor')
