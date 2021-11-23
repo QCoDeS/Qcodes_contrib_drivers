@@ -4,7 +4,7 @@ from qcodes.instrument.channel import InstrumentChannel, ChannelList
 from qcodes.instrument.visa import VisaInstrument
 from pyvisa.errors import VisaIOError
 from qcodes.utils import validators
-from typing import Any, NewType, Sequence, Optional
+from typing import Any, NewType, Sequence, Set, Tuple, Optional
 from packaging.version import parse
 
 # Version 0.10.1
@@ -43,6 +43,11 @@ error_ambiguous_wave = 'Only one of frequency_Hz or period_s can be ' \
 There are four 3V3 non-isolated triggers on the back (1, 2, 3, 4).
 """
 ExternalInput = NewType('ExternalInput', int)
+
+
+"""Set of named output channels
+"""
+Gates = NewType('Gates', Set[Tuple[str, int]])
 
 
 class QDac2Trigger_Context:
@@ -998,7 +1003,7 @@ class Measurement_Context(_Channel_Context):
         Returns:
             Sequence[float]: list of available current measurements
         """
-        # Bug fix
+        # Bug circumvention
         if self.n_available() == 0:
             return []
         return comma_sequence_to_list(self._ask_channel('sens{0}:data:rem?'))
@@ -1023,7 +1028,7 @@ class Measurement_Context(_Channel_Context):
 
 class QDac2Channel(InstrumentChannel):
 
-    def __init__(self, parent, name, channum):
+    def __init__(self, parent: 'QDac2', name: str, channum: int):
         super().__init__(parent, name)
         self._channum = channum
         self.add_parameter(
@@ -1233,7 +1238,7 @@ class QDac2Channel(InstrumentChannel):
         Returns:
             Sequence[float]: list of available current measurements
         """
-        # Bug fix
+        # Bug circumvention
         if int(self.ask_channel('sens{0}:data:poin?')) == 0:
             return []
         return comma_sequence_to_list_of_floats(
@@ -1242,6 +1247,21 @@ class QDac2Channel(InstrumentChannel):
     def measurement(self, delay_s=0.0, repetitions=1, current_range='high',
                     aperture_s=None, nplc=None
                     ) -> Measurement_Context:
+        """Set up a sequence of current measurements
+
+        Args:
+            delay_s (float, optional): Seconds to delay the actual measurement after trigger (default 0)
+            repetitions (int, optional): Number of consecutive measurements (default 1)
+            current_range (str, optional): high (10mA, default) or low (200nA)
+            nplc (None, optional): Integration time in power-line cycles (default 1)
+            aperture_s (None, optional): Seconds of integration time instead of NPLC
+
+        Returns:
+            Measurement_Context: context manager
+
+        Raises:
+            ValueError: configuration error
+        """
         if aperture_s and nplc:
             raise ValueError('Only one of nplc or aperture_s can be '
                              'specified for a current measurement')
@@ -1252,28 +1272,82 @@ class QDac2Channel(InstrumentChannel):
 
     def output_mode(self, range='high', filter='high',
                     low_current_limit_A=2e-7,
-                    high_current_limit_A=0.01):
+                    high_current_limit_A=0.01
+                    ) -> None:
+        """Set the output voltage and current limits
+
+        Args:
+            range (str, optional): Low or high (default) current range
+            filter (str, optional): DC (10Hz), medium (10kHz) or high (300kHz, default) voltage filter
+            low_current_limit_A (float, optional): Current limit in low range
+            high_current_limit_A (float, optional): Current limit in high range
+        """
         self.output_range(range)
         self.output_filter(filter)
         self.low_current_limit_A(low_current_limit_A)
         self.high_current_limit_A(high_current_limit_A)
 
-    def dc_list(self, voltages, repetitions=1, dwell_s=1e-03, backwards=False,
-                stepped=False
+    def dc_list(self, voltages: Sequence[float], repetitions=1, dwell_s=1e-03,
+                backwards=False, stepped=False
                 ) -> List_Context:
+        """Set up a DC-list generator
+
+        Args:
+            voltages (Sequence[float]): Voltages in list
+            repetitions (int, optional): Number of repetitions of the list (default 1)
+            dwell_s (float, optional): Seconds between each voltage (default 1ms)
+            backwards (bool, optional): Use list in reverse (default is forward)
+            stepped (bool, optional): True means that each step needs to be triggered (default False)
+
+        Returns:
+            List_Context: context manager
+        """
         return List_Context(self, voltages, repetitions, dwell_s, backwards,
                             stepped)
 
-    def dc_sweep(self, start_V, stop_V, points, repetitions=1, dwell_s=1e-03,
-                 backwards=False, stepped=True
+    def dc_sweep(self, start_V: float, stop_V: float, points: int,
+                 repetitions=1, dwell_s=1e-03, backwards=False, stepped=True
                  ) -> Sweep_Context:
+        """Set up a DC sweep
+
+        Args:
+            start_V (float): Start voltage
+            stop_V (float): Send voltage
+            points (int): Number of steps
+            repetitions (int, optional): Number of repetition (default 1)
+            dwell_s (float, optional): Seconds between each voltage (default 1ms)
+            backwards (bool, optional): Sweep in reverse (default is forward)
+            stepped (bool, optional): True means that each step needs to be triggered (default False)
+
+        Returns:
+            Sweep_Context: context manager
+        """
         return Sweep_Context(self, start_V, stop_V, points, repetitions,
                              dwell_s, backwards, stepped)
 
     def square_wave(self, frequency_Hz=None, period_s=None, repetitions=-1,
-                    duty_cycle_percent=50, kind='symmetric', inverted=False,
-                    span_V=0.2, offset_V=0, slew_V_s=None
+                    duty_cycle_percent=50.0, kind='symmetric', inverted=False,
+                    span_V=0.2, offset_V=0.0, slew_V_s=None
                     ) -> Square_Context:
+        """Set up a square-wave generator
+
+        Args:
+            frequency_Hz (float, optional): Frequency
+            period_s (float, optional): Period length (instead of frequency)
+            repetitions (int, optional): Number of repetition (default infinite)
+            duty_cycle_percent (float, optional): Percentage on-time (default 50%)
+            kind (str, optional): Positive, negative or symmetric (default) around the offset
+            inverted (bool, optional): True means flipped (default False)
+            span_V (float, optional): Voltage span (default 200mV)
+            offset_V (float, optional): Offset (default 0V)
+            slew_V_s (float, optional): Max slew rate in V/s (default None)
+
+        Returns:
+            Square_Context: context manager
+
+        Raises:
+            ValueError: configuration error
+        """
         if frequency_Hz and period_s:
             raise ValueError(error_ambiguous_wave)
         if not frequency_Hz and not period_s:
@@ -1282,9 +1356,26 @@ class QDac2Channel(InstrumentChannel):
                               duty_cycle_percent, kind, inverted, span_V,
                               offset_V, slew_V_s)
 
-    def sine_wave(self, frequency_Hz=None, repetitions=-1, period_s=None,
+    def sine_wave(self, frequency_Hz=None, period_s=None, repetitions=-1,
                   inverted=False, span_V=0.2, offset_V=0, slew_V_s=None
                   ) -> Sine_Context:
+        """Set up a sine-wave generator
+
+        Args:
+            frequency_Hz (float, optional): Frequency
+            period_s (float, optional): Period length (instead of frequency)
+            repetitions (int, optional): Number of repetition (default infinite)
+            inverted (bool, optional): True means flipped (default False)
+            span_V (float, optional): Voltage span (default 200mV)
+            offset_V (float, optional): Offset (default 0V)
+            slew_V_s (None, optional): Max slew rate in V/s (default None)
+
+        Returns:
+            Sine_Context: context manager
+
+        Raises:
+            ValueError: configuration error
+        """
         if frequency_Hz and period_s:
             raise ValueError(error_ambiguous_wave)
         if not frequency_Hz and not period_s:
@@ -1293,9 +1384,27 @@ class QDac2Channel(InstrumentChannel):
                             inverted, span_V, offset_V, slew_V_s)
 
     def triangle_wave(self, frequency_Hz=None, period_s=None, repetitions=-1,
-                      duty_cycle_percent=50, inverted=False, span_V=0.2,
-                      offset_V=0, slew_V_s=None
+                      duty_cycle_percent=50.0, inverted=False, span_V=0.2,
+                      offset_V=0.0, slew_V_s=None
                       ) -> Triangle_Context:
+        """Set up a triangle-wave generator
+
+        Args:
+            frequency_Hz (float, optional): Frequency
+            period_s (float, optional): Period length (instead of frequency)
+            repetitions (int, optional): Number of repetition (default infinite)
+            duty_cycle_percent (float, optional): Percentage on-time (default 50%)
+            inverted (bool, optional): True means flipped (default False)
+            span_V (float, optional): Voltage span (default 200mV)
+            offset_V (float, optional): Offset (default 0V)
+            slew_V_s (float, optional): Max slew rate in V/s (default None)
+
+        Returns:
+            Triangle_Context: context manager
+
+        Raises:
+            ValueError: configuration error
+        """
         if frequency_Hz and period_s:
             raise ValueError(error_ambiguous_wave)
         if not frequency_Hz and not period_s:
@@ -1304,9 +1413,21 @@ class QDac2Channel(InstrumentChannel):
                                 duty_cycle_percent, inverted, span_V,
                                 offset_V, slew_V_s)
 
-    def arbitrary_wave(self, trace_name: str, repetitions=1, scale=1,
-                       offset_V=0, slew_V_s=None
+    def arbitrary_wave(self, trace_name: str, repetitions=1, scale=1.0,
+                       offset_V=0.0, slew_V_s=None
                        ) -> Awg_Context:
+        """Set up an arbitrary-wave generator
+
+        Args:
+            trace_name (str): Use data from this named trace
+            repetitions (int, optional): Number of repetition (default 1)
+            scale (float, optional): Scaling factor of voltages (default 1)
+            offset_V (float, optional): Offset (default 0V)
+            slew_V_s (None, optional): Max slew rate in V/s (default None)
+
+        Returns:
+            Awg_Context: context manager
+        """
         return Awg_Context(self, trace_name, repetitions, scale, offset_V,
                            slew_V_s)
 
@@ -1315,32 +1436,41 @@ class QDac2Channel(InstrumentChannel):
         self.write(f'sour{self._channum}:volt {v}')
 
     def ask_channel(self, cmd: str) -> str:
-        """Inject channel number into query
+        """Inject channel number into SCPI query
 
         Arguments:
-            cmd {str} -- Must contain a '{0}' placeholder for the channel number
+            cmd (str): Must contain a '{0}' placeholder for the channel number
+
+        Returns:
+            str: SCPI answer
         """
         return self.ask(self._channel_message(cmd))
 
     def write_channel(self, cmd: str):
-        """Inject channel number into command
+        """Inject channel number into SCPI command
 
         Arguments:
-            cmd {str} -- Must contain a '{0}' placeholder for the channel number
+            cmd (str): Must contain a '{0}' placeholder for the channel number
         """
         self.write(self._channel_message(cmd))
 
     def write_channel_floats(self, cmd: str, values: Sequence[float]):
-        """Inject channel number and a list of values into command
+        """Inject channel number and a list of values into SCPI command
 
         The values are appended to the end of the command.
 
         Arguments:
-            cmd {str} -- Must contain a '{0}' placeholder for channel number
+            cmd (str): Must contain a '{0}' placeholder for channel number
+            values (Sequence[float]): Sequence of numbers
         """
         self._parent.write_floats(self._channel_message(cmd), values)
 
     def write(self, cmd: str) -> None:
+        """Send a SCPI command
+
+        Args:
+            cmd (str): SCPI command
+        """
         self._parent.write(cmd)
 
     def _channel_message(self, template: str):
@@ -1359,14 +1489,29 @@ class Trace_Context:
         return self.size
 
     @property
-    def size(self):
+    def size(self) -> int:
+        """
+        Returns:
+            int: Number of values in trace
+        """
         return self._size
 
     @property
-    def name(self):
+    def name(self) -> str:
+        """Returns:
+            str: Name of trace
+        """
         return self._name
 
-    def waveform(self, values: Sequence[float]):
+    def waveform(self, values: Sequence[float]) -> None:
+        """Fill values into trace
+
+        Args:
+            values (Sequence[float]): Sequence of values
+
+        Raises:
+            ValueError: size mismatch
+        """
         if len(values) != self.size:
             raise ValueError(f'trace length {len(values)} does not match '
                              f'allocated length {self.size}')
@@ -1375,8 +1520,9 @@ class Trace_Context:
 
 class Sweep_2D_Context:
 
-    def __init__(self, arrangement, sweep, start_sweep_trigger: str,
-                 inner_step_time_s: int, inner_step_trigger: str):
+    def __init__(self, arrangement: 'Arrangement_Context', sweep: np.ndarray,
+                 start_sweep_trigger: str, inner_step_time_s: int,
+                 inner_step_trigger: str):
         self._arrangement = arrangement
         self._sweep = sweep
         self._inner_step_trigger = inner_step_trigger
@@ -1392,11 +1538,21 @@ class Sweep_2D_Context:
         # Let Arrangement take care of freeing triggers
         return False
 
-    def actual_values_V(self, gate: str):
+    def actual_values_V(self, gate: str) -> Sequence[float]:
+        """The corrected values that would actually be sent to the gate
+
+        Args:
+            gate (str): Name of gate
+
+        Returns:
+            Sequence[float]: Corrected voltages
+        """
         index = self._arrangement._gate_index(gate)
         return self._sweep[:, index]
 
     def start(self):
+        """Start the 2D sweep
+        """
         self._ensure_qdac_setup()
         trigger = self._arrangement.get_trigger_by_name(self._start_trigger_name)
         self._arrangement._qdac.trigger(trigger)
@@ -1405,7 +1561,7 @@ class Sweep_2D_Context:
         if not start_sweep:
             # Use a random, unique name
             start_sweep = uuid.uuid4().hex
-        self._arrangement.allocate_internal_triggers([start_sweep])
+        self._arrangement._allocate_internal_triggers([start_sweep])
         self._start_trigger_name = start_sweep
 
     def _ensure_qdac_setup(self):
@@ -1447,8 +1603,9 @@ class Sweep_2D_Context:
 
 
 class Arrangement_Context:
-
-    def __init__(self, qdac, gates, output_triggers, internal_triggers):
+    def __init__(self, qdac: 'QDac2', gates: Gates,
+                 output_triggers: Optional[Sequence[Tuple[str, int]]],
+                 internal_triggers: Optional[Sequence[str]]):
         self._qdac = qdac
         self._fix_gate_order(gates)
         self._allocate_triggers(internal_triggers, output_triggers)
@@ -1462,32 +1619,61 @@ class Arrangement_Context:
         return False
 
     @property
-    def shape(self):
+    def shape(self) -> int:
+        """
+        Returns:
+            int: Number of gates in the arrangement
+        """
         return len(self._gates)
 
     @property
-    def correction_matrix(self):
+    def correction_matrix(self) -> np.ndarray:
+        """
+        Returns:
+            np.ndarray: Correction matrix
+        """
         return self._correction
 
-    def allocate_internal_triggers(self, internal_triggers):
-        for name in internal_triggers:
-            self._internal_triggers[name] = self._qdac.allocate_trigger()
+    def _allocate_internal_triggers(self,
+                                   internal_triggers: Optional[Sequence[str]]
+                                   ) -> None:
+        if internal_triggers:
+            for name in internal_triggers:
+                self._internal_triggers[name] = self._qdac.allocate_trigger()
 
-    def initiate_correction(self, gate: str, factors):
+    def initiate_correction(self, gate: str, factors: Sequence[float]):
+        """Override how much a particular gate influences the other gates
+
+        Args:
+            gate (str): Name of gate
+            factors (Sequence[float]): factors between -1.0 and 1.0
+        """
         index = self._gate_index(gate)
         self._correction[index] = factors
 
-    def set_virtual_voltage(self, gate: str, voltage: float):
+    def set_virtual_voltage(self, gate: str, voltage: float) -> None:
         index = self._gate_index(gate)
         self._virtual_voltages[index] = voltage
 
-    def add_correction(self, gate: str, factors):
+    def add_correction(self, gate: str, factors: Sequence[float]) -> None:
+        """Update how much a particular gate influences the other gates
+
+        This is mostly useful in arrangements where each gate has significant
+        effect only on nearby gates, and thus can be added incrementally.
+
+        The factors are extended by the identity matrix and multiplied to the
+        correction matrix.
+
+        Args:
+            gate (str): Name of gate
+            factors (Sequence[float]): factors usually between -1.0 and 1.0
+        """
         index = self._gate_index(gate)
         multiplier = np.identity(self.shape)
         multiplier[index] = factors
         self._correction = np.matmul(multiplier, self._correction)
 
-    def _fix_gate_order(self, gates):
+    def _fix_gate_order(self, gates: Gates) -> None:
         self._gates = {}
         self._channels = []
         index = 0
@@ -1498,25 +1684,56 @@ class Arrangement_Context:
         self._virtual_voltages = np.zeros(self.shape)
 
     def virtual_voltage(self, gate: str) -> float:
+        """
+        Args:
+            gate (str): Name of gate
+
+        Returns:
+            float: Virtual voltage on the gate
+        """
         index = self._gate_index(gate)
         return self._virtual_voltages[index]
 
-    def actual_voltages(self):
+    def actual_voltages(self) -> Sequence[float]:
+        """
+        Returns:
+            Sequence[float]: Corrected voltages for all gates
+        """
         vs = np.matmul(self._correction, self._virtual_voltages)
         if self._qdac._round_off:
             vs = np.round(vs, self._qdac._round_off)
         return list(vs)
 
-    def get_trigger_by_name(self, name) -> QDac2Trigger_Context:
+    def get_trigger_by_name(self, name: str) -> QDac2Trigger_Context:
+        """
+        Args:
+            name (str): Name of trigger
+
+        Returns:
+            QDac2Trigger_Context: Trigger context manager
+        """
         try:
             return self._internal_triggers[name]
         except KeyError:
             print(f'Internal triggers: {list(self._internal_triggers.keys())}')
             raise
 
-    def virtual_sweep2d(self, inner_gate, inner_voltages, outer_gate,
-                        outer_voltages, start_sweep_trigger=None,
-                        inner_step_time_s=1e-5, inner_step_trigger=None):
+    def virtual_sweep2d(self, inner_gate: str, inner_voltages: Sequence[float],
+                        outer_gate: str, outer_voltages: Sequence[float],
+                        start_sweep_trigger=None, inner_step_time_s=1e-5,
+                        inner_step_trigger=None
+                        ) -> None:
+        """Sweep two gates to create a 2D sweep
+
+        Args:
+            inner_gate (str): Name of fast-changing (inner) gate
+            inner_voltages (Sequence[float]): Inner gate voltages
+            outer_gate (str): Name of slow-changing (outer) gate
+            outer_voltages (Sequence[float]): Outer gate voltages
+            start_sweep_trigger (None, optional): Trigger that starts sweep
+            inner_step_time_s (float, optional): Delay between voltage changes
+            inner_step_trigger (None, optional): Trigger that marks each step
+        """
         sweep = self._calculate_sweep_values(inner_gate, inner_voltages,
                                              outer_gate, outer_voltages)
         return Sweep_2D_Context(self, sweep, start_sweep_trigger,
@@ -1536,16 +1753,22 @@ class Arrangement_Context:
         self.set_virtual_voltage(outer_gate, original_slow_voltage)
         return np.array(sweep)
 
-    def _gate_index(self, gate):
+    def _gate_index(self, gate) -> int:
         return self._gates[gate]
 
-    def _allocate_triggers(self, internal_triggers, output_triggers):
+    def _allocate_triggers(self, internal_triggers: Optional[Sequence[str]],
+                           output_triggers: Optional[Sequence[Tuple[str, int]]]
+                           ) -> None:
         self._internal_triggers = {}
-        self.allocate_internal_triggers(internal_triggers)
+        self._allocate_internal_triggers(internal_triggers)
         self._allocate_external_triggers(output_triggers)
 
-    def _allocate_external_triggers(self, output_triggers):
+    def _allocate_external_triggers(self, output_triggers:
+                                    Optional[Sequence[Tuple[str, int]]]
+                                    ) -> None:
         self._external_triggers = {}
+        if not output_triggers:
+            return
         for name, port in output_triggers.items():
             self._external_triggers[name] = port
             trigger = self._qdac.allocate_trigger()
@@ -1553,7 +1776,7 @@ class Arrangement_Context:
             # TODO: check for conflicts with internal names
             self._internal_triggers[name] = trigger
 
-    def _free_triggers(self):
+    def _free_triggers(self) -> None:
         for trigger in self._internal_triggers.values():
             self._qdac.free_trigger(trigger)
 
@@ -1561,6 +1784,13 @@ class Arrangement_Context:
 class QDac2(VisaInstrument):
 
     def __init__(self, name: str, address: str, **kwargs) -> None:
+        """Connect to a QDAC-II
+
+        Args:
+            name (str): Name for instrument
+            address (str): Visa identification string
+            **kwargs: additional argument to the Visa driver
+        """
         super().__init__(name, address, terminator='\n', **kwargs)
         self._set_up_serial()
         self._set_up_debug_settings()
@@ -1576,18 +1806,25 @@ class QDac2(VisaInstrument):
     def n_channels(self) -> int:
         """
         Returns:
-            int -- number of channels
+            int: Number of channels
         """
         return len(self.submodules['channels'])
 
-    def channel(self, ch: int) -> 'QDac2Channel':
+    def channel(self, ch: int) -> QDac2Channel:
+        """
+        Args:
+            ch (int): Channel number
+
+        Returns:
+            QDac2Channel: Visa representation of the channel
+        """
         return getattr(self, f'ch{ch:02}')
 
     @staticmethod
     def n_triggers() -> int:
         """
         Returns:
-            int -- number of internal triggers
+            int: Number of internal triggers
         """
         return 16
 
@@ -1595,14 +1832,14 @@ class QDac2(VisaInstrument):
     def n_external_inputs() -> int:
         """
         Returns:
-            int -- number of external input triggers
+            int: Number of external input triggers
         """
         return 4
 
     def n_external_outputs(self) -> int:
         """
         Returns:
-            int -- number of external output triggers
+            int: Number of external output triggers
         """
         return len(self.submodules['external_triggers'])
 
@@ -1612,7 +1849,10 @@ class QDac2(VisaInstrument):
         Does not have any effect on the instrument, only the driver.
 
         Returns:
-            QDac2Trigger_Context -- Python context
+            QDac2Trigger_Context: Context manager
+
+        Raises:
+            ValueError: no free triggers
         """
         try:
             number = self._internal_triggers.pop()
@@ -1624,6 +1864,9 @@ class QDac2(VisaInstrument):
         """Free an internal trigger
 
         Does not have any effect on the instrument, only the driver.
+
+        Args:
+            trigger (QDac2Trigger_Context): trigger to free
         """
         internal = _trigger_context_to_value(trigger)
         self._internal_triggers.add(internal)
@@ -1638,16 +1881,22 @@ class QDac2(VisaInstrument):
     def connect_external_trigger(self, port: int, trigger: QDac2Trigger_Context,
                                  width_s=1e-6
                                  ) -> None:
+        """Route internal trigger to external trigger
+
+        Args:
+            port (int): External output trigger number
+            trigger (QDac2Trigger_Context): Internal trigger
+            width_s (float, optional): Output trigger width in seconds (default 1ms)
+        """
         internal = _trigger_context_to_value(trigger)
         self.write(f'outp:trig{port}:sour int{internal}')
-        # Set trigger width to minimal value.
         self.write(f'outp:trig{port}:widt {width_s}')
 
-    def errors(self):
+    def errors(self) -> str:
         """Retrieve and clear all previous errors
 
         Returns:
-            str -- Comma separated list of errors or '0, "No error"'
+            str: Comma separated list of errors or '0, "No error"'
         """
         return self.ask('syst:err:all?')
 
@@ -1655,20 +1904,20 @@ class QDac2(VisaInstrument):
         """Retrieve next error
 
         Returns:
-            str -- The next error or '0, "No error"'
+            str: The next error or '0, "No error"'
         """
         return self.ask('syst:err?')
 
     def n_errors(self) -> int:
-        """Retrieve number previous errors
+        """Peek at number of previous errors
 
         Returns:
-            int -- Number of errors
+            int: Number of errors
         """
         return int(self.ask('syst:err:coun?'))
 
     def start_all(self) -> None:
-        """Trigger the global bus
+        """Trigger the global SCPI bus (*TRG)
 
         All generators, that have not been explicitly set to trigger on an
         internal or external trigger, will be started.
@@ -1677,6 +1926,8 @@ class QDac2(VisaInstrument):
 
     def remove_traces(self) -> None:
         """Delete all trace definitions from the instrument
+
+        This means that all AWGs loose their data.
         """
         self.write('trac:rem:all')
 
@@ -1684,23 +1935,57 @@ class QDac2(VisaInstrument):
         """List all defined traces
 
         Returns:
-            Sequence[str] -- trace names
+            Sequence[str]: trace names
         """
         return comma_sequence_to_list(self.ask('trac:cat?'))
 
-    def allocate_trace(self, name, size) -> Trace_Context:
+    def allocate_trace(self, name: str, size: int) -> Trace_Context:
         """Reserve memory for a new trace
+
+        Args:
+            name (str): Name of new trace
+            size (int): Number of voltage values in the trace
+
+        Returns:
+            Trace_Context: context manager
         """
         return Trace_Context(self, name, size)
 
-    def mac(self):
-        """Retrieve the Media Access Control (MAC) address
+    def mac(self) -> str:
+        """
+        Returns:
+            str: Media Access Control (MAC) address of the instrument
         """
         mac = self.ask('syst:comm:lan:mac?')
         return f'{mac[1:3]}-{mac[3:5]}-{mac[5:7]}-{mac[7:9]}-{mac[9:11]}' \
                f'-{mac[11:13]}'
 
-    def arrange(self, gates, output_triggers={}, internal_triggers=[]):
+    def arrange(self, gates: Gates,
+                output_triggers: Optional[Sequence[Tuple[str, int]]]=None,
+                internal_triggers: Optional[Sequence[str]]=None
+               ) -> Arrangement_Context:
+        """An arrangement of gates and triggers for virtual 2D sweeps
+
+        Each gate corresponds to a particular output channel and each trigger
+        corresponds to a particular external or internal trigger.  After
+        initialisation of the arrangement, gates and triggers can only be referred
+        to by name.
+
+        The voltages that will appear on each gate depends not only on the specified
+        virtual voltage, but also on a correction matrix.
+
+        Initially, the gates are assumed to not influence each other, which means
+        that the correction matrix is the identity matrix, ie. the row for each gate
+        has a value of [0, ..., 0, 1, 0, ..., 0].
+
+        Args:
+            gates (Gates): Name/channel pairs
+            output_triggers (Optional[Sequence[Tuple[str,int]]], optional): Name/number pairs of output triggers
+            internal_triggers (Optional[Sequence[str]], optional): List of names of internal triggers to allocate
+
+        Returns:
+            Arrangement_Context: Description
+        """
         return Arrangement_Context(self, gates, output_triggers, internal_triggers)
 
     # -----------------------------------------------------------------------
@@ -1710,9 +1995,8 @@ class QDac2(VisaInstrument):
     # -----------------------------------------------------------------------
     # Debugging and testing
 
-    def start_recording_scpi(self):
-        """
-        Record all SCPI commands sent to the instrument
+    def start_recording_scpi(self) -> None:
+        """Record all SCPI commands sent to the instrument
 
         Any previous recordings are removed.  To inspect the SCPI commands sent
         to the instrument, call get_recorded_scpi_commands().
@@ -1722,26 +2006,25 @@ class QDac2(VisaInstrument):
 
     def get_recorded_scpi_commands(self) -> Sequence[str]:
         """
-        Returns the SCPI commands sent to the instrument
+        Returns:
+            Sequence[str]: SCPI commands sent to the instrument
         """
         commands = self._scpi_sent
         self._scpi_sent = []
         return commands
 
     def clear(self) -> None:
-        """
-        Function to reset the VISA message queue of the instrument.
+        """Reset the VISA message queue of the instrument
         """
         self.visa_handle.clear()
 
     def clear_read_queue(self) -> Sequence[str]:
-        """
-        Function to flush the VISA message queue of the instrument.
+        """Flush the VISA message queue of the instrument
 
         Takes at least _message_flush_timeout_ms to carry out.
 
         Returns:
-            Sequence[str] -- messages lingering in queue
+            Sequence[str]: Messages lingering in queue
         """
         lingering = []
         original_timeout = self.visa_handle.timeout
@@ -1761,21 +2044,33 @@ class QDac2(VisaInstrument):
     # communication with the instrument.
 
     def write(self, cmd: str) -> None:
+        """Send SCPI command to instrument
+
+        Args:
+            cmd (str): SCPI command
+        """
         if self._record_commands:
             self._scpi_sent.append(cmd)
         super().write(cmd)
 
     def ask(self, cmd: str) -> str:
+        """Send SCPI query to instrument
+
+        Args:
+            cmd (str): SCPI query
+
+        Returns:
+            str: SCPI answer
+        """
         if self._record_commands:
             self._scpi_sent.append(cmd)
         answer = super().ask(cmd)
         return answer
 
-    def write_floats(self, cmd: str, values: Sequence[Any]):
-        """
-        Append a list of values to command
+    def write_floats(self, cmd: str, values: Sequence[float]):
+        """Append a list of values to command
 
-        Remember to include seperating space if needed.
+        Remember to include separating space in command if needed.
         """
         if self._no_binary_values:
             compiled = f'{cmd}{floats_to_comma_separated_list(values)}'

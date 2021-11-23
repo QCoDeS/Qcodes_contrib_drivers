@@ -85,8 +85,8 @@ def test_awg_default_values(qdac):  # noqa
     assert qdac.get_recorded_scpi_commands() == [
         'sour5:awg:trig:sour hold',
         f'sour5:awg:def "{trace.name}"',
-        'sour5:awg:scal 1',
-        'sour5:awg:offs 0',
+        'sour5:awg:scal 1.0',
+        'sour5:awg:offs 0.0',
         'sour5:awg:slew inf',
         'sour5:awg:coun 1',
         'sour5:awg:trig:sour bus',
