@@ -7,7 +7,7 @@ from qcodes.utils import validators
 from typing import Any, NewType, Sequence, List, Dict, Tuple, Optional
 from packaging.version import parse
 
-# Version 0.10.1
+# Version 0.11.0
 #
 # Guiding principles for this driver for QDevil QDAC-II
 # -----------------------------------------------------
@@ -65,7 +65,7 @@ class QDac2Trigger_Context:
         return False
 
     @property
-    def value(self):
+    def value(self) -> int:
         """Get the internal SCPI trigger number
 
         Returns:
@@ -85,7 +85,7 @@ class QDac2ExternalTrigger(InstrumentChannel):
     non-isolated 3V3 on the back (4, 5).
     """
 
-    def __init__(self, parent, name, external):
+    def __init__(self, parent: 'QDac2', name: str, external: int):
         super().__init__(parent, name)
         self.add_function(
             name='source_from_bus',
@@ -134,22 +134,22 @@ class QDac2ExternalTrigger(InstrumentChannel):
         )
 
 
-def floats_to_comma_separated_list(array):
+def floats_to_comma_separated_list(array: Sequence[float]):
     rounded = [format(x, 'g') for x in array]
     return ', '.join(rounded)
 
 
-def array_to_comma_separated_list(array):
+def array_to_comma_separated_list(array: str):
     return ', '.join(map(str, array))
 
 
-def comma_sequence_to_list(sequence):
+def comma_sequence_to_list(sequence: str):
     if not sequence:
         return []
     return [x.strip() for x in sequence.split(',')]
 
 
-def comma_sequence_to_list_of_floats(sequence):
+def comma_sequence_to_list_of_floats(sequence: str):
     if not sequence:
         return []
     return [float(x.strip()) for x in sequence.split(',')]
@@ -184,7 +184,7 @@ class _Channel_Context():
     def _ask_channel(self, cmd: str) -> str:
         return self._channel.ask_channel(cmd)
 
-    def _channel_message(self, template):
+    def _channel_message(self, template: str) -> None:
         return self._channel._channel_message(template)
 
 
@@ -279,7 +279,7 @@ class _Dc_Context(_Channel_Context):
         self._write_channel(f'sour{"{0}"}:dc:mark:sst {self._marker_step_start.value}')
         return self._marker_step_start
 
-    def _set_triggering(self):
+    def _set_triggering(self) -> None:
         self._write_channel('sour{0}:dc:trig:sour bus')
         self._make_ready_to_start()
 
@@ -291,19 +291,20 @@ class _Dc_Context(_Channel_Context):
         self._switch_to_immediate_trigger()
         self._write_channel('sour{0}:dc:init')
 
-    def _make_ready_to_start(self):
+    def _make_ready_to_start(self) -> None:
         self._write_channel('sour{0}:dc:init:cont on')
         self._write_channel('sour{0}:dc:init')
 
-    def _switch_to_immediate_trigger(self):
+    def _switch_to_immediate_trigger(self) -> None:
         self._write_channel('sour{0}:dc:init:cont off')
         self._write_channel('sour{0}:dc:trig:sour imm')
 
 
 class Sweep_Context(_Dc_Context):
 
-    def __init__(self, channel: 'QDac2Channel', start_V, stop_V, points,
-                 repetitions, dwell_s, backwards, stepped):
+    def __init__(self, channel: 'QDac2Channel', start_V: float, stop_V: float,
+                 points: int, repetitions: int, dwell_s: float, backwards: bool,
+                 stepped: bool):
         self._repetitions = repetitions
         super().__init__(channel)
         channel.write_channel('sour{0}:volt:mode swe')
@@ -319,17 +320,17 @@ class Sweep_Context(_Dc_Context):
         self._write_channel(f'sour{"{0}"}:swe:star {start_V}')
         self._write_channel(f'sour{"{0}"}:swe:stop {stop_V}')
 
-    def _set_trigger_mode(self, stepped):
+    def _set_trigger_mode(self, stepped: bool) -> None:
         if stepped:
             return self._write_channel('sour{0}:swe:gen step')
         self._write_channel('sour{0}:swe:gen auto')
 
-    def _set_direction(self, backwards: bool):
+    def _set_direction(self, backwards: bool) -> None:
         if backwards:
             return self._write_channel('sour{0}:swe:dir down')
         self._write_channel('sour{0}:swe:dir up')
 
-    def _set_repetitions(self):
+    def _set_repetitions(self) -> None:
         self._write_channel(f'sour{"{0}"}:swe:coun {self._repetitions}')
 
     def _perpetual(self) -> bool:
@@ -364,8 +365,9 @@ class Sweep_Context(_Dc_Context):
 
 class List_Context(_Dc_Context):
 
-    def __init__(self, channel: 'QDac2Channel', voltages, repetitions, dwell_s,
-                 backwards, stepped):
+    def __init__(self, channel: 'QDac2Channel', voltages: Sequence[float],
+                 repetitions: int, dwell_s: float, backwards: bool,
+                 stepped: bool):
         super().__init__(channel)
         self._repetitions = repetitions
         self._write_channel('sour{0}:volt:mode list')
@@ -376,20 +378,20 @@ class List_Context(_Dc_Context):
         self._set_repetitions()
         self._set_triggering()
 
-    def _set_voltages(self, voltages: Sequence[float]):
+    def _set_voltages(self, voltages: Sequence[float]) -> None:
         self._write_channel_floats('sour{0}:list:volt ', voltages)
 
-    def _set_trigger_mode(self, stepped):
+    def _set_trigger_mode(self, stepped: bool) -> None:
         if stepped:
             return self._write_channel('sour{0}:list:tmod step')
         self._write_channel('sour{0}:list:tmod auto')
 
-    def _set_direction(self, backwards: bool):
+    def _set_direction(self, backwards: bool) -> None:
         if backwards:
             return self._write_channel('sour{0}:list:dir down')
         self._write_channel('sour{0}:list:dir up')
 
-    def _set_repetitions(self):
+    def _set_repetitions(self) -> None:
         self._write_channel(f'sour{"{0}"}:list:coun {self._repetitions}')
 
     def _perpetual(self) -> bool:
@@ -400,7 +402,7 @@ class List_Context(_Dc_Context):
         """
         self._start('DC list')
 
-    def append(self, voltages: Sequence[float]):
+    def append(self, voltages: Sequence[float]) -> None:
         """Append voltages to the existing list
 
         Arguments:
@@ -478,7 +480,7 @@ class _Waveform_Context(_Channel_Context):
         self._write_channel(f'sour{"{0}"}:{wave_kind}:mark:psta {self._marker_period_start.value}')
         return self._marker_period_start
 
-    def _make_ready_to_start(self, wave_kind: str):
+    def _make_ready_to_start(self, wave_kind: str) -> None:
         self._write_channel(f'sour{"{0}"}:{wave_kind}:init:cont on')
         self._write_channel(f'sour{"{0}"}:{wave_kind}:init')
 
@@ -486,7 +488,7 @@ class _Waveform_Context(_Channel_Context):
         self._write_channel(f'sour{"{0}"}:{wave_kind}:init:cont off')
         self._write_channel(f'sour{"{0}"}:{wave_kind}:trig:sour imm')
 
-    def _set_slew(self, wave_kind: str, slew_V_s):
+    def _set_slew(self, wave_kind: str, slew_V_s: Optional[float]) -> None:
         if slew_V_s:
             # Bug, see https://trello.com/c/SeeUrRNY
             self._write_channel(f'sour{"{0}"}:{wave_kind}:slew {slew_V_s}')
@@ -496,9 +498,10 @@ class _Waveform_Context(_Channel_Context):
 
 class Square_Context(_Waveform_Context):
 
-    def __init__(self, channel: 'QDac2Channel',
-                 frequency_Hz, repetitions, period_s, duty_cycle_percent,
-                 kind, inverted, span_V, offset_V, slew_V_s):
+    def __init__(self, channel: 'QDac2Channel', frequency_Hz: Optional[float],
+                 repetitions: int, period_s: Optional[float],
+                 duty_cycle_percent: float, kind: str, inverted: bool,
+                 span_V: float, offset_V: float, slew_V_s: Optional[float]):
         super().__init__(channel)
         self._repetitions = repetitions
         self._write_channel('sour{0}:squ:trig:sour hold')
@@ -529,13 +532,14 @@ class Square_Context(_Waveform_Context):
         """
         return int(self._ask_channel('sour{0}:squ:ncl?'))
 
-    def _set_frequency(self, frequency_Hz, period_s):
+    def _set_frequency(self, frequency_Hz: Optional[float],
+                       period_s: Optional[float]) -> None:
         if frequency_Hz:
             return self._write_channel(f'sour{"{0}"}:squ:freq {frequency_Hz}')
         if period_s:
             self._write_channel(f'sour{"{0}"}:squ:per {period_s}')
 
-    def _set_type(self, kind):
+    def _set_type(self, kind: str) -> None:
         if kind == 'positive':
             self._write_channel('sour{0}:squ:typ pos')
         elif kind == 'negative':
@@ -543,13 +547,13 @@ class Square_Context(_Waveform_Context):
         else:
             self._write_channel('sour{0}:squ:typ symm')
 
-    def _set_polarity(self, inverted):
+    def _set_polarity(self, inverted: bool) -> None:
         if inverted:
             self._write_channel('sour{0}:squ:pol inv')
         else:
             self._write_channel('sour{0}:squ:pol norm')
 
-    def _set_triggering(self):
+    def _set_triggering(self) -> None:
         self._write_channel('sour{0}:squ:trig:sour bus')
         self._make_ready_to_start('squ')
 
@@ -612,9 +616,9 @@ class Square_Context(_Waveform_Context):
 
 class Sine_Context(_Waveform_Context):
 
-    def __init__(self, channel: 'QDac2Channel',
-                 frequency_Hz, repetitions, period_s, inverted, span_V,
-                 offset_V, slew_V_s):
+    def __init__(self, channel: 'QDac2Channel', frequency_Hz: Optional[float],
+                 repetitions: int, period_s: Optional[float], inverted: bool,
+                 span_V: float, offset_V: float, slew_V_s: Optional[float]):
         super().__init__(channel)
         self._repetitions = repetitions
         self._write_channel('sour{0}:sin:trig:sour hold')
@@ -643,19 +647,20 @@ class Sine_Context(_Waveform_Context):
         """
         return int(self._ask_channel('sour{0}:sin:ncl?'))
 
-    def _set_frequency(self, frequency_Hz, period_s):
+    def _set_frequency(self, frequency_Hz: Optional[float],
+                       period_s: Optional[float]) -> None:
         if frequency_Hz:
             return self._write_channel(f'sour{"{0}"}:sin:freq {frequency_Hz}')
         if period_s:
             self._write_channel(f'sour{"{0}"}:sin:per {period_s}')
 
-    def _set_polarity(self, inverted):
+    def _set_polarity(self, inverted: bool) -> None:
         if inverted:
             self._write_channel('sour{0}:sin:pol inv')
         else:
             self._write_channel('sour{0}:sin:pol norm')
 
-    def _set_triggering(self):
+    def _set_triggering(self) -> None:
         self._write_channel('sour{0}:sin:trig:sour bus')
         self._make_ready_to_start('sin')
 
@@ -718,9 +723,10 @@ class Sine_Context(_Waveform_Context):
 
 class Triangle_Context(_Waveform_Context):
 
-    def __init__(self, channel: 'QDac2Channel',
-                 frequency_Hz, repetitions, period_s, duty_cycle_percent,
-                 inverted, span_V, offset_V, slew_V_s):
+    def __init__(self, channel: 'QDac2Channel', frequency_Hz: Optional[float],
+                 repetitions: int, period_s: Optional[float],
+                 duty_cycle_percent: float, inverted: bool, span_V: float,
+                 offset_V: float, slew_V_s: Optional[float]):
         super().__init__(channel)
         self._repetitions = repetitions
         self._write_channel('sour{0}:tri:trig:sour hold')
@@ -750,13 +756,14 @@ class Triangle_Context(_Waveform_Context):
         """
         return int(self._ask_channel('sour{0}:tri:ncl?'))
 
-    def _set_frequency(self, frequency_Hz, period_s):
+    def _set_frequency(self, frequency_Hz: Optional[float],
+                       period_s: Optional[float]) -> None:
         if frequency_Hz:
             return self._write_channel(f'sour{"{0}"}:tri:freq {frequency_Hz}')
         if period_s:
             self._write_channel(f'sour{"{0}"}:tri:per {period_s}')
 
-    def _set_type(self, kind):
+    def _set_type(self, kind: bool) -> None:
         if kind == 'positive':
             self._write_channel('sour{0}:tri:typ pos')
         elif kind == 'negative':
@@ -764,13 +771,13 @@ class Triangle_Context(_Waveform_Context):
         else:
             self._write_channel('sour{0}:tri:typ symm')
 
-    def _set_polarity(self, inverted):
+    def _set_polarity(self, inverted: bool) -> None:
         if inverted:
             self._write_channel('sour{0}:tri:pol inv')
         else:
             self._write_channel('sour{0}:tri:pol norm')
 
-    def _set_triggering(self):
+    def _set_triggering(self) -> None:
         self._write_channel('sour{0}:tri:trig:sour bus')
         self._make_ready_to_start('tri')
 
@@ -833,8 +840,9 @@ class Triangle_Context(_Waveform_Context):
 
 class Awg_Context(_Waveform_Context):
 
-    def __init__(self, channel: 'QDac2Channel',
-                 trace_name, repetitions, scale, offset_V, slew_V_s):
+    def __init__(self, channel: 'QDac2Channel', trace_name: str,
+                 repetitions: int, scale: float, offset_V: float,
+                 slew_V_s: Optional[float]):
         super().__init__(channel)
         self._repetitions = repetitions
         self._write_channel('sour{0}:awg:trig:sour hold')
@@ -862,7 +870,7 @@ class Awg_Context(_Waveform_Context):
         """
         return int(self._ask_channel('sour{0}:awg:ncl?'))
 
-    def _set_triggering(self):
+    def _set_triggering(self) -> None:
         self._write_channel('sour{0}:awg:trig:sour bus')
         self._make_ready_to_start('awg')
 
@@ -925,8 +933,9 @@ class Awg_Context(_Waveform_Context):
 
 class Measurement_Context(_Channel_Context):
 
-    def __init__(self, channel: 'QDac2Channel',
-                 delay_s, repetitions, current_range, aperture_s, nplc):
+    def __init__(self, channel: 'QDac2Channel', delay_s: float,
+                 repetitions: int, current_range: str,
+                 aperture_s: Optional[float], nplc: Optional[int]):
         super().__init__(channel)
         self._trigger_start: Optional[QDac2Trigger_Context] = None
         #self._write_channel('sens{0}:trig:sour hold')
@@ -945,7 +954,7 @@ class Measurement_Context(_Channel_Context):
         self._switch_to_immediate_trigger()
         self._write_channel('sens{0}:init')
 
-    def _switch_to_immediate_trigger(self):
+    def _switch_to_immediate_trigger(self) -> None:
         self._write_channel('sens{0}:init:cont off')
         self._write_channel('sens{0}:trig:sour imm')
 
@@ -1011,12 +1020,13 @@ class Measurement_Context(_Channel_Context):
         """
         return float(self._ask_channel('sens{0}:data:last?'))
 
-    def _set_aperture(self, aperture_s, nplc):
+    def _set_aperture(self, aperture_s: Optional[float], nplc: Optional[int]
+                     ) -> None:
         if aperture_s:
             return self._write_channel(f'sens{"{0}"}:aper {aperture_s}')
         self._write_channel(f'sens{"{0}"}:nplc {nplc}')
 
-    def _set_triggering(self):
+    def _set_triggering(self) -> None:
         self._write_channel('sens{0}:trig:sour bus')
         self._write_channel('sens{0}:init')
 
@@ -1239,8 +1249,10 @@ class QDac2Channel(InstrumentChannel):
         return comma_sequence_to_list_of_floats(
             self.ask_channel('sens{0}:data:rem?'))
 
-    def measurement(self, delay_s=0.0, repetitions=1, current_range='high',
-                    aperture_s=None, nplc=None
+    def measurement(self, delay_s: float = 0.0, repetitions: int = 1,
+                    current_range: str = 'high',
+                    aperture_s: Optional[float] = None,
+                    nplc: Optional[int] = None
                     ) -> Measurement_Context:
         """Set up a sequence of current measurements
 
@@ -1265,9 +1277,9 @@ class QDac2Channel(InstrumentChannel):
         return Measurement_Context(self, delay_s, repetitions, current_range,
                                    aperture_s, nplc)
 
-    def output_mode(self, range='high', filter='high',
-                    low_current_limit_A=2e-7,
-                    high_current_limit_A=0.01
+    def output_mode(self, range: str = 'high', filter: str = 'high',
+                    low_current_limit_A: float = 2e-7,
+                    high_current_limit_A: float = 0.01
                     ) -> None:
         """Set the output voltage and current limits
 
@@ -1282,8 +1294,9 @@ class QDac2Channel(InstrumentChannel):
         self.low_current_limit_A(low_current_limit_A)
         self.high_current_limit_A(high_current_limit_A)
 
-    def dc_list(self, voltages: Sequence[float], repetitions=1, dwell_s=1e-03,
-                backwards=False, stepped=False
+    def dc_list(self, voltages: Sequence[float], repetitions: int = 1,
+                dwell_s: float = 1e-03, backwards: bool = False,
+                stepped: bool = False
                 ) -> List_Context:
         """Set up a DC-list generator
 
@@ -1320,9 +1333,11 @@ class QDac2Channel(InstrumentChannel):
         return Sweep_Context(self, start_V, stop_V, points, repetitions,
                              dwell_s, backwards, stepped)
 
-    def square_wave(self, frequency_Hz=None, period_s=None, repetitions=-1,
-                    duty_cycle_percent=50.0, kind='symmetric', inverted=False,
-                    span_V=0.2, offset_V=0.0, slew_V_s=None
+    def square_wave(self, frequency_Hz: Optional[float] = None,
+                    period_s: Optional[float] = None, repetitions: int = -1,
+                    duty_cycle_percent: float = 50.0, kind: str = 'symmetric',
+                    inverted: bool = False, span_V: float = 0.2,
+                    offset_V: float = 0.0, slew_V_s: Optional[float] = None
                     ) -> Square_Context:
         """Set up a square-wave generator
 
@@ -1351,8 +1366,10 @@ class QDac2Channel(InstrumentChannel):
                               duty_cycle_percent, kind, inverted, span_V,
                               offset_V, slew_V_s)
 
-    def sine_wave(self, frequency_Hz=None, period_s=None, repetitions=-1,
-                  inverted=False, span_V=0.2, offset_V=0, slew_V_s=None
+    def sine_wave(self, frequency_Hz: Optional[float] = None,
+                  period_s: Optional[float] = None, repetitions: int = -1,
+                  inverted: bool = False, span_V: float = 0.2,
+                  offset_V: float = 0.0, slew_V_s: Optional[float] = None
                   ) -> Sine_Context:
         """Set up a sine-wave generator
 
@@ -1378,9 +1395,11 @@ class QDac2Channel(InstrumentChannel):
         return Sine_Context(self, frequency_Hz, repetitions, period_s,
                             inverted, span_V, offset_V, slew_V_s)
 
-    def triangle_wave(self, frequency_Hz=None, period_s=None, repetitions=-1,
-                      duty_cycle_percent=50.0, inverted=False, span_V=0.2,
-                      offset_V=0.0, slew_V_s=None
+    def triangle_wave(self, frequency_Hz: Optional[float] = None,
+                      period_s: Optional[float] = None, repetitions: int = -1,
+                      duty_cycle_percent: float = 50.0, inverted: bool = False,
+                      span_V: float = 0.2, offset_V: float = 0.0,
+                      slew_V_s: Optional[float] = None
                       ) -> Triangle_Context:
         """Set up a triangle-wave generator
 
@@ -1408,8 +1427,9 @@ class QDac2Channel(InstrumentChannel):
                                 duty_cycle_percent, inverted, span_V,
                                 offset_V, slew_V_s)
 
-    def arbitrary_wave(self, trace_name: str, repetitions=1, scale=1.0,
-                       offset_V=0.0, slew_V_s=None
+    def arbitrary_wave(self, trace_name: str, repetitions: int = 1,
+                       scale: float = 1.0, offset_V: float = 0.0,
+                       slew_V_s: Optional[float] = None
                        ) -> Awg_Context:
         """Set up an arbitrary-wave generator
 
@@ -1426,7 +1446,7 @@ class QDac2Channel(InstrumentChannel):
         return Awg_Context(self, trace_name, repetitions, scale, offset_V,
                            slew_V_s)
 
-    def _set_fixed_voltage_immediately(self, v):
+    def _set_fixed_voltage_immediately(self, v) -> None:
         self.write(f'sour{self._channum}:volt:mode fix')
         self.write(f'sour{self._channum}:volt {v}')
 
@@ -1441,7 +1461,7 @@ class QDac2Channel(InstrumentChannel):
         """
         return self.ask(self._channel_message(cmd))
 
-    def write_channel(self, cmd: str):
+    def write_channel(self, cmd: str) -> None:
         """Inject channel number into SCPI command
 
         Arguments:
@@ -1449,7 +1469,7 @@ class QDac2Channel(InstrumentChannel):
         """
         self.write(self._channel_message(cmd))
 
-    def write_channel_floats(self, cmd: str, values: Sequence[float]):
+    def write_channel_floats(self, cmd: str, values: Sequence[float]) -> None:
         """Inject channel number and a list of values into SCPI command
 
         The values are appended to the end of the command.
@@ -1516,8 +1536,8 @@ class Trace_Context:
 class Sweep_2D_Context:
 
     def __init__(self, arrangement: 'Arrangement_Context', sweep: np.ndarray,
-                 start_sweep_trigger: str, inner_step_time_s: int,
-                 inner_step_trigger: str):
+                 start_sweep_trigger: Optional[str], inner_step_time_s: float,
+                 inner_step_trigger: Optional[str]):
         self._arrangement = arrangement
         self._sweep = sweep
         self._inner_step_trigger = inner_step_trigger
@@ -1545,28 +1565,28 @@ class Sweep_2D_Context:
         index = self._arrangement._gate_index(gate)
         return self._sweep[:, index]
 
-    def start(self):
+    def start(self) -> None:
         """Start the 2D sweep
         """
         self._ensure_qdac_setup()
         trigger = self._arrangement.get_trigger_by_name(self._start_trigger_name)
         self._arrangement._qdac.trigger(trigger)
 
-    def _allocate_triggers(self, start_sweep):
+    def _allocate_triggers(self, start_sweep: Optional[str]) -> None:
         if not start_sweep:
             # Use a random, unique name
             start_sweep = uuid.uuid4().hex
         self._arrangement._allocate_internal_triggers([start_sweep])
         self._start_trigger_name = start_sweep
 
-    def _ensure_qdac_setup(self):
+    def _ensure_qdac_setup(self) -> None:
         if self._qdac_ready:
             return self._make_ready_to_start()
         self._route_inner_trigger()
         self._send_lists_to_qdac()
         self._qdac_ready = True
 
-    def _route_inner_trigger(self):
+    def _route_inner_trigger(self) -> None:
         if not self._inner_step_trigger:
             return
         trigger = self._arrangement.get_trigger_by_name(self._inner_step_trigger)
@@ -1576,12 +1596,12 @@ class Sweep_2D_Context:
         channel.write_channel(f'sour{"{0}"}:dc:mark:sst '
                               f'{_trigger_context_to_value(trigger)}')
 
-    def _get_channel(self, gate_index) -> 'QDac2Channel':
+    def _get_channel(self, gate_index: int) -> 'QDac2Channel':
         channel_number = self._arrangement._channels[gate_index]
         qdac = self._arrangement._qdac
         return qdac.channel(channel_number)
 
-    def _send_lists_to_qdac(self):
+    def _send_lists_to_qdac(self) -> None:
         for gate_index in range(self._arrangement.shape):
             self._send_list_to_qdac(gate_index, self._sweep[:, gate_index])
 
@@ -1716,8 +1736,9 @@ class Arrangement_Context:
 
     def virtual_sweep2d(self, inner_gate: str, inner_voltages: Sequence[float],
                         outer_gate: str, outer_voltages: Sequence[float],
-                        start_sweep_trigger=None, inner_step_time_s=1e-5,
-                        inner_step_trigger=None
+                        start_sweep_trigger: Optional[str] = None,
+                        inner_step_time_s: float = 1e-5,
+                        inner_step_trigger: Optional[str] = None
                         ) -> Sweep_2D_Context:
         """Sweep two gates to create a 2D sweep
 
@@ -1738,8 +1759,10 @@ class Arrangement_Context:
         return Sweep_2D_Context(self, sweep, start_sweep_trigger,
                                 inner_step_time_s, inner_step_trigger)
 
-    def _calculate_sweep_values(self, inner_gate, inner_voltages, outer_gate,
-                                outer_voltages):
+    def _calculate_sweep_values(self, inner_gate: str,
+                                inner_voltages: Sequence[float],
+                                outer_gate: str,
+                                outer_voltages: Sequence[float]) -> np.ndarray:
         original_fast_voltage = self.virtual_voltage(inner_gate)
         original_slow_voltage = self.virtual_voltage(outer_gate)
         sweep = []
@@ -1752,7 +1775,7 @@ class Arrangement_Context:
         self.set_virtual_voltage(outer_gate, original_slow_voltage)
         return np.array(sweep)
 
-    def _gate_index(self, gate) -> int:
+    def _gate_index(self, gate: str) -> int:
         return self._gates[gate]
 
     def _allocate_triggers(self, internal_triggers: Optional[Sequence[str]],
@@ -1878,7 +1901,7 @@ class QDac2(VisaInstrument):
         self._set_up_internal_triggers()
 
     def connect_external_trigger(self, port: int, trigger: QDac2Trigger_Context,
-                                 width_s=1e-6
+                                 width_s: float = 1e-6
                                  ) -> None:
         """Route internal trigger to external trigger
 
@@ -1960,22 +1983,22 @@ class QDac2(VisaInstrument):
                f'-{mac[11:13]}'
 
     def arrange(self, gates: Dict[str, int],
-                output_triggers: Optional[Dict[str, int]]=None,
-                internal_triggers: Optional[Sequence[str]]=None
+                output_triggers: Optional[Dict[str, int]] = None,
+                internal_triggers: Optional[Sequence[str]] = None
                 ) -> Arrangement_Context:
         """An arrangement of gates and triggers for virtual 2D sweeps
 
         Each gate corresponds to a particular output channel and each trigger
         corresponds to a particular external or internal trigger.  After
-        initialisation of the arrangement, gates and triggers can only be referred
-        to by name.
+        initialisation of the arrangement, gates and triggers can only be
+        referred to by name.
 
-        The voltages that will appear on each gate depends not only on the specified
-        virtual voltage, but also on a correction matrix.
+        The voltages that will appear on each gate depends not only on the
+        specified virtual voltage, but also on a correction matrix.
 
-        Initially, the gates are assumed to not influence each other, which means
-        that the correction matrix is the identity matrix, ie. the row for each gate
-        has a value of [0, ..., 0, 1, 0, ..., 0].
+        Initially, the gates are assumed to not influence each other, which
+        means that the correction matrix is the identity matrix, ie. the row for
+        each gate has a value of [0, ..., 0, 1, 0, ..., 0].
 
         Args:
             gates (Gates): Name/channel pairs
@@ -1985,7 +2008,8 @@ class QDac2(VisaInstrument):
         Returns:
             Arrangement_Context: Description
         """
-        return Arrangement_Context(self, gates, output_triggers, internal_triggers)
+        return Arrangement_Context(self, gates, output_triggers,
+                                   internal_triggers)
 
     # -----------------------------------------------------------------------
     # Instrument-wide functions
@@ -2109,7 +2133,8 @@ class QDac2(VisaInstrument):
                              f'least {least_compatible_fw}')
 
     def _set_up_channels(self) -> None:
-        channels = ChannelList(self, 'Channels', QDac2Channel, snapshotable=False)
+        channels = ChannelList(self, 'Channels', QDac2Channel,
+                               snapshotable=False)
         for i in range(1, 24 + 1):
             name = f'ch{i:02}'
             channel = QDac2Channel(self, name, i)
@@ -2123,7 +2148,7 @@ class QDac2(VisaInstrument):
                                snapshotable=False)
         for i in range(1, 5 + 1):
             name = f'ext{i}'
-            trigger = QDac2ExternalTrigger(self, QDac2ExternalTrigger, i)
+            trigger = QDac2ExternalTrigger(self, str(QDac2ExternalTrigger), i)
             self.add_submodule(name, trigger)
             triggers.append(trigger)
         triggers.lock()
