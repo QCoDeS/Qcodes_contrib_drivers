@@ -1,7 +1,7 @@
 import logging
 from functools import partial
 from threading import RLock
-from typing import List, Union, Optional, Dict
+from typing import List, Union, Optional, Dict, Any
 from qcodes import validators as validator
 
 from .SD_Module import SD_Module, result_parser, keysightSD1, is_sd1_3x
