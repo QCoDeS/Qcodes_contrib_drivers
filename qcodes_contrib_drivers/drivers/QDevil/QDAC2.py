@@ -7,7 +7,7 @@ from qcodes.utils import validators
 from typing import Any, NewType, Sequence, List, Dict, Tuple, Optional
 from packaging.version import parse
 
-# Version 0.11.1
+# Version 0.11.2
 #
 # Guiding principles for this driver for QDevil QDAC-II
 # -----------------------------------------------------
@@ -33,6 +33,14 @@ from packaging.version import parse
 #    (*TRG) so that it is possible to synchronise several generators without
 #    further set up; which also eliminates the need for special cases for the
 #    bus trigger.
+
+
+#
+# Future improvements
+# -------------------
+#
+# - Detect and handle mixing of internal and external triggers (_trigger).
+#
 
 error_ambiguous_wave = 'Only one of frequency_Hz or period_s can be ' \
                        'specified for a wave form'
@@ -193,8 +201,7 @@ class _Dc_Context(_Channel_Context):
     def __init__(self, channel: 'QDac2Channel'):
         super().__init__(channel)
         self._write_channel('sour{0}:dc:trig:sour hold')
-        # TODO: should be sum type of Internal/External?  rename to start_on
-        self._trigger_start: Optional[QDac2Trigger_Context] = None
+        self._trigger: Optional[QDac2Trigger_Context] = None
         self._marker_start: Optional[QDac2Trigger_Context] = None
         self._marker_end: Optional[QDac2Trigger_Context] = None
         self._marker_step_start: Optional[QDac2Trigger_Context] = None
@@ -206,7 +213,7 @@ class _Dc_Context(_Channel_Context):
         Args:
             trigger (QDac2Trigger_Context): trigger that will start DC
         """
-        self._trigger_start = trigger
+        self._trigger = trigger
         internal = _trigger_context_to_value(trigger)
         self._write_channel(f'sour{"{0}"}:dc:trig:sour int{internal}')
         self._make_ready_to_start()
@@ -217,8 +224,7 @@ class _Dc_Context(_Channel_Context):
         Args:
             trigger (ExternalInput): trigger that will start DC generator
         """
-        # TODO: Internal/External?  Deallocate internal
-        self._trigger_start = None
+        self._trigger = None
         self._write_channel(f'sour{"{0}"}:dc:trig:sour ext{trigger}')
         self._make_ready_to_start()
 
@@ -284,10 +290,9 @@ class _Dc_Context(_Channel_Context):
         self._make_ready_to_start()
 
     def _start(self, description: str) -> None:
-        if self._trigger_start:
+        if self._trigger:
             self._make_ready_to_start()
-            # TODO: Internal/External?
-            return self._write_channel(f'tint {self._trigger_start.value}')
+            return self._write_channel(f'tint {self._trigger.value}')
         self._switch_to_immediate_trigger()
         self._write_channel('sour{0}:dc:init')
 
@@ -430,29 +435,27 @@ class _Waveform_Context(_Channel_Context):
 
     def __init__(self, channel: 'QDac2Channel'):
         super().__init__(channel)
-        self._trigger_start: Optional[QDac2Trigger_Context] = None
+        self._trigger: Optional[QDac2Trigger_Context] = None
         self._marker_start: Optional[QDac2Trigger_Context] = None
         self._marker_end: Optional[QDac2Trigger_Context] = None
         self._marker_period_start: Optional[QDac2Trigger_Context] = None
         self._marker_period_end: Optional[QDac2Trigger_Context] = None
 
     def _start(self, wave_kind: str, description: str) -> None:
-        if self._trigger_start:
+        if self._trigger:
             self._make_ready_to_start(wave_kind)
-            # TODO: Internal/External?
-            return self._write_channel(f'tint {self._trigger_start.value}')
+            return self._write_channel(f'tint {self._trigger.value}')
         self._switch_to_immediate_trigger(wave_kind)
         self._write_channel(f'sour{"{0}"}:{wave_kind}:init')
 
     def _start_on(self, trigger: QDac2Trigger_Context, wave_kind: str) -> None:
-        self._trigger_start = trigger
+        self._trigger = trigger
         internal = _trigger_context_to_value(trigger)
         self._write_channel(f'sour{"{0}"}:{wave_kind}:trig:sour int{internal}')
         self._make_ready_to_start(wave_kind)
 
     def _start_on_external(self, trigger: ExternalInput, wave_kind: str) -> None:
-        # TODO: Internal/External?
-        self._trigger_start = None
+        self._trigger = None
         self._write_channel(f'sour{"{0}"}:{wave_kind}:trig:sour ext{trigger}')
         self._make_ready_to_start(wave_kind)
 
@@ -937,7 +940,7 @@ class Measurement_Context(_Channel_Context):
                  repetitions: int, current_range: str,
                  aperture_s: Optional[float], nplc: Optional[int]):
         super().__init__(channel)
-        self._trigger_start: Optional[QDac2Trigger_Context] = None
+        self._trigger: Optional[QDac2Trigger_Context] = None
         self._write_channel(f'sens{"{0}"}:del {delay_s}')
         self._write_channel(f'sens{"{0}"}:rang {current_range}')
         self._set_aperture(aperture_s, nplc)
@@ -947,9 +950,8 @@ class Measurement_Context(_Channel_Context):
     def start(self) -> None:
         """Start a current measurement
         """
-        # TODO: complain if external trigger
-        if self._trigger_start:
-            return self._write_channel(f'tint {self._trigger_start.value}')
+        if self._trigger:
+            return self._write_channel(f'tint {self._trigger.value}')
         self._switch_to_immediate_trigger()
         self._write_channel('sens{0}:init')
 
@@ -963,7 +965,7 @@ class Measurement_Context(_Channel_Context):
         Args:
             trigger (QDac2Trigger_Context): trigger that will start measurement
         """
-        self._trigger_start = trigger
+        self._trigger = trigger
         internal = _trigger_context_to_value(trigger)
         self._write_channel(f'sens{"{0}"}:trig:sour int{internal}')
         self._write_channel(f'sens{"{0}"}:init:cont on')
@@ -1794,7 +1796,6 @@ class Arrangement_Context:
             self._external_triggers[name] = port
             trigger = self._qdac.allocate_trigger()
             self._qdac.connect_external_trigger(port, trigger)
-            # TODO: check for conflicts with internal names
             self._internal_triggers[name] = trigger
 
     def _free_triggers(self) -> None:
