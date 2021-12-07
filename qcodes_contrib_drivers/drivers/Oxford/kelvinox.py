@@ -9,7 +9,7 @@
 
 
 from time import sleep
-import visa
+import pyvisa
 import logging
 import numpy
 from qcodes import VisaInstrument
@@ -48,8 +48,8 @@ class OxfordInstruments_Kelvinox_IGH(VisaInstrument):
         self._address = address
         self._number = number
         self._values = {}
-        self.visa_handle.set_visa_attribute(visa.constants.VI_ATTR_ASRL_STOP_BITS,
-                                            visa.constants.VI_ASRL_STOP_TWO)
+        self.visa_handle.set_visa_attribute(pyvisa.constants.VI_ATTR_ASRL_STOP_BITS,
+                                            pyvisa.constants.VI_ASRL_STOP_TWO)
         self._valve_map = {
             1: '9',
             2: '8',
@@ -159,7 +159,7 @@ class OxfordInstruments_Kelvinox_IGH(VisaInstrument):
             message (str)
         """
         bytes_in_buffer = self.visa_handle.bytes_in_buffer
-        with(self.visa_handle.ignore_warning(visa.constants.VI_SUCCESS_MAX_CNT)):
+        with(self.visa_handle.ignore_warning(pyvisa.constants.VI_SUCCESS_MAX_CNT)):
             mes = self.visa_handle.visalib.read(
                 self.visa_handle.session, bytes_in_buffer)
         mes = str(mes[0].decode())

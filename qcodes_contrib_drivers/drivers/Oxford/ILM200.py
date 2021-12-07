@@ -9,7 +9,7 @@
 
 
 from time import sleep
-import visa
+import pyvisa
 import logging
 from qcodes import VisaInstrument
 
@@ -43,8 +43,8 @@ class OxfordInstruments_ILM200(VisaInstrument):
         logging.debug(__name__ + ' : Initializing instrument')
         super().__init__(name, address, **kwargs)
 
-        self.visa_handle.set_visa_attribute(visa.constants.VI_ATTR_ASRL_STOP_BITS,
-                                            visa.constants.VI_ASRL_STOP_TWO)
+        self.visa_handle.set_visa_attribute(pyvisa.constants.VI_ATTR_ASRL_STOP_BITS,
+                                            pyvisa.constants.VI_ASRL_STOP_TWO)
         self._address = address
         self._number = number
         self._values = {}
@@ -102,7 +102,7 @@ class OxfordInstruments_ILM200(VisaInstrument):
         # of bytes in the buffer
         bytes_in_buffer = self.visa_handle.bytes_in_buffer
         # a workaround for a timeout error in the pyvsia read_raw() function
-        with(self.visa_handle.ignore_warning(visa.constants.VI_SUCCESS_MAX_CNT)):
+        with(self.visa_handle.ignore_warning(pyvisa.constants.VI_SUCCESS_MAX_CNT)):
             mes = self.visa_handle.visalib.read(
                 self.visa_handle.session, bytes_in_buffer)
         # cannot be done on same line for some reason

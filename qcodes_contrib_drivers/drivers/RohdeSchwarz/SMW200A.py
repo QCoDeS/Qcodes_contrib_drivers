@@ -1042,7 +1042,7 @@ class PhaseModulation(InstrumentChannel):
                            set_cmd=f'SOUR{self.hwchan}:' + 'PM:RAT {}',
                            get_cmd=f'SOUR{self.hwchan}:' + 'PM:RAT?',
                            vals=vals.Numbers(0, 100),
-                           unti='%',
+                           unit='%',
                            docstring="Sets the deviation ratio (path2 to path1) in percent.")
 
         self.add_parameter('sensitivity',
@@ -1129,8 +1129,7 @@ class LFOutputSweep(InstrumentChannel):
                            docstring="Waveform shape for sweep. Allowed values"
                                      " are 'SAWTOOTH' and 'TRIANGLE'")
 
-        self.add_parameter('execute',
-                           label='Executes one RF level sweep',
+        self.add_function('execute',
                            call_cmd=f'SOUR{self.hwchan}:LFO:SWE:EXEC',
                            docstring="Executes one RF level sweep. Use this without any ( )")
 
@@ -1582,8 +1581,7 @@ class OutputLevelSweep(InstrumentChannel):
                            docstring="Waveform shape for sweep. Valid are 'SAWTOOTH' and"
                                      " 'TRIANGLE'.")
 
-        self.add_parameter('execute',
-                           label='Executes one RF level sweep',
+        self.add_function('execute',
                            call_cmd=f'SOUR{self.hwchan}:SWE:POW:EXEC',
                            docstring="Executes one RF level sweep. Use no braces () here!")
 
@@ -1606,8 +1604,7 @@ class OutputLevelSweep(InstrumentChannel):
                            docstring="(ReadOnly) Get the current sweep state. Return"
                                      " values are 'ON' or 'OFF'.")
 
-        self.add_parameter('reset',
-                           label='Reset the sweep',
+        self.add_function('reset',
                            call_cmd=f'SOUR{self.hwchan}:SWE:RES',
                            docstring="Resets all active sweeps to the starting point."
                                      " Use no braces () here!")
@@ -1695,8 +1692,7 @@ class OutputFrequencySweep(InstrumentChannel):
                            docstring="Waveform shape for sweep. Valid values are 'SAWTOOTH' or"
                                      " 'TRIANGLE'.")
 
-        self.add_parameter('execute',
-                           label='Executes one RF frequency sweep',
+        self.add_function('execute',
                            call_cmd=f'SOUR{self.hwchan}:SWE:EXEC',
                            docstring="Executes one RF frequency sweep. Use no braces () here!")
 
@@ -1741,8 +1737,7 @@ class OutputFrequencySweep(InstrumentChannel):
                                      " of the output channel and will be read during the"
                                      " set lin_step command.")
 
-        self.add_parameter('reset',
-                           label='Reset the sweep',
+        self.add_function('reset',
                            call_cmd=f'SOUR{self.hwchan}:SWE:RES',
                            docstring="Resets all active sweeps to the starting point."
                                      " Use no braces () here!")

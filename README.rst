@@ -23,6 +23,11 @@ Install the contrib drivers with ``pip``
 
   pip install qcodes_contrib_drivers
 
+Drivers documentation
+*********************
+
+The documentations of the drivers in this repository can be read `here <https://qcodes.github.io/Qcodes_contrib_drivers>`_.
+
 Contributing
 ############
 
@@ -41,3 +46,9 @@ consistency.
 For general information about writing drivers and how to write tests refer to the `QCoDeS documentation <http://qcodes.github.io/Qcodes/>`_.
 Especially the examples `here <https://qcodes.github.io/Qcodes/examples/index.html#writing-drivers>`__
 are useful.
+
+LICENSE
+#######
+
+QCoDeS-Contrib-drivers is licensed under the MIT license except the ``Tektronix AWG520`` and
+``Tektronix Keithley 2700`` drivers which are licensed under the GPL 2 or later License.
