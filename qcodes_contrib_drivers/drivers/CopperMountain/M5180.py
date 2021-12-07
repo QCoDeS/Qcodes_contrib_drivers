@@ -3,7 +3,7 @@
 # Simon Zihlmannr <zihlmann.simon@gmail.com>, february/march 2021
 import logging
 import numpy as np
-from typing import Tuple, Optional
+from typing import Tuple, Optional, Any
 
 from qcodes import VisaInstrument
 from qcodes.utils.validators import Numbers, Enum, Ints
@@ -27,6 +27,7 @@ class FrequencySweepMagPhase(MultiParameter):
         stop: float,
         npts: int,
         instrument: "M5180",
+        **kwargs: Any,
         ) -> None:
         """
         Linear frequency sweep that returns magnitude and phase for a single
@@ -60,6 +61,7 @@ class FrequencySweepMagPhase(MultiParameter):
                 (f"{instrument.short_name}_frequency",),
             ),
             shapes=((npts,), (npts,),),
+            **kwargs,
         )
         self.set_sweep(start, stop, npts)
 
@@ -84,13 +86,14 @@ class FrequencySweepMagPhase(MultiParameter):
         assert isinstance(self.instrument, M5180)
         self.instrument.write('CALC1:PAR:COUN 1') # 1 trace
         self.instrument.write('CALC1:PAR1:DEF {}'.format(self.name))
-        self.instrument.write('CALC1:TRAC1:FORM SMITH')  # Trace format
         self.instrument.trigger_source('bus') # set the trigger to bus
         self.instrument.write('TRIG:SEQ:SING') # Trigger a single sweep
         self.instrument.ask('*OPC?') # Wait for measurement to complete
 
         # get data from instrument
+        self.instrument.write('CALC1:TRAC1:FORM SMITH')  # ensure correct format
         sxx_raw = self.instrument.ask("CALC1:TRAC1:DATA:FDAT?")
+        self.instrument.write('CALC1:TRAC1:FORM MLOG')
 
         # Get data as numpy array
         sxx = np.fromstring(sxx_raw, dtype=float, sep=',')
@@ -113,6 +116,7 @@ class PointMagPhase(MultiParameter):
         stop: float,
         npts: int,
         instrument: "M5180",
+        **kwargs: Any,
         ) -> None:
         """Magnitude and phase measurement of a single point at start
         frequency.
@@ -146,6 +150,7 @@ class PointMagPhase(MultiParameter):
                 (f"{instrument.short_name}_frequency",),
             ),
             shapes=((npts,), (npts,),),
+            **kwargs,
         )
         self.set_sweep(start, stop, npts)
 
@@ -170,13 +175,14 @@ class PointMagPhase(MultiParameter):
         assert isinstance(self.instrument, M5180)
         self.instrument.write('CALC1:PAR:COUN 1') # 1 trace
         self.instrument.write('CALC1:PAR1:DEF {}'.format(self.name[-3:]))
-        self.instrument.write('CALC1:TRAC1:FORM SMITH')  # Trace format
         self.instrument.trigger_source('bus') # set the trigger to bus
         self.instrument.write('TRIG:SEQ:SING') # Trigger a single sweep
         self.instrument.ask('*OPC?') # Wait for measurement to complete
 
         # get data from instrument
+        self.instrument.write('CALC1:TRAC1:FORM SMITH')  # ensure correct format
         sxx_raw = self.instrument.ask("CALC1:TRAC1:DATA:FDAT?")
+        self.instrument.write('CALC1:TRAC1:FORM MLOG')
 
         # Get data as numpy array
         sxx = np.fromstring(sxx_raw, dtype=float, sep=',')
@@ -198,15 +204,17 @@ class M5180(VisaInstrument):
                        timeout    : int=100000,
                        **kwargs):
         """
-        QCoDeS driver for the VNA S5180 from Copper Mountain
+        QCoDeS driver for the VNA S5180 from Copper Mountain.
+        This driver only uses one channel.
 
         Args:
-        name (str): Name of the instrument.
-        address (str): Address of the instrument.
-        terminator (str, optional, default "\n"): Terminator character of
-            the string reply.
-        timeout (int, optional, default 100000): VISA timeout is set purposely
-            to a long time to allow long spectrum measurement.
+            name (str): Name of the instrument.
+            address (str): Address of the instrument.
+            terminator (str): Terminator character of
+                the string reply. Optional, default ``"\\n"``
+            timeout (int): VISA timeout is set purposely
+                to a long time to allow long spectrum measurement.
+                Optional, default 100000
         """
 
         super().__init__(name       = name,
@@ -216,6 +224,9 @@ class M5180(VisaInstrument):
                          **kwargs)
 
         self.add_function('reset', call_cmd='*RST')
+
+        # set the unit of the electrical distance to meter
+        self.write('CALC1:CORR:EDEL:DIST:UNIT MET')
 
         self.add_parameter(name='output',
                            label='Output',
@@ -240,8 +251,10 @@ class M5180(VisaInstrument):
                            get_cmd='SENS1:BWID?',
                            set_cmd='SENS1:BWID {}',
                            unit='Hz',
-                           vals=Enum(1, 3, 1e1, 3e1, 1e2, 3e2,
-                                     1e3, 3e3, 1e4, 3e4, 1e5, 3e5))
+                           vals=Enum(*np.append(np.kron([1, 1.5, 2, 3, 5, 7],
+                                                       10 ** np.arange(5)),
+                                               np.kron([1, 1.5, 2, 3], 10 ** 5)
+                                               )))
 
         self.add_parameter('averages_enabled',
                            label='Averages Status',
@@ -266,13 +279,42 @@ class M5180(VisaInstrument):
                            unit='',
                            vals=Numbers(min_value=1, max_value=999))
 
+        self.add_parameter('electrical_delay',
+                           label='Electrical delay',
+                           get_cmd='CALC1:CORR:EDEL:TIME?',
+                           set_cmd='CALC1:CORR:EDEL:TIME {}',
+                           get_parser=float,
+                           set_parser=float,
+                           unit='s',
+                           vals=Numbers(-10, 10))
+
+        self.add_parameter('electrical_distance',
+                           label='Electrical distance',
+                           get_cmd='CALC1:CORR:EDEL:DIST?',
+                           set_cmd='CALC1:CORR:EDEL:DIST {}',
+                           get_parser=float,
+                           set_parser=float,
+                           unit='m',
+                           vals=Numbers())
+
+        self.add_parameter('clock_source',
+                           label='Clock source',
+                           get_cmd='SENSe1:ROSCillator:SOURce?',
+                           set_cmd='SENSe1:ROSCillator:SOURce {}',
+                           get_parser=str,
+                           set_parser=str,
+                           vals = Enum('int', 'Int', 'INT',
+                                       'internal', 'Internal', 'INTERNAL',
+                                       'ext', 'Ext', 'EXT',
+                                       'external', 'External', 'EXTERNAL'))
+
         self.add_parameter(name='start',
                            label='Start Frequency',
                            get_parser=float,
                            get_cmd='SENS1:FREQ:STAR?',
                            set_cmd=self._set_start,
                            unit='Hz',
-                           vals=Numbers(min_value=100e3,
+                           vals=Numbers(min_value=300e3,
                                         max_value=18e9))
 
         self.add_parameter(name='stop',
@@ -281,7 +323,7 @@ class M5180(VisaInstrument):
                            get_cmd='SENS1:FREQ:STOP?',
                            set_cmd=self._set_stop,
                            unit='Hz',
-                           vals=Numbers(min_value=100e3,
+                           vals=Numbers(min_value=300e3+1,
                                         max_value=18e9))
 
         self.add_parameter(name='center',
@@ -494,10 +536,10 @@ class M5180(VisaInstrument):
 
         Returns:
             Tuple[np.ndarray]: frequency [GHz],
-                               s11 magnitude [dB], s11 phase [rad],
-                               s12 magnitude [dB], s12 phase [rad],
-                               s21 magnitude [dB], s21 phase [rad],
-                               s22 magnitude [dB], s22 phase [rad]
+            s11 magnitude [dB], s11 phase [rad],
+            s12 magnitude [dB], s12 phase [rad],
+            s21 magnitude [dB], s21 phase [rad],
+            s22 magnitude [dB], s22 phase [rad]
         """
 
         self.write('CALC1:PAR:COUN 4') # 4 trace
