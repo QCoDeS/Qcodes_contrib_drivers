@@ -1,7 +1,7 @@
 import logging
 from functools import partial
 from threading import RLock
-from typing import List, Union, Optional, Dict
+from typing import List, Union, Optional, Dict, Any
 from qcodes import validators as validator
 
 from .SD_Module import SD_Module, result_parser, keysightSD1, is_sd1_3x
@@ -316,6 +316,34 @@ class SD_AWG(SD_Module):
         result = self.awg.triggerIOwrite(value)
         value_name = f'set io trigger output to {value}'
         result_parser(result, value_name, verbose)
+
+    def set_marker_config(self, channel_number: int, markerMode: int,
+                          trgPXImask: int, trgIOmask: int, markerValue: int, syncMode: int, length: int,
+                          delay: int) -> Any:
+        """
+        Configures the marker output from the trigger port
+
+        Args:
+            channel_number : trigger channel number
+            markerMode : 0 disabled, 1 on start event, 2 On first sample of waveform (after starting delay), 3 on every cycle
+            trgPXImask : Mask to select PXI triggers to use
+            trgIOmask : Mask to select front panel triggers to use
+            markerValue : 0 = marker signal is default low, pulses high. 1 = marker signal is default high, pulses low
+            syncMode : 0 = syncronized to CLKsys. 1 = syncronized to 10MHz clock
+            length : Marker pulse length (length * clock period * 5)
+            delay : Delay to add before pulse (delay * clock period * 5)
+        """
+        result = self.awg.AWGqueueMarkerConfig(
+            nAWG=channel_number,
+            markerMode=markerMode,
+            trgPXImask=trgPXImask,
+            trgIOmask=trgIOmask,
+            value=markerValue,
+            syncMode=syncMode,
+            length=length,
+            delay=delay
+        )
+        return result
 
     #
     # The methods below are useful for controlling the device, but are not
