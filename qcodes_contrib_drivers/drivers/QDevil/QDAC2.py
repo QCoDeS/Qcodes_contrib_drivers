@@ -7,7 +7,7 @@ from qcodes.utils import validators
 from typing import Any, NewType, Sequence, List, Dict, Tuple, Optional
 from packaging.version import parse
 
-# Version 0.11.0
+# Version 0.11.1
 #
 # Guiding principles for this driver for QDevil QDAC-II
 # -----------------------------------------------------
@@ -938,7 +938,6 @@ class Measurement_Context(_Channel_Context):
                  aperture_s: Optional[float], nplc: Optional[int]):
         super().__init__(channel)
         self._trigger_start: Optional[QDac2Trigger_Context] = None
-        #self._write_channel('sens{0}:trig:sour hold')
         self._write_channel(f'sens{"{0}"}:del {delay_s}')
         self._write_channel(f'sens{"{0}"}:rang {current_range}')
         self._set_aperture(aperture_s, nplc)
