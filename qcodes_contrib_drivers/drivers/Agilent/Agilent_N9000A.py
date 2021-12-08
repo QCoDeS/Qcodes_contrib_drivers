@@ -17,14 +17,14 @@ class Agilent_N9000A(VisaInstrument):
                        address    : str,
                        terminator : str="\n",
                        **kwargs):
-        """
+        r"""
         QCoDeS driver for the power spectrum analyzer Agilent N9000A.
 
         Args:
-        name (str): Name of the instrument.
-        address (str): Address of the instrument.
-        terminator (str, optional, by default "\n"): Terminator character of
-            the string reply.
+            name (str): Name of the instrument.
+            address (str): Address of the instrument.
+            terminator (str, optional, by default ``"\n"``): Terminator character of
+                the string reply.
         """
 
 
