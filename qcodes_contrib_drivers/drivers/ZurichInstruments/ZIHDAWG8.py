@@ -126,10 +126,7 @@ class ZIHDAWG8(Instrument):
         data_dir = self.awg_module.getString('awgModule/directory')
         wave_dir = os.path.join(data_dir, "awg", "waves")
         if not os.path.isdir(wave_dir):
-            raise Exception(
-                "AWG module wave directory {} does not exist or is not a "
-                "directory".format(
-                    wave_dir))
+            raise Exception(f"AWG module wave directory {wave_dir} does not exist or is not a directory")
         wave_file = os.path.join(wave_dir, wave_name + '.wave')
 
         wave_array = zhinst.utils.convert_awg_waveform(waveform)
