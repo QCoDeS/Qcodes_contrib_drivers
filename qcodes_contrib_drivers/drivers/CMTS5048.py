@@ -91,7 +91,7 @@ class CMTS5048Trace(ArrayParameter):
         try:
             inst.visa_handle.read_termination = ''
             raw_resp = inst.visa_handle.read_raw()
-        fianllty:
+        finally:
             inst.visa_handle.read_termination = old_read_termination
 
         first_points = B''
