@@ -81,17 +81,18 @@ class CMTS5048Trace(ArrayParameter):
         """
         Return the trace
         """
-        
-        
         inst = self._instrument
 
         if not inst._traceready:
             raise TraceNotReady('Trace not ready. Please run prepare_trace.')
 
         inst.write('CALC:DATA:FDAT') 
-        inst.visa_handle.read_termination = ''
-        raw_resp = inst.visa_handle.read_raw()
-        inst.visa_handle.read_termination = '\n'
+        old_read_termination = inst.visa_handle.read_termination
+        try:
+            inst.visa_handle.read_termination = ''
+            raw_resp = inst.visa_handle.read_raw()
+        fianllty:
+            inst.visa_handle.read_termination = old_read_termination
 
         first_points = B''
         
@@ -231,7 +232,6 @@ class CMTS5048(VisaInstrument):
         """
 
         st = self.sweep_time.get_latest()
-        old_timeout = self.visa_handle.timeout
 
         if N not in range(1, 1000):
             raise ValueError('Can not run {} times.'.format(N) +
@@ -239,14 +239,10 @@ class CMTS5048(VisaInstrument):
 
         # set a longer timeout, to not timeout during the sweep
         new_timeout = 1000*st*N + 1000
-        self.visa_handle.timeout = new_timeout
 
-        log.debug('Making {} blocking sweeps.'.format(N) +
-                  ' Setting VISA timeout to {} s.'.format(new_timeout/1000))
-
-        self.ask('*OPC?;NUMG{}'.format(N))
-
-        self.visa_handle.timeout = old_timeout
+        with self.timeout.set_to(new_timeout):
+            log.debug(f'Making {N} blocking sweeps, setting VISA timeout to {new_timeout/1000} s.')
+            self.ask(f'*OPC?;NUMG{N}')
 
     def invalidate_trace(self, cmd: str,
                          value: Union[float, int, str]) -> None:
@@ -264,8 +260,9 @@ class CMTS5048(VisaInstrument):
         """
         set_cmd for the s_parameter parameter
         """
-        if param not in ['S11', 'S12', 'S21', 'S22']:
-            raise ValueError('Cannot set s-parameter to {}')
+        allowed_s_params = {'S11', 'S12', 'S21', 'S22'}
+        if param not in allowed_s_params:
+            raise ValueError(f"Cannot set s-parameter to {param}, should be one of {allowed_s_params}")
 
         # the trace labels changes
         self._traceready = False
@@ -297,15 +294,15 @@ class CMTS5048(VisaInstrument):
                        'Imag': 'IMAG',
                        'SWR': 'SWR'}
 
-        if fmt not in val_mapping.keys():
-            raise ValueError('Cannot set display_format to {}.'.format(fmt))
+        if fmt not in val_mapping:
+            raise ValueError(f"Cannot set display_format to {fmt}, should be one of {set(val_mapping.keys())}")
 
         self._traceready = False
         
         self.display_reference.unit = _unit_map[fmt]
         self.display_scale.unit = _unit_map[fmt] 
         
-        self.write(f"CALC:FORM \"{fmt}\"")
+        self.write(f'CALC:FORM "{val_mapping[fmt]}"')
 
     def _display_format_getter(self) -> str:
         """
@@ -322,10 +319,9 @@ class CMTS5048(VisaInstrument):
                        'SWR': 'SWR'}
 
         # keep asking until we find the currently used format
-        for cmd in val_mapping.keys():
-            resp = self.ask('CALC:FORM?'.format(cmd))
-            if resp in ['1', '1\n']:
+        for cmd in val_mapping:
+            resp = self.ask(f'CALC:FORM? "{cmd}"')
+            if resp in {'1', '1\n'}:
                 break
 
         return val_mapping[cmd]
-
