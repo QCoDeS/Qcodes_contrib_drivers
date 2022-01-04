@@ -3,6 +3,7 @@
 # Simon Zihlmannr <zihlmann.simon@gmail.com>, february/march 2021
 import logging
 import numpy as np
+import cmath, math
 from typing import Tuple, Optional, Any
 
 from qcodes import VisaInstrument
@@ -172,7 +173,7 @@ class PointMagPhase(MultiParameter):
         # Return the average of the trace, which will have "start" as
         # its setpoint
         sxx_mean = np.mean(sxx)
-        return self.instrument._db(sxx_mean), np.angle(sxx_mean)
+        return 20*math.log10(abs(sxx_mean)), cmath.phase(sxx_mean)
 
 
 class M5180(VisaInstrument):
