@@ -134,6 +134,7 @@ class PointMagPhase(MultiParameter):
                 f"{instrument.short_name} {name} phase",
             ),
             units=("dB", "rad"),
+            setpoints=((), (),),
             shapes=((), (),),
             **kwargs,
         )
