@@ -148,8 +148,8 @@ class PointMagPhase(MultiParameter):
         assert isinstance(self.instrument, M5180)
         # check that npts, start and stop fullfill requirements if point_check_sweep_first is True.
         if self.instrument.point_check_sweep_first:
-            if self.instrument.npts() != 1:
-                raise ValueError('Npts is not 1 but {}. Please set it to 1'.format(self.instrument.npts()))
+            if self.instrument.npts() != 2:
+                raise ValueError('Npts is not 2 but {}. Please set it to 2'.format(self.instrument.npts()))
             if self.instrument.stop() - self.instrument.start() != 1:
                 raise ValueError('Stop-start is not 1 Hz but {} Hz. Please adjust'
                                 'start or stop.'.format(self.instrument.stop()-self.instrument.start()))
@@ -296,7 +296,7 @@ class M5180(VisaInstrument):
                            set_cmd=self._set_start,
                            unit='Hz',
                            vals=Numbers(min_value=300e3,
-                                        max_value=18e9))
+                                        max_value=18e9-1))
 
         self.add_parameter(name='stop',
                            label='Stop Frequency',
@@ -313,8 +313,8 @@ class M5180(VisaInstrument):
                            get_cmd='SENS1:FREQ:CENT?',
                            set_cmd=self._set_center,
                            unit='Hz',
-                           vals=Numbers(min_value=100e3,
-                                        max_value=18e9))
+                           vals=Numbers(min_value=100e3+1,
+                                        max_value=18e9-1))
 
         self.add_parameter(name='span',
                            label='Frequency Span',
@@ -322,8 +322,8 @@ class M5180(VisaInstrument):
                            get_cmd='SENS1:FREQ:SPAN?',
                            set_cmd=self._set_span,
                            unit='Hz',
-                           vals=Numbers(min_value=100e3,
-                                        max_value=18e9))
+                           vals=Numbers(min_value=1,
+                                        max_value=18e9-1))
 
         self.add_parameter('npts',
                            label='Number of points',
