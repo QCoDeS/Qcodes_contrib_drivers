@@ -148,8 +148,8 @@ class PointMagPhase(MultiParameter):
         assert isinstance(self.instrument, M5180)
         # check that npts, start and stop fullfill requirements if point_check_sweep_first is True.
         if self.instrument.point_check_sweep_first:
-            if self.instrument.npts() != 1:
-                raise ValueError('Npts is not 1 but {}. Please set it to 1'.format(self.instrument.npts()))
+            if self.instrument.npts() != 2:
+                raise ValueError('Npts is not 2 but {}. Please set it to 2'.format(self.instrument.npts()))
             if self.instrument.stop() - self.instrument.start() != 1:
                 raise ValueError('Stop-start is not 1 Hz but {} Hz. Please adjust'
                                 'start or stop.'.format(self.instrument.stop()-self.instrument.start()))
