@@ -296,7 +296,7 @@ class M5180(VisaInstrument):
                            set_cmd=self._set_start,
                            unit='Hz',
                            vals=Numbers(min_value=300e3,
-                                        max_value=18e9))
+                                        max_value=18e9-1))
 
         self.add_parameter(name='stop',
                            label='Stop Frequency',
@@ -313,8 +313,8 @@ class M5180(VisaInstrument):
                            get_cmd='SENS1:FREQ:CENT?',
                            set_cmd=self._set_center,
                            unit='Hz',
-                           vals=Numbers(min_value=100e3,
-                                        max_value=18e9))
+                           vals=Numbers(min_value=100e3+1,
+                                        max_value=18e9-1))
 
         self.add_parameter(name='span',
                            label='Frequency Span',
@@ -322,8 +322,8 @@ class M5180(VisaInstrument):
                            get_cmd='SENS1:FREQ:SPAN?',
                            set_cmd=self._set_span,
                            unit='Hz',
-                           vals=Numbers(min_value=100e3,
-                                        max_value=18e9))
+                           vals=Numbers(min_value=1,
+                                        max_value=18e9-1))
 
         self.add_parameter('npts',
                            label='Number of points',
