@@ -1,0 +1,14 @@
+image: "python:3.8"
+
+before_script:
+  - python --version
+  - pip install mypy --quiet
+  - python -m mypy --version
+
+stages:
+  - Static Analysis
+
+mypy:
+  stage: Static Analysis
+  script:
+  - python -m mypy --ignore-missing-import -p qcodes_contrib_drivers
