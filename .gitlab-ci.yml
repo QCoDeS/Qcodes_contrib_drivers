@@ -11,4 +11,4 @@ stages:
 mypy:
   stage: Static Analysis
   script:
-  - python -m mypy --ignore-missing-import -p qcodes_contrib_drivers
+  - python -m mypy --ignore-missing-import --no-warn-unused-ignores -p qcodes_contrib_drivers
