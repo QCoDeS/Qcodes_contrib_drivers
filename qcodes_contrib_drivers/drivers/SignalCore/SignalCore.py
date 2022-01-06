@@ -1,8 +1,13 @@
 import ctypes
 import os
+import sys
 from typing import Dict, Optional
 from qcodes import Instrument
 from qcodes.utils.validators import Enum
+
+# The driver is currently working only on Windows platform
+if sys.platform!="win32":
+    raise EnvironmentError('Driver only worings on windows platform.')
 
 MAXDEVICES = 50
 MAXDESCRIPTORSIZE = 9
@@ -125,9 +130,9 @@ class SC5521A(Instrument):
         name (str): Name of the instrument.
         dll_path (str): Path towards the instrument DLL.
         """
-        
+
         (super().__init__)(name, **kwargs)
-        
+
         # Adapt the path to the computer language
         dll_path = os.path.join(os.environ['PROGRAMFILES'], dll_path)
 
@@ -146,40 +151,40 @@ class SC5521A(Instrument):
         if found:
             raise RuntimeError('Failed to find any device')
         self._open()
-        
+
         self.add_parameter(name='temperature',
                            docstring='Return the microwave source internal temperature.',
                            label='Device temperature',
                            unit='celsius',
                            get_cmd=self._get_temperature)
-        
+
         self.add_parameter(name='status',
                            docstring='.',
                            vals=Enum('on', 'off'),
                            set_cmd=self._set_status,
                            get_cmd=self._get_status)
-        
+
         self.add_parameter(name='power',
                            docstring='.',
                            label='Power',
                            unit='dbm',
                            set_cmd=self._set_power,
                            get_cmd=self._get_power)
-        
+
         self.add_parameter(name='frequency',
                            docstring='.',
                            label='Frequency',
                            unit='Hz',
                            set_cmd=self._set_frequency,
                            get_cmd=self._get_frequency)
-        
+
         self.add_parameter(name='rf_mode',
                            docstring='.',
                            vals=Enum('single_tone', 'sweep'),
                            initial_value='single_tone',
                            set_cmd=self._set_rf_mode,
                            get_cmd=self._get_rf_mode)
-        
+
         self.add_parameter(name='clock_frequency',
                            docstring='Select the internal clock frequency, 10 or 100MHz.',
                            unit='MHz',
@@ -187,7 +192,7 @@ class SC5521A(Instrument):
                            initial_value=100,
                            set_cmd=self._set_clock_frequency,
                            get_cmd=self._get_clock_frequency)
-        
+
         self.add_parameter(name='clock_reference',
                            docstring='Select the clock reference, internal or external.',
                            vals=Enum('internal', 'external'),
@@ -212,7 +217,7 @@ class SC5521A(Instrument):
         Raises:
             BaseException
         """
-        
+
         if msg!=0:
             raise BaseException("Couldn't set the devise due to {}.".format(error_dict[str(msg)]))
         else:
