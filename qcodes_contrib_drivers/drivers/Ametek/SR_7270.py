@@ -1,139 +1,148 @@
-# -*- coding: utf-8 -*-
+# This Python file uses the following encoding: utf-8
 """
 Created on Tuesday Jan 04, 2022
+@author: Elyjah
+This is the qcodes driver for the SR_7270
 
-@author: Elyjah 
+Note:
+ask_raw command has been rewritten (bottom) to also read an echo to remove from buffer.
+write_raw command have been rewritten to also read after writing using ask_raw.
 
-This is the qcodes driver for the SR_7270.
-
-Driver notes:
-
-All commands begin end with the echo \n\x00.
-We chanage terminator to remove this. 
-We redefine write_raw command to also read the echo to remove from buffer.
-Now writing throws error that read doesn't find \n\x00 terminator.
-This error is seemingly harmless and for now is ignored.
-
-Get commands with . as in 'X.' are known as floating point in manual.
-
-Never change noise mode as TC values will not be correct.
-(If you want to change this then the driver will need to updated.)
-
-Change Imode for measuring current instead of voltage.
-
-Change Vmode for measuring A, -B or A - B voltages.
-
-Reference frequency is set by INT, EXT_REAR or EXT_FRONT.
-If in mode INT then oscillator frequency changes reference frequency.
-Otherwise, reference frequency controlled by input.
-
-    
 """
 
 from qcodes import VisaInstrument, validators as vals
 from qcodes.utils.delaykeyboardinterrupt import DelayedKeyboardInterrupt
+from qcodes.utils.validators import ComplexNumbers
 
 class Signalrecovery7270(VisaInstrument):
 
-    def __init__(self, name, address, **kwargs):
+    def __init__(self, name: str, address: str, **kwargs):
         super().__init__(name, address, terminator='', device_clear = True, **kwargs)
         idn = self.IDN.get()
         self.model = idn['model']
 
-
-        self.add_parameter(name='getX',
+        self.add_parameter(name='X',
                         label='Lock-In X',
                         get_cmd='X.',
                         get_parser=float,
-                        unit='V')
+                        unit='V',
+                        docstring="Gets X lockin component in V; "
+                                "only gettable.")
 
-        self.add_parameter('getY',
+        self.add_parameter('Y',
                         label='Lock-In Y',
                         get_cmd='Y.',
                         get_parser=float,
-                        unit='V')
-        
-        self.add_parameter('getXY',
-                        label='Lock-In XY',
+                        unit='V',
+                        docstring="Gets Y lockin component in V; "
+                                "only gettable.")
+
+        self.add_parameter('XY',
+                        label='Lock-In XY Complex',
                         get_cmd=self._get_complex_voltage,
-                        unit='V')
-        
-        self.add_parameter(name='getR',
+                        unit='V',
+                        vals = ComplexNumbers(),
+                        docstring="Complex voltage parameter "
+                                "calculated from X, Y phase using "
+                                "Z = X + j*Y")
+
+        self.add_parameter(name='R',
                         label='Lock-In R',
                         get_cmd='MAG.',
                         get_parser=float,
-                        unit='V')    
-        
-        self.add_parameter(name='getPhi',
-                        label='Lock-In Phi',
+                        unit='V',
+                        docstring="Gets magnitude of XY lockin components in V; "
+                                "only gettable.")
+
+        self.add_parameter(name='phase',
+                        label='Lock-In Phase',
                         get_cmd='PHA.',
                         get_parser=float,
-                        unit='Degrees')  
-          
-        self.add_parameter(name='frequency',
-                        label='Frequency',
+                        unit='Degrees',
+                        docstring="Gets the polar phase of lockin in degrees; "
+                                "only gettable.")
+
+        self.add_parameter(name='getfrequency',
+                        label='Reference Frequency',
                         unit='Hz',
                         get_cmd='FRQ.',
-                        get_parser=float)
-        
+                        get_parser=float,
+                        docstring="Gets frequency of demodulator in Hz; "
+                                "only gettable.")
+
         self.add_parameter(name='osc_amplitude',
-                        label='Osc_Amplitude',
+                        label='Oscillator Amplitude',
                         unit='V',
                         set_cmd='OA. {}',
-                        set_parser=float)
+                        set_parser=float,
+                        get_cmd='OA.',
+                        get_parser=float,
+                        docstring="Get and set oscillator output amplitude in V; "
+                                "gettable and settable.")
 
         self.add_parameter(name='osc_frequency',
-                        label='Osc_Frequency',
+                        label='Oscillator Frequency',
                         unit='Hz',
                         set_cmd='OF. {}',
-                        set_parser=float)
+                        set_parser=float,
+                        get_cmd='OF.',
+                        get_parser=float,
+                        docstring="Get and set oscillator output frequency in V; "
+                                "gettable and settable.")
 
         self.add_parameter(name='reference',
-                        label='Reference',
+                        label='Reference Input',
                         get_cmd='IE',
                         set_cmd='IE {}',
                         val_mapping = {'INT':       0,
                                         'EXT_rear':  1,
-                                        'EXT_front': 2})
- 
+                                        'EXT_front': 2},
+                        docstring="Get and set which reference signal is used; "
+                                "gettable and settable.")
+
         self.add_parameter(name='noisemode',
-                        label='Noisemode',
+                        label='Noise mode',
                         get_cmd='NOISEMODE',
                         set_cmd='NOISEMODE {}',
+                        initial_value='OFF',
                         val_mapping = {'OFF':    0,
                                         'ON':  1},
-                        docstring=('Should always leave off \n'
-                                   'will change values of TC \n'
-                                   'and low pass filter slope'))
-        
+                        docstring=("Get and set the noise mode used. "
+                                    "Should always leave off as it "
+                                    "will change the values of TC "
+                                    "and the low pass filter slope."))
+
         self.add_parameter(name='Imode',
-                        label='Imode',
+                        label='Current mode',
                         get_cmd='IMODE',
                         set_cmd='IMODE {}',
                         val_mapping = {'CURRENT_MODE_OFF': 0,
                                         'CURRENT_MODE_ON_HIGH_BW': 1,
                                         'CURRENT_MODE_ON_LOW_BW': 2},
-                        docstring=('n Input mode'
-                                    '0 Current mode off - voltage mode input enabled'
-                                    '1 High bandwidth current mode enabled -'
-                                    'connect signal to B (I) input connector'
-                                    '2 Low noise current mode enabled -'
-                                    'connect signal to B (I) input connector'
-                                    'If n = 0 then the input configuration '
-                                    'is determined by the VMODE command.'
-                                    'If n > 0 then current mode '
-                                    'is enabled irrespective of the VMODE setting.'))
-                                    
+                        docstring=("Get and set if current or voltage is to be measured"
+                                    "n Input mode"
+                                    "0 Current mode off - voltage mode input enabled"
+                                    "1 High bandwidth current mode enabled -"
+                                    "connect signal to B (I) input connector"
+                                    "2 Low noise current mode enabled -"
+                                    "connect signal to B (I) input connector "
+                                    "If n = 0 then the input configuration "
+                                    "is determined by the VMODE command. "
+                                    "If n > 0 then current mode "
+                                    "is enabled irrespective of the VMODE setting."))
+
         self.add_parameter(name='Vmode',
-                        label='Vmode',
+                        label='Voltage mode',
                         get_cmd='VMODE',
                         set_cmd='VMODE {}',
                         val_mapping = {'INPUTS_GNDED': 0,
                                         'A_INPUT_ONLY': 1,
                                         '-B_INPUT_ONLY': 2,
                                         'A_B_DIFFERENTIAL': 3},
-                        docstring=('Note that the IMODE command takes precedence over the VMODE command.'))
- 
+                        docstring=("Get and set how the voltage is to be measured: "
+                                   "INPUTS_GNDED:, 'A_INPUT_ONLY', '-B_INPUT_ONLY', or 'A-B DIFFERENTIAL.' "
+                                    "Note that the IMODE command takes precedence over the VMODE command."))
+
         self.add_parameter(name='sensitivity',
                         label='Sensitivity',
                         unit='V',
@@ -161,14 +170,16 @@ class Signalrecovery7270(VisaInstrument):
                                         5e-3: 20,
                                         10e-3: 21,
                                         20e-3: 22,
-                                        50e-3: 23, 
-                                        100e-3: 24, 
-                                        200e-3: 25, 
-                                        500e-3: 26,                                                                                                                                                                                                                                               
-                                        1: 27})  
-              
+                                        50e-3: 23,
+                                        100e-3: 24,
+                                        200e-3: 25,
+                                        500e-3: 26,
+                                        1: 27},
+                        docstring=("Set measurement input sensitivity; "
+                                   "only settable."))
+
         self.add_parameter(name='timeconstant',
-                        label='Timeconstant',
+                        label='Time constant',
                         unit='s',
                         get_cmd='TC',
                         set_cmd='TC {}',
@@ -195,27 +206,25 @@ class Signalrecovery7270(VisaInstrument):
                                         50: 20,
                                         100: 21,
                                         200: 22,
-                                        500: 23, 
-                                        1e+3: 24, 
-                                        2e+3: 25, 
-                                        5e+3: 26,                                         
-                                        10e+3: 27,                                         
-                                        20e+3: 28,                                         
-                                        50e+3: 29,                                                                                                                                                                                                         
-                                        100e+3: 30})
-        
-    def write_raw(self, cmd:str) -> None:
-        with DelayedKeyboardInterrupt():
-            status = self.ask_raw(cmd)
-        
+                                        500: 23,
+                                        1e+3: 24,
+                                        2e+3: 25,
+                                        5e+3: 26,
+                                        10e+3: 27,
+                                        20e+3: 28,
+                                        50e+3: 29,
+                                        100e+3: 30},
+                        docstring=("Set measurement time constant; "
+                                   "only settable."))
+
     def ask_raw(self, cmd:str) -> str:
-        """Reimplementaion of ask function to handle specific communication with lockin.
+        """Reimplementaion of ask function to handle lockin echo.
 
         Args:
-            cmd (str): Command to be sent (asked) to lockin.
+            cmd: Command to be sent (asked) to lockin.
 
         Raises:
-            Runtimeerror: [description]
+            Runtimeerror: If the response does not end with the expected terminators '\n\x00' or '\x00'
 
         Returns:
             str: Return string from lockin with terminator character stripped of.
@@ -229,11 +238,25 @@ class Signalrecovery7270(VisaInstrument):
                 else:
                     return resp
             else:
-                print('we are not happy about the terminator character')
                 raise Runtimeerror(response)
-        
+
+    def write_raw(self, cmd:str) -> None:
+        """Reimplementation of write function to handle lockin echo.
+        Calls on ask_raw (defined above) to read echo.
+
+        Args:
+            cmd: Command to be sent (asked) to lockin.
+        """
+        with DelayedKeyboardInterrupt():
+            status = self.ask_raw(cmd)
+
     def _get_complex_voltage(self) -> complex:
-            XY = self.ask_raw('XY.')
-            x = float(XY.split(',',1)[0])
-            y = float(XY.split(',',1)[1])
-            return x + 1.0j*y
+        """Function to get XY lockin components and return a complex number.
+
+        Returns:
+            complex: x + j*y as one complex number
+        """
+        XY = self.ask_raw('XY.')
+        x = float(XY.split(',',1)[0])
+        y = float(XY.split(',',1)[1])
+        return x + 1j*y
