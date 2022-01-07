@@ -133,9 +133,10 @@ class SC5521A(Instrument):
         # Adapt the path to the computer language
         dll_path = os.path.join(os.environ['PROGRAMFILES'], dll_path)
 
-        assert sys.platform == "win32", f"{self.__class__.__name__} is supported only on Windows platform"
-
-        self._dll = ctypes.WinDLL(dll_path)
+        if sys.platform == 'win32':
+            self._dll = ctypes.WinDLL(dll_path)
+        else:
+            raise EnvironmentError(f"{self.__class__.__name__} is supported only on Windows platform")
 
         self._devices_number = ctypes.c_uint()
         self._pxi10Enable = 0
