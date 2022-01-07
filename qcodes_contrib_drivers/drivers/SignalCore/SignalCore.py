@@ -5,10 +5,6 @@ from typing import Dict, Optional
 from qcodes import Instrument
 from qcodes.utils.validators import Enum
 
-# The driver is currently working only on Windows platform
-if sys.platform!="win32":
-    raise EnvironmentError('Driver only worings on windows platform.')
-
 MAXDEVICES = 50
 MAXDESCRIPTORSIZE = 9
 COMMINTERFACE = ctypes.c_uint8(1)
@@ -133,10 +129,13 @@ class SC5521A(Instrument):
 
         (super().__init__)(name, **kwargs)
 
-        # Adapt the path to the computer language
-        dll_path = os.path.join(os.environ['PROGRAMFILES'], dll_path)
-
-        self._dll = ctypes.WinDLL(dll_path)
+        # The driver is currently working only on Windows platform
+        if sys.platform=='win32':
+            # Adapt the path to the computer language
+            dll_path = os.path.join(os.environ['PROGRAMFILES'], dll_path)
+            self._dll = ctypes.WinDLL(dll_path)
+        else:
+            raise EnvironmentError('Driver only worings on windows platform.')
         self._devices_number = ctypes.c_uint()
         self._pxi10Enable = 0
         self._lock_external = 0
@@ -202,7 +201,12 @@ class SC5521A(Instrument):
         self.connect_message()
 
     def _open(self) -> None:
-        self._handle = ctypes.wintypes.HANDLE()
+        # The driver is currently working only on Windows platform
+        if sys.platform=='win32':
+            self._handle = ctypes.wintypes.HANDLE()
+        else:
+            raise EnvironmentError('Driver only worings on windows platform.')
+
         self._dll.sc5520a_uhfsOpenDevice(COMMINTERFACE, self.buffer_pointer_array[0], ctypes.c_uint8(1), ctypes.byref(self._handle))
 
     def _close(self) -> None:
