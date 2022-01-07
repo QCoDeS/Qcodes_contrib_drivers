@@ -1,12 +1,7 @@
 # This Python file uses the following encoding: utf-8
-"""
-Created on Tuesday Jan 04, 2022
-@author: Elyjah
-This is the qcodes driver for the SR_7270
 
-Note:
-ask_raw command has been rewritten (bottom) to also read an echo to remove from buffer.
-write_raw command have been rewritten to also read after writing using ask_raw.
+"""
+Created by Elyjah <elyjah.kiyooka@cea.fr>, Jan 2022
 
 """
 
@@ -15,7 +10,15 @@ from qcodes.utils.delaykeyboardinterrupt import DelayedKeyboardInterrupt
 from qcodes.utils.validators import ComplexNumbers
 
 class Signalrecovery7270(VisaInstrument):
+    """
+    This is the qcodes driver for the Ametex Signal Recovery
+    Model 7270 DSP Lockin amplifier
 
+    Note:
+    ask_raw command has been rewritten (bottom) to also read an echo to remove from buffer.
+    write_raw command have been rewritten to also read after writing using ask_raw.
+
+    """
     def __init__(self, name: str, address: str, **kwargs):
         super().__init__(name, address, terminator='', device_clear = True, **kwargs)
         idn = self.IDN.get()
@@ -62,7 +65,7 @@ class Signalrecovery7270(VisaInstrument):
                         docstring="Gets the polar phase of lockin in degrees; "
                                 "only gettable.")
 
-        self.add_parameter(name='getfrequency',
+        self.add_parameter(name='get_frequency',
                         label='Reference Frequency',
                         unit='Hz',
                         get_cmd='FRQ.',
@@ -100,7 +103,7 @@ class Signalrecovery7270(VisaInstrument):
                         docstring="Get and set which reference signal is used; "
                                 "gettable and settable.")
 
-        self.add_parameter(name='noisemode',
+        self.add_parameter(name='noise_mode',
                         label='Noise mode',
                         get_cmd='NOISEMODE',
                         set_cmd='NOISEMODE {}',
@@ -112,7 +115,7 @@ class Signalrecovery7270(VisaInstrument):
                                     "will change the values of TC "
                                     "and the low pass filter slope."))
 
-        self.add_parameter(name='Imode',
+        self.add_parameter(name='I_mode',
                         label='Current mode',
                         get_cmd='IMODE',
                         set_cmd='IMODE {}',
@@ -131,7 +134,7 @@ class Signalrecovery7270(VisaInstrument):
                                     "If n > 0 then current mode "
                                     "is enabled irrespective of the VMODE setting."))
 
-        self.add_parameter(name='Vmode',
+        self.add_parameter(name='V_mode',
                         label='Voltage mode',
                         get_cmd='VMODE',
                         set_cmd='VMODE {}',
@@ -238,7 +241,7 @@ class Signalrecovery7270(VisaInstrument):
                 else:
                     return resp
             else:
-                raise Runtimeerror(response)
+                raise RuntimeError(response)
 
     def write_raw(self, cmd:str) -> None:
         """Reimplementation of write function to handle lockin echo.
