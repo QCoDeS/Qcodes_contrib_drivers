@@ -6,10 +6,6 @@ from qcodes import Instrument
 from qcodes.utils.validators import Enum
 
 
-# The driver is currently working only on Windows platform
-assert sys.platform=='win32'
-
-
 MAXDEVICES = 50
 MAXDESCRIPTORSIZE = 9
 COMMINTERFACE = ctypes.c_uint8(1)
@@ -137,7 +133,10 @@ class SC5521A(Instrument):
         # Adapt the path to the computer language
         dll_path = os.path.join(os.environ['PROGRAMFILES'], dll_path)
 
+        assert sys.platform == "win32", f"{self.__class__.__name__} is supported only on Windows platform"
+
         self._dll = ctypes.WinDLL(dll_path)
+
         self._devices_number = ctypes.c_uint()
         self._pxi10Enable = 0
         self._lock_external = 0
