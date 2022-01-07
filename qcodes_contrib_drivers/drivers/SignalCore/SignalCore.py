@@ -142,8 +142,8 @@ class SC5521A(Instrument):
         self._buffer_pointer_array_p = ctypes.cast(self.buffer_pointer_array, ctypes.POINTER(ctypes.c_char_p))
 
         # Adapt the path to the computer language
-        dll_path = os.path.join(os.environ['PROGRAMFILES'], dll_path)
         if sys.platform == 'win32':
+            dll_path = os.path.join(os.environ['PROGRAMFILES'], dll_path)
             self._dll = ctypes.WinDLL(dll_path)
         else:
             raise EnvironmentError(f"{self.__class__.__name__} is supported only on Windows platform")
