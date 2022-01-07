@@ -130,14 +130,6 @@ class SC5521A(Instrument):
 
         (super().__init__)(name, **kwargs)
 
-        # Adapt the path to the computer language
-        dll_path = os.path.join(os.environ['PROGRAMFILES'], dll_path)
-
-        if sys.platform == 'win32':
-            self._dll = ctypes.WinDLL(dll_path)
-        else:
-            raise EnvironmentError(f"{self.__class__.__name__} is supported only on Windows platform")
-
         self._devices_number = ctypes.c_uint()
         self._pxi10Enable = 0
         self._lock_external = 0
@@ -148,6 +140,14 @@ class SC5521A(Instrument):
             self.buffer_pointer_array[device] = ctypes.cast(buffers[device], ctypes.c_char_p)
 
         self._buffer_pointer_array_p = ctypes.cast(self.buffer_pointer_array, ctypes.POINTER(ctypes.c_char_p))
+
+        # Adapt the path to the computer language
+        dll_path = os.path.join(os.environ['PROGRAMFILES'], dll_path)
+        if sys.platform == 'win32':
+            self._dll = ctypes.WinDLL(dll_path)
+        else:
+            raise EnvironmentError(f"{self.__class__.__name__} is supported only on Windows platform")
+
         found = self._dll.sc5520a_uhfsSearchDevices(COMMINTERFACE, self._buffer_pointer_array_p, ctypes.byref(self._devices_number))
         if found:
             raise RuntimeError('Failed to find any device')
