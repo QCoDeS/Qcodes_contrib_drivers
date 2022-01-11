@@ -1,5 +1,6 @@
 import ctypes
 import os
+import sys
 from typing import Dict, Optional
 from qcodes import Instrument
 from qcodes.utils.validators import Enum
@@ -125,13 +126,9 @@ class SC5521A(Instrument):
         name (str): Name of the instrument.
         dll_path (str): Path towards the instrument DLL.
         """
-        
-        (super().__init__)(name, **kwargs)
-        
-        # Adapt the path to the computer language
-        dll_path = os.path.join(os.environ['PROGRAMFILES'], dll_path)
 
-        self._dll = ctypes.WinDLL(dll_path)
+        (super().__init__)(name, **kwargs)
+
         self._devices_number = ctypes.c_uint()
         self._pxi10Enable = 0
         self._lock_external = 0
@@ -142,44 +139,46 @@ class SC5521A(Instrument):
             self.buffer_pointer_array[device] = ctypes.cast(buffers[device], ctypes.c_char_p)
 
         self._buffer_pointer_array_p = ctypes.cast(self.buffer_pointer_array, ctypes.POINTER(ctypes.c_char_p))
+
+        # Adapt the path to the computer language
+        if sys.platform == 'win32':
+            dll_path = os.path.join(os.environ['PROGRAMFILES'], dll_path)
+            self._dll = ctypes.WinDLL(dll_path)
+        else:
+            raise EnvironmentError(f"{self.__class__.__name__} is supported only on Windows platform")
+
         found = self._dll.sc5520a_uhfsSearchDevices(COMMINTERFACE, self._buffer_pointer_array_p, ctypes.byref(self._devices_number))
         if found:
             raise RuntimeError('Failed to find any device')
         self._open()
-        
         self.add_parameter(name='temperature',
                            docstring='Return the microwave source internal temperature.',
                            label='Device temperature',
                            unit='celsius',
                            get_cmd=self._get_temperature)
-        
         self.add_parameter(name='status',
                            docstring='.',
                            vals=Enum('on', 'off'),
                            set_cmd=self._set_status,
                            get_cmd=self._get_status)
-        
         self.add_parameter(name='power',
                            docstring='.',
                            label='Power',
                            unit='dbm',
                            set_cmd=self._set_power,
                            get_cmd=self._get_power)
-        
         self.add_parameter(name='frequency',
                            docstring='.',
                            label='Frequency',
                            unit='Hz',
                            set_cmd=self._set_frequency,
                            get_cmd=self._get_frequency)
-        
         self.add_parameter(name='rf_mode',
                            docstring='.',
                            vals=Enum('single_tone', 'sweep'),
                            initial_value='single_tone',
                            set_cmd=self._set_rf_mode,
                            get_cmd=self._get_rf_mode)
-        
         self.add_parameter(name='clock_frequency',
                            docstring='Select the internal clock frequency, 10 or 100MHz.',
                            unit='MHz',
@@ -187,7 +186,6 @@ class SC5521A(Instrument):
                            initial_value=100,
                            set_cmd=self._set_clock_frequency,
                            get_cmd=self._get_clock_frequency)
-        
         self.add_parameter(name='clock_reference',
                            docstring='Select the clock reference, internal or external.',
                            vals=Enum('internal', 'external'),
@@ -212,7 +210,6 @@ class SC5521A(Instrument):
         Raises:
             BaseException
         """
-        
         if msg!=0:
             raise BaseException("Couldn't set the devise due to {}.".format(error_dict[str(msg)]))
         else:
