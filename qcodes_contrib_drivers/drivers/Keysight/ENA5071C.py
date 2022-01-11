@@ -198,9 +198,10 @@ class MarkerData(MultiParameter):
         if root_instr.auto_sweep():
             self._instrument.run_sweep()
         # Ask for data, setting the format to the requested form
-        self._instrument.format(self.sweep_format)
+        #self._instrument.format(self.sweep_format)
         root_instr.write(":FORM:DATA  REAL") # gets binary in 64 bit floating point, use datatype='d' for double
 
+        assert isinstance(self.instrument, ENAMarker)
         data = root_instr.ask('CALC:TRAC1:MARK{}:DATA?'.format(self.instrument.marker_num))
         return data[:,0], data[:,1], data[:,2]
 
@@ -407,7 +408,7 @@ class PNATrace(InstrumentChannel):
                            start=self._parent.start(),
                            parameter_class=MagPhasePoint)
         
-    def _set_format(self, val):
+    def _set_format(self, val) -> None:
         unit_mapping = {'MLOG\n': 'dB',
                         'MLIN\n': '',
                         'PHAS\n': 'rad',
@@ -436,7 +437,7 @@ class PNATrace(InstrumentChannel):
                          'COMP\n': 'Complex Magnitude'}
         self.write(f"CALC:FORM {val}")
 
-    def run_sweep(self, timeout=0.1) -> str:
+    def run_sweep(self, timeout=0.1) -> None:
         """
         Run a set of sweeps on the network analyzer.
         Note that this will run all traces on the current channel.
