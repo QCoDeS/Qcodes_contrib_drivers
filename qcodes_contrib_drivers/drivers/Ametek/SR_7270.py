@@ -67,7 +67,7 @@ class Signalrecovery7270(VisaInstrument):
                         get_parser=float,
                         unit='Degrees',
                         vals = vals.Numbers(),
-                        docstring="Gets the polar phase oSrf lockin in degrees; "
+                        docstring="Gets the polar phase of lockin in degrees; "
                                 "only gettable.")
 
         self.add_parameter(name='frequency',
