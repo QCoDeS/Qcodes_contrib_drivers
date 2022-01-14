@@ -21,26 +21,29 @@ class Signalrecovery7270(VisaInstrument):
     """
     def __init__(self, name: str, address: str, **kwargs):
         super().__init__(name, address, terminator='', device_clear = True, **kwargs)
+
         idn = self.IDN.get()
         self.model = idn['model']
 
-        self.add_parameter(name='X',
+        self.add_parameter(name='x',
                         label='Lock-In X',
                         get_cmd='X.',
                         get_parser=float,
                         unit='V',
+                        vals = vals.Numbers(),
                         docstring="Gets X lockin component in V; "
                                 "only gettable.")
 
-        self.add_parameter('Y',
+        self.add_parameter('y',
                         label='Lock-In Y',
                         get_cmd='Y.',
                         get_parser=float,
                         unit='V',
+                        vals = vals.Numbers(),
                         docstring="Gets Y lockin component in V; "
                                 "only gettable.")
 
-        self.add_parameter('XY',
+        self.add_parameter('xy',
                         label='Lock-In XY Complex',
                         get_cmd=self._get_complex_voltage,
                         unit='V',
@@ -49,11 +52,12 @@ class Signalrecovery7270(VisaInstrument):
                                 "calculated from X, Y phase using "
                                 "Z = X + j*Y")
 
-        self.add_parameter(name='R',
+        self.add_parameter(name='r',
                         label='Lock-In R',
                         get_cmd='MAG.',
                         get_parser=float,
                         unit='V',
+                        vals = vals.Numbers(),
                         docstring="Gets magnitude of XY lockin components in V; "
                                 "only gettable.")
 
@@ -62,14 +66,16 @@ class Signalrecovery7270(VisaInstrument):
                         get_cmd='PHA.',
                         get_parser=float,
                         unit='Degrees',
-                        docstring="Gets the polar phase of lockin in degrees; "
+                        vals = vals.Numbers(),
+                        docstring="Gets the polar phase oSrf lockin in degrees; "
                                 "only gettable.")
 
-        self.add_parameter(name='get_frequency',
+        self.add_parameter(name='frequency',
                         label='Reference Frequency',
-                        unit='Hz',
                         get_cmd='FRQ.',
                         get_parser=float,
+                        unit='Hz',
+                        vals = vals.Numbers(),
                         docstring="Gets frequency of demodulator in Hz; "
                                 "only gettable.")
 
@@ -80,7 +86,9 @@ class Signalrecovery7270(VisaInstrument):
                         set_parser=float,
                         get_cmd='OA.',
                         get_parser=float,
-                        docstring="Get and set oscillator output amplitude in V; "
+                        vals=vals.Numbers(min_value=0, max_value=5),
+                        docstring="Get and set oscillator output amplitude in V;"
+                                "Output is in rms values"
                                 "gettable and settable.")
 
         self.add_parameter(name='osc_frequency',
@@ -90,6 +98,7 @@ class Signalrecovery7270(VisaInstrument):
                         set_parser=float,
                         get_cmd='OF.',
                         get_parser=float,
+                        vals=vals.Numbers(min_value=10, max_value=250000),
                         docstring="Get and set oscillator output frequency in V; "
                                 "gettable and settable.")
 
@@ -252,6 +261,17 @@ class Signalrecovery7270(VisaInstrument):
         """
         with DelayedKeyboardInterrupt():
             status = self.ask_raw(cmd)
+
+    def get_idn(self):
+        """Rewrite default get_idn commmand since SR7270 uses different IDN command.
+        vendor is hard input; model is called; serial and firmware remain unknown.
+
+        Returns:
+            Dict of 'vendor', 'model', 'serial', 'firmware'
+        """
+        response = self.ask_raw('IDN?')
+        idparts = ['Ametek', response, None, None]
+        return dict(zip(('vendor', 'model', 'serial', 'firmware'), idparts))
 
     def _get_complex_voltage(self) -> complex:
         """Function to get XY lockin components and return a complex number.
