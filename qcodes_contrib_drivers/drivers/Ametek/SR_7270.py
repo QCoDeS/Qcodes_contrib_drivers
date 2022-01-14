@@ -99,7 +99,7 @@ class Signalrecovery7270(VisaInstrument):
                         get_cmd='OF.',
                         get_parser=float,
                         vals=vals.Numbers(min_value=10, max_value=250000),
-                        docstring="Get and set oscillator output frequency in V; "
+                        docstring="Get and set oscillator output frequency in Hz; "
                                 "gettable and settable.")
 
         self.add_parameter(name='reference',
