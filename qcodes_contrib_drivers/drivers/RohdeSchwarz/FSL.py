@@ -12,9 +12,9 @@ class GeneratedSetPoints(Parameter):
     A parameter that generates a setpoint array from start, stop and
     num points parameters. It is used to define the frequency axis.
     """
-    def __init__(self, startparam     : float,
-                       stopparam      : float,
-                       numpointsparam : int,
+    def __init__(self, startparam     : Parameter,
+                       stopparam      : Parameter,
+                       numpointsparam : Parameter,
                        *args,
                        **kwargs):
         super().__init__(*args, **kwargs)
@@ -22,16 +22,22 @@ class GeneratedSetPoints(Parameter):
         self._stopparam = stopparam
         self._numpointsparam = numpointsparam
 
-    def get_raw(self) -> np.array:
-        return np.linspace(self._startparam(),
-                           self._stopparam(),
-                           self._numpointsparam())
+    def get_raw(self) -> np.ndarray:
+        start = self._startparam()
+        assert start is not None
+        stop = self._stopparam()
+        assert stop is not None
+        n_points = self._numpointsparam()
+        assert n_points is not None
+
+        return np.linspace(start, stop, n_points)
 
 class SpectrumArray(ParameterWithSetpoints):
     """
     Freequency sweep that returns a spectrum.
     """
-    def get_raw(self) -> np.array:
+    def get_raw(self) -> np.ndarray:
+        assert isinstance(self.root_instrument, FSL)
         self.root_instrument.write_raw("INIT:CONT OFF") #set single sweep mode
         self.root_instrument.write_raw("ABOR") #abort and reset trigger
         self.root_instrument.write_raw("INIT") #start measurement
