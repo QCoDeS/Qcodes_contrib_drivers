@@ -4,10 +4,10 @@ from qcodes.instrument.channel import InstrumentChannel, ChannelList
 from qcodes.instrument.visa import VisaInstrument
 from pyvisa.errors import VisaIOError
 from qcodes.utils import validators
-from typing import Any, NewType, Sequence, List, Dict, Tuple, Optional
+from typing import NewType, Sequence, List, Dict, Optional
 from packaging.version import parse
 
-# Version 0.11.2
+# Version 0.11.3
 #
 # Guiding principles for this driver for QDevil QDAC-II
 # -----------------------------------------------------
@@ -31,7 +31,7 @@ from packaging.version import parse
 #
 # 4. Any generator should by default be set to start on the bus trigger
 #    (*TRG) so that it is possible to synchronise several generators without
-#    further set up; which also eliminates the need for special cases for the
+#    further setup; which also eliminates the need for special cases for the
 #    bus trigger.
 
 
@@ -1022,7 +1022,7 @@ class Measurement_Context(_Channel_Context):
         return float(self._ask_channel('sens{0}:data:last?'))
 
     def _set_aperture(self, aperture_s: Optional[float], nplc: Optional[int]
-                     ) -> None:
+                      ) -> None:
         if aperture_s:
             return self._write_channel(f'sens{"{0}"}:aper {aperture_s}')
         self._write_channel(f'sens{"{0}"}:nplc {nplc}')
@@ -2117,7 +2117,7 @@ class QDac2(VisaInstrument):
 
     def _set_up_serial(self) -> None:
         # No harm in setting the speed even if the connection is not serial.
-        self.visa_handle.baud_rate = 921600 # type: ignore
+        self.visa_handle.baud_rate = 921600  # type: ignore
 
     def _check_for_wrong_model(self) -> None:
         model = self.IDN()['model']
