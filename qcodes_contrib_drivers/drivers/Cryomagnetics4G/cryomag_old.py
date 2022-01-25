@@ -42,6 +42,12 @@ class Cryomag(VisaInstrument):
                            get_parser=lambda val: float(val[:-2]),
                            unit='kG')
 
+        self.add_parameter(name='getSweep',
+                           label='getSweep',
+                           get_cmd='SWEEP?',
+                           get_parser=float,
+                           unit='None')
+
         self.add_parameter(name='goto',
                            label='goto',
                            set_cmd='SWEEP {} SLOW',
@@ -116,34 +122,3 @@ class Cryomag(VisaInstrument):
                            set_parser=float,
                            vals=vals.Numbers(-86, 86),
                            unit='kG')
-
-        self.add_parameter(name='B',
-                           label='Set field in one command',
-                           get_cmd='IOUT?',
-                           get_parser=lambda val: float(val[:-2]),
-                           set_cmd=self._set_mag,
-                           set_parser=float,
-                           vals=vals.Numbers(-86, 86),
-                           unit='kG')
-
-    def _set_mag(self,set_pnt):
-        unit = self.visa_handle.query('UNITS?')
-        if unit != 'G':
-            RuntimeError('Units must be in Gauss')
-
-        mag_now = float(self.visa_handle.query('IOUT?')[:-2])
-        if set_pnt > mag_now:
-            self.visa_handle.write('ULIM %s' % set_pnt)
-            self.visa_handle.write('SWEEP UP SLOW')
-
-            while abs(set_pnt - mag_now) >= 0.01:
-                time.sleep(1)
-                mag_now = float(self.visa_handle.query('IOUT?')[:-2])
-
-        if set_pnt < mag_now:
-            self.visa_handle.write('LLIM %s' % set_pnt)
-            self.visa_handle.write('SWEEP DOWN SLOW')
-
-            while abs(set_pnt - mag_now) >= 0.01:
-                time.sleep(1)
-                mag_now = float(self.visa_handle.query('IOUT?')[:-2])

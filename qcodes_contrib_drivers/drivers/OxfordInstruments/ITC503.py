@@ -7,138 +7,168 @@ Updated by Elyjah <elyjah.kiyooka@cea.fr>, Jan 2022
 """
 
 import logging
-from qcodes import VisaInstrument
-from qcodes import validators as vals
-from qcodes.utils.validators import Numbers, Ints, Enum, Strings
-from typing import Dict, ClassVar
-from time import sleep
-import visa
-
+from qcodes import VisaInstrument, validators as vals
+from qcodes.utils.delaykeyboardinterrupt import DelayedKeyboardInterrupt
 
 log = logging.getLogger(__name__)
 
 class ITC503(VisaInstrument):
-	"""
-	The qcodes driver for communication with
+    """
+    The qcodes driver for communication with
     ITC503, "Oxford Instruments Intelligent Temperature Controller"
-	"""
+    """
 
-	def __init__(self, name: str, address: str, number=1, **kwargs):
+    def __init__(self, name: str, address: str, **kwargs):
 
-		log.debug('Initializing instrument')
-		super().__init__(name, address, **kwargs)
+        log.debug('Initializing instrument')
+        super().__init__(name, address, terminator='\r', **kwargs)
 
-		self._address = address
-		self._number = number
-		self._values = {}
+        self._address = address
+        self._values = {}
 
-		self.visa_handle.write_termination='\r'
-		self.visa_handle.read_termination='\r'
+        # Add parameters
+        self.add_parameter('temp_1',
+                        get_cmd='R1',
+                        label='Temperature of sensor 1',
+                        get_parser=float,
+                        unit='K',
+                        vals = vals.Numbers(),
+                        docstring="Reads the temperature of the 1st sensor "
+                            "only gettable.")
 
-		# Add parameters
-		self.add_parameter('temp1',
-						   unit='K',
-						   get_cmd=self._get_temp1,
-						   set_cmd=self._set_temp1
-						   )
+        self.add_parameter('temp_2',
+                        get_cmd='R2',
+                        label='Temperature of sensor 2',
+                        get_parser=float,
+                        unit='K',
+                        vals = vals.Numbers(),
+                        docstring="Reads the temperature of the 2nd sensor "
+                            "only gettable.")
 
-		self.add_parameter('temp2',
-						   unit='K',
-						   get_cmd=self._get_temp2,
-						   )
+        self.add_parameter('temp_3',
+                        get_cmd='R3',
+                        label='Temperature of sensor 3',
+                        get_parser=float,
+                        unit='K',
+                        vals = vals.Numbers(),
+                        docstring="Reads the temperature of the 3rd sensor "
+                            "only gettable.")
 
-		self.add_parameter('temp3',
-						   unit='K',
-						   get_cmd=self._get_temp3,
-						   )
+        self.add_parameter('temp_set_point',
+                        get_cmd='R0',
+                        label='Set point temperature',
+                        get_parser=float,
+                        set_cmd='T0000{}',
+                        set_parser=float,
+                        vals=vals.Numbers(min_value=.3, max_value=40),
+                        unit='K',
+                        docstring="Gets and sets the temperature set point "
+                            "Set point depends on which heater is selected "
+                            "Must be in remote mode to set")
 
-		self.add_parameter('needle_valve',
-						   unit='%',
-						   get_cmd=self._get_needle_valve,
-						   set_cmd=self._set_needle_valve
-						   )
+        self.add_parameter('heater_power',
+                        get_cmd='R5',
+                        label='Reads heating power',
+                        get_parser=float,
+                        set_cmd='O00{}',
+                        set_parser=float,
+                        vals=vals.Numbers(min_value=0, max_value=99.9),
+                        unit='%',
+                        docstring="Gets and sets the heating power "
+                            "Set point depends on which heater is selected "
+                            "Must be in remote mode to set")
 
-	def _execute(self, message):
-		"""
-		Write a command to the device
-		Args:
-			message (str) : write command for the device
-		"""
-		log.info('Send the following command to the device: %s' %
-			message)
-		self.visa_handle.write('%s' %  message)
-		sleep(70e-3)  # wait for the device to be able to respond
-		result = self._read()
-		if result.find('?') >= 0:
-			print("Error: Command %s not recognized" % message)
-		else:
-			return result
+        self.add_parameter(name='remote_mode',
+                        label='Remote mode',
+                        get_cmd=self._get_status_remote,
+                        get_parser=str,
+                        set_cmd='C{}',
+                        val_mapping = {'local_locked': 0,
+                                        'remote_locked': 1,
+                                        'local_unlocked': 2,
+                                        'remote_unlocked': 3},
+                        docstring="Get and set the desired remote mode "
+                                "Remote locked means front panel can't be used")
 
-	def _read(self):
-		"""
-		Reads the total bytes in the buffer and outputs as a string.
-		Returns:
-			message (str)
-		"""
-		# bytes_in_buffer = self.visa_handle.bytes_in_buffer
-		# with(self.visa_handle.ignore_warning(visa.constants.VI_SUCCESS_MAX_CNT)):
-			# mes = self.visa_handle.visalib.read(
-				# self.visa_handle.session, bytes_in_buffer)
-		# mes = str(mes[0].decode())
-		mes = self.visa_handle.read()
-		return mes
+        self.add_parameter(name='heater_mode',
+                        label='Heater mode',
+                        get_cmd=self._get_status_auto,
+                        get_parser=str,
+                        set_cmd='A{}',
+                        val_mapping = {'manual': 0,
+                                        'auto': 1,},
+                        docstring="Get and set the mode the heater is in; "
+                            "Warning will immediately change heater power to go to temp "
+                            "Must be in remote mode to set")
 
-	def _get_temp1(self):
-		"""
-		Read temperature for sensor 1
-		Returns: result (float) : Temperature in K
-		"""
-		log.info('Read the temperature')
-		result = self._execute('R1')
-		return float(result.replace('R', ''))
+        self.add_parameter(name='select_heater',
+                        label='Choose desired heater',
+                        get_cmd=self._get_status_heater,
+                        get_parser=str,
+                        set_cmd='H{}',
+                        val_mapping = {'heater_1': 1,
+                                        'heater_2': 2,
+                                        'heater_3': 3,},
+                        docstring="Read and set the heater/sensor you use; "
+                            "Will change the value of the temp set point to the current temp everytime to change "
+                            "Must be in remote mode to set")
 
-	def _get_temp2(self):
-		"""
-		Read temperature for sensor 2
-		Returns: result (float) : Temperature in K
-		"""
-		log.info('Read the temperature')
-		result = self._execute('R2')
-		return float(result.replace('R', ''))
+    def ask_raw(self, cmd:str) -> str:
+        """Reimplementaion of ask function to handle R in response.
+        Args:
+            cmd: Command to be sent (asked) to lockin.
+        Returns:
+            str: Return string from lockin with R character stripped of.
+        """
+        with DelayedKeyboardInterrupt():
+            response = self.visa_handle.query(cmd)
+            if response.startswith('R'):
+                resp = response[1:]
+                return resp
+            else:
+                print(response)
 
-	def _get_temp3(self):
-		"""
-		Read temperature for sensor 3
-		Returns: result (float) : Temperature in K
-		"""
-		log.info('Read the temperature')
-		result = self._execute('R3')
-		return float(result.replace('R', ''))
+    def write_raw(self, cmd:str) -> None:
+        """Reimplementation of write function to write and read lockin echo.
+        Args:
+            cmd: Command to be sent (asked) to lockin.
+        """
+        self.visa_handle.write(cmd)
+        result = self.visa_handle.read()
+        if result.find('?') >= 0:
+            print("Error: Command %s not recognized" % cmd)
+        else:
+            return result
 
-	def _set_temp1(self, temperature):
-		"""
-		Set the temperature
-		Args:
-		current (float) : Temperature in K
-		"""
-		log.info('Setting target temperature to %s' % temperature)
-		#self.remote()
-		self._execute('T%s' % temperature)
-		#self.local()
+    def _get_status_remote(self) -> str:
+        """Gets status of remote mode by parcing the examine 'X' command \n
+        for 'C' the variable concerning the remote mode
+        """
+        self.visa_handle.write('X')
+        result = self.visa_handle.read()
+        if result.find('?') >= 0:
+            print("Error: Command %s not recognized" % 'C')
+        else:
+            return int(result.split('C')[1][0])
 
-	def _get_needle_valve(self):
-		"""
-		Read Gas Flow/Needle valve value
-		GAS FLOW O/P (arbitrary units)
-		"""
-		log.info('Read the temperature')
-		result = self._execute('R7')
-		return float(result.replace('R', ''))
+    def _get_status_auto(self) -> str:
+        """Gets status of remote mode by parcing the examine 'X' command \n
+        for 'A' the variable concerning the auto mode
+        """
+        self.visa_handle.write('X')
+        result = self.visa_handle.read()
+        if result.find('?') >= 0:
+            print("Error: Command %s not recognized" % 'A')
+        else:
+            return int(result.split('A')[1][0])
 
-	def _set_needle_valve(self, needle_valve):
-		"""
-		Set the Gas Flow/Needle valve value
-		returns percentage to a resolution of 0.1%
-		"""
-		log.info('Setting Needle valve to %s' % needle_valve)
-		self._execute('G%s' % needle_valve)
+    def _get_status_heater(self) -> str:
+        """Gets status of remote mode by parcing the examine 'X' command \n
+        for 'H' the variable concerning the heater mode
+        """
+        self.visa_handle.write('X')
+        result = self.visa_handle.read()
+        if result.find('?') >= 0:
+            print("Error: Command %s not recognized" % 'H')
+        else:
+            return int(result.split('H')[1][0])
