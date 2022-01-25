@@ -7,6 +7,7 @@ import time
 from functools import partial
 from typing import Any, List, Tuple, Union, Sequence, Dict, Optional
 
+import numpy as np
 import zhinst.utils
 
 from qcodes import Instrument
@@ -112,6 +113,24 @@ class ZIHDAWG8(Instrument):
             awg_number: The AWG that should be disabled.
         """
         self.set('awgs_{}_enable'.format(awg_number), 0)
+
+    def waveform_to_wave(self, wave_name: str, waveform: np.ndarray) -> None:
+        """
+        Write waveforms to a .wave file in the modules data directory so that it
+        can be referenced and used in a sequence program.
+
+        Args:
+            wave_name: Name of the wave file, is used by a sequence program.
+            waveforms: Waveforms that is to be written to a .wave file.
+        """
+        data_dir = self.awg_module.getString('awgModule/directory')
+        wave_dir = os.path.join(data_dir, "awg", "waves")
+        if not os.path.isdir(wave_dir):
+            raise Exception(f"AWG module wave directory {wave_dir} does not exist or is not a directory")
+        wave_file = os.path.join(wave_dir, wave_name + '.wave')
+
+        wave_array = zhinst.utils.convert_awg_waveform(waveform)
+        wave_array.tofile(wave_file)
 
     def waveform_to_csv(self, wave_name: str, *waveforms: list) -> None:
         """
