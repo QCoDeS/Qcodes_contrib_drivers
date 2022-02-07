@@ -2,6 +2,7 @@
 # Loick Le Guevel, 2019
 # Etienne Dumur <etienne.dumur@gmail.com>, 2021
 # Simon Zihlmann <zihlmann.simon@gmail.com>, 2021
+# Victor Millory <victor.millory@cea.fr>, 2021
 
 from typing import Union, Tuple, Any
 from functools import partial
@@ -145,6 +146,15 @@ class iTestChannel(InstrumentChannel):
                            initial_value=1e-5
                            )
 
+        self.add_parameter('autorange_enable',
+                           docstring='If the voltage autorange is activated.',
+                           get_cmd=partial(self._parent._get_chan_autorange, chan_num),
+                           get_parser=bool,
+                           set_cmd=partial(self._parent._set_chan_autorange, chan_num),
+                           vals=vals.Bool(),
+                           initial_value=False
+                           )
+
 
     def start(self) -> None:
         """
@@ -159,7 +169,11 @@ class iTestChannel(InstrumentChannel):
         """
         self._parent._set_chan_state(self.chan_num, '0')
 
-
+    def clear_alarm(self) -> None:
+        """
+        Clear the alarm and warnings of the channel.
+        """
+        self._parent._clear_chan_alarm(self.chan_num)
 
 class iTestMultiChannelParameter(MultiChannelInstrumentParameter):
     """
@@ -241,6 +255,7 @@ class ITest(VisaInstrument):
                 channel.stop()
                 channel.v.set(0)
                 channel.v_range(12)
+                channel.autorange_enable(False)
                 channel.synchronous_enable(False)
                 channel.output_mode('exp')
                 channel.start()
@@ -392,6 +407,36 @@ class ITest(VisaInstrument):
 
         return self.ask(chan_id + 'VOLT:RANGE?')[:-2]
 
+    def _get_chan_autorange(self, chan:int) -> bool:
+            """
+            Get the channel voltage autorange state
+
+            Args:
+                chan: The 1-indexed channel number
+
+            Returns:
+                chXX_autorange parameter
+            """
+            chan_id = self.chan_to_id(chan)
+            autorange_state = self.ask('{}VOLT:RANGE:AUTO?'.format(chan_id))
+
+            if autorange_state in ['1', '0'] :
+                return autorange_state
+            else:
+                raise ValueError('Unknown state output: {}'.format(autorange_state))
+            return False
+
+    def _set_chan_autorange(self, chan:int, state:bool) -> None:
+        """
+        Set channel voltage autorange state
+
+        Args:
+            chan: The 1-indexed channel number
+            state: power state
+        """
+        chan_id = self.chan_to_id(chan)
+        self.write(chan_id + 'VOLT:RANGE:AUTO {}'.format('1' if(state) else '0') )
+
     def _set_chan_pos_sat(self, chan:int,
                                 pos_sat: Union[float, str]) -> None:
         chan_id = self.chan_to_id(chan)
@@ -457,6 +502,17 @@ class ITest(VisaInstrument):
         """
         chan_id = self.chan_to_id(chan)
         self.write(chan_id + 'chan:name "{}"'.format(name))
+
+    def _clear_chan_alarm(self, chan:int) -> None:
+        """
+        Clear the alarm/warning for a given channel
+
+        Args:
+            chan: The 1-indexed channel number
+        """
+        chan_id = self.chan_to_id(chan)
+        self.write(chan_id + 'LIM:CLEAR')
+        self.write(chan_id + 'STAT:CLEAR')
 
     def chan_to_ic(self, chan:int) -> Tuple[int, int]:
         """
