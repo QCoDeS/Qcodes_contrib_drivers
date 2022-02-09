@@ -540,7 +540,7 @@ class ITest(VisaInstrument):
         for ch in self.channels:
             ch.v(0)
 
-    def get_dacs_voltages(self) -> None:
+    def print_dac_voltages(self) -> None:
         """
         Prints the voltage of all channels to cmdl.
         """
