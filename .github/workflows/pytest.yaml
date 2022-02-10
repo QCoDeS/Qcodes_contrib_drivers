@@ -68,6 +68,7 @@ jobs:
         pip install .
     - name: Run Mypy
       run: mypy qcodes_contrib_drivers
+      if: matrix.python-version != '3.7'
     - name: Run tests
       run: |
         pytest --cov=qcodes_contrib_drivers --cov-report xml --cov-config=setup.cfg qcodes_contrib_drivers
