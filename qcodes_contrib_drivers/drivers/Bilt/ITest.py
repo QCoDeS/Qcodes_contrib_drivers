@@ -206,8 +206,8 @@ class ITest(VisaInstrument):
             name: The instrument name used by qcodes
             address: The VISA name of the resource
             num_chans: Number of channels to assign. Default: 16
-            init_start: If true set all channels to 0V, 1.2V range and switch
-                then on.
+            init_start: If true: set all channels to 0V, 12V range, exponential mode and switch
+                them on.
             synchronous_enable: If true, block the communication until the set voltage
                 is reached. The communication is block through a simple while loop
                 with a waiting time "synchronous_delay" at each iteration until the
