@@ -4,10 +4,10 @@ from qcodes.instrument.channel import InstrumentChannel, ChannelList
 from qcodes.instrument.visa import VisaInstrument
 from pyvisa.errors import VisaIOError
 from qcodes.utils import validators
-from typing import NewType, Sequence, List, Dict, Optional
+from typing import Any, NewType, Sequence, List, Dict, Tuple, Optional
 from packaging.version import parse
 
-# Version 0.11.3
+# Version 0.12.0
 #
 # Guiding principles for this driver for QDevil QDAC-II
 # -----------------------------------------------------
