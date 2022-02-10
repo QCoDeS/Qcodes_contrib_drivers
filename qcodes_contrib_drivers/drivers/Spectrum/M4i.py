@@ -988,7 +988,9 @@ class M4i(Instrument):
             raise Exception(f'Error transferring data: {_errormsg_dict[res]} (0x{res:04x})')
 
         # convert buffer to numpy array
-        output = np.frombuffer(data_buffer, dtype=sample_ctype)
+        # this does not typecheck with numpy 1.22 should be updated
+        # by someone with access to test on the real data.
+        output = np.frombuffer(data_buffer, dtype=sample_ctype) # type: ignore[call-overload]
 
         return output
 
