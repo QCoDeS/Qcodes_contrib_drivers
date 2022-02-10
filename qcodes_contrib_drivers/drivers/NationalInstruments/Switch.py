@@ -1,9 +1,8 @@
 import logging
-from typing import Optional, Dict, List, cast
+from typing import Dict, List, Optional, cast
 
-from qcodes import Instrument, InstrumentChannel, ChannelList
-
-from niswitch import Session, PathCapability
+from niswitch import PathCapability, Session
+from qcodes import ChannelList, Instrument, InstrumentChannel
 
 logger = logging.getLogger(__name__)
 
@@ -159,5 +158,5 @@ class SwitchChannel(InstrumentChannel):
         Disconnect this channel from all channels it is connected to.
         """
         while len(self.connection_list) > 0:
-            ch = cast(InstrumentChannel, self.connection_list[0])
+            ch = self.connection_list[0]
             self.disconnect_from(ch)
