@@ -1,6 +1,4 @@
-import logging
 from typing import Any, Tuple
-log = logging.getLogger(__name__)
 
 from qcodes import VisaInstrument
 import qcodes.utils.validators as vals
@@ -602,7 +600,7 @@ class AFG3000(VisaInstrument):
         self.wait()
 
     def reset(self) -> None:
-        log.info(f'Resetting {self.name}.')
+        self.log.info(f'Resetting {self.name}.')
         self.write('*RST')
         self.wait()
 
@@ -612,17 +610,17 @@ class AFG3000(VisaInstrument):
     def save(self, location: int) -> None:
         if location not in [0, 1, 2, 3, 4]:
             raise ValueError(f'Location must be in {[0, 1, 2, 3, 4]}.')
-        log.info(f'Instrument settings saved to location {location}.')
+        self.log.info(f'Instrument settings saved to location {location}.')
         self.write(f'*SAVE {location}')
 
     def recall(self, location: int) -> None:
         if location not in [0, 1, 2, 3, 4]:
             raise ValueError(f'Location must be in {[0, 1, 2, 3, 4]}.')
-        log.info(f'Recalling instrument settings from location {location}.')
+        self.log.info(f'Recalling instrument settings from location {location}.')
         self.write(f'*RCL {location}')
 
     def synchronize_phase(self, src: int) -> None:
-        log.info('Synchronizing CH1 and CH2 phase.')
+        self.log.info('Synchronizing CH1 and CH2 phase.')
         self.write(f'SOURce{src}:PHASe:INITiate')
 
 class AFG3252(AFG3000):
