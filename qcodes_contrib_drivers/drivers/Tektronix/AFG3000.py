@@ -59,7 +59,7 @@ class AFG3000(VisaInstrument):
                 get_cmd=f'SOURce{src}:AM:DEPTh?',
                 get_parser=float,
                 set_cmd=f'SOURce{src}:AM:DEPTh {{}}PCT',
-                vals=vals.Multiples(divisor=0.1, min_value=0, max_value=120)
+                vals=vals.PermissiveMultiples(divisor=0.1)  # TODO min_value=0, max_value=120
             )
 
             # Frequency modulation
@@ -104,7 +104,7 @@ class AFG3000(VisaInstrument):
                     get_cmd=f'SOURce{src}:{mod_type}:INTernal:FREQuency?',
                     get_parser=float,
                     set_cmd=f'SOURce{src}:{mod_type}:INTernal:FREQuency {{}}Hz',
-                    vals=vals.Multiples(divisor=1e-3, min_value=2e-3, max_value=5e4)
+                    vals=vals.PermissiveMultiples(divisor=1e-3)  # TODO min_value=2e-3, max_value=5e4
                 )              
                 self.add_parameter(
                     name=f'{mod_type.lower()}_internal_function{src}',
