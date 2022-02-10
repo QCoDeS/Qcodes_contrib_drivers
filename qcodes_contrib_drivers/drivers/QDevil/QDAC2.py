@@ -1554,14 +1554,14 @@ class Sweep_2D_Context:
         # Let Arrangement take care of freeing triggers
         return False
 
-    def actual_values_V(self, gate: str) -> Sequence[float]:
+    def actual_values_V(self, gate: str) -> np.ndarray:
         """The corrected values that would actually be sent to the gate
 
         Args:
             gate (str): Name of gate
 
         Returns:
-            Sequence[float]: Corrected voltages
+            np.ndarray: Corrected voltages
         """
         index = self._arrangement._gate_index(gate)
         return self._sweep[:, index]
