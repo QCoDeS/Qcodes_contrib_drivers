@@ -146,11 +146,11 @@ class iTestChannel(InstrumentChannel):
                            initial_value=1e-5
                            )
 
-        self.add_parameter('autorange_enable',
+        self.add_parameter('v_autorange',
                            docstring='If the voltage autorange is activated.',
-                           get_cmd=partial(self._parent._get_chan_autorange, chan_num),
+                           get_cmd=partial(self._parent._get_chan_v_autorange, chan_num),
                            get_parser=bool,
-                           set_cmd=partial(self._parent._set_chan_autorange, chan_num),
+                           set_cmd=partial(self._parent._set_chan_v_autorange, chan_num),
                            vals=vals.Bool(),
                            initial_value=False
                            )
@@ -255,7 +255,7 @@ class ITest(VisaInstrument):
                 channel.stop()
                 channel.v.set(0)
                 channel.v_range(12)
-                channel.autorange_enable(False)
+                channel.v_autorange(False)
                 channel.synchronous_enable(False)
                 channel.output_mode('exp')
                 channel.start()
@@ -407,7 +407,7 @@ class ITest(VisaInstrument):
 
         return self.ask(chan_id + 'VOLT:RANGE?')[:-2]
 
-    def _get_chan_autorange(self, chan:int) -> bool:
+    def _get_chan_v_autorange(self, chan:int) -> bool:
             """
             Get the channel voltage autorange state
 
@@ -415,18 +415,18 @@ class ITest(VisaInstrument):
                 chan: The 1-indexed channel number
 
             Returns:
-                chXX_autorange parameter
+                chXX_v_autorange parameter
             """
             chan_id = self.chan_to_id(chan)
-            autorange_state = self.ask('{}VOLT:RANGE:AUTO?'.format(chan_id))
+            v_autorange_state = self.ask('{}VOLT:RANGE:AUTO?'.format(chan_id))
 
-            if autorange_state in ['1', '0'] :
-                return autorange_state
+            if v_autorange_state in ['1', '0'] :
+                return True if v_autorange_state=='1' else False
             else:
-                raise ValueError('Unknown state output: {}'.format(autorange_state))
+                raise ValueError('Unknown state output: {}'.format(v_autorange_state))
             return False
 
-    def _set_chan_autorange(self, chan:int, state:bool) -> None:
+    def _set_chan_v_autorange(self, chan:int, state:bool) -> None:
         """
         Set channel voltage autorange state
 
