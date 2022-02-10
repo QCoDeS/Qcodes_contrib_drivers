@@ -1,5 +1,4 @@
-import logging
-log = logging.getLogger(__name__)
+from typing import Any, Tuple
 
 from qcodes import VisaInstrument
 import qcodes.utils.validators as vals
@@ -9,7 +8,8 @@ class AFG3000(VisaInstrument):
     
     Not all instrument functionality is included here.
     """
-    def __init__(self, name, address, **kwargs):
+
+    def __init__(self, name: str, address: str, **kwargs: Any):
         super().__init__(name, address, terminator='\n', timeout=20, **kwargs)
 
         self.add_parameter(
@@ -186,7 +186,14 @@ class AFG3000(VisaInstrument):
             )
 
             if src == 1:
-                combine_enum = ('NOISe', 'NOIS', 'EXTernal', 'EXT', 'BOTH', '')
+                combine_enum: Tuple[str, ...] = (
+                    "NOISe",
+                    "NOIS",
+                    "EXTernal",
+                    "EXT",
+                    "BOTH",
+                    "",
+                )
             else:
                 combine_enum = ('NOISe', 'NOIS', '')
             self.add_parameter(
@@ -580,40 +587,40 @@ class AFG3000(VisaInstrument):
         self.snapshot(update=True)
         self.connect_message()
 
-    def self_calibrate(self):
+    def self_calibrate(self) -> None:
         self.write('CALibration:ALL')
         self.wait()
 
-    def self_test(self):
+    def self_test(self) -> None:
         self.write('DIAGnostic:ALL')
         self.wait()
 
-    def abort(self):
+    def abort(self) -> None:
         self.write('ABORt')
         self.wait()
 
-    def reset(self):
-        log.info(f'Resetting {self.name}.')
+    def reset(self) -> None:
+        self.log.info(f'Resetting {self.name}.')
         self.write('*RST')
         self.wait()
 
-    def wait(self):
+    def wait(self) -> None:
         self.write('*WAI')
 
     def save(self, location: int) -> None:
         if location not in [0, 1, 2, 3, 4]:
             raise ValueError(f'Location must be in {[0, 1, 2, 3, 4]}.')
-        log.info(f'Instrument settings saved to location {location}.')
+        self.log.info(f'Instrument settings saved to location {location}.')
         self.write(f'*SAVE {location}')
 
     def recall(self, location: int) -> None:
         if location not in [0, 1, 2, 3, 4]:
             raise ValueError(f'Location must be in {[0, 1, 2, 3, 4]}.')
-        log.info(f'Recalling instrument settings from location {location}.')
+        self.log.info(f'Recalling instrument settings from location {location}.')
         self.write(f'*RCL {location}')
 
     def synchronize_phase(self, src: int) -> None:
-        log.info('Synchronizing CH1 and CH2 phase.')
+        self.log.info('Synchronizing CH1 and CH2 phase.')
         self.write(f'SOURce{src}:PHASe:INITiate')
 
 class AFG3252(AFG3000):
