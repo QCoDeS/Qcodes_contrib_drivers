@@ -1,4 +1,5 @@
 import logging
+from typing import Any, Tuple
 log = logging.getLogger(__name__)
 
 from qcodes import VisaInstrument
@@ -9,7 +10,8 @@ class AFG3000(VisaInstrument):
     
     Not all instrument functionality is included here.
     """
-    def __init__(self, name, address, **kwargs):
+
+    def __init__(self, name: str, address: str, **kwargs: Any):
         super().__init__(name, address, terminator='\n', timeout=20, **kwargs)
 
         self.add_parameter(
@@ -186,7 +188,14 @@ class AFG3000(VisaInstrument):
             )
 
             if src == 1:
-                combine_enum = ('NOISe', 'NOIS', 'EXTernal', 'EXT', 'BOTH', '')
+                combine_enum: Tuple[str, ...] = (
+                    "NOISe",
+                    "NOIS",
+                    "EXTernal",
+                    "EXT",
+                    "BOTH",
+                    "",
+                )
             else:
                 combine_enum = ('NOISe', 'NOIS', '')
             self.add_parameter(
@@ -580,24 +589,24 @@ class AFG3000(VisaInstrument):
         self.snapshot(update=True)
         self.connect_message()
 
-    def self_calibrate(self):
+    def self_calibrate(self) -> None:
         self.write('CALibration:ALL')
         self.wait()
 
-    def self_test(self):
+    def self_test(self) -> None:
         self.write('DIAGnostic:ALL')
         self.wait()
 
-    def abort(self):
+    def abort(self) -> None:
         self.write('ABORt')
         self.wait()
 
-    def reset(self):
+    def reset(self) -> None:
         log.info(f'Resetting {self.name}.')
         self.write('*RST')
         self.wait()
 
-    def wait(self):
+    def wait(self) -> None:
         self.write('*WAI')
 
     def save(self, location: int) -> None:
