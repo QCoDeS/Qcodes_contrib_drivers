@@ -13,7 +13,7 @@ MAX_WAVEFORM_LENGTH = 131072
 
 class AFG3000(VisaInstrument):
     """Qcodes driver for Tektronix AFG3000 series arbitrary function generator.
-    
+
     Not all instrument functionality is included here.
     """
 
@@ -51,14 +51,14 @@ class AFG3000(VisaInstrument):
                 get_parser=str,
                 set_cmd=f'OUTPut{src}:POLarity {{}}',
                 vals=vals.Enum('NORMal', 'NORM', 'INVerted', 'INV')
-            ) 
+            )
             self.add_parameter(
                 name=f'state_output{src}',
                 label=f'Output {src} state',
                 get_cmd=f'OUTPut{src}:STATe?',
                 set_cmd=f'OUTPut{src}:STATe {{}}',
                 val_mapping=on_off_map
-            )  
+            )
 
             # Amplitude modulation
             self.add_parameter(
@@ -68,7 +68,9 @@ class AFG3000(VisaInstrument):
                 get_cmd=f'SOURce{src}:AM:DEPTh?',
                 get_parser=float,
                 set_cmd=f'SOURce{src}:AM:DEPTh {{}}PCT',
-                vals=vals.PermissiveMultiples(divisor=0.1)  # TODO min_value=0, max_value=120
+                vals=vals.MultiType(vals.Numbers(min_value=0, max_value=120),
+                                    vals.PermissiveMultiples(divisor=0.1),
+                                    combiner='AND')
             )
 
             # Frequency modulation
@@ -113,8 +115,10 @@ class AFG3000(VisaInstrument):
                     get_cmd=f'SOURce{src}:{mod_type}:INTernal:FREQuency?',
                     get_parser=float,
                     set_cmd=f'SOURce{src}:{mod_type}:INTernal:FREQuency {{}}Hz',
-                    vals=vals.PermissiveMultiples(divisor=1e-3)  # TODO min_value=2e-3, max_value=5e4
-                )              
+                    vals=vals.MultiType(vals.Numbers(min_value=2e-3, max_value=5e4),
+                                        vals.PermissiveMultiples(divisor=1e-3),
+                                        combiner='AND')
+                )
                 self.add_parameter(
                     name=f'{mod_type.lower()}_internal_function{src}',
                     label=f'Source {src} {mod_type} interal function',
@@ -131,7 +135,7 @@ class AFG3000(VisaInstrument):
                     'USER', 'USER1', 'USER2', 'USER3', 'USER4',
                     'EMEMory', 'EMEM',
                     'EFILe', 'EFIL')
-                ) 
+                )
                 self.add_parameter(
                     name=f'{mod_type.lower()}_internal_efile{src}',
                     label=f'Source {src} {mod_type} interal EFile',
@@ -210,9 +214,9 @@ class AFG3000(VisaInstrument):
                 get_parser=str,
                 set_cmd=f'SOURce{src}:COMBine:FEED {{}}',
                 vals=vals.Enum(combine_enum)
-            ) 
+            )
 
-            # Frequency controls                 
+            # Frequency controls
             self.add_parameter(
                 name=f'center_freq{src}',
                 label=f'Source {src} center frequency',
@@ -228,7 +232,7 @@ class AFG3000(VisaInstrument):
                 get_cmd=f'SOURce{src}:FREQuency:CONCurrent?',
                 set_cmd=f'SOURce{src}:FREQuency:CONCurrent {{}}',
                 val_mapping=on_off_map
-            ) 
+            )
             self.add_parameter(
                 name=f'freq_cw{src}',
                 label=f'Source {src} continuous frequency',
@@ -283,7 +287,7 @@ class AFG3000(VisaInstrument):
                 get_parser=float,
                 set_cmd=f'SOURce{src}:FSKey:FREQuency {{}}Hz',
                 vals=vals.Numbers()
-            )            
+            )
             self.add_parameter(
                 name=f'fsk_internal_rate{src}',
                 label=f'Source {src} FSK internal rate',
@@ -343,7 +347,7 @@ class AFG3000(VisaInstrument):
                 'USER', 'USER1', 'USER2', 'USER3', 'USER4',
                 'EMEMory', 'EMEM',
                 'EFILe', 'EFIL',
-                'USER', 'USER1', 
+                'USER', 'USER1',
                 'USER2', 'USER3', 'USER4',
                 'EMEMory', 'EMEM',
                 'EFILe', 'EFIL')
@@ -369,7 +373,7 @@ class AFG3000(VisaInstrument):
                 get_parser=float,
                 set_cmd=f'SOURce{src}:PULSe:DCYCle {{}}PCT',
                 vals=vals.Numbers(1e-3, 99.999)
-            )            
+            )
             self.add_parameter(
                 name=f'pulse_delay{src}',
                 label=f'Source {src} pulse delay',
@@ -433,7 +437,7 @@ class AFG3000(VisaInstrument):
                 get_parser=float,
                 set_cmd=f'SOURce{src}:SWEep:HTIMe {{}}s',
                 vals=vals.Numbers()
-            )            
+            )
             self.add_parameter(
                 name=f'sweep_mode{src}',
                 label=f'Source {src} sweep mode',
@@ -450,7 +454,7 @@ class AFG3000(VisaInstrument):
                 get_parser=float,
                 set_cmd=f'SOURce{src}:SWEep:RTIMe {{}}s',
                 vals=vals.Numbers()
-            )                  
+            )
             self.add_parameter(
                 name=f'sweep_spacing{src}',
                 label=f'Source {src} sweep spacing',
@@ -469,14 +473,14 @@ class AFG3000(VisaInstrument):
                 vals=vals.Numbers(1e-3, 300)
             )
 
-            # Voltage parameters       
+            # Voltage parameters
             self.add_parameter(
                 name=f'voltage_concurrent{src}',
                 label=f'Source {src} concurrent voltage',
                 get_cmd=f'SOURce{src}:VOLTage:CONCurrent:STATe?',
                 set_cmd=f'SOURce{src}:VOLTage:CONCurrent:STATe {{}}',
                 val_mapping=on_off_map
-            ) 
+            )
             self.add_parameter(
                 name=f'voltage_high{src}',
                 label=f'Source {src} high voltage level',
@@ -485,7 +489,7 @@ class AFG3000(VisaInstrument):
                 get_parser=float,
                 set_cmd=f'SOURce{src}:VOLTage:LEVel:IMMediate:HIGH {{}}V',
                 vals=vals.Numbers()
-            ) 
+            )
             self.add_parameter(
                 name=f'voltage_low{src}',
                 label=f'Source {src} low voltage level',
@@ -691,4 +695,4 @@ class AFG3000(VisaInstrument):
 
 class AFG3252(AFG3000):
     pass
-    
+
