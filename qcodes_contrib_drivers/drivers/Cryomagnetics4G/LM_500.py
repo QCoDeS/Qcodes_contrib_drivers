@@ -22,10 +22,10 @@ class LM_500(VisaInstrument):
         idn = self.IDN.get()
         self.model = idn['model']
         self.visa_handle.write('UNITS cm')
-        print ('The units have been set to cm')
+        print ('The units have been set to cm.')
 
-        self.add_parameter(name='measurement_helvl',
-                           label = 'measurement',
+        self.add_parameter(name='measure_helvl',
+                           label = 'Measure Helium level',
                            get_cmd = 'MEAS? 1',
                            get_parser = str,
                            set_cmd = 'MEAS 1',

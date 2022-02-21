@@ -136,14 +136,14 @@ class Cryomag(VisaInstrument):
             self.visa_handle.write('ULIM %s' % set_pnt)
             self.visa_handle.write('SWEEP UP SLOW')
 
-            while abs(set_pnt - mag_now) >= 0.01:
-                time.sleep(1)
+            while abs(set_pnt - mag_now) >= 0.05:
+                time.sleep(.1)
                 mag_now = float(self.visa_handle.query('IOUT?')[:-2])
 
         if set_pnt < mag_now:
             self.visa_handle.write('LLIM %s' % set_pnt)
             self.visa_handle.write('SWEEP DOWN SLOW')
 
-            while abs(set_pnt - mag_now) >= 0.01:
-                time.sleep(1)
+            while abs(set_pnt - mag_now) >= 0.05:
+                time.sleep(.1)
                 mag_now = float(self.visa_handle.query('IOUT?')[:-2])
