@@ -48,7 +48,7 @@ class Cryomag(VisaInstrument):
                            get_cmd='SWEEP?',
                            get_parser=str,
                            set_parser=str,
-                           vals=vals.Enum('UP', 'Up', 'up', 'DOWN', 'Down', 'down', 'Pause', 'PAUSE', 'pause', 'ZERO', 'Zero', 'zero'),                           
+                           vals=vals.Enum('UP', 'Up', 'up', 'DOWN', 'Down', 'down', 'Pause', 'PAUSE', 'pause', 'ZERO', 'Zero', 'zero'),
                            unit='Amps/Sec')
 
         self.add_parameter(name='STOP',

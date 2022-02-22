@@ -21,13 +21,18 @@ class LM_500(VisaInstrument):
 
         idn = self.IDN.get()
         self.model = idn['model']
-        self.visa_handle.write('UNITS cm')
-        print ('The units have been set to cm.')
 
-        self.add_parameter(name='measure_helvl',
-                           label = 'Measure Helium level',
-                           get_cmd = 'MEAS? 1',
-                           get_parser = str,
-                           set_cmd = 'MEAS 1',
-                           vals=vals.Enum('Meas', 'MEASURE', 'meas', 'mesure', 'Mesure', 'Do', 'do'),
-                           )
+        self.add_parameter(name='measure',
+                            label = 'Measure Helium level',
+                            get_cmd = 'MEAS? 1',
+                            get_parser = str,
+                            docstring="Get and set the units for measurement ")
+
+        self.add_parameter(name='units',
+                            label = 'Set unit for measurement',
+                            get_cmd = 'UNITS?',
+                            get_parser = str,
+                            set_cmd = 'UNITS {}',
+                            set_parser = str,
+                            vals=vals.Enum('CM','IN','PERCENT','%'),
+                            docstring="Get and set the units for measurement ")
