@@ -26,7 +26,7 @@ class LM_500(VisaInstrument):
                             label = 'Measure Helium level',
                             get_cmd = 'MEAS? 1',
                             get_parser = str,
-                            docstring="Get and set the units for measurement ")
+                            docstring="Measure the helium level using the units defined by the user.")
 
         self.add_parameter(name='units',
                             label = 'Set unit for measurement',
