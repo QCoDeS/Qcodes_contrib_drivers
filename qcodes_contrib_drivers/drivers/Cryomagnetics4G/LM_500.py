@@ -32,7 +32,8 @@ class LM_500(VisaInstrument):
                             label = 'Set unit for measurement',
                             get_cmd = 'UNITS?',
                             get_parser = str,
+                            initial_value = 'cm',
                             set_cmd = 'UNITS {}',
                             set_parser = str,
-                            vals=vals.Enum('CM','IN','PERCENT','%'),
-                            docstring="Get and set the units for measurement ")
+                            vals=vals.Enum('cm','in','percent','%'),
+                            docstring="Get and set the units for measurement.")
