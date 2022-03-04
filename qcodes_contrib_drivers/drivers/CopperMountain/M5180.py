@@ -187,7 +187,7 @@ class M5180(VisaInstrument):
                        timeout    : int=100000,
                        **kwargs):
         """
-        QCoDeS driver for the VNA S5180 from Copper Mountain.
+        QCoDeS driver for the VNA M5180 from Copper Mountain.
         This driver only uses one channel.
 
         Args:
