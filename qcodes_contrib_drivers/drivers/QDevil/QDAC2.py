@@ -1554,14 +1554,14 @@ class Sweep_2D_Context:
         # Let Arrangement take care of freeing triggers
         return False
 
-    def actual_values_V(self, gate: str) -> Sequence[float]:
+    def actual_values_V(self, gate: str) -> np.ndarray:
         """The corrected values that would actually be sent to the gate
 
         Args:
             gate (str): Name of gate
 
         Returns:
-            Sequence[float]: Corrected voltages
+            np.ndarray: Corrected voltages
         """
         index = self._arrangement._gate_index(gate)
         return self._sweep[:, index]
@@ -1939,7 +1939,7 @@ class QDac2(VisaInstrument):
         return int(self.ask('syst:err:coun?'))
 
     def start_all(self) -> None:
-        """Trigger the global SCPI bus (*TRG)
+        """Trigger the global SCPI bus (``*TRG``)
 
         All generators, that have not been explicitly set to trigger on an
         internal or external trigger, will be started.

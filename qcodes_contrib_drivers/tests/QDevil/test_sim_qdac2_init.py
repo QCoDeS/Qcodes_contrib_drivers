@@ -13,8 +13,11 @@ def test_refuse_wrong_model():
     # -----------------------------------------------------------------------
     assert 'Unknown model' in repr(error)
     # Circumvent Instrument not handling exceptions in constructor.
-    Instrument._all_instruments.pop(wrong_instrument)
-
+    # In qcodes < 0.32
+    try:
+        Instrument._all_instruments.pop(wrong_instrument)
+    except KeyError:
+        pass
 
 def test_refuse_incompatible_firmware():
     # -----------------------------------------------------------------------
@@ -23,4 +26,8 @@ def test_refuse_incompatible_firmware():
     # -----------------------------------------------------------------------
     assert 'Incompatible firmware' in repr(error)
     # Circumvent Instrument not handling exceptions in constructor.
-    Instrument._all_instruments.pop('qdac')
+    # In qcodes < 0.32
+    try:
+        Instrument._all_instruments.pop('qdac')
+    except KeyError:
+        pass
