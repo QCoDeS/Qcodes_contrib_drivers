@@ -22,3 +22,19 @@ module = [
     "qcodes_contrib_drivers.drivers.Spectrum.pyspcm"
     ]
 ignore_errors = true
+
+[tool.versioningit]
+default-version = "0.0"
+
+[tool.versioningit.format]
+distance = "{next_version}.dev{distance}+{branch}.{vcs}{rev}"
+dirty = "{next_version}.dev{distance}+{branch}.{vcs}{rev}.dirty"
+distance-dirty = "{next_version}.dev{distance}+{branch}.{vcs}{rev}.dirty"
+
+[tool.versioningit.vcs]
+method = "git"
+match = ["v*"]
+
+[tool.versioningit.onbuild]
+source-file = "qcodes_contrib_drivers/_version.py"
+build-file = "qcodes_contrib_drivers/_version.py"
