@@ -18,7 +18,6 @@ show_error_codes = true
 
 [[tool.mypy.overrides]]
 module = [
-    "qcodes_contrib_drivers._version",
     "qcodes_contrib_drivers.drivers.Spectrum.pyspcm"
     ]
 ignore_errors = true
