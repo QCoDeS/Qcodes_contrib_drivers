@@ -7,7 +7,7 @@ from qcodes.utils import validators
 from typing import Any, NewType, Sequence, List, Dict, Tuple, Optional
 from packaging.version import parse
 
-# Version 0.12.0
+# Version 0.12.1
 #
 # Guiding principles for this driver for QDevil QDAC-II
 # -----------------------------------------------------
@@ -1011,7 +1011,8 @@ class Measurement_Context(_Channel_Context):
         # Bug circumvention
         if self.n_available() == 0:
             return []
-        return comma_sequence_to_list(self._ask_channel('sens{0}:data:rem?'))
+        return comma_sequence_to_list_of_floats(
+            self._ask_channel('sens{0}:data:rem?'))
 
     def peek_A(self) -> float:
         """Peek at the first available current measurement
