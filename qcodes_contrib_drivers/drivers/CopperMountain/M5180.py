@@ -3,14 +3,16 @@
 # Simon Zihlmannr <zihlmann.simon@gmail.com>, february/march 2021
 import logging
 import numpy as np
-from typing import Tuple, Optional, Any
+import cmath, math
+from typing import Tuple, Any
 
 from qcodes import VisaInstrument
-from qcodes.utils.validators import Numbers, Enum, Ints
+from qcodes.utils.validators import Numbers, Enum, Ints, Bool
 from qcodes.utils.helpers import create_on_off_val_mapping
 
 from qcodes.instrument.parameter import (
     MultiParameter,
+    ManualParameter,
     ParamRawDataType
 )
 
@@ -104,17 +106,13 @@ class FrequencySweepMagPhase(MultiParameter):
 
 class PointMagPhase(MultiParameter):
     """
-    Returns the first point of a sweep (at start frequency).
+    Returns the average Sxx of a frequency sweep.
     Work around for a CW mode where only one point is read.
-    Ideally, npts is set to 2 and stop = start + 1 (in Hz), this will maximize
-    the measurement speed.
+    npts=2 and stop = start + 1 (in Hz) is required.
     """
 
     def __init__(self,
         name: str,
-        start: float,
-        stop: float,
-        npts: int,
         instrument: "M5180",
         **kwargs: Any,
         ) -> None:
@@ -123,10 +121,7 @@ class PointMagPhase(MultiParameter):
 
         Args:
             name (str): Name of point measurement
-            start (float): Start frequency (frequency at which it will measure)
-            stop (float): Stop frequency, ideally start - 1 Hz
-            npts (int): Number of points of the sweep, ideally 2
-            instrument:  Instrument to which sweep is bound to.
+            instrument:  Instrument to which parameter is bound to.
         """
 
         super().__init__(
@@ -140,31 +135,10 @@ class PointMagPhase(MultiParameter):
                 f"{instrument.short_name} {name} phase",
             ),
             units=("dB", "rad"),
-            setpoint_units=(("Hz",), ("Hz",)),
-            setpoint_labels=(
-                (f"{instrument.short_name} frequency",),
-                (f"{instrument.short_name} frequency",),
-            ),
-            setpoint_names=(
-                (f"{instrument.short_name}_frequency",),
-                (f"{instrument.short_name}_frequency",),
-            ),
-            shapes=((npts,), (npts,),),
+            setpoints=((), (),),
+            shapes=((), (),),
             **kwargs,
         )
-        self.set_sweep(start, stop, npts)
-
-    def set_sweep(self, start: float, stop: float, npts: int) -> None:
-        """Updates the setpoints and shapes based on start, stop and npts.
-
-        Args:
-            start (float): start frequency
-            stop (float): stop frequency, not used
-            npts (int): number of points, not used
-        """
-        f = tuple(np.linspace(int(start), int(stop), num=npts))
-        self.setpoints = ((start,), (start,))
-        self.shapes = ((), ())
 
     def get_raw(self) -> Tuple[ParamRawDataType, ParamRawDataType]:
         """Gets data from instrument
@@ -172,7 +146,16 @@ class PointMagPhase(MultiParameter):
         Returns:
             Tuple[ParamRawDataType, ...]: magnitude, phase
         """
+
         assert isinstance(self.instrument, M5180)
+        # check that npts, start and stop fullfill requirements if point_check_sweep_first is True.
+        if self.instrument.point_check_sweep_first:
+            if self.instrument.npts() != 2:
+                raise ValueError('Npts is not 2 but {}. Please set it to 2'.format(self.instrument.npts()))
+            if self.instrument.stop() - self.instrument.start() != 1:
+                raise ValueError('Stop-start is not 1 Hz but {} Hz. Please adjust'
+                                'start or stop.'.format(self.instrument.stop()-self.instrument.start()))
+
         self.instrument.write('CALC1:PAR:COUN 1') # 1 trace
         self.instrument.write('CALC1:PAR1:DEF {}'.format(self.name[-3:]))
         self.instrument.trigger_source('bus') # set the trigger to bus
@@ -182,15 +165,15 @@ class PointMagPhase(MultiParameter):
         # get data from instrument
         self.instrument.write('CALC1:TRAC1:FORM SMITH')  # ensure correct format
         sxx_raw = self.instrument.ask("CALC1:TRAC1:DATA:FDAT?")
-        self.instrument.write('CALC1:TRAC1:FORM MLOG')
 
         # Get data as numpy array
         sxx = np.fromstring(sxx_raw, dtype=float, sep=',')
         sxx = sxx[0::2] + 1j*sxx[1::2]
 
-        # Return only the first point of the trace, which will have "start" as
+        # Return the average of the trace, which will have "start" as
         # its setpoint
-        return self.instrument._db(sxx[0]), np.angle(sxx[0])
+        sxx_mean = np.mean(sxx)
+        return 20*math.log10(abs(sxx_mean)), cmath.phase(sxx_mean)
 
 
 class M5180(VisaInstrument):
@@ -204,7 +187,7 @@ class M5180(VisaInstrument):
                        timeout    : int=100000,
                        **kwargs):
         """
-        QCoDeS driver for the VNA S5180 from Copper Mountain.
+        QCoDeS driver for the VNA M5180 from Copper Mountain.
         This driver only uses one channel.
 
         Args:
@@ -315,7 +298,7 @@ class M5180(VisaInstrument):
                            set_cmd=self._set_start,
                            unit='Hz',
                            vals=Numbers(min_value=300e3,
-                                        max_value=18e9))
+                                        max_value=18e9-1))
 
         self.add_parameter(name='stop',
                            label='Stop Frequency',
@@ -332,8 +315,8 @@ class M5180(VisaInstrument):
                            get_cmd='SENS1:FREQ:CENT?',
                            set_cmd=self._set_center,
                            unit='Hz',
-                           vals=Numbers(min_value=100e3,
-                                        max_value=18e9))
+                           vals=Numbers(min_value=100e3+1,
+                                        max_value=18e9-1))
 
         self.add_parameter(name='span',
                            label='Frequency Span',
@@ -341,8 +324,8 @@ class M5180(VisaInstrument):
                            get_cmd='SENS1:FREQ:SPAN?',
                            set_cmd=self._set_span,
                            unit='Hz',
-                           vals=Numbers(min_value=100e3,
-                                        max_value=18e9))
+                           vals=Numbers(min_value=1,
+                                        max_value=18e9-1))
 
         self.add_parameter('npts',
                            label='Number of points',
@@ -403,28 +386,26 @@ class M5180(VisaInstrument):
                            parameter_class=FrequencySweepMagPhase)
 
         self.add_parameter(name='point_s11',
-                           start=self.start(),
-                           stop=self.stop(),
-                           npts=self.npts(),
                            parameter_class=PointMagPhase)
 
         self.add_parameter(name='point_s12',
-                           start=self.start(),
-                           stop=self.stop(),
-                           npts=self.npts(),
                            parameter_class=PointMagPhase)
 
         self.add_parameter(name='point_s21',
-                           start=self.start(),
-                           stop=self.stop(),
-                           npts=self.npts(),
                            parameter_class=PointMagPhase)
 
         self.add_parameter(name='point_s22',
-                           start=self.start(),
-                           stop=self.stop(),
-                           npts=self.npts(),
                            parameter_class=PointMagPhase)
+
+        self.add_parameter(name="point_check_sweep_first",
+            parameter_class=ManualParameter,
+            initial_value=True,
+            vals=Bool(),
+            docstring="Parameter that enables a few commands, which are called"
+            "before each get of a point_sxx parameter checking whether the vna"
+            "is setup correctly. Is recommended to be True, but can be turned"
+            "off if one wants to minimize overhead.",
+        )
 
         self.connect_message()
 
@@ -586,7 +567,7 @@ class M5180(VisaInstrument):
         stop = self.stop()
         npts = self.npts()
         for _, parameter in self.parameters.items():
-            if isinstance(parameter, (FrequencySweepMagPhase, PointMagPhase)):
+            if isinstance(parameter, (FrequencySweepMagPhase)):
                 try:
                     parameter.set_sweep(start, stop, npts)
                 except AttributeError:
