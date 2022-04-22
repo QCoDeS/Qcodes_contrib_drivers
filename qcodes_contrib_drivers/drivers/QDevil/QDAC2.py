@@ -1815,6 +1815,7 @@ class QDac2(VisaInstrument):
             **kwargs: additional argument to the Visa driver
         """
         super().__init__(name, address, terminator='\n', **kwargs)
+        self._check_instrument_name(name)
         self._set_up_serial()
         self._set_up_debug_settings()
         self._set_up_channels()
@@ -2170,3 +2171,10 @@ class QDac2(VisaInstrument):
     def _set_up_simple_functions(self) -> None:
         self.add_function('reset', call_cmd='*rst')
         self.add_function('abort', call_cmd='abor')
+
+    def _check_instrument_name(self, name: str) -> None:
+        if name.isidentifier():
+            return
+        raise ValueError(
+            f'Instrument name "{name}" is incompatible with QCoDeS parameter '
+            'generation (no spaces, punctuation, prepended numbers, etc)')
