@@ -1814,8 +1814,8 @@ class QDac2(VisaInstrument):
             address (str): Visa identification string
             **kwargs: additional argument to the Visa driver
         """
-        super().__init__(name, address, terminator='\n', **kwargs)
         self._check_instrument_name(name)
+        super().__init__(name, address, terminator='\n', **kwargs)
         self._set_up_serial()
         self._set_up_debug_settings()
         self._set_up_channels()
