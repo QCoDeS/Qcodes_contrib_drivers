@@ -31,3 +31,11 @@ def test_refuse_incompatible_firmware():
         Instrument._all_instruments.pop('qdac')
     except KeyError:
         pass
+
+def test_refuse_qcodes_incompatible_name():
+    # -----------------------------------------------------------------------
+    with pytest.raises(ValueError) as error:
+        QDAC2.QDac2('QDAC-II', address='GPIB::1::INSTR', visalib=visalib)
+    # -----------------------------------------------------------------------
+    assert 'QDAC-II' in repr(error)
+    assert 'incompatible with QCoDeS parameter' in repr(error)
