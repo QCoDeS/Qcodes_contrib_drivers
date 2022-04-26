@@ -21,7 +21,7 @@ class DUT:
         if DUT._instance:
             raise ValueError('DUT is a singleton, call instance()')
         DUT._instance = self
-        name = 'dac-' + str(uuid.uuid4())
+        name = ('dac' + str(uuid.uuid4())).replace('-', '')
         try:
             self.dac = QDAC2.QDac2(name, address='GPIB::1::INSTR', visalib=visalib)
         except Exception as error:

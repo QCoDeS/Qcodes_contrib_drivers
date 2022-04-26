@@ -151,6 +151,8 @@ def test_measurement_remove_two(qdac):  # noqa
         'sens2:data:rem?'
     ]
     assert len(available) == 2
+    assert isinstance(available[0], float)
+    assert isinstance(available[1], float)
 
 
 def test_measurement_last(qdac):  # noqa
