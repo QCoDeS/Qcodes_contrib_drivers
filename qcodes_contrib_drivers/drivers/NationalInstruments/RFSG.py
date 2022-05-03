@@ -10,7 +10,8 @@ from .visa_types import (
 from .dll_wrapper import AttributeWrapper, NamedArgType
 from .ni_dll_instrument import NIDLLInstrument
 
-# constants used for querying attributes
+# Constants used for querying attributes.
+# These can be found in the RFSG C API documentation, see below.
 NIRFSG_ATTR_INSTRUMENT_FIRMWARE_REVISION = AttributeWrapper(ViAttr(1050510), ViString)
 NIRFSG_ATTR_INSTRUMENT_MANUFACTURER      = AttributeWrapper(ViAttr(1050511), ViString)
 NIRFSG_ATTR_INSTRUMENT_MODEL             = AttributeWrapper(ViAttr(1050512), ViString)
