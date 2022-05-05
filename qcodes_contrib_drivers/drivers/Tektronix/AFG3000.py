@@ -662,16 +662,14 @@ class AFG3000(VisaInstrument):
 
         # convert waveform to two-byte integer values in the range 0..16382 (= 2**14-2)
         wf_codes = ((np.array(waveform) + 1) * 0.5 * (2**14-2)).astype(np.uint16)
-        n_bytes = wf_codes.nbytes
-        n_digits_in_n_bytes = len(str(n_bytes))
 
         # write data to the editable memory
         self.visa_handle.write_binary_values(
-            f"DATA:DATA EMEM,#{n_digits_in_n_bytes}{n_bytes}",
+            f"DATA:DATA EMEM,",
             wf_codes,
             datatype="H", # unsigned short (16 bits)
             is_big_endian=True, # the AFG expects data in big endian order
-            header_fmt="empty", # do not prefix data with header
+            header_fmt="ieee",
         )
 
         # copy data from editable memory to USER.
