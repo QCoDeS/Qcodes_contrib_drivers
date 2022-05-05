@@ -561,6 +561,15 @@ class AFG3000(VisaInstrument):
             vals=vals.Enum('INTernal', 'INT', 'EXTernal', 'EXT')
         )
 
+        self.add_parameter(
+            name='ememory_points',
+            label='Number of points in the editable memory',
+            get_cmd='DATA:POINts? EMEM',
+            get_parser=int,
+            set_cmd='DATA:POINts EMEM, {}',
+            vals=vals.Ints(MIN_WAVEFORM_LENGTH, MAX_WAVEFORM_LENGTH),
+        )
+
         # Trigger parameters
         self.add_parameter(
             name='trigger_slope',
@@ -676,6 +685,31 @@ class AFG3000(VisaInstrument):
 
         # copy data from editable memory to USER.
         self.write(f"DATA:COPY USER{memory},EMEM")
+
+    def read_waveform(self, memory: int) -> np.ndarray:
+        """
+        Copy the waveform stored in one of the user memories to the edit memory
+        and read the waveform data from the device.
+        """
+        if memory not in [1, 2, 3, 4]:
+            raise ValueErorr(f"Invalid value for memory: '{memory}'")
+
+        # copy the requested memory contents to the edit memory
+        self.write(f"DATA:COPY EMEM,USER{memory}")
+
+        self.write("DATA:DATA? EMEM")
+        self.visa_handle.read_bytes(1)  # the first character is '#', skip it
+        # how many digits does the size of the data have?
+        n_digits_in_n_bytes = int(self.visa_handle.read_bytes(1))
+        # the actual size of the data in bytes
+        n_bytes = int(self.visa_handle.read_bytes(n_digits_in_n_bytes))
+        # actually read the data
+        wf_bytes = self.visa_handle.read_bytes(n_bytes)
+
+        # convert bytes to numbers and apply appropriate scaling
+        # ">u2" means "two-byte unsigned integer in big endian format"
+        wf_codes = np.frombuffer(wf_bytes, dtype=">u2")
+        return (wf_codes * 1.0 / (2**14-2) - 0.5) * 2
 
 
 class AFG3252(AFG3000):
