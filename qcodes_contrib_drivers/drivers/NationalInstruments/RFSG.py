@@ -3,6 +3,7 @@ from typing import Optional
 from functools import partial
 
 from qcodes.utils.helpers import create_on_off_val_mapping as on_off_map
+from qcodes.utils.validators import Numbers
 
 from .visa_types import (
         ViString, ViAttr, ViSession, ViReal64, ViBoolean, ViInt32,
@@ -23,6 +24,7 @@ NIRFSG_ATTR_POWER_LEVEL                  = AttributeWrapper(ViAttr(1250002), ViR
 NIRFSG_ATTR_OUTPUT_ENABLED               = AttributeWrapper(ViAttr(1250004), ViBoolean)
 NIRFSG_ATTR_REF_CLOCK_SOURCE             = AttributeWrapper(ViAttr(1150001), ViString)
 NIRFSG_ATTR_ANALOG_MODULATION_TYPE       = AttributeWrapper(ViAttr(1150032), ViInt32)
+NIRFSG_ATTR_ANALOG_MODULATION_AM_SENSITIVITY = AttributeWrapper(ViAttr(1150167), ViReal64)
 NIRFSG_ATTR_PULSE_MODULATION_ENABLED     = AttributeWrapper(ViAttr(1250051), ViBoolean)
 
 logger = logging.getLogger(__name__)
@@ -160,6 +162,23 @@ class NationalInstruments_RFSG(NIDLLInstrument):
                            set_cmd=partial(self.set_attribute,
                                            NIRFSG_ATTR_ANALOG_MODULATION_TYPE),
                            val_mapping=ANALOG_MOD_NAME_MAP,
+                           )
+
+        self.add_parameter(name="amplitude_mod_sensitivity",
+                           label="Amplitude modulation sensitivity",
+                           docstring="The modulation signal sent to AM IN is "
+                                     "scaled by this percentage before "
+                                     "multiplying the carrier wave.",
+                           unit="%/V",
+                           get_cmd=partial(
+                                self.get_attribute,
+                                NIRFSG_ATTR_ANALOG_MODULATION_AM_SENSITIVITY
+                           ),
+                           set_cmd=partial(
+                                self.set_attribute,
+                                NIRFSG_ATTR_ANALOG_MODULATION_AM_SENSITIVITY
+                           ),
+                           vals=Numbers(0, 100),
                            )
 
         self.add_parameter(name="clock_source",
