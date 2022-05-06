@@ -646,6 +646,11 @@ class AFG3000(VisaInstrument):
         Upload a waveform to the editable memory (EMEM), and then copy it to the
         USER1, USER2, USER3 or USER4 memory.
 
+        The waveform data should contain values in the range -1..1. Note that
+        the actual voltage values that are output will depend on the values of
+        the `voltage_low1/2` and `voltage_high1/2` parameters; -1 will be
+        mapped to `voltage_low` and +1 to `voltage_high`.
+
         Args:
             waveform: list of points containing the waveform data,
                 containing values from -1 to 1.
