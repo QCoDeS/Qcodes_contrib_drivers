@@ -646,14 +646,14 @@ class AFG3000(VisaInstrument):
         Upload a waveform to the editable memory (EMEM), and then copy it to the
         USER1, USER2, USER3 or USER4 memory.
 
-        The waveform data should contain values in the range -1..1. Note that
+        The waveform data should contain values in the range 0..1. Note that
         the actual voltage values that are output will depend on the values of
-        the `voltage_low1/2` and `voltage_high1/2` parameters; -1 will be
-        mapped to `voltage_low` and +1 to `voltage_high`.
+        the `voltage_low1/2` and `voltage_high1/2` parameters; 0 will be
+        mapped to `voltage_low` and 1 to `voltage_high`.
 
         Args:
             waveform: list of points containing the waveform data,
-                containing values from -1 to 1.
+                containing values from 0 to 1.
             memory: The USER# memory where to to store the waveform, from 1 to 4.
         """
         if (len(waveform) < MIN_WAVEFORM_LENGTH or
@@ -666,7 +666,7 @@ class AFG3000(VisaInstrument):
         self.reset_edit_memory(len(waveform))
 
         # convert waveform to two-byte integer values in the range 0..16382 (= 2**14-2)
-        wf_codes = ((np.array(waveform) + 1) * 0.5 * (2**14-2)).astype(np.uint16)
+        wf_codes = (np.array(waveform) * (2**14-2)).astype(np.uint16)
 
         # write data to the editable memory
         self.visa_handle.write_binary_values(
