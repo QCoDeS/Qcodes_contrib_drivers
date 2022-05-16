@@ -17,7 +17,7 @@ class Keithley_Sense(InstrumentChannel):
             name: Channel name (e.g. 'CH1')
             channel: Name of the quantity to measure (e.g. 'VOLT' for DC voltage measurement)
         """
-        valid_channels = ['VOLT', 'CURR', 'RES', 'FRES']
+        valid_channels = ['VOLT', 'CURR', 'RES', 'FRES', 'TEMP']
         if channel.upper() not in valid_channels:
             raise ValueError(f"Channel must be one of the following: {', '.join(valid_channels)}")
         super().__init__(parent, name)
@@ -27,7 +27,7 @@ class Keithley_Sense(InstrumentChannel):
                            label=partial(self._get_label, channel),
                            get_parser=float,
                            get_cmd=partial(self.parent._measure, channel),
-                           docstring="Measure value of chosen quantity (Current/Voltage/Resistance)."
+                           docstring="Measure value of chosen quantity (Current/Voltage/Resistance/Temperature)."
                            )
 
         self.add_parameter('nplc',
@@ -49,7 +49,7 @@ class Keithley_Sense(InstrumentChannel):
         Returns: Corresponding unit string
 
         """
-        channel_units = {'VOLT': 'V', 'CURR': 'A', 'RES': 'Ohm', 'FRES': 'Ohm'}
+        channel_units = {'VOLT': 'V', 'CURR': 'A', 'RES': 'Ohm', 'FRES': 'Ohm', 'TEMP': 'C'}
         return channel_units[quantity]
 
     @staticmethod
@@ -65,7 +65,8 @@ class Keithley_Sense(InstrumentChannel):
         channel_labels = {'VOLT': 'Measured voltage.',
                           'CURR': 'Measured current.',
                           'RES': 'Measured resistance',
-                          'FRES': 'Measured resistance (4w)'}
+                          'FRES': 'Measured resistance (4w)',
+                          'TEMP': 'Measured temperature'}
         return channel_labels[quantity]
 
 
@@ -86,7 +87,7 @@ class Keithley_6500(VisaInstrument):
             **kwargs: Keyword arguments to pass to __init__ function of VisaInstrument class
         """
         super().__init__(name, address, terminator=terminator, **kwargs)
-        for quantity in ['VOLT', 'CURR', 'RES', 'FRES']:
+        for quantity in ['VOLT', 'CURR', 'RES', 'FRES', 'TEMP']:
             channel = Keithley_Sense(self, quantity.lower(), quantity)
             self.add_submodule(quantity.lower(), channel)
 
@@ -121,6 +122,13 @@ class Keithley_6500(VisaInstrument):
                            label='Measured DC current',
                            get_parser=float,
                            get_cmd=partial(self._measure, 'CURR')
+                           )
+
+        self.add_parameter('temperature',
+                           unit='C',
+                           label='Measured temperature',
+                           get_parser=float,
+                           get_cmd=partial(self._measure, 'TEMP')
                            )
 
         self.connect_message()
