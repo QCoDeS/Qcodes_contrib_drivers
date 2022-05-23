@@ -177,9 +177,8 @@ class DAQDigitalOutputState(Parameter):
         kwargs: Keyword arguments to be passed to ParameterWithSetpoints constructor.
     """
     def __init__(self, name: str, dev_name: str, lines: Union[list, str], **kwargs) -> None:
-        super().__init__(name, **kwargs)
+        super().__init__(name, get_cmd=None, **kwargs)
         self.dev_name = dev_name
-        self._state = [np.nan]
 
         if type(lines) is str:
             lineString = dev_name + '/' + lines
@@ -196,12 +195,7 @@ class DAQDigitalOutputState(Parameter):
             do_task.do_channels.add_do_chan(self.lines,
                                             line_grouping=LineGrouping.CHAN_PER_LINE)
             do_task.write(state, auto_start=True)
-        self._state = state
 
-    def get_raw(self):
-        """Returns last digital state written to outputs.
-        """
-        return self._state
 
 class DAQDigitalOutputs(Instrument):
     """Instrument to write DAQ digital output data in a qcodes Loop or measurement.
