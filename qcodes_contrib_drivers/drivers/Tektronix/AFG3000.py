@@ -663,18 +663,18 @@ class AFG3000(VisaInstrument):
         if memory not in [1, 2, 3, 4]:
             raise ValueErorr(f"Invalid value for memory: '{memory}'")
 
-        # raise ValueError if array contains inf or nan
-        waveform = np.asarray_chkfinite(waveform)
+        # convert to numpy array and raise ValueError if data contains inf or nan
+        wf_array = np.asarray_chkfinite(waveform)
 
-        if np.any(waveform > 1.0):
+        if np.any(wf_array > 1.0):
             raise ValueError("Waveform contains data above 1.0")
-        if np.any(waveform < 0.0):
+        if np.any(wf_array < 0.0):
             raise ValueError("Waveform contains data below 0.0")
 
         self.reset_edit_memory(len(waveform))
 
         # convert waveform to two-byte integer values in the range 0..16382 (= 2**14-2)
-        wf_codes = (waveform * (2**14-2)).astype(np.uint16)
+        wf_codes = (wf_array * (2**14-2)).astype(np.uint16)
 
         # write data to the editable memory
         self.visa_handle.write_binary_values(
