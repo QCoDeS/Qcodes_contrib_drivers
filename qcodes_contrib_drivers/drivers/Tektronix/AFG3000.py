@@ -637,7 +637,7 @@ class AFG3000(VisaInstrument):
         """
         if (points < MIN_WAVEFORM_LENGTH or
             points > MAX_WAVEFORM_LENGTH):
-            raise ValueErorr(f"Trying to reset edit memory with invalid length: {points}")
+            raise ValueError(f"Trying to reset edit memory with invalid length: {points}")
 
         self.write(f"DATA:DEFINE EMEM,{points}")
 
@@ -658,10 +658,10 @@ class AFG3000(VisaInstrument):
         """
         if (len(waveform) < MIN_WAVEFORM_LENGTH or
             len(waveform) > MAX_WAVEFORM_LENGTH):
-            raise ValueErorr(f"Invalid waveform length: {len(waveform)}")
+            raise ValueError(f"Invalid waveform length: {len(waveform)}")
 
         if memory not in [1, 2, 3, 4]:
-            raise ValueErorr(f"Invalid value for memory: '{memory}'")
+            raise ValueError(f"Invalid value for memory: '{memory}'")
 
         # convert to numpy array and raise ValueError if data contains inf or nan
         wf_array = np.asarray_chkfinite(waveform)
