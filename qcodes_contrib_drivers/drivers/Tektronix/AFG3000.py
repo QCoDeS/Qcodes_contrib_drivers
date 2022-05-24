@@ -1,4 +1,4 @@
-from typing import Any, Tuple, List
+from typing import Any, Tuple, Sequence
 
 import numpy as np
 from qcodes import VisaInstrument
@@ -641,7 +641,7 @@ class AFG3000(VisaInstrument):
 
         self.write(f"DATA:DEFINE EMEM,{points}")
 
-    def upload_waveform(self, waveform: List[float], memory: int):
+    def upload_waveform(self, waveform: Sequence[float], memory: int):
         """
         Upload a waveform to the editable memory (EMEM), and then copy it to the
         USER1, USER2, USER3 or USER4 memory.
@@ -652,7 +652,7 @@ class AFG3000(VisaInstrument):
         mapped to `voltage_low` and 1 to `voltage_high`.
 
         Args:
-            waveform: list of points containing the waveform data,
+            waveform: sequence of points containing the waveform data,
                 containing values from 0 to 1.
             memory: The USER# memory where to to store the waveform, from 1 to 4.
         """
