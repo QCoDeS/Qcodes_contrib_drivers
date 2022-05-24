@@ -633,7 +633,7 @@ class AFG3000(VisaInstrument):
         `points`.
 
         Each point will be initialized with the value 8191, which corresponds
-        to zero amplitude.
+        to the voltage half-way between `voltage_low` and `voltage_high`.
         """
         if (points < MIN_WAVEFORM_LENGTH or
             points > MAX_WAVEFORM_LENGTH):
