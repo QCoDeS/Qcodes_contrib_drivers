@@ -155,8 +155,9 @@ class NationalInstruments_RFSG(NIDLLInstrument):
                            label="Analog modulation type",
                            docstring="Specifies the analog modulation format "
                                      "to use. FM = frequency modulation, PM = "
-                                     "pulse modulation, AM = amplitude "
-                                     "modulation.",
+                                     "phase modulation, AM = amplitude "
+                                     "modulation. Set to 'none' to disable "
+                                     "analog modulation.",
                            get_cmd=partial(self.get_attribute,
                                            NIRFSG_ATTR_ANALOG_MODULATION_TYPE),
                            set_cmd=partial(self.set_attribute,
