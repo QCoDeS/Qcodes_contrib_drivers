@@ -1,4 +1,4 @@
-from typing import Any, Tuple, Sequence
+from typing import Any, Tuple, Sequence, cast
 
 import numpy as np
 from qcodes import VisaInstrument
@@ -679,7 +679,7 @@ class AFG3000(VisaInstrument):
         # write data to the editable memory
         self.visa_handle.write_binary_values(
             f"DATA:DATA EMEM,",
-            wf_codes,
+            cast(Sequence[float], wf_codes), # cast to make types correct
             datatype="H", # unsigned short (16 bits)
             is_big_endian=True, # the AFG expects data in big endian order
             header_fmt="ieee",
