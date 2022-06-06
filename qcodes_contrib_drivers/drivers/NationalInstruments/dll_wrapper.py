@@ -10,7 +10,7 @@ from typing import NamedTuple, Optional, List, Any, Callable
 import warnings
 from dataclasses import dataclass
 from .visa_types import (
-    ViChar, ViStatus, ViRsrc, ViInt32, ViString, ViSession, ViBoolean, ViAttr,
+    ViChar, ViConstString, ViStatus, ViRsrc, ViInt32, ViString, ViSession, ViBoolean, ViAttr,
     ViChar, ViReal64, VI_NULL
 )
 
@@ -290,3 +290,144 @@ class NIDLLWrapper(object):
         buf = ctypes.create_string_buffer(STRING_BUFFER_SIZE)
         self._error_message(session or VI_NULL, error_code, buf)
         return buf.value.decode()
+
+class NIHSDIODLLWrapper(NIDLLWrapper):
+    """
+    This class provides convenience functions for wrapping and checking a DLL
+    function call for NI-HSDIO devices. Other functions should be wrapped by
+    a library-specific class by calling ``wrap_dll_function_checked``.
+
+    This wrapped is defined separately because NI-HSDIO devices have
+    very different call functions from other NI devices (for example, there
+    isn't a 'niHSDIO_init' function).
+
+    Args:
+        dll_path: path to the DLL file containing the library
+    """
+
+    def __init__(self, dll_path: str, session_type: str):
+        self._dll = ctypes.cdll.LoadLibrary(dll_path)
+        self._lib_prefix = 'niHSDIO'
+
+        self._session_type = session_type
+
+        self._dtype_map = {
+                ViBoolean: "ViBoolean",
+                ViInt32: "ViInt32",
+                ViReal64: "ViReal64",
+                ViString: "ViString"
+        }
+
+        # wrap standard functions that are the same in all libraries
+
+        # note: self.error_messsage is a convenience wrapper around this, with
+        # a different signature
+        self._error_message = self.wrap_dll_function(
+                name_in_library="error_message",
+                argtypes=[
+                    NamedArgType("vi", ViSession),
+                    NamedArgType("errorCode", ViStatus),
+                    NamedArgType("errorMessage", POINTER(ViChar)),
+                    ]
+                )
+
+        self._init_gen = self.wrap_dll_function_checked(
+                name_in_library="InitGenerationSession",
+                argtypes=[
+                    NamedArgType("resourceName", ViRsrc),
+                    NamedArgType("idQuery", ViBoolean),
+                    NamedArgType("resetDevice", ViBoolean),
+                    NamedArgType("optionString", ViConstString),
+                    ]
+                )
+
+        self._init_acq = self.wrap_dll_function_checked(
+                name_in_library="InitAcquisitionSession",
+                argtypes=[
+                    NamedArgType("resourceName", ViRsrc),
+                    NamedArgType("idQuery", ViBoolean),
+                    NamedArgType("resetDevice", ViBoolean),
+                    NamedArgType("optionString", ViConstString),
+                    ]
+                )
+
+        # no special name is needed, the signature is the same
+        self.reset = self.wrap_dll_function_checked(
+                name_in_library="reset",
+                argtypes=[NamedArgType("vi", ViSession)]
+                )
+
+        self.reset_device = self.wrap_dll_function_checked(
+                name_in_library="ResetDevice",
+                argtypes=[NamedArgType("vi", ViSession)]
+                )
+
+        self.close = self.wrap_dll_function_checked(
+                name_in_library="close",
+                argtypes=[NamedArgType("vi", ViSession)]
+                )
+
+        # wrap GetAttribute<DataType> functions (see get_attribute method)
+        for dtype, dtype_name in self._dtype_map.items():
+
+            # argtypes for the GetAttribute<DataType> functions
+            getter_argtypes = [
+                    NamedArgType("vi", ViSession),
+                    NamedArgType("channelName", ViString),
+                    NamedArgType("attributeID", ViAttr),
+                    NamedArgType("attributeValue", POINTER(dtype))
+            ]
+
+            # the argtypes for the corresponding SetAttribute<DataType>
+            # functions. note that the signature for SetAttributeViString is
+            # the same as for the other types even though GetAttributeViString
+            # has a unique signature
+            setter_argtypes = getter_argtypes.copy()
+
+            if dtype == ViString:
+                # replace last argument
+                getter_argtypes.pop()
+                getter_argtypes.append(NamedArgType("bufferSize", ViInt32))
+                # ViString is already a pointer, so no POINTER() here
+                getter_argtypes.append(NamedArgType("attributeValue", dtype))
+
+            getter_name = f"GetAttribute{dtype_name}"
+            getter_func = self.wrap_dll_function_checked(
+                    getter_name,
+                    argtypes=getter_argtypes)
+            setattr(self, getter_name, getter_func)
+
+            setter_argtypes[-1] = NamedArgType("attributeValue", dtype)
+
+            setter_name = f"SetAttribute{dtype_name}"
+            setter_func = self.wrap_dll_function_checked(
+                    setter_name,
+                    argtypes=setter_argtypes)
+            setattr(self, setter_name, setter_func)
+
+    def init(self, resource: str, id_query: bool = True,
+             reset_device: bool = False) -> ViSession:
+        """
+        Convenience wrapper around niHSDIO_InitGenerationSession or
+        niHSDIO_InitAcquisitionSession. Returns the ViSession handle
+        of the initialized session. Note that this class is not
+        responsible for storing the handle, it should be managed by
+        the function or class that calls the functions wrapped by
+        this class.
+
+        Args:
+            resource: the resource name of the device to initialize, as given
+                by NI MAX.
+            id_query: whether to perform an ID query on initialization
+            reset_device: whether to reset the device during initialization
+        Returns:
+            the ViSession handle of the initialized device
+        """
+        session = ViSession()
+        if self._session_type == 'Generation':
+            self._init_gen(ViRsrc(c_str(resource)), id_query, reset_device, b'',
+                           ctypes.byref(session))
+        else:
+            self._init_acq(ViRsrc(c_str(resource)), id_query, reset_device, b'',
+                           ctypes.byref(session))
+        return session
