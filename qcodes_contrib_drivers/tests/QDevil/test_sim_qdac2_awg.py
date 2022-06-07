@@ -25,7 +25,7 @@ def test_trace_define(qdac):  # noqa
     # -----------------------------------------------------------------------
     trace = qdac.allocate_trace(name, length)
     # -----------------------------------------------------------------------
-    assert qdac.get_recorded_scpi_commands() == [f'trac:def "{name}", {length}']
+    assert qdac.get_recorded_scpi_commands() == [f'trac:def "{name}",{length}']
     assert trace.name == name
     assert trace.size == length
     assert len(trace) == length
@@ -60,7 +60,7 @@ def test_trace_data(qdac):  # noqa
     trace.waveform(numpy.linspace(0, 1, 6))
     # -----------------------------------------------------------------------
     assert qdac.get_recorded_scpi_commands() == [
-        f'trac:data "{name}", 0, 0.2, 0.4, 0.6, 0.8, 1']
+        f'trac:data "{name}",0,0.2,0.4,0.6,0.8,1']
 
 
 def test_trace_data_length_mismatch(qdac):  # noqa

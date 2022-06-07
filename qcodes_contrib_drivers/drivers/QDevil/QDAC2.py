@@ -7,7 +7,7 @@ from qcodes.utils import validators
 from typing import Any, NewType, Sequence, List, Dict, Tuple, Optional
 from packaging.version import parse
 
-# Version 0.12.1
+# Version 0.13.0
 #
 # Guiding principles for this driver for QDevil QDAC-II
 # -----------------------------------------------------
@@ -144,11 +144,11 @@ class QDac2ExternalTrigger(InstrumentChannel):
 
 def floats_to_comma_separated_list(array: Sequence[float]):
     rounded = [format(x, 'g') for x in array]
-    return ', '.join(rounded)
+    return ','.join(rounded)
 
 
 def array_to_comma_separated_list(array: str):
-    return ', '.join(map(str, array))
+    return ','.join(map(str, array))
 
 
 def comma_sequence_to_list(sequence: str):
@@ -367,6 +367,27 @@ class Sweep_Context(_Dc_Context):
         """
         return float(self._ask_channel('sour{0}:swe:time?'))
 
+    def start_V(self) -> float:
+        """
+        Returns:
+            float: Starting voltage
+        """
+        return float(self._ask_channel('sour{0}:swe:star?'))
+
+    def stop_V(self) -> float:
+        """
+        Returns:
+            float: Ending voltage
+        """
+        return float(self._ask_channel('sour{0}:swe:stop?'))
+
+    def values_V(self) -> Sequence[float]:
+        """
+        Returns:
+            Sequence[float]: List of voltages
+        """
+        return list(np.linspace(self.start_V(), self.stop_V(), self.points()))
+
 
 class List_Context(_Dc_Context):
 
@@ -429,6 +450,16 @@ class List_Context(_Dc_Context):
             int: Number of cycles remaining in the DC list
         """
         return int(self._ask_channel('sour{0}:list:ncl?'))
+
+    def values_V(self) -> Sequence[float]:
+        """
+        Returns:
+            Sequence[float]: List of voltages
+        """
+        # return comma_sequence_to_list_of_floats(
+        #     self._ask_channel('sour{0}:list:volt?'))
+        return comma_sequence_to_list_of_floats(
+            self._ask_channel('sour{0}:list:volt?'))
 
 
 class _Waveform_Context(_Channel_Context):
@@ -1500,7 +1531,7 @@ class Trace_Context:
         self._parent = parent
         self._size = size
         self._name = name
-        self._parent.write(f'trac:def "{name}", {size}')
+        self._parent.write(f'trac:def "{name}",{size}')
 
     def __len__(self):
         return self.size
@@ -1532,7 +1563,7 @@ class Trace_Context:
         if len(values) != self.size:
             raise ValueError(f'trace length {len(values)} does not match '
                              f'allocated length {self.size}')
-        self._parent.write_floats(f'trac:data "{self.name}", ', values)
+        self._parent.write_floats(f'trac:data "{self.name}",', values)
 
 
 class Sweep_2D_Context:

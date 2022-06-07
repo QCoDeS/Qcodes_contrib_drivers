@@ -252,3 +252,27 @@ def test_sweep_trigger_on_external(qdac):  # noqa
         f'sour1:dc:init:cont on',
         'sour1:dc:init'
     ]
+
+
+def test_sweep_get_start(qdac):  # noqa
+    dc_sweep = qdac.ch01.dc_sweep(start_V=-1.2345, stop_V=1.2345, points=3)
+    # -----------------------------------------------------------------------
+    voltage = dc_sweep.start_V()
+    # -----------------------------------------------------------------------
+    assert voltage == -1.2345
+
+
+def test_sweep_get_stop(qdac):  # noqa
+    dc_sweep = qdac.ch01.dc_sweep(start_V=-1.2345, stop_V=1.2345, points=3)
+    # -----------------------------------------------------------------------
+    voltage = dc_sweep.stop_V()
+    # -----------------------------------------------------------------------
+    assert voltage == 1.2345
+
+
+def test_sweep_get_voltages(qdac):  # noqa
+    dc_sweep = qdac.ch01.dc_sweep(start_V=-1.23, stop_V=1.23, points=3)
+    # -----------------------------------------------------------------------
+    voltages = dc_sweep.values_V()
+    # -----------------------------------------------------------------------
+    assert voltages == [-1.23, 0, 1.23]
