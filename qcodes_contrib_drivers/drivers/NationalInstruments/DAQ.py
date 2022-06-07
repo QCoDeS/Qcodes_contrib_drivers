@@ -17,7 +17,9 @@ import numpy as np
 import nidaqmx
 from nidaqmx.constants import AcquisitionType, TaskMode
 from qcodes.instrument.base import Instrument
-from qcodes.instrument.parameter import Parameter, ArrayParameter
+from qcodes.instrument.parameter import Parameter, ArrayParameter, ParameterWithSetpoints
+from qcodes.utils.helpers import create_on_off_val_mapping
+from nidaqmx.constants import LineGrouping
 
 class DAQAnalogInputVoltages(ArrayParameter):
     """Acquires data from one or several DAQ analog inputs.
@@ -165,3 +167,58 @@ class DAQAnalogOutputs(Instrument):
                 unit='V'
             )
             
+class DAQDigitalOutputState(Parameter):
+    """Writes data to one or several DAQ digital outputs.
+
+    Args:
+        name: Name of parameter (usually 'voltage').
+        dev_name: DAQ device name (e.g. 'Dev1').
+        lines: DO lines.
+        kwargs: Keyword arguments to be passed to ParameterWithSetpoints constructor.
+    """
+    def __init__(self, name: str, dev_name: str, lines: Union[list, str], **kwargs) -> None:
+        super().__init__(name, get_cmd=None, **kwargs)
+        self.dev_name = dev_name
+
+        if type(lines) is str:
+            lineString = dev_name + '/' + lines
+        else:
+            comma = [', ']*len(lines)
+            dev = [dev_name+'/']*len(lines)
+            lineString = ''
+            lineString = lineString.join([val for set in zip(dev, lines, comma) for val in set][0:-1])
+
+        self.lines = lineString
+
+    def set_raw(self, state: Union[list, bool]) -> None:
+        with nidaqmx.Task('daq_do_task') as do_task:
+            do_task.do_channels.add_do_chan(self.lines,
+                                            line_grouping=LineGrouping.CHAN_PER_LINE)
+            do_task.write(state, auto_start=True)
+
+
+class DAQDigitalOutputs(Instrument):
+    """Instrument to write DAQ digital output data in a qcodes Loop or measurement.
+
+    Args:
+        name: Name of instrument (usually 'daq_do').
+        dev_name: NI DAQ device name (e.g. 'PXI1Slot2').
+        lines: DO lines.
+        **kwargs: Keyword arguments to be passed to Instrument constructor.
+    """
+    def __init__(self, name: str, dev_name: str, lines: Union[list, str], **kwargs) -> None:
+        super().__init__(name, **kwargs)
+
+        self.metadata.update({
+            'dev_name': dev_name,
+            'lines': lines})
+        
+        self.lines = lines
+        
+        self.add_parameter(
+                name='state',
+                dev_name=dev_name,
+                lines=lines,
+                parameter_class=DAQDigitalOutputState,
+                label='DO state'
+        )

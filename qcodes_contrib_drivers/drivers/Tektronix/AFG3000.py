@@ -2,6 +2,8 @@ from typing import Any, Tuple
 
 from qcodes import VisaInstrument
 import qcodes.utils.validators as vals
+from qcodes.utils.helpers import create_on_off_val_mapping
+
 
 class AFG3000(VisaInstrument):
     """Qcodes driver for Tektronix AFG3000 series arbitrary function generator.
@@ -20,6 +22,8 @@ class AFG3000(VisaInstrument):
             set_cmd='OUTPut:TRIGger:MODE {}',
             vals=vals.Enum('TRIGger', 'TRIG', 'SYNC')
         )
+
+        on_off_map = create_on_off_val_mapping(on_val=1, off_val=0)
 
         # Source/output parameters, 2 channels
         for src in [1, 2]:
@@ -46,9 +50,8 @@ class AFG3000(VisaInstrument):
                 name=f'state_output{src}',
                 label=f'Output {src} state',
                 get_cmd=f'OUTPut{src}:STATe?',
-                get_parser=lambda x: bool(int(x)),
                 set_cmd=f'OUTPut{src}:STATe {{}}',
-                vals=vals.Enum('OFF', 0, 'ON', 1)
+                val_mapping=on_off_map
             )  
 
             # Amplitude modulation
@@ -143,9 +146,8 @@ class AFG3000(VisaInstrument):
                     name=f'{mod_type.lower()}_state{src}',
                     label=f'Source {src} {mod_type} interal state',
                     get_cmd=f'SOURce{src}:{mod_type}:STATe?',
-                    get_parser=lambda x: bool(int(x)),
                     set_cmd=f'SOURce{src}:{mod_type}:STATe {{}}',
-                    vals=vals.Enum('OFF', 0, 'ON', 1)
+                    val_mapping=on_off_map
                 )
 
             # Burst mode
@@ -171,9 +173,8 @@ class AFG3000(VisaInstrument):
                 name=f'burst_state{src}',
                 label=f'Source {src} burst state',
                 get_cmd=f'SOURce{src}:BURSt:STATe?',
-                get_parser=lambda x: bool(int(x)),
                 set_cmd=f'SOURce{src}:BURSt:STATe {{}}',
-                vals=vals.Enum('OFF', 0, 'ON', 1)
+                val_mapping=on_off_map
             )
             self.add_parameter(
                 name=f'burst_tdelay{src}',
@@ -219,9 +220,8 @@ class AFG3000(VisaInstrument):
                 name=f'freq_concurrent{src}',
                 label=f'Source {src} concurrent frequency',
                 get_cmd=f'SOURce{src}:FREQuency:CONCurrent?',
-                get_parser=lambda x: bool(int(x)),
                 set_cmd=f'SOURce{src}:FREQuency:CONCurrent {{}}',
-                vals=vals.Enum('OFF', 0, 'ON', 1)
+                val_mapping=on_off_map
             ) 
             self.add_parameter(
                 name=f'freq_cw{src}',
@@ -299,9 +299,8 @@ class AFG3000(VisaInstrument):
                 name=f'fsk_state{src}',
                 label=f'Source {src} FSK state',
                 get_cmd=f'SOURce{src}:FSKey:STATe?',
-                get_parser=lambda x: bool(int(x)),
                 set_cmd=f'SOURce{src}:FSKey:STATe {{}}',
-                vals=vals.Enum('OFF', 0, 'ON', 1)
+                val_mapping=on_off_map
             )
 
             # Function parameters
@@ -469,9 +468,8 @@ class AFG3000(VisaInstrument):
                 name=f'voltage_concurrent{src}',
                 label=f'Source {src} concurrent voltage',
                 get_cmd=f'SOURce{src}:VOLTage:CONCurrent:STATe?',
-                get_parser=lambda x: bool(int(x)),
                 set_cmd=f'SOURce{src}:VOLTage:CONCurrent:STATe {{}}',
-                vals=vals.Enum('OFF', 0, 'ON', 1)
+                val_mapping=on_off_map
             ) 
             self.add_parameter(
                 name=f'voltage_high{src}',
