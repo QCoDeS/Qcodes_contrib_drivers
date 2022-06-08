@@ -2,7 +2,7 @@
 
 """
 Created by Paritosh Karnatak <paritosh.karnatak@unibas.ch>, Feb 2019
-Updated by Elyjah <elyjah.kiyooka@cea.fr>, Jan 2022
+Updated by Elyjah <elyjah.kiyooka@cea.fr>, June 2022
 
 """
 
@@ -26,99 +26,100 @@ class ITC503(VisaInstrument):
         self._address = address
         self._values = {}
 
-        # Add parameters
-        self.add_parameter('temp_1',
-                        get_cmd='R1',
-                        label='Temperature of sensor 1',
-                        get_parser=float,
-                        unit='K',
-                        vals = vals.Numbers(),
-                        docstring="Reads the temperature of the 1st sensor "
-                            "only gettable.")
+        self.add_parameter(name='temp_1',
+                            label='Temperature of sensor 1',
+                            get_cmd='R1',
+                            get_parser=float,
+                            unit='K',
+                            vals = vals.Numbers(),
+                            docstring="Reads the temperature of the 1st sensor.")
 
-        self.add_parameter('temp_2',
-                        get_cmd='R2',
-                        label='Temperature of sensor 2',
-                        get_parser=float,
-                        unit='K',
-                        vals = vals.Numbers(),
-                        docstring="Reads the temperature of the 2nd sensor "
-                            "only gettable.")
+        self.add_parameter(name='temp_2',
+                            label='Temperature of sensor 2',
+                            get_cmd='R2',
+                            get_parser=float,
+                            unit='K',
+                            vals = vals.Numbers(),
+                            docstring="Reads the temperature of the 2nd sensor.")
 
-        self.add_parameter('temp_3',
-                        get_cmd='R3',
-                        label='Temperature of sensor 3',
-                        get_parser=float,
-                        unit='K',
-                        vals = vals.Numbers(),
-                        docstring="Reads the temperature of the 3rd sensor "
-                            "only gettable.")
+        self.add_parameter(name='temp_3',
+                            label='Temperature of sensor 3',
+                            get_cmd='R3',
+                            get_parser=float,
+                            unit='K',
+                            vals = vals.Numbers(),
+                            docstring="Reads the temperature of the 3rd sensor.")
 
-        self.add_parameter('temp_set_point',
-                        get_cmd='R0',
-                        label='Set point temperature',
-                        get_parser=float,
-                        set_cmd='T0000{}',
-                        set_parser=float,
-                        vals=vals.Numbers(min_value=.3, max_value=40),
-                        unit='K',
-                        docstring="Gets and sets the temperature set point "
-                            "Set point depends on which heater is selected "
-                            "Must be in remote mode to set")
+        self.add_parameter(name='temp_set_point',
+                            label='Set point temperature',
+                            get_cmd='R0',
+                            get_parser=float,
+                            set_cmd='T0000{}',
+                            set_parser=float,
+                            vals=vals.Numbers(min_value=.3, max_value=40),
+                            unit='K',
+                            docstring="Gets and sets the temperature set point. "
+                                "Set point depends on which heater is selected. "
+                                "Must be in remote mode to set.")
 
-        self.add_parameter('heater_power',
-                        get_cmd='R5',
-                        label='Reads heating power',
-                        get_parser=float,
-                        set_cmd='O00{}',
-                        set_parser=float,
-                        vals=vals.Numbers(min_value=0, max_value=99.9),
-                        unit='%',
-                        docstring="Gets and sets the heating power "
-                            "Set point depends on which heater is selected "
-                            "Must be in remote mode to set")
+        self.add_parameter(name='heater_power',
+                            label='Reads heating power',
+                            get_cmd='R5',
+                            get_parser=float,
+                            set_cmd='O00{}',
+                            set_parser=float,
+                            vals=vals.Numbers(min_value=0, max_value=99.9),
+                            unit='%',
+                            docstring="Gets and sets the heating power. "
+                                "Set point depends on which heater is selected. "
+                                "Must be in remote mode to set.")
 
         self.add_parameter(name='remote_mode',
-                        label='Remote mode',
-                        get_cmd=self._get_status_remote,
-                        get_parser=str,
-                        set_cmd='C{}',
-                        val_mapping = {'local_locked': 0,
-                                        'remote_locked': 1,
-                                        'local_unlocked': 2,
-                                        'remote_unlocked': 3},
-                        docstring="Get and set the desired remote mode "
-                                "Remote locked means front panel can't be used")
+                            label='Remote mode',
+                            get_cmd=self._get_status_remote,
+                            get_parser=str,
+                            set_cmd='C{}',
+                            set_parser=str,
+                            val_mapping = {'local_locked': 0,
+                                            'remote_locked': 1,
+                                            'local_unlocked': 2,
+                                            'remote_unlocked': 3},
+                            docstring="Get and set the desired remote mode. "
+                                    "Remote/local is the type of control. "
+                                    "Locked/unlocked is whether or not it can be changed.")
 
         self.add_parameter(name='heater_mode',
-                        label='Heater mode',
-                        get_cmd=self._get_status_auto,
-                        get_parser=str,
-                        set_cmd='A{}',
-                        val_mapping = {'manual': 0,
-                                        'auto': 1,},
-                        docstring="Get and set the mode the heater is in; "
-                            "Warning will immediately change heater power to go to temp "
-                            "Must be in remote mode to set")
+                            label='Heater mode',
+                            get_cmd=self._get_status_auto,
+                            get_parser=str,
+                            set_cmd='A{}',
+                            set_parser=str,
+                            val_mapping = {'manual': 0,
+                                            'auto': 1,},
+                            docstring="Get and set the mode the heater is in. "
+                                "Warning going to 'auto' will immediately change heater power to go to temp_set_point. "
+                                "Must be in remote mode to set.")
 
         self.add_parameter(name='select_heater',
-                        label='Choose desired heater',
-                        get_cmd=self._get_status_heater,
-                        get_parser=str,
-                        set_cmd='H{}',
-                        val_mapping = {'heater_1': 1,
-                                        'heater_2': 2,
-                                        'heater_3': 3,},
-                        docstring="Read and set the heater/sensor you use; "
-                            "Will change the value of the temp set point to the current temp everytime to change "
-                            "Must be in remote mode to set")
+                            label='Choose desired heater',
+                            get_cmd=self._get_status_heater,
+                            get_parser=str,
+                            set_cmd='H{}',
+                            set_parser=str,
+                            val_mapping = {'heater_1': 1,
+                                            'heater_2': 2,
+                                            'heater_3': 3,},
+                            docstring="Get and set the heater/sensor you use. "
+                                "Will change the value of the temp set point to the current temp everytime to change. "
+                                "Appears the heater connections are hard-wired, so (until changed) it always heats #1 the Sorb.  "
+                                "Must be in remote mode to set.")
 
     def ask_raw(self, cmd:str) -> str:
-        """Reimplementaion of ask function to handle R in response.
+        """Reimplementaion of ask function to strip response of a prefix 'R' .
         Args:
-            cmd: Command to be sent (asked) to lockin.
+            cmd: Command to be sent (asked) to the ITC.
         Returns:
-            str: Return string from lockin with R character stripped of.
+            str: Return string from ITC with 'R' character removed.
         """
         with DelayedKeyboardInterrupt():
             response = self.visa_handle.query(cmd)
@@ -129,9 +130,9 @@ class ITC503(VisaInstrument):
                 print(response)
 
     def write_raw(self, cmd:str) -> None:
-        """Reimplementation of write function to write and read lockin echo.
+        """Reimplementation of write function. Prints warning if command not recognized.
         Args:
-            cmd: Command to be sent (asked) to lockin.
+            cmd: Command to be sent (asked) to ITC.
         """
         self.visa_handle.write(cmd)
         result = self.visa_handle.read()
@@ -142,7 +143,8 @@ class ITC503(VisaInstrument):
 
     def _get_status_remote(self) -> str:
         """Gets status of remote mode by parcing the examine 'X' command \n
-        for 'C' the variable concerning the remote mode
+        for the letter 'C' (the variable concerning the remote mode), and using the following value
+        to determine its status. Prints error if 'C' not found.
         """
         self.visa_handle.write('X')
         result = self.visa_handle.read()
@@ -152,8 +154,9 @@ class ITC503(VisaInstrument):
             return int(result.split('C')[1][0])
 
     def _get_status_auto(self) -> str:
-        """Gets status of remote mode by parcing the examine 'X' command \n
-        for 'A' the variable concerning the auto mode
+        """Gets status of auto mode by parcing the examine 'X' command \n
+        for the letter 'A' (the variable concerning the auto mode), and using the following value
+        to determine its status. Prints error if 'A' not found.
         """
         self.visa_handle.write('X')
         result = self.visa_handle.read()
@@ -163,8 +166,9 @@ class ITC503(VisaInstrument):
             return int(result.split('A')[1][0])
 
     def _get_status_heater(self) -> str:
-        """Gets status of remote mode by parcing the examine 'X' command \n
-        for 'H' the variable concerning the heater mode
+        """Gets status of heater by parcing the examine 'X' command \n
+        for the letter 'H' (the variable concerning the heater mode), and using the following value
+        to determine its status. Prints error if 'H' not found.
         """
         self.visa_handle.write('X')
         result = self.visa_handle.read()
