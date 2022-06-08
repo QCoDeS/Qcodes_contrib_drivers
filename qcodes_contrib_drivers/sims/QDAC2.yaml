@@ -171,20 +171,6 @@ devices:
             specs:
               valid: ["dc", "med", "high"]
               type: str
-          low_current_limit:
-            default: 0.0
-            setter:
-              q: "sour{ch_id}:ilim:low {}"
-            getter:
-              q: "sour{ch_id}:ilim:low?"
-              r: "{}"
-          high_current_limit:
-            default: 0.0
-            setter:
-              q: "sour{ch_id}:ilim:high {}"
-            getter:
-              q: "sour{ch_id}:ilim:high?"
-              r: "{}"
           current_count:
             default: 1
             setter:

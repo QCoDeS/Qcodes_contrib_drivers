@@ -251,13 +251,10 @@ def test_list_trigger_on_external(qdac):  # noqa
 
 
 def test_list_get_voltages(qdac):  # noqa
-    qdac.start_recording_scpi()
     dc_list = qdac.ch01.dc_list(voltages=[-0.123, 0, 1.234])
     # -----------------------------------------------------------------------
     voltages = dc_list.values_V()
     # -----------------------------------------------------------------------
-    x = qdac.get_recorded_scpi_commands()
-    print(x)
     assert voltages == [-0.123, 0, 1.234]
 
 

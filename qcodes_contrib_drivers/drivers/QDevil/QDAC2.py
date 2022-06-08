@@ -1104,22 +1104,6 @@ class QDac2Channel(InstrumentChannel):
             call_cmd=f'sens{channum}:abor'
         )
         self.add_parameter(
-            name='low_current_limit_A',
-            label='low limit',
-            unit='A',
-            set_cmd='sour{1}:ilim:low {0}'.format('{}', channum),
-            get_cmd=f'sour{channum}:ilim:low?',
-            get_parser=float
-        )
-        self.add_parameter(
-            name='high_current_limit_A',
-            label='high limit',
-            unit='A',
-            set_cmd='sour{1}:ilim:high {0}'.format('{}', channum),
-            get_cmd=f'sour{channum}:ilim:high?',
-            get_parser=float
-        )
-        self.add_parameter(
             name='measurement_count',
             label='count',
             set_cmd='sens{1}:coun {0}'.format('{}', channum),
@@ -1310,22 +1294,15 @@ class QDac2Channel(InstrumentChannel):
         return Measurement_Context(self, delay_s, repetitions, current_range,
                                    aperture_s, nplc)
 
-    def output_mode(self, range: str = 'high', filter: str = 'high',
-                    low_current_limit_A: float = 2e-7,
-                    high_current_limit_A: float = 0.01
-                    ) -> None:
-        """Set the output voltage and current limits
+    def output_mode(self, range: str = 'high', filter: str = 'high') -> None:
+        """Set the output voltage
 
         Args:
             range (str, optional): Low or high (default) current range
             filter (str, optional): DC (10Hz), medium (10kHz) or high (300kHz, default) voltage filter
-            low_current_limit_A (float, optional): Current limit in low range
-            high_current_limit_A (float, optional): Current limit in high range
         """
         self.output_range(range)
         self.output_filter(filter)
-        self.low_current_limit_A(low_current_limit_A)
-        self.high_current_limit_A(high_current_limit_A)
 
     def dc_list(self, voltages: Sequence[float], repetitions: int = 1,
                 dwell_s: float = 1e-03, backwards: bool = False,
