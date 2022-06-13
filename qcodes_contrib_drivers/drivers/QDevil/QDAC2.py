@@ -7,7 +7,7 @@ from qcodes.utils import validators
 from typing import Any, NewType, Sequence, List, Dict, Tuple, Optional
 from packaging.version import parse
 
-# Version 0.13.0
+# Version 0.14.0
 #
 # Guiding principles for this driver for QDevil QDAC-II
 # -----------------------------------------------------
@@ -1858,7 +1858,7 @@ class QDac2(VisaInstrument):
         Returns:
             int: Number of internal triggers
         """
-        return 16
+        return 14
 
     @staticmethod
     def n_external_inputs() -> int:
@@ -2165,7 +2165,7 @@ class QDac2(VisaInstrument):
         self.add_submodule('external_triggers', triggers)
 
     def _set_up_internal_triggers(self) -> None:
-        # A set of the available 16 internal triggers
+        # A set of the available internal triggers
         self._internal_triggers = set(range(1, self.n_triggers() + 1))
 
     def _set_up_manual_triggers(self) -> None:
