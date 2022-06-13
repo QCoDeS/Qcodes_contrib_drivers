@@ -2158,7 +2158,7 @@ class QDac2(VisaInstrument):
                                snapshotable=False)
         for i in range(1, 5 + 1):
             name = f'ext{i}'
-            trigger = QDac2ExternalTrigger(self, str(QDac2ExternalTrigger), i)
+            trigger = QDac2ExternalTrigger(self, name, i)
             self.add_submodule(name, trigger)
             triggers.append(trigger)
         triggers.lock()
