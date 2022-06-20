@@ -23,31 +23,27 @@ class LM_500(VisaInstrument):
         self.model = idn['model']
         print ('The LM_500 level meter units have been set to cm.')
 
-
         self.add_parameter(name='he_level',
-                            label = 'Measure Helium level',
-                            get_cmd = 'MEAS? 1',
-                            get_parser = str,
-                            unit = self._get_unit,
-                            docstring="Measure the helium level in the units defined by the user.")
-
-        self.add_parameter(name='he_level_float',
                             label = 'Measure Helium level as float',
                             get_cmd = self._get_float,
                             get_parser = float,
                             vals = vals.Numbers(),
-                            unit = self._get_unit,
+                            unit = self._get_unit(),
                             docstring="Measure the helium level in the units defined by the user as a float without the units printed.")
 
         self.add_parameter(name='units',
                             label = 'Set unit',
                             get_cmd = 'UNITS?',
                             get_parser = str,
-                            set_cmd = 'UNITS {}',
+                            set_cmd = self._set_unit,
                             set_parser = str,
                             vals=vals.Enum('cm','in','percent','%'),
                             initial_value = 'cm',
                             docstring="Get and set the units for measurement.")
+
+    def _set_unit(self, val:str)->None:
+        self.visa_handle.write('UNITS {}'.format(val))
+        self.he_level.unit = val
 
     def _get_float(self)->float:
         """Parce the output of measure to strip the units off, and outputs just the value as a float.
