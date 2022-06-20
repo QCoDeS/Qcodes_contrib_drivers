@@ -48,6 +48,19 @@ class Cryomag(VisaInstrument):
                             "and only accepts reaching the setpoint when difference is less than 5 mT or 50 G. "
                             "Will only work if units are set to G. "))
 
+        self.add_parameter(name='B_go',
+                            label='Set field in one command',
+                            get_cmd='IOUT?',
+                            get_parser=lambda val: float(val[:-2]),
+                            set_cmd=self._set_mag_go,
+                            set_parser=float,
+                            vals=vals.Numbers(-86, 86),
+                            unit='kG',
+                            docstring=("Set and get the current magnet supply output. "
+                            "Queries the current field and subtracts the setpoint field every 100 ms "
+                            "and only accepts reaching the setpoint when difference is less than 5 mT or 50 G. "
+                            "Will only work if units are set to G. "))
+
         self.add_parameter(name='field',
                             label='Field from current in coils',
                             get_cmd='IMAG?',
@@ -159,7 +172,7 @@ class Cryomag(VisaInstrument):
     def _set_mag(self,set_pnt):
         """Function to control the movement of the magnet parameter B. Asks current field value and compares to setpoint.
         If the setpoint is higher it sweeps up, and if the setpoint is lower it sweeps down. If the value is
-        different by more than 5 mT or 50 G, the while loop will not exit. The while loop sleeps 100 ms before checking again.
+        different by more than 5 mT or 50 G, the while loop will not exit. The while loop sleeps 50 ms before checking again.
         """
         unit = self.visa_handle.query('UNITS?')
         if unit != 'G':
@@ -171,7 +184,7 @@ class Cryomag(VisaInstrument):
             self.visa_handle.write('SWEEP UP SLOW')
 
             while abs(set_pnt - mag_now) >= 0.05:
-                time.sleep(.1)
+                time.sleep(.05)
                 mag_now = float(self.visa_handle.query('IOUT?')[:-2])
 
         if set_pnt < mag_now:
@@ -179,5 +192,17 @@ class Cryomag(VisaInstrument):
             self.visa_handle.write('SWEEP DOWN SLOW')
 
             while abs(set_pnt - mag_now) >= 0.05:
-                time.sleep(.1)
+                time.sleep(.05)
                 mag_now = float(self.visa_handle.query('IOUT?')[:-2])
+
+    def _set_mag_go(self,set_pnt):
+        """Function to check if the magnet has reached its desired value (to within 5 mT or 50 G) in the magnet parameter B_go.
+        To be used when the field is swept independentally (with a different function) and only for comparing current magnet value to desired one.
+        While loop checks every 50 ms for comparison of the two values.
+        """
+        unit = self.visa_handle.query('UNITS?')
+        if unit != 'G':
+            RuntimeError('Units must be in Gauss / kG ! ')
+
+        while abs(set_pnt -  float(self.visa_handle.query('IOUT?')[:-2])) >= 0.05:
+            time.sleep(.05)

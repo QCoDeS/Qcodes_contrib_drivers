@@ -24,17 +24,19 @@ class LM_500(VisaInstrument):
         print ('The LM_500 level meter units have been set to cm.')
 
 
-        self.add_parameter(name='measure',
+        self.add_parameter(name='he_level',
                             label = 'Measure Helium level',
                             get_cmd = 'MEAS? 1',
                             get_parser = str,
+                            unit = self._get_unit,
                             docstring="Measure the helium level in the units defined by the user.")
 
-        self.add_parameter(name='measure_float',
+        self.add_parameter(name='he_level_float',
                             label = 'Measure Helium level as float',
                             get_cmd = self._get_float,
                             get_parser = float,
                             vals = vals.Numbers(),
+                            unit = self._get_unit,
                             docstring="Measure the helium level in the units defined by the user as a float without the units printed.")
 
         self.add_parameter(name='units',
@@ -53,4 +55,9 @@ class LM_500(VisaInstrument):
         output = self.visa_handle.query('MEAS? 1')
         units = self.visa_handle.query('UNITS?')
         return float(output.replace(units,''))
+
+    def _get_unit(self)->float:
+        """Gets units of measurements to add to parameter.
+        """
+        return self.visa_handle.query('UNITS?')
 
