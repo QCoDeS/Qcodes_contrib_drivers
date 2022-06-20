@@ -10,6 +10,7 @@ Updated by Elyjah <elyjah.kiyooka@cea.fr>, June 2022
 import time
 from qcodes import VisaInstrument, validators as vals
 from qcodes.utils.delaykeyboardinterrupt import DelayedKeyboardInterrupt
+from qcodes.utils.helpers import create_on_off_val_mapping
 
 class Cryomag(VisaInstrument):
     """
@@ -163,10 +164,8 @@ class Cryomag(VisaInstrument):
         self.add_parameter(name='persistance_heater',
                             label='Persistance heater',
                             get_cmd='PSHTR?',
-                            get_parser=str,
-                            set_cmd='PSHTR {}',
-                            set_parser=str,
-                            vals=vals.Enum('On', 'Off', 'ON', 'OFF', 'on', 'off'),
+                            set_cmd=self._set_persistance_heater,
+                            val_mapping=create_on_off_val_mapping(on_val='1', off_val='0'),
                             docstring=("Turn on or off the persistance heater."))
 
     def _set_mag(self,set_pnt):
@@ -206,3 +205,9 @@ class Cryomag(VisaInstrument):
 
         while abs(set_pnt -  float(self.visa_handle.query('IOUT?')[:-2])) >= 0.05:
             time.sleep(.05)
+
+    def _set_persistance_heater(self, val):
+        if val == '0':
+            self.write_raw('PSHTR OFF')
+        else:
+            self.write_raw('PSHTR ON')
