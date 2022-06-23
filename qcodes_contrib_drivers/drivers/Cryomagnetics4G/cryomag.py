@@ -9,7 +9,6 @@ Updated by Elyjah <elyjah.kiyooka@cea.fr>, June 2022
 
 import time
 from qcodes import VisaInstrument, validators as vals
-from qcodes.utils.delaykeyboardinterrupt import DelayedKeyboardInterrupt
 from qcodes.utils.helpers import create_on_off_val_mapping
 
 class Cryomag(VisaInstrument):

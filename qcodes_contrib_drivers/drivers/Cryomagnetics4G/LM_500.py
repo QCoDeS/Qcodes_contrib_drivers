@@ -9,7 +9,6 @@ Updated by Elyjah <elyjah.kiyooka@cea.fr>, June 2022
 
 import time
 from qcodes import VisaInstrument, validators as vals
-from qcodes.utils.delaykeyboardinterrupt import DelayedKeyboardInterrupt
 
 class LM_500(VisaInstrument):
     """
@@ -52,7 +51,7 @@ class LM_500(VisaInstrument):
         units = self.visa_handle.query('UNITS?')
         return float(output.replace(units,''))
 
-    def _get_unit(self)->float:
+    def _get_unit(self)->str:
         """Gets units of measurements to add to parameter.
         """
         return self.visa_handle.query('UNITS?')
