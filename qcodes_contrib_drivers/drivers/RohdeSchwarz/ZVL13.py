@@ -397,9 +397,6 @@ class ZVL13(VisaInstrument):
     def _get_format(self, tracename: str) -> str:
         return self.ask("CALC:FORM?")
 
-    def _strip(var: str) -> str:
-        return var.rstrip()[1:-1]
-
     def _form(self, msg:str) -> None:
         if msg == 'phase':                
             self.write('CALC:FORM PHAS')
