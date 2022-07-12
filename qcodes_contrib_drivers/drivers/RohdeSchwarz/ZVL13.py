@@ -2,19 +2,22 @@ from typing import Any
 import logging
 from functools import partial
 from typing import Optional
-from qcodes.utils.validators import Enum, Strings
-from qcodes import VisaInstrument, Instrument
-from qcodes.utils import validators as vals
+
 import numpy as np
+
+from qcodes.utils.validators import Enum, Strings, Ints
+from qcodes import VisaInstrument, Instrument
 from qcodes import MultiParameter, ArrayParameter
 
+
 log = logging.getLogger(__name__)
+
 
 class FrequencySweepMagPhase(MultiParameter):
 
     def __init__(self, name: str, instrument: Instrument,
-                 start: float, stop: float, npts: int, channel:int) -> None:
-        super().__init__(name, names=("", ""), shapes=((), ()))
+                 start: float, stop: float, npts: int, channel: int, **kwargs) -> None:
+        super().__init__(name, names=("", ""), shapes=((), ()), **kwargs)
         self._instrument = instrument
         self.set_sweep(start, stop, npts)
         self._channel = channel
@@ -50,7 +53,7 @@ class FrequencySweepMagPhase(MultiParameter):
 class FrequencySweep(ArrayParameter):
 
     def __init__(self, name: str, instrument: Instrument,
-                 start: float, stop: float, npts: int, channel:int) -> None:
+                 start: float, stop: float, npts: int, channel: int, **kwargs) -> None:
         super().__init__(name, shape=(npts,),
                          instrument=instrument,
                          unit='dB',
@@ -58,7 +61,8 @@ class FrequencySweep(ArrayParameter):
                          setpoint_units=('Hz',),
                          setpoint_labels=(f'{instrument.short_name}'
                                           ' frequency',),
-                         setpoint_names=(f'{instrument.short_name}_frequency',)
+                         setpoint_names=(f'{instrument.short_name}_frequency',),
+                         **kwargs,
                          )
         self.set_sweep(start, stop, npts)
         self._channel = channel
@@ -78,11 +82,11 @@ class FrequencySweep(ArrayParameter):
                         "acquire phase and amplitude use the "
                         "FrequencySweepMagPhase parameter.")
         return data
-    
-class ComplexSweep(ArrayParameter):
 
+
+class ComplexSweep(ArrayParameter):
     def __init__(self, name: str, instrument: Instrument,
-                 start: float, stop: float, npts: int, channel:int) -> None:
+                 start: float, stop: float, npts: int, channel:int, **kwargs) -> None:
         super().__init__(name, shape=(npts,),
                          instrument=instrument,
                          unit='dB',
@@ -90,7 +94,8 @@ class ComplexSweep(ArrayParameter):
                          setpoint_units=('Hz',),
                          setpoint_labels=(f'{instrument.short_name}'
                                           ' frequency',),
-                         setpoint_names=(f'{instrument.short_name}_frequency',)
+                         setpoint_names=(f'{instrument.short_name}_frequency',),
+                         **kwargs,
                          )
         self.set_sweep(start, stop, npts)
         self._channel = channel
@@ -112,9 +117,8 @@ class ComplexSweep(ArrayParameter):
     
 
 class SAFrequencySweep(ArrayParameter):
-
     def __init__(self, name: str, instrument: Instrument,
-                 start: float, stop: float, npts: int, channel:int) -> None:
+                 start: float, stop: float, npts: int, channel: int, **kwargs) -> None:
         super().__init__(name, shape=(npts,),
                          instrument=instrument,
                          unit='dBm',
@@ -122,7 +126,8 @@ class SAFrequencySweep(ArrayParameter):
                          setpoint_units=('Hz',),
                          setpoint_labels=(f'{instrument.short_name}'
                                           ' frequency',),
-                         setpoint_names=(f'{instrument.short_name}_frequency',)
+                         setpoint_names=(f'{instrument.short_name}_frequency',),
+                         **kwargs,
                          )
         self.set_sweep(start, stop, npts)
         self._channel = channel
@@ -137,39 +142,36 @@ class SAFrequencySweep(ArrayParameter):
         data = self._instrument._get_sweep_data_SA()
         return data
 
-class ZVL(VisaInstrument):
-    
+
+class ZVL13(VisaInstrument):
     def __init__(
             self,
             name: str,
             address: str,
+            terminator='\n',
             **kwargs: Any):
-        super().__init__(name, address, terminator='\n', **kwargs)
-        
-        mode = (self.ask('INST?')).split('\n')[0]
-        
+        super().__init__(name, address, terminator=terminator, **kwargs)
+
+        self.add_parameter(name='mode',
+                           label='VNA Mode',
+                           get_cmd=self._get_mode,
+                           set_cmd=self._set_mode,
+                           get_parser=str)
+
+        mode = self.mode.get()
         if mode == 'SAN':
-            
             n = int(1)
             self._tracename = 'Trc1'
-        
         if mode == 'NWA':
-       
-            if len(self.ask("CONFigure:TRACe:CATalog?").split(',')) == 2:            
-                ch , trace_name = self.ask("CONFigure:TRACe:CATalog?").split(',')
-                n = ch[1]
-                trace_name = trace_name[:-1]
-            
-            else:            
-                n = self.ask("CONFigure:TRACe:CATalog?").split(',')[0][1]
-                trace_name = self.ask("CONFigure:TRACe:CATalog?").split(',')[1]
-    
+            _, trace_name = self._get_trace_name()
             self._tracename = trace_name
 
-        
         self.inf_lim = 9e+3
         
         self.sup_lim = 13.6e+9
+
+        self.timeout_sweep = 40
+        self.timeout_sa = 40
 
         self.add_parameter('start',
                            get_cmd='FREQ:STAR?',
@@ -221,7 +223,7 @@ class ZVL(VisaInstrument):
         
         self.add_parameter('avg',
                             get_parser=int,
-                            vals=vals.Ints(1, 5000),
+                            vals=Ints(1, 5000),
                             get_cmd='AVER:COUN?',
                             set_cmd=self._average,
                             label='Averages')
@@ -287,23 +289,11 @@ class ZVL(VisaInstrument):
                            get_cmd='SENS:SWE:STEP?',
                            set_cmd=self._set_freq_step,
                            get_parser=int)
-        
-        self.add_parameter(name='mode',
-                           label='VNA Mode',
-                           get_cmd='INST?',
-                           set_cmd=self._set_mode,
-                           get_parser=str)
-        
-        self.add_function('na_mode', call_cmd = self._set_na_mode)
-        
-        self.add_function('sa_mode', call_cmd= self._set_sa_mode)                           
-        
-        self.add_function('reset',call_cmd = '*RST')
+
+        self.calibration_file = 'Cal_17_11_2021.cal'
         
         self.add_function('autoscale', call_cmd = 'DISP:WIND:TRAC:Y:AUTO ONCE')
-        
-        self.add_function('calibration', call_cmd = "MMEMory:LOAD:CORRection 1, 'Cal_17_11_2021.cal'")
-        
+
         self.add_function('electrical_delay_auto',
                           call_cmd='CORR:EDEL:AUTO ONCE')
         self.add_function('data_to_mem',
@@ -312,94 +302,105 @@ class ZVL(VisaInstrument):
                           call_cmd='INIT:CONT:ALL ON')
         self.add_function('cont_meas_off',
                           call_cmd='INIT:CONT:ALL OFF')
-        
-        
-    def _set_mode(self,mode:str):
-        
+
+    def reset(self):
+        self.write("*RST")
+
+    def calibration(self):
+        """
+        Loads calibration file as specified by ``self.calibration_file``.
+        """
+        self.write(f"MMEMory:LOAD:CORRection 1, '{self.calibration_file}'")
+
+    def _get_mode(self):
+        mode_raw = ((self.ask('INST?')).split('\n')[0]).strip()
+        mode_mapping = {
+            "SAN": "sa",
+            "NWA": "na",
+        }
+        return mode_mapping[mode_raw]
+
+    def _set_mode(self, mode: str):
         if mode == 'sa':
-            self._set_sa_mode()
+            self.sa_mode()
         elif mode == 'na':
-            self._set_na_mode()
+            self.na_mode()
         else:
-            raise AttributeError('Wrong string. To set in Spectrum Analyzer mode write "sa", to set in Network Analyzer mode write "na".')
-        
-        
-    def _set_sa_mode(self):
-        
-            self.write('INST SAN')
-            n = int(1)
-            self._tracename = 'Trc1'
-        
-        
-    def _set_na_mode(self):
-        
-            self.write('INST NWA')
-            if len(self.ask("CONFigure:TRACe:CATalog?").split(',')) == 2:            
-                ch , trace_name = self.ask("CONFigure:TRACe:CATalog?").split(',')
-                n = ch[1]
-                trace_name = trace_name[:-1]
-            
-            else:            
-                n = self.ask("CONFigure:TRACe:CATalog?").split(',')[0][1]
-                trace_name = self.ask("CONFigure:TRACe:CATalog?").split(',')[1]
-    
-            self._tracename = trace_name        
-    
-        
-    def _set_freq_step(self, n:int):
-        
+            raise AttributeError(
+                'Wrong string. To set in Spectrum Analyzer mode write "sa", to set in Network Analyzer mode write "na".'
+            )
+
+    def sa_mode(self):
+        self.write('INST SAN')
+        n = int(1)
+        self._tracename = 'Trc1'
+        self.mode.cache.set("sa")
+
+    def na_mode(self):
+        self.write('INST NWA')
+
+        _, trace_name = self._get_trace_name()
+        self._tracename = trace_name
+
+        self.mode.cache.set("na")
+
+    def _get_trace_catalog(self):
+        return self.ask("CONFigure:TRACe:CATalog?").split(',')
+
+    def _get_trace_name(self):
+        trace_catalog = self._get_trace_catalog()
+        if len(trace_catalog) == 2:            
+            ch, trace_name = trace_catalog
+            n = ch[1]
+            trace_name = trace_name[:-1]
+        else:
+            n = trace_catalog[0][1]
+            trace_name = trace_catalog[1]
+        return n, trace_name
+
+    def _set_freq_step(self, n: int):
         min_step = (self.stop_f() - self.start_f())/(4001)
         max_step = (self.stop_f() - self.start_f())/1 
-        
+
         if n>min_step and n<max_step:
-            
             self.write("SENS:SWE:STEP " + str(n))
             self.update_traces()
         else:
             raise AttributeError('Step size must be in the range between' + str(min_step) +' Hz and ' + str(max_step) + ' Hz.')
-        
-        
-    def _set_npts(self, n:int) -> None:
-        
+
+    def _set_npts(self, n: int) -> None:
         self.write("SWE:POIN " + str(n))
         self.update_traces()
         
-    def _set_s_parameter(self, msg:str) -> None:
-        
+    def _set_s_parameter(self, msg: str) -> None:
         S_params = ['S11','S12','S21','S22']
-        
+
         if msg in S_params:
-            self.write(f"CALC:PAR:MEAS '{self._tracename}', '"+msg+"'")
+            self.write(f"CALC:PAR:MEAS '{self._tracename}', '{msg}'")
         else: 
             raise AttributeError('Illegal string. Allowed S parameters: S11, S12, S21, S22')
-        
+
     def _set_bandwidth(self, val:int) -> None:
-        
         if val <= 10e6 and val > 10:
             self.write('SENS:BAND '+str(int(val)))
         else: 
             raise AttributeError('Bandwidth value out of range')
         
     def _set_rf_power(self, val: int) -> None:
-        
         if val == 0:
             self.write('OUTP OFF')
         elif val == 1: 
             self.write('OUTP ON')
         else:
             raise AttributeError('Write 1 to switch on and 0 to switch off')
-        
-        
+
     def _get_format(self, tracename: str) -> str:
         return self.ask("CALC:FORM?")
 
-        
     def _strip(var: str) -> str:
         return var.rstrip()[1:-1]
-    
-    
+
     def _form(self, msg:str) -> None:
-        
         if msg == 'phase':                
             self.write('CALC:FORM PHAS')
         elif msg == 'dbm':
@@ -419,136 +420,114 @@ class ZVL(VisaInstrument):
         elif msg == 'smith':
             self.write('CALC:FORM SMIT')
         elif msg == 'data/mem':
-            self.data_to_mem
+            self.data_to_mem()
             self.write('CALC:MATH:FUNC DIV')
         else:
-            raise AttributeError('Format does not exist. Choose one of the following: dbm, phase, polar, swr, magnitude, real, img, unwrapped phase, smith ')
-        
-    
-         
-    def _average(self,num:float) -> None:
-        
+            raise AttributeError(
+                'Format does not exist. Choose one of the following: '
+                'dbm, phase, polar, swr, magnitude, real, img, unwrapped phase, smith, data/mem'
+            )
+
+    def _average(self, num:float) -> None:
         self.write('AVER:STAT OFF')
         self.write('AVER:COUN ' + str(int(num)))
         self.write('AVER:STAT ON')
         self.write('AVER:CLE')
             
-            
     def _set_start(self, val: float):
-            start = val
-            stop = self.stop()
-            if start >= stop:
-                raise ValueError(
-                    "Stop frequency must be larger than start frequency.")
+        start = val
+        stop = self.stop()
+        if start >= stop:
+            raise ValueError("Stop frequency must be larger than start frequency.")
+        else:
+            self.write('FREQ:STAR '+ str(int(start)))
 
-            else:
-                self.write('FREQ:STAR '+ str(int(start)))
-            
-            self.update_traces()
+        self.update_traces()
                 
     def _set_stop(self, val: float):
-            stop = val
-            start = self.start()
-            if stop <= start:
-                raise ValueError(
-                    "Stop frequency must be larger than start frequency.")
-            else:
-                self.write('FREQ:STOP '+ str(int(stop)))
-                
-            self.update_traces()
+        stop = val
+        start = self.start()
+        if stop <= start:
+            raise ValueError("Stop frequency must be larger than start frequency.")
+        else:
+            self.write('FREQ:STOP '+ str(int(stop)))
+
+        self.update_traces()
                 
     def _set_center(self, val: float):
-            center = val
-            
-            if center <= self.inf_lim or center >= self.sup_lim:
-                raise ValueError(
-                    "Out of the VNA limit.")
-            
-            else:
-                self.write('FREQ:CENT '+ str(int(center)))
-                
-            self.update_traces()
-                
+        center = val
+
+        if center <= self.inf_lim or center >= self.sup_lim:
+            raise ValueError("Out of the VNA limit.")
+        else:
+            self.write('FREQ:CENT '+ str(int(center)))
+
+        self.update_traces()
+
     def _set_span(self, val: float):
-            span = val   
-            center = self.center()
-            
-            if center + span * 0.5 >= self.sup_lim or  center - span * 0.5 <= self.inf_lim:
-                raise ValueError(
-                    "Out of the VNA limit.")
+        span = val   
+        center = self.center()
 
-            else:        
-                self.write('FREQ:SPAN '+ str(int(span)))
-            
-            self.update_traces()
+        if center + span * 0.5 >= self.sup_lim or center - span * 0.5 <= self.inf_lim:
+            raise ValueError("Out of the VNA limit.")
+        else:        
+            self.write('FREQ:SPAN '+ str(int(span)))
 
+        self.update_traces()
 
     def _set_power(self, val: float):        
-            if val>0:
-                raise ValueError(
-                    "Attenuation cannot be positive.")
+        if val > 0:
+            raise ValueError(
+                "Attenuation cannot be positive.")
+        elif val < -40:
+            raise ValueError("Unleveled power")
+        else:
+            self.write('SOUR:POW ' + str(int(val)))
 
-            elif val< -40:
-                raise ValueError(
-                    "Unleveled power")
-            else:
-                self.write('SOUR:POW ' + str(int(val)))
-                
-    
     def _get_sweep_data(self, force_polar: bool = False):
+        if force_polar:
+            data_format_command = 'SDAT'
+        else:
+            data_format_command = 'FDAT'
 
         self.write('SENS:AVER:STAT ON')
         self.write('SENS:AVER:CLE')
-
 
         # preserve original state of the znb
         with self.status.set_to(1):
             self.root_instrument.cont_meas_off()
             try:
-                if force_polar:
-                    data_format_command = 'SDAT'
-                else:
-                    data_format_command = 'FDAT'
-                timeout = 40
-                with self.root_instrument.timeout.set_to(timeout):
-                    
+                with self.root_instrument.timeout.set_to(self.timeout_sweep):
                     self.write('SENS:SWEEP:COUNT '+ str(self.avg()))
                     self.write('INIT:IMMEDIATE:SCOPE:SINGLE')                        
                     self.write('INIT:CONT OFF')
                     self.write('INIT:IMM; *WAI')
-                    self.write("CALC:PAR:SEL "
-                                f" '{self._tracename}' ")
-                    data_str = self.ask(
-                        f'CALC:DATA?'
-                        f' {data_format_command}')
+                    self.write("CALC:PAR:SEL '{self._tracename}'")
+                    data_str = self.ask(f'CALC:DATA? {data_format_command}')
+
                 data = np.array(data_str.rstrip().split(',')).astype('float64')
             finally:
                 self.root_instrument.cont_meas_on()
         return data
-    
-    def _get_sweep_data_SA(self):
 
+    def _get_sweep_data_SA(self):
         self.write('SENS:AVER:STAT ON')
         self.write('SENS:AVER:CLE')
 
         self.root_instrument.cont_meas_off()
         try:
-            timeout = 40
-            with self.root_instrument.timeout.set_to(timeout):
-                
+            with self.root_instrument.timeout.set_to(self.timeout_sa):
                 self.write('SENS:SWEEP:COUNT '+ str(self.avg()))
                 self.write('INIT:IMMEDIATE:SCOPE:SINGLE')                        
                 self.write('INIT:CONT OFF')
                 self.write('INIT:IMM; *WAI')
-                data_str = self.ask(
-                    'FORM ASC;TRAC? TRACE1')
+                data_str = self.ask('FORM ASC;TRAC? TRACE1')
+
             data = np.array(data_str.rstrip().split(',')).astype('float64')
         finally:
             self.root_instrument.cont_meas_on()
         return data
-    
 
-    
     def update_traces(self):
         start = self.start()
         stop = self.stop()
