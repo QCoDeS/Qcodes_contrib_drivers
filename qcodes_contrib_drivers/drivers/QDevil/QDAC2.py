@@ -7,7 +7,7 @@ from qcodes.utils import validators
 from typing import Any, NewType, Sequence, List, Dict, Tuple, Optional
 from packaging.version import parse
 
-# Version 0.14.0
+# Version 0.15.0
 #
 # Guiding principles for this driver for QDevil QDAC-II
 # -----------------------------------------------------
@@ -20,8 +20,8 @@ from packaging.version import parse
 #    a constant voltage.
 #
 # 2. Numeric values should be in ISO units and/or their unit should be an
-#    explicitly part of the function name, like above, or, if unit-less number,
-#    then prefixed by n_ like
+#    explicitly part of the function name, like above.  If the numeric is
+#    a unit-less number, then prefixed by n_ like
 #
 #        qdac.n_channels()
 #
@@ -29,10 +29,10 @@ from packaging.version import parse
 #    by python context managers that automatically clean up on exit.  Such
 #    context managers have a name with a '_Context' suffix.
 #
-# 4. Any generator should by default be set to start on the bus trigger
+# 4. Any generator should by default be set to start on the BUS trigger
 #    (*TRG) so that it is possible to synchronise several generators without
 #    further setup; which also eliminates the need for special cases for the
-#    bus trigger.
+#    BUS trigger.
 
 
 #
@@ -511,7 +511,7 @@ class _Waveform_Context(_Channel_Context):
     def _period_start_marker(self, wave_kind: str) -> QDac2Trigger_Context:
         if not self._marker_period_start:
             self._marker_period_start = self.allocate_trigger()
-        self._write_channel(f'sour{"{0}"}:{wave_kind}:mark:psta {self._marker_period_start.value}')
+        self._write_channel(f'sour{"{0}"}:{wave_kind}:mark:pst {self._marker_period_start.value}')
         return self._marker_period_start
 
     def _make_ready_to_start(self, wave_kind: str) -> None:
@@ -655,48 +655,48 @@ class Sine_Context(_Waveform_Context):
                  span_V: float, offset_V: float, slew_V_s: Optional[float]):
         super().__init__(channel)
         self._repetitions = repetitions
-        self._write_channel('sour{0}:sin:trig:sour hold')
+        self._write_channel('sour{0}:sine:trig:sour hold')
         self._set_frequency(frequency_Hz, period_s)
         self._set_polarity(inverted)
-        self._write_channel(f'sour{"{0}"}:sin:span {span_V}')
-        self._write_channel(f'sour{"{0}"}:sin:offs {offset_V}')
-        self._set_slew('sin', slew_V_s)
-        self._write_channel(f'sour{"{0}"}:sin:coun {repetitions}')
+        self._write_channel(f'sour{"{0}"}:sine:span {span_V}')
+        self._write_channel(f'sour{"{0}"}:sine:offs {offset_V}')
+        self._set_slew('sine', slew_V_s)
+        self._write_channel(f'sour{"{0}"}:sine:coun {repetitions}')
         self._set_triggering()
 
     def start(self) -> None:
         """Start the sine wave generator
         """
-        self._start('sin', 'sine wave')
+        self._start('sine', 'sine wave')
 
     def abort(self) -> None:
         """Abort any running sine wave generator
         """
-        self._write_channel('sour{0}:sin:abor')
+        self._write_channel('sour{0}:sine:abor')
 
     def cycles_remaining(self) -> int:
         """
         Returns:
             int: Number of cycles remaining in the sine wave
         """
-        return int(self._ask_channel('sour{0}:sin:ncl?'))
+        return int(self._ask_channel('sour{0}:sine:ncl?'))
 
     def _set_frequency(self, frequency_Hz: Optional[float],
                        period_s: Optional[float]) -> None:
         if frequency_Hz:
-            return self._write_channel(f'sour{"{0}"}:sin:freq {frequency_Hz}')
+            return self._write_channel(f'sour{"{0}"}:sine:freq {frequency_Hz}')
         if period_s:
-            self._write_channel(f'sour{"{0}"}:sin:per {period_s}')
+            self._write_channel(f'sour{"{0}"}:sine:per {period_s}')
 
     def _set_polarity(self, inverted: bool) -> None:
         if inverted:
-            self._write_channel('sour{0}:sin:pol inv')
+            self._write_channel('sour{0}:sine:pol inv')
         else:
-            self._write_channel('sour{0}:sin:pol norm')
+            self._write_channel('sour{0}:sine:pol norm')
 
     def _set_triggering(self) -> None:
-        self._write_channel('sour{0}:sin:trig:sour bus')
-        self._make_ready_to_start('sin')
+        self._write_channel('sour{0}:sine:trig:sour bus')
+        self._make_ready_to_start('sine')
 
     def end_marker(self) -> QDac2Trigger_Context:
         """Internal trigger that will mark the end of the sine wave
@@ -706,7 +706,7 @@ class Sine_Context(_Waveform_Context):
         Returns:
             QDac2Trigger_Context: trigger that will mark the end
         """
-        return super()._end_marker('sin')
+        return super()._end_marker('sine')
 
     def start_marker(self) -> QDac2Trigger_Context:
         """Internal trigger that will mark the beginning of the sine wave
@@ -716,7 +716,7 @@ class Sine_Context(_Waveform_Context):
         Returns:
             QDac2Trigger_Context: trigger that will mark the beginning
         """
-        return super()._start_marker('sin')
+        return super()._start_marker('sine')
 
     def period_end_marker(self) -> QDac2Trigger_Context:
         """Internal trigger that will mark the end of each period
@@ -726,7 +726,7 @@ class Sine_Context(_Waveform_Context):
         Returns:
             QDac2Trigger_Context: trigger that will mark the end of each period
         """
-        return super()._period_end_marker('sin')
+        return super()._period_end_marker('sine')
 
     def period_start_marker(self) -> QDac2Trigger_Context:
         """Internal trigger that will mark the beginning of each period
@@ -736,7 +736,7 @@ class Sine_Context(_Waveform_Context):
         Returns:
             QDac2Trigger_Context: trigger that will mark the beginning of each period
         """
-        return super()._period_start_marker('sin')
+        return super()._period_start_marker('sine')
 
     def start_on(self, trigger: QDac2Trigger_Context) -> None:
         """Attach internal trigger to start the sine wave generator
@@ -744,7 +744,7 @@ class Sine_Context(_Waveform_Context):
         Args:
             trigger (QDac2Trigger_Context): trigger that will start sine wave
         """
-        return super()._start_on(trigger, 'sin')
+        return super()._start_on(trigger, 'sine')
 
     def start_on_external(self, trigger: ExternalInput) -> None:
         """Attach external trigger to start the sine wave generator
@@ -752,7 +752,7 @@ class Sine_Context(_Waveform_Context):
         Args:
             trigger (ExternalInput): external trigger that will start sine wave
         """
-        return super()._start_on_external(trigger, 'sin')
+        return super()._start_on_external(trigger, 'sine')
 
 
 class Triangle_Context(_Waveform_Context):

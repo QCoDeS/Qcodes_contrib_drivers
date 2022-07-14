@@ -27,3 +27,4 @@ Static types:
     $ source venv/bin/activate
     $ pip install --upgrade pip
     $ pip install qcodes pytest pyvisa-sim pyvisa-py mypy
+    $ pip install -e .
