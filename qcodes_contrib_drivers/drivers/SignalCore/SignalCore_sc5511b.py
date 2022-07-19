@@ -4,11 +4,11 @@ Created on Fri Mar 19 14:11:31 2021
 
 @author: Theo Shaw
 
-A simple driver for SignalCore SC5511B to be used with QCoDes, transferred from the one written Chao Zhou, from Erick Brindock
+A simple driver for SignalCore SC5511B to be used with QCoDes,
+transferred from the one written Chao Zhou, from Erick Brindock
 """
 
 import ctypes
-import logging
 from typing import Any, Dict, Optional, List
 
 from qcodes import (Instrument, validators as vals)
@@ -98,7 +98,7 @@ class SignalCore_SC5511B(Instrument):
                  dllpath: Optional[str] = None, debug=False, **kwargs: Any):
         super().__init__(name, **kwargs)
 
-        logging.info(__name__ + f' : Initializing instrument SignalCore generator {serial_number}')
+        self.log.info(f'Initializing instrument SignalCore generator {serial_number}')
         if dllpath is not None:
             self._dll = ctypes.CDLL(dllpath)
         else:
@@ -469,7 +469,7 @@ class SignalCore_SC5511B(Instrument):
         Send out a soft trigger, so that the we can start the sweep
         Generator need to be configured for list mode and soft trigger is selected as the trigger source
         """
-        logging.info(__name__ + ' : Send a soft trigger to the generator')
+        self.log.info('Send a soft trigger to the generator')
         
         self._dll.sc5511b_usb_open_device.argtypes = ctypes.c_char_p, ctypes.POINTER(ctypes.c_void_p)
         self._dll.sc5511b_usb_open_device.restype = ctypes.c_uint64
@@ -497,7 +497,7 @@ class SignalCore_SC5511B(Instrument):
             Input:
                 enable (int) = OFF = 0 ; ON = 1
         """
-        logging.info(__name__ + ' : Setting output to %s' % enable)
+        self.log.info(f'Setting output to {enable}')
         c_enable = ctypes.c_ubyte(enable)
         
         self._dll.sc5511b_usb_open_device.argtypes = ctypes.c_char_p, ctypes.POINTER(ctypes.c_void_p)
@@ -527,7 +527,7 @@ class SignalCore_SC5511B(Instrument):
             Output:
                 status (int) : OFF = 0 ; ON = 1
         """
-        logging.info(__name__ + ' : Getting output')
+        self.log.info('Getting output')
         self._dll.sc5511b_usb_open_device.argtypes = ctypes.c_char_p, ctypes.POINTER(ctypes.c_void_p)
         self._dll.sc5511b_usb_open_device.restype = ctypes.c_uint64
         temp_handle = ctypes.c_void_p()
@@ -554,7 +554,7 @@ class SignalCore_SC5511B(Instrument):
             Input:
                 standby (int) = ON = 1 ; OFF = 1
         """
-        logging.info(__name__ + ' : Setting standby to %s' % standby)
+        self.log.info('Setting standby to %s' % standby)
         c_standby = ctypes.c_uint8(standby)
         
         self._dll.sc5511b_usb_open_device.argtypes = ctypes.c_char_p, ctypes.POINTER(ctypes.c_void_p)
@@ -584,7 +584,7 @@ class SignalCore_SC5511B(Instrument):
             Output:
                 standby (int) : OFF = 0 ; ON = 1
         """
-        logging.info(__name__ + ' : Getting standby')
+        self.log.info('Getting standby')
         self._dll.sc5511b_usb_open_device.argtypes = ctypes.c_char_p, ctypes.POINTER(ctypes.c_void_p)
         self._dll.sc5511b_usb_open_device.restype = ctypes.c_uint64
         temp_handle = ctypes.c_void_p()
@@ -610,7 +610,7 @@ class SignalCore_SC5511B(Instrument):
         Set the sweep start frequency of RF1 in the unit of Hz
         """
         c_sweep_start_freq = ctypes.c_double(int(sweep_start_frequency))
-        logging.info(__name__ + ' : Setting sweep start frequency to %s' % sweep_start_frequency)
+        self.log.info('Setting sweep start frequency to %s' % sweep_start_frequency)
         close = False
         if not self._open:
             self._dll.sc5511b_usb_open_device.argtypes = ctypes.c_char_p, ctypes.POINTER(ctypes.c_void_p)
@@ -640,7 +640,7 @@ class SignalCore_SC5511B(Instrument):
         Get the sweep start frequency that is used in the sweep mode
         The frequency returned is in the unit of Hz
         """
-        logging.info(__name__ + 'Getting sweep start frequency')
+        self.log.info('Getting sweep start frequency')
         self._dll.sc5511b_usb_open_device.argtypes = ctypes.c_char_p, ctypes.POINTER(ctypes.c_void_p)
         self._dll.sc5511b_usb_open_device.restype = ctypes.c_uint64
         temp_handle = ctypes.c_void_p()
@@ -666,7 +666,7 @@ class SignalCore_SC5511B(Instrument):
         Set the sweep stop frequency of RF1 in the unit of Hz
         """
         c_sweep_stop_frequency = ctypes.c_double(int(sweep_stop_frequency))
-        logging.info(__name__ + ' : Setting sweep stop frequency to %s' % sweep_stop_frequency)
+        self.log.info('Setting sweep stop frequency to %s' % sweep_stop_frequency)
         close = False
         if not self._open:
             self._dll.sc5511b_usb_open_device.argtypes = ctypes.c_char_p, ctypes.POINTER(ctypes.c_void_p)
@@ -695,7 +695,7 @@ class SignalCore_SC5511B(Instrument):
         Get the sweep stop frequency that is used in the sweep mode
         The frequency returned is in the unit of Hz
         """
-        logging.info(__name__ + 'Getting sweep stop frequency')
+        self.log.info('Getting sweep stop frequency')
         self._dll.sc5511b_usb_open_device.argtypes = ctypes.c_char_p, ctypes.POINTER(ctypes.c_void_p)
         self._dll.sc5511b_usb_open_device.restype = ctypes.c_uint64
         temp_handle = ctypes.c_void_p()
@@ -722,7 +722,7 @@ class SignalCore_SC5511B(Instrument):
         Set the sweep step frequency of RF1 in the unit of Hz
         """
         c_sweep_step_frequency = ctypes.c_ulonglong(int(sweep_step_frequency))
-        logging.info(__name__ + ' : Setting sweep step frequency to %s' % sweep_step_frequency)
+        self.log.info('Setting sweep step frequency to %s' % sweep_step_frequency)
         close = False
         if not self._open:
             self._dll.sc5511b_usb_open_device.argtypes = ctypes.c_char_p, ctypes.POINTER(ctypes.c_void_p)
@@ -753,7 +753,7 @@ class SignalCore_SC5511B(Instrument):
         Get the sweep step frequency that is used in the sweep mode
         The frequency returned is in the unit of Hz
         """
-        logging.info(__name__ + 'Getting sweep step frequency')
+        self.log.info('Getting sweep step frequency')
         self._dll.sc5511b_usb_open_device.argtypes = ctypes.c_char_p, ctypes.POINTER(ctypes.c_void_p)
         self._dll.sc5511b_usb_open_device.restype = ctypes.c_uint64
         temp_handle = ctypes.c_void_p()
@@ -782,7 +782,7 @@ class SignalCore_SC5511B(Instrument):
         The input value is an unsigned int, it means how many multiple of 500 us.
         """
         c_sweep_dwell_time = ctypes.c_uint32(int(sweep_dwell_time))
-        logging.info(__name__ + ': Setting sweep dwell time to %s' % sweep_dwell_time)
+        self.log.info('Setting sweep dwell time to %s' % sweep_dwell_time)
         close = False
         if not self._open:
             self._dll.sc5511b_usb_open_device.argtypes = ctypes.c_char_p, ctypes.POINTER(ctypes.c_void_p)
@@ -812,7 +812,7 @@ class SignalCore_SC5511B(Instrument):
         Get the dwell time of the sweep mode.
         Return value is the unit multiple of 500 us, e.g. a return value 3 means the dwell time is 1500 us.
         """
-        logging.info(__name__ + 'Getting sweep dwell time in the unit of how many multiple of 500 us')
+        self.log.info('Getting sweep dwell time in the unit of how many multiple of 500 us')
         self._dll.sc5511b_usb_open_device.argtypes = ctypes.c_char_p, ctypes.POINTER(ctypes.c_void_p)
         self._dll.sc5511b_usb_open_device.restype = ctypes.c_uint64
         temp_handle = ctypes.c_void_p()
@@ -840,7 +840,7 @@ class SignalCore_SC5511B(Instrument):
         To repeat the sweep continuously, set the value to 0.
         """
         c_sweep_cycles = ctypes.c_uint32(int(sweep_cycles))
-        logging.info(__name__ + ': Setting sweep cycle number to %s ' % sweep_cycles)
+        self.log.info('Setting sweep cycle number to %s ' % sweep_cycles)
         close = False
         if not self._open:
             self._dll.sc5511b_usb_open_device.argtypes = ctypes.c_char_p, ctypes.POINTER(ctypes.c_void_p)
@@ -869,7 +869,7 @@ class SignalCore_SC5511B(Instrument):
         Get the number of sweep cycles to perform before stopping.
         To repeat the sweep continuously, the value is 0.
         """
-        logging.info(__name__ + 'Getting number of sweep cycles')
+        self.log.info('Getting number of sweep cycles')
         self._dll.sc5511b_usb_open_device.argtypes = ctypes.c_char_p, ctypes.POINTER(ctypes.c_void_p)
         self._dll.sc5511b_usb_open_device.restype = ctypes.c_uint64
         temp_handle = ctypes.c_void_p()
@@ -899,7 +899,7 @@ class SignalCore_SC5511B(Instrument):
         1 = Puts a trigger pulse on the TRIGOUT pin
         """
         c_trig_out_enable = ctypes.c_ubyte(int(trig_out_enable))
-        logging.info(__name__ + ': Setting sweep cycle number to %s ' % trig_out_enable)
+        self.log.info('Setting sweep cycle number to %s ' % trig_out_enable)
         close = False
         if not self._open:
             self._dll.sc5511b_usb_open_device.argtypes = ctypes.c_char_p, ctypes.POINTER(ctypes.c_void_p)
@@ -937,7 +937,7 @@ class SignalCore_SC5511B(Instrument):
         0 = No trigger output
         1 = Puts a trigger pulse on the TRIGOUT pin
         """
-        logging.info(__name__ + 'Getting trigger output status')
+        self.log.info('Getting trigger output status')
         self._dll.sc5511b_usb_open_device.argtypes = ctypes.c_char_p, ctypes.POINTER(ctypes.c_void_p)
         self._dll.sc5511b_usb_open_device.restype = ctypes.c_uint64
         temp_handle = ctypes.c_void_p()
@@ -967,7 +967,7 @@ class SignalCore_SC5511B(Instrument):
         1 = Puts out a trigger pulse at the completion of each sweep/list cycle
         """
         c_trig_out_on_cycle = ctypes.c_ubyte(int(trig_out_on_cycle))
-        logging.info(__name__ + ': Setting sweep cycle number to %s ' % trig_out_on_cycle)
+        self.log.info('Setting sweep cycle number to %s ' % trig_out_on_cycle)
         close = False
         if not self._open:
             self._dll.sc5511b_usb_open_device.argtypes = ctypes.c_char_p, ctypes.POINTER(ctypes.c_void_p)
@@ -1005,7 +1005,7 @@ class SignalCore_SC5511B(Instrument):
         0 = Puts out a trigger pulse at each frequency change
         1 = Puts out a trigger pulse at the completion of each sweep/list cycle
         """
-        logging.info(__name__ + 'Getting trigger output mode ')
+        self.log.info('Getting trigger output mode ')
         self._dll.sc5511b_usb_open_device.argtypes = ctypes.c_char_p, ctypes.POINTER(ctypes.c_void_p)
         self._dll.sc5511b_usb_open_device.restype = ctypes.c_uint64
         temp_handle = ctypes.c_void_p()
@@ -1039,7 +1039,7 @@ class SignalCore_SC5511B(Instrument):
             and stop.
         """
         c_step_on_hw_trig = ctypes.c_ubyte(int(step_on_hw_trig))
-        logging.info(__name__ + ': Setting sweep cycle number to %s ' % step_on_hw_trig)
+        self.log.info('Setting sweep cycle number to %s ' % step_on_hw_trig)
         close = False
         if not self._open:
             self._dll.sc5511b_usb_open_device.argtypes = ctypes.c_char_p, ctypes.POINTER(ctypes.c_void_p)
@@ -1078,7 +1078,7 @@ class SignalCore_SC5511B(Instrument):
         0 = Start/Stop behavior
         1 = Step-on-trigger
         """
-        logging.info(__name__ + 'Getting status of step on trigger mode ')
+        self.log.info('Getting status of step on trigger mode ')
         self._dll.sc5511b_usb_open_device.argtypes = ctypes.c_char_p, ctypes.POINTER(ctypes.c_void_p)
         self._dll.sc5511b_usb_open_device.restype = ctypes.c_uint64
         temp_handle = ctypes.c_void_p()
@@ -1107,7 +1107,7 @@ class SignalCore_SC5511B(Instrument):
             cycle.
         """
         c_return_to_start = ctypes.c_ubyte(int(return_to_start))
-        logging.info(__name__ + ': Setting sweep cycle number to %s ' % return_to_start)
+        self.log.info('Setting sweep cycle number to %s ' % return_to_start)
         close = False
         if not self._open:
             self._dll.sc5511b_usb_open_device.argtypes = ctypes.c_char_p, ctypes.POINTER(ctypes.c_void_p)
@@ -1146,7 +1146,7 @@ class SignalCore_SC5511B(Instrument):
         1 = Return to start. The frequency will return and stop at the beginning point of the sweep or list after a
             cycle.
         """
-        logging.info(__name__ + 'Getting status of return to start ')
+        self.log.info('Getting status of return to start ')
         self._dll.sc5511b_usb_open_device.argtypes = ctypes.c_char_p, ctypes.POINTER(ctypes.c_void_p)
         self._dll.sc5511b_usb_open_device.restype = ctypes.c_uint64
         temp_handle = ctypes.c_void_p()
@@ -1178,7 +1178,7 @@ class SignalCore_SC5511B(Instrument):
             both start/stop or step-on-trigger functions.
         """
         c_hw_trigger = ctypes.c_ubyte(int(hw_trigger))
-        logging.info(__name__ + ': Setting sweep cycle number to %s ' % hw_trigger)
+        self.log.info('Setting sweep cycle number to %s ' % hw_trigger)
         close = False
         if not self._open:
             self._dll.sc5511b_usb_open_device.argtypes = ctypes.c_char_p, ctypes.POINTER(ctypes.c_void_p)
@@ -1218,7 +1218,7 @@ class SignalCore_SC5511B(Instrument):
         1 = Hardware trigger. A high-to-low transition on the TRIGIN pin will trigger the device. It can be used for
             both start/stop or step-on-trigger functions.
         """
-        logging.info(__name__ + 'Getting status of hardware trigger ')
+        self.log.info('Getting status of hardware trigger ')
         self._dll.sc5511b_usb_open_device.argtypes = ctypes.c_char_p, ctypes.POINTER(ctypes.c_void_p)
         self._dll.sc5511b_usb_open_device.restype = ctypes.c_uint64
         temp_handle = ctypes.c_void_p()
@@ -1248,7 +1248,7 @@ class SignalCore_SC5511B(Instrument):
             beginning to complete a cycle
         """
         c_tri_waveform = ctypes.c_ubyte(int(tri_waveform))
-        logging.info(__name__ + ': Setting sweep cycle number to %s ' % tri_waveform)
+        self.log.info('Setting sweep cycle number to %s ' % tri_waveform)
         close = False
         if not self._open:
             self._dll.sc5511b_usb_open_device.argtypes = ctypes.c_char_p, ctypes.POINTER(ctypes.c_void_p)
@@ -1287,7 +1287,7 @@ class SignalCore_SC5511B(Instrument):
         1 = Triangular waveform. Frequency reverses direction at the end of the list and steps back towards the
             beginning to complete a cycle
         """
-        logging.info(__name__ + 'Getting status of triangular waveform ')
+        self.log.info('Getting status of triangular waveform ')
         self._dll.sc5511b_usb_open_device.argtypes = ctypes.c_char_p, ctypes.POINTER(ctypes.c_void_p)
         self._dll.sc5511b_usb_open_device.restype = ctypes.c_uint64
         temp_handle = ctypes.c_void_p()
@@ -1318,7 +1318,7 @@ class SignalCore_SC5511B(Instrument):
             end and steps toward the beginning of the buffer
         """
         c_sweep_dir = ctypes.c_ubyte(int(sweep_dir))
-        logging.info(__name__ + ': Setting sweep cycle number to %s ' % sweep_dir)
+        self.log.info('Setting sweep cycle number to %s ' % sweep_dir)
         close = False
         if not self._open:
             self._dll.sc5511b_usb_open_device.argtypes = ctypes.c_char_p, ctypes.POINTER(ctypes.c_void_p)
@@ -1357,7 +1357,7 @@ class SignalCore_SC5511B(Instrument):
         1 = Reverse. Sweeps start from the stop frequency and steps down toward the start frequency or starts at the
             end and steps toward the beginning of the buffer
         """
-        logging.info(__name__ + 'Getting status of sweep direction ')
+        self.log.info('Getting status of sweep direction ')
         self._dll.sc5511b_usb_open_device.argtypes = ctypes.c_char_p, ctypes.POINTER(ctypes.c_void_p)
         self._dll.sc5511b_usb_open_device.restype = ctypes.c_uint64
         temp_handle = ctypes.c_void_p()
@@ -1386,7 +1386,7 @@ class SignalCore_SC5511B(Instrument):
         1 = Sweep mode. The device computes the frequency points using the Start, Stop and Step frequencies
         """
         c_sss_mode = ctypes.c_ubyte(int(sss_mode))
-        logging.info(__name__ + ': Setting sweep cycle number to %s ' % sss_mode)
+        self.log.info('Setting sweep cycle number to %s ' % sss_mode)
         close = False
         if not self._open:
             self._dll.sc5511b_usb_open_device.argtypes = ctypes.c_char_p, ctypes.POINTER(ctypes.c_void_p)
@@ -1424,7 +1424,7 @@ class SignalCore_SC5511B(Instrument):
         0 = List mode. Device gets its frequency points from the list buffer uploaded via LIST_BUFFER_WRITE register
         1 = Sweep mode. The device computes the frequency points using the Start, Stop and Step frequencies
         """
-        logging.info(__name__ + 'Getting status of sss mode')
+        self.log.info('Getting status of sss mode')
         self._dll.sc5511b_usb_open_device.argtypes = ctypes.c_char_p, ctypes.POINTER(ctypes.c_void_p)
         self._dll.sc5511b_usb_open_device.restype = ctypes.c_uint64
         temp_handle = ctypes.c_void_p()
@@ -1453,7 +1453,7 @@ class SignalCore_SC5511B(Instrument):
         1 = sweep/list mode
         """
         c_rf1_mode = ctypes.c_uint8(rf1_mode)
-        logging.info(__name__ + ' : Setting frequency to %s' % rf1_mode)
+        self.log.info('Setting frequency to %s' % rf1_mode)
         close = False
         if not self._open:
             self._dll.sc5511b_usb_open_device.argtypes = ctypes.c_char_p, ctypes.POINTER(ctypes.c_void_p)
@@ -1485,7 +1485,7 @@ class SignalCore_SC5511B(Instrument):
         0 = single fixed tone mode
         1 = sweep/list mode
         """
-        logging.info(__name__ + 'Getting the RF mode for rf1')
+        self.log.info('Getting the RF mode for rf1')
         self._dll.sc5511b_usb_open_device.argtypes = ctypes.c_char_p, ctypes.POINTER(ctypes.c_void_p)
         self._dll.sc5511b_usb_open_device.restype = ctypes.c_uint64
         temp_handle = ctypes.c_void_p()
@@ -1514,7 +1514,7 @@ class SignalCore_SC5511B(Instrument):
                 frequency (int) = frequency in Hz
         """
         c_freq = ctypes.c_double(int(frequency))
-        logging.info(__name__ + ' : Setting frequency to %s' % frequency)
+        self.log.info('Setting frequency to %s' % frequency)
         close = False
         if not self._open:
             self._dll.sc5511b_usb_open_device.argtypes = ctypes.c_char_p, ctypes.POINTER(ctypes.c_void_p)
@@ -1544,7 +1544,7 @@ class SignalCore_SC5511B(Instrument):
         """
         Gets RF1 frequency in the unit of Hz.
         """
-        logging.info(__name__ + ' : Getting frequency')
+        self.log.info('Getting frequency')
         self._dll.sc5511b_usb_open_device.argtypes = ctypes.c_char_p, ctypes.POINTER(ctypes.c_void_p)
         self._dll.sc5511b_usb_open_device.restype = ctypes.c_uint64
         temp_handle = ctypes.c_void_p()
@@ -1575,7 +1575,7 @@ class SignalCore_SC5511B(Instrument):
 
         Note here high is set to 0, means we always use 10 MHz clock when use external lock
         """
-        logging.info(__name__ + ' : Setting reference source to %s' % lock_to_external)
+        self.log.info('Setting reference source to %s' % lock_to_external)
         high = ctypes.c_uint8(0)
         lock = ctypes.c_uint8(lock_to_external)
         self._dll.sc5511b_usb_open_device.argtypes = ctypes.c_char_p, ctypes.POINTER(ctypes.c_void_p)
@@ -1604,7 +1604,7 @@ class SignalCore_SC5511B(Instrument):
         0 = internal source
         1 = external source
         """
-        logging.info(__name__ + ' : Getting reference source')
+        self.log.info('Getting reference source')
         self._dll.sc5511b_usb_open_device.argtypes = ctypes.c_char_p, ctypes.POINTER(ctypes.c_void_p)
         self._dll.sc5511b_usb_open_device.restype = ctypes.c_uint64
         temp_handle = ctypes.c_void_p()
@@ -1627,7 +1627,7 @@ class SignalCore_SC5511B(Instrument):
         """
         Set the power of the generator in the unit of dBm
         """
-        logging.info(__name__ + ' : Setting power to %s' % power)
+        self.log.info('Setting power to %s' % power)
         c_power = ctypes.c_float(power)
         close = False
         if not self._open:
@@ -1659,7 +1659,7 @@ class SignalCore_SC5511B(Instrument):
         """
         Get the power of the generator in the unit of dBm
         """
-        logging.info(__name__ + ' : Getting Power')
+        self.log.info('Getting Power')
         self._dll.sc5511b_usb_open_device.argtypes = ctypes.c_char_p, ctypes.POINTER(ctypes.c_void_p)
         self._dll.sc5511b_usb_open_device.restype = ctypes.c_uint64
         temp_handle = ctypes.c_void_p()
@@ -1686,7 +1686,7 @@ class SignalCore_SC5511B(Instrument):
         """
         Set if we want to disable the auto level
         """
-        logging.info(__name__ + ' : Settingalc auto to %s' % enable)
+        self.log.info('Settingalc auto to %s' % enable)
         if enable == 1:
             enable = 0
         elif enable == 0:
@@ -1716,7 +1716,7 @@ class SignalCore_SC5511B(Instrument):
         """
         Get if we disable to auto level
         """
-        logging.info(__name__ + ' : Getting alc auto status')
+        self.log.info('Getting alc auto status')
         self._dll.sc5511b_usb_open_device.argtypes = ctypes.c_char_p, ctypes.POINTER(ctypes.c_void_p)
         self._dll.sc5511b_usb_open_device.restype = ctypes.c_uint64
         temp_handle = ctypes.c_void_p()
@@ -1747,7 +1747,7 @@ class SignalCore_SC5511B(Instrument):
         """
         Get the device temperature in unit of C
         """
-        logging.info(__name__ + " : Getting device temperature")
+        self.log.info("Getting device temperature")
         self._dll.sc5511b_usb_open_device.argtypes = ctypes.c_char_p, ctypes.POINTER(ctypes.c_void_p)
         self._dll.sc5511b_usb_open_device.restype = ctypes.c_uint64
         temp_handle = ctypes.c_void_p()
@@ -1774,7 +1774,7 @@ class SignalCore_SC5511B(Instrument):
         """
         Get the identification information of the current device
         """
-        logging.info(__name__ + " : Getting device info")
+        self.log.info("Getting device info")
         self._dll.sc5511b_usb_open_device.argtypes = ctypes.c_char_p, ctypes.POINTER(ctypes.c_void_p)
         self._dll.sc5511b_usb_open_device.restype = ctypes.c_uint64
         temp_handle = ctypes.c_void_p()
@@ -1812,7 +1812,7 @@ class SignalCore_SC5511B(Instrument):
         return IDN
 
     def do_get_list_points_number(self) -> int:
-        logging.info(__name__ + " : Getting list points number")
+        self.log.info("Getting list points number")
         self._dll.sc5511b_usb_open_device.argtypes = ctypes.c_char_p, ctypes.POINTER(ctypes.c_void_p)
         self._dll.sc5511b_usb_open_device.restype = ctypes.c_uint64
         temp_handle = ctypes.c_void_p()
@@ -1836,7 +1836,7 @@ class SignalCore_SC5511B(Instrument):
         return list_points_number
        
     def do_set_list_points_number(self, points) -> None:
-        logging.info(__name__ + " : Setting list points number")
+        self.log.info("Setting list points number")
         self._dll.sc5511b_usb_open_device.argtypes = ctypes.c_char_p, ctypes.POINTER(ctypes.c_void_p)
         self._dll.sc5511b_usb_open_device.restype = ctypes.c_uint64
         temp_handle = ctypes.c_void_p()
@@ -1863,7 +1863,7 @@ class SignalCore_SC5511B(Instrument):
         return updated
         
     def do_get_list_start_frequency(self) -> int:
-        logging.info(__name__ + " : Getting list start frequency")
+        self.log.info("Getting list start frequency")
         points = self.list_points_number()
         
         self._dll.sc5511b_usb_open_device.argtypes = ctypes.c_char_p, ctypes.POINTER(ctypes.c_void_p)
@@ -1899,14 +1899,14 @@ class SignalCore_SC5511B(Instrument):
         return c_freqs[0]
        
     def do_set_list_start_frequency(self, start_freq) -> None:
-        logging.info(__name__ + " : Setting list start frequency")
+        self.log.info("Setting list start frequency")
         self.local_list_start_frequency = start_freq
         updated = self.update_list()
         
         return updated
 
     def do_get_list_step_frequency(self) -> int:
-        logging.info(__name__ + " : Getting list step frequency")
+        self.log.info("Getting list step frequency")
         points = self.list_points_number()
         if points < 2:
             return 0
@@ -1944,7 +1944,7 @@ class SignalCore_SC5511B(Instrument):
         return c_freqs[1] - c_freqs[0]
        
     def do_set_list_step_frequency(self, step_freq) -> None:
-        logging.info(__name__ + " : Setting list step frequency")
+        self.log.info("Setting list step frequency")
         self.local_list_step_frequency = step_freq
         updated = self.update_list()
         
@@ -1952,7 +1952,7 @@ class SignalCore_SC5511B(Instrument):
  
     
     def do_get_list_start_power(self) -> int:
-        logging.info(__name__ + " : Getting list start power")
+        self.log.info("Getting list start power")
         points = self.list_points_number()
         
         self._dll.sc5511b_usb_open_device.argtypes = ctypes.c_char_p, ctypes.POINTER(ctypes.c_void_p)
@@ -1988,14 +1988,14 @@ class SignalCore_SC5511B(Instrument):
         return c_powers[0]
        
     def do_set_list_start_power(self, start_power) -> None:
-        logging.info(__name__ + " : Setting list start power")
+        self.log.info("Setting list start power")
         self.local_list_start_power = start_power
         updated = self.update_list()
         
         return updated
 
     def do_get_list_step_power(self) -> int:
-        logging.info(__name__ + " : Getting list step power")
+        self.log.info("Getting list step power")
         points = self.list_points_number()
         if points < 2:
             return 0
@@ -2033,14 +2033,14 @@ class SignalCore_SC5511B(Instrument):
         return c_powers[1] - c_powers[0]
        
     def do_set_list_step_power(self, step_power) -> None:
-        logging.info(__name__ + " : Setting list step power")
+        self.log.info("Setting list step power")
         self.local_list_step_power = step_power
         updated = self.update_list()
         
         return updated
     
     def do_get_list_start_dwell(self) -> int:
-        logging.info(__name__ + " : Getting list start dwell")
+        self.log.info("Getting list start dwell")
         points = self.list_points_number()
         
         self._dll.sc5511b_usb_open_device.argtypes = ctypes.c_char_p, ctypes.POINTER(ctypes.c_void_p)
@@ -2076,14 +2076,14 @@ class SignalCore_SC5511B(Instrument):
         return c_dwells[0]
        
     def do_set_list_start_dwell(self, start_dwell) -> None:
-        logging.info(__name__ + " : Setting list start dwell")
+        self.log.info("Setting list start dwell")
         self.local_list_start_dwell = start_dwell
         updated = self.update_list()
         
         return updated
 
     def do_get_list_step_dwell(self) -> int:
-        logging.info(__name__ + " : Getting list step dwell")
+        self.log.info("Getting list step dwell")
         points = self.list_points_number()
         if points < 2:
             return 0
@@ -2121,7 +2121,7 @@ class SignalCore_SC5511B(Instrument):
         return c_dwells[1] - c_dwells[0]
        
     def do_set_list_step_dwell(self, step_dwell) -> None:
-        logging.info(__name__ + " : Setting list step dwell")
+        self.log.info("Setting list step dwell")
         self.local_list_step_dwell = step_dwell
         updated = self.update_list()
         
@@ -2129,7 +2129,7 @@ class SignalCore_SC5511B(Instrument):
     
     
     def update_list(self) -> None:
-        logging.info(__name__ + " : Updating list")
+        self.log.info("Updating list")
         
         points = self.local_list_points_number
         start_freq = self.local_list_start_frequency
