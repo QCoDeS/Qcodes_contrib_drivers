@@ -411,7 +411,8 @@ class SignalCore_SC5511B(Instrument):
 
         The parameters are very unlikely to be needed, and are just for making sure
         we allocated the right amount of memory when calling the SignalCore dll.sc5510b_
-        Parameters:
+
+        Args:
             max_n_gens: maximum number of generators expected
             sn_len: max length of serial numbers.
         """
@@ -494,8 +495,9 @@ class SignalCore_SC5511B(Instrument):
     def do_set_output_status(self, enable) -> None:
         """
         Turns the output of RF1 on or off.
-            Input:
-                enable (int) = OFF = 0 ; ON = 1
+
+        Args:
+            enable: integer, where OFF = 0, ON = 1
         """
         self.log.info(f'Setting output to {enable}')
         c_enable = ctypes.c_ubyte(enable)
@@ -524,8 +526,9 @@ class SignalCore_SC5511B(Instrument):
     def do_get_output_status(self) -> int:
         """
         Reads the output status of RF1
-            Output:
-                status (int) : OFF = 0 ; ON = 1
+
+        Returns:
+            status as integer: OFF = 0, ON = 1
         """
         self.log.info('Getting output')
         self._dll.sc5511b_usb_open_device.argtypes = ctypes.c_char_p, ctypes.POINTER(ctypes.c_void_p)
@@ -551,8 +554,9 @@ class SignalCore_SC5511B(Instrument):
     def do_set_standby(self, standby) -> None:
         """
         Turns the RF1 electronics on or off.
-            Input:
-                standby (int) = ON = 1 ; OFF = 1
+
+        Args:
+            standby: (int) = ON = 1 ; OFF = 1
         """
         self.log.info('Setting standby to %s' % standby)
         c_standby = ctypes.c_uint8(standby)
@@ -581,8 +585,9 @@ class SignalCore_SC5511B(Instrument):
     def do_get_standby(self) -> int:
         """
         Reads the output status of RF1
-            Output:
-                standby (int) : OFF = 0 ; ON = 1
+
+        Returns:
+            standby (int) : OFF = 0 ; ON = 1
         """
         self.log.info('Getting standby')
         self._dll.sc5511b_usb_open_device.argtypes = ctypes.c_char_p, ctypes.POINTER(ctypes.c_void_p)
@@ -1031,12 +1036,14 @@ class SignalCore_SC5511B(Instrument):
     def do_set_step_on_hw_trig(self, step_on_hw_trig) -> None:
         """
         Set the behavior of the sweep/list mode when receiving a trigger.
-        0 = Start/Stop behavior. The sweep starts and continues to step through the list for the number of cycles set,
-            dwelling at each step frequency for a period set by the dwell time. The sweep/list will end on a consecutive
-            trigger.
-        1 = Step-on-trigger. This is only available if hardware triggering is selected. The device will step to the next
-            frequency on a trigger.Upon completion of the number of cycles, the device will exit from the stepping state
-            and stop.
+
+        - 0 = Start/Stop behavior. The sweep starts and continues to step through the list for the number of cycles set,
+          dwelling at each step frequency for a period set by the dwell time. The sweep/list will end on a consecutive
+          trigger.
+        - 1 = Step-on-trigger. This is only available if hardware triggering is selected. The device will step to the next
+          frequency on a trigger.Upon completion of the number of cycles, the device will exit from the stepping state
+          and stop.
+
         """
         c_step_on_hw_trig = ctypes.c_ubyte(int(step_on_hw_trig))
         self.log.info('Setting sweep cycle number to %s ' % step_on_hw_trig)
@@ -1103,8 +1110,7 @@ class SignalCore_SC5511B(Instrument):
         """
         Set how the frequency will change at the end of the list/sweep
         0 = Stop at end of sweep/list. The frequency will stop at the last point of the sweep/list
-        1 = Return to start. The frequency will return and stop at the beginning point of the sweep or list after a
-            cycle.
+        1 = Return to start. The frequency will return and stop at the beginning point of the sweep or list after a cycle.
         """
         c_return_to_start = ctypes.c_ubyte(int(return_to_start))
         self.log.info('Setting sweep cycle number to %s ' % return_to_start)
@@ -1143,8 +1149,7 @@ class SignalCore_SC5511B(Instrument):
         """
         Get the status of how the frequency will change at the end of the list/sweep
         0 = Stop at end of sweep/list. The frequency will stop at the last point of the sweep/list
-        1 = Return to start. The frequency will return and stop at the beginning point of the sweep or list after a
-            cycle.
+        1 = Return to start. The frequency will return and stop at the beginning point of the sweep or list after a cycle.
         """
         self.log.info('Getting status of return to start ')
         self._dll.sc5511b_usb_open_device.argtypes = ctypes.c_char_p, ctypes.POINTER(ctypes.c_void_p)
@@ -1172,10 +1177,11 @@ class SignalCore_SC5511B(Instrument):
     def do_set_hw_trig(self, hw_trigger) -> None:
         """
         Set the status of hardware trigger
-        0 = Software trigger. Softtrigger can only be used to start and stop a sweep/list cycle. It does not work for
-            step-on-trigger mode.
-        1 = Hardware trigger. A high-to-low transition on the TRIGIN pin will trigger the device. It can be used for
-            both start/stop or step-on-trigger functions.
+
+        - 0 = Software trigger. Softtrigger can only be used to start and stop a sweep/list cycle. It does not work for
+          step-on-trigger mode.
+        - 1 = Hardware trigger. A high-to-low transition on the TRIGIN pin will trigger the device. It can be used for
+          both start/stop or step-on-trigger functions.
         """
         c_hw_trigger = ctypes.c_ubyte(int(hw_trigger))
         self.log.info('Setting sweep cycle number to %s ' % hw_trigger)
@@ -1213,10 +1219,11 @@ class SignalCore_SC5511B(Instrument):
     def do_get_hw_trig(self) -> int:
         """
         Get the status of hardware trigger
-        0 = Software trigger. Softtrigger can only be used to start and stop a sweep/list cycle. It does not work for
-            step-on-trigger mode.
-        1 = Hardware trigger. A high-to-low transition on the TRIGIN pin will trigger the device. It can be used for
-            both start/stop or step-on-trigger functions.
+
+        - 0 = Software trigger. Softtrigger can only be used to start and stop a sweep/list cycle. It does not work for
+          step-on-trigger mode.
+        - 1 = Hardware trigger. A high-to-low transition on the TRIGIN pin will trigger the device. It can be used for
+          both start/stop or step-on-trigger functions.
         """
         self.log.info('Getting status of hardware trigger ')
         self._dll.sc5511b_usb_open_device.argtypes = ctypes.c_char_p, ctypes.POINTER(ctypes.c_void_p)
@@ -1243,9 +1250,10 @@ class SignalCore_SC5511B(Instrument):
     def do_set_tri_waveform(self, tri_waveform) -> None:
         """
         Set the triangular waveform of the generator
-        0 = Sawtooth waveform. Frequency returns to the beginning frequency upon reaching the end of a sweep cycle
-        1 = Triangular waveform. Frequency reverses direction at the end of the list and steps back towards the
-            beginning to complete a cycle
+
+        - 0 = Sawtooth waveform. Frequency returns to the beginning frequency upon reaching the end of a sweep cycle
+        - 1 = Triangular waveform. Frequency reverses direction at the end of the list and steps back towards the
+          beginning to complete a cycle
         """
         c_tri_waveform = ctypes.c_ubyte(int(tri_waveform))
         self.log.info('Setting sweep cycle number to %s ' % tri_waveform)
@@ -1283,9 +1291,10 @@ class SignalCore_SC5511B(Instrument):
     def do_get_tri_waveform(self) -> int:
         """
         Get the triangular waveform of the generator
-        0 = Sawtooth waveform. Frequency returns to the beginning frequency upon reaching the end of a sweep cycle
-        1 = Triangular waveform. Frequency reverses direction at the end of the list and steps back towards the
-            beginning to complete a cycle
+
+        - 0 = Sawtooth waveform. Frequency returns to the beginning frequency upon reaching the end of a sweep cycle
+        - 1 = Triangular waveform. Frequency reverses direction at the end of the list and steps back towards the
+          beginning to complete a cycle
         """
         self.log.info('Getting status of triangular waveform ')
         self._dll.sc5511b_usb_open_device.argtypes = ctypes.c_char_p, ctypes.POINTER(ctypes.c_void_p)
@@ -1313,9 +1322,10 @@ class SignalCore_SC5511B(Instrument):
     def do_set_sweep_dir(self, sweep_dir) -> None:
         """
         Set the sweep direction of the generator
-        0 = Forward. Sweeps start from the lowest start frequency or starts at the beginning of the list buffer
-        1 = Reverse. Sweeps start from the stop frequency and steps down toward the start frequency or starts at the
-            end and steps toward the beginning of the buffer
+
+        - 0 = Forward. Sweeps start from the lowest start frequency or starts at the beginning of the list buffer
+        - 1 = Reverse. Sweeps start from the stop frequency and steps down toward the start frequency or starts at the
+          end and steps toward the beginning of the buffer
         """
         c_sweep_dir = ctypes.c_ubyte(int(sweep_dir))
         self.log.info('Setting sweep cycle number to %s ' % sweep_dir)
@@ -1353,9 +1363,10 @@ class SignalCore_SC5511B(Instrument):
     def do_get_sweep_dir(self) -> int:
         """
         Get the sweep direction of the generator
-        0 = Forward. Sweeps start from the lowest start frequency or starts at the beginning of the list buffer
-        1 = Reverse. Sweeps start from the stop frequency and steps down toward the start frequency or starts at the
-            end and steps toward the beginning of the buffer
+
+        - 0 = Forward. Sweeps start from the lowest start frequency or starts at the beginning of the list buffer
+        - 1 = Reverse. Sweeps start from the stop frequency and steps down toward the start frequency or starts at the
+          end and steps toward the beginning of the buffer
         """
         self.log.info('Getting status of sweep direction ')
         self._dll.sc5511b_usb_open_device.argtypes = ctypes.c_char_p, ctypes.POINTER(ctypes.c_void_p)
@@ -1510,8 +1521,9 @@ class SignalCore_SC5511B(Instrument):
     def do_set_frequency(self, frequency) -> None:
         """
         Sets RF1 frequency in the unit of Hz. Valid between 100MHz and 20GHz
-            Args:
-                frequency (int) = frequency in Hz
+
+        Args:
+            frequency: int frequency in Hz
         """
         c_freq = ctypes.c_double(int(frequency))
         self.log.info('Setting frequency to %s' % frequency)
