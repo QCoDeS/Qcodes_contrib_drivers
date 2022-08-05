@@ -37,10 +37,10 @@ devices:
           q: "tint {:d}"
       trace_define:
         setter:
-          q: "trac:def \"{:s}\", {:d}"
+          q: "trac:def \"{:s}\",{:d}"
       trace_data:
         setter:
-          q: "trac:data \"{:s}\", {:s}"
+          q: "trac:data \"{:s}\",{:s}"
 
     channels:
       trigger:
@@ -171,20 +171,6 @@ devices:
             specs:
               valid: ["dc", "med", "high"]
               type: str
-          low_current_limit:
-            default: 0.0
-            setter:
-              q: "sour{ch_id}:ilim:low {}"
-            getter:
-              q: "sour{ch_id}:ilim:low?"
-              r: "{}"
-          high_current_limit:
-            default: 0.0
-            setter:
-              q: "sour{ch_id}:ilim:high {}"
-            getter:
-              q: "sour{ch_id}:ilim:high?"
-              r: "{}"
           current_count:
             default: 1
             setter:
@@ -367,8 +353,14 @@ devices:
             setter:
               q: "sour{ch_id}:list:dwel {}"
           list_voltages:
+            default: "0"
             setter:
               q: "sour{ch_id}:list:volt {}"
+            getter:
+              q: "sour{ch_id}:list:volt?"
+              r: "-0.123,0,1.234"
+            specs:
+              type: str
           list_append:
             setter:
               q: "sour{ch_id}:list:volt:app {}"

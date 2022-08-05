@@ -3,14 +3,16 @@ from typing import Optional
 from functools import partial
 
 from qcodes.utils.helpers import create_on_off_val_mapping as on_off_map
+from qcodes.utils.validators import Numbers
 
 from .visa_types import (
-        ViString, ViAttr, ViSession, ViReal64, ViBoolean
+        ViString, ViAttr, ViSession, ViReal64, ViBoolean, ViInt32,
         )
 from .dll_wrapper import AttributeWrapper, NamedArgType
 from .ni_dll_instrument import NIDLLInstrument
 
-# constants used for querying attributes
+# Constants used for querying attributes.
+# These can be found in the RFSG C API documentation, see below.
 NIRFSG_ATTR_INSTRUMENT_FIRMWARE_REVISION = AttributeWrapper(ViAttr(1050510), ViString)
 NIRFSG_ATTR_INSTRUMENT_MANUFACTURER      = AttributeWrapper(ViAttr(1050511), ViString)
 NIRFSG_ATTR_INSTRUMENT_MODEL             = AttributeWrapper(ViAttr(1050512), ViString)
@@ -21,9 +23,24 @@ NIRFSG_ATTR_FREQUENCY                    = AttributeWrapper(ViAttr(1250001), ViR
 NIRFSG_ATTR_POWER_LEVEL                  = AttributeWrapper(ViAttr(1250002), ViReal64)
 NIRFSG_ATTR_OUTPUT_ENABLED               = AttributeWrapper(ViAttr(1250004), ViBoolean)
 NIRFSG_ATTR_REF_CLOCK_SOURCE             = AttributeWrapper(ViAttr(1150001), ViString)
+NIRFSG_ATTR_ANALOG_MODULATION_TYPE       = AttributeWrapper(ViAttr(1150032), ViInt32)
+NIRFSG_ATTR_ANALOG_MODULATION_AM_SENSITIVITY = AttributeWrapper(ViAttr(1150167), ViReal64)
 NIRFSG_ATTR_PULSE_MODULATION_ENABLED     = AttributeWrapper(ViAttr(1250051), ViBoolean)
 
 logger = logging.getLogger(__name__)
+
+
+# Name mapping for analog modulation mode.
+# These can be found in the NI RFSG header file, found by default in
+# C:\Program Files (x86)\IVI Foundation\IVI\Include\niRFSG.h
+# or in the online documentation: https://zone.ni.com/reference/en-XX/help/371025V-01/rfsgproperties/pnirfsg_anlgmod.type/
+ANALOG_MOD_NAME_MAP = {
+    "none": 0, # NIRFSG_VAL_NONE
+    "FM": 2000, # NIRFSG_VAL_FM
+    "PM": 2001, # NIRFSG_VAL_PM
+    "AM": 2002, # NIRFSG_VAL_AM
+}
+
 
 CLK_SRC_MAP = {
     "onboard": "OnboardClock",
@@ -132,6 +149,37 @@ class NationalInstruments_RFSG(NIDLLInstrument):
                                            ),
                            val_mapping=on_off_map(on_val=True, off_val=False),
                            initial_value=False,
+                           )
+
+        self.add_parameter(name="analog_mod_type",
+                           label="Analog modulation type",
+                           docstring="Specifies the analog modulation format "
+                                     "to use. FM = frequency modulation, PM = "
+                                     "phase modulation, AM = amplitude "
+                                     "modulation. Set to 'none' to disable "
+                                     "analog modulation.",
+                           get_cmd=partial(self.get_attribute,
+                                           NIRFSG_ATTR_ANALOG_MODULATION_TYPE),
+                           set_cmd=partial(self.set_attribute,
+                                           NIRFSG_ATTR_ANALOG_MODULATION_TYPE),
+                           val_mapping=ANALOG_MOD_NAME_MAP,
+                           )
+
+        self.add_parameter(name="amplitude_mod_sensitivity",
+                           label="Amplitude modulation sensitivity",
+                           docstring="The modulation signal sent to AM IN is "
+                                     "scaled by this percentage before "
+                                     "multiplying the carrier wave.",
+                           unit="%/V",
+                           get_cmd=partial(
+                                self.get_attribute,
+                                NIRFSG_ATTR_ANALOG_MODULATION_AM_SENSITIVITY
+                           ),
+                           set_cmd=partial(
+                                self.set_attribute,
+                                NIRFSG_ATTR_ANALOG_MODULATION_AM_SENSITIVITY
+                           ),
+                           vals=Numbers(0, 100),
                            )
 
         self.add_parameter(name="clock_source",

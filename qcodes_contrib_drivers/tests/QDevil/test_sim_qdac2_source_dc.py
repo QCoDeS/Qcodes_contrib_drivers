@@ -70,32 +70,6 @@ def test_select_voltage_filter(selector, qdac):  # noqa
     ]
 
 
-def test_current_limit_low(qdac):  # noqa
-    current = 5e-9
-    # -----------------------------------------------------------------------
-    qdac.ch02.low_current_limit_A(current)
-    limit = qdac.ch02.low_current_limit_A()
-    # -----------------------------------------------------------------------
-    assert limit == current
-    assert qdac.get_recorded_scpi_commands() == [
-        f'sour2:ilim:low {current}',
-        'sour2:ilim:low?'
-    ]
-
-
-def test_current_limit_high(qdac):  # noqa
-    current = 5e-3
-    # -----------------------------------------------------------------------
-    qdac.ch02.high_current_limit_A(current)
-    limit = qdac.ch02.high_current_limit_A()
-    # -----------------------------------------------------------------------
-    assert limit == current
-    assert qdac.get_recorded_scpi_commands() == [
-        f'sour2:ilim:high {current}',
-        'sour2:ilim:high?'
-    ]
-
-
 @pytest.mark.parametrize('u', [-1.0, 0.0, 1])
 def test_dc_voltage_low(u, qdac):  # noqa
     # -----------------------------------------------------------------------

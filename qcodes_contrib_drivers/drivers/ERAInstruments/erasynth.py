@@ -825,7 +825,7 @@ class ERASynthPlus(ERASynthBase):
         """Chooses reference type."""
 
 
-class ERASynthPlusPlus(ERASynthPlus):
+class ERASynthPlusPlus(ERASynthBase):
     """
     Driver for the ERASynth++ model instrument.
 
@@ -841,6 +841,15 @@ class ERASynthPlusPlus(ERASynthPlus):
         self.sweep_step_frequency = _mk_sweep_step_frequency(
             self, max_frequency=20e9 - 250e3
         )
+
+        self.reference_tcxo_ocxo = Parameter(
+            name="reference_tcxo_ocxo",
+            instrument=self,
+            val_mapping={"tcxo": "0", "ocxo": "1"},
+            get_cmd=f"RA:{_CMD_TO_JSON_MAPPING['P5']}",
+            set_cmd="P5{}",
+        )
+        """Chooses reference type."""
 
 
 _SELF_TEST_LIST: List[Tuple[str, Union[bool, float, int, str]]] = [
