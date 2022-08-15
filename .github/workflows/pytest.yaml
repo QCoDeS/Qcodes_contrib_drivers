@@ -57,7 +57,7 @@ jobs:
           ${{ runner.os }}-${{ matrix.python-version }}-pip-
     - name: install package
       run: |
-        pip install . -c requirements.txt
+        pip install .[test] -c requirements.txt
     - name: Run Mypy
       run: mypy qcodes_contrib_drivers
       if: matrix.python-version != '3.7'

@@ -64,7 +64,7 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-${{ matrix.python-version }}-pip-
     - name: install qcodes
-      run: pip install . -c requirements.txt
+      run: pip install .[docs] -c requirements.txt
     - name: Build docs on linux
       run: |
         cd docs
