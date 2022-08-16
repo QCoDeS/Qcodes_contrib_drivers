@@ -44,8 +44,6 @@ jobs:
     - name: download requirements
       run: |
         curl https://raw.githubusercontent.com/QCoDeS/Qcodes/master/requirements.txt > requirements.txt
-        curl https://raw.githubusercontent.com/QCoDeS/Qcodes/master/test_requirements.txt > test_requirements.txt
-        curl https://raw.githubusercontent.com/QCoDeS/Qcodes/master/docs_requirements.txt > docs_requirements.txt
 
     - name: prepare pip cache
       id: prepare-cache-pip
@@ -54,18 +52,12 @@ jobs:
       uses: actions/cache@v2.1.6
       with:
         path: ${{ steps.prepare-cache-pip.outputs.cache-dir }}
-        key: ${{ runner.os }}-${{ matrix.python-version }}-pip-${{ hashFiles('**/requirements.txt') }}-${{ hashFiles('**/test_requirements.txt') }}-${{ hashFiles('**/setup.cfg') }}
+        key: ${{ runner.os }}-${{ matrix.python-version }}-pip-${{ hashFiles('**/requirements.txt') }}-${{ hashFiles('**/setup.cfg') }}
         restore-keys: |
           ${{ runner.os }}-${{ matrix.python-version }}-pip-
-    - name: install requirements.txt
-      run: |
-        pip install -r requirements.txt
-    - name: install test_requirements.txt
-      run: |
-        pip install -r test_requirements.txt
     - name: install package
       run: |
-        pip install .
+        pip install .[test] -c requirements.txt
     - name: Run Mypy
       run: mypy qcodes_contrib_drivers
       if: matrix.python-version != '3.7'
