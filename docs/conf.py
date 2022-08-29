@@ -93,10 +93,9 @@ html_static_path = ["_static"]
 # Configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {
     "pandas": ("https://pandas.pydata.org/pandas-docs/stable/", None),
-    "matplotlib": ("https://matplotlib.org/", None),
-    "python": ("https://docs.python.org/3.6", None),
+    "matplotlib": ("https://matplotlib.org/stable", None),
+    "python": ("https://docs.python.org/3.10", None),
     "numpy": ("https://numpy.org/doc/stable", None),
-    "py": ("https://pylib.readthedocs.io/en/stable/", None),
     "pyvisa": ("https://pyvisa.readthedocs.io/en/stable/", None),
     "IPython": (
         "https://ipython.readthedocs.io/en/stable/",
@@ -132,47 +131,4 @@ autodoc_mock_imports = [
     "nidaqmx",
     "niswitch",
     "zhinst",
-]
-
-# we allow most types from the typing modules to be used in
-# docstrings even if they don't resolve
-nitpick_ignore = [
-    ("py:class", "Optional"),
-    ("py:class", "Dict"),
-    ("py:class", "Union"),
-    ("py:class", "Any"),
-    ("py:class", "Tuple"),
-    ("py:class", "List"),
-    ("py:class", "Sequence"),
-    ("py:class", "Iterable"),
-    ("py:class", "Type"),
-    # These are some types currently in use
-    # in docstrings not actually defined anywhere
-    ("py:class", "io_manager"),
-    ("py:class", "chan_type"),
-    ("py:class", "SD_Wave"),
-    ("py:class", "array"),
-    # private types that are not currently documented so links
-    # will not resolve
-    ("py:class", "SweepFixedValues"),
-    (
-        "py:class",
-        "qcodes_contrib_drivers.drivers.RohdeSchwarz."
-        "private.HMC804x._RohdeSchwarzHMC804x",
-    ),
-    # We don't generate the docs for function since
-    # it is deprecated
-    ("py:class", "Function"),
-    # We do not document any QCoDeS classes
-    ("py:class", "Parameter"),
-    # External types that for some reason or the other
-    # don't resolve.
-    ("py:class", "json.encoder.JSONEncoder"),
-    ("py:class", "SPI_rack"),
-    ("py:class", "spirack.SPI_rack"),
-    ("py:class", "ViAttr"),
-    ("py:class", "unittest.case.TestCase"),
-    ("py:class", "builtins.AssertionError"),
-    ("py:class", "_ctypes.Structure"),
-    ("py:exc", "visa.VisaIOError"),
 ]

@@ -40,11 +40,6 @@ jobs:
       uses: actions/setup-python@v2.2.2
       with:
         python-version: ${{ matrix.python-version }}
-
-    - name: download requirements
-      run: |
-        curl https://raw.githubusercontent.com/QCoDeS/Qcodes/master/requirements.txt > requirements.txt
-
     - name: prepare pip cache
       id: prepare-cache-pip
       uses: ./.github/actions/prepare-cache-pip
