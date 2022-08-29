@@ -93,10 +93,9 @@ html_static_path = ["_static"]
 # Configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {
     "pandas": ("https://pandas.pydata.org/pandas-docs/stable/", None),
-    "matplotlib": ("https://matplotlib.org/", None),
-    "python": ("https://docs.python.org/3.6", None),
+    "matplotlib": ("https://matplotlib.org/stable", None),
+    "python": ("https://docs.python.org/3.10", None),
     "numpy": ("https://numpy.org/doc/stable", None),
-    "py": ("https://pylib.readthedocs.io/en/stable/", None),
     "pyvisa": ("https://pyvisa.readthedocs.io/en/stable/", None),
     "IPython": (
         "https://ipython.readthedocs.io/en/stable/",
