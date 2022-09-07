@@ -438,56 +438,56 @@ devices:
             setter:
               q: "sour{ch_id}:dc:mark:end {}"
             specs:
-              valid: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+              valid: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
               type: int
           dc_mark_start:
             default: 1
             setter:
               q: "sour{ch_id}:dc:mark:star {}"
             specs:
-              valid: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+              valid: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
               type: int
           dc_mark_pend:
             default: 1
             setter:
               q: "sour{ch_id}:dc:mark:send {}"
             specs:
-              valid: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+              valid: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
               type: int
           dc_mark_pstart:
             default: 1
             setter:
               q: "sour{ch_id}:dc:mark:sst {}"
             specs:
-              valid: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+              valid: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
               type: int
           square_mark_end:
             default: 1
             setter:
               q: "sour{ch_id}:squ:mark:end {}"
             specs:
-              valid: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+              valid: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
               type: int
           square_mark_start:
             default: 1
             setter:
               q: "sour{ch_id}:squ:mark:star {}"
             specs:
-              valid: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+              valid: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
               type: int
           square_mark_pend:
             default: 1
             setter:
               q: "sour{ch_id}:squ:mark:pend {}"
             specs:
-              valid: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+              valid: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
               type: int
           square_mark_pstart:
             default: 1
             setter:
               q: "sour{ch_id}:squ:mark:pst {}"
             specs:
-              valid: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+              valid: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
               type: int
           square_init_continuous:
             default: "on"
@@ -501,28 +501,28 @@ devices:
             setter:
               q: "sour{ch_id}:sine:mark:end {}"
             specs:
-              valid: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+              valid: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
               type: int
           sine_mark_start:
             default: 1
             setter:
               q: "sour{ch_id}:sine:mark:star {}"
             specs:
-              valid: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+              valid: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
               type: int
           sine_mark_pend:
             default: 1
             setter:
               q: "sour{ch_id}:sine:mark:pend {}"
             specs:
-              valid: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+              valid: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
               type: int
           sine_mark_pstart:
             default: 1
             setter:
               q: "sour{ch_id}:sine:mark:pst {}"
             specs:
-              valid: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+              valid: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
               type: int
           sine_init_continuous:
             default: "on"
@@ -536,28 +536,28 @@ devices:
             setter:
               q: "sour{ch_id}:tri:mark:end {}"
             specs:
-              valid: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+              valid: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
               type: int
           triangle_mark_start:
             default: 1
             setter:
               q: "sour{ch_id}:tri:mark:star {}"
             specs:
-              valid: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+              valid: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
               type: int
           triangle_mark_pend:
             default: 1
             setter:
               q: "sour{ch_id}:tri:mark:pend {}"
             specs:
-              valid: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+              valid: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
               type: int
           triangle_mark_pstart:
             default: 1
             setter:
               q: "sour{ch_id}:tri:mark:pst {}"
             specs:
-              valid: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+              valid: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
               type: int
           triangle_init_continuous:
             default: "on"
@@ -571,28 +571,28 @@ devices:
             setter:
               q: "sour{ch_id}:awg:mark:end {}"
             specs:
-              valid: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+              valid: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
               type: int
           awg_mark_start:
             default: 1
             setter:
               q: "sour{ch_id}:awg:mark:star {}"
             specs:
-              valid: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+              valid: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
               type: int
           awg_mark_pend:
             default: 1
             setter:
               q: "sour{ch_id}:awg:mark:pend {}"
             specs:
-              valid: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+              valid: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
               type: int
           awg_mark_pstart:
             default: 1
             setter:
               q: "sour{ch_id}:awg:mark:pst {}"
             specs:
-              valid: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+              valid: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
               type: int
           awg_init_continuous:
             default: "on"
@@ -607,7 +607,7 @@ devices:
             setter:
               q: "sour{ch_id}:dc:trig:sour int{}"
             specs:
-              valid: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+              valid: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
               type: int
           sine_frequency:
             setter:
