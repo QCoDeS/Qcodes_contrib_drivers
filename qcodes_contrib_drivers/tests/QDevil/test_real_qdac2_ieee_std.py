@@ -1,6 +1,5 @@
 import pytest
 import re
-from time import sleep
 from .real_qdac2_fixtures import (  # noqa
     qdac, instrument_connected, not_implemented)
 
@@ -32,7 +31,6 @@ def test_reset(qdac):  # noqa
     # -----------------------------------------------------------------------
     commands = qdac.get_recorded_scpi_commands()
     assert commands == ['*rst']
-    sleep(5)
 
 
 @instrument_connected

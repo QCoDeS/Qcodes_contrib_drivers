@@ -1,5 +1,6 @@
 import numpy as np
 import uuid
+from time import sleep as sleep_s
 from qcodes.instrument.channel import InstrumentChannel, ChannelList
 from qcodes.instrument.visa import VisaInstrument
 from pyvisa.errors import VisaIOError
@@ -1924,6 +1925,10 @@ class QDac2(VisaInstrument):
         self.write(f'outp:trig{port}:sour int{internal}')
         self.write(f'outp:trig{port}:widt {width_s}')
 
+    def reset(self) -> None:
+        self.write('*rst')
+        sleep_s(5)
+
     def errors(self) -> str:
         """Retrieve and clear all previous errors
 
@@ -2177,7 +2182,6 @@ class QDac2(VisaInstrument):
         )
 
     def _set_up_simple_functions(self) -> None:
-        self.add_function('reset', call_cmd='*rst')
         self.add_function('abort', call_cmd='abor')
 
     def _check_instrument_name(self, name: str) -> None:
