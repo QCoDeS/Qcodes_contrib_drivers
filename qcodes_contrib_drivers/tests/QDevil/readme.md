@@ -27,3 +27,4 @@ Static types:
     $ source venv/bin/activate
     $ pip install --upgrade pip
     $ pip install -e .[test]
+    $ pip install pyvisa-py==0.5.2
