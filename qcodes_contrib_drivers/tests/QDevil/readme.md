@@ -19,12 +19,11 @@ Real instrument:
 
 Static types:
 
-    $ mypy qcodes_contrib_drivers/drivers/QDevil/QDAC2.py
+    $ mypy --no-incremental qcodes_contrib_drivers/drivers/QDevil/QDAC2.py
 
 ### One-time setup
 
     $ python3 -m venv venv
     $ source venv/bin/activate
     $ pip install --upgrade pip
-    $ pip install qcodes pytest pyvisa-sim pyvisa-py mypy
-    $ pip install -e .
+    $ pip install -e .[test]
