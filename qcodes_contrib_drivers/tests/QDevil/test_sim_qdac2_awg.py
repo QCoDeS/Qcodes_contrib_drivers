@@ -266,7 +266,7 @@ def test_awg_period_start_trigger_alloc(qdac):  # noqa
     trigger = awg.period_start_marker()
     # -----------------------------------------------------------------------
     assert qdac.get_recorded_scpi_commands() == [
-        f'sour5:awg:mark:psta {trigger.value}'
+        f'sour5:awg:mark:pst {trigger.value}'
     ]
 
 
@@ -281,7 +281,7 @@ def test_awg_period_start_trigger_reuse(qdac):  # noqa
     # -----------------------------------------------------------------------
     assert trigger2 == trigger
     assert qdac.get_recorded_scpi_commands() == [
-        f'sour5:awg:mark:psta {trigger.value}'
+        f'sour5:awg:mark:pst {trigger.value}'
     ]
 
 
