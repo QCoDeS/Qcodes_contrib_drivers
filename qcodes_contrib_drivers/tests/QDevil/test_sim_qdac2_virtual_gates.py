@@ -30,7 +30,22 @@ def test_arrangement_set_virtual_voltage_effectuated_immediately(qdac):  # noqa
     assert commands == ['sour2:volt:mode fix', 'sour2:volt 0.5']
 
 
-def test_arrangement_default_actuals(qdac):  # noqa
+def test_arrangement_default_actuals_1d(qdac):  # noqa
+    arrangement = qdac.arrange(gates={'plunger1': 1, 'plunger2': 2})
+    arrangement.set_virtual_voltage('plunger2', 1.0)
+    # -----------------------------------------------------------------------
+    sweep = arrangement.virtual_sweep(
+        gate='plunger1',
+        voltages=np.linspace(-0.1, 0.1, 5),
+        step_time_s=2e-5)
+    # -----------------------------------------------------------------------
+    assert np.allclose(sweep.actual_values_V('plunger1'),
+                       [-0.1, -0.05, 0.0, 0.05, 0.1])
+    assert np.allclose(sweep.actual_values_V('plunger2'),
+                       [1.0, 1.0, 1.0, 1.0, 1.0])
+
+
+def test_arrangement_default_actuals_2d(qdac):  # noqa
     arrangement = qdac.arrange(gates={'plunger1': 1, 'plunger2': 2, 'plunger3': 3})
     # -----------------------------------------------------------------------
     sweep = arrangement.virtual_sweep2d(

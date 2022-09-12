@@ -8,7 +8,7 @@ from qcodes.utils import validators
 from typing import Any, NewType, Sequence, List, Dict, Tuple, Optional
 from packaging.version import parse
 
-# Version 0.16.0
+# Version 0.17.0
 #
 # Guiding principles for this driver for QDevil QDAC-II
 # -----------------------------------------------------
@@ -1544,7 +1544,7 @@ class Trace_Context:
         self._parent.write_floats(f'trac:data "{self.name}",', values)
 
 
-class Sweep_2D_Context:
+class Virtual_Sweep_Context:
 
     def __init__(self, arrangement: 'Arrangement_Context', sweep: np.ndarray,
                  start_sweep_trigger: Optional[str], inner_step_time_s: float,
@@ -1761,43 +1761,77 @@ class Arrangement_Context:
             print(f'Internal triggers: {list(self._internal_triggers.keys())}')
             raise
 
+    def virtual_sweep(self, gate: str, voltages: Sequence[float],
+                      start_sweep_trigger: Optional[str] = None,
+                      step_time_s: float = 1e-5,
+                      step_trigger: Optional[str] = None
+                      ) -> Virtual_Sweep_Context:
+        """Sweep a gate to create a 1D sweep
+
+        Args:
+            gate (str): Name of sweeping gate
+            voltages (Sequence[float]): Virtual sweep voltages
+            outer_gate (str): Name of slow-changing (outer) gate
+            start_sweep_trigger (None, optional): Trigger that starts sweep
+            step_time_s (float, optional): Delay between voltage changes
+            step_trigger (None, optional): Trigger that marks each step
+
+        Returns:
+            Virtual_Sweep_Context: context manager
+        """
+        sweep = self._calculate_1d_values(gate, voltages)
+        return Virtual_Sweep_Context(self, sweep, start_sweep_trigger,
+                                step_time_s, step_trigger)
+
+    def _calculate_1d_values(self, gate: str, voltages: Sequence[float]
+                            ) -> np.ndarray:
+        original_voltage = self.virtual_voltage(gate)
+        index = self._gate_index(gate)
+        sweep = []
+        for v in voltages:
+            self._virtual_voltages[index] = v
+            sweep.append(self.actual_voltages())
+        self._virtual_voltages[index] = original_voltage
+        return np.array(sweep)
+
+
     def virtual_sweep2d(self, inner_gate: str, inner_voltages: Sequence[float],
                         outer_gate: str, outer_voltages: Sequence[float],
                         start_sweep_trigger: Optional[str] = None,
                         inner_step_time_s: float = 1e-5,
                         inner_step_trigger: Optional[str] = None
-                        ) -> Sweep_2D_Context:
+                        ) -> Virtual_Sweep_Context:
         """Sweep two gates to create a 2D sweep
 
         Args:
             inner_gate (str): Name of fast-changing (inner) gate
-            inner_voltages (Sequence[float]): Inner gate voltages
+            inner_voltages (Sequence[float]): Inner gate virtual voltages
             outer_gate (str): Name of slow-changing (outer) gate
-            outer_voltages (Sequence[float]): Outer gate voltages
+            outer_voltages (Sequence[float]): Outer gate virtual voltages
             start_sweep_trigger (None, optional): Trigger that starts sweep
             inner_step_time_s (float, optional): Delay between voltage changes
             inner_step_trigger (None, optional): Trigger that marks each step
 
         Returns:
-            Sweep_2D_Context: context manager
+            Virtual_Sweep_Context: context manager
         """
-        sweep = self._calculate_sweep_values(inner_gate, inner_voltages,
+        sweep = self._calculate_2d_values(inner_gate, inner_voltages,
                                              outer_gate, outer_voltages)
-        return Sweep_2D_Context(self, sweep, start_sweep_trigger,
+        return Virtual_Sweep_Context(self, sweep, start_sweep_trigger,
                                 inner_step_time_s, inner_step_trigger)
 
-    def _calculate_sweep_values(self, inner_gate: str,
-                                inner_voltages: Sequence[float],
-                                outer_gate: str,
-                                outer_voltages: Sequence[float]) -> np.ndarray:
+    def _calculate_2d_values(self, inner_gate: str,
+                             inner_voltages: Sequence[float],
+                             outer_gate: str,
+                             outer_voltages: Sequence[float]) -> np.ndarray:
         original_fast_voltage = self.virtual_voltage(inner_gate)
         original_slow_voltage = self.virtual_voltage(outer_gate)
+        outer_index = self._gate_index(outer_gate)
+        inner_index = self._gate_index(inner_gate)
         sweep = []
         for slow_V in outer_voltages:
-            outer_index = self._gate_index(outer_gate)
             self._virtual_voltages[outer_index] = slow_V
             for fast_V in inner_voltages:
-                inner_index = self._gate_index(inner_gate)
                 self._virtual_voltages[inner_index] = fast_V
                 sweep.append(self.actual_voltages())
         self._virtual_voltages[inner_index] = original_fast_voltage
