@@ -11,6 +11,25 @@ def test_arrangement_default_correction(qdac):  # noqa
                           np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]]))
 
 
+def test_arrangement_set_virtual_voltage_non_exiting_gate(qdac):  # noqa
+    arrangement = qdac.arrange(gates={'plunger': 1})
+    # -----------------------------------------------------------------------
+    with pytest.raises(ValueError) as error:
+        arrangement.set_virtual_voltage('sensor', 1.0)
+    # -----------------------------------------------------------------------
+    assert 'No gate named "sensor"' in repr(error)
+
+
+def test_arrangement_set_virtual_voltage_effectuated_immediately(qdac):  # noqa
+    arrangement = qdac.arrange(gates={'plunger1': 1, 'plunger2': 2, 'plunger3': 3})
+    qdac.start_recording_scpi()
+    # -----------------------------------------------------------------------
+    arrangement.set_virtual_voltage('plunger2', 0.5)
+    # -----------------------------------------------------------------------
+    commands = qdac.get_recorded_scpi_commands()
+    assert commands == ['sour2:volt:mode fix', 'sour2:volt 0.5']
+
+
 def test_arrangement_default_actuals(qdac):  # noqa
     arrangement = qdac.arrange(gates={'plunger1': 1, 'plunger2': 2, 'plunger3': 3})
     # -----------------------------------------------------------------------
@@ -186,6 +205,14 @@ def test_stability_diagram_external(qdac):  # noqa
     assert commands == [
         'outp:trig4:sour int1',
         'outp:trig4:widt 1e-06',
+        'sour3:volt:mode fix',
+        'sour3:volt 0.1',
+        'sour6:volt:mode fix',
+        'sour6:volt 0.176',
+        'sour7:volt:mode fix',
+        'sour7:volt 0.383',
+        'sour8:volt:mode fix',
+        'sour8:volt 0.69693',
         'sour3:dc:mark:sst 1',
         # Sensor 1
         'sour3:dc:trig:sour hold',

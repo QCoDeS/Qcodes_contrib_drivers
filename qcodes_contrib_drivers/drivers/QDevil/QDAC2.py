@@ -1679,8 +1679,24 @@ class Arrangement_Context:
         self._correction[index] = factors
 
     def set_virtual_voltage(self, gate: str, voltage: float) -> None:
-        index = self._gate_index(gate)
+        """Set virtual voltage on specific gate
+
+        The actual voltage that the gate will receive depends on the
+        correction matrix.
+
+        Args:
+            gate (str): Name of gate
+            voltage (float): Voltage corresponding to no correction
+        """
+        try:
+            index = self._gate_index(gate)
+        except KeyError:
+            raise ValueError(f'No gate named "{gate}"')
         self._virtual_voltages[index] = voltage
+        actual_V = self.actual_voltages()[index]
+        channel_number = self._channels[index]
+        self._qdac.channel(channel_number).dc_constant_V(actual_V)
+
 
     def add_correction(self, gate: str, factors: Sequence[float]) -> None:
         """Update how much a particular gate influences the other gates
@@ -1778,12 +1794,14 @@ class Arrangement_Context:
         original_slow_voltage = self.virtual_voltage(outer_gate)
         sweep = []
         for slow_V in outer_voltages:
-            self.set_virtual_voltage(outer_gate, slow_V)
+            outer_index = self._gate_index(outer_gate)
+            self._virtual_voltages[outer_index] = slow_V
             for fast_V in inner_voltages:
-                self.set_virtual_voltage(inner_gate, fast_V)
+                inner_index = self._gate_index(inner_gate)
+                self._virtual_voltages[inner_index] = fast_V
                 sweep.append(self.actual_voltages())
-        self.set_virtual_voltage(inner_gate, original_fast_voltage)
-        self.set_virtual_voltage(outer_gate, original_slow_voltage)
+        self._virtual_voltages[inner_index] = original_fast_voltage
+        self._virtual_voltages[outer_index] = original_slow_voltage
         return np.array(sweep)
 
     def _gate_index(self, gate: str) -> int:

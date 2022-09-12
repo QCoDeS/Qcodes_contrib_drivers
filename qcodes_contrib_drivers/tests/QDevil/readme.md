@@ -11,6 +11,8 @@ Simulated instrument:
     $ source venv/bin/activate
     $ pytest qcodes_contrib_drivers/tests/QDevil/test_sim_qdac2_*.py
 
+To silence warnings, use `-W ignore::DeprecationWarning`.
+
 Real instrument:
 
     $ source venv/bin/activate
