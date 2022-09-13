@@ -8,7 +8,7 @@ from qcodes.utils import validators
 from typing import Any, NewType, Sequence, List, Dict, Tuple, Optional
 from packaging.version import parse
 
-# Version 0.17.0
+# Version 0.18.0
 #
 # Guiding principles for this driver for QDevil QDAC-II
 # -----------------------------------------------------
@@ -1547,13 +1547,13 @@ class Trace_Context:
 class Virtual_Sweep_Context:
 
     def __init__(self, arrangement: 'Arrangement_Context', sweep: np.ndarray,
-                 start_sweep_trigger: Optional[str], inner_step_time_s: float,
-                 inner_step_trigger: Optional[str]):
+                 start_trigger: Optional[str], step_time_s: float,
+                 step_trigger: Optional[str]):
         self._arrangement = arrangement
         self._sweep = sweep
-        self._inner_step_trigger = inner_step_trigger
-        self._inner_step_time_s = inner_step_time_s
-        self._allocate_triggers(start_sweep_trigger)
+        self._step_trigger = step_trigger
+        self._step_time_s = step_time_s
+        self._allocate_triggers(start_trigger)
         self._qdac_ready = False
 
     def __enter__(self):
@@ -1598,9 +1598,9 @@ class Virtual_Sweep_Context:
         self._qdac_ready = True
 
     def _route_inner_trigger(self) -> None:
-        if not self._inner_step_trigger:
+        if not self._step_trigger:
             return
-        trigger = self._arrangement.get_trigger_by_name(self._inner_step_trigger)
+        trigger = self._arrangement.get_trigger_by_name(self._step_trigger)
         # All channels change in sync, so just use the first channel to make the
         # external trigger.
         channel = self._get_channel(0)
@@ -1618,7 +1618,7 @@ class Virtual_Sweep_Context:
 
     def _send_list_to_qdac(self, gate_index, voltages):
         channel = self._get_channel(gate_index)
-        dc_list = channel.dc_list(voltages=voltages, dwell_s=self._inner_step_time_s)
+        dc_list = channel.dc_list(voltages=voltages, dwell_s=self._step_time_s)
         trigger = self._arrangement.get_trigger_by_name(self._start_trigger_name)
         dc_list.start_on(trigger)
 
