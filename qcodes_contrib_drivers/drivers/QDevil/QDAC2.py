@@ -1,4 +1,5 @@
 import numpy as np
+import itertools
 import uuid
 from time import sleep as sleep_s
 from qcodes.instrument.channel import InstrumentChannel, ChannelList
@@ -8,7 +9,7 @@ from qcodes.utils import validators
 from typing import Any, NewType, Sequence, List, Dict, Tuple, Optional
 from packaging.version import parse
 
-# Version 0.17.0
+# Version 0.18.0
 #
 # Guiding principles for this driver for QDevil QDAC-II
 # -----------------------------------------------------
@@ -1547,13 +1548,14 @@ class Trace_Context:
 class Virtual_Sweep_Context:
 
     def __init__(self, arrangement: 'Arrangement_Context', sweep: np.ndarray,
-                 start_sweep_trigger: Optional[str], inner_step_time_s: float,
-                 inner_step_trigger: Optional[str]):
+                 start_trigger: Optional[str], step_time_s: float,
+                 step_trigger: Optional[str], repetitions: Optional[int]):
         self._arrangement = arrangement
         self._sweep = sweep
-        self._inner_step_trigger = inner_step_trigger
-        self._inner_step_time_s = inner_step_time_s
-        self._allocate_triggers(start_sweep_trigger)
+        self._step_trigger = step_trigger
+        self._step_time_s = step_time_s
+        self._repetitions = repetitions
+        self._allocate_triggers(start_trigger)
         self._qdac_ready = False
 
     def __enter__(self):
@@ -1598,9 +1600,9 @@ class Virtual_Sweep_Context:
         self._qdac_ready = True
 
     def _route_inner_trigger(self) -> None:
-        if not self._inner_step_trigger:
+        if not self._step_trigger:
             return
-        trigger = self._arrangement.get_trigger_by_name(self._inner_step_trigger)
+        trigger = self._arrangement.get_trigger_by_name(self._step_trigger)
         # All channels change in sync, so just use the first channel to make the
         # external trigger.
         channel = self._get_channel(0)
@@ -1618,7 +1620,8 @@ class Virtual_Sweep_Context:
 
     def _send_list_to_qdac(self, gate_index, voltages):
         channel = self._get_channel(gate_index)
-        dc_list = channel.dc_list(voltages=voltages, dwell_s=self._inner_step_time_s)
+        dc_list = channel.dc_list(voltages=voltages, dwell_s=self._step_time_s,
+                                  repetitions=self._repetitions)
         trigger = self._arrangement.get_trigger_by_name(self._start_trigger_name)
         dc_list.start_on(trigger)
 
@@ -1764,8 +1767,8 @@ class Arrangement_Context:
     def virtual_sweep(self, gate: str, voltages: Sequence[float],
                       start_sweep_trigger: Optional[str] = None,
                       step_time_s: float = 1e-5,
-                      step_trigger: Optional[str] = None
-                      ) -> Virtual_Sweep_Context:
+                      step_trigger: Optional[str] = None,
+                      repetitions: int = 1) -> Virtual_Sweep_Context:
         """Sweep a gate to create a 1D sweep
 
         Args:
@@ -1775,13 +1778,14 @@ class Arrangement_Context:
             start_sweep_trigger (None, optional): Trigger that starts sweep
             step_time_s (float, optional): Delay between voltage changes
             step_trigger (None, optional): Trigger that marks each step
+            repetitions (int, Optional): Number of back-and-forth sweeps, or -1 for infinite
 
         Returns:
             Virtual_Sweep_Context: context manager
         """
         sweep = self._calculate_1d_values(gate, voltages)
         return Virtual_Sweep_Context(self, sweep, start_sweep_trigger,
-                                step_time_s, step_trigger)
+                                step_time_s, step_trigger, repetitions)
 
     def _calculate_1d_values(self, gate: str, voltages: Sequence[float]
                             ) -> np.ndarray:
@@ -1799,8 +1803,8 @@ class Arrangement_Context:
                         outer_gate: str, outer_voltages: Sequence[float],
                         start_sweep_trigger: Optional[str] = None,
                         inner_step_time_s: float = 1e-5,
-                        inner_step_trigger: Optional[str] = None
-                        ) -> Virtual_Sweep_Context:
+                        inner_step_trigger: Optional[str] = None,
+                        repetitions: int = 1) -> Virtual_Sweep_Context:
         """Sweep two gates to create a 2D sweep
 
         Args:
@@ -1811,14 +1815,15 @@ class Arrangement_Context:
             start_sweep_trigger (None, optional): Trigger that starts sweep
             inner_step_time_s (float, optional): Delay between voltage changes
             inner_step_trigger (None, optional): Trigger that marks each step
+            repetitions (int, Optional): Number of back-and-forth sweeps, or -1 for infinite
 
         Returns:
             Virtual_Sweep_Context: context manager
         """
         sweep = self._calculate_2d_values(inner_gate, inner_voltages,
-                                             outer_gate, outer_voltages)
+                                            outer_gate, outer_voltages)
         return Virtual_Sweep_Context(self, sweep, start_sweep_trigger,
-                                inner_step_time_s, inner_step_trigger)
+                                inner_step_time_s, inner_step_trigger, repetitions)
 
     def _calculate_2d_values(self, inner_gate: str,
                              inner_voltages: Sequence[float],
@@ -1836,6 +1841,51 @@ class Arrangement_Context:
                 sweep.append(self.actual_voltages())
         self._virtual_voltages[inner_index] = original_fast_voltage
         self._virtual_voltages[outer_index] = original_slow_voltage
+        return np.array(sweep)
+
+    def virtual_detune(self, gates: Sequence[str], start_V: Sequence[float],
+                       end_V: Sequence[float], steps: int,
+                       start_trigger: Optional[str] = None,
+                       step_time_s: float = 1e-5,
+                       step_trigger: Optional[str] = None,
+                       repetitions: int = 1) -> Virtual_Sweep_Context:
+        """Sweep any number of gates from one set of values to another set of values
+
+        Args:
+            gates (Sequence[str]): Gates involved in sweep
+            start_V (Sequence[float]): First-extreme values
+            end_V (Sequence[float]): Second-extreme values
+            steps (int): Number of steps between extremes
+            start_trigger (None, optional): Trigger that starts sweep
+            step_time_s (float, Optional): Seconds between each step
+            step_trigger (None, optional): Trigger that marks each step
+            repetitions (int, Optional): Number of back-and-forth sweeps, or -1 for infinite
+        """
+        self._check_same_lengths(gates, start_V, end_V)
+        sweep = self._calculate_detune_values(gates, start_V, end_V, steps)
+        return Virtual_Sweep_Context(self, sweep, start_trigger, step_time_s,
+                                     step_trigger, repetitions)
+
+    @staticmethod
+    def _check_same_lengths(gates, start_V, end_V) -> None:
+        n_gates = len(gates)
+        if n_gates != len(start_V):
+            raise ValueError(f'There must be exactly one voltage per gate: {start_V}')
+        if n_gates != len(end_V):
+            raise ValueError(f'There must be exactly one voltage per gate: {end_V}')
+
+    def _calculate_detune_values(self, gates: Sequence[str], start_V: Sequence[float],
+                                 end_V: Sequence[float], steps: int):
+        original_voltages = [self.virtual_voltage(gate) for gate in gates]
+        indices = [self._gate_index(gate) for gate in gates]
+        sweep = []
+        forward_V = [forward_and_back(start_V[i], end_V[i], steps) for i in range(len(gates))]
+        for voltages in zip(*forward_V):
+            for index, voltage in zip(indices, voltages):
+                self._virtual_voltages[index] = voltage
+            sweep.append(self.actual_voltages())
+        for index, voltage in zip(indices, original_voltages):
+            self._virtual_voltages[index] = voltage
         return np.array(sweep)
 
     def _gate_index(self, gate: str) -> int:
@@ -1863,6 +1913,13 @@ class Arrangement_Context:
     def _free_triggers(self) -> None:
         for trigger in self._internal_triggers.values():
             self._qdac.free_trigger(trigger)
+
+
+def forward_and_back(start: float, end: float, steps: int):
+    forward = np.linspace(start, end, steps)
+    backward = np.flip(forward)[1:][:-1]
+    back_and_forth = itertools.chain(forward, backward)
+    return back_and_forth
 
 
 class QDac2(VisaInstrument):
