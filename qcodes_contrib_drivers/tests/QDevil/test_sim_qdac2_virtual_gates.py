@@ -1,5 +1,6 @@
 import pytest
 from .sim_qdac2_fixtures import qdac  # noqa
+from qcodes_contrib_drivers.drivers.QDevil.QDAC2 import forward_and_back
 import numpy as np
 
 
@@ -287,4 +288,72 @@ def test_stability_diagram_external(qdac):  # noqa
         'sour8:dc:init',
         # Start sweep
         'tint 2'
+    ]
+
+
+
+def test_arrangement_detune_wrong_number_of_voltages(qdac):  # noqa
+    arrangement = qdac.arrange(gates={'plunger1': 1, 'plunger2': 2})
+    # -----------------------------------------------------------------------
+    with pytest.raises(ValueError) as error:
+        arrangement.virtual_detune(
+            gates=('plunger1', 'plunger2'),
+            start_V=(-0.3, 0.6),
+            end_V=(0.3,),
+            steps=2)
+    # -----------------------------------------------------------------------
+    assert 'There must be exactly one voltage per gate' in repr(error)
+
+
+def test_forward_and_back():
+    assert list(forward_and_back(-1, 1, 3)) == [-1, 0, 1, 0]
+    assert list(forward_and_back(-2, 2, 5)) == [-2, -1, 0, 1, 2, 1, 0, -1]
+
+
+def test_arrangement_detune(qdac):  # noqa
+    qdac.free_all_triggers()
+    arrangement = qdac.arrange(gates={'plunger1': 1, 'plunger2': 2})
+    detune = arrangement.virtual_detune(
+            gates=('plunger1', 'plunger2'),
+            start_V=(-0.3, 0.6),
+            end_V=(0.3, -0.1),
+            steps=5,
+            step_time_s=5e-6,
+            repetitions=2)
+    qdac.start_recording_scpi()
+    # -----------------------------------------------------------------------
+    detune.start()
+    # -----------------------------------------------------------------------
+    commands = qdac.get_recorded_scpi_commands()
+    assert commands == [
+        # Plunger 1
+        'sour1:dc:trig:sour hold',
+        'sour1:volt:mode list',
+        'sour1:list:volt -0.3,-0.15,0,0.15,0.3,0.15,0,-0.15',
+        'sour1:list:tmod auto',
+        'sour1:list:dwel 5e-06',
+        'sour1:list:dir up',
+        'sour1:list:coun 2',
+        'sour1:dc:trig:sour bus',
+        'sour1:dc:init:cont on',
+        'sour1:dc:init',
+        'sour1:dc:trig:sour int1',
+        'sour1:dc:init:cont on',
+        'sour1:dc:init',
+        # Plunger 2
+        'sour2:dc:trig:sour hold',
+        'sour2:volt:mode list',
+        'sour2:list:volt 0.6,0.425,0.25,0.075,-0.1,0.075,0.25,0.425',
+        'sour2:list:tmod auto',
+        'sour2:list:dwel 5e-06',
+        'sour2:list:dir up',
+        'sour2:list:coun 2',
+        'sour2:dc:trig:sour bus',
+        'sour2:dc:init:cont on',
+        'sour2:dc:init',
+        'sour2:dc:trig:sour int1',
+        'sour2:dc:init:cont on',
+        'sour2:dc:init',
+        # Start sweep
+        'tint 1'
     ]
