@@ -1818,7 +1818,7 @@ class Arrangement_Context:
             repetitions (int, Optional): Number of back-and-forth sweeps, or -1 for infinite
 
         Returns:
-            Virtual_Sdoweep_Context: context manager
+            Virtual_Sweep_Context: context manager
         """
         sweep = self._calculate_2d_values(inner_gate, inner_voltages,
                                             outer_gate, outer_voltages)
