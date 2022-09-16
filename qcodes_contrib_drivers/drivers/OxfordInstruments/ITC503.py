@@ -122,12 +122,15 @@ class ITC503(VisaInstrument):
             str: Return string from ITC with 'R' character removed.
         """
         with DelayedKeyboardInterrupt():
-            response = self.visa_handle.query(cmd)
-            if response.startswith('R'):
-                resp = response[1:]
-                return resp
-            else:
-                print(response)
+            try:
+                response = self.visa_handle.query(cmd)
+                if response.find('R') >= 0:
+                    return float(response.split('R')[-1])
+                else:
+                    print("Error: Command %s not recognized" % cmd)
+            except ValueError:
+                print('Not good response')
+                return float('NAN')
 
     def write_raw(self, cmd:str) -> None:
         """Reimplementation of write function. Prints warning if command not recognized.
@@ -136,7 +139,7 @@ class ITC503(VisaInstrument):
         """
         self.visa_handle.write(cmd)
         result = self.visa_handle.read()
-        if result.find('?') >= 0:
+        if result.find('R') >= 0:
             print("Error: Command %s not recognized" % cmd)
         else:
             return result
