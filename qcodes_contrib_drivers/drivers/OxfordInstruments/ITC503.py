@@ -28,7 +28,7 @@ class ITC503(VisaInstrument):
 
         self.add_parameter(name='temp_1',
                             label='Temperature of sensor 1',
-                            get_cmd='R1',
+                            get_cmd=lambda: self.get_temp('R1'),
                             get_parser=float,
                             unit='K',
                             vals = vals.Numbers(),
@@ -36,7 +36,7 @@ class ITC503(VisaInstrument):
 
         self.add_parameter(name='temp_2',
                             label='Temperature of sensor 2',
-                            get_cmd='R2',
+                            get_cmd=lambda: self.get_temp('R2'),
                             get_parser=float,
                             unit='K',
                             vals = vals.Numbers(),
@@ -44,7 +44,7 @@ class ITC503(VisaInstrument):
 
         self.add_parameter(name='temp_3',
                             label='Temperature of sensor 3',
-                            get_cmd='R3',
+                            get_cmd=lambda: self.get_temp('R3'),
                             get_parser=float,
                             unit='K',
                             vals = vals.Numbers(),
@@ -52,7 +52,7 @@ class ITC503(VisaInstrument):
 
         self.add_parameter(name='temp_set_point',
                             label='Set point temperature',
-                            get_cmd='R0',
+                            get_cmd=lambda: self.get_temp('R0'),
                             get_parser=float,
                             set_cmd='T0000{}',
                             set_parser=float,
@@ -64,7 +64,7 @@ class ITC503(VisaInstrument):
 
         self.add_parameter(name='heater_power',
                             label='Reads heating power',
-                            get_cmd='R5',
+                            get_cmd=lambda: self.get_temp('R5'),
                             get_parser=float,
                             set_cmd='O00{}',
                             set_parser=float,
@@ -77,7 +77,7 @@ class ITC503(VisaInstrument):
         self.add_parameter(name='remote_mode',
                             label='Remote mode',
                             get_cmd=self._get_status_remote,
-                            get_parser=str,
+                            get_parser=int,
                             set_cmd='C{}',
                             set_parser=str,
                             val_mapping = {'local_locked': 0,
@@ -91,7 +91,7 @@ class ITC503(VisaInstrument):
         self.add_parameter(name='heater_mode',
                             label='Heater mode',
                             get_cmd=self._get_status_auto,
-                            get_parser=str,
+                            get_parser=int,
                             set_cmd='A{}',
                             set_parser=str,
                             val_mapping = {'manual': 0,
@@ -103,7 +103,7 @@ class ITC503(VisaInstrument):
         self.add_parameter(name='select_heater',
                             label='Choose desired heater',
                             get_cmd=self._get_status_heater,
-                            get_parser=str,
+                            get_parser=int,
                             set_cmd='H{}',
                             set_parser=str,
                             val_mapping = {'heater_1': 1,
@@ -114,7 +114,7 @@ class ITC503(VisaInstrument):
                                 "Appears the heater connections are hard-wired, so (until changed) it always heats #1 the Sorb.  "
                                 "Must be in remote mode to set.")
 
-    def ask_raw(self, cmd:str) -> str:
+    def get_temp(self, cmd:str) -> float:
         """Reimplementaion of ask function to strip response of a prefix 'R' .
         Args:
             cmd: Command to be sent (asked) to the ITC.
@@ -128,6 +128,7 @@ class ITC503(VisaInstrument):
                     return float(response.split('R')[-1])
                 else:
                     print("Error: Command %s not recognized" % cmd)
+                    return float('NAN')
             except ValueError:
                 print('Not good response')
                 return float('NAN')
@@ -141,10 +142,8 @@ class ITC503(VisaInstrument):
         result = self.visa_handle.read()
         if result.find('R') >= 0:
             print("Error: Command %s not recognized" % cmd)
-        else:
-            return result
 
-    def _get_status_remote(self) -> str:
+    def _get_status_remote(self) -> int:
         """Gets status of remote mode by parcing the examine 'X' command \n
         for the letter 'C' (the variable concerning the remote mode), and using the following value
         to determine its status. Prints error if 'C' not found.
@@ -156,7 +155,7 @@ class ITC503(VisaInstrument):
         else:
             return int(result.split('C')[1][0])
 
-    def _get_status_auto(self) -> str:
+    def _get_status_auto(self) -> int:
         """Gets status of auto mode by parcing the examine 'X' command \n
         for the letter 'A' (the variable concerning the auto mode), and using the following value
         to determine its status. Prints error if 'A' not found.
@@ -168,7 +167,7 @@ class ITC503(VisaInstrument):
         else:
             return int(result.split('A')[1][0])
 
-    def _get_status_heater(self) -> str:
+    def _get_status_heater(self) -> int:
         """Gets status of heater by parcing the examine 'X' command \n
         for the letter 'H' (the variable concerning the heater mode), and using the following value
         to determine its status. Prints error if 'H' not found.
