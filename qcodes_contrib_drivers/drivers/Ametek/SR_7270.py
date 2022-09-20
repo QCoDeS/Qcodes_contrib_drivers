@@ -155,6 +155,17 @@ class Signalrecovery7270(VisaInstrument):
                                    "INPUTS_GNDED:, 'A_INPUT_ONLY', '-B_INPUT_ONLY', or 'A-B DIFFERENTIAL.' "
                                     "Note that the IMODE command takes precedence over the VMODE command."))
 
+        self.add_parameter(name='osc_sync',
+                        label='Synchronize oscillator',
+                        get_cmd='SYNCOSC',
+                        set_cmd='SYNCOSC {}',
+                        initial_value='OFF',
+                        val_mapping = {'OFF':    0,
+                                        'ON':  1},
+                        docstring=("Get and set if the oscillator synchronizes "
+                                    "Syncs to the external reference signal "
+                                    "can only be used in external reference mode."))
+
         self.add_parameter(name='sensitivity',
                         label='Sensitivity',
                         unit='V',
