@@ -9,7 +9,7 @@ from qcodes.utils import validators
 from typing import Any, NewType, Sequence, List, Dict, Tuple, Optional
 from packaging.version import parse
 
-# Version 0.18.0
+# Version 0.21.0
 #
 # Guiding principles for this driver for QDevil QDAC-II
 # -----------------------------------------------------
@@ -46,6 +46,15 @@ from packaging.version import parse
 
 error_ambiguous_wave = 'Only one of frequency_Hz or period_s can be ' \
                        'specified for a wave form'
+
+
+def diff_matrix(initial: Sequence[float],
+                measurements: Sequence[Sequence[float]]) -> np.ndarray:
+    """Subtract an array of measurements by an initial measurement
+    """
+    origin = np.asarray(initial)
+    matrix = np.asarray(measurements)
+    return matrix - np.asarray(list(itertools.repeat(initial, matrix.shape[1])))
 
 
 """External input trigger
@@ -142,6 +151,10 @@ class QDac2ExternalTrigger(InstrumentChannel):
             name='signal',
             call_cmd=f'outp:trig{external}:sign'
         )
+
+
+def ints_to_comma_separated_list(array: Sequence[int]):
+    return ','.join([str(x) for x in array])
 
 
 def floats_to_comma_separated_list(array: Sequence[float]):
@@ -1663,6 +1676,10 @@ class Arrangement_Context:
         """
         return self._correction
 
+    @property
+    def gate_names(self) -> Sequence[str]:
+        return self._gate_names
+
     def _allocate_internal_triggers(self,
                                     internal_triggers: Optional[Sequence[str]]
                                     ) -> None:
@@ -1671,7 +1688,7 @@ class Arrangement_Context:
         for name in internal_triggers:
             self._internal_triggers[name] = self._qdac.allocate_trigger()
 
-    def initiate_correction(self, gate: str, factors: Sequence[float]):
+    def initiate_correction(self, gate: str, factors: Sequence[float]) -> None:
         """Override how much a particular gate influences the other gates
 
         Args:
@@ -1695,11 +1712,33 @@ class Arrangement_Context:
             index = self._gate_index(gate)
         except KeyError:
             raise ValueError(f'No gate named "{gate}"')
-        self._virtual_voltages[index] = voltage
-        actual_V = self.actual_voltages()[index]
-        channel_number = self._channels[index]
-        self._qdac.channel(channel_number).dc_constant_V(actual_V)
+        self._effectuate_virtual_voltage(index, voltage)
 
+    def set_virtual_voltages(self, gates_to_voltages: Dict[str, float]) -> None:
+        """Set virtual voltages on specific gates in one go
+
+        The actual voltage that each gate will receive depends on the
+        correction matrix.
+
+        Args:
+            gate_to_voltages (Dict[str,float]): gate to voltage map
+        """
+        for gate, voltage in gates_to_voltages.items():
+            try:
+                index = self._gate_index(gate)
+            except KeyError:
+                raise ValueError(f'No gate named "{gate}"')
+            self._virtual_voltages[index] = voltage
+        self._effectuate_virtual_voltages()
+
+    def _effectuate_virtual_voltage(self, index: int, voltage: float) -> None:
+        self._virtual_voltages[index] = voltage
+        self._effectuate_virtual_voltages()
+
+    def _effectuate_virtual_voltages(self) -> None:
+        for index, channel_number in enumerate(self._channels):
+            actual_V = self.actual_voltages()[index]
+            self._qdac.channel(channel_number).dc_constant_V(actual_V)
 
     def add_correction(self, gate: str, factors: Sequence[float]) -> None:
         """Update how much a particular gate influences the other gates
@@ -1720,14 +1759,20 @@ class Arrangement_Context:
         self._correction = np.matmul(multiplier, self._correction)
 
     def _fix_gate_order(self, gates: Dict[str, int]) -> None:
+        self._gate_names = []
         self._gates = {}
         self._channels = []
         index = 0
         for gate, channel in gates.items():
+            self._gate_names.append(gate)
             self._gates[gate] = index
             index += 1
             self._channels.append(channel)
         self._virtual_voltages = np.zeros(self.shape)
+
+    @property
+    def channel_numbers(self) -> Sequence[int]:
+        return self._channels
 
     def virtual_voltage(self, gate: str) -> float:
         """
@@ -1763,6 +1808,25 @@ class Arrangement_Context:
         except KeyError:
             print(f'Internal triggers: {list(self._internal_triggers.keys())}')
             raise
+
+    def currents_A(self, nplc: int = 1) -> Sequence[float]:
+        """Measure currents on all gates
+
+        Args:
+            nplc (int): Number of powerline cycles to average over
+        """
+        slowest_line_freq = 50
+        channels_str = ints_to_comma_separated_list(self.channel_numbers)
+        channels_suffix = f'(@{channels_str})'
+        self._qdac.write(f'sens:rang low,{channels_suffix}')
+        self._qdac.write(f'sens:nplc {nplc},{channels_suffix}')
+        # Discard first reading because of possible output-capacitor effects, etc
+        sleep_s(1 / slowest_line_freq)
+        self._qdac.ask(f'read? {channels_suffix}')
+        # Then make the proper reading
+        sleep_s((nplc+1) / slowest_line_freq)
+        currents = self._qdac.ask(f'read? {channels_suffix}')
+        return comma_sequence_to_list_of_floats(currents)
 
     def virtual_sweep(self, gate: str, voltages: Sequence[float],
                       start_sweep_trigger: Optional[str] = None,
@@ -1887,6 +1951,31 @@ class Arrangement_Context:
         for index, voltage in zip(indices, original_voltages):
             self._virtual_voltages[index] = voltage
         return np.array(sweep)
+
+    def leakage(self, modulation_V: float, nplc: int = 2) -> np.ndarray:
+        """Run a simple leakage test between the gates
+
+        Each gate is changed in turn and the resulting change in current from
+        steady-state is recorded.  The resulting resistance matrix is calculated
+        as modulation_voltage divided by current_change.
+
+        Args:
+            modulation_V (float): Virtual voltage added to each gate
+            nplc (int, Optional): Powerline cycles to wait for each measurement
+
+        Returns:
+            ndarray: gate-to-gate resistance in Ohms
+        """
+        steady_state_A = self.currents_A(nplc)
+        currents_matrix = []
+        for index, channel_nr in enumerate(self.channel_numbers):
+            original_V = self._virtual_voltages[index]
+            self._effectuate_virtual_voltage(index, original_V + modulation_V)
+            currents = self.currents_A(nplc)
+            self._effectuate_virtual_voltage(index, original_V)
+            currents_matrix.append(currents)
+        with np.errstate(divide='ignore'):
+            return np.abs(modulation_V / diff_matrix(steady_state_A, currents_matrix))
 
     def _gate_index(self, gate: str) -> int:
         return self._gates[gate]

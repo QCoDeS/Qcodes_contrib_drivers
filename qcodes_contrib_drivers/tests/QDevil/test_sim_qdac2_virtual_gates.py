@@ -4,12 +4,22 @@ from qcodes_contrib_drivers.drivers.QDevil.QDAC2 import forward_and_back
 import numpy as np
 
 
+
+
 def test_arrangement_default_correction(qdac):  # noqa
     # -----------------------------------------------------------------------
     arrangement = qdac.arrange(gates={'plunger1': 1, 'plunger2': 2, 'plunger3': 3})
     # -----------------------------------------------------------------------
     assert np.array_equal(arrangement.correction_matrix,
                           np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]]))
+
+
+def test_arrangement_gate_names(qdac):  # noqa
+    arrangement = qdac.arrange(gates={'plunger1': 1, 'plunger2': 2, 'plunger3': 3})
+    # -----------------------------------------------------------------------
+    gates = arrangement.gate_names
+    # -----------------------------------------------------------------------
+    assert gates == ['plunger1', 'plunger2', 'plunger3']
 
 
 def test_arrangement_set_virtual_voltage_non_exiting_gate(qdac):  # noqa
@@ -28,7 +38,14 @@ def test_arrangement_set_virtual_voltage_effectuated_immediately(qdac):  # noqa
     arrangement.set_virtual_voltage('plunger2', 0.5)
     # -----------------------------------------------------------------------
     commands = qdac.get_recorded_scpi_commands()
-    assert commands == ['sour2:volt:mode fix', 'sour2:volt 0.5']
+    assert commands == [
+        'sour1:volt:mode fix',
+        'sour1:volt 0.0',
+        'sour2:volt:mode fix',
+        'sour2:volt 0.5',
+        'sour3:volt:mode fix',
+        'sour3:volt 0.0',
+    ]
 
 
 def test_arrangement_default_actuals_1d(qdac):  # noqa
@@ -149,6 +166,44 @@ def test_sweep_context_releases_trigger(qdac):  # noqa
     assert before == after
 
 
+def test_arrangement_set_virtual_voltage_affects_whole_arrangement(qdac):  # noqa
+    arrangement = qdac.arrange(gates={'gate1': 1, 'gate2': 2, 'gate3': 3})
+    arrangement.initiate_correction('gate1', [1.0, 0.1, -0.05])
+    arrangement.initiate_correction('gate2', [-0.12, 0.98, 0.19])
+    arrangement.initiate_correction('gate3', [0.01, 0.2, 1.0])
+    arrangement.set_virtual_voltage('gate1', 0.1)
+    arrangement.set_virtual_voltage('gate2', 0.2)
+    arrangement.set_virtual_voltage('gate3', 0.3)
+    qdac.start_recording_scpi()
+    # -----------------------------------------------------------------------
+    arrangement.set_virtual_voltage('gate2', 0.5)
+    # -----------------------------------------------------------------------
+    commands = qdac.get_recorded_scpi_commands()
+    assert commands == [
+        'sour1:volt:mode fix',
+        'sour1:volt 0.135',
+        'sour2:volt:mode fix',
+        'sour2:volt 0.535',
+        'sour3:volt:mode fix',
+        'sour3:volt 0.401'
+    ]
+
+def test_arrangement_set_virtual_voltages_affects_at_once(qdac):  # noqa
+    arrangement = qdac.arrange(gates={'gate1': 1, 'gate2': 2})
+    arrangement.initiate_correction('gate1', [1.0, 0.12])
+    arrangement.initiate_correction('gate2', [-0.12, 0.98])
+    # -----------------------------------------------------------------------
+    arrangement.set_virtual_voltages({'gate1': 0.1, 'gate2': 0.2})
+    # -----------------------------------------------------------------------
+    commands = qdac.get_recorded_scpi_commands()
+    assert commands == [
+        'sour1:volt:mode fix',
+        'sour1:volt 0.124',
+        'sour2:volt:mode fix',
+        'sour2:volt 0.184',
+    ]
+
+
 def test_stability_diagram_external(qdac):  # noqa
     qdac.free_all_triggers()
     arrangement = qdac.arrange(
@@ -160,9 +215,7 @@ def test_stability_diagram_external(qdac):  # noqa
     arrangement.initiate_correction('sensor1', [1.0, 0.1, 0.05, -0.02])
     arrangement.initiate_correction('plunger2', [-0.2, 0.98, 0.3, 0.06])
     arrangement.initiate_correction('plunger3', [0.01, 0.41, 1.0, 0.15])
-    arrangement.set_virtual_voltage('sensor1', 0.1)
-    arrangement.set_virtual_voltage('plunger2', 0.2)
-    arrangement.set_virtual_voltage('plunger3', 0.3)
+    arrangement.set_virtual_voltages({'sensor1': 0.1, 'plunger2': 0.2, 'plunger3': 0.3})
     # After tuning third QD
     arrangement.add_correction('plunger4', [0.75, -0.16, 0.56, 1.0])
     arrangement.set_virtual_voltage('plunger4', 0.4)
@@ -219,16 +272,27 @@ def test_stability_diagram_external(qdac):  # noqa
     # -----------------------------------------------------------------------
     commands = qdac.get_recorded_scpi_commands()
     assert commands == [
+        # Initial voltages
         'outp:trig4:sour int1',
         'outp:trig4:widt 1e-06',
         'sour3:volt:mode fix',
-        'sour3:volt 0.1',
+        'sour3:volt 0.135',
         'sour6:volt:mode fix',
-        'sour6:volt 0.176',
+        'sour6:volt 0.266',
         'sour7:volt:mode fix',
         'sour7:volt 0.383',
         'sour8:volt:mode fix',
+        'sour8:volt 0.0',
+        # plunger4
+        'sour3:volt:mode fix',
+        'sour3:volt 0.127',
+        'sour6:volt:mode fix',
+        'sour6:volt 0.29',
+        'sour7:volt:mode fix',
+        'sour7:volt 0.443',
+        'sour8:volt:mode fix',
         'sour8:volt 0.69693',
+        # sweep
         'sour3:dc:mark:sst 1',
         # Sensor 1
         'sour3:dc:trig:sour hold',
