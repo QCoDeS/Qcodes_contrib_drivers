@@ -3,12 +3,13 @@
 import logging
 from typing import Optional, Any, Literal
 from functools import partial
+from ctypes import byref
 
 from qcodes import Instrument
 
 from .dll_wrapper import AttributeWrapper, NamedArgType, NIHSDIODLLWrapper
 from .visa_types import (
-    ViConstString, ViInt32, ViString, ViSession, ViAttr, ViReal64, VI_NULL
+    ViBoolean, ViConstString, ViInt32, ViString, ViSession, ViAttr, ViReal64, VI_NULL, ViUInt32
 )
 
 def c_str(s: str) -> bytes: return bytes(s, "ascii")
@@ -90,6 +91,11 @@ DATA_POSITION = {
     'sample_clock_rising_edge': 18,
     'sample_clock_falling_edge': 19,
     'delay_from_sample_clock_rising_edge': 20
+}
+
+DATA_LAYOUT = {
+    'group_by_sample': 71,
+    'group_by_channel': 72
 }
 
 class NationalInstruments_HSDIO(Instrument):
@@ -201,13 +207,30 @@ class NationalInstruments_HSDIO(Instrument):
                                   NamedArgType("lowLevel", ViReal64),
                                   NamedArgType("highLevel", ViReal64)]))
 
+        # wrap the WriteNamedWaveform function family
         numeric_format = ['U32', 'U16', 'U8']
-        for f in numeric_format:
-            pass
+        for format in numeric_format:
+            setattr(self.wrapper, f'WriteNamedWaveform{format}',
+                    self.wrapper.wrap_dll_function_checked(  # type: ignore[attr-defined]
+                        name_in_library=f'WriteNamedWaveform{format}',
+                        argtypes=[NamedArgType("vi", ViSession),
+                                  NamedArgType("waveformName", ViConstString),
+                                  NamedArgType("samplesToWrite", ViInt32),
+                                  NamedArgType("data", ViUInt32)]))
 
-        waveform_format = ['WDT', 'FromFileHWS']
-        for wf in waveform_format:
-            pass
+        self.wrapper.WriteNamedWaveformFromFileHWS = self.wrapper.wrap_dll_function_checked(
+                name_in_library="WriteNamedWaveformFromFileHWS",
+                argtypes=[NamedArgType("vi", ViSession),
+                          NamedArgType("waveformName", ViConstString),
+                          NamedArgType("filePath", ViConstString),
+                          NamedArgType("useRateFromWaveform", ViBoolean),])
+
+        self.wrapper.WriteNamedWaveformWDT = self.wrapper.wrap_dll_function_checked(
+                name_in_library="WriteNamedWaveformWDT",
+                argtypes=[NamedArgType("vi", ViSession),
+                          NamedArgType("waveformName", ViConstString),
+                          NamedArgType("samplesToWrite", ViInt32),
+                          NamedArgType("dataLayout", ViInt32),])
 
         self.add_parameter(name='dynamic_channels',
                            label='Dynamic Channels',
@@ -305,6 +328,9 @@ class NationalInstruments_HSDIO(Instrument):
         self.wrapper.Abort(self._handle)
 
     def reset_device(self):
+        """
+        Reset the device to its Initial state and reload its FPGA.
+        """
         self.wrapper.reset_device(self._handle)
 
     def init(self, id_query: bool = False,
@@ -323,7 +349,8 @@ class NationalInstruments_HSDIO(Instrument):
                                  reset_device=reset_device)
 
     def configure_export_signal(self, signal: str, output_terminal: str, signal_identifier: str=''):
-        """call the wrapped ExportSignal function from the library
+        """
+        Call the wrapped ExportSignal function from the library
 
         Args:
             signal (str): Signal (clock, trigger, or event) to export.
@@ -341,7 +368,8 @@ class NationalInstruments_HSDIO(Instrument):
                           type: Literal['LogicFamily', 'CustomLevels'],
                           channel_list: str='', logic_family: str='5.0V',
                           low_level: float=0, high_level: float=5):
-        """call the wrapped ConfigureVoltage function family from the library
+        """
+        Call the wrapped ConfigureVoltage function family from the library
 
         Args:
             channel ({'Data', 'Trigger', 'Event'}): Channel to configure.
@@ -358,6 +386,25 @@ class NationalInstruments_HSDIO(Instrument):
         else:
             func = getattr(self.wrapper, f'Configure{channel}VoltageCustomLevels')
             func(self._handle, ViConstString(c_str(channel_list)), ViReal64(low_level), ViReal64(high_level))
+
+    def write_named_waveform_WDT(self, name: str, waveform: list, data_layout='group_by_channel'):
+        """
+        Call the wrapped WriteNamedWaveformWDT function from the library
+
+        Args:
+            name (str): The name to associate with the allocated waveform memory.
+            waveform (list): The digital waveform data.
+            data_layout ({'group_by_channel', 'group_by_sample'}): The layout of the waveform contained in waveform.
+        """
+        if data_layout not in DATA_LAYOUT.keys():
+            raise ValueError("data_layout must be either 'group_by_sample' or 'group_by_channel'!")
+        
+        waveform_length = len(waveform)
+        self.wrapper.WriteNamedWaveformWDT(self._handle,
+                                           ViConstString(c_str(name)),
+                                           ViInt32(waveform_length),
+                                           ViInt32(DATA_LAYOUT[data_layout]),
+                                           byref(waveform))
 
     def configure_data_position(self, position: str, channel_list: str=''):
         assert position in DATA_POSITION.keys(), 'Unsupported data position'
