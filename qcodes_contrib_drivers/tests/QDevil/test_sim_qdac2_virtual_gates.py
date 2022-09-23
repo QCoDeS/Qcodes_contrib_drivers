@@ -1,5 +1,6 @@
 import pytest
 from .sim_qdac2_fixtures import qdac  # noqa
+from qcodes_contrib_drivers.drivers.QDevil.QDAC2 import forward_and_back
 import numpy as np
 
 
@@ -11,7 +12,41 @@ def test_arrangement_default_correction(qdac):  # noqa
                           np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]]))
 
 
-def test_arrangement_default_actuals(qdac):  # noqa
+def test_arrangement_set_virtual_voltage_non_exiting_gate(qdac):  # noqa
+    arrangement = qdac.arrange(gates={'plunger': 1})
+    # -----------------------------------------------------------------------
+    with pytest.raises(ValueError) as error:
+        arrangement.set_virtual_voltage('sensor', 1.0)
+    # -----------------------------------------------------------------------
+    assert 'No gate named "sensor"' in repr(error)
+
+
+def test_arrangement_set_virtual_voltage_effectuated_immediately(qdac):  # noqa
+    arrangement = qdac.arrange(gates={'plunger1': 1, 'plunger2': 2, 'plunger3': 3})
+    qdac.start_recording_scpi()
+    # -----------------------------------------------------------------------
+    arrangement.set_virtual_voltage('plunger2', 0.5)
+    # -----------------------------------------------------------------------
+    commands = qdac.get_recorded_scpi_commands()
+    assert commands == ['sour2:volt:mode fix', 'sour2:volt 0.5']
+
+
+def test_arrangement_default_actuals_1d(qdac):  # noqa
+    arrangement = qdac.arrange(gates={'plunger1': 1, 'plunger2': 2})
+    arrangement.set_virtual_voltage('plunger2', 1.0)
+    # -----------------------------------------------------------------------
+    sweep = arrangement.virtual_sweep(
+        gate='plunger1',
+        voltages=np.linspace(-0.1, 0.1, 5),
+        step_time_s=2e-5)
+    # -----------------------------------------------------------------------
+    assert np.allclose(sweep.actual_values_V('plunger1'),
+                       [-0.1, -0.05, 0.0, 0.05, 0.1])
+    assert np.allclose(sweep.actual_values_V('plunger2'),
+                       [1.0, 1.0, 1.0, 1.0, 1.0])
+
+
+def test_arrangement_default_actuals_2d(qdac):  # noqa
     arrangement = qdac.arrange(gates={'plunger1': 1, 'plunger2': 2, 'plunger3': 3})
     # -----------------------------------------------------------------------
     sweep = arrangement.virtual_sweep2d(
@@ -148,7 +183,7 @@ def test_stability_diagram_external(qdac):  # noqa
         inner_step_trigger='dmm')
     # -----------------------------------------------------------------------
     A = np.array([
-        # S1,   P2,   P3,    P4
+        # S1,   P2,     P3,    P4
         [0.089, -0.046, -0.65, -0.49],
         [0.085, -0.034, -0.62, -0.28],
         [0.081, -0.022, -0.59, -0.06],
@@ -186,6 +221,14 @@ def test_stability_diagram_external(qdac):  # noqa
     assert commands == [
         'outp:trig4:sour int1',
         'outp:trig4:widt 1e-06',
+        'sour3:volt:mode fix',
+        'sour3:volt 0.1',
+        'sour6:volt:mode fix',
+        'sour6:volt 0.176',
+        'sour7:volt:mode fix',
+        'sour7:volt 0.383',
+        'sour8:volt:mode fix',
+        'sour8:volt 0.69693',
         'sour3:dc:mark:sst 1',
         # Sensor 1
         'sour3:dc:trig:sour hold',
@@ -245,4 +288,72 @@ def test_stability_diagram_external(qdac):  # noqa
         'sour8:dc:init',
         # Start sweep
         'tint 2'
+    ]
+
+
+
+def test_arrangement_detune_wrong_number_of_voltages(qdac):  # noqa
+    arrangement = qdac.arrange(gates={'plunger1': 1, 'plunger2': 2})
+    # -----------------------------------------------------------------------
+    with pytest.raises(ValueError) as error:
+        arrangement.virtual_detune(
+            gates=('plunger1', 'plunger2'),
+            start_V=(-0.3, 0.6),
+            end_V=(0.3,),
+            steps=2)
+    # -----------------------------------------------------------------------
+    assert 'There must be exactly one voltage per gate' in repr(error)
+
+
+def test_forward_and_back():
+    assert list(forward_and_back(-1, 1, 3)) == [-1, 0, 1, 0]
+    assert list(forward_and_back(-2, 2, 5)) == [-2, -1, 0, 1, 2, 1, 0, -1]
+
+
+def test_arrangement_detune(qdac):  # noqa
+    qdac.free_all_triggers()
+    arrangement = qdac.arrange(gates={'plunger1': 1, 'plunger2': 2})
+    detune = arrangement.virtual_detune(
+            gates=('plunger1', 'plunger2'),
+            start_V=(-0.3, 0.6),
+            end_V=(0.3, -0.1),
+            steps=5,
+            step_time_s=5e-6,
+            repetitions=2)
+    qdac.start_recording_scpi()
+    # -----------------------------------------------------------------------
+    detune.start()
+    # -----------------------------------------------------------------------
+    commands = qdac.get_recorded_scpi_commands()
+    assert commands == [
+        # Plunger 1
+        'sour1:dc:trig:sour hold',
+        'sour1:volt:mode list',
+        'sour1:list:volt -0.3,-0.15,0,0.15,0.3,0.15,0,-0.15',
+        'sour1:list:tmod auto',
+        'sour1:list:dwel 5e-06',
+        'sour1:list:dir up',
+        'sour1:list:coun 2',
+        'sour1:dc:trig:sour bus',
+        'sour1:dc:init:cont on',
+        'sour1:dc:init',
+        'sour1:dc:trig:sour int1',
+        'sour1:dc:init:cont on',
+        'sour1:dc:init',
+        # Plunger 2
+        'sour2:dc:trig:sour hold',
+        'sour2:volt:mode list',
+        'sour2:list:volt 0.6,0.425,0.25,0.075,-0.1,0.075,0.25,0.425',
+        'sour2:list:tmod auto',
+        'sour2:list:dwel 5e-06',
+        'sour2:list:dir up',
+        'sour2:list:coun 2',
+        'sour2:dc:trig:sour bus',
+        'sour2:dc:init:cont on',
+        'sour2:dc:init',
+        'sour2:dc:trig:sour int1',
+        'sour2:dc:init:cont on',
+        'sour2:dc:init',
+        # Start sweep
+        'tint 1'
     ]

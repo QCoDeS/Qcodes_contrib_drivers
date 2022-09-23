@@ -1,5 +1,7 @@
 import numpy as np
+import itertools
 import uuid
+from time import sleep as sleep_s
 from qcodes.instrument.channel import InstrumentChannel, ChannelList
 from qcodes.instrument.visa import VisaInstrument
 from pyvisa.errors import VisaIOError
@@ -7,7 +9,7 @@ from qcodes.utils import validators
 from typing import Any, NewType, Sequence, List, Dict, Tuple, Optional
 from packaging.version import parse
 
-# Version 0.14.0
+# Version 0.18.0
 #
 # Guiding principles for this driver for QDevil QDAC-II
 # -----------------------------------------------------
@@ -20,8 +22,8 @@ from packaging.version import parse
 #    a constant voltage.
 #
 # 2. Numeric values should be in ISO units and/or their unit should be an
-#    explicitly part of the function name, like above, or, if unit-less number,
-#    then prefixed by n_ like
+#    explicitly part of the function name, like above.  If the numeric is
+#    a unit-less number, then prefixed by n_ like
 #
 #        qdac.n_channels()
 #
@@ -29,10 +31,10 @@ from packaging.version import parse
 #    by python context managers that automatically clean up on exit.  Such
 #    context managers have a name with a '_Context' suffix.
 #
-# 4. Any generator should by default be set to start on the bus trigger
+# 4. Any generator should by default be set to start on the BUS trigger
 #    (*TRG) so that it is possible to synchronise several generators without
 #    further setup; which also eliminates the need for special cases for the
-#    bus trigger.
+#    BUS trigger.
 
 
 #
@@ -511,7 +513,7 @@ class _Waveform_Context(_Channel_Context):
     def _period_start_marker(self, wave_kind: str) -> QDac2Trigger_Context:
         if not self._marker_period_start:
             self._marker_period_start = self.allocate_trigger()
-        self._write_channel(f'sour{"{0}"}:{wave_kind}:mark:psta {self._marker_period_start.value}')
+        self._write_channel(f'sour{"{0}"}:{wave_kind}:mark:pst {self._marker_period_start.value}')
         return self._marker_period_start
 
     def _make_ready_to_start(self, wave_kind: str) -> None:
@@ -655,48 +657,48 @@ class Sine_Context(_Waveform_Context):
                  span_V: float, offset_V: float, slew_V_s: Optional[float]):
         super().__init__(channel)
         self._repetitions = repetitions
-        self._write_channel('sour{0}:sin:trig:sour hold')
+        self._write_channel('sour{0}:sine:trig:sour hold')
         self._set_frequency(frequency_Hz, period_s)
         self._set_polarity(inverted)
-        self._write_channel(f'sour{"{0}"}:sin:span {span_V}')
-        self._write_channel(f'sour{"{0}"}:sin:offs {offset_V}')
-        self._set_slew('sin', slew_V_s)
-        self._write_channel(f'sour{"{0}"}:sin:coun {repetitions}')
+        self._write_channel(f'sour{"{0}"}:sine:span {span_V}')
+        self._write_channel(f'sour{"{0}"}:sine:offs {offset_V}')
+        self._set_slew('sine', slew_V_s)
+        self._write_channel(f'sour{"{0}"}:sine:coun {repetitions}')
         self._set_triggering()
 
     def start(self) -> None:
         """Start the sine wave generator
         """
-        self._start('sin', 'sine wave')
+        self._start('sine', 'sine wave')
 
     def abort(self) -> None:
         """Abort any running sine wave generator
         """
-        self._write_channel('sour{0}:sin:abor')
+        self._write_channel('sour{0}:sine:abor')
 
     def cycles_remaining(self) -> int:
         """
         Returns:
             int: Number of cycles remaining in the sine wave
         """
-        return int(self._ask_channel('sour{0}:sin:ncl?'))
+        return int(self._ask_channel('sour{0}:sine:ncl?'))
 
     def _set_frequency(self, frequency_Hz: Optional[float],
                        period_s: Optional[float]) -> None:
         if frequency_Hz:
-            return self._write_channel(f'sour{"{0}"}:sin:freq {frequency_Hz}')
+            return self._write_channel(f'sour{"{0}"}:sine:freq {frequency_Hz}')
         if period_s:
-            self._write_channel(f'sour{"{0}"}:sin:per {period_s}')
+            self._write_channel(f'sour{"{0}"}:sine:per {period_s}')
 
     def _set_polarity(self, inverted: bool) -> None:
         if inverted:
-            self._write_channel('sour{0}:sin:pol inv')
+            self._write_channel('sour{0}:sine:pol inv')
         else:
-            self._write_channel('sour{0}:sin:pol norm')
+            self._write_channel('sour{0}:sine:pol norm')
 
     def _set_triggering(self) -> None:
-        self._write_channel('sour{0}:sin:trig:sour bus')
-        self._make_ready_to_start('sin')
+        self._write_channel('sour{0}:sine:trig:sour bus')
+        self._make_ready_to_start('sine')
 
     def end_marker(self) -> QDac2Trigger_Context:
         """Internal trigger that will mark the end of the sine wave
@@ -706,7 +708,7 @@ class Sine_Context(_Waveform_Context):
         Returns:
             QDac2Trigger_Context: trigger that will mark the end
         """
-        return super()._end_marker('sin')
+        return super()._end_marker('sine')
 
     def start_marker(self) -> QDac2Trigger_Context:
         """Internal trigger that will mark the beginning of the sine wave
@@ -716,7 +718,7 @@ class Sine_Context(_Waveform_Context):
         Returns:
             QDac2Trigger_Context: trigger that will mark the beginning
         """
-        return super()._start_marker('sin')
+        return super()._start_marker('sine')
 
     def period_end_marker(self) -> QDac2Trigger_Context:
         """Internal trigger that will mark the end of each period
@@ -726,7 +728,7 @@ class Sine_Context(_Waveform_Context):
         Returns:
             QDac2Trigger_Context: trigger that will mark the end of each period
         """
-        return super()._period_end_marker('sin')
+        return super()._period_end_marker('sine')
 
     def period_start_marker(self) -> QDac2Trigger_Context:
         """Internal trigger that will mark the beginning of each period
@@ -736,7 +738,7 @@ class Sine_Context(_Waveform_Context):
         Returns:
             QDac2Trigger_Context: trigger that will mark the beginning of each period
         """
-        return super()._period_start_marker('sin')
+        return super()._period_start_marker('sine')
 
     def start_on(self, trigger: QDac2Trigger_Context) -> None:
         """Attach internal trigger to start the sine wave generator
@@ -744,7 +746,7 @@ class Sine_Context(_Waveform_Context):
         Args:
             trigger (QDac2Trigger_Context): trigger that will start sine wave
         """
-        return super()._start_on(trigger, 'sin')
+        return super()._start_on(trigger, 'sine')
 
     def start_on_external(self, trigger: ExternalInput) -> None:
         """Attach external trigger to start the sine wave generator
@@ -752,7 +754,7 @@ class Sine_Context(_Waveform_Context):
         Args:
             trigger (ExternalInput): external trigger that will start sine wave
         """
-        return super()._start_on_external(trigger, 'sin')
+        return super()._start_on_external(trigger, 'sine')
 
 
 class Triangle_Context(_Waveform_Context):
@@ -1543,16 +1545,17 @@ class Trace_Context:
         self._parent.write_floats(f'trac:data "{self.name}",', values)
 
 
-class Sweep_2D_Context:
+class Virtual_Sweep_Context:
 
     def __init__(self, arrangement: 'Arrangement_Context', sweep: np.ndarray,
-                 start_sweep_trigger: Optional[str], inner_step_time_s: float,
-                 inner_step_trigger: Optional[str]):
+                 start_trigger: Optional[str], step_time_s: float,
+                 step_trigger: Optional[str], repetitions: Optional[int]):
         self._arrangement = arrangement
         self._sweep = sweep
-        self._inner_step_trigger = inner_step_trigger
-        self._inner_step_time_s = inner_step_time_s
-        self._allocate_triggers(start_sweep_trigger)
+        self._step_trigger = step_trigger
+        self._step_time_s = step_time_s
+        self._repetitions = repetitions
+        self._allocate_triggers(start_trigger)
         self._qdac_ready = False
 
     def __enter__(self):
@@ -1597,9 +1600,9 @@ class Sweep_2D_Context:
         self._qdac_ready = True
 
     def _route_inner_trigger(self) -> None:
-        if not self._inner_step_trigger:
+        if not self._step_trigger:
             return
-        trigger = self._arrangement.get_trigger_by_name(self._inner_step_trigger)
+        trigger = self._arrangement.get_trigger_by_name(self._step_trigger)
         # All channels change in sync, so just use the first channel to make the
         # external trigger.
         channel = self._get_channel(0)
@@ -1617,7 +1620,8 @@ class Sweep_2D_Context:
 
     def _send_list_to_qdac(self, gate_index, voltages):
         channel = self._get_channel(gate_index)
-        dc_list = channel.dc_list(voltages=voltages, dwell_s=self._inner_step_time_s)
+        dc_list = channel.dc_list(voltages=voltages, dwell_s=self._step_time_s,
+                                  repetitions=self._repetitions)
         trigger = self._arrangement.get_trigger_by_name(self._start_trigger_name)
         dc_list.start_on(trigger)
 
@@ -1678,8 +1682,24 @@ class Arrangement_Context:
         self._correction[index] = factors
 
     def set_virtual_voltage(self, gate: str, voltage: float) -> None:
-        index = self._gate_index(gate)
+        """Set virtual voltage on specific gate
+
+        The actual voltage that the gate will receive depends on the
+        correction matrix.
+
+        Args:
+            gate (str): Name of gate
+            voltage (float): Voltage corresponding to no correction
+        """
+        try:
+            index = self._gate_index(gate)
+        except KeyError:
+            raise ValueError(f'No gate named "{gate}"')
         self._virtual_voltages[index] = voltage
+        actual_V = self.actual_voltages()[index]
+        channel_number = self._channels[index]
+        self._qdac.channel(channel_number).dc_constant_V(actual_V)
+
 
     def add_correction(self, gate: str, factors: Sequence[float]) -> None:
         """Update how much a particular gate influences the other gates
@@ -1744,45 +1764,128 @@ class Arrangement_Context:
             print(f'Internal triggers: {list(self._internal_triggers.keys())}')
             raise
 
+    def virtual_sweep(self, gate: str, voltages: Sequence[float],
+                      start_sweep_trigger: Optional[str] = None,
+                      step_time_s: float = 1e-5,
+                      step_trigger: Optional[str] = None,
+                      repetitions: int = 1) -> Virtual_Sweep_Context:
+        """Sweep a gate to create a 1D sweep
+
+        Args:
+            gate (str): Name of sweeping gate
+            voltages (Sequence[float]): Virtual sweep voltages
+            outer_gate (str): Name of slow-changing (outer) gate
+            start_sweep_trigger (None, optional): Trigger that starts sweep
+            step_time_s (float, optional): Delay between voltage changes
+            step_trigger (None, optional): Trigger that marks each step
+            repetitions (int, Optional): Number of back-and-forth sweeps, or -1 for infinite
+
+        Returns:
+            Virtual_Sweep_Context: context manager
+        """
+        sweep = self._calculate_1d_values(gate, voltages)
+        return Virtual_Sweep_Context(self, sweep, start_sweep_trigger,
+                                step_time_s, step_trigger, repetitions)
+
+    def _calculate_1d_values(self, gate: str, voltages: Sequence[float]
+                            ) -> np.ndarray:
+        original_voltage = self.virtual_voltage(gate)
+        index = self._gate_index(gate)
+        sweep = []
+        for v in voltages:
+            self._virtual_voltages[index] = v
+            sweep.append(self.actual_voltages())
+        self._virtual_voltages[index] = original_voltage
+        return np.array(sweep)
+
+
     def virtual_sweep2d(self, inner_gate: str, inner_voltages: Sequence[float],
                         outer_gate: str, outer_voltages: Sequence[float],
                         start_sweep_trigger: Optional[str] = None,
                         inner_step_time_s: float = 1e-5,
-                        inner_step_trigger: Optional[str] = None
-                        ) -> Sweep_2D_Context:
+                        inner_step_trigger: Optional[str] = None,
+                        repetitions: int = 1) -> Virtual_Sweep_Context:
         """Sweep two gates to create a 2D sweep
 
         Args:
             inner_gate (str): Name of fast-changing (inner) gate
-            inner_voltages (Sequence[float]): Inner gate voltages
+            inner_voltages (Sequence[float]): Inner gate virtual voltages
             outer_gate (str): Name of slow-changing (outer) gate
-            outer_voltages (Sequence[float]): Outer gate voltages
+            outer_voltages (Sequence[float]): Outer gate virtual voltages
             start_sweep_trigger (None, optional): Trigger that starts sweep
             inner_step_time_s (float, optional): Delay between voltage changes
             inner_step_trigger (None, optional): Trigger that marks each step
+            repetitions (int, Optional): Number of back-and-forth sweeps, or -1 for infinite
 
         Returns:
-            Sweep_2D_Context: context manager
+            Virtual_Sweep_Context: context manager
         """
-        sweep = self._calculate_sweep_values(inner_gate, inner_voltages,
-                                             outer_gate, outer_voltages)
-        return Sweep_2D_Context(self, sweep, start_sweep_trigger,
-                                inner_step_time_s, inner_step_trigger)
+        sweep = self._calculate_2d_values(inner_gate, inner_voltages,
+                                            outer_gate, outer_voltages)
+        return Virtual_Sweep_Context(self, sweep, start_sweep_trigger,
+                                inner_step_time_s, inner_step_trigger, repetitions)
 
-    def _calculate_sweep_values(self, inner_gate: str,
-                                inner_voltages: Sequence[float],
-                                outer_gate: str,
-                                outer_voltages: Sequence[float]) -> np.ndarray:
+    def _calculate_2d_values(self, inner_gate: str,
+                             inner_voltages: Sequence[float],
+                             outer_gate: str,
+                             outer_voltages: Sequence[float]) -> np.ndarray:
         original_fast_voltage = self.virtual_voltage(inner_gate)
         original_slow_voltage = self.virtual_voltage(outer_gate)
+        outer_index = self._gate_index(outer_gate)
+        inner_index = self._gate_index(inner_gate)
         sweep = []
         for slow_V in outer_voltages:
-            self.set_virtual_voltage(outer_gate, slow_V)
+            self._virtual_voltages[outer_index] = slow_V
             for fast_V in inner_voltages:
-                self.set_virtual_voltage(inner_gate, fast_V)
+                self._virtual_voltages[inner_index] = fast_V
                 sweep.append(self.actual_voltages())
-        self.set_virtual_voltage(inner_gate, original_fast_voltage)
-        self.set_virtual_voltage(outer_gate, original_slow_voltage)
+        self._virtual_voltages[inner_index] = original_fast_voltage
+        self._virtual_voltages[outer_index] = original_slow_voltage
+        return np.array(sweep)
+
+    def virtual_detune(self, gates: Sequence[str], start_V: Sequence[float],
+                       end_V: Sequence[float], steps: int,
+                       start_trigger: Optional[str] = None,
+                       step_time_s: float = 1e-5,
+                       step_trigger: Optional[str] = None,
+                       repetitions: int = 1) -> Virtual_Sweep_Context:
+        """Sweep any number of gates from one set of values to another set of values
+
+        Args:
+            gates (Sequence[str]): Gates involved in sweep
+            start_V (Sequence[float]): First-extreme values
+            end_V (Sequence[float]): Second-extreme values
+            steps (int): Number of steps between extremes
+            start_trigger (None, optional): Trigger that starts sweep
+            step_time_s (float, Optional): Seconds between each step
+            step_trigger (None, optional): Trigger that marks each step
+            repetitions (int, Optional): Number of back-and-forth sweeps, or -1 for infinite
+        """
+        self._check_same_lengths(gates, start_V, end_V)
+        sweep = self._calculate_detune_values(gates, start_V, end_V, steps)
+        return Virtual_Sweep_Context(self, sweep, start_trigger, step_time_s,
+                                     step_trigger, repetitions)
+
+    @staticmethod
+    def _check_same_lengths(gates, start_V, end_V) -> None:
+        n_gates = len(gates)
+        if n_gates != len(start_V):
+            raise ValueError(f'There must be exactly one voltage per gate: {start_V}')
+        if n_gates != len(end_V):
+            raise ValueError(f'There must be exactly one voltage per gate: {end_V}')
+
+    def _calculate_detune_values(self, gates: Sequence[str], start_V: Sequence[float],
+                                 end_V: Sequence[float], steps: int):
+        original_voltages = [self.virtual_voltage(gate) for gate in gates]
+        indices = [self._gate_index(gate) for gate in gates]
+        sweep = []
+        forward_V = [forward_and_back(start_V[i], end_V[i], steps) for i in range(len(gates))]
+        for voltages in zip(*forward_V):
+            for index, voltage in zip(indices, voltages):
+                self._virtual_voltages[index] = voltage
+            sweep.append(self.actual_voltages())
+        for index, voltage in zip(indices, original_voltages):
+            self._virtual_voltages[index] = voltage
         return np.array(sweep)
 
     def _gate_index(self, gate: str) -> int:
@@ -1810,6 +1913,13 @@ class Arrangement_Context:
     def _free_triggers(self) -> None:
         for trigger in self._internal_triggers.values():
             self._qdac.free_trigger(trigger)
+
+
+def forward_and_back(start: float, end: float, steps: int):
+    forward = np.linspace(start, end, steps)
+    backward = np.flip(forward)[1:][:-1]
+    back_and_forth = itertools.chain(forward, backward)
+    return back_and_forth
 
 
 class QDac2(VisaInstrument):
@@ -1923,6 +2033,10 @@ class QDac2(VisaInstrument):
         internal = _trigger_context_to_value(trigger)
         self.write(f'outp:trig{port}:sour int{internal}')
         self.write(f'outp:trig{port}:widt {width_s}')
+
+    def reset(self) -> None:
+        self.write('*rst')
+        sleep_s(5)
 
     def errors(self) -> str:
         """Retrieve and clear all previous errors
@@ -2177,7 +2291,6 @@ class QDac2(VisaInstrument):
         )
 
     def _set_up_simple_functions(self) -> None:
-        self.add_function('reset', call_cmd='*rst')
         self.add_function('abort', call_cmd='abor')
 
     def _check_instrument_name(self, name: str) -> None:

@@ -233,7 +233,7 @@ def test_triangle_period_start_marker_alloc(qdac):  # noqa
     trigger = triangle.period_start_marker()
     # -----------------------------------------------------------------------
     assert qdac.get_recorded_scpi_commands() == [
-        f'sour1:tri:mark:psta {trigger.value}'
+        f'sour1:tri:mark:pst {trigger.value}'
     ]
 
 
@@ -247,7 +247,7 @@ def test_triangle_period_start_marker_reuse(qdac):  # noqa
     # -----------------------------------------------------------------------
     assert trigger2 == trigger
     assert qdac.get_recorded_scpi_commands() == [
-        f'sour1:tri:mark:psta {trigger.value}'
+        f'sour1:tri:mark:pst {trigger.value}'
     ]
 
 
