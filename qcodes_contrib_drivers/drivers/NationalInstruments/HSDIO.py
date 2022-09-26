@@ -1,10 +1,11 @@
 # -*- coding: UTF-8 -*-
 # Tongyu Zhao <ty.zhao.work@gmail.com> summer 2022
 import logging
-from typing import Optional, Any, Literal
+from typing import Optional, Any
 from functools import partial
 from ctypes import byref
 
+from typing_extensions import Literal
 from qcodes import Instrument
 
 from .dll_wrapper import AttributeWrapper, NamedArgType, NIHSDIODLLWrapper
@@ -218,14 +219,14 @@ class NationalInstruments_HSDIO(Instrument):
                                   NamedArgType("samplesToWrite", ViInt32),
                                   NamedArgType("data", ViUInt32)]))
 
-        self.wrapper.WriteNamedWaveformFromFileHWS = self.wrapper.wrap_dll_function_checked(
+        self.wrapper.WriteNamedWaveformFromFileHWS = self.wrapper.wrap_dll_function_checked(  # type: ignore[attr-defined]
                 name_in_library="WriteNamedWaveformFromFileHWS",
                 argtypes=[NamedArgType("vi", ViSession),
                           NamedArgType("waveformName", ViConstString),
                           NamedArgType("filePath", ViConstString),
                           NamedArgType("useRateFromWaveform", ViBoolean),])
 
-        self.wrapper.WriteNamedWaveformWDT = self.wrapper.wrap_dll_function_checked(
+        self.wrapper.WriteNamedWaveformWDT = self.wrapper.wrap_dll_function_checked(  # type: ignore[attr-defined]
                 name_in_library="WriteNamedWaveformWDT",
                 argtypes=[NamedArgType("vi", ViSession),
                           NamedArgType("waveformName", ViConstString),
