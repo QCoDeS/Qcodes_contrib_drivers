@@ -56,7 +56,7 @@ class Yokogawa7651(VisaInstrument):
 
         self.write(range_str+'E')
 
-    def _set_value(self, value: str):
+    def _set_value(self, value: float):
         """Function to set output value.
 
         Parameters
