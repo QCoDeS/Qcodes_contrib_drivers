@@ -60,7 +60,7 @@ jobs:
       run: |
         pytest --cov=qcodes_contrib_drivers --cov-report xml --cov-config=setup.cfg qcodes_contrib_drivers
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3.1.0
+      uses: codecov/codecov-action@v3.1.1
       with:
         file: ./coverage.xml
         env_vars: OS,PYTHON
