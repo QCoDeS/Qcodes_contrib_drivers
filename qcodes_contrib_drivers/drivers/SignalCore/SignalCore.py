@@ -1,4 +1,5 @@
 import ctypes
+import ctypes.wintypes
 import os
 import sys
 from typing import Dict, Optional
