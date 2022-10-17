@@ -35,7 +35,8 @@ module = [
     "py_header.*",
     "pyspcm",
     "spirack",
-    "zhinst.*"
+    "zhinst.*",
+    "ruamel.*"
 ]
 ignore_missing_imports = true
 
