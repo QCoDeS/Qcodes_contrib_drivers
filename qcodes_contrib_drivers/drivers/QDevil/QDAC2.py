@@ -9,7 +9,7 @@ from qcodes.utils import validators
 from typing import Any, NewType, Sequence, List, Dict, Tuple, Optional
 from packaging.version import parse
 
-# Version 0.21.0
+# Version 1.0.0
 #
 # Guiding principles for this driver for QDevil QDAC-II
 # -----------------------------------------------------
@@ -80,7 +80,7 @@ class QDac2Trigger_Context:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self._parent.free_trigger(self)
-        # Propagate exceptions
+        # Propacontact exceptions
         return False
 
     @property
@@ -187,7 +187,7 @@ class _Channel_Context():
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        # Propagate exceptions
+        # Propacontact exceptions
         return False
 
     def allocate_trigger(self) -> QDac2Trigger_Context:
@@ -1579,16 +1579,16 @@ class Virtual_Sweep_Context:
         # Let Arrangement take care of freeing triggers
         return False
 
-    def actual_values_V(self, gate: str) -> np.ndarray:
-        """The corrected values that would actually be sent to the gate
+    def actual_values_V(self, contact: str) -> np.ndarray:
+        """The corrected values that would actually be sent to the contact
 
         Args:
-            gate (str): Name of gate
+            contact (str): Name of contact
 
         Returns:
             np.ndarray: Corrected voltages
         """
-        index = self._arrangement._gate_index(gate)
+        index = self._arrangement._contact_index(contact)
         return self._sweep[:, index]
 
     def start(self) -> None:
@@ -1622,34 +1622,34 @@ class Virtual_Sweep_Context:
         channel.write_channel(f'sour{"{0}"}:dc:mark:sst '
                               f'{_trigger_context_to_value(trigger)}')
 
-    def _get_channel(self, gate_index: int) -> 'QDac2Channel':
-        channel_number = self._arrangement._channels[gate_index]
+    def _get_channel(self, contact_index: int) -> 'QDac2Channel':
+        channel_number = self._arrangement._channels[contact_index]
         qdac = self._arrangement._qdac
         return qdac.channel(channel_number)
 
     def _send_lists_to_qdac(self) -> None:
-        for gate_index in range(self._arrangement.shape):
-            self._send_list_to_qdac(gate_index, self._sweep[:, gate_index])
+        for contact_index in range(self._arrangement.shape):
+            self._send_list_to_qdac(contact_index, self._sweep[:, contact_index])
 
-    def _send_list_to_qdac(self, gate_index, voltages):
-        channel = self._get_channel(gate_index)
+    def _send_list_to_qdac(self, contact_index, voltages):
+        channel = self._get_channel(contact_index)
         dc_list = channel.dc_list(voltages=voltages, dwell_s=self._step_time_s,
                                   repetitions=self._repetitions)
         trigger = self._arrangement.get_trigger_by_name(self._start_trigger_name)
         dc_list.start_on(trigger)
 
     def _make_ready_to_start(self):  # Bug circumvention
-        for gate_index in range(self._arrangement.shape):
-            channel = self._get_channel(gate_index)
+        for contact_index in range(self._arrangement.shape):
+            channel = self._get_channel(contact_index)
             channel.write_channel('sour{0}:dc:init')
 
 
 class Arrangement_Context:
-    def __init__(self, qdac: 'QDac2', gates: Dict[str, int],
+    def __init__(self, qdac: 'QDac2', contacts: Dict[str, int],
                  output_triggers: Optional[Dict[str, int]],
                  internal_triggers: Optional[Sequence[str]]):
         self._qdac = qdac
-        self._fix_gate_order(gates)
+        self._fix_contact_order(contacts)
         self._allocate_triggers(internal_triggers, output_triggers)
         self._correction = np.identity(self.shape)
 
@@ -1664,9 +1664,9 @@ class Arrangement_Context:
     def shape(self) -> int:
         """
         Returns:
-            int: Number of gates in the arrangement
+            int: Number of contacts in the arrangement
         """
-        return len(self._gates)
+        return len(self._contacts)
 
     @property
     def correction_matrix(self) -> np.ndarray:
@@ -1677,8 +1677,8 @@ class Arrangement_Context:
         return self._correction
 
     @property
-    def gate_names(self) -> Sequence[str]:
-        return self._gate_names
+    def contact_names(self) -> Sequence[str]:
+        return self._contact_names
 
     def _allocate_internal_triggers(self,
                                     internal_triggers: Optional[Sequence[str]]
@@ -1688,46 +1688,46 @@ class Arrangement_Context:
         for name in internal_triggers:
             self._internal_triggers[name] = self._qdac.allocate_trigger()
 
-    def initiate_correction(self, gate: str, factors: Sequence[float]) -> None:
-        """Override how much a particular gate influences the other gates
+    def initiate_correction(self, contact: str, factors: Sequence[float]) -> None:
+        """Override how much a particular contact influences the other contacts
 
         Args:
-            gate (str): Name of gate
+            contact (str): Name of contact
             factors (Sequence[float]): factors between -1.0 and 1.0
         """
-        index = self._gate_index(gate)
+        index = self._contact_index(contact)
         self._correction[index] = factors
 
-    def set_virtual_voltage(self, gate: str, voltage: float) -> None:
-        """Set virtual voltage on specific gate
+    def set_virtual_voltage(self, contact: str, voltage: float) -> None:
+        """Set virtual voltage on specific contact
 
-        The actual voltage that the gate will receive depends on the
+        The actual voltage that the contact will receive depends on the
         correction matrix.
 
         Args:
-            gate (str): Name of gate
+            contact (str): Name of contact
             voltage (float): Voltage corresponding to no correction
         """
         try:
-            index = self._gate_index(gate)
+            index = self._contact_index(contact)
         except KeyError:
-            raise ValueError(f'No gate named "{gate}"')
+            raise ValueError(f'No contact named "{contact}"')
         self._effectuate_virtual_voltage(index, voltage)
 
-    def set_virtual_voltages(self, gates_to_voltages: Dict[str, float]) -> None:
-        """Set virtual voltages on specific gates in one go
+    def set_virtual_voltages(self, contacts_to_voltages: Dict[str, float]) -> None:
+        """Set virtual voltages on specific contacts in one go
 
-        The actual voltage that each gate will receive depends on the
+        The actual voltage that each contact will receive depends on the
         correction matrix.
 
         Args:
-            gate_to_voltages (Dict[str,float]): gate to voltage map
+            contact_to_voltages (Dict[str,float]): contact to voltage map
         """
-        for gate, voltage in gates_to_voltages.items():
+        for contact, voltage in contacts_to_voltages.items():
             try:
-                index = self._gate_index(gate)
+                index = self._contact_index(contact)
             except KeyError:
-                raise ValueError(f'No gate named "{gate}"')
+                raise ValueError(f'No contact named "{contact}"')
             self._virtual_voltages[index] = voltage
         self._effectuate_virtual_voltages()
 
@@ -1740,32 +1740,32 @@ class Arrangement_Context:
             actual_V = self.actual_voltages()[index]
             self._qdac.channel(channel_number).dc_constant_V(actual_V)
 
-    def add_correction(self, gate: str, factors: Sequence[float]) -> None:
-        """Update how much a particular gate influences the other gates
+    def add_correction(self, contact: str, factors: Sequence[float]) -> None:
+        """Update how much a particular contact influences the other contacts
 
-        This is mostly useful in arrangements where each gate has significant
-        effect only on nearby gates, and thus can be added incrementally.
+        This is mostly useful in arrangements where each contact has significant
+        effect only on nearby contacts, and thus can be added incrementally.
 
         The factors are extended by the identity matrix and multiplied to the
         correction matrix.
 
         Args:
-            gate (str): Name of gate
+            contact (str): Name of contact
             factors (Sequence[float]): factors usually between -1.0 and 1.0
         """
-        index = self._gate_index(gate)
+        index = self._contact_index(contact)
         multiplier = np.identity(self.shape)
         multiplier[index] = factors
         self._correction = np.matmul(multiplier, self._correction)
 
-    def _fix_gate_order(self, gates: Dict[str, int]) -> None:
-        self._gate_names = []
-        self._gates = {}
+    def _fix_contact_order(self, contacts: Dict[str, int]) -> None:
+        self._contact_names = []
+        self._contacts = {}
         self._channels = []
         index = 0
-        for gate, channel in gates.items():
-            self._gate_names.append(gate)
-            self._gates[gate] = index
+        for contact, channel in contacts.items():
+            self._contact_names.append(contact)
+            self._contacts[contact] = index
             index += 1
             self._channels.append(channel)
         self._virtual_voltages = np.zeros(self.shape)
@@ -1774,21 +1774,21 @@ class Arrangement_Context:
     def channel_numbers(self) -> Sequence[int]:
         return self._channels
 
-    def virtual_voltage(self, gate: str) -> float:
+    def virtual_voltage(self, contact: str) -> float:
         """
         Args:
-            gate (str): Name of gate
+            contact (str): Name of contact
 
         Returns:
-            float: Virtual voltage on the gate
+            float: Virtual voltage on the contact
         """
-        index = self._gate_index(gate)
+        index = self._contact_index(contact)
         return self._virtual_voltages[index]
 
     def actual_voltages(self) -> Sequence[float]:
         """
         Returns:
-            Sequence[float]: Corrected voltages for all gates
+            Sequence[float]: Corrected voltages for all contacts
         """
         vs = np.matmul(self._correction, self._virtual_voltages)
         if self._qdac._round_off:
@@ -1810,7 +1810,7 @@ class Arrangement_Context:
             raise
 
     def currents_A(self, nplc: int = 1) -> Sequence[float]:
-        """Measure currents on all gates
+        """Measure currents on all contacts
 
         Args:
             nplc (int): Number of powerline cycles to average over
@@ -1828,17 +1828,17 @@ class Arrangement_Context:
         currents = self._qdac.ask(f'read? {channels_suffix}')
         return comma_sequence_to_list_of_floats(currents)
 
-    def virtual_sweep(self, gate: str, voltages: Sequence[float],
+    def virtual_sweep(self, contact: str, voltages: Sequence[float],
                       start_sweep_trigger: Optional[str] = None,
                       step_time_s: float = 1e-5,
                       step_trigger: Optional[str] = None,
                       repetitions: int = 1) -> Virtual_Sweep_Context:
-        """Sweep a gate to create a 1D sweep
+        """Sweep a contact to create a 1D sweep
 
         Args:
-            gate (str): Name of sweeping gate
+            contact (str): Name of sweeping contact
             voltages (Sequence[float]): Virtual sweep voltages
-            outer_gate (str): Name of slow-changing (outer) gate
+            outer_contact (str): Name of slow-changing (outer) contact
             start_sweep_trigger (None, optional): Trigger that starts sweep
             step_time_s (float, optional): Delay between voltage changes
             step_trigger (None, optional): Trigger that marks each step
@@ -1847,14 +1847,14 @@ class Arrangement_Context:
         Returns:
             Virtual_Sweep_Context: context manager
         """
-        sweep = self._calculate_1d_values(gate, voltages)
+        sweep = self._calculate_1d_values(contact, voltages)
         return Virtual_Sweep_Context(self, sweep, start_sweep_trigger,
                                 step_time_s, step_trigger, repetitions)
 
-    def _calculate_1d_values(self, gate: str, voltages: Sequence[float]
+    def _calculate_1d_values(self, contact: str, voltages: Sequence[float]
                             ) -> np.ndarray:
-        original_voltage = self.virtual_voltage(gate)
-        index = self._gate_index(gate)
+        original_voltage = self.virtual_voltage(contact)
+        index = self._contact_index(contact)
         sweep = []
         for v in voltages:
             self._virtual_voltages[index] = v
@@ -1863,19 +1863,19 @@ class Arrangement_Context:
         return np.array(sweep)
 
 
-    def virtual_sweep2d(self, inner_gate: str, inner_voltages: Sequence[float],
-                        outer_gate: str, outer_voltages: Sequence[float],
+    def virtual_sweep2d(self, inner_contact: str, inner_voltages: Sequence[float],
+                        outer_contact: str, outer_voltages: Sequence[float],
                         start_sweep_trigger: Optional[str] = None,
                         inner_step_time_s: float = 1e-5,
                         inner_step_trigger: Optional[str] = None,
                         repetitions: int = 1) -> Virtual_Sweep_Context:
-        """Sweep two gates to create a 2D sweep
+        """Sweep two contacts to create a 2D sweep
 
         Args:
-            inner_gate (str): Name of fast-changing (inner) gate
-            inner_voltages (Sequence[float]): Inner gate virtual voltages
-            outer_gate (str): Name of slow-changing (outer) gate
-            outer_voltages (Sequence[float]): Outer gate virtual voltages
+            inner_contact (str): Name of fast-changing (inner) contact
+            inner_voltages (Sequence[float]): Inner contact virtual voltages
+            outer_contact (str): Name of slow-changing (outer) contact
+            outer_voltages (Sequence[float]): Outer contact virtual voltages
             start_sweep_trigger (None, optional): Trigger that starts sweep
             inner_step_time_s (float, optional): Delay between voltage changes
             inner_step_trigger (None, optional): Trigger that marks each step
@@ -1884,19 +1884,19 @@ class Arrangement_Context:
         Returns:
             Virtual_Sweep_Context: context manager
         """
-        sweep = self._calculate_2d_values(inner_gate, inner_voltages,
-                                            outer_gate, outer_voltages)
+        sweep = self._calculate_2d_values(inner_contact, inner_voltages,
+                                            outer_contact, outer_voltages)
         return Virtual_Sweep_Context(self, sweep, start_sweep_trigger,
                                 inner_step_time_s, inner_step_trigger, repetitions)
 
-    def _calculate_2d_values(self, inner_gate: str,
+    def _calculate_2d_values(self, inner_contact: str,
                              inner_voltages: Sequence[float],
-                             outer_gate: str,
+                             outer_contact: str,
                              outer_voltages: Sequence[float]) -> np.ndarray:
-        original_fast_voltage = self.virtual_voltage(inner_gate)
-        original_slow_voltage = self.virtual_voltage(outer_gate)
-        outer_index = self._gate_index(outer_gate)
-        inner_index = self._gate_index(inner_gate)
+        original_fast_voltage = self.virtual_voltage(inner_contact)
+        original_slow_voltage = self.virtual_voltage(outer_contact)
+        outer_index = self._contact_index(outer_contact)
+        inner_index = self._contact_index(inner_contact)
         sweep = []
         for slow_V in outer_voltages:
             self._virtual_voltages[outer_index] = slow_V
@@ -1907,16 +1907,16 @@ class Arrangement_Context:
         self._virtual_voltages[outer_index] = original_slow_voltage
         return np.array(sweep)
 
-    def virtual_detune(self, gates: Sequence[str], start_V: Sequence[float],
+    def virtual_detune(self, contacts: Sequence[str], start_V: Sequence[float],
                        end_V: Sequence[float], steps: int,
                        start_trigger: Optional[str] = None,
                        step_time_s: float = 1e-5,
                        step_trigger: Optional[str] = None,
                        repetitions: int = 1) -> Virtual_Sweep_Context:
-        """Sweep any number of gates from one set of values to another set of values
+        """Sweep any number of contacts from one set of values to another set of values
 
         Args:
-            gates (Sequence[str]): Gates involved in sweep
+            contacts (Sequence[str]): contacts involved in sweep
             start_V (Sequence[float]): First-extreme values
             end_V (Sequence[float]): Second-extreme values
             steps (int): Number of steps between extremes
@@ -1925,25 +1925,25 @@ class Arrangement_Context:
             step_trigger (None, optional): Trigger that marks each step
             repetitions (int, Optional): Number of back-and-forth sweeps, or -1 for infinite
         """
-        self._check_same_lengths(gates, start_V, end_V)
-        sweep = self._calculate_detune_values(gates, start_V, end_V, steps)
+        self._check_same_lengths(contacts, start_V, end_V)
+        sweep = self._calculate_detune_values(contacts, start_V, end_V, steps)
         return Virtual_Sweep_Context(self, sweep, start_trigger, step_time_s,
                                      step_trigger, repetitions)
 
     @staticmethod
-    def _check_same_lengths(gates, start_V, end_V) -> None:
-        n_gates = len(gates)
-        if n_gates != len(start_V):
-            raise ValueError(f'There must be exactly one voltage per gate: {start_V}')
-        if n_gates != len(end_V):
-            raise ValueError(f'There must be exactly one voltage per gate: {end_V}')
+    def _check_same_lengths(contacts, start_V, end_V) -> None:
+        n_contacts = len(contacts)
+        if n_contacts != len(start_V):
+            raise ValueError(f'There must be exactly one voltage per contact: {start_V}')
+        if n_contacts != len(end_V):
+            raise ValueError(f'There must be exactly one voltage per contact: {end_V}')
 
-    def _calculate_detune_values(self, gates: Sequence[str], start_V: Sequence[float],
+    def _calculate_detune_values(self, contacts: Sequence[str], start_V: Sequence[float],
                                  end_V: Sequence[float], steps: int):
-        original_voltages = [self.virtual_voltage(gate) for gate in gates]
-        indices = [self._gate_index(gate) for gate in gates]
+        original_voltages = [self.virtual_voltage(contact) for contact in contacts]
+        indices = [self._contact_index(contact) for contact in contacts]
         sweep = []
-        forward_V = [forward_and_back(start_V[i], end_V[i], steps) for i in range(len(gates))]
+        forward_V = [forward_and_back(start_V[i], end_V[i], steps) for i in range(len(contacts))]
         for voltages in zip(*forward_V):
             for index, voltage in zip(indices, voltages):
                 self._virtual_voltages[index] = voltage
@@ -1953,18 +1953,18 @@ class Arrangement_Context:
         return np.array(sweep)
 
     def leakage(self, modulation_V: float, nplc: int = 2) -> np.ndarray:
-        """Run a simple leakage test between the gates
+        """Run a simple leakage test between the contacts
 
-        Each gate is changed in turn and the resulting change in current from
+        Each contact is changed in turn and the resulting change in current from
         steady-state is recorded.  The resulting resistance matrix is calculated
         as modulation_voltage divided by current_change.
 
         Args:
-            modulation_V (float): Virtual voltage added to each gate
+            modulation_V (float): Virtual voltage added to each contact
             nplc (int, Optional): Powerline cycles to wait for each measurement
 
         Returns:
-            ndarray: gate-to-gate resistance in Ohms
+            ndarray: contact-to-contact resistance in Ohms
         """
         steady_state_A = self.currents_A(nplc)
         currents_matrix = []
@@ -1977,8 +1977,8 @@ class Arrangement_Context:
         with np.errstate(divide='ignore'):
             return np.abs(modulation_V / diff_matrix(steady_state_A, currents_matrix))
 
-    def _gate_index(self, gate: str) -> int:
-        return self._gates[gate]
+    def _contact_index(self, contact: str) -> int:
+        return self._contacts[contact]
 
     def _allocate_triggers(self, internal_triggers: Optional[Sequence[str]],
                            output_triggers: Optional[Dict[str, int]]
@@ -2195,33 +2195,33 @@ class QDac2(VisaInstrument):
         return f'{mac[1:3]}-{mac[3:5]}-{mac[5:7]}-{mac[7:9]}-{mac[9:11]}' \
                f'-{mac[11:13]}'
 
-    def arrange(self, gates: Dict[str, int],
+    def arrange(self, contacts: Dict[str, int],
                 output_triggers: Optional[Dict[str, int]] = None,
                 internal_triggers: Optional[Sequence[str]] = None
                 ) -> Arrangement_Context:
-        """An arrangement of gates and triggers for virtual 2D sweeps
+        """An arrangement of contacts and triggers for virtual 2D sweeps
 
-        Each gate corresponds to a particular output channel and each trigger
+        Each contact corresponds to a particular output channel and each trigger
         corresponds to a particular external or internal trigger.  After
-        initialisation of the arrangement, gates and triggers can only be
+        initialisation of the arrangement, contacts and triggers can only be
         referred to by name.
 
-        The voltages that will appear on each gate depends not only on the
+        The voltages that will appear on each contact depends not only on the
         specified virtual voltage, but also on a correction matrix.
 
-        Initially, the gates are assumed to not influence each other, which
+        Initially, the contacts are assumed to not influence each other, which
         means that the correction matrix is the identity matrix, ie. the row for
-        each gate has a value of [0, ..., 0, 1, 0, ..., 0].
+        each contact has a value of [0, ..., 0, 1, 0, ..., 0].
 
         Args:
-            gates (Gates): Name/channel pairs
+            contacts (Dict[str, int]): Name/channel pairs
             output_triggers (Optional[Sequence[Tuple[str,int]]], optional): Name/number pairs of output triggers
             internal_triggers (Optional[Sequence[str]], optional): List of names of internal triggers to allocate
 
         Returns:
             Arrangement_Context: Description
         """
-        return Arrangement_Context(self, gates, output_triggers,
+        return Arrangement_Context(self, contacts, output_triggers,
                                    internal_triggers)
 
     # -----------------------------------------------------------------------
