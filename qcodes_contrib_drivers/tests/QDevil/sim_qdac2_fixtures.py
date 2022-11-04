@@ -19,7 +19,7 @@ class DUT:
 
     def __init__(self):
         if DUT._instance:
-            raise ValueError('DUT is a singleton, call instance()')
+            raise ValueError('DUT is a singleton, use instance() instead')
         DUT._instance = self
         name = ('dac' + str(uuid.uuid4())).replace('-', '')
         try:
