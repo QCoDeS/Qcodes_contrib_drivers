@@ -80,7 +80,7 @@ class QDac2Trigger_Context:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self._parent.free_trigger(self)
-        # Propacontact exceptions
+        # Propagate exceptions
         return False
 
     @property
@@ -187,7 +187,7 @@ class _Channel_Context():
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        # Propacontact exceptions
+        # Propagate exceptions
         return False
 
     def allocate_trigger(self) -> QDac2Trigger_Context:
@@ -1913,7 +1913,7 @@ class Arrangement_Context:
                        step_time_s: float = 1e-5,
                        step_trigger: Optional[str] = None,
                        repetitions: int = 1) -> Virtual_Sweep_Context:
-        """Sweep any number of contacts from one set of values to another set of values
+        """Sweep any number of contacts linearly from one set of values to another set of values
 
         Args:
             contacts (Sequence[str]): contacts involved in sweep
