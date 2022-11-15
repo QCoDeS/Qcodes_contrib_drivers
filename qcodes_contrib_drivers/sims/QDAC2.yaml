@@ -30,6 +30,11 @@ devices:
         r: "0.01,0.02"
       - q: "fetc2?"
         r: "0.01,0.02"
+      - q: "sens:rang low,(@1,2,3)"
+      - q: "sens:nplc 1,(@1,2,3)"
+      - q: "sens:nplc 2,(@1,2,3)"
+      - q: "read? (@1,2,3)"
+        r: "0.1,0.2,0.3"
 
     properties:
       manual_trigger:

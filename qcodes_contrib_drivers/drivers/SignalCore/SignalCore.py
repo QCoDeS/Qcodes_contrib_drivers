@@ -1,4 +1,5 @@
 import ctypes
+import ctypes.wintypes
 import os
 import sys
 from typing import Dict, Optional
@@ -203,7 +204,11 @@ class SC5521A(Instrument):
         self.connect_message()
 
     def _open(self) -> None:
-        self._handle = ctypes.wintypes.HANDLE()
+        if sys.platform == "win32":
+            self._handle = ctypes.wintypes.HANDLE()
+        else:
+            raise EnvironmentError(f"{self.__class__.__name__} is supported only on Windows platform")
+
         self._dll.sc5520a_uhfsOpenDevice(COMMINTERFACE, self.buffer_pointer_array[0], ctypes.c_uint8(1), ctypes.byref(self._handle))
 
     def _close(self) -> None:
