@@ -1,10 +1,39 @@
 [build-system]
 requires = [
-    "setuptools >= 56.0",
+    "setuptools >= 61.2",
     "wheel >= 0.29.0",
     "versioningit >= 1.1.0"
 ]
 build-backend = 'setuptools.build_meta'
+
+[project]
+name = "qcodes_contrib_drivers"
+description = "User contributed drivers for QCoDeS"
+classifiers = [ "Development Status :: 3 - Alpha", "Intended Audience :: Science/Research", "License :: OSI Approved :: MIT License", "License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)", "Programming Language :: Python :: 3 :: Only", "Programming Language :: Python :: 3.8", "Programming Language :: Python :: 3.9", "Programming Language :: Python :: 3.10", "Topic :: Scientific/Engineering",]
+requires-python = ">=3.8"
+dependencies = [ "qcodes>=0.33.0", "versioningit>=1.1.0",]
+dynamic = [ "version",]
+
+[[project.maintainers]]
+name = "QCoDeS Community"
+email = "qcodes-support@microsoft.com"
+
+[project.readme]
+file = "README.rst"
+content-type = "text/x-rst"
+
+[project.license]
+text = "MIT"
+
+[project.urls]
+Homepage = "https://github.com/QCoDeS/Qcodes_contrib_drivers"
+Documentation = "https://qcodes.github.io/Qcodes_contrib_drivers/"
+Source = "https://github.com/qcodes/qcodes_contrib_drivers"
+Tracker = "https://github.com/QCoDeS/Qcodes_contrib_drivers/issues"
+
+[project.optional-dependencies]
+test = [ "pytest>=6.2.2", "pytest-mock", "mypy>=0.940", "pytest-cov>=3.0.0", "coverage[toml]>=6.2", "pyvisa-sim",]
+docs = [ "sphinx", "sphinx_rtd_theme", "nbsphinx",]
 
 [tool.mypy]
 strict_optional = true
