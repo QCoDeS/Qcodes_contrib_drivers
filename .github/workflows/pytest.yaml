@@ -44,6 +44,9 @@ jobs:
         cache-dependency-path: |
           pyproject.toml
           requirements.txt
+    - name: upgrade pip setuptools wheel
+      run: python -m pip install --upgrade pip setuptools wheel
+      shell: bash
     - name: install package
       run: |
         pip install .[test] -c requirements.txt
