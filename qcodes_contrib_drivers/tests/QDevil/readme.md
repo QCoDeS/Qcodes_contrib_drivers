@@ -21,7 +21,7 @@ Real instrument:
 
 Static types:
 
-    $ mypy --no-incremental qcodes_contrib_drivers/drivers/QDevil/QDAC2.py
+    $ mypy --no-incremental qcodes_contrib_drivers/drivers/QDevil/{QDAC2,QDAC2_Array}.py
 
 ### One-time setup
 

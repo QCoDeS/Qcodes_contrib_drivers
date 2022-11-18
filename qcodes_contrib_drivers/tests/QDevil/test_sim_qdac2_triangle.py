@@ -11,7 +11,7 @@ def test_triangle_ambiguous(qdac):  # noqa
     assert 'frequency_Hz or period_s can be specified' in repr(error)
 
 
-def test_triangle_default_vaules(qdac):  # noqa
+def test_triangle_default_values(qdac):  # noqa
     # -----------------------------------------------------------------------
     qdac.ch24.triangle_wave()
     # -----------------------------------------------------------------------

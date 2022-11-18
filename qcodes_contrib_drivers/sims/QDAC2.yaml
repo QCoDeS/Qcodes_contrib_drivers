@@ -20,6 +20,10 @@ devices:
         r: "0, \"No error\""
       - q: "syst:err:coun?"
         r: 0
+      - q: "syst:cloc:send on"
+      - q: "syst:cloc:sour ext"
+      - q: "syst:cloc:sync"
+      - q: "outp:sync:sign"
       - q: "*rst"
       - q: "abor"
       - q: "*trg"

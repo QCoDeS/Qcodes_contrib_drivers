@@ -11,7 +11,7 @@ def test_square_ambiguous(qdac):  # noqa
     assert 'frequency_Hz or period_s can be specified' in repr(error)
 
 
-def test_square_default_vaules(qdac):  # noqa
+def test_square_default_values(qdac):  # noqa
     # -----------------------------------------------------------------------
     qdac.ch24.square_wave()
     # -----------------------------------------------------------------------
@@ -158,7 +158,7 @@ def test_square_remaining(qdac):  # noqa
 
 
 def test_square_end_marker_alloc(qdac):  # noqa
-    qdac._set_up_internal_triggers()
+    qdac.free_all_triggers()
     square = qdac.ch01.square_wave(frequency_Hz=1000)
     qdac.start_recording_scpi()
     # -----------------------------------------------------------------------
@@ -170,7 +170,7 @@ def test_square_end_marker_alloc(qdac):  # noqa
 
 
 def test_square_end_marker_reuse(qdac):  # noqa
-    qdac._set_up_internal_triggers()
+    qdac.free_all_triggers()
     square = qdac.ch01.square_wave(frequency_Hz=1000)
     trigger = square.end_marker()
     qdac.start_recording_scpi()
@@ -184,7 +184,7 @@ def test_square_end_marker_reuse(qdac):  # noqa
 
 
 def test_square_start_marker_alloc(qdac):  # noqa
-    qdac._set_up_internal_triggers()
+    qdac.free_all_triggers()
     square = qdac.ch01.square_wave(frequency_Hz=1000)
     qdac.start_recording_scpi()
     # -----------------------------------------------------------------------
@@ -196,7 +196,7 @@ def test_square_start_marker_alloc(qdac):  # noqa
 
 
 def test_square_start_marker_reuse(qdac):  # noqa
-    qdac._set_up_internal_triggers()
+    qdac.free_all_triggers()
     square = qdac.ch01.square_wave(frequency_Hz=1000)
     trigger = square.start_marker()
     qdac.start_recording_scpi()
@@ -210,7 +210,7 @@ def test_square_start_marker_reuse(qdac):  # noqa
 
 
 def test_square_start_trigger_fires(qdac):  # noqa
-    qdac._set_up_internal_triggers()
+    qdac.free_all_triggers()
     square = qdac.ch01.square_wave(frequency_Hz=1000)
     trigger = qdac.allocate_trigger()
     square.start_on(trigger)
@@ -226,7 +226,7 @@ def test_square_start_trigger_fires(qdac):  # noqa
 
 
 def test_square_period_end_trigger_alloc(qdac):  # noqa
-    qdac._set_up_internal_triggers()
+    qdac.free_all_triggers()
     square = qdac.ch01.square_wave(frequency_Hz=1000)
     qdac.start_recording_scpi()
     # -----------------------------------------------------------------------
@@ -238,7 +238,7 @@ def test_square_period_end_trigger_alloc(qdac):  # noqa
 
 
 def test_square_period_end_trigger_reuse(qdac):  # noqa
-    qdac._set_up_internal_triggers()
+    qdac.free_all_triggers()
     square = qdac.ch01.square_wave(frequency_Hz=1000)
     trigger = square.period_end_marker()
     qdac.start_recording_scpi()
@@ -252,7 +252,7 @@ def test_square_period_end_trigger_reuse(qdac):  # noqa
 
 
 def test_square_period_start_trigger_alloc(qdac):  # noqa
-    qdac._set_up_internal_triggers()
+    qdac.free_all_triggers()
     square = qdac.ch01.square_wave(frequency_Hz=1000)
     qdac.start_recording_scpi()
     # -----------------------------------------------------------------------
@@ -264,7 +264,7 @@ def test_square_period_start_trigger_alloc(qdac):  # noqa
 
 
 def test_square_period_start_trigger_reuse(qdac):  # noqa
-    qdac._set_up_internal_triggers()
+    qdac.free_all_triggers()
     square = qdac.ch01.square_wave(frequency_Hz=1000)
     trigger = square.period_start_marker()
     qdac.start_recording_scpi()

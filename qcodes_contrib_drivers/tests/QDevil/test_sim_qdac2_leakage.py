@@ -15,15 +15,6 @@ def test_diff_matrix():
     assert np.allclose(diff, expected)
 
 
-def test_arrangement_channel_numbers(qdac):
-    gates = {'sensor1': 1, 'plunger2': 2, 'plunger3': 3}
-    arrangement = qdac.arrange(gates)
-    # -----------------------------------------------------------------------
-    numbers = arrangement.channel_numbers
-    # -----------------------------------------------------------------------
-    assert numbers == [1,2,3]
-
-
 def test_arrangement_steady_state(qdac, mocker):
     sleep_fn = mocker.patch('qcodes_contrib_drivers.drivers.QDevil.QDAC2.sleep_s')
     gates = {'sensor1': 1, 'plunger2': 2, 'plunger3': 3}

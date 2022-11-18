@@ -1280,6 +1280,10 @@ class QDac2Channel(InstrumentChannel):
             call_cmd=f'sour{channum}:all:abor'
         )
 
+    @property
+    def number(self) -> int:
+        return self._channum
+
     def clear_measurements(self) -> Sequence[float]:
         """Retrieve current measurements
 
@@ -1787,6 +1791,9 @@ class Arrangement_Context:
     def channel_numbers(self) -> Sequence[int]:
         return self._channels
 
+    def channel(self, name: str) -> QDac2Channel:
+        return self._qdac.channel(self._channels[self._contacts[name]])
+
     def virtual_voltage(self, contact: str) -> float:
         """
         Args:
@@ -2212,18 +2219,19 @@ class QDac2(VisaInstrument):
                 output_triggers: Optional[Dict[str, int]] = None,
                 internal_triggers: Optional[Sequence[str]] = None
                 ) -> Arrangement_Context:
-        """An arrangement of contacts and triggers for virtual 2D sweeps
+        """An arrangement of contacts and triggers for virtual gates
 
-        Each contact corresponds to a particular output channel and each trigger
-        corresponds to a particular external or internal trigger.  After
+        Each contact corresponds to a particular output channel.  Each
+        output_trigger corresponds to a particular external output trigger.
+        Each internal_trigger will be allocated from the pool of internal
+        triggers, and can later be used for synchronisation.  After
         initialisation of the arrangement, contacts and triggers can only be
         referred to by name.
 
         The voltages that will appear on each contact depends not only on the
-        specified virtual voltage, but also on a correction matrix.
-
-        Initially, the contacts are assumed to not influence each other, which
-        means that the correction matrix is the identity matrix, ie. the row for
+        specified virtual voltage, but also on a correction matrix.  Initially,
+        the contacts are assumed to not influence each other, which means that
+        the correction matrix is the identity matrix, ie. the row for
         each contact has a value of [0, ..., 0, 1, 0, ..., 0].
 
         Args:

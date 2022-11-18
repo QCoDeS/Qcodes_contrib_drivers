@@ -11,7 +11,7 @@ def test_sine_ambiguous(qdac):  # noqa
     assert 'frequency_Hz or period_s can be specified' in repr(error)
 
 
-def test_sine_default_vaules(qdac):  # noqa
+def test_sine_default_values(qdac):  # noqa
     # -----------------------------------------------------------------------
     qdac.ch01.sine_wave()
     # -----------------------------------------------------------------------
