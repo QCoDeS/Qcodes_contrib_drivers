@@ -8,8 +8,9 @@ from pyvisa.errors import VisaIOError
 from qcodes.utils import validators
 from typing import Any, NewType, Sequence, List, Dict, Tuple, Optional
 from packaging.version import parse
+import abc
 
-# Version 1.0.0
+# Version 1.1.0
 #
 # Guiding principles for this driver for QDevil QDAC-II
 # -----------------------------------------------------
@@ -178,7 +179,7 @@ def comma_sequence_to_list_of_floats(sequence: str):
     return [float(x.strip()) for x in sequence.split(',')]
 
 
-class _Channel_Context():
+class _Channel_Context(metaclass=abc.ABCMeta):
 
     def __init__(self, channel: 'QDac2Channel'):
         self._channel = channel
@@ -197,6 +198,18 @@ class _Channel_Context():
             QDac2Trigger_Context: Context that wraps the trigger
         """
         return self._channel._parent.allocate_trigger()
+
+    @abc.abstractmethod
+    def start_on(self, trigger: QDac2Trigger_Context) -> None:
+        pass
+
+    @abc.abstractmethod
+    def start_on_external(self, trigger: ExternalInput) -> None:
+        pass
+
+    @abc.abstractmethod
+    def abort(self) -> None:
+        pass
 
     def _write_channel(self, cmd: str) -> None:
         self._channel.write_channel(cmd)
