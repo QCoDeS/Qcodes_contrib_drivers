@@ -18,13 +18,13 @@ def check_for_reserved_outputs(triggers: Dict[str, int]) -> None:
 
 class Array_Arrangement_Context:
 
-    def __init__(self, qdacs: 'QDAC2_Array',
+    def __init__(self, qdacs: 'QDac2_Array',
                  contacts: Dict[str,Dict[str, int]],
                  output_triggers: Optional[Dict[str,Dict[str, int]]] = None,
                  internal_triggers: Optional[Sequence[str]] = None):
         self._qdacs = qdacs
         self._arrangements = {}
-        self._contacts = {}
+        self._contacts: Dict[str, str] = {}
         for qdac in qdacs._qdacs:
             name = qdac.full_name
             qdac_contacts = contacts.get(name, {})
