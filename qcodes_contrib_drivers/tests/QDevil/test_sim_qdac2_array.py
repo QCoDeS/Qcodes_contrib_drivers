@@ -119,7 +119,7 @@ def test_order(qdac, qdac2):  # noqa
     contacts = {controller: {'A': 2, 'B': 1}, listener: {'C': 3, 'D': 4}}
     arrangement = qdacs.arrange(contacts)
     # -----------------------------------------------------------------------
-    names = arrangement.contacts()
+    names = arrangement.contact_names
     # -----------------------------------------------------------------------
     assert names == ['A', 'B', 'C', 'D']
 

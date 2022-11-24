@@ -63,7 +63,8 @@ class Array_Arrangement_Context:
             arrangement.__exit__(exc_type, exc_val, exc_tb)
         return False
 
-    def contacts(self) -> Sequence[str]:
+    @property
+    def contact_names(self) -> Sequence[str]:
         """
         Returns:
            Sequence[str]: Channel names
