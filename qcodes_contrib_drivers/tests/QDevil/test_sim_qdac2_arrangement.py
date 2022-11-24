@@ -100,17 +100,16 @@ def test_forward_and_back():
     assert list(forward_and_back(-2, 2, 5)) == [-2, -1, 0, 1, 2, 1, 0, -1]
 
 
-def test_arrangement_channel_numbers(qdac):
+def test_arrangement_channel_numbers(qdac):  # noqa
     gates = {'sensor1': 1, 'plunger2': 2, 'plunger3': 3}
     arrangement = qdac.arrange(gates)
     # -----------------------------------------------------------------------
     numbers = arrangement.channel_numbers
     # -----------------------------------------------------------------------
-    assert numbers == [1,2,3]
+    assert numbers == [1, 2, 3]
 
 
-@pytest.mark.wip
-def test_channel_by_name(qdac):
+def test_channel_by_name(qdac):  # noqa
     contacts = {'sensor1': 1, 'plunger2': 2, 'plunger3': 3}
     arrangement = qdac.arrange(contacts)
     # -----------------------------------------------------------------------

@@ -6,11 +6,11 @@ from qcodes.instrument.channel import InstrumentChannel, ChannelList
 from qcodes.instrument.visa import VisaInstrument
 from pyvisa.errors import VisaIOError
 from qcodes.utils import validators
-from typing import Any, NewType, Sequence, List, Dict, Tuple, Optional
+from typing import NewType, Tuple, Sequence, List, Dict, Optional
 from packaging.version import parse
 import abc
 
-# Version 1.1.0
+# Version 1.1.1
 #
 # Guiding principles for this driver for QDevil QDAC-II
 # -----------------------------------------------------
@@ -53,7 +53,6 @@ def diff_matrix(initial: Sequence[float],
                 measurements: Sequence[Sequence[float]]) -> np.ndarray:
     """Subtract an array of measurements by an initial measurement
     """
-    origin = np.asarray(initial)
     matrix = np.asarray(measurements)
     return matrix - np.asarray(list(itertools.repeat(initial, matrix.shape[1])))
 
@@ -86,11 +85,7 @@ class QDac2Trigger_Context:
 
     @property
     def value(self) -> int:
-        """Get the internal SCPI trigger number
-
-        Returns:
-            int: internal trigger number
-        """
+        """internal SCPI trigger number"""
         return self._value
 
 
@@ -1069,7 +1064,7 @@ class Measurement_Context(_Channel_Context):
         """
         # Bug circumvention
         if self.n_available() == 0:
-            return []
+            return list()
         return comma_sequence_to_list_of_floats(
             self._ask_channel('sens{0}:data:rem?'))
 
@@ -1282,6 +1277,7 @@ class QDac2Channel(InstrumentChannel):
 
     @property
     def number(self) -> int:
+        """Channel number"""
         return self._channum
 
     def clear_measurements(self) -> Sequence[float]:
@@ -1294,7 +1290,7 @@ class QDac2Channel(InstrumentChannel):
         """
         # Bug circumvention
         if int(self.ask_channel('sens{0}:data:poin?')) == 0:
-            return []
+            return list()
         return comma_sequence_to_list_of_floats(
             self.ask_channel('sens{0}:data:rem?'))
 
@@ -1547,17 +1543,12 @@ class Trace_Context:
 
     @property
     def size(self) -> int:
-        """
-        Returns:
-            int: Number of values in trace
-        """
+        """Number of values in trace"""
         return self._size
 
     @property
     def name(self) -> str:
-        """Returns:
-            str: Name of trace
-        """
+        """Name of trace"""
         return self._name
 
     def waveform(self, values: Sequence[float]) -> None:
@@ -1679,22 +1670,20 @@ class Arrangement_Context:
 
     @property
     def shape(self) -> int:
-        """
-        Returns:
-            int: Number of contacts in the arrangement
-        """
+        """Number of contacts in the arrangement"""
         return len(self._contacts)
 
     @property
     def correction_matrix(self) -> np.ndarray:
-        """
-        Returns:
-            np.ndarray: Correction matrix
-        """
+        """Correction matrix"""
         return self._correction
 
     @property
     def contact_names(self) -> Sequence[str]:
+        """
+        Returns:
+            Sequence[str]: Contact names in the same order as channel_numbers
+        """
         return self._contact_names
 
     def _allocate_internal_triggers(self,
@@ -1776,9 +1765,9 @@ class Arrangement_Context:
         self._correction = np.matmul(multiplier, self._correction)
 
     def _fix_contact_order(self, contacts: Dict[str, int]) -> None:
-        self._contact_names = []
-        self._contacts = {}
-        self._channels = []
+        self._contact_names = list()
+        self._contacts = dict()
+        self._channels = list()
         index = 0
         for contact, channel in contacts.items():
             self._contact_names.append(contact)
@@ -1789,6 +1778,10 @@ class Arrangement_Context:
 
     @property
     def channel_numbers(self) -> Sequence[int]:
+        """
+        Returns:
+            Sequence[int]: Channels numbers in the same order as contact_names
+        """
         return self._channels
 
     def channel(self, name: str) -> QDac2Channel:
@@ -1800,7 +1793,7 @@ class Arrangement_Context:
             contact (str): Name of contact
 
         Returns:
-            float: Virtual voltage on the contact
+            float: Voltage before correction
         """
         index = self._contact_index(contact)
         return self._virtual_voltages[index]
@@ -1829,22 +1822,26 @@ class Arrangement_Context:
             print(f'Internal triggers: {list(self._internal_triggers.keys())}')
             raise
 
-    def currents_A(self, nplc: int = 1) -> Sequence[float]:
+    def _all_channels_as_suffix(self) -> str:
+        channels_str = ints_to_comma_separated_list(self.channel_numbers)
+        return f'(@{channels_str})'
+
+    def currents_A(self, nplc: int = 1, current_range: str = "low") -> Sequence[float]:
         """Measure currents on all contacts
 
         Args:
-            nplc (int): Number of powerline cycles to average over
+            nplc (int, optional): Number of powerline cycles to average over
+            current_range (str, optional): Current range (default low)
         """
-        slowest_line_freq = 50
-        channels_str = ints_to_comma_separated_list(self.channel_numbers)
-        channels_suffix = f'(@{channels_str})'
-        self._qdac.write(f'sens:rang low,{channels_suffix}')
+        channels_suffix = self._all_channels_as_suffix()
+        self._qdac.write(f'sens:rang {current_range},{channels_suffix}')
         self._qdac.write(f'sens:nplc {nplc},{channels_suffix}')
         # Discard first reading because of possible output-capacitor effects, etc
-        sleep_s(1 / slowest_line_freq)
+        slowest_line_freq_Hz = 50
+        sleep_s(1 / slowest_line_freq_Hz)
         self._qdac.ask(f'read? {channels_suffix}')
-        # Then make the proper reading
-        sleep_s((nplc+1) / slowest_line_freq)
+        # Then make a proper reading
+        sleep_s((nplc + 1) / slowest_line_freq_Hz)
         currents = self._qdac.ask(f'read? {channels_suffix}')
         return comma_sequence_to_list_of_floats(currents)
 
@@ -1869,19 +1866,18 @@ class Arrangement_Context:
         """
         sweep = self._calculate_1d_values(contact, voltages)
         return Virtual_Sweep_Context(self, sweep, start_sweep_trigger,
-                                step_time_s, step_trigger, repetitions)
+                                     step_time_s, step_trigger, repetitions)
 
     def _calculate_1d_values(self, contact: str, voltages: Sequence[float]
-                            ) -> np.ndarray:
+                             ) -> np.ndarray:
         original_voltage = self.virtual_voltage(contact)
         index = self._contact_index(contact)
-        sweep = []
+        sweep = list()
         for v in voltages:
             self._virtual_voltages[index] = v
             sweep.append(self.actual_voltages())
         self._virtual_voltages[index] = original_voltage
         return np.array(sweep)
-
 
     def virtual_sweep2d(self, inner_contact: str, inner_voltages: Sequence[float],
                         outer_contact: str, outer_voltages: Sequence[float],
@@ -1905,9 +1901,9 @@ class Arrangement_Context:
             Virtual_Sweep_Context: context manager
         """
         sweep = self._calculate_2d_values(inner_contact, inner_voltages,
-                                            outer_contact, outer_voltages)
+                                          outer_contact, outer_voltages)
         return Virtual_Sweep_Context(self, sweep, start_sweep_trigger,
-                                inner_step_time_s, inner_step_trigger, repetitions)
+                                     inner_step_time_s, inner_step_trigger, repetitions)
 
     def _calculate_2d_values(self, inner_contact: str,
                              inner_voltages: Sequence[float],
@@ -1917,7 +1913,7 @@ class Arrangement_Context:
         original_slow_voltage = self.virtual_voltage(outer_contact)
         outer_index = self._contact_index(outer_contact)
         inner_index = self._contact_index(inner_contact)
-        sweep = []
+        sweep = list()
         for slow_V in outer_voltages:
             self._virtual_voltages[outer_index] = slow_V
             for fast_V in inner_voltages:
@@ -1962,7 +1958,7 @@ class Arrangement_Context:
                                  end_V: Sequence[float], steps: int):
         original_voltages = [self.virtual_voltage(contact) for contact in contacts]
         indices = [self._contact_index(contact) for contact in contacts]
-        sweep = []
+        sweep = list()
         forward_V = [forward_and_back(start_V[i], end_V[i], steps) for i in range(len(contacts))]
         for voltages in zip(*forward_V):
             for index, voltage in zip(indices, voltages):
@@ -1986,16 +1982,22 @@ class Arrangement_Context:
         Returns:
             ndarray: contact-to-contact resistance in Ohms
         """
-        steady_state_A = self.currents_A(nplc)
-        currents_matrix = []
+        steady_state_A, currents_matrix = self._leakage_currents(modulation_V, nplc, 'low')
+        with np.errstate(divide='ignore'):
+            return np.abs(modulation_V / diff_matrix(steady_state_A, currents_matrix))
+
+    def _leakage_currents(self, modulation_V: float, nplc: int,
+                          current_range: str
+                          ) -> Tuple[Sequence[float], Sequence[Sequence[float]]]:
+        steady_state_A = self.currents_A(nplc, 'low')
+        currents_matrix = list()
         for index, channel_nr in enumerate(self.channel_numbers):
             original_V = self._virtual_voltages[index]
             self._effectuate_virtual_voltage(index, original_V + modulation_V)
-            currents = self.currents_A(nplc)
+            currents = self.currents_A(nplc, current_range)
             self._effectuate_virtual_voltage(index, original_V)
             currents_matrix.append(currents)
-        with np.errstate(divide='ignore'):
-            return np.abs(modulation_V / diff_matrix(steady_state_A, currents_matrix))
+        return steady_state_A, currents_matrix
 
     def _contact_index(self, contact: str) -> int:
         return self._contacts[contact]
@@ -2003,14 +2005,14 @@ class Arrangement_Context:
     def _allocate_triggers(self, internal_triggers: Optional[Sequence[str]],
                            output_triggers: Optional[Dict[str, int]]
                            ) -> None:
-        self._internal_triggers: Dict[str, QDac2Trigger_Context] = {}
+        self._internal_triggers: Dict[str, QDac2Trigger_Context] = dict()
         self._allocate_internal_triggers(internal_triggers)
         self._allocate_external_triggers(output_triggers)
 
     def _allocate_external_triggers(self, output_triggers:
                                     Optional[Dict[str, int]]
                                     ) -> None:
-        self._external_triggers = {}
+        self._external_triggers = dict()
         if not output_triggers:
             return
         for name, port in output_triggers.items():
@@ -2236,11 +2238,11 @@ class QDac2(VisaInstrument):
 
         Args:
             contacts (Dict[str, int]): Name/channel pairs
-            output_triggers (Optional[Sequence[Tuple[str,int]]], optional): Name/number pairs of output triggers
-            internal_triggers (Optional[Sequence[str]], optional): List of names of internal triggers to allocate
+            output_triggers (Sequence[Tuple[str,int]], optional): Name/number pairs of output triggers
+            internal_triggers (Sequence[str], optional): List of names of internal triggers to allocate
 
         Returns:
-            Arrangement_Context: Description
+            Arrangement_Context: context manager
         """
         return Arrangement_Context(self, contacts, output_triggers,
                                    internal_triggers)
@@ -2258,7 +2260,7 @@ class QDac2(VisaInstrument):
         Any previous recordings are removed.  To inspect the SCPI commands sent
         to the instrument, call get_recorded_scpi_commands().
         """
-        self._scpi_sent: List[str] = []
+        self._scpi_sent: List[str] = list()
         self._record_commands = True
 
     def get_recorded_scpi_commands(self) -> List[str]:
@@ -2267,7 +2269,7 @@ class QDac2(VisaInstrument):
             Sequence[str]: SCPI commands sent to the instrument
         """
         commands = self._scpi_sent
-        self._scpi_sent = []
+        self._scpi_sent = list()
         return commands
 
     def clear(self) -> None:
@@ -2283,7 +2285,7 @@ class QDac2(VisaInstrument):
         Returns:
             Sequence[str]: Messages lingering in queue
         """
-        lingering = []
+        lingering = list()
         original_timeout = self.visa_handle.timeout
         self.visa_handle.timeout = self._message_flush_timeout_ms
         while True:
@@ -2344,7 +2346,7 @@ class QDac2(VisaInstrument):
 
     def _set_up_debug_settings(self) -> None:
         self._record_commands = False
-        self._scpi_sent = []
+        self._scpi_sent = list()
         self._message_flush_timeout_ms = 1
         self._round_off = None
         self._no_binary_values = False
