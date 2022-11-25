@@ -10,7 +10,7 @@ from typing import NewType, Tuple, Sequence, List, Dict, Optional
 from packaging.version import parse
 import abc
 
-# Version 1.1.1
+# Version 1.1.2
 #
 # Guiding principles for this driver for QDevil QDAC-II
 # -----------------------------------------------------
@@ -47,6 +47,27 @@ import abc
 
 error_ambiguous_wave = 'Only one of frequency_Hz or period_s can be ' \
                        'specified for a wave form'
+
+
+def ints_to_comma_separated_list(array: Sequence[int]) -> str:
+    return ','.join([str(x) for x in array])
+
+
+def floats_to_comma_separated_list(array: Sequence[float]) -> str:
+    rounded = [format(x, 'g') for x in array]
+    return ','.join(rounded)
+
+
+def comma_sequence_to_list(sequence: str) -> Sequence[str]:
+    if not sequence:
+        return []
+    return [x.strip() for x in sequence.split(',')]
+
+
+def comma_sequence_to_list_of_floats(sequence: str) -> Sequence[float]:
+    if not sequence:
+        return []
+    return [float(x.strip()) for x in sequence.split(',')]
 
 
 def diff_matrix(initial: Sequence[float],
@@ -147,31 +168,6 @@ class QDac2ExternalTrigger(InstrumentChannel):
             name='signal',
             call_cmd=f'outp:trig{external}:sign'
         )
-
-
-def ints_to_comma_separated_list(array: Sequence[int]):
-    return ','.join([str(x) for x in array])
-
-
-def floats_to_comma_separated_list(array: Sequence[float]):
-    rounded = [format(x, 'g') for x in array]
-    return ','.join(rounded)
-
-
-def array_to_comma_separated_list(array: str):
-    return ','.join(map(str, array))
-
-
-def comma_sequence_to_list(sequence: str):
-    if not sequence:
-        return []
-    return [x.strip() for x in sequence.split(',')]
-
-
-def comma_sequence_to_list_of_floats(sequence: str):
-    if not sequence:
-        return []
-    return [float(x.strip()) for x in sequence.split(',')]
 
 
 class _Channel_Context(metaclass=abc.ABCMeta):

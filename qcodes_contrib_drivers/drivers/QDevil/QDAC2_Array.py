@@ -5,7 +5,7 @@ from typing import Tuple, Dict, Sequence, List, FrozenSet, Optional
 import numpy as np
 from time import sleep as sleep_s
 
-# Version 0.1.0
+# Version 0.1.1
 #
 # Guiding principles for this driver for multiple QDevil QDAC-IIs
 # ---------------------------------------------------------------
@@ -22,7 +22,7 @@ from time import sleep as sleep_s
 #   (which the indiviual arrangements on each instrument does).
 
 
-def check_for_reserved_outputs(triggers: Dict[str, int]) -> None:
+def _check_for_reserved_outputs(triggers: Dict[str, int]) -> None:
     for trigger in triggers.values():
         if trigger in (4, 5):
             raise ValueError(f'External output trigger {trigger} is reserved')
@@ -44,7 +44,7 @@ class Array_Arrangement_Context:
             is_contoller = (qdac_name == qdacs._controller_name)
             arrangement = None
             if is_contoller:
-                check_for_reserved_outputs(qdac_outputs)
+                _check_for_reserved_outputs(qdac_outputs)
                 arrangement = \
                     qdac.arrange(qdac_contacts, qdac_outputs, internal_triggers)
             else:
@@ -131,7 +131,7 @@ class Array_Arrangement_Context:
             arrangement._qdac.ask(f'read? {channels_suffix}')
         # Then make a proper reading on all instruments
         sleep_s((nplc + 1) / slowest_line_freq_Hz)
-        values = list()
+        values: List[float] = list()
         for qdac in self.qdac_names():
             arrangement = self._arrangements[qdac]
             channels_suffix = arrangement._all_channels_as_suffix()
