@@ -223,7 +223,13 @@ devices:
               r: "{}"
             specs:
               type: int
-
+          dc_delay:
+            default: 0.0
+            setter:
+              q: "sour{ch_id}:dc:del {}"
+            getter:
+              q: "sour{ch_id}:dc:del?"
+              r: "{}"
           dc_trigger_source:
             default: "imm"
             setter:
@@ -658,6 +664,9 @@ devices:
           sine_slew:
             setter:
               q: "sour{ch_id}:sine:slew {}"
+          sine_delay:
+            setter:
+              q: "sour{ch_id}:sine:del {}"
           sine_cycles_left:
             default: 0
             getter:
@@ -700,6 +709,9 @@ devices:
           square_slew:
             setter:
               q: "sour{ch_id}:squ:slew {}"
+          square_delay:
+            setter:
+              q: "sour{ch_id}:squ:del {}"
           square_cycles_left:
             default: 0
             getter:
@@ -735,6 +747,9 @@ devices:
           triangle_slew:
             setter:
               q: "sour{ch_id}:tri:slew {}"
+          triangle_delay:
+            setter:
+              q: "sour{ch_id}:tri:del {}"
           triangle_cycles_left:
             default: 0
             getter:

@@ -304,6 +304,9 @@ class _Dc_Context(_Channel_Context):
         self._write_channel(f'sour{"{0}"}:dc:mark:sst {self._marker_step_start.value}')
         return self._marker_step_start
 
+    def _set_delay(self, delay_s: float) -> None:
+        self._write_channel(f'sour{"{0}"}:dc:del {delay_s}')
+
     def _set_triggering(self) -> None:
         self._write_channel('sour{0}:dc:trig:sour bus')
         self._make_ready_to_start()
@@ -327,8 +330,8 @@ class _Dc_Context(_Channel_Context):
 class Sweep_Context(_Dc_Context):
 
     def __init__(self, channel: 'QDac2Channel', start_V: float, stop_V: float,
-                 points: int, repetitions: int, dwell_s: float, backwards: bool,
-                 stepped: bool):
+                 points: int, repetitions: int, dwell_s: float, delay_s: float,
+                 backwards: bool, stepped: bool):
         self._repetitions = repetitions
         super().__init__(channel)
         channel.write_channel('sour{0}:volt:mode swe')
@@ -336,6 +339,7 @@ class Sweep_Context(_Dc_Context):
         channel.write_channel(f'sour{"{0}"}:swe:poin {points}')
         self._set_trigger_mode(stepped)
         channel.write_channel(f'sour{"{0}"}:swe:dwel {dwell_s}')
+        super()._set_delay(delay_s)
         self._set_direction(backwards)
         self._set_repetitions()
         self._set_triggering()
@@ -411,14 +415,15 @@ class Sweep_Context(_Dc_Context):
 class List_Context(_Dc_Context):
 
     def __init__(self, channel: 'QDac2Channel', voltages: Sequence[float],
-                 repetitions: int, dwell_s: float, backwards: bool,
-                 stepped: bool):
+                 repetitions: int, dwell_s: float, delay_s: float,
+                 backwards: bool, stepped: bool):
         super().__init__(channel)
         self._repetitions = repetitions
         self._write_channel('sour{0}:volt:mode list')
         self._set_voltages(voltages)
         self._set_trigger_mode(stepped)
         self._write_channel(f'sour{"{0}"}:list:dwel {dwell_s}')
+        super()._set_delay(delay_s)
         self._set_direction(backwards)
         self._set_repetitions()
         self._set_triggering()
@@ -541,6 +546,9 @@ class _Waveform_Context(_Channel_Context):
         self._write_channel(f'sour{"{0}"}:{wave_kind}:init:cont off')
         self._write_channel(f'sour{"{0}"}:{wave_kind}:trig:sour imm')
 
+    def _set_delay(self, wave_kind: str, delay_s) -> None:
+        self._write_channel(f'sour{"{0}"}:{wave_kind}:del {delay_s}')
+
     def _set_slew(self, wave_kind: str, slew_V_s: Optional[float]) -> None:
         if slew_V_s:
             # Bug, see https://trello.com/c/SeeUrRNY
@@ -554,7 +562,8 @@ class Square_Context(_Waveform_Context):
     def __init__(self, channel: 'QDac2Channel', frequency_Hz: Optional[float],
                  repetitions: int, period_s: Optional[float],
                  duty_cycle_percent: float, kind: str, inverted: bool,
-                 span_V: float, offset_V: float, slew_V_s: Optional[float]):
+                 span_V: float, offset_V: float, delay_s: float,
+                 slew_V_s: Optional[float]):
         super().__init__(channel)
         self._repetitions = repetitions
         self._write_channel('sour{0}:squ:trig:sour hold')
@@ -565,6 +574,7 @@ class Square_Context(_Waveform_Context):
         self._write_channel(f'sour{"{0}"}:squ:span {span_V}')
         self._write_channel(f'sour{"{0}"}:squ:offs {offset_V}')
         self._set_slew('squ', slew_V_s)
+        super()._set_delay('squ', delay_s)
         self._write_channel(f'sour{"{0}"}:squ:coun {repetitions}')
         self._set_triggering()
 
@@ -671,7 +681,8 @@ class Sine_Context(_Waveform_Context):
 
     def __init__(self, channel: 'QDac2Channel', frequency_Hz: Optional[float],
                  repetitions: int, period_s: Optional[float], inverted: bool,
-                 span_V: float, offset_V: float, slew_V_s: Optional[float]):
+                 span_V: float, offset_V: float, delay_s: float,
+                 slew_V_s: Optional[float]):
         super().__init__(channel)
         self._repetitions = repetitions
         self._write_channel('sour{0}:sine:trig:sour hold')
@@ -680,6 +691,7 @@ class Sine_Context(_Waveform_Context):
         self._write_channel(f'sour{"{0}"}:sine:span {span_V}')
         self._write_channel(f'sour{"{0}"}:sine:offs {offset_V}')
         self._set_slew('sine', slew_V_s)
+        super()._set_delay('sine', delay_s)
         self._write_channel(f'sour{"{0}"}:sine:coun {repetitions}')
         self._set_triggering()
 
@@ -779,7 +791,7 @@ class Triangle_Context(_Waveform_Context):
     def __init__(self, channel: 'QDac2Channel', frequency_Hz: Optional[float],
                  repetitions: int, period_s: Optional[float],
                  duty_cycle_percent: float, inverted: bool, span_V: float,
-                 offset_V: float, slew_V_s: Optional[float]):
+                 offset_V: float, delay_s: float, slew_V_s: Optional[float]):
         super().__init__(channel)
         self._repetitions = repetitions
         self._write_channel('sour{0}:tri:trig:sour hold')
@@ -789,6 +801,7 @@ class Triangle_Context(_Waveform_Context):
         self._write_channel(f'sour{"{0}"}:tri:span {span_V}')
         self._write_channel(f'sour{"{0}"}:tri:offs {offset_V}')
         self._set_slew('tri', slew_V_s)
+        super()._set_delay('tri', delay_s)
         self._write_channel(f'sour{"{0}"}:tri:coun {repetitions}')
         self._set_triggering()
 
@@ -1329,8 +1342,8 @@ class QDac2Channel(InstrumentChannel):
         self.output_filter(filter)
 
     def dc_list(self, voltages: Sequence[float], repetitions: int = 1,
-                dwell_s: float = 1e-03, backwards: bool = False,
-                stepped: bool = False
+                dwell_s: float = 1e-03, delay_s: float = 0,
+                backwards: bool = False, stepped: bool = False
                 ) -> List_Context:
         """Set up a DC-list generator
 
@@ -1338,17 +1351,19 @@ class QDac2Channel(InstrumentChannel):
             voltages (Sequence[float]): Voltages in list
             repetitions (int, optional): Number of repetitions of the list (default 1)
             dwell_s (float, optional): Seconds between each voltage (default 1ms)
+            delay_s (float, optional): Seconds of delay after receiving a trigger (default 0)
             backwards (bool, optional): Use list in reverse (default is forward)
             stepped (bool, optional): True means that each step needs to be triggered (default False)
 
         Returns:
             List_Context: context manager
         """
-        return List_Context(self, voltages, repetitions, dwell_s, backwards,
-                            stepped)
+        return List_Context(self, voltages, repetitions, dwell_s, delay_s,
+                            backwards, stepped)
 
     def dc_sweep(self, start_V: float, stop_V: float, points: int,
-                 repetitions=1, dwell_s=1e-03, backwards=False, stepped=True
+                 repetitions: int = 1, dwell_s: float = 1e-03,
+                 delay_s: float = 0, backwards=False, stepped=True
                  ) -> Sweep_Context:
         """Set up a DC sweep
 
@@ -1358,6 +1373,7 @@ class QDac2Channel(InstrumentChannel):
             points (int): Number of steps
             repetitions (int, optional): Number of repetition (default 1)
             dwell_s (float, optional): Seconds between each voltage (default 1ms)
+            delay_s (float, optional): Seconds of delay after receiving a trigger (default 0)
             backwards (bool, optional): Sweep in reverse (default is forward)
             stepped (bool, optional): True means that each step needs to be triggered (default False)
 
@@ -1365,13 +1381,14 @@ class QDac2Channel(InstrumentChannel):
             Sweep_Context: context manager
         """
         return Sweep_Context(self, start_V, stop_V, points, repetitions,
-                             dwell_s, backwards, stepped)
+                             dwell_s, delay_s, backwards, stepped)
 
     def square_wave(self, frequency_Hz: Optional[float] = None,
                     period_s: Optional[float] = None, repetitions: int = -1,
                     duty_cycle_percent: float = 50.0, kind: str = 'symmetric',
                     inverted: bool = False, span_V: float = 0.2,
-                    offset_V: float = 0.0, slew_V_s: Optional[float] = None
+                    offset_V: float = 0.0, delay_s: float = 0,
+                    slew_V_s: Optional[float] = None
                     ) -> Square_Context:
         """Set up a square-wave generator
 
@@ -1384,6 +1401,7 @@ class QDac2Channel(InstrumentChannel):
             inverted (bool, optional): True means flipped (default False)
             span_V (float, optional): Voltage span (default 200mV)
             offset_V (float, optional): Offset (default 0V)
+            delay_s (float, optional): Seconds of delay after receiving a trigger (default 0)
             slew_V_s (float, optional): Max slew rate in V/s (default None)
 
         Returns:
@@ -1398,12 +1416,13 @@ class QDac2Channel(InstrumentChannel):
             frequency_Hz = 1000
         return Square_Context(self, frequency_Hz, repetitions, period_s,
                               duty_cycle_percent, kind, inverted, span_V,
-                              offset_V, slew_V_s)
+                              offset_V, delay_s, slew_V_s)
 
     def sine_wave(self, frequency_Hz: Optional[float] = None,
                   period_s: Optional[float] = None, repetitions: int = -1,
                   inverted: bool = False, span_V: float = 0.2,
-                  offset_V: float = 0.0, slew_V_s: Optional[float] = None
+                  offset_V: float = 0.0, delay_s: float = 0,
+                  slew_V_s: Optional[float] = None
                   ) -> Sine_Context:
         """Set up a sine-wave generator
 
@@ -1414,6 +1433,7 @@ class QDac2Channel(InstrumentChannel):
             inverted (bool, optional): True means flipped (default False)
             span_V (float, optional): Voltage span (default 200mV)
             offset_V (float, optional): Offset (default 0V)
+            delay_s (float, optional): Seconds of delay after receiving a trigger (default 0)
             slew_V_s (None, optional): Max slew rate in V/s (default None)
 
         Returns:
@@ -1427,13 +1447,13 @@ class QDac2Channel(InstrumentChannel):
         if not frequency_Hz and not period_s:
             frequency_Hz = 1000
         return Sine_Context(self, frequency_Hz, repetitions, period_s,
-                            inverted, span_V, offset_V, slew_V_s)
+                            inverted, span_V, offset_V, delay_s, slew_V_s)
 
     def triangle_wave(self, frequency_Hz: Optional[float] = None,
                       period_s: Optional[float] = None, repetitions: int = -1,
                       duty_cycle_percent: float = 50.0, inverted: bool = False,
                       span_V: float = 0.2, offset_V: float = 0.0,
-                      slew_V_s: Optional[float] = None
+                      delay_s: float = 0, slew_V_s: Optional[float] = None
                       ) -> Triangle_Context:
         """Set up a triangle-wave generator
 
@@ -1445,6 +1465,7 @@ class QDac2Channel(InstrumentChannel):
             inverted (bool, optional): True means flipped (default False)
             span_V (float, optional): Voltage span (default 200mV)
             offset_V (float, optional): Offset (default 0V)
+            delay_s (float, optional): Seconds of delay after receiving a trigger (default 0)
             slew_V_s (float, optional): Max slew rate in V/s (default None)
 
         Returns:
@@ -1459,7 +1480,7 @@ class QDac2Channel(InstrumentChannel):
             frequency_Hz = 1000
         return Triangle_Context(self, frequency_Hz, repetitions, period_s,
                                 duty_cycle_percent, inverted, span_V,
-                                offset_V, slew_V_s)
+                                offset_V, delay_s, slew_V_s)
 
     def arbitrary_wave(self, trace_name: str, repetitions: int = 1,
                        scale: float = 1.0, offset_V: float = 0.0,

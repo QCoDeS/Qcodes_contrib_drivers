@@ -24,6 +24,7 @@ def test_square_default_values(qdac):  # noqa
         'sour24:squ:span 0.2',
         'sour24:squ:offs 0.0',
         'sour24:squ:slew inf',
+        'sour24:squ:del 0',
         'sour24:squ:coun -1',
         'sour24:squ:trig:sour bus',
         'sour24:squ:init:cont on',
@@ -40,6 +41,7 @@ def test_square_period(qdac):  # noqa
         offset_V=-0.1,
         kind='positive',
         duty_cycle_percent=99,
+        delay_s=0.02,
         slew_V_s=2
     )
     # -----------------------------------------------------------------------
@@ -52,6 +54,7 @@ def test_square_period(qdac):  # noqa
         'sour24:squ:span 1',
         'sour24:squ:offs -0.1',
         'sour24:squ:slew 2',
+        'sour24:squ:del 0.02',
         'sour24:squ:coun -1',
         'sour24:squ:trig:sour bus',
         'sour24:squ:init:cont on',
@@ -72,6 +75,7 @@ def test_square_slew(qdac):  # noqa
         'sour24:squ:span 0.2',
         'sour24:squ:offs 0.0',
         'sour24:squ:slew 0.1',
+        'sour24:squ:del 0',
         'sour24:squ:coun -1',
         'sour24:squ:trig:sour bus',
         'sour24:squ:init:cont on',
@@ -98,6 +102,7 @@ def test_square_negative(qdac):  # noqa
         'sour24:squ:span 5',
         'sour24:squ:offs 0.0',
         'sour24:squ:slew inf',
+        'sour24:squ:del 0',
         'sour24:squ:coun 10',
         'sour24:squ:trig:sour bus',
         'sour24:squ:init:cont on',
@@ -118,6 +123,7 @@ def test_square_frequency(qdac):  # noqa
         'sour24:squ:span 0.2',
         'sour24:squ:offs 0.0',
         'sour24:squ:slew inf',
+        'sour24:squ:del 0',
         'sour24:squ:coun -1',
         'sour24:squ:trig:sour bus',
         'sour24:squ:init:cont on',
