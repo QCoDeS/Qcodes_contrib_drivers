@@ -57,8 +57,10 @@ def _find_first_by_key(
     else:
         return not_found
 
+
 def _strip_unit(suffix: str, *, then: Callable[[str], Any]) -> Callable[[str], Any]:
     return lambda value: then(value.removesuffix(suffix))
+
 
 def _merge_dicts(*dicts: dict) -> dict:
     dest = dict()
@@ -87,8 +89,12 @@ class SiglentSDGChannel(SiglentChannel):
             extra_params=kwargs.pop("extra_mdwv_params", set())
         )
 
-        self._add_sweep_wave_command_parameters(
-            extra_params=kwargs.pop("extra_swv_params", set())
+        self._add_sweep_wave_parameters(
+            extra_params=kwargs.pop("extra_swwv_params", set())
+        )
+
+        self._add_burst_wave_parameters(
+            extra_params=kwargs.pop("extra_btwv_params", set())
         )
 
     def _add_output_parameters(self, *, extra_params: Set[str]):
@@ -1067,7 +1073,7 @@ class SiglentSDGChannel(SiglentChannel):
             ),
         )
 
-    def _add_sweep_wave_command_parameters(self, *, extra_params: Set[str]):
+    def _add_sweep_wave_parameters(self, *, extra_params: Set[str]):
 
         ch_command = self._ch_num_prefix + "SWWV"
         set_cmd_ = ch_command + " "
@@ -1090,6 +1096,7 @@ class SiglentSDGChannel(SiglentChannel):
         ) -> Callable[[str], Any]:
 
             if not name.startswith("CARR,"):
+
                 def result_func(response: str):
                     items = takewhile(
                         lambda str: str != "CARR",
@@ -1101,8 +1108,10 @@ class SiglentSDGChannel(SiglentChannel):
                         transform_found=then,
                         not_found=else_default,
                     )
+
             else:
                 name = name[5:]
+
                 def result_func(response: str):
                     items = _iter_str_split(response, start=result_prefix_len, sep=",")
                     for item in items:
@@ -1128,7 +1137,7 @@ class SiglentSDGChannel(SiglentChannel):
 
         self.add_parameter(
             "sweep_wave",
-            label="Sweep wave command",
+            label="Sweep wave",
             val_mapping={
                 False: "OFF",
                 True: "ON",
@@ -1142,45 +1151,132 @@ class SiglentSDGChannel(SiglentChannel):
         self.add_parameter(
             "sweep_time",
             label="Sweep time",
-            unit='s',
-            vals=Numbers(0,),
+            unit="s",
+            vals=Numbers(
+                0,
+            ),
             set_cmd=set_cmd_ + "TIME,{}",
             get_cmd=get_cmd,
-            get_parser=extract_swwv_field("TIME", then=_strip_unit('S', then=float)),
+            get_parser=extract_swwv_field("TIME", then=_strip_unit("S", then=float)),
         )
 
-        if 'STARTTIME' in extra_params or True:
+        if "STARTTIME" in extra_params or True:
             self.add_parameter(
                 "sweep_start_hold_time",
                 label="Sweep start hold time",
-                unit='s',
-                vals=Numbers(0,300),
+                unit="s",
+                vals=Numbers(0, 300),
                 set_cmd=set_cmd_ + "STARTTIME,{}",
                 get_cmd=get_cmd,
-                get_parser=extract_swwv_field("STARTTIME", then=_strip_unit('S', then=float)),
+                get_parser=extract_swwv_field(
+                    "STARTTIME", then=_strip_unit("S", then=float)
+                ),
             )
 
-        if 'ENDTIME' in extra_params or True:
+        if "ENDTIME" in extra_params or True:
             self.add_parameter(
                 "sweep_end_hold_time",
                 label="Sweep end hold time",
-                unit='s',
-                vals=Numbers(0,300),
+                unit="s",
+                vals=Numbers(0, 300),
                 set_cmd=set_cmd_ + "ENDTIME,{}",
                 get_cmd=get_cmd,
-                get_parser=extract_swwv_field("ENDTIME", then=_strip_unit('S', then=float)),
+                get_parser=extract_swwv_field(
+                    "ENDTIME", then=_strip_unit("S", then=float)
+                ),
             )
 
-        if 'BACKTIME' in extra_params or True:
+        if "BACKTIME" in extra_params or True:
             self.add_parameter(
                 "sweep_back_time",
                 label="Sweep back time",
-                unit='s',
-                vals=Numbers(0,300),
+                unit="s",
+                vals=Numbers(0, 300),
                 set_cmd=set_cmd_ + "BACKTIME,{}",
                 get_cmd=get_cmd,
-                get_parser=extract_swwv_field("BACKTIME", then=_strip_unit('S', then=float)),
+                get_parser=extract_swwv_field(
+                    "BACKTIME", then=_strip_unit("S", then=float)
+                ),
             )
+
+        # TODO...
+
+    def _add_burst_wave_parameters(self, *, extra_params: Set[str]):
+
+        ch_command = self._ch_num_prefix + "BTWV"
+        set_cmd_ = ch_command + " "
+        get_cmd = ch_command + "?"
+
+        result_prefix_len = len(ch_command) + 1
+
+        ranges: Mapping[str, Tuple[float, float]] = self._parent._ranges
+
+        self.add_parameter(
+            "raw_burst_wave",
+            label="raw BursT WaVe command",
+            set_cmd=set_cmd_ + "{}",
+            get_cmd=get_cmd,
+            get_parser=lambda string: string[result_prefix_len:],
+        )
+
+        def extract_btwv_field(
+            name: str, *, then: Callable[[str], Any] = _identity, else_default=None
+        ) -> Callable[[str], Any]:
+
+            if not name.startswith("CARR,"):
+
+                def result_func(response: str):
+                    items = takewhile(
+                        lambda str: str != "CARR",
+                        _iter_str_split(response, start=result_prefix_len, sep=","),
+                    )
+                    return _find_first_by_key(
+                        name,
+                        _group_by_two(items),
+                        transform_found=then,
+                        not_found=else_default,
+                    )
+
+            else:
+                name = name[5:]
+
+                def result_func(response: str):
+                    items = _iter_str_split(response, start=result_prefix_len, sep=",")
+                    for item in items:
+                        if item == "CARR":
+                            break
+                    else:
+                        return else_default
+                    return _find_first_by_key(
+                        name,
+                        _group_by_two(items),
+                        transform_found=then,
+                        not_found=else_default,
+                    )
+
+            return result_func
+
+        freq_ranges = ranges["frequency"]
+        amp_range_vpp = ranges["vpp"]
+        amp_range_vrms = ranges["vrms"]
+        range_offset = ranges["offset"]
+
+        # STATE
+
+        self.add_parameter(
+            "burst_wave",
+            label="Burst wave",
+            val_mapping={
+                False: "OFF",
+                True: "ON",
+            },
+            set_cmd=set_cmd_ + "STATE,{}",
+            get_cmd=get_cmd,
+            get_parser=extract_btwv_field("STATE"),
+        )
+
+        # TODO...
+
 
 class SiglentSDGx(SiglentSDx):
     def __init__(self, *args, **kwargs):
