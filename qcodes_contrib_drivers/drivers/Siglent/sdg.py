@@ -37,12 +37,14 @@ def _group_by_two(list_: Iterable[_T]) -> Iterator[Tuple[_T, _T]]:
 
 
 def _iter_str_split(string: str, *, sep: str, start: int = 0) -> Iterator[str]:
-    last: int = start - 1
-    while (next := string.find(sep, last + 1)) != -1:
-        yield string[last + 1 : next]
-        last = next
-    yield string[last + 1 :]
-
+    if slen := len(sep):
+        last: int = start
+        while (next := string.find(sep, last)) != -1:
+            yield string[last : next]
+            last = next + slen
+        yield string[last:]
+    else:
+        yield from iter(string)
 
 def _find_first_by_key(
     search_key: str,
@@ -490,7 +492,7 @@ class SiglentSDGChannel(SiglentChannel):
                 True: "ON",
             },
             get_cmd=get_cmd,
-            get_parser=extract_bswv_field("DIFFSTATE"),
+            get_parser=extract_bswv_field("DIFFSTATE", else_default="OFF"),
             set_cmd=set_cmd_ + "DIFFSTATE,{}",
         )
 
