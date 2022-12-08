@@ -9,9 +9,39 @@ from qcodes.validators.validators import MultiTypeOr, Numbers, Ints, Enum as Enu
 
 from enum import Enum
 
-from typing import Any, Callable, List, Mapping, Set, Tuple
+from typing import (
+    Any,
+    Optional,
+    Callable,
+    List,
+    Mapping,
+    Set,
+    Tuple,
+    Iterable,
+    Iterator,
+)
 
-from .parameter import GroupGetParameter
+
+from itertools import zip_longest
+
+
+def _group_by_two(list_: Iterable, *, fillvalue=None) -> Iterator[Tuple[Any, Any]]:
+    return zip_longest(*2 * [iter(list_)], fillvalue=fillvalue)
+
+
+def _identity(x):
+    return x
+
+
+def _strip_unit(unit: str, *, then: Callable[[str], Any]) -> Callable[[str], Any]:
+    len_unit = len(unit)
+
+    def result_func(value: str):
+        if value.endswith(unit):
+            value = value[:-len_unit]
+        return then(value)
+
+    return result_func
 
 
 class SiglentSDGChannel(SiglentChannel):
@@ -23,99 +53,90 @@ class SiglentSDGChannel(SiglentChannel):
             f"C{channel_number}:" if channel_number is not None else ""
         )
 
-        self._add_outp_parameter_group(
-            has_poweron_state=kwargs.pop("has_outp_poweron_state", False)
+        self._add_output_parameters(extra_params=kwargs.pop("extra_outp_params", set()))
+
+        self._add_basic_wave_parameters(
+            extra_params=kwargs.pop("extra_bswv_params", set())
         )
 
-        self._add_bswv_parameter_group(set())
+    def _add_output_parameters(self, *, extra_params: Set[str]):
 
-    def _add_outp_parameter_group(self, *, has_poweron_state: bool):
         ch_num_prefix = self._ch_num_prefix
-        ch_cmd_prefix = ch_num_prefix + "OUTP"
+        cmd_prefix = ch_num_prefix + "OUTP"
+        cmd_prefix_len = len(cmd_prefix)
+        get_cmd = ch_num_prefix + "OUTP?"
 
-        outp_group_params: List[GroupParameter] = []
-        outp_set_elements: List[str] = []
+        def extract_outp_field(
+            name: Optional[str],
+            *,
+            then: Callable[[str], Any] = _identity,
+            else_default=None,
+        ) -> Callable[[str], Any]:
+            def result_func(response: str):
+                response = response[cmd_prefix_len + 1 :]
+                (enabled, *keys_values) = response.split(",")
+                if name is None:
+                    return enabled
+                for key, value in _group_by_two(keys_values):
+                    if key == name:
+                        return then(value)
+                else:
+                    return else_default
+
+            return result_func
 
         self.add_parameter(
             "enabled",
-            parameter_class=GroupGetParameter,
             label="Enabled",
             val_mapping={True: "ON", False: "OFF"},
-            set_cmd=ch_cmd_prefix + " {}",
+            set_cmd=cmd_prefix + " {}",
+            get_cmd=get_cmd,
+            get_parser=extract_outp_field(None),
         )
-
-        outp_group_params.append(self.enabled)
-        outp_set_elements.append("{enabled}")
 
         self.add_parameter(
             "load",
-            parameter_class=GroupGetParameter,
             label="Output load",
             unit="Ω",
             vals=MultiTypeOr(Numbers(50, 1e5), EnumVals("HZ")),
-            set_cmd=ch_cmd_prefix + " LOAD,{}",
+            set_cmd=cmd_prefix + " LOAD,{}",
+            get_cmd=get_cmd,
+            get_parser=extract_outp_field("LOAD"),
         )
 
-        outp_group_params.append(self.load)
-        outp_set_elements.append("LOAD,{load}")
-
-        if has_poweron_state:
+        if "POWERON_STATE" in extra_params:
             self.add_parameter(
                 "poweron_state",
-                parameter_class=GroupGetParameter,
                 label="Power-on state",
                 val_mapping={
                     False: 0,
                     True: 1,
                 },
-                set_cmd=ch_cmd_prefix + " POWERON_STATE,{}",
+                set_cmd=cmd_prefix + " POWERON_STATE,{}",
+                get_cmd=get_cmd,
+                get_parser=extract_outp_field("POWERON_STATE"),
             )
-            outp_group_params.append(self.poweron_state)
-            outp_set_elements.append("POWERON_STATE,{poweron_state}")
 
         self.add_parameter(
             "polarity",
-            parameter_class=GroupGetParameter,
             label="Polarity",
             val_mapping={
                 "normal": "NOR",
                 "inverted": "INVT",
             },
-            set_cmd=ch_cmd_prefix + " PLRT,{}"
-        )
-        outp_group_params.append(self.polarity)
-        outp_set_elements.append("PLRT,{polarity}")
-
-        def parse_outp(response: str, *, _skip_prefix=len(ch_cmd_prefix) + 1):
-            response = response[_skip_prefix:]
-            values = response.split(",")
-            outp_remap = {
-                "LOAD": "load",
-                "PLRT": "polarity",
-                "POWERON_STATE": "poweron_state",
-            }
-            res = {"enabled": values[0]}
-            for k, v in zip(*2 * [iter(values[1:])]):
-                res[outp_remap.get(k, k)] = v
-            return res
-
-        self.output_group = Group(
-            outp_group_params,
-            set_cmd=ch_cmd_prefix + " " + ",".join(outp_set_elements),
-            get_cmd=ch_cmd_prefix + "?",
-            get_parser=parse_outp,
+            set_cmd=cmd_prefix + " PLRT,{}",
+            get_cmd=get_cmd,
+            get_parser=extract_outp_field("PLRT"),
         )
 
-    def _add_bswv_parameter_group(self, extra_param_set: Set[str]):
+    def _add_basic_wave_parameters(self, *, extra_params: Set[str]):
         ch_num_prefix = self._ch_num_prefix
         cmd_prefix = ch_num_prefix + "BSWV"
         cmd_prefix_len = len(cmd_prefix)
         get_cmd = ch_num_prefix + "BSWV?"
 
-        identity = lambda x: x
-
         def extract_bswv_field(
-            name: str, *, then: Callable[[str], Any] = identity, else_default=None
+            name: str, *, then: Callable[[str], Any] = _identity, else_default=None
         ) -> Callable[[str], Any]:
             def result_func(response: str):
                 response = response[cmd_prefix_len + 1 :]
@@ -125,18 +146,6 @@ class SiglentSDGChannel(SiglentChannel):
                         return then(value)
                 else:
                     return else_default
-
-            return result_func
-
-        def strip_unit(
-            unit: str, *, then: Callable[[str], Any]
-        ) -> Callable[[str], Any]:
-            len_unit = len(unit)
-
-            def result_func(value: str):
-                if value.endswith(unit):
-                    value = value[:-len_unit]
-                return then(value)
 
             return result_func
 
@@ -172,7 +181,7 @@ class SiglentSDGChannel(SiglentChannel):
             vals=Numbers(freq_ranges[0], freq_ranges[1]),
             unit="Hz",
             get_cmd=get_cmd,
-            get_parser=extract_bswv_field("FRQ", then=strip_unit("HZ", then=float)),
+            get_parser=extract_bswv_field("FRQ", then=_strip_unit("HZ", then=float)),
             set_cmd=cmd_prefix + " FRQ,{}",
         )
 
@@ -182,7 +191,7 @@ class SiglentSDGChannel(SiglentChannel):
             vals=Numbers(1 / freq_ranges[1], 1 / freq_ranges[0]),
             unit="s",
             get_cmd=get_cmd,
-            get_parser=extract_bswv_field("PERI", then=strip_unit("S", then=float)),
+            get_parser=extract_bswv_field("PERI", then=_strip_unit("S", then=float)),
             set_cmd=cmd_prefix + " PERI,{}",
         )
 
@@ -192,7 +201,7 @@ class SiglentSDGChannel(SiglentChannel):
             vals=Numbers(amp_range_vpp[0], amp_range_vpp[1]),
             unit="V",
             get_cmd=get_cmd,
-            get_parser=extract_bswv_field("AMP", then=strip_unit("V", then=float)),
+            get_parser=extract_bswv_field("AMP", then=_strip_unit("V", then=float)),
             set_cmd=cmd_prefix + " AMP,{}",
         )
 
@@ -202,7 +211,7 @@ class SiglentSDGChannel(SiglentChannel):
             vals=Numbers(amp_range_vrms[0], amp_range_vrms[1]),
             unit="V",
             get_cmd=get_cmd,
-            get_parser=extract_bswv_field("AMPRMS", then=strip_unit("V", then=float)),
+            get_parser=extract_bswv_field("AMPRMS", then=_strip_unit("V", then=float)),
             set_cmd=cmd_prefix + " AMPRMS,{}",
         )
 
@@ -212,10 +221,23 @@ class SiglentSDGChannel(SiglentChannel):
             label="Basic Wave Amplitude (dBm)",
             vals=Numbers(),
             unit="dBm",
-            #get_cmd=get_cmd,
-            #get_parser=extract_bswv_field("AMPDBM", then=strip_unit("dBm", then=float)),
+            # get_cmd=get_cmd,
+            # get_parser=extract_bswv_field("AMPDBM", then=strip_unit("dBm", then=float)),
             set_cmd=cmd_prefix + " AMPDBM,{}",
         )
+
+        if "MAX_OUTPUT_AMP" in extra_params:
+            self.add_parameter(
+                "max_output_amp",
+                label="Max output amplitude",
+                vals=Numbers(min_value=0),
+                unit="V",
+                get_cmd=get_cmd,
+                get_parser=extract_bswv_field(
+                    "MAX_OUTPUT_AMP", then=_strip_unit("V", then=float)
+                ),
+                set_cmd=cmd_prefix + " MAX_OUTPUT_AMP,{}",
+            )
 
         self.add_parameter(
             "offset",
@@ -223,7 +245,7 @@ class SiglentSDGChannel(SiglentChannel):
             vals=Numbers(range_offset[0], range_offset[1]),
             unit="V",
             get_cmd=get_cmd,
-            get_parser=extract_bswv_field("OFST", then=strip_unit("V", then=float)),
+            get_parser=extract_bswv_field("OFST", then=_strip_unit("V", then=float)),
             set_cmd=cmd_prefix + " OFST,{}",
         )
 
@@ -233,7 +255,9 @@ class SiglentSDGChannel(SiglentChannel):
             vals=Numbers(-1, 1),
             unit="V",
             get_cmd=get_cmd,
-            get_parser=extract_bswv_field("COM_OFST", then=strip_unit("V", then=float)),
+            get_parser=extract_bswv_field(
+                "COM_OFST", then=_strip_unit("V", then=float)
+            ),
             set_cmd=cmd_prefix + " COM_OFST,{}",
         )
 
@@ -243,7 +267,7 @@ class SiglentSDGChannel(SiglentChannel):
             vals=Numbers(0.0, 100.0),
             unit="%",
             get_cmd=get_cmd,
-            get_parser=extract_bswv_field("SYM", then=strip_unit("%", then=float)),
+            get_parser=extract_bswv_field("SYM", then=_strip_unit("%", then=float)),
             set_cmd=cmd_prefix + " SYM,{}",
         )
 
@@ -253,7 +277,7 @@ class SiglentSDGChannel(SiglentChannel):
             vals=Numbers(0.0, 100.0),
             unit="%",
             get_cmd=get_cmd,
-            get_parser=extract_bswv_field("DUTY", then=strip_unit("%", then=float)),
+            get_parser=extract_bswv_field("DUTY", then=_strip_unit("%", then=float)),
             set_cmd=cmd_prefix + " DUTY,{}",
         )
 
@@ -273,7 +297,7 @@ class SiglentSDGChannel(SiglentChannel):
             vals=Numbers(),
             unit="V",
             get_cmd=get_cmd,
-            get_parser=extract_bswv_field("STDEV", then=strip_unit("V", then=float)),
+            get_parser=extract_bswv_field("STDEV", then=_strip_unit("V", then=float)),
             set_cmd=cmd_prefix + " STDEV,{}",
         )
 
@@ -283,7 +307,7 @@ class SiglentSDGChannel(SiglentChannel):
             vals=Numbers(),
             unit="V",
             get_cmd=get_cmd,
-            get_parser=extract_bswv_field("MEAN", then=strip_unit("V", then=float)),
+            get_parser=extract_bswv_field("MEAN", then=_strip_unit("V", then=float)),
             set_cmd=cmd_prefix + " MEAN,{}",
         )
 
@@ -303,7 +327,7 @@ class SiglentSDGChannel(SiglentChannel):
             vals=Numbers(min_value=0.0),
             unit="s",
             get_cmd=get_cmd,
-            get_parser=extract_bswv_field("RISE", then=strip_unit("S", then=float)),
+            get_parser=extract_bswv_field("RISE", then=_strip_unit("S", then=float)),
             set_cmd=cmd_prefix + " RISE,{}",
         )
 
@@ -313,7 +337,7 @@ class SiglentSDGChannel(SiglentChannel):
             vals=Numbers(min_value=0.0),
             unit="s",
             get_cmd=get_cmd,
-            get_parser=extract_bswv_field("FALL", then=strip_unit("S", then=float)),
+            get_parser=extract_bswv_field("FALL", then=_strip_unit("S", then=float)),
             set_cmd=cmd_prefix + " FALL,{}",
         )
 
@@ -323,7 +347,7 @@ class SiglentSDGChannel(SiglentChannel):
             vals=Numbers(min_value=0.0),
             unit="s",
             get_cmd=get_cmd,
-            get_parser=extract_bswv_field("DLY", then=strip_unit("S", then=float)),
+            get_parser=extract_bswv_field("DLY", then=_strip_unit("S", then=float)),
             set_cmd=cmd_prefix + " DLY,{}",
         )
 
@@ -333,7 +357,7 @@ class SiglentSDGChannel(SiglentChannel):
             vals=Numbers(range_offset[0], range_offset[1]),
             unit="V",
             get_cmd=get_cmd,
-            get_parser=extract_bswv_field("HLEV", then=strip_unit("V", then=float)),
+            get_parser=extract_bswv_field("HLEV", then=_strip_unit("V", then=float)),
             set_cmd=cmd_prefix + " HLEV,{}",
         )
 
@@ -343,14 +367,14 @@ class SiglentSDGChannel(SiglentChannel):
             vals=Numbers(range_offset[0], range_offset[1]),
             unit="V",
             get_cmd=get_cmd,
-            get_parser=extract_bswv_field("LLEV", then=strip_unit("V", then=float)),
+            get_parser=extract_bswv_field("LLEV", then=_strip_unit("V", then=float)),
             set_cmd=cmd_prefix + " LLEV,{}",
         )
 
         self.add_parameter(
             "noise_bandwidth_enabled",
             label="Noise bandwidth enabled",
-            val_mapping = {
+            val_mapping={
                 False: "OFF",
                 True: "ON",
                 None: "",
@@ -365,14 +389,16 @@ class SiglentSDGChannel(SiglentChannel):
             label="Noise bandwidth",
             get_cmd=get_cmd,
             vals=Numbers(min_value=0),
-            get_parser=extract_bswv_field("BANDWIDTH", then=strip_unit("HZ", then=float)),
+            get_parser=extract_bswv_field(
+                "BANDWIDTH", then=_strip_unit("HZ", then=float)
+            ),
             set_cmd=cmd_prefix + " BANDWIDTH,{}",
             unit="Hz",
         )
 
         self.add_parameter(
-            "prbs_length_exp",
-            label="PRBS length is (2 ^ x - 1)",
+            "prbs_length",
+            label="PRBS length is 2^value - 1",
             vals=Ints(3, 32),
             get_cmd=get_cmd,
             get_parser=extract_bswv_field("LENGTH", then=int),
@@ -384,7 +410,7 @@ class SiglentSDGChannel(SiglentChannel):
             label="PRBS rise/fall time",
             vals=Numbers(min_value=0),
             get_cmd=get_cmd,
-            get_parser=extract_bswv_field("EDGE", then=strip_unit("S", then=float)),
+            get_parser=extract_bswv_field("EDGE", then=_strip_unit("S", then=float)),
             set_cmd=cmd_prefix + " EDGE,{}",
             unit="s",
         )
@@ -392,7 +418,7 @@ class SiglentSDGChannel(SiglentChannel):
         self.add_parameter(
             "differential_mode",
             label="Channel differential output",
-            val_mapping = {
+            val_mapping={
                 False: "SINGLE",
                 True: "DIFFERENTIAL",
             },
@@ -404,7 +430,7 @@ class SiglentSDGChannel(SiglentChannel):
         self.add_parameter(
             "prbs_differential_mode",
             label="PRBS differential mode",
-            val_mapping = {
+            val_mapping={
                 False: "OFF",
                 True: "ON",
             },
@@ -418,7 +444,9 @@ class SiglentSDGChannel(SiglentChannel):
             label="PRBS bit rate",
             vals=Numbers(min_value=0),
             get_cmd=get_cmd,
-            get_parser=extract_bswv_field("BITRATE", then=strip_unit("bps", then=float)),
+            get_parser=extract_bswv_field(
+                "BITRATE", then=_strip_unit("bps", then=float)
+            ),
             set_cmd=cmd_prefix + " BITRATE,{}",
             unit="bps",
         )
@@ -434,7 +462,7 @@ class SiglentSDGChannel(SiglentChannel):
                 "ecl": "ECL",
                 "lvpecl": "LVPECL",
                 "lvds": "LVDS",
-                #"custom": "CUSTOM",
+                # "custom": "CUSTOM",
             },
             set_cmd=cmd_prefix + " LOGICLEVEL,{}",
             get_parser=extract_bswv_field("LOGICLEVEL"),
@@ -446,8 +474,10 @@ class SiglentSDGx(SiglentSDx):
         n_channels = kwargs.pop("n_channels", None)
         channel_type = kwargs.pop("channel_type", SiglentSDGChannel)
         channel_kwargs = {}
-        if kwargs.pop("has_outp_poweron_state", False):
-            channel_kwargs["has_outp_poweron_state"] = True
+        for ch_param in ("extra_outp_params", "extra_bswv_params"):
+            if ch_param in kwargs:
+                channel_kwargs[ch_param] = kwargs.pop(ch_param)
+
         self._ranges = kwargs.pop("ranges", {})
 
         super().__init__(*args, **kwargs)
@@ -467,7 +497,8 @@ class Siglent_SDG_60xx(SiglentSDGx):
     def __init__(self, *args, **kwargs):
         default_params = {
             "n_channels": 2,
-            "has_outp_poweron_state": True,
+            "extra_outp_params": {"POWERON_STATE"},
+            "extra_bswv_params": {"MAX_OUTPUT_AMP"},
         }
         kwargs = ChainMap(kwargs, default_params)
         super().__init__(*args, **kwargs)
@@ -477,7 +508,7 @@ class Siglent_SDG_20xx(SiglentSDGx):
     def __init__(self, *args, **kwargs):
         default_params = {
             "n_channels": 2,
-            "has_outp_poweron_state": False,
+            "extra_bswv_params": {"MAX_OUTPUT_AMP"},
         }
         kwargs = ChainMap(kwargs, default_params)
         super().__init__(*args, **kwargs)
