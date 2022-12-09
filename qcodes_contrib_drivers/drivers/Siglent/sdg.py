@@ -1,7 +1,7 @@
 from collections import ChainMap
 from .sdx import SiglentSDx, SiglentChannel, InstrumentBase
 
-from qcodes.parameters import Group, GroupParameter
+from qcodes.parameters import Parameter, Group, GroupParameter
 
 from qcodes.instrument.channel import ChannelList
 
@@ -10,9 +10,11 @@ from qcodes.validators.validators import MultiTypeOr, Numbers, Ints, Enum as Enu
 from enum import Enum
 
 from itertools import takewhile
+from functools import partial
 
 from typing import (
     Any,
+    Dict,
     Optional,
     Callable,
     List,
@@ -26,6 +28,7 @@ from typing import (
 )
 
 _T = TypeVar("_T")
+_U = TypeVar("_U")
 
 
 def _identity(x: _T) -> _T:
@@ -40,11 +43,12 @@ def _iter_str_split(string: str, *, sep: str, start: int = 0) -> Iterator[str]:
     if slen := len(sep):
         last: int = start
         while (next := string.find(sep, last)) != -1:
-            yield string[last : next]
+            yield string[last:next]
             last = next + slen
         yield string[last:]
     else:
         yield from iter(string)
+
 
 def _find_first_by_key(
     search_key: str,
@@ -58,6 +62,46 @@ def _find_first_by_key(
             return transform_found(value)
     else:
         return not_found
+
+
+if False:
+
+    def _collect_by_keys(
+        search_keys: Tuple[str, ...],
+        items: Iterator[Tuple[str, str]],
+        *,
+        defaults: dict[str, str],
+    ) -> Iterator[Tuple[str, str]]:
+        missing = set(defaults.keys())
+
+        for key, value in items:
+            if key in search_keys:
+                missing.remove(key)
+                yield (key, value)
+
+        for key in missing:
+            yield key, defaults[key]
+
+    def _remap_keys(
+        items: Iterator[Tuple[_T, _U]], *, using: Dict[_T, _T]
+    ) -> Iterator[Tuple[_T, _U]]:
+        for key, value in items:
+            yield using.get(key, key), value
+
+    def _if_not_empty(
+        *, then: Callable[[str], Any], else_default: Any = None
+    ) -> Callable[[Optional[str]], Any]:
+        def result_func(response: Optional[str]) -> Any:
+            if response is None or response == "":
+                return else_default
+            else:
+                return then(response)
+
+        return result_func
+
+    def _float_to_str(value: float):
+        result = f"{value:g}"
+        return result
 
 
 def _strip_unit(suffix: str, *, then: Callable[[str], Any]) -> Callable[[str], Any]:
@@ -1116,11 +1160,13 @@ class SiglentSDGChannel(SiglentChannel):
 
                 def result_func(response: str):
                     items = _iter_str_split(response, start=result_prefix_len, sep=",")
+
                     for item in items:
                         if item == "CARR":
                             break
                     else:
                         return else_default
+
                     return _find_first_by_key(
                         name,
                         _group_by_two(items),
@@ -1129,6 +1175,29 @@ class SiglentSDGChannel(SiglentChannel):
                     )
 
             return result_func
+
+        if False:
+
+            def extract_swwv_non_carr_fields(
+                field_names: Tuple[str, ...],
+                *,
+                field_defaults: Dict[str, Any],
+                remap_field_to_param: Dict[str, str],
+            ) -> Callable[[str], Dict[str, Any]]:
+                def result_func(response: str):
+                    non_carr_items = _group_by_two(
+                        takewhile(
+                            lambda str: str != "CARR",
+                            _iter_str_split(response, start=result_prefix_len, sep=","),
+                        )
+                    )
+                    items = _collect_by_keys(
+                        field_names, non_carr_items, defaults=field_defaults
+                    )
+
+                    return dict(_remap_keys(items, using=remap_field_to_param))
+
+                return result_func
 
         freq_ranges = ranges["frequency"]
         amp_range_vpp = ranges["vpp"]
@@ -1201,7 +1270,280 @@ class SiglentSDGChannel(SiglentChannel):
                 ),
             )
 
-        # TODO...
+        # START, STOP
+
+        # the instrument does not allow setting the start value if it's above the stop value
+        def _set_sweep_start_frequency_raw_(self: SiglentSDGChannel, value: float):
+            stop_frequency_param: Parameter = self.sweep_stop_frequency
+            stop_freq = stop_frequency_param.cache.get()
+            if stop_freq is not None and stop_freq < value:
+                stop_frequency_param.cache.invalidate()
+                self.write_raw(set_cmd_ + f"STOP,{value:g}")
+            self.write_raw(set_cmd_ + f"START,{value:g}")
+
+        # the instrument does not allow setting the stop value if it's below the start value
+        def _set_sweep_stop_frequency_raw_(self: SiglentSDGChannel, value: float):
+            start_frequency_param: Parameter = self.sweep_start_frequency
+            start_freq = start_frequency_param.cache.get()
+            if start_freq is not None and start_freq > value:
+                start_frequency_param.cache.invalidate()
+                self.write_raw(set_cmd_ + f"START,{value:g}")
+            self.write_raw(set_cmd_ + f"STOP,{value:g}")
+
+        self.add_parameter(
+            "sweep_start_frequency",
+            label="Sweep start frequency",
+            vals=Numbers(freq_ranges[0], freq_ranges[1]),
+            unit="Hz",
+            set_cmd=partial(_set_sweep_start_frequency_raw_, self),
+            get_cmd=get_cmd,
+            get_parser=extract_swwv_field("START", then=_strip_unit("HZ", then=float)),
+        )
+
+        self.add_parameter(
+            "sweep_stop_frequency",
+            label="Sweep stop frequency",
+            vals=Numbers(freq_ranges[0], freq_ranges[1]),
+            unit="Hz",
+            set_cmd=partial(_set_sweep_stop_frequency_raw_, self),
+            get_cmd=get_cmd,
+            get_parser=extract_swwv_field("STOP", then=_strip_unit("HZ", then=float)),
+        )
+
+        if "CENTER" in extra_params or True:
+            self.add_parameter(
+                "sweep_center_frequency",
+                label="Sweep center frequency",
+                vals=Numbers(freq_ranges[0], freq_ranges[1]),
+                unit="Hz",
+                set_cmd=set_cmd_ + "CENTER,{}",
+                get_cmd=get_cmd,
+                get_parser=extract_swwv_field(
+                    "CENTER", then=_strip_unit("HZ", then=float)
+                ),
+            )
+
+        if "SPAN" in extra_params or True:
+            self.add_parameter(
+                "sweep_frequency_span",
+                label="Sweep frequency span",
+                vals=Numbers(0, abs(freq_ranges[1] - freq_ranges[0])),
+                unit="Hz",
+                set_cmd=set_cmd_ + "SPAN,{}",
+                get_cmd=get_cmd,
+                get_parser=extract_swwv_field(
+                    "SPAN", then=_strip_unit("HZ", then=float)
+                ),
+            )
+
+        # SWMD
+
+        self.add_parameter(
+            "sweep_mode",
+            label="Sweep mode",
+            val_mapping={
+                None: "",
+                "linear": "LINE",
+                "logarithmic": "LOG",
+                "step": "STEP",
+            },
+            set_cmd=set_cmd_ + "SWMD,{}",
+            get_cmd=get_cmd,
+            get_parser=extract_swwv_field("SWMD", else_default=""),
+        )
+
+        # DIR
+
+        self.add_parameter(
+            "sweep_direction",
+            label="Sweep direction",
+            val_mapping={
+                None: "",
+                "up": "UP",
+                "down": "DOWN",
+                "up-down": "UP_DOWN",
+            },
+            get_cmd=get_cmd,
+            get_parser=extract_swwv_field("DIR", else_default=""),
+            set_cmd=set_cmd_ + "DIR,{}",
+        )
+
+        # SYM
+
+        self.add_parameter(
+            "sweep_symmetry",
+            label="Sweep (up-down) symmetry",
+            vals=Numbers(0.0, 100.0),
+            unit="%",
+            get_cmd=get_cmd,
+            get_parser=extract_swwv_field("SYM", then=_strip_unit("%", then=float)),
+            set_cmd=set_cmd_ + "SYM,{}",
+        )
+
+        # TRSR
+
+        self.add_parameter(
+            "sweep_trigger_source",
+            label="Sweep trigger source",
+            val_mapping={
+                None: "",
+                "external": "EXT",
+                "internal": "INT",
+                "manual": "MAN",
+            },
+            get_cmd=get_cmd,
+            get_parser=extract_swwv_field("TRSR", else_default=""),
+            set_cmd=set_cmd_ + "TRSR,{}",
+        )
+
+        # MTRIG
+
+        self.add_function(
+            "sweep_trigger",
+            call_cmd = set_cmd_ + "MTRIG",
+        )
+
+        # EDGE
+
+        self.add_parameter(
+            "sweep_trigger_edge",
+            label="Sweep trigger edge",
+            val_mapping={
+                None: "",
+                "rise": "RISE",
+                "fall": "FALL",
+            },
+            get_cmd=get_cmd,
+            get_parser=extract_swwv_field("EDGE", else_default=""),
+            set_cmd=set_cmd_ + "EDGE,{}",
+        )
+
+        # CARR
+
+        CARR_WVTP_VALS = {
+            None: "",
+            "sine": "SINE",
+            "square": "SQUARE",
+            "ramp": "RAMP",
+            "arb": "ARB",
+        }
+
+        # CARR
+
+        self.add_parameter(
+            "sweep_carrier_wave_type",
+            label="Modulation carrier waveform type",
+            val_mapping=CARR_WVTP_VALS,
+            set_cmd=set_cmd_ + "CARR,WVTP,{}",
+            get_cmd=get_cmd,
+            get_parser=extract_swwv_field("CARR,WVTP", else_default=""),
+        )
+
+        self.add_parameter(
+            "sweep_carrier_frequency",
+            label="Sweep carrier frequency",
+            unit="Hz",
+            vals=Numbers(freq_ranges[0], freq_ranges[1]),
+            set_cmd=set_cmd_ + "CARR,FRQ,{}",
+            get_cmd=get_cmd,
+            get_parser=extract_swwv_field(
+                "CARR,FRQ", then=_strip_unit("HZ", then=float)
+            ),
+        )
+
+        self.add_parameter(
+            "sweep_carrier_phase",
+            label="Sweep carrier phase",
+            vals=Numbers(0.0, 360.0),
+            set_cmd=set_cmd_ + "CARR,PHSE,{}",
+            get_cmd=get_cmd,
+            get_parser=extract_swwv_field("CARR,PHSE", then=float),
+        )
+
+        self.add_parameter(
+            "sweep_carrier_amplitude",
+            label="Sweep carrier amplitude (Peak-to-peak)",
+            vals=Numbers(amp_range_vpp[0], amp_range_vpp[1]),
+            unit="V",
+            set_cmd=set_cmd_ + "CARR,AMP,{}",
+            get_cmd=get_cmd,
+            get_parser=extract_swwv_field(
+                "CARR,AMP", then=_strip_unit("V", then=float)
+            ),
+        )
+
+        self.add_parameter(
+            "sweep_carrier_amplitude_rms",
+            label="Sweep carrier amplitude (RMS)",
+            vals=Numbers(amp_range_vrms[0], amp_range_vrms[1]),
+            unit="V",
+            set_cmd=set_cmd_ + "CARR,AMPRMS,{}",
+            get_cmd=get_cmd,
+            get_parser=extract_swwv_field(
+                "CARR,AMPRMS", then=_strip_unit("V", then=float)
+            ),
+        )
+
+        self.add_parameter(
+            "sweep_carrier_offset",
+            label="Sweep carrier offset",
+            vals=Numbers(range_offset[0], range_offset[1]),
+            unit="V",
+            set_cmd=set_cmd_ + "CARR,OFST,{}",
+            get_parser=extract_swwv_field(
+                "CARR,OFST", then=_strip_unit("V", then=float)
+            ),
+            get_cmd=get_cmd,
+        )
+
+        self.add_parameter(
+            "sweep_carrier_ramp_symmetry",
+            label="Sweep carrier symmetry (Ramp)",
+            vals=Numbers(0.0, 100.0),
+            unit="%",
+            set_cmd=set_cmd_ + "CARR,SYM,{}",
+            get_cmd=get_cmd,
+            get_parser=extract_swwv_field(
+                "CARR,SYM", then=_strip_unit("%", then=float)
+            ),
+        )
+
+        self.add_parameter(
+            "sweep_carrier_duty_cycle",
+            label="Sweep carrier duty cycle (Square)",
+            vals=Numbers(0.0, 100.0),
+            unit="%",
+            set_cmd=set_cmd_ + "CARR,DUTY,{}",
+            get_cmd=get_cmd,
+            get_parser=extract_swwv_field(
+                "CARR,DUTY", then=_strip_unit("%", then=float)
+            ),
+        )
+
+        self.add_parameter(
+            "sweep_mark",
+            label="Sweep Mark (on/off)",
+            val_mapping={
+                None: "",
+                False: "OFF",
+                True: "ON",
+            },
+            set_cmd = set_cmd_ + "MARK_STATE,{}",
+            get_cmd = get_cmd,
+            get_parser = extract_swwv_field("MARK_STATE", else_default="")
+        )
+
+        self.add_parameter(
+            "sweep_mark_frequency",
+            label="Sweep mark frequency",
+            unit="Hz",
+            vals=Numbers(freq_ranges[0], freq_ranges[1]),
+            set_cmd=set_cmd_ + "MARK_FREQ,{}",
+            get_cmd=get_cmd,
+            get_parser=extract_swwv_field(
+                "MARK_FREQ", then=_strip_unit("HZ", then=float)
+            ),
+        )
 
     def _add_burst_wave_parameters(self, *, extra_params: Set[str]):
 
