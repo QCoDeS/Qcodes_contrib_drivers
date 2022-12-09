@@ -62,6 +62,10 @@ def _find_first_by_key(
         return not_found
 
 
+def _none_to_empty_str(value):
+    return "" if value is None else value
+
+
 if False:
 
     def _collect_by_keys(
@@ -141,6 +145,8 @@ class SiglentSDGChannel(SiglentChannel):
             extra_params=kwargs.pop("extra_btwv_params", set())
         )
 
+    # ---------------------------------------------------------------
+
     def _add_output_parameters(self, *, extra_params: Set[str]):
 
         ch_command = self._ch_num_prefix + "OUTP"
@@ -185,7 +191,7 @@ class SiglentSDGChannel(SiglentChannel):
         self.add_parameter(
             "load",
             label="Output load",
-            unit="Ω",
+            unit="\N{OHM SIGN}",
             vals=MultiTypeOr(Numbers(50, 1e5), EnumVals("HZ")),
             set_cmd=set_cmd_ + "LOAD,{}",
             get_cmd=get_cmd,
@@ -216,6 +222,8 @@ class SiglentSDGChannel(SiglentChannel):
             get_cmd=get_cmd,
             get_parser=extract_outp_field("PLRT"),
         )
+
+    # ---------------------------------------------------------------
 
     def _add_basic_wave_parameters(self, *, extra_params: Set[str]):
 
@@ -384,7 +392,7 @@ class SiglentSDGChannel(SiglentChannel):
             "phase",
             label="Phase",
             vals=Numbers(0.0, 360.0),
-            unit="deg",
+            unit="\N{DEGREE SIGN}",
             get_cmd=get_cmd,
             get_parser=extract_bswv_field("PHSE", then=float),
             set_cmd=set_cmd_ + "PHSE,{}",
@@ -566,6 +574,8 @@ class SiglentSDGChannel(SiglentChannel):
             set_cmd=set_cmd_ + "LOGICLEVEL,{}",
             get_parser=extract_bswv_field("LOGICLEVEL"),
         )
+
+    # ---------------------------------------------------------------
 
     def _add_modulate_wave_parameters(self, *, extra_params: Set[str]):
 
@@ -848,6 +858,7 @@ class SiglentSDGChannel(SiglentChannel):
         self.add_parameter(
             "mod_pm_deviation",
             label="PM phase deviation",
+            unit="\N{DEGREE SIGN}",
             vals=Numbers(0.0, 360.0),
             set_cmd=set_cmd_ + "PM,DEPTH,{}",
             get_cmd=get_cmd,
@@ -1015,6 +1026,7 @@ class SiglentSDGChannel(SiglentChannel):
         self.add_parameter(
             "mod_carrier_phase",
             label="Carrier phase",
+            unit="\N{DEGREE SIGN}",
             vals=Numbers(0.0, 360.0),
             set_cmd=set_cmd_ + "CARR,PHSE,{}",
             get_cmd=get_cmd,
@@ -1081,41 +1093,46 @@ class SiglentSDGChannel(SiglentChannel):
             ),
         )
 
-        self.add_parameter(
-            "mod_carrier_rise_time",
-            label="Carrier rise time (Pulse)",
-            vals=Numbers(min_value=0.0),
-            unit="s",
-            set_cmd=set_cmd_ + "CARR,RISE,{}",
-            get_cmd=get_cmd,
-            get_parser=extract_mdwv_field(
-                "CARR,RISE", then=_strip_unit("S", then=float)
-            ),
-        )
+        if "CARR,RISE" in extra_params:
+            self.add_parameter(
+                "mod_carrier_rise_time",
+                label="Carrier rise time (Pulse)",
+                vals=Numbers(min_value=0.0),
+                unit="s",
+                set_cmd=set_cmd_ + "CARR,RISE,{}",
+                get_cmd=get_cmd,
+                get_parser=extract_mdwv_field(
+                    "CARR,RISE", then=_strip_unit("S", then=float)
+                ),
+            )
 
-        self.add_parameter(
-            "mod_carrier_fall_time",
-            label="Carrier rise time (Pulse)",
-            vals=Numbers(min_value=0.0),
-            unit="s",
-            get_cmd=get_cmd,
-            get_parser=extract_mdwv_field(
-                "CARR,FALL", then=_strip_unit("S", then=float)
-            ),
-            set_cmd=set_cmd_ + "CARR,FALL,{}",
-        )
+        if "CARR,FALL" in extra_params:
+            self.add_parameter(
+                "mod_carrier_fall_time",
+                label="Carrier rise time (Pulse)",
+                vals=Numbers(min_value=0.0),
+                unit="s",
+                get_cmd=get_cmd,
+                get_parser=extract_mdwv_field(
+                    "CARR,FALL", then=_strip_unit("S", then=float)
+                ),
+                set_cmd=set_cmd_ + "CARR,FALL,{}",
+            )
 
-        self.add_parameter(
-            "mod_carrier_delay",
-            label="Carrier waveform delay (Pulse)",
-            vals=Numbers(min_value=0.0),
-            unit="s",
-            get_cmd=get_cmd,
-            set_cmd=set_cmd_ + "CARR,DLY,{}",
-            get_parser=extract_mdwv_field(
-                "CARR,DLY", then=_strip_unit("S", then=float)
-            ),
-        )
+        if "CARR,DLY" in extra_params:
+            self.add_parameter(
+                "mod_carrier_delay",
+                label="Carrier waveform delay (Pulse)",
+                vals=Numbers(min_value=0.0),
+                unit="s",
+                get_cmd=get_cmd,
+                set_cmd=set_cmd_ + "CARR,DLY,{}",
+                get_parser=extract_mdwv_field(
+                    "CARR,DLY", then=_strip_unit("S", then=float)
+                ),
+            )
+
+    # ---------------------------------------------------------------
 
     def _add_sweep_wave_parameters(self, *, extra_params: Set[str]):
 
@@ -1466,6 +1483,7 @@ class SiglentSDGChannel(SiglentChannel):
         self.add_parameter(
             "sweep_carrier_phase",
             label="Sweep carrier phase",
+            unit="\N{DEGREE SIGN}",
             vals=Numbers(0.0, 360.0),
             set_cmd=set_cmd_ + "CARR,PHSE,{}",
             get_cmd=get_cmd,
@@ -1557,6 +1575,8 @@ class SiglentSDGChannel(SiglentChannel):
             ),
         )
 
+    # ---------------------------------------------------------------
+
     def _add_burst_wave_parameters(self, *, extra_params: Set[str]):
 
         ch_command = self._ch_num_prefix + "BTWV"
@@ -1617,6 +1637,12 @@ class SiglentSDGChannel(SiglentChannel):
         amp_range_vrms = ranges["vrms"]
         range_offset = ranges["offset"]
 
+        burst_period_range = ranges["burst_period"]
+        burst_phase_range = ranges.get("burst_phase", (0.0, 360.0))
+        burst_ncycle_range = ranges["burst_ncycles"]
+
+        burst_trigger_delay_range = ranges["burst_trigger_delay"]
+
         # STATE
 
         self.add_parameter(
@@ -1631,4 +1657,311 @@ class SiglentSDGChannel(SiglentChannel):
             get_parser=extract_btwv_field("STATE"),
         )
 
-        # TODO...
+        # PRD
+
+        self.add_parameter(
+            "burst_period",
+            label="Burst period",
+            unit="s",
+            vals=Numbers(burst_period_range[0], burst_period_range[1]),
+            set_cmd=set_cmd_ + "PRD,{}",
+            get_cmd=get_cmd,
+            get_parser=extract_btwv_field("PRD", then=_strip_unit("S", then=float)),
+        )
+
+        # STPS
+
+        self.add_parameter(
+            "burst_start_phase",
+            label="Burst start phase",
+            unit="\N{DEGREE SIGN}",
+            vals=Numbers(burst_phase_range[0], burst_phase_range[1]),
+            set_cmd=set_cmd_ + "STPS,{}",
+            get_cmd=get_cmd,
+            get_parser=extract_btwv_field("STPS", then=float),
+        )
+
+        # GATE_NCYC
+
+        self.add_parameter(
+            "burst_mode",
+            label="Burst mode",
+            val_mapping={
+                None: "",
+                "gate": "GATE",
+                "ncyc": "NCYC",
+            },
+            set_cmd=set_cmd_ + "GATE_NCYC,{}",
+            get_cmd=get_cmd,
+            get_parser=extract_btwv_field("GATE_NCYC", else_default=""),
+        )
+
+        # TRSR
+
+        self.add_parameter(
+            "burst_trigger_source",
+            label="Burst trigger source",
+            val_mapping={
+                None: "",
+                "external": "EXT",
+                "internal": "INT",
+                "manual": "MAN",
+            },
+            get_cmd=get_cmd,
+            get_parser=extract_btwv_field("TRSR", else_default=""),
+            set_cmd=set_cmd_ + "TRSR,{}",
+        )
+
+        # MTRIG
+
+        self.add_function(
+            "burst_trigger",
+            call_cmd=set_cmd_ + "MTRIG",
+        )
+
+        self.add_parameter(
+            "burst_trigger_delay",
+            label="Burst trigger delay",
+            unit="s",
+            vals=Numbers(burst_trigger_delay_range[0], burst_trigger_delay_range[1]),
+            set_cmd=set_cmd_ + "DLAY,{}",
+            get_cmd=get_cmd,
+            get_parser=extract_btwv_field("DLAY", then=_strip_unit("S", then=float)),
+        )
+
+        self.add_parameter(
+            "burst_gate_polarity",
+            label="Burst gate polarity",
+            val_mapping={
+                None: "",
+                "negative": "NEG",
+                "positive": "POS",
+            },
+            set_cmd=set_cmd_ + "PLRT,{}",
+            get_cmd=get_cmd,
+            get_parser=extract_btwv_field("PLRT", else_default=""),
+        )
+
+        if "TRMD" in extra_params:
+            self.add_parameter(
+                "burst_trigger_output_mode",
+                label="(Burst) trigger output mode",
+                val_mapping={
+                    None: "",
+                    "rise": "RISE",
+                    "fall": "FALL",
+                    "off": "OFF",
+                },
+                get_cmd=get_cmd,
+                get_parser=extract_btwv_field("TRMD", else_default=""),
+                set_cmd=set_cmd_ + "TRMD,{}",
+            )
+
+        if "EDGE" in extra_params:
+
+            self.add_parameter(
+                "burst_trigger_edge",
+                label="Burst trigger edge",
+                val_mapping={
+                    None: "",
+                    "rise": "RISE",
+                    "fall": "FALL",
+                },
+                get_cmd=get_cmd,
+                get_parser=extract_btwv_field("EDGE", else_default=""),
+                set_cmd=set_cmd_ + "EDGE,{}",
+            )
+
+        # TIME
+
+        self.add_parameter(
+            "burst_ncycles",
+            label="Burst cycles",
+            vals=MultiTypeOr(
+                Ints(burst_ncycle_range[0], burst_ncycle_range[1]),
+                EnumVals("INF", None),
+            ),
+            set_parser=_none_to_empty_str,
+            set_cmd=set_cmd_ + "TIME,{}",
+            get_cmd=get_cmd,
+            get_parser=extract_btwv_field("TIME", then=int, else_default=None),
+        )
+
+        if "COUNTER" in extra_params:
+            self.add_parameter(
+                "burst_counter",
+                label="Burst counter",
+                vals=Ints(min_value=1),
+                set_parser=_none_to_empty_str,
+                set_cmd=set_cmd_ + "COUNTER,{}",
+                get_cmd=get_cmd,
+                get_parser=extract_btwv_field("COUNTER", then=int, else_default=None),
+            )
+
+        # CARR
+
+        CARR_WVTP_VALS = {
+            None: "",
+            "sine": "SINE",
+            "square": "SQUARE",
+            "ramp": "RAMP",
+            "arb": "ARB",
+            "pulse": "PULSE",
+            "noise": "NOISE",
+        }
+
+        self.add_parameter(
+            "burst_carrier_wave_type",
+            label="Burst carrier waveform type",
+            val_mapping=CARR_WVTP_VALS,
+            set_cmd=set_cmd_ + "CARR,WVTP,{}",
+            get_cmd=get_cmd,
+            get_parser=extract_btwv_field("CARR,WVTP", else_default=""),
+        )
+
+        self.add_parameter(
+            "burst_carrier_frequency",
+            label="Burst carrier frequency",
+            unit="Hz",
+            vals=Numbers(freq_ranges[0], freq_ranges[1]),
+            set_cmd=set_cmd_ + "CARR,FRQ,{}",
+            get_cmd=get_cmd,
+            get_parser=extract_btwv_field(
+                "CARR,FRQ", then=_strip_unit("HZ", then=float)
+            ),
+        )
+
+        self.add_parameter(
+            "burst_carrier_phase",
+            label="Carrier phase",
+            unit="\N{DEGREE SIGN}",
+            vals=Numbers(0.0, 360.0),
+            set_cmd=set_cmd_ + "CARR,PHSE,{}",
+            get_cmd=get_cmd,
+            get_parser=extract_btwv_field("CARR,PHSE", then=float),
+        )
+
+        self.add_parameter(
+            "burst_carrier_amplitude",
+            label="Carrier amplitude (Peak-to-peak)",
+            vals=Numbers(amp_range_vpp[0], amp_range_vpp[1]),
+            unit="V",
+            set_cmd=set_cmd_ + "CARR,AMP,{}",
+            get_cmd=get_cmd,
+            get_parser=extract_btwv_field(
+                "CARR,AMP", then=_strip_unit("V", then=float)
+            ),
+        )
+
+        self.add_parameter(
+            "burst_carrier_amplitude_rms",
+            label="Carrier amplitude (RMS)",
+            vals=Numbers(amp_range_vrms[0], amp_range_vrms[1]),
+            unit="V",
+            set_cmd=set_cmd_ + "CARR,AMPRMS,{}",
+            get_cmd=get_cmd,
+            get_parser=extract_btwv_field(
+                "CARR,AMPRMS", then=_strip_unit("V", then=float)
+            ),
+        )
+
+        self.add_parameter(
+            "burst_carrier_offset",
+            label="Carrier offset",
+            vals=Numbers(range_offset[0], range_offset[1]),
+            unit="V",
+            set_cmd=set_cmd_ + "CARR,OFST,{}",
+            get_parser=extract_btwv_field(
+                "CARR,OFST", then=_strip_unit("V", then=float)
+            ),
+            get_cmd=get_cmd,
+        )
+
+        self.add_parameter(
+            "burst_carrier_ramp_symmetry",
+            label="Carrier symmetry (Ramp)",
+            vals=Numbers(0.0, 100.0),
+            unit="%",
+            set_cmd=set_cmd_ + "CARR,SYM,{}",
+            get_cmd=get_cmd,
+            get_parser=extract_btwv_field(
+                "CARR,SYM", then=_strip_unit("%", then=float)
+            ),
+        )
+
+        self.add_parameter(
+            "burst_carrier_duty_cycle",
+            label="Carrier duty cycle (Square/Pulse)",
+            vals=Numbers(0.0, 100.0),
+            unit="%",
+            set_cmd=set_cmd_ + "CARR,DUTY,{}",
+            get_cmd=get_cmd,
+            get_parser=extract_btwv_field(
+                "CARR,DUTY", then=_strip_unit("%", then=float)
+            ),
+        )
+
+        if "CARR,RISE" in extra_params:
+            self.add_parameter(
+                "burst_carrier_rise_time",
+                label="Carrier rise time (Pulse)",
+                vals=Numbers(min_value=0.0),
+                unit="s",
+                set_cmd=set_cmd_ + "CARR,RISE,{}",
+                get_cmd=get_cmd,
+                get_parser=extract_btwv_field(
+                    "CARR,RISE", then=_strip_unit("S", then=float)
+                ),
+            )
+
+        if "CARR,FALL" in extra_params:
+            self.add_parameter(
+                "burst_carrier_fall_time",
+                label="Carrier rise time (Pulse)",
+                vals=Numbers(min_value=0.0),
+                unit="s",
+                get_cmd=get_cmd,
+                get_parser=extract_btwv_field(
+                    "CARR,FALL", then=_strip_unit("S", then=float)
+                ),
+                set_cmd=set_cmd_ + "CARR,FALL,{}",
+            )
+
+        if "CARR,DLY" in extra_params:
+            self.add_parameter(
+                "burst_carrier_delay",
+                label="Carrier waveform delay (Pulse)",
+                vals=Numbers(min_value=0.0),
+                unit="s",
+                get_cmd=get_cmd,
+                set_cmd=set_cmd_ + "CARR,DLY,{}",
+                get_parser=extract_btwv_field(
+                    "CARR,DLY", then=_strip_unit("S", then=float)
+                ),
+            )
+
+        self.add_parameter(
+            "burst_carrier_noise_std_dev",
+            label="Burst Carrier Standard deviation (Noise)",
+            vals=Numbers(),
+            unit="V",
+            get_cmd=get_cmd,
+            get_parser=extract_btwv_field(
+                "CARR,STDEV", then=_strip_unit("V", then=float)
+            ),
+            set_cmd=set_cmd_ + "CARR,STDEV,{}",
+        )
+
+        self.add_parameter(
+            "burst_carrier_noise_mean",
+            label="Burst carrier mean (Noise)",
+            vals=Numbers(),
+            unit="V",
+            get_cmd=get_cmd,
+            get_parser=extract_btwv_field(
+                "CARR,MEAN", then=_strip_unit("V", then=float)
+            ),
+            set_cmd=set_cmd_ + "CARR,MEAN,{}",
+        )
+
+    # ---------------------------------------------------------------

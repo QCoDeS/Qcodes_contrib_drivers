@@ -42,7 +42,9 @@ class Siglent_SDG_60xx(SiglentSDGx):
             "n_channels": 2,
             "extra_outp_params": {"POWERON_STATE"},
             "extra_bswv_params": {"MAX_OUTPUT_AMP"},
+            "extra_mdwv_params": {"CARR,DLY", "CARR,RISE", "CARR,FALL"},
             "extra_swwv_params": {"TRMD", "EDGE"},
+            "extra_btwv_params": {"TRMD", "EDGE", "COUNTER", "CARR,DLY", "CARR,RISE", "CARR,FALL"},
         }
         kwargs = ChainMap(kwargs, default_params)
         super().__init__(*args, **kwargs)
@@ -53,6 +55,9 @@ class Siglent_SDG_20xx(SiglentSDGx):
         default_params = {
             "n_channels": 2,
             "extra_bswv_params": {"MAX_OUTPUT_AMP"},
+            "extra_mdwv_params": {"CARR,DLY", "CARR,RISE", "CARR,FALL"},
+            "extra_swwv_params": {"TRMD", "EDGE"},
+            "extra_btwv_params": {"TRMD", "EDGE", "CARR,DLY", "CARR,RISE", "CARR,FALL"},
         }
         kwargs = ChainMap(kwargs, default_params)
         super().__init__(*args, **kwargs)
@@ -65,8 +70,11 @@ class Siglent_SDG_6022X(Siglent_SDG_60xx):
             "vpp": (2e-3, 20.0),
             "vrms": (2e-3, 10.0),
             "offset": (-10, 10),
+            "burst_period": (1.0e-6, 1000.0),
+            "burst_phase": (-360.0, 360.0),
+            "burst_ncycles": (1,1000000),
+            "burst_trigger_delay": (0, 100),
         }
-
         kwargs = ChainMap(kwargs, {"ranges": ranges})
         super().__init__(*args, **kwargs)
 
@@ -78,6 +86,10 @@ class Siglent_SDG_2042X(Siglent_SDG_20xx):
             "vpp": (2e-3, 20.0),
             "vrms": (2e-3, 10.0),
             "offset": (-10, 10),
+            "burst_period": (1.0e-6, 1000.0),
+            "burst_phase": (-360.0, 360.0),
+            "burst_ncycles": (1,1000000),
+            "burst_trigger_delay": (0, 100),
         }
 
         kwargs = ChainMap(kwargs, {"ranges": ranges})
