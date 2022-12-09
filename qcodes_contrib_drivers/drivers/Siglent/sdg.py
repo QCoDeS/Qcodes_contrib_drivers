@@ -1400,23 +1400,37 @@ class SiglentSDGChannel(SiglentChannel):
 
         self.add_function(
             "sweep_trigger",
-            call_cmd = set_cmd_ + "MTRIG",
+            call_cmd=set_cmd_ + "MTRIG",
         )
 
-        # EDGE
+        if "TRMD" in extra_params:
+            self.add_parameter(
+                "sweep_trigger_output",
+                label="(Sweep) state of trigger output",
+                val_mapping={
+                    None: "",
+                    True: "ON",
+                    False: "OFF",
+                },
+                get_cmd=get_cmd,
+                get_parser=extract_swwv_field("TRMD", else_default=""),
+                set_cmd=set_cmd_ + "TRMD,{}",
+            )
 
-        self.add_parameter(
-            "sweep_trigger_edge",
-            label="Sweep trigger edge",
-            val_mapping={
-                None: "",
-                "rise": "RISE",
-                "fall": "FALL",
-            },
-            get_cmd=get_cmd,
-            get_parser=extract_swwv_field("EDGE", else_default=""),
-            set_cmd=set_cmd_ + "EDGE,{}",
-        )
+        if "EDGE" in extra_params:
+
+            self.add_parameter(
+                "sweep_trigger_edge",
+                label="Sweep trigger edge",
+                val_mapping={
+                    None: "",
+                    "rise": "RISE",
+                    "fall": "FALL",
+                },
+                get_cmd=get_cmd,
+                get_parser=extract_swwv_field("EDGE", else_default=""),
+                set_cmd=set_cmd_ + "EDGE,{}",
+            )
 
         # CARR
 
@@ -1528,9 +1542,9 @@ class SiglentSDGChannel(SiglentChannel):
                 False: "OFF",
                 True: "ON",
             },
-            set_cmd = set_cmd_ + "MARK_STATE,{}",
-            get_cmd = get_cmd,
-            get_parser = extract_swwv_field("MARK_STATE", else_default="")
+            set_cmd=set_cmd_ + "MARK_STATE,{}",
+            get_cmd=get_cmd,
+            get_parser=extract_swwv_field("MARK_STATE", else_default=""),
         )
 
         self.add_parameter(
@@ -1627,7 +1641,13 @@ class SiglentSDGx(SiglentSDx):
         n_channels = kwargs.pop("n_channels", None)
         channel_type = kwargs.pop("channel_type", SiglentSDGChannel)
         channel_kwargs = {}
-        for ch_param in ("extra_outp_params", "extra_bswv_params"):
+        for ch_param in (
+            "extra_outp_params",
+            "extra_bswv_params",
+            "extra_mdwv_params",
+            "extra_swwv_params",
+            "extra_btwv_params",
+        ):
             if ch_param in kwargs:
                 channel_kwargs[ch_param] = kwargs.pop(ch_param)
 
@@ -1652,6 +1672,7 @@ class Siglent_SDG_60xx(SiglentSDGx):
             "n_channels": 2,
             "extra_outp_params": {"POWERON_STATE"},
             "extra_bswv_params": {"MAX_OUTPUT_AMP"},
+            "extra_swwv_params": {"TRMD", "EDGE"},
         }
         kwargs = ChainMap(kwargs, default_params)
         super().__init__(*args, **kwargs)
