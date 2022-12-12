@@ -11,7 +11,8 @@ name = "qcodes_contrib_drivers"
 description = "User contributed drivers for QCoDeS"
 classifiers = [ "Development Status :: 3 - Alpha", "Intended Audience :: Science/Research", "License :: OSI Approved :: MIT License", "License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)", "Programming Language :: Python :: 3 :: Only", "Programming Language :: Python :: 3.8", "Programming Language :: Python :: 3.9", "Programming Language :: Python :: 3.10", "Topic :: Scientific/Engineering",]
 requires-python = ">=3.8"
-dependencies = [ "qcodes>=0.33.0", "versioningit>=1.1.0",]
+# Some drivers are making use of legacy versions removed in packaging 22.0
+dependencies = [ "qcodes>=0.33.0", "versioningit>=1.1.0", "packaging<22.0"]
 dynamic = [ "version",]
 
 [[project.maintainers]]
