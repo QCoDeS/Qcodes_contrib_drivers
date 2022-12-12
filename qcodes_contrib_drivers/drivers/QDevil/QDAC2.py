@@ -10,7 +10,7 @@ from typing import NewType, Tuple, Sequence, List, Dict, Optional
 from packaging.version import Version, parse
 import abc
 
-# Version 1.1.2
+# Version 1.2.0
 #
 # Guiding principles for this driver for QDevil QDAC-II
 # -----------------------------------------------------
@@ -539,7 +539,7 @@ class _Waveform_Context(_Channel_Context):
     def _period_start_marker(self, wave_kind: str) -> QDac2Trigger_Context:
         if not self._marker_period_start:
             self._marker_period_start = self.allocate_trigger()
-        self._write_channel(f'sour{"{0}"}:{wave_kind}:mark:pst {self._marker_period_start.value}')
+        self._write_channel(f'sour{"{0}"}:{wave_kind}:mark:pstart {self._marker_period_start.value}')
         return self._marker_period_start
 
     def _make_ready_to_start(self, wave_kind: str) -> None:

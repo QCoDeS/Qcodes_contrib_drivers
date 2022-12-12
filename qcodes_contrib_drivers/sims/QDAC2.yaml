@@ -515,7 +515,7 @@ devices:
           square_mark_pstart:
             default: 1
             setter:
-              q: "sour{ch_id}:squ:mark:pst {}"
+              q: "sour{ch_id}:squ:mark:pstart {}"
             specs:
               valid: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
               type: int
@@ -550,7 +550,7 @@ devices:
           sine_mark_pstart:
             default: 1
             setter:
-              q: "sour{ch_id}:sine:mark:pst {}"
+              q: "sour{ch_id}:sine:mark:pstart {}"
             specs:
               valid: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
               type: int
@@ -585,7 +585,7 @@ devices:
           triangle_mark_pstart:
             default: 1
             setter:
-              q: "sour{ch_id}:tri:mark:pst {}"
+              q: "sour{ch_id}:tri:mark:pstart {}"
             specs:
               valid: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
               type: int
@@ -620,7 +620,7 @@ devices:
           awg_mark_pstart:
             default: 1
             setter:
-              q: "sour{ch_id}:awg:mark:pst {}"
+              q: "sour{ch_id}:awg:mark:pstart {}"
             specs:
               valid: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
               type: int

@@ -210,7 +210,7 @@ def test_sine_period_start_trigger_alloc(qdac):  # noqa
     trigger = sine.period_start_marker()
     # -----------------------------------------------------------------------
     assert qdac.get_recorded_scpi_commands() == [
-        f'sour1:sine:mark:pst {trigger.value}'
+        f'sour1:sine:mark:pstart {trigger.value}'
     ]
 
 
@@ -224,7 +224,7 @@ def test_sine_period_start_trigger_reuse(qdac):  # noqa
     # -----------------------------------------------------------------------
     assert trigger2 == trigger
     assert qdac.get_recorded_scpi_commands() == [
-        f'sour1:sine:mark:pst {trigger.value}'
+        f'sour1:sine:mark:pstart {trigger.value}'
     ]
 
 

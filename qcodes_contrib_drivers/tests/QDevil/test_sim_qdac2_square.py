@@ -265,7 +265,7 @@ def test_square_period_start_trigger_alloc(qdac):  # noqa
     trigger = square.period_start_marker()
     # -----------------------------------------------------------------------
     assert qdac.get_recorded_scpi_commands() == [
-        f'sour1:squ:mark:pst {trigger.value}'
+        f'sour1:squ:mark:pstart {trigger.value}'
     ]
 
 
@@ -279,7 +279,7 @@ def test_square_period_start_trigger_reuse(qdac):  # noqa
     # -----------------------------------------------------------------------
     assert trigger2 == trigger
     assert qdac.get_recorded_scpi_commands() == [
-        f'sour1:squ:mark:pst {trigger.value}'
+        f'sour1:squ:mark:pstart {trigger.value}'
     ]
 
 
