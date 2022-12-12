@@ -9,9 +9,9 @@ devices:
     error: "-113, \"Undefined header\""
     dialogues:
       - q: "*IDN?"
-        r: "QDevil, QDAC-II, A001234, 4-0.9.20"
+        r: "QDevil, QDAC-II, A001234, 7-0.17.5"
       - q: "*idn?"
-        r: "QDevil, QDAC-II, A001234, 4-0.9.20"
+        r: "QDevil, QDAC-II, A001234, 7-0.17.5"
       - q: "syst:comm:lan:mac?"
         r: "\"049162C01016\""
       - q: "syst:err:all?"

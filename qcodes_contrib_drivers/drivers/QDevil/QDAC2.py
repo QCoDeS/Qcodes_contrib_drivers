@@ -7,7 +7,7 @@ from qcodes.instrument.visa import VisaInstrument
 from pyvisa.errors import VisaIOError
 from qcodes.utils import validators
 from typing import NewType, Tuple, Sequence, List, Dict, Optional
-from packaging.version import parse
+from packaging.version import Version, parse
 import abc
 
 # Version 1.1.2
@@ -76,6 +76,10 @@ def diff_matrix(initial: Sequence[float],
     """
     matrix = np.asarray(measurements)
     return matrix - np.asarray(list(itertools.repeat(initial, matrix.shape[1])))
+
+
+def split_version_string_into_components(version: str) -> List[str]:
+    return version.split('-')
 
 
 """External input trigger
@@ -2379,8 +2383,9 @@ class QDac2(VisaInstrument):
                              ' driver for your instrument?')
 
     def _check_for_incompatiable_firmware(self) -> None:
-        least_compatible_fw = '3-0.9.16'
-        firmware = self.IDN()['firmware']
+        # Only compare the firmware, not the FPGA version
+        firmware = split_version_string_into_components(self.IDN()['firmware'])[1]
+        least_compatible_fw = '0.17.5'
         if parse(firmware) < parse(least_compatible_fw):
             raise ValueError(f'Incompatible firmware {firmware}. You need at '
                              f'least {least_compatible_fw}')
