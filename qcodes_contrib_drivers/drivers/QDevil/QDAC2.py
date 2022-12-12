@@ -2385,7 +2385,7 @@ class QDac2(VisaInstrument):
     def _check_for_incompatiable_firmware(self) -> None:
         # Only compare the firmware, not the FPGA version
         firmware = split_version_string_into_components(self.IDN()['firmware'])[1]
-        least_compatible_fw = '0.17.5'
+        least_compatible_fw = '1.14'
         if parse(firmware) < parse(least_compatible_fw):
             raise ValueError(f'Incompatible firmware {firmware}. You need at '
                              f'least {least_compatible_fw}')
