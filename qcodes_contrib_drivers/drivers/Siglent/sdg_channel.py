@@ -24,9 +24,7 @@ from qcodes.validators.validators import Ints, MultiTypeOr, Numbers
 
 from .sdx import SiglentChannel, SiglentSDx
 
-
 _T = TypeVar("_T")
-_U = TypeVar("_U")
 
 
 def _identity(x: _T) -> _T:
@@ -64,46 +62,6 @@ def _find_first_by_key(
 
 def _none_to_empty_str(value):
     return "" if value is None else value
-
-
-if False:
-
-    def _collect_by_keys(
-        search_keys: Tuple[str, ...],
-        items: Iterator[Tuple[str, str]],
-        *,
-        defaults: dict[str, str],
-    ) -> Iterator[Tuple[str, str]]:
-        missing = set(defaults.keys())
-
-        for key, value in items:
-            if key in search_keys:
-                missing.remove(key)
-                yield (key, value)
-
-        for key in missing:
-            yield key, defaults[key]
-
-    def _remap_keys(
-        items: Iterator[Tuple[_T, _U]], *, using: Dict[_T, _T]
-    ) -> Iterator[Tuple[_T, _U]]:
-        for key, value in items:
-            yield using.get(key, key), value
-
-    def _if_not_empty(
-        *, then: Callable[[str], Any], else_default: Any = None
-    ) -> Callable[[Optional[str]], Any]:
-        def result_func(response: Optional[str]) -> Any:
-            if response is None or response == "":
-                return else_default
-            else:
-                return then(response)
-
-        return result_func
-
-    def _float_to_str(value: float):
-        result = f"{value:g}"
-        return result
 
 
 def _strip_unit(suffix: str, *, then: Callable[[str], Any]) -> Callable[[str], Any]:
@@ -572,7 +530,8 @@ class SiglentSDGChannel(SiglentChannel):
                 # "custom": "CUSTOM",
             },
             set_cmd=set_cmd_ + "LOGICLEVEL,{}",
-            get_parser=extract_bswv_field("LOGICLEVEL"),
+            #get_cmd=get_cmd,
+            #get_parser=extract_bswv_field("LOGICLEVEL", else_default=""),
         )
 
     # ---------------------------------------------------------------
@@ -1013,7 +972,7 @@ class SiglentSDGChannel(SiglentChannel):
 
         self.add_parameter(
             "mod_carrier_frequency",
-            label="Carrier frequency",
+            label="Modulation carrier frequency",
             unit="Hz",
             vals=Numbers(freq_ranges[0], freq_ranges[1]),
             set_cmd=set_cmd_ + "CARR,FRQ,{}",
@@ -1025,7 +984,7 @@ class SiglentSDGChannel(SiglentChannel):
 
         self.add_parameter(
             "mod_carrier_phase",
-            label="Carrier phase",
+            label="Modulation carrier phase",
             unit="\N{DEGREE SIGN}",
             vals=Numbers(0.0, 360.0),
             set_cmd=set_cmd_ + "CARR,PHSE,{}",
@@ -1035,7 +994,7 @@ class SiglentSDGChannel(SiglentChannel):
 
         self.add_parameter(
             "mod_carrier_amplitude",
-            label="Carrier amplitude (Peak-to-peak)",
+            label="Modulation carrier amplitude (Peak-to-peak)",
             vals=Numbers(amp_range_vpp[0], amp_range_vpp[1]),
             unit="V",
             set_cmd=set_cmd_ + "CARR,AMP,{}",
@@ -1047,7 +1006,7 @@ class SiglentSDGChannel(SiglentChannel):
 
         self.add_parameter(
             "mod_carrier_amplitude_rms",
-            label="Carrier amplitude (RMS)",
+            label="Modulation carrier amplitude (RMS)",
             vals=Numbers(amp_range_vrms[0], amp_range_vrms[1]),
             unit="V",
             set_cmd=set_cmd_ + "CARR,AMPRMS,{}",
@@ -1059,7 +1018,7 @@ class SiglentSDGChannel(SiglentChannel):
 
         self.add_parameter(
             "mod_carrier_offset",
-            label="Carrier offset",
+            label="Modulation carrier offset",
             vals=Numbers(range_offset[0], range_offset[1]),
             unit="V",
             set_cmd=set_cmd_ + "CARR,OFST,{}",
@@ -1071,7 +1030,7 @@ class SiglentSDGChannel(SiglentChannel):
 
         self.add_parameter(
             "mod_carrier_ramp_symmetry",
-            label="Carrier symmetry (Ramp)",
+            label="Modulation carrier symmetry (Ramp)",
             vals=Numbers(0.0, 100.0),
             unit="%",
             set_cmd=set_cmd_ + "CARR,SYM,{}",
@@ -1083,7 +1042,7 @@ class SiglentSDGChannel(SiglentChannel):
 
         self.add_parameter(
             "mod_carrier_duty_cycle",
-            label="Carrier duty cycle (Square/Pulse)",
+            label="Modulation carrier duty cycle (Square/Pulse)",
             vals=Numbers(0.0, 100.0),
             unit="%",
             set_cmd=set_cmd_ + "CARR,DUTY,{}",
@@ -1096,7 +1055,7 @@ class SiglentSDGChannel(SiglentChannel):
         if "CARR,RISE" in extra_params:
             self.add_parameter(
                 "mod_carrier_rise_time",
-                label="Carrier rise time (Pulse)",
+                label="Modulation carrier rise time (Pulse)",
                 vals=Numbers(min_value=0.0),
                 unit="s",
                 set_cmd=set_cmd_ + "CARR,RISE,{}",
@@ -1109,7 +1068,7 @@ class SiglentSDGChannel(SiglentChannel):
         if "CARR,FALL" in extra_params:
             self.add_parameter(
                 "mod_carrier_fall_time",
-                label="Carrier rise time (Pulse)",
+                label="Modulation carrier rise time (Pulse)",
                 vals=Numbers(min_value=0.0),
                 unit="s",
                 get_cmd=get_cmd,
@@ -1122,7 +1081,7 @@ class SiglentSDGChannel(SiglentChannel):
         if "CARR,DLY" in extra_params:
             self.add_parameter(
                 "mod_carrier_delay",
-                label="Carrier waveform delay (Pulse)",
+                label="Modulation carrier carrier waveform delay (Pulse)",
                 vals=Numbers(min_value=0.0),
                 unit="s",
                 get_cmd=get_cmd,
@@ -1190,29 +1149,6 @@ class SiglentSDGChannel(SiglentChannel):
                     )
 
             return result_func
-
-        if False:
-
-            def extract_swwv_non_carr_fields(
-                field_names: Tuple[str, ...],
-                *,
-                field_defaults: Dict[str, Any],
-                remap_field_to_param: Dict[str, str],
-            ) -> Callable[[str], Dict[str, Any]]:
-                def result_func(response: str):
-                    non_carr_items = _group_by_two(
-                        takewhile(
-                            lambda str: str != "CARR",
-                            _iter_str_split(response, start=result_prefix_len, sep=","),
-                        )
-                    )
-                    items = _collect_by_keys(
-                        field_names, non_carr_items, defaults=field_defaults
-                    )
-
-                    return dict(_remap_keys(items, using=remap_field_to_param))
-
-                return result_func
 
         freq_ranges = ranges["frequency"]
         amp_range_vpp = ranges["vpp"]
@@ -1833,7 +1769,7 @@ class SiglentSDGChannel(SiglentChannel):
 
         self.add_parameter(
             "burst_carrier_phase",
-            label="Carrier phase",
+            label="Burst carrier phase",
             unit="\N{DEGREE SIGN}",
             vals=Numbers(0.0, 360.0),
             set_cmd=set_cmd_ + "CARR,PHSE,{}",
@@ -1843,7 +1779,7 @@ class SiglentSDGChannel(SiglentChannel):
 
         self.add_parameter(
             "burst_carrier_amplitude",
-            label="Carrier amplitude (Peak-to-peak)",
+            label="Burst carrier amplitude (Peak-to-peak)",
             vals=Numbers(amp_range_vpp[0], amp_range_vpp[1]),
             unit="V",
             set_cmd=set_cmd_ + "CARR,AMP,{}",
@@ -1855,7 +1791,7 @@ class SiglentSDGChannel(SiglentChannel):
 
         self.add_parameter(
             "burst_carrier_amplitude_rms",
-            label="Carrier amplitude (RMS)",
+            label="Burst carrier amplitude (RMS)",
             vals=Numbers(amp_range_vrms[0], amp_range_vrms[1]),
             unit="V",
             set_cmd=set_cmd_ + "CARR,AMPRMS,{}",
@@ -1867,7 +1803,7 @@ class SiglentSDGChannel(SiglentChannel):
 
         self.add_parameter(
             "burst_carrier_offset",
-            label="Carrier offset",
+            label="Burst carrier offset",
             vals=Numbers(range_offset[0], range_offset[1]),
             unit="V",
             set_cmd=set_cmd_ + "CARR,OFST,{}",
@@ -1879,7 +1815,7 @@ class SiglentSDGChannel(SiglentChannel):
 
         self.add_parameter(
             "burst_carrier_ramp_symmetry",
-            label="Carrier symmetry (Ramp)",
+            label="Burst carrier symmetry (Ramp)",
             vals=Numbers(0.0, 100.0),
             unit="%",
             set_cmd=set_cmd_ + "CARR,SYM,{}",
@@ -1891,7 +1827,7 @@ class SiglentSDGChannel(SiglentChannel):
 
         self.add_parameter(
             "burst_carrier_duty_cycle",
-            label="Carrier duty cycle (Square/Pulse)",
+            label="Burst carrier duty cycle (Square/Pulse)",
             vals=Numbers(0.0, 100.0),
             unit="%",
             set_cmd=set_cmd_ + "CARR,DUTY,{}",
@@ -1904,7 +1840,7 @@ class SiglentSDGChannel(SiglentChannel):
         if "CARR,RISE" in extra_params:
             self.add_parameter(
                 "burst_carrier_rise_time",
-                label="Carrier rise time (Pulse)",
+                label="Burst carrier rise time (Pulse)",
                 vals=Numbers(min_value=0.0),
                 unit="s",
                 set_cmd=set_cmd_ + "CARR,RISE,{}",
@@ -1917,7 +1853,7 @@ class SiglentSDGChannel(SiglentChannel):
         if "CARR,FALL" in extra_params:
             self.add_parameter(
                 "burst_carrier_fall_time",
-                label="Carrier rise time (Pulse)",
+                label="Burst carrier rise time (Pulse)",
                 vals=Numbers(min_value=0.0),
                 unit="s",
                 get_cmd=get_cmd,
@@ -1930,7 +1866,7 @@ class SiglentSDGChannel(SiglentChannel):
         if "CARR,DLY" in extra_params:
             self.add_parameter(
                 "burst_carrier_delay",
-                label="Carrier waveform delay (Pulse)",
+                label="Burst carrier waveform delay (Pulse)",
                 vals=Numbers(min_value=0.0),
                 unit="s",
                 get_cmd=get_cmd,
@@ -1942,7 +1878,7 @@ class SiglentSDGChannel(SiglentChannel):
 
         self.add_parameter(
             "burst_carrier_noise_std_dev",
-            label="Burst Carrier Standard deviation (Noise)",
+            label="Burst carrier standard deviation (Noise)",
             vals=Numbers(),
             unit="V",
             get_cmd=get_cmd,
