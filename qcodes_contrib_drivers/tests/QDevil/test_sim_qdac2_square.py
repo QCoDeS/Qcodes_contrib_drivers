@@ -11,7 +11,7 @@ def test_square_ambiguous(qdac):  # noqa
     assert 'frequency_Hz or period_s can be specified' in repr(error)
 
 
-def test_square_default_vaules(qdac):  # noqa
+def test_square_default_values(qdac):  # noqa
     # -----------------------------------------------------------------------
     qdac.ch24.square_wave()
     # -----------------------------------------------------------------------
@@ -24,6 +24,7 @@ def test_square_default_vaules(qdac):  # noqa
         'sour24:squ:span 0.2',
         'sour24:squ:offs 0.0',
         'sour24:squ:slew inf',
+        'sour24:squ:del 0',
         'sour24:squ:coun -1',
         'sour24:squ:trig:sour bus',
         'sour24:squ:init:cont on',
@@ -40,6 +41,7 @@ def test_square_period(qdac):  # noqa
         offset_V=-0.1,
         kind='positive',
         duty_cycle_percent=99,
+        delay_s=0.02,
         slew_V_s=2
     )
     # -----------------------------------------------------------------------
@@ -52,6 +54,7 @@ def test_square_period(qdac):  # noqa
         'sour24:squ:span 1',
         'sour24:squ:offs -0.1',
         'sour24:squ:slew 2',
+        'sour24:squ:del 0.02',
         'sour24:squ:coun -1',
         'sour24:squ:trig:sour bus',
         'sour24:squ:init:cont on',
@@ -72,6 +75,7 @@ def test_square_slew(qdac):  # noqa
         'sour24:squ:span 0.2',
         'sour24:squ:offs 0.0',
         'sour24:squ:slew 0.1',
+        'sour24:squ:del 0',
         'sour24:squ:coun -1',
         'sour24:squ:trig:sour bus',
         'sour24:squ:init:cont on',
@@ -98,6 +102,7 @@ def test_square_negative(qdac):  # noqa
         'sour24:squ:span 5',
         'sour24:squ:offs 0.0',
         'sour24:squ:slew inf',
+        'sour24:squ:del 0',
         'sour24:squ:coun 10',
         'sour24:squ:trig:sour bus',
         'sour24:squ:init:cont on',
@@ -118,6 +123,7 @@ def test_square_frequency(qdac):  # noqa
         'sour24:squ:span 0.2',
         'sour24:squ:offs 0.0',
         'sour24:squ:slew inf',
+        'sour24:squ:del 0',
         'sour24:squ:coun -1',
         'sour24:squ:trig:sour bus',
         'sour24:squ:init:cont on',
@@ -158,7 +164,7 @@ def test_square_remaining(qdac):  # noqa
 
 
 def test_square_end_marker_alloc(qdac):  # noqa
-    qdac._set_up_internal_triggers()
+    qdac.free_all_triggers()
     square = qdac.ch01.square_wave(frequency_Hz=1000)
     qdac.start_recording_scpi()
     # -----------------------------------------------------------------------
@@ -170,7 +176,7 @@ def test_square_end_marker_alloc(qdac):  # noqa
 
 
 def test_square_end_marker_reuse(qdac):  # noqa
-    qdac._set_up_internal_triggers()
+    qdac.free_all_triggers()
     square = qdac.ch01.square_wave(frequency_Hz=1000)
     trigger = square.end_marker()
     qdac.start_recording_scpi()
@@ -184,7 +190,7 @@ def test_square_end_marker_reuse(qdac):  # noqa
 
 
 def test_square_start_marker_alloc(qdac):  # noqa
-    qdac._set_up_internal_triggers()
+    qdac.free_all_triggers()
     square = qdac.ch01.square_wave(frequency_Hz=1000)
     qdac.start_recording_scpi()
     # -----------------------------------------------------------------------
@@ -196,7 +202,7 @@ def test_square_start_marker_alloc(qdac):  # noqa
 
 
 def test_square_start_marker_reuse(qdac):  # noqa
-    qdac._set_up_internal_triggers()
+    qdac.free_all_triggers()
     square = qdac.ch01.square_wave(frequency_Hz=1000)
     trigger = square.start_marker()
     qdac.start_recording_scpi()
@@ -210,7 +216,7 @@ def test_square_start_marker_reuse(qdac):  # noqa
 
 
 def test_square_start_trigger_fires(qdac):  # noqa
-    qdac._set_up_internal_triggers()
+    qdac.free_all_triggers()
     square = qdac.ch01.square_wave(frequency_Hz=1000)
     trigger = qdac.allocate_trigger()
     square.start_on(trigger)
@@ -226,7 +232,7 @@ def test_square_start_trigger_fires(qdac):  # noqa
 
 
 def test_square_period_end_trigger_alloc(qdac):  # noqa
-    qdac._set_up_internal_triggers()
+    qdac.free_all_triggers()
     square = qdac.ch01.square_wave(frequency_Hz=1000)
     qdac.start_recording_scpi()
     # -----------------------------------------------------------------------
@@ -238,7 +244,7 @@ def test_square_period_end_trigger_alloc(qdac):  # noqa
 
 
 def test_square_period_end_trigger_reuse(qdac):  # noqa
-    qdac._set_up_internal_triggers()
+    qdac.free_all_triggers()
     square = qdac.ch01.square_wave(frequency_Hz=1000)
     trigger = square.period_end_marker()
     qdac.start_recording_scpi()
@@ -252,19 +258,19 @@ def test_square_period_end_trigger_reuse(qdac):  # noqa
 
 
 def test_square_period_start_trigger_alloc(qdac):  # noqa
-    qdac._set_up_internal_triggers()
+    qdac.free_all_triggers()
     square = qdac.ch01.square_wave(frequency_Hz=1000)
     qdac.start_recording_scpi()
     # -----------------------------------------------------------------------
     trigger = square.period_start_marker()
     # -----------------------------------------------------------------------
     assert qdac.get_recorded_scpi_commands() == [
-        f'sour1:squ:mark:pst {trigger.value}'
+        f'sour1:squ:mark:pstart {trigger.value}'
     ]
 
 
 def test_square_period_start_trigger_reuse(qdac):  # noqa
-    qdac._set_up_internal_triggers()
+    qdac.free_all_triggers()
     square = qdac.ch01.square_wave(frequency_Hz=1000)
     trigger = square.period_start_marker()
     qdac.start_recording_scpi()
@@ -273,7 +279,7 @@ def test_square_period_start_trigger_reuse(qdac):  # noqa
     # -----------------------------------------------------------------------
     assert trigger2 == trigger
     assert qdac.get_recorded_scpi_commands() == [
-        f'sour1:squ:mark:pst {trigger.value}'
+        f'sour1:squ:mark:pstart {trigger.value}'
     ]
 
 
