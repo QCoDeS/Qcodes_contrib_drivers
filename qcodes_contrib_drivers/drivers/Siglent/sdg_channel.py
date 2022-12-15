@@ -1,6 +1,7 @@
 from collections import ChainMap
 from enum import Enum
 from functools import partial
+import functools
 from itertools import takewhile
 from typing import (
     Any,
@@ -22,58 +23,22 @@ from qcodes.parameters import Group, GroupParameter, Parameter
 from qcodes.validators.validators import Enum as EnumVals
 from qcodes.validators.validators import Ints, MultiTypeOr, Numbers
 
+from qcodes.parameters import create_on_off_val_mapping as _create_on_off_val_mapping
+
 from .sdx import SiglentChannel, SiglentSDx
 
-_T = TypeVar("_T")
+from . import _sdg_response_fields as _fields
+
+_substr_from = _fields.substr_from
+_strip_unit = _fields.strip_unit
+_merge_dicts = _fields.merge_dicts
+_none_to_empty_str = _fields.none_to_empty_str
+
+_on_off_val_mapping = _create_on_off_val_mapping(on_val="ON", off_val="OFF")
 
 
-def _identity(x: _T) -> _T:
-    return x
-
-
-def _group_by_two(list_: Iterable[_T]) -> Iterator[Tuple[_T, _T]]:
-    return zip(*2 * (iter(list_),))
-
-
-def _iter_str_split(string: str, *, sep: str, start: int = 0) -> Iterator[str]:
-    if slen := len(sep):
-        last: int = start
-        while (next := string.find(sep, last)) != -1:
-            yield string[last:next]
-            last = next + slen
-        yield string[last:]
-    else:
-        yield from iter(string)
-
-
-def _find_first_by_key(
-    search_key: str,
-    items: Iterator[Tuple[str, str]],
-    *,
-    transform_found: Callable[[str], Any] = _identity,
-    not_found=None,
-) -> Any:
-    for k, value in items:
-        if k == search_key:
-            return transform_found(value)
-    else:
-        return not_found
-
-
-def _none_to_empty_str(value):
-    return "" if value is None else value
-
-
-def _strip_unit(suffix: str, *, then: Callable[[str], Any]) -> Callable[[str], Any]:
-    return lambda value: then(value.removesuffix(suffix))
-
-
-def _merge_dicts(*dicts: dict) -> dict:
-    dest = dict()
-    for src in dicts:
-        for k, v in src.items():
-            dest[k] = v
-    return dest
+def _add_none_to_empty_val_mapping(*val_mappings: Dict) -> Dict:
+    return _merge_dicts(*val_mappings, {None: ""})
 
 
 class SiglentSDGChannel(SiglentChannel):
@@ -103,6 +68,16 @@ class SiglentSDGChannel(SiglentChannel):
             extra_params=kwargs.pop("extra_btwv_params", set())
         )
 
+        self._add_parameter_copy_function(
+            channel_number=channel_number, n_channels=kwargs.get("n_channels", 2)
+        )
+
+        self._add_arbitrary_wave_parameters()
+
+        self._add_sync_parameters(n_channels=kwargs.get("n_channels", 2))
+
+        self._add_invert_parameter()
+
     # ---------------------------------------------------------------
 
     def _add_output_parameters(self, *, extra_params: Set[str]):
@@ -114,33 +89,21 @@ class SiglentSDGChannel(SiglentChannel):
         result_prefix_len = len(ch_command) + 1
 
         self.add_parameter(
-            "raw_outp",
+            "_raw_outp",
             label="raw OUTPut command",
             set_cmd=set_cmd_ + "{}",
             get_cmd=get_cmd,
-            get_parser=lambda string: string[result_prefix_len:],
+            get_parser=_substr_from(result_prefix_len),
         )
 
-        def extract_outp_field(name: Optional[str]) -> Callable[[str], Any]:
-            def result_func(response: str):
-                response_items = _iter_str_split(
-                    response, start=result_prefix_len, sep=","
-                )
-                first = next(response_items)
-                if name is None:
-                    return first
-                else:
-                    return _find_first_by_key(
-                        name,
-                        _group_by_two(response_items),
-                    )
-
-            return result_func
+        extract_outp_field = functools.partial(
+            _fields.extract_oddfirst_field, result_prefix_len
+        )
 
         self.add_parameter(
             "enabled",
             label="Enabled",
-            val_mapping={True: "ON", False: "OFF"},
+            val_mapping=_on_off_val_mapping,
             set_cmd=set_cmd_ + "{}",
             get_cmd=get_cmd,
             get_parser=extract_outp_field(None),
@@ -192,27 +155,18 @@ class SiglentSDGChannel(SiglentChannel):
         result_prefix_len = len(ch_command) + 1
 
         self.add_parameter(
-            "raw_basic_wave",
+            "_raw_basic_wave",
             label="raw BaSic WaVe command",
             set_cmd=set_cmd_ + "{}",
             get_cmd=get_cmd,
-            get_parser=lambda string: string[result_prefix_len:],
+            get_parser=_substr_from(result_prefix_len),
         )
 
-        def extract_bswv_field(
-            name: str, *, then: Callable[[str], Any] = _identity, else_default=None
-        ) -> Callable[[str], Any]:
-            def result_func(response: str):
-                return _find_first_by_key(
-                    name,
-                    _group_by_two(
-                        _iter_str_split(response, start=result_prefix_len, sep=",")
-                    ),
-                    transform_found=then,
-                    not_found=else_default,
-                )
+        extract_bswv_field = functools.partial(
+            _fields.extract_regular_field, result_prefix_len
+        )
 
-            return result_func
+        _none_to_empty = _add_none_to_empty_val_mapping
 
         self.add_parameter(
             "wave_type",
@@ -439,11 +393,7 @@ class SiglentSDGChannel(SiglentChannel):
         self.add_parameter(
             "noise_bandwidth_enabled",
             label="Noise bandwidth enabled",
-            val_mapping={
-                False: "OFF",
-                True: "ON",
-                None: "",
-            },
+            val_mapping=_none_to_empty(_on_off_val_mapping),
             get_cmd=get_cmd,
             get_parser=extract_bswv_field("BANDSTATE", else_default=""),
             set_cmd=set_cmd_ + "BANDSTATE,{}",
@@ -495,10 +445,7 @@ class SiglentSDGChannel(SiglentChannel):
         self.add_parameter(
             "prbs_differential_mode",
             label="PRBS differential mode",
-            val_mapping={
-                False: "OFF",
-                True: "ON",
-            },
+            val_mapping=_on_off_val_mapping,
             get_cmd=get_cmd,
             get_parser=extract_bswv_field("DIFFSTATE", else_default="OFF"),
             set_cmd=set_cmd_ + "DIFFSTATE,{}",
@@ -519,19 +466,21 @@ class SiglentSDGChannel(SiglentChannel):
         self.add_parameter(
             "prbs_logic_level",
             label="PRBS Logic level",
-            val_mapping={
-                "ttl": "TTL_CMOS",
-                "lvttl": "LVTTL_LVCMOS",
-                "cmos": "TTL_CMOS",
-                "lvcmos": "LVTTL_LVCMOS",
-                "ecl": "ECL",
-                "lvpecl": "LVPECL",
-                "lvds": "LVDS",
-                # "custom": "CUSTOM",
-            },
+            val_mapping=_none_to_empty(
+                {
+                    "ttl": "TTL_CMOS",
+                    "lvttl": "LVTTL_LVCMOS",
+                    "cmos": "TTL_CMOS",
+                    "lvcmos": "LVTTL_LVCMOS",
+                    "ecl": "ECL",
+                    "lvpecl": "LVPECL",
+                    "lvds": "LVDS",
+                    # "custom": "CUSTOM",
+                }
+            ),
             set_cmd=set_cmd_ + "LOGICLEVEL,{}",
-            #get_cmd=get_cmd,
-            #get_parser=extract_bswv_field("LOGICLEVEL", else_default=""),
+            get_cmd=get_cmd,
+            get_parser=extract_bswv_field("LOGICLEVEL", else_default=""),
         )
 
     # ---------------------------------------------------------------
@@ -545,53 +494,26 @@ class SiglentSDGChannel(SiglentChannel):
         result_prefix_len = len(ch_command) + 1
 
         self.add_parameter(
-            "raw_modulate_wave",
+            "_raw_modulate_wave",
             label="raw MoDulate WaVe command",
             set_cmd=set_cmd_ + "{}",
             get_cmd=get_cmd,
-            get_parser=lambda string: string[result_prefix_len:],
+            get_parser=_substr_from(result_prefix_len),
         )
 
-        def extract_mdwv_field(
-            name: str, *, then: Callable[[str], Any] = _identity, else_default=None
-        ) -> Callable[[str], Any]:
-            def result_func(response: str):
-                response_items = _iter_str_split(
-                    response, start=result_prefix_len, sep=","
-                )
+        extract_mdwv_field = functools.partial(
+            _fields.extract_first_state_or_group_prefixed_field,
+            result_prefix_len,
+        )
 
-                try:
-                    # STATE ON/OFF
-                    state_key, state_value = next(response_items), next(response_items)
-                except StopIteration:
-                    return else_default
+        _none_to_empty = _add_none_to_empty_val_mapping
 
-                if name == state_key:
-                    return then(state_value)
-
-                param_group, param_name = name.split(",")
-
-                # <AM|FM|PM|PWM... etc> / <CARR>
-                for group in response_items:
-                    if group == param_group:
-                        break
-                else:
-                    return else_default
-
-                return _find_first_by_key(
-                    param_name,
-                    _group_by_two(response_items),
-                    transform_found=then,
-                    not_found=else_default,
-                )
-
-            return result_func
-
-        SRC_INT_EXT_VALS = {
-            None: "",
-            "internal": "INT",
-            "external": "EXT",
-        }
+        SRC_INT_EXT_VALS = _none_to_empty(
+            {
+                "internal": "INT",
+                "external": "EXT",
+            }
+        )
 
         SRC_VALS = _merge_dicts(
             SRC_INT_EXT_VALS,
@@ -601,25 +523,27 @@ class SiglentSDGChannel(SiglentChannel):
             },
         )
 
-        MDSP_VALS = {
-            None: "",
-            "sine": "SINE",
-            "square": "SQUARE",
-            "triangle": "TRIANGLE",
-            "upramp": "UPRAMP",
-            "downramp": "DNRAMP",
-            "noise": "NOISE",
-            "arb": "ARB",
-        }
+        MDSP_VALS = _none_to_empty(
+            {
+                "sine": "SINE",
+                "square": "SQUARE",
+                "triangle": "TRIANGLE",
+                "upramp": "UPRAMP",
+                "downramp": "DNRAMP",
+                "noise": "NOISE",
+                "arb": "ARB",
+            }
+        )
 
-        CARR_WVTP_VALS = {
-            None: "",
-            "sine": "SINE",
-            "square": "SQUARE",
-            "ramp": "RAMP",
-            "arb": "ARB",
-            "pulse": "PULSE",
-        }
+        CARR_WVTP_VALS = _none_to_empty(
+            {
+                "sine": "SINE",
+                "square": "SQUARE",
+                "ramp": "RAMP",
+                "arb": "ARB",
+                "pulse": "PULSE",
+            }
+        )
 
         ranges: Mapping[str, Tuple[float, float]] = self._parent._ranges
 
@@ -633,10 +557,7 @@ class SiglentSDGChannel(SiglentChannel):
         self.add_parameter(
             "modulate_wave",
             label="Modulate wave",
-            val_mapping={
-                False: "OFF",
-                True: "ON",
-            },
+            val_mapping=_on_off_val_mapping,
             set_cmd=set_cmd_ + "STATE,{}",
             get_cmd=get_cmd,
             get_parser=extract_mdwv_field("STATE"),
@@ -1104,66 +1025,32 @@ class SiglentSDGChannel(SiglentChannel):
         ranges: Mapping[str, Tuple[float, float]] = self._parent._ranges
 
         self.add_parameter(
-            "raw_sweep_wave",
+            "_raw_sweep_wave",
             label="raw SWeep WaVe command",
             set_cmd=set_cmd_ + "{}",
             get_cmd=get_cmd,
-            get_parser=lambda string: string[result_prefix_len:],
+            get_parser=_substr_from(result_prefix_len),
         )
 
-        def extract_swwv_field(
-            name: str, *, then: Callable[[str], Any] = _identity, else_default=None
-        ) -> Callable[[str], Any]:
-
-            if not name.startswith("CARR,"):
-
-                def result_func(response: str):
-                    items = takewhile(
-                        lambda str: str != "CARR",
-                        _iter_str_split(response, start=result_prefix_len, sep=","),
-                    )
-                    return _find_first_by_key(
-                        name,
-                        _group_by_two(items),
-                        transform_found=then,
-                        not_found=else_default,
-                    )
-
-            else:
-                name = name[5:]
-
-                def result_func(response: str):
-                    items = _iter_str_split(response, start=result_prefix_len, sep=",")
-
-                    for item in items:
-                        if item == "CARR":
-                            break
-                    else:
-                        return else_default
-
-                    return _find_first_by_key(
-                        name,
-                        _group_by_two(items),
-                        transform_found=then,
-                        not_found=else_default,
-                    )
-
-            return result_func
+        extract_swwv_field = functools.partial(
+            _fields.extract_X_or_non_X_field,
+            "CARR",
+            result_prefix_len,
+        )
 
         freq_ranges = ranges["frequency"]
         amp_range_vpp = ranges["vpp"]
         amp_range_vrms = ranges["vrms"]
         range_offset = ranges["offset"]
 
+        _none_to_empty = _add_none_to_empty_val_mapping
+
         # STATE
 
         self.add_parameter(
             "sweep_wave",
             label="Sweep wave",
-            val_mapping={
-                False: "OFF",
-                True: "ON",
-            },
+            val_mapping=_on_off_val_mapping,
             set_cmd=set_cmd_ + "STATE,{}",
             get_cmd=get_cmd,
             get_parser=extract_swwv_field("STATE"),
@@ -1292,12 +1179,13 @@ class SiglentSDGChannel(SiglentChannel):
         self.add_parameter(
             "sweep_mode",
             label="Sweep mode",
-            val_mapping={
-                None: "",
-                "linear": "LINE",
-                "logarithmic": "LOG",
-                "step": "STEP",
-            },
+            val_mapping=_none_to_empty(
+                {
+                    "linear": "LINE",
+                    "logarithmic": "LOG",
+                    "step": "STEP",
+                }
+            ),
             set_cmd=set_cmd_ + "SWMD,{}",
             get_cmd=get_cmd,
             get_parser=extract_swwv_field("SWMD", else_default=""),
@@ -1308,12 +1196,13 @@ class SiglentSDGChannel(SiglentChannel):
         self.add_parameter(
             "sweep_direction",
             label="Sweep direction",
-            val_mapping={
-                None: "",
-                "up": "UP",
-                "down": "DOWN",
-                "up-down": "UP_DOWN",
-            },
+            val_mapping=_none_to_empty(
+                {
+                    "up": "UP",
+                    "down": "DOWN",
+                    "up-down": "UP_DOWN",
+                }
+            ),
             get_cmd=get_cmd,
             get_parser=extract_swwv_field("DIR", else_default=""),
             set_cmd=set_cmd_ + "DIR,{}",
@@ -1336,12 +1225,13 @@ class SiglentSDGChannel(SiglentChannel):
         self.add_parameter(
             "sweep_trigger_source",
             label="Sweep trigger source",
-            val_mapping={
-                None: "",
-                "external": "EXT",
-                "internal": "INT",
-                "manual": "MAN",
-            },
+            val_mapping=_none_to_empty(
+                {
+                    "external": "EXT",
+                    "internal": "INT",
+                    "manual": "MAN",
+                }
+            ),
             get_cmd=get_cmd,
             get_parser=extract_swwv_field("TRSR", else_default=""),
             set_cmd=set_cmd_ + "TRSR,{}",
@@ -1358,11 +1248,7 @@ class SiglentSDGChannel(SiglentChannel):
             self.add_parameter(
                 "sweep_trigger_output",
                 label="(Sweep) state of trigger output",
-                val_mapping={
-                    None: "",
-                    True: "ON",
-                    False: "OFF",
-                },
+                val_mapping=_none_to_empty(_on_off_val_mapping),
                 get_cmd=get_cmd,
                 get_parser=extract_swwv_field("TRMD", else_default=""),
                 set_cmd=set_cmd_ + "TRMD,{}",
@@ -1373,11 +1259,12 @@ class SiglentSDGChannel(SiglentChannel):
             self.add_parameter(
                 "sweep_trigger_edge",
                 label="Sweep trigger edge",
-                val_mapping={
-                    None: "",
-                    "rise": "RISE",
-                    "fall": "FALL",
-                },
+                val_mapping=_none_to_empty(
+                    {
+                        "rise": "RISE",
+                        "fall": "FALL",
+                    }
+                ),
                 get_cmd=get_cmd,
                 get_parser=extract_swwv_field("EDGE", else_default=""),
                 set_cmd=set_cmd_ + "EDGE,{}",
@@ -1385,13 +1272,14 @@ class SiglentSDGChannel(SiglentChannel):
 
         # CARR
 
-        CARR_WVTP_VALS = {
-            None: "",
-            "sine": "SINE",
-            "square": "SQUARE",
-            "ramp": "RAMP",
-            "arb": "ARB",
-        }
+        CARR_WVTP_VALS = _none_to_empty(
+            {
+                "sine": "SINE",
+                "square": "SQUARE",
+                "ramp": "RAMP",
+                "arb": "ARB",
+            }
+        )
 
         # CARR
 
@@ -1489,11 +1377,7 @@ class SiglentSDGChannel(SiglentChannel):
         self.add_parameter(
             "sweep_mark",
             label="Sweep Mark (on/off)",
-            val_mapping={
-                None: "",
-                False: "OFF",
-                True: "ON",
-            },
+            val_mapping=_none_to_empty(_on_off_val_mapping),
             set_cmd=set_cmd_ + "MARK_STATE,{}",
             get_cmd=get_cmd,
             get_parser=extract_swwv_field("MARK_STATE", else_default=""),
@@ -1521,52 +1405,21 @@ class SiglentSDGChannel(SiglentChannel):
 
         result_prefix_len = len(ch_command) + 1
 
+        extract_btwv_field = functools.partial(
+            _fields.extract_X_or_non_X_field,
+            "CARR",
+            result_prefix_len,
+        )
+
         ranges: Mapping[str, Tuple[float, float]] = self._parent._ranges
 
         self.add_parameter(
-            "raw_burst_wave",
+            "_raw_burst_wave",
             label="raw BursT WaVe command",
             set_cmd=set_cmd_ + "{}",
             get_cmd=get_cmd,
-            get_parser=lambda string: string[result_prefix_len:],
+            get_parser=_substr_from(result_prefix_len),
         )
-
-        def extract_btwv_field(
-            name: str, *, then: Callable[[str], Any] = _identity, else_default=None
-        ) -> Callable[[str], Any]:
-
-            if not name.startswith("CARR,"):
-
-                def result_func(response: str):
-                    items = takewhile(
-                        lambda str: str != "CARR",
-                        _iter_str_split(response, start=result_prefix_len, sep=","),
-                    )
-                    return _find_first_by_key(
-                        name,
-                        _group_by_two(items),
-                        transform_found=then,
-                        not_found=else_default,
-                    )
-
-            else:
-                name = name[5:]
-
-                def result_func(response: str):
-                    items = _iter_str_split(response, start=result_prefix_len, sep=",")
-                    for item in items:
-                        if item == "CARR":
-                            break
-                    else:
-                        return else_default
-                    return _find_first_by_key(
-                        name,
-                        _group_by_two(items),
-                        transform_found=then,
-                        not_found=else_default,
-                    )
-
-            return result_func
 
         freq_ranges = ranges["frequency"]
         amp_range_vpp = ranges["vpp"]
@@ -1584,10 +1437,7 @@ class SiglentSDGChannel(SiglentChannel):
         self.add_parameter(
             "burst_wave",
             label="Burst wave",
-            val_mapping={
-                False: "OFF",
-                True: "ON",
-            },
+            val_mapping=_on_off_val_mapping,
             set_cmd=set_cmd_ + "STATE,{}",
             get_cmd=get_cmd,
             get_parser=extract_btwv_field("STATE"),
@@ -1622,11 +1472,12 @@ class SiglentSDGChannel(SiglentChannel):
         self.add_parameter(
             "burst_mode",
             label="Burst mode",
-            val_mapping={
-                None: "",
-                "gate": "GATE",
-                "ncyc": "NCYC",
-            },
+            val_mapping=_add_none_to_empty_val_mapping(
+                {
+                    "gate": "GATE",
+                    "ncyc": "NCYC",
+                }
+            ),
             set_cmd=set_cmd_ + "GATE_NCYC,{}",
             get_cmd=get_cmd,
             get_parser=extract_btwv_field("GATE_NCYC", else_default=""),
@@ -1637,12 +1488,13 @@ class SiglentSDGChannel(SiglentChannel):
         self.add_parameter(
             "burst_trigger_source",
             label="Burst trigger source",
-            val_mapping={
-                None: "",
-                "external": "EXT",
-                "internal": "INT",
-                "manual": "MAN",
-            },
+            val_mapping=_add_none_to_empty_val_mapping(
+                {
+                    "external": "EXT",
+                    "internal": "INT",
+                    "manual": "MAN",
+                }
+            ),
             get_cmd=get_cmd,
             get_parser=extract_btwv_field("TRSR", else_default=""),
             set_cmd=set_cmd_ + "TRSR,{}",
@@ -1668,11 +1520,12 @@ class SiglentSDGChannel(SiglentChannel):
         self.add_parameter(
             "burst_gate_polarity",
             label="Burst gate polarity",
-            val_mapping={
-                None: "",
-                "negative": "NEG",
-                "positive": "POS",
-            },
+            val_mapping=_add_none_to_empty_val_mapping(
+                {
+                    "negative": "NEG",
+                    "positive": "POS",
+                }
+            ),
             set_cmd=set_cmd_ + "PLRT,{}",
             get_cmd=get_cmd,
             get_parser=extract_btwv_field("PLRT", else_default=""),
@@ -1682,12 +1535,13 @@ class SiglentSDGChannel(SiglentChannel):
             self.add_parameter(
                 "burst_trigger_output_mode",
                 label="(Burst) trigger output mode",
-                val_mapping={
-                    None: "",
-                    "rise": "RISE",
-                    "fall": "FALL",
-                    "off": "OFF",
-                },
+                val_mapping=_add_none_to_empty_val_mapping(
+                    {
+                        "rise": "RISE",
+                        "fall": "FALL",
+                        "off": "OFF",
+                    }
+                ),
                 get_cmd=get_cmd,
                 get_parser=extract_btwv_field("TRMD", else_default=""),
                 set_cmd=set_cmd_ + "TRMD,{}",
@@ -1698,11 +1552,12 @@ class SiglentSDGChannel(SiglentChannel):
             self.add_parameter(
                 "burst_trigger_edge",
                 label="Burst trigger edge",
-                val_mapping={
-                    None: "",
-                    "rise": "RISE",
-                    "fall": "FALL",
-                },
+                val_mapping=_add_none_to_empty_val_mapping(
+                    {
+                        "rise": "RISE",
+                        "fall": "FALL",
+                    }
+                ),
                 get_cmd=get_cmd,
                 get_parser=extract_btwv_field("EDGE", else_default=""),
                 set_cmd=set_cmd_ + "EDGE,{}",
@@ -1736,15 +1591,16 @@ class SiglentSDGChannel(SiglentChannel):
 
         # CARR
 
-        CARR_WVTP_VALS = {
-            None: "",
-            "sine": "SINE",
-            "square": "SQUARE",
-            "ramp": "RAMP",
-            "arb": "ARB",
-            "pulse": "PULSE",
-            "noise": "NOISE",
-        }
+        CARR_WVTP_VALS = _add_none_to_empty_val_mapping(
+            {
+                "sine": "SINE",
+                "square": "SQUARE",
+                "ramp": "RAMP",
+                "arb": "ARB",
+                "pulse": "PULSE",
+                "noise": "NOISE",
+            }
+        )
 
         self.add_parameter(
             "burst_carrier_wave_type",
@@ -1901,3 +1757,135 @@ class SiglentSDGChannel(SiglentChannel):
         )
 
     # ---------------------------------------------------------------
+
+    def _add_parameter_copy_function(
+        self, *, channel_number: Optional[int], n_channels: Optional[int]
+    ):
+        if channel_number is None or n_channels is None or n_channels < 2:
+            return
+
+        other_channel_numbers = [
+            ch for ch in range(1, 1 + n_channels) if ch != channel_number
+        ]
+
+        self.add_function(
+            "copy_parameters_from_channel",
+            call_cmd="PACP " + f"C{channel_number}" + ",C{:d}",
+            args=[EnumVals(*other_channel_numbers)],
+            docstring="""
+                Copy parameters from other channel.
+
+                Args:
+                    channel: 
+                        1-based index of source channel.
+                        Must be different than current channel.
+            """,
+        )
+
+    # ---------------------------------------------------------------
+
+    def _add_arbitrary_wave_parameters(self):
+        ch_command = self._ch_num_prefix + "ARWV"
+        set_cmd_ = ch_command + " "
+        get_cmd = ch_command + "?"
+
+        result_prefix_len = len(ch_command) + 1
+
+        ranges = self.parent._ranges
+
+        arwv_ranges = ranges["arwv_index"]
+
+        self.add_parameter(
+            "_raw_arbitrary_wave",
+            label="raw ARbitrary WaVe command",
+            set_cmd=set_cmd_ + "{}",
+            get_cmd=get_cmd,
+            get_parser=_substr_from(result_prefix_len),
+        )
+
+        extract_arwv_field = functools.partial(
+            _fields.extract_regular_field, result_prefix_len
+        )
+
+        self.add_parameter(
+            "arbitrary_wave_index",
+            label="Arbitrary wave index",
+            set_cmd=set_cmd_ + "INDEX,{}",
+            get_cmd=get_cmd,
+            vals=Ints(arwv_ranges[0], arwv_ranges[1]),
+            get_parser=extract_arwv_field("INDEX", then=int),
+        )
+
+        self.add_parameter(
+            "arbitrary_wave_name",
+            label="Arbitrary wave name",
+            set_cmd=set_cmd_ + "NAME,{}",
+            get_cmd=get_cmd,
+            get_parser=extract_arwv_field("NAME"),
+        )
+
+    def _add_sync_parameters(self, *, n_channels):
+        if n_channels < 2:
+            return
+
+        ch_command = self._ch_num_prefix + "SYNC"
+        set_cmd_ = ch_command + " "
+        get_cmd = ch_command + "?"
+
+        result_prefix_len = len(ch_command) + 1
+
+        ranges = self.parent._ranges
+
+        self.add_parameter(
+            "_raw_sync",
+            label="raw SYNC command",
+            set_cmd=set_cmd_ + "{}",
+            get_cmd=get_cmd,
+            get_parser=_substr_from(result_prefix_len),
+        )
+
+        extract_sync_field = functools.partial(
+            _fields.extract_oddfirst_field, result_prefix_len
+        )
+
+        self.add_parameter(
+            "sync_enabled",
+            label="Sync enabled",
+            set_cmd=set_cmd_ + " {}",
+            get_cmd=get_cmd,
+            val_mapping=_on_off_val_mapping,
+            get_parser=extract_sync_field(None),
+        )
+
+        self.add_parameter(
+            "sync_type",
+            label="Sync type",
+            set_cmd=set_cmd_ + "TYPE,{}",
+            get_cmd=get_cmd,
+            val_mapping={
+                "channel1": "CH1",
+                "channel2": "CH2",
+                "mod-channel1": "MOD_CH1",
+                "mod-channel2": "MOD_CH2",
+            },
+            get_parser=extract_sync_field("TYPE"),
+        )
+
+    def _add_invert_parameter(self):
+
+        ch_command = self._ch_num_prefix + "INVT"
+        set_cmd_ = ch_command + " "
+        get_cmd = ch_command + "?"
+
+        result_prefix_len = len(ch_command) + 1
+
+        ranges = self.parent._ranges
+
+        self.add_parameter(
+            "inverted",
+            label="Inverted polarity",
+            val_mapping=_on_off_val_mapping,
+            set_cmd=set_cmd_ + "{}",
+            get_cmd=get_cmd,
+            get_parser=_substr_from(result_prefix_len),
+        )

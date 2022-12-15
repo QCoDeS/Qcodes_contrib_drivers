@@ -1,5 +1,7 @@
 from collections import ChainMap
+from typing import Any, Dict
 
+import qcodes.validators as vals
 from qcodes.instrument.channel import ChannelList
 
 from .sdg_channel import SiglentSDGChannel
@@ -10,7 +12,7 @@ class SiglentSDGx(SiglentSDx):
     def __init__(self, *args, **kwargs):
         n_channels = kwargs.pop("n_channels", None)
         channel_type = kwargs.pop("channel_type", SiglentSDGChannel)
-        channel_kwargs = {}
+        channel_kwargs = {"n_channels": n_channels}
         for ch_param in (
             "extra_outp_params",
             "extra_bswv_params",
@@ -25,7 +27,7 @@ class SiglentSDGx(SiglentSDx):
 
         super().__init__(*args, **kwargs)
 
-        channels = ChannelList(self, "channel", SiglentSDGChannel, snapshotable=False)
+        channels = ChannelList(self, "channels", SiglentSDGChannel, snapshotable=False)
 
         for channel_number in range(1, n_channels + 1):
             name = f"channel{channel_number}"
@@ -33,7 +35,7 @@ class SiglentSDGx(SiglentSDx):
             self.add_submodule(name, channel)
             channels.append(channel)
 
-        self.add_submodule("channel", channels)
+        self.add_submodule("channels", channels)
 
 
 class Siglent_SDG_60xx(SiglentSDGx):
@@ -44,9 +46,31 @@ class Siglent_SDG_60xx(SiglentSDGx):
             "extra_bswv_params": {"MAX_OUTPUT_AMP"},
             "extra_mdwv_params": {"CARR,DLY", "CARR,RISE", "CARR,FALL"},
             "extra_swwv_params": {"TRMD", "EDGE"},
-            "extra_btwv_params": {"TRMD", "EDGE", "COUNTER", "CARR,DLY", "CARR,RISE", "CARR,FALL"},
+            "extra_btwv_params": {
+                "TRMD",
+                "EDGE",
+                "COUNTER",
+                "CARR,DLY",
+                "CARR,RISE",
+                "CARR,FALL",
+            },
         }
-        kwargs = ChainMap(kwargs, default_params)
+
+        default_ranges = {
+            "vpp": (2e-3, 20.0),
+            "vrms": (2e-3, 10.0),
+            "offset": (-10, 10),
+            "burst_period": (1.0e-6, 1000.0),
+            "burst_phase": (-360.0, 360.0),
+            "burst_ncycles": (1, 1000000),
+            "burst_trigger_delay": (0, 100),
+            "arwv_index": (2, 198),
+        }
+
+        ranges_kwargs = _provide_defaults_to_dict_kwarg(
+            kwargs, "ranges", default_ranges
+        )
+        kwargs = ChainMap(ranges_kwargs, kwargs, default_params)
         super().__init__(*args, **kwargs)
 
 
@@ -59,38 +83,62 @@ class Siglent_SDG_20xx(SiglentSDGx):
             "extra_swwv_params": {"TRMD", "EDGE"},
             "extra_btwv_params": {"TRMD", "EDGE", "CARR,DLY", "CARR,RISE", "CARR,FALL"},
         }
-        kwargs = ChainMap(kwargs, default_params)
+
+        default_ranges = {
+            "vpp": (2e-3, 20.0),
+            "vrms": (2e-3, 10.0),
+            "offset": (-10, 10),
+            "burst_period": (1.0e-6, 1000.0),
+            "burst_phase": (-360.0, 360.0),
+            "burst_ncycles": (1, 1000000),
+            "burst_trigger_delay": (0, 100),
+            "arwv_index": (2, 198),
+        }
+
+        ranges_kwargs = _provide_defaults_to_dict_kwarg(
+            kwargs, "ranges", default_ranges
+        )
+        kwargs = ChainMap(ranges_kwargs, kwargs, default_params)
         super().__init__(*args, **kwargs)
 
 
 class Siglent_SDG_6022X(Siglent_SDG_60xx):
     def __init__(self, *args, **kwargs):
-        ranges = {
+        default_ranges = {
             "frequency": (1e-3, 200e6),
-            "vpp": (2e-3, 20.0),
-            "vrms": (2e-3, 10.0),
-            "offset": (-10, 10),
-            "burst_period": (1.0e-6, 1000.0),
-            "burst_phase": (-360.0, 360.0),
-            "burst_ncycles": (1,1000000),
-            "burst_trigger_delay": (0, 100),
         }
-        kwargs = ChainMap(kwargs, {"ranges": ranges})
+        ranges_kwargs = _provide_defaults_to_dict_kwarg(
+            kwargs, "ranges", default_ranges
+        )
+
+        kwargs = ChainMap(ranges_kwargs, kwargs)
         super().__init__(*args, **kwargs)
 
 
 class Siglent_SDG_2042X(Siglent_SDG_20xx):
     def __init__(self, *args, **kwargs):
-        ranges = {
+        default_ranges = {
             "frequency": (1e-3, 40e6),
-            "vpp": (2e-3, 20.0),
-            "vrms": (2e-3, 10.0),
-            "offset": (-10, 10),
-            "burst_period": (1.0e-6, 1000.0),
-            "burst_phase": (-360.0, 360.0),
-            "burst_ncycles": (1,1000000),
-            "burst_trigger_delay": (0, 100),
         }
 
-        kwargs = ChainMap(kwargs, {"ranges": ranges})
+        ranges_kwargs = _provide_defaults_to_dict_kwarg(
+            kwargs, "ranges", default_ranges
+        )
+        kwargs = ChainMap(ranges_kwargs, kwargs)
+
         super().__init__(*args, **kwargs)
+
+
+# tricky
+# generate a dictionary which can be chained with the kwargs
+# to provide default values to items of the dictionary-type kwarg
+# with the given key
+def _provide_defaults_to_dict_kwarg(
+    kwargs: Dict[str, Any], key: str, default_value_dict: dict
+) -> dict:
+    if key in kwargs:
+        dict_item = kwargs[key]
+        default_value_dict = ChainMap(dict_item, default_value_dict)
+
+    result = {key: default_value_dict}
+    return result

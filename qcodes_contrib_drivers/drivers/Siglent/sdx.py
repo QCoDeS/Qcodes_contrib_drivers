@@ -11,6 +11,9 @@ class SiglentChannel(InstrumentChannel):
         self._channel_number = channel_number
         super().__init__(parent, name)
 
+    @property
+    def channel_number(self):
+        return self._channel_number
 
 class SiglentSDx(VisaInstrument):
     def __init__(self, *args, **kwargs):
