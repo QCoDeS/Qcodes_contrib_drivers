@@ -10,6 +10,7 @@ from qcodes.instrument.parameter import (
     ParamRawDataType,
 )
 from qcodes.instrument.visa import VisaInstrument
+import numpy.typing as npt
 
 log = logging.getLogger(__name__)
 
@@ -137,7 +138,7 @@ class HP8594E(VisaInstrument):
 
         # get uptime
         uptime_str = self.ask("PWRUPTIME?").strip()  # in ms
-        info["uptime"] = datetime.timedelta(seconds=float(uptime_str) / 1e3)
+        info["uptime"] = str(datetime.timedelta(seconds=float(uptime_str) / 1e3))
 
         return info
 
@@ -169,13 +170,19 @@ class FreqAxis(Parameter):
 
 class Trace(ParameterWithSetpoints):
     """ """
-
+    
     def __init__(self, transfer_type: str = "bytes", *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         self.transfer_type = transfer_type
 
+        if not isinstance(self.root_instrument, HP8594E):
+            raise TypeError("Root instrument must be HP8594E")
+        else:
+            self.hp8594e = self.root_instrument
+
+
     def get_raw(self) -> ParamRawDataType:
-        self.root_instrument.write("SNGLS")
+        self.hp8594e.write("SNGLS")
         if self.transfer_type == "ASCII":
             return self.transfer_ascii()
         elif self.transfer_type == "bytes":
@@ -185,17 +192,16 @@ class Trace(ParameterWithSetpoints):
                 f"transfer_type must be bytes or ASCII you have used {self.transfer_type} "
             )
 
-    def transfer_ascii(self):
-        data = self.root_instrument.ask("TS;TDF P;TRA?;")
+    def transfer_ascii(self) -> npt.NDArray[np.float_]:
+        data = self.hp8594e.ask("TS;TDF P;TRA?;")
         return np.array([float(x) for x in data.split(",")])
 
-    def transfer_bytes(self):
-        hp = self.root_instrument
-        hp.write("TDF B")
-        hp.write("MDS B")
-        hp.write("TS;TRA?")
-        data_bytes = hp.visa_handle.read_raw()
+    def transfer_bytes(self) -> npt.NDArray[np.float_]:
+        self.hp8594e.write("TDF B")
+        self.hp8594e.write("MDS B")
+        self.hp8594e.write("TS;TRA?")
+        data_bytes = self.hp8594e.visa_handle.read_raw()
         data_int = struct.unpack(">401B", data_bytes)
-        ref_level = hp.reference_level()
+        ref_level = self.hp8594e.reference_level()
         data_float = [(x * 32 - 8000) * 0.01 + ref_level for x in data_int]
         return np.array(data_float)
