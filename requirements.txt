@@ -1,2 +1,2 @@
 mypy==0.991
-ipython==8.6.0
+ipython==8.8.0
