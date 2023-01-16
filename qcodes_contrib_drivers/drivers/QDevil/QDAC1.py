@@ -1,6 +1,5 @@
 # QCoDeS driver for the QDevil QDAC using channels
-# Adapted by QDevil from "qdev\QDac_channels.py" in
-# the instrument drivers package
+# Adapted by QDevil from the qdev QDac driver in qcodes
 # Version 2.1 QDevil 2020-02-10
 
 import logging
