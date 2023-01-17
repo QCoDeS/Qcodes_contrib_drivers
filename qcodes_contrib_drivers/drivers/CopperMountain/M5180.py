@@ -189,7 +189,7 @@ class PointIQ(MultiParameter):
         instrument: "M5180",
         **kwargs: Any,
         ) -> None:
-        """Magnitude and phase measurement of a single point at start
+        """I and Q measurement of a single point at start
         frequency.
 
         Args:
@@ -217,7 +217,7 @@ class PointIQ(MultiParameter):
         """Gets data from instrument
 
         Returns:
-            Tuple[ParamRawDataType, ...]: magnitude, phase
+            Tuple[ParamRawDataType, ...]: I, Q
         """
 
         assert isinstance(self.instrument, M5180)
@@ -242,8 +242,8 @@ class PointIQ(MultiParameter):
         # Get data as numpy array
         sxx = np.fromstring(sxx_raw, dtype=float, sep=',')
 
-        # # Return the average of the trace, which will have "start" as
-        # # its setpoint
+        # Return the average of the trace, which will have "start" as
+        # its setpoint
         return np.mean(sxx[0::2]), np.mean(sxx[1::2])
 
 
