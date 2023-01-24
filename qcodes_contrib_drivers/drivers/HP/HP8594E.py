@@ -3,16 +3,14 @@ from typing import Any, Dict
 import struct
 import numpy as np
 import datetime
-import qcodes.utils.validators as vals
-from qcodes.instrument.parameter import (
+import qcodes.validators as vals
+from qcodes.parameters import (
     Parameter,
     ParameterWithSetpoints,
     ParamRawDataType,
 )
-from qcodes.instrument.visa import VisaInstrument
+from qcodes.instrument import VisaInstrument
 import numpy.typing as npt
-
-log = logging.getLogger(__name__)
 
 
 class HP8594E(VisaInstrument):
@@ -170,7 +168,7 @@ class FreqAxis(Parameter):
 
 class Trace(ParameterWithSetpoints):
     """ """
-    
+
     def __init__(self, transfer_type: str = "bytes", *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         self.transfer_type = transfer_type
@@ -179,7 +177,6 @@ class Trace(ParameterWithSetpoints):
             raise TypeError("Root instrument must be HP8594E")
         else:
             self.hp8594e = self.root_instrument
-
 
     def get_raw(self) -> ParamRawDataType:
         self.hp8594e.write("SNGLS")
