@@ -30,14 +30,14 @@ jobs:
       PYTHON: ${{ matrix.python-version }}
 
     steps:
-    - uses: actions/checkout@v3.2.0
+    - uses: actions/checkout@v3.3.0
       with:
         submodules: true
     - name: setup ubuntu-latest xvfb
       uses: ./.github/actions/setup-ubuntu-latest-xvfb
       if: runner.os == 'Linux'
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4.3.1
+      uses: actions/setup-python@v4.5.0
       with:
         python-version: ${{ matrix.python-version }}
         cache: 'pip'
