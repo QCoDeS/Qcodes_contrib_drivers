@@ -18,15 +18,15 @@ import logging
 import pyvisa
 
 # real mode:
-from qcodes import VisaInstrument
+from qcodes.instrument import VisaInstrument
 # simulation mode:
-#from qcodes.instrument_drivers.attocube.ANC300sim import MockVisa
+#from qcodes_contrib_drivers.drivers.Attocube.ANC300sim import MockVisa
 
 ## do not forget to change the main class accordingly:
 ## real  -> class ANC300(VisaInstrument):
 ## simul -> class ANC300(MockVisa):
 
-from qcodes.instrument.channel import InstrumentChannel, ChannelList
+from qcodes.instrument import InstrumentChannel, ChannelList
 from qcodes import validators as vals
 
 
@@ -38,7 +38,7 @@ class Anc300Axis(InstrumentChannel):
 
     def __init__(self, parent: 'ANC300', name: str, axis: int, sn: str) -> None:
         """Creates a new Anc300Axis class instance.
-        
+
         The Attocube ANC300 piezo controller has up to 7 axis. Each of them are controlled
         by the same class.
 
@@ -317,10 +317,10 @@ class Anc300TriggerOut(InstrumentChannel):
 
     def __init__(self, parent: 'ANC300', name: str, num: int) -> None:
         """The Attocube ANC300 piezo controller has three trigger outputs.
-        
+
         This function cannot be tested because this function belongs to a specific controller
         feature code. This code was not available during the tests.
-        
+
         Args:
             parent: the internal QCoDeS name of the instrument this output belongs to
             name: the internal QCoDeS name of the output itself
@@ -345,7 +345,7 @@ class ANC300(VisaInstrument):
 #class ANC300(MockVisa):
     """
     This is the qcodes driver for the Attocube ANC300.
-    
+
     Be careful to correct the parameters if not useing the USB port.
 
     Status:
@@ -402,7 +402,7 @@ class ANC300(VisaInstrument):
 
     def write_raw(self, cmd: str) -> None:
         """Write cmd and wait until the 'OK' or 'ERROR' comes back from the device.
-        
+
         Args:
             cmd: Command to write to controller.
 
@@ -430,7 +430,7 @@ class ANC300(VisaInstrument):
 
     def ask_raw(self, cmd: str) -> str:
         """Query instrument with cmd and return response.
-        
+
         Args:
             cmd: Command to write to controller.
 
