@@ -25,7 +25,7 @@ def test_trace_define(qdac):  # noqa
     # -----------------------------------------------------------------------
     trace = qdac.allocate_trace(name, length)
     # -----------------------------------------------------------------------
-    assert qdac.get_recorded_scpi_commands() == [f'trac:def "{name}", {length}']
+    assert qdac.get_recorded_scpi_commands() == [f'trac:def "{name}",{length}']
     assert trace.name == name
     assert trace.size == length
     assert len(trace) == length
@@ -60,7 +60,7 @@ def test_trace_data(qdac):  # noqa
     trace.waveform(numpy.linspace(0, 1, 6))
     # -----------------------------------------------------------------------
     assert qdac.get_recorded_scpi_commands() == [
-        f'trac:data "{name}", 0, 0.2, 0.4, 0.6, 0.8, 1']
+        f'trac:data "{name}",0,0.2,0.4,0.6,0.8,1']
 
 
 def test_trace_data_length_mismatch(qdac):  # noqa
@@ -266,7 +266,7 @@ def test_awg_period_start_trigger_alloc(qdac):  # noqa
     trigger = awg.period_start_marker()
     # -----------------------------------------------------------------------
     assert qdac.get_recorded_scpi_commands() == [
-        f'sour5:awg:mark:psta {trigger.value}'
+        f'sour5:awg:mark:pstart {trigger.value}'
     ]
 
 
@@ -281,7 +281,7 @@ def test_awg_period_start_trigger_reuse(qdac):  # noqa
     # -----------------------------------------------------------------------
     assert trigger2 == trigger
     assert qdac.get_recorded_scpi_commands() == [
-        f'sour5:awg:mark:psta {trigger.value}'
+        f'sour5:awg:mark:pstart {trigger.value}'
     ]
 
 

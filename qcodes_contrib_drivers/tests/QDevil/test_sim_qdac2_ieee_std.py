@@ -10,7 +10,7 @@ def test_idn(qdac):  # noqa
     assert idn_dict['vendor'] == 'QDevil'
     assert idn_dict['model'] == 'QDAC-II'
     assert re.fullmatch('[A-Z]+[0-9]+', idn_dict['serial'])
-    assert re.fullmatch('[0-9]+-[0-9]+\\.[0-9]+\\.[0-9]+', idn_dict['firmware'])
+    assert re.fullmatch('[0-9]+-[0-9]+\\.[0-9]+(\\.[0-9]+)?', idn_dict['firmware'])
 
 
 def test_abort(qdac):  # noqa
@@ -21,12 +21,14 @@ def test_abort(qdac):  # noqa
     assert commands == ['abor']
 
 
-def test_reset(qdac):  # noqa
+def test_reset(qdac, mocker):  # noqa
+    sleep_fn = mocker.patch('qcodes_contrib_drivers.drivers.QDevil.QDAC2.sleep_s')
     # -----------------------------------------------------------------------
     qdac.reset()
     # -----------------------------------------------------------------------
     commands = qdac.get_recorded_scpi_commands()
     assert commands == ['*rst']
+    sleep_fn.assert_called_once_with(5)
 
 
 def test_internal_trigger(qdac):  # noqa

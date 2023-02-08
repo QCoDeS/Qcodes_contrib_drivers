@@ -11,7 +11,7 @@ def test_triangle_ambiguous(qdac):  # noqa
     assert 'frequency_Hz or period_s can be specified' in repr(error)
 
 
-def test_triangle_default_vaules(qdac):  # noqa
+def test_triangle_default_values(qdac):  # noqa
     # -----------------------------------------------------------------------
     qdac.ch24.triangle_wave()
     # -----------------------------------------------------------------------
@@ -23,6 +23,7 @@ def test_triangle_default_vaules(qdac):  # noqa
         'sour24:tri:span 0.2',
         'sour24:tri:offs 0.0',
         'sour24:tri:slew inf',
+        'sour24:tri:del 0',
         'sour24:tri:coun -1',
         'sour24:tri:trig:sour bus',
         'sour24:tri:init:cont on',
@@ -38,6 +39,7 @@ def test_triangle_period(qdac):  # noqa
         span_V=1,
         offset_V=-0.1,
         duty_cycle_percent=99,
+        delay_s=0.2,
         slew_V_s=1
     )
     # -----------------------------------------------------------------------
@@ -49,6 +51,7 @@ def test_triangle_period(qdac):  # noqa
         'sour24:tri:span 1',
         'sour24:tri:offs -0.1',
         'sour24:tri:slew 1',
+        'sour24:tri:del 0.2',
         'sour24:tri:coun -1',
         'sour24:tri:trig:sour bus',
         'sour24:tri:init:cont on',
@@ -73,6 +76,7 @@ def test_triangle_negative(qdac):  # noqa
         'sour24:tri:span 5',
         'sour24:tri:offs 0.0',
         'sour24:tri:slew inf',
+        'sour24:tri:del 0',
         'sour24:tri:coun 10',
         'sour24:tri:trig:sour bus',
         'sour24:tri:init:cont on',
@@ -92,6 +96,7 @@ def test_triangle_frequency(qdac):  # noqa
         'sour24:tri:span 0.2',
         'sour24:tri:offs 0.0',
         'sour24:tri:slew inf',
+        'sour24:tri:del 0',
         'sour24:tri:coun -1',
         'sour24:tri:trig:sour bus',
         'sour24:tri:init:cont on',
@@ -233,7 +238,7 @@ def test_triangle_period_start_marker_alloc(qdac):  # noqa
     trigger = triangle.period_start_marker()
     # -----------------------------------------------------------------------
     assert qdac.get_recorded_scpi_commands() == [
-        f'sour1:tri:mark:psta {trigger.value}'
+        f'sour1:tri:mark:pstart {trigger.value}'
     ]
 
 
@@ -247,7 +252,7 @@ def test_triangle_period_start_marker_reuse(qdac):  # noqa
     # -----------------------------------------------------------------------
     assert trigger2 == trigger
     assert qdac.get_recorded_scpi_commands() == [
-        f'sour1:tri:mark:psta {trigger.value}'
+        f'sour1:tri:mark:pstart {trigger.value}'
     ]
 
 

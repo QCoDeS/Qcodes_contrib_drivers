@@ -9,6 +9,7 @@ def test_list_explicit(qdac):  # noqa
         repetitions=10,
         voltages=[-1, 0, 1],
         dwell_s=1e-6,
+        delay_s=0.1,
         backwards=True,
         stepped=True
     )
@@ -16,9 +17,10 @@ def test_list_explicit(qdac):  # noqa
     assert qdac.get_recorded_scpi_commands() == [
         'sour1:dc:trig:sour hold',
         'sour1:volt:mode list',
-        'sour1:list:volt -1, 0, 1',
+        'sour1:list:volt -1,0,1',
         'sour1:list:tmod step',
         'sour1:list:dwel 1e-06',
+        'sour1:dc:del 0.1',
         'sour1:list:dir down',
         'sour1:list:coun 10',
         'sour1:dc:trig:sour bus',
@@ -34,9 +36,10 @@ def test_list_implicit(qdac):  # noqa
     assert qdac.get_recorded_scpi_commands() == [
         'sour1:dc:trig:sour hold',
         'sour1:volt:mode list',
-        'sour1:list:volt 1, 2, 3, 4',
+        'sour1:list:volt 1,2,3,4',
         'sour1:list:tmod auto',
         'sour1:list:dwel 0.001',
+        'sour1:dc:del 0',
         'sour1:list:dir up',
         'sour1:list:coun 1',
         'sour1:dc:trig:sour bus',
@@ -73,7 +76,7 @@ def test_list_append(qdac):  # noqa
     # -----------------------------------------------------------------------
     # Cannot sim test: assert points == 6
     assert qdac.get_recorded_scpi_commands() == [
-        'sour1:list:volt:app 5, 6',
+        'sour1:list:volt:app 5,6',
         'sour1:dc:init:cont on',
         'sour1:dc:init',
     ]
@@ -108,9 +111,10 @@ def test_list_infinite(qdac):  # noqa
     assert qdac.get_recorded_scpi_commands() == [
         'sour1:dc:trig:sour hold',
         'sour1:volt:mode list',
-        'sour1:list:volt 1, 2, 3, 4',
+        'sour1:list:volt 1,2,3,4',
         'sour1:list:tmod auto',
         'sour1:list:dwel 0.001',
+        'sour1:dc:del 0',
         'sour1:list:dir up',
         'sour1:list:coun -1',
         'sour1:dc:trig:sour bus',
@@ -248,6 +252,14 @@ def test_list_trigger_on_external(qdac):  # noqa
         f'sour1:dc:init:cont on',
         'sour1:dc:init'
     ]
+
+
+def test_list_get_voltages(qdac):  # noqa
+    dc_list = qdac.ch01.dc_list(voltages=[-0.123, 0, 1.234])
+    # -----------------------------------------------------------------------
+    voltages = dc_list.values_V()
+    # -----------------------------------------------------------------------
+    assert voltages == [-0.123, 0, 1.234]
 
 
 # def test_list_internal_trigger(qdac):  # noqa

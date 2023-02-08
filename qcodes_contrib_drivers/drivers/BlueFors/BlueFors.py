@@ -5,6 +5,7 @@ import os
 import pandas as pd
 import numpy as np
 from datetime import date
+from typing import Optional
 from qcodes.instrument.base import Instrument
 
 class BlueFors(Instrument):
@@ -25,7 +26,7 @@ class BlueFors(Instrument):
                        channel_4k_plate          : int,
                        channel_still             : int,
                        channel_mixing_chamber    : int,
-                       channel_magnet            : int=None,
+                       channel_magnet            : Optional[int] = None,
                        **kwargs) -> None:
         """
         QCoDeS driver for BlueFors fridges.
