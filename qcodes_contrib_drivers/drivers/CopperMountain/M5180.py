@@ -4,7 +4,7 @@
 import logging
 import numpy as np
 import cmath, math
-from typing import Tuple, Optional, Any
+from typing import Tuple, Any
 
 from qcodes import VisaInstrument
 from qcodes.utils.validators import Numbers, Enum, Ints, Bool
@@ -259,7 +259,7 @@ class M5180(VisaInstrument):
                        timeout    : int=100000,
                        **kwargs):
         """
-        QCoDeS driver for the VNA S5180 from Copper Mountain.
+        QCoDeS driver for the VNA M5180 from Copper Mountain.
         This driver only uses one channel.
 
         Args:
@@ -488,7 +488,7 @@ class M5180(VisaInstrument):
             docstring="Parameter that enables a few commands, which are called"
             "before each get of a point_sxx parameter checking whether the vna"
             "is setup correctly. Is recommended to be True, but can be turned"
-            "off if one wants to minimize overhead",
+            "off if one wants to minimize overhead.",
         )
 
         self.connect_message()

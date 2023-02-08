@@ -1,9 +1,8 @@
 import logging
-from typing import Optional, Dict, List, cast
+from typing import Dict, List, Optional
 
-from qcodes import Instrument, InstrumentChannel, ChannelList
-
-from niswitch import Session, PathCapability
+from niswitch import PathCapability, Session
+from qcodes import ChannelList, Instrument, InstrumentChannel
 
 logger = logging.getLogger(__name__)
 
@@ -119,7 +118,7 @@ class SwitchChannel(InstrumentChannel):
         self._update_connection_list()
         return [ch.short_name for ch in self.connection_list]
 
-    def connect_to(self, other: "InstrumentChannel") -> None:
+    def connect_to(self, other: "SwitchChannel") -> None:
         """
         Connect this channel to another channel. If either of the channels is
         already connected to something else, disconnect both channels first. If
@@ -144,7 +143,7 @@ class SwitchChannel(InstrumentChannel):
         self.connection_list.append(other)
         other.connection_list.append(self)
 
-    def disconnect_from(self, other: "InstrumentChannel") -> None:
+    def disconnect_from(self, other: "SwitchChannel") -> None:
         """
         Disconnect this channel from another chanel. If the channels are not
         connected, raises a ``DriverError``.
@@ -159,5 +158,5 @@ class SwitchChannel(InstrumentChannel):
         Disconnect this channel from all channels it is connected to.
         """
         while len(self.connection_list) > 0:
-            ch = cast(InstrumentChannel, self.connection_list[0])
+            ch = self.connection_list[0]
             self.disconnect_from(ch)
