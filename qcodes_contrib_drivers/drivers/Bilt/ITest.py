@@ -315,7 +315,7 @@ class ITest(VisaInstrument):
         elif outf=='ramp':
             mode = '1'
         else:
-            raise ValueError('Got unexpected output function mode: {}.'.format(mode))
+            raise ValueError(f'Got unexpected output function mode: {outf}.')
 
         self.write(chan_id + 'trig:input ' + mode)
 
