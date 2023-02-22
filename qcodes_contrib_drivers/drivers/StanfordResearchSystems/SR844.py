@@ -1,10 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Mar  2 09:25:05 2021
-
-@author: Triton4acq_2
-"""
-
 from functools import partial
 import numpy as np
 from typing import Any
@@ -136,31 +129,6 @@ class SR844(VisaInstrument):
     Lock-in Amplifier
     """
 
-    # FB; sensitivity list set in SENS(?) since this lockin has only single channel mode, not differential one
-    # _VOLT_TO_N = {100e-9:    0, 300e-9:    1, 1e-6:  2,
-    #               3e-6:   3, 10e-6:   4, 30e-6: 5,
-    #               100e-6:  6, 300e-6:  7, 1e-3:   8,
-    #               3e-3:    9, 10e-3:   10, 30e-3:  11,
-    #               100e-3: 12, 300e-3: 13, 1:      14}
-    # _N_TO_VOLT = {v: k for k, v in _VOLT_TO_N.items()}
-
-    # _CURR_TO_N = {100e-15:    0, 300e-15:    1, 1e-12:  2, #FB: in the manual no current values, only Vrms
-    #               3e-12:   3, 10e-12:   4, 30e-12: 5,
-    #               100e-12:  6, 300e-12:  7, 1e-9:   8,
-    #               3e-9:    9, 10e-9:   10, 30e-9:  11,
-    #               100e-9: 12, 300e-9: 13, 1e-6:      14}
-    # _N_TO_CURR = {v: k for k, v in _CURR_TO_N.items()}
-
-    # _VOLT_ENUM = Enum(*_VOLT_TO_N.keys())
-    # _CURR_ENUM = Enum(*_CURR_TO_N.keys()) #same reason as above
-
-    # _INPUT_CONFIG_TO_N = { #FB; this lockin supports only single  channel mode, no differential. So taken away 'a', and 'a-b'
-    #     'I 50k': 0,
-    #     'I 1M': 1,
-    # }
-
-    # _N_TO_INPUT_CONFIG = {v: k for k, v in _INPUT_CONFIG_TO_N.items()}
-
     def __init__(self, name: str, address: str, **kwargs: Any):
         super().__init__(name, address, **kwargs)
 
@@ -197,16 +165,6 @@ class SR844(VisaInstrument):
             vals=Numbers(min_value=2.5e4, max_value=2e8),
         )  # FB: in 2F mode minimum frequency is 50 kHz. See HARM?
 
-        # self.add_parameter('ext_trigger',  #command RSLP does't seem available or anything similar
-        #                    label='External trigger',
-        #                    get_cmd='RSLP?',
-        #                    set_cmd='RSLP {}',
-        #                    val_mapping={
-        #                        'sine': 0,
-        #                        'TTL rising': 1,
-        #                        'TTL falling': 2,
-        #                    })
-
         self.add_parameter(
             "harmonic",  # FB: here it sets the 2F mode or not
             label="Harmonic",
@@ -238,36 +196,6 @@ class SR844(VisaInstrument):
                 "I 1M": 1,
             },
         )
-        # FB: in the manual a similar command does not appear
-        # self.add_parameter('input_shield',
-        #                    label='Input shield',
-        #                    get_cmd='IGND?',
-        #                    set_cmd='IGND {}',
-        #                    val_mapping={
-        #                        'float': 0,
-        #                        'ground': 1,
-        #                    })
-
-        # FB: in the manual a similar command does not appear
-        # self.add_parameter('input_coupling',
-        #                    label='Input coupling',
-        #                    get_cmd='ICPL?',
-        #                    set_cmd='ICPL {}',
-        #                    val_mapping={
-        #                        'AC': 0,
-        #                        'DC': 1,
-        # })
-        # FB: in the manual a similar command does not appear
-        # self.add_parameter('notch_filter',
-        #                    label='Notch filter',
-        #                    get_cmd='ILIN?',
-        #                    set_cmd='ILIN {}',
-        #                    val_mapping={
-        #                        'off': 0,
-        #                        'line in': 1,
-        #                        '2x line in': 2,
-        #                        'both': 3,
-        #                    })
 
         # Gain and time constant
         # FB: sensitivity was read correctly by qcodes for 0 and 1, but not for setting #2. The others have not been tested yet.
@@ -349,20 +277,6 @@ class SR844(VisaInstrument):
                 24: 4,
             },
         )
-        # FB: absent in the manual
-        # self.add_parameter('sync_filter',
-        #                    label='Sync filter',
-        #                    get_cmd='SYNC?',
-        #                    set_cmd='SYNC {}',
-        #                    val_mapping={
-        #                        'off': 0,
-        #                        'on': 1,
-        #                    })
-        # FB: not used
-        # def parse_offset_get(s: str) -> Tuple[float, int]:
-        #     parts = s.split(',')
-
-        #     return float(parts[0]), int(parts[1])
 
         # FB: offset function changed to DOFF and parameters modified accordingly
         self.add_parameter(
