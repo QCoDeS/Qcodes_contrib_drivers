@@ -1,12 +1,71 @@
 from functools import partial
 import numpy as np
-from typing import Any
+from typing import Any, Iterable, Tuple, Union
 
 from qcodes import VisaInstrument
-from qcodes.instrument.parameter import ArrayParameter, ParamRawDataType
-from qcodes.utils.validators import Numbers, Ints, Enum, Strings
+from qcodes.instrument.parameter import ArrayParameter, Parameter, ParamRawDataType, ParameterWithSetpoints
+from qcodes.utils.validators import Numbers, Ints, Enum, Strings, Arrays
 
-from typing import Tuple
+class ChannelTrace(ParameterWithSetpoints):
+    """
+    Parameter class for the two channel buffers
+    """
+
+    def __init__(self, name: str, channel: int, **kwargs: Any) -> None:
+        """
+        Args:
+            name: The name of the parameter
+            channel: The relevant channel (1 or 2). The name should
+                match this.
+        """
+        super().__init__(name, **kwargs)
+
+        self._valid_channels = (1, 2)
+
+        if channel not in self._valid_channels:
+            raise ValueError('Invalid channel specifier. SR844 only has '
+                             'channels 1 and 2.')
+
+        if not isinstance(self.root_instrument, SR844):
+            raise ValueError('Invalid parent instrument. ChannelTrace '
+                             'can only live on an SR844.')
+
+        self.channel = channel
+        self.update_unit()
+
+    def update_unit(self) -> None:
+        assert isinstance(self.root_instrument, SR844)
+        params = self.root_instrument.parameters
+        if params["ratio_mode"].get() != "none":
+            self.unit = "%"
+        else:
+            disp = params[f"ch{self.channel}_display"].get()
+            if "Phase" in disp:
+                self.unit = "deg"
+            elif "dBm" in disp:
+                self.unit = "dBm"
+            else:
+                self.unit = "V"
+
+
+    def get_raw(self) -> ParamRawDataType:
+        """
+        Get command. Returns numpy array
+        """
+        assert isinstance(self.root_instrument, SR844)
+        N = self.root_instrument.buffer_npts()
+        if N == 0:
+            raise ValueError('No points stored in SR844 data buffer.'
+                             ' Cannot poll anything.')
+
+        # poll raw binary data
+        self.root_instrument.write(f'TRCL ? {self.channel}, 0, {N}')
+        rawdata = self.root_instrument.visa_handle.read_raw()
+
+        # parse it
+        realdata = np.frombuffer(rawdata, dtype="<i2")
+        numbers = realdata[::2] * 2.0 ** (realdata[1::2] - 124)
+        return numbers
 
 
 class ChannelBuffer(ArrayParameter):
@@ -23,19 +82,18 @@ class ChannelBuffer(ArrayParameter):
         Args:
             name: The name of the parameter
             instrument: The parent instrument
-            channel: The relevant channel (1 or 2). The name should
-                should match this.
+            channel: The relevant channel (1 or 2). The name should 
+                should match this.          # how should the name match the channel?
         """
         self._valid_channels = (1, 2)
 
         if channel not in self._valid_channels:
-            raise ValueError(
-                "Invalid channel specifier. SR844 only has " "channels 1 and 2."
-            )
+            raise ValueError('Invalid channel specifier. SR844 only has '
+                             'channels 1 and 2.')
 
         if not isinstance(instrument, SR844):
             raise ValueError(
-                "Invalid parent instrument. ChannelBuffer " "can only live on an SR844."
+                "Invalid parent instrument. ChannelBuffer " " can only live on an SR844."
             )
 
         super().__init__(
@@ -50,6 +108,7 @@ class ChannelBuffer(ArrayParameter):
 
         self.channel = channel
         self._instrument = instrument
+
 
     def prepare_buffer_readout(self) -> None:
         """
@@ -77,12 +136,14 @@ class ChannelBuffer(ArrayParameter):
         params = self._instrument.parameters
         # YES, it should be: comparing to the string 'none' and not
         # the None literal
-        if params[f"ch{self.channel}_ratio"].get() != "none":
+        if params["ratio_mode"].get() != "none":
             self.unit = "%"
         else:
             disp = params[f"ch{self.channel}_display"].get()
             if disp == "Phase":
                 self.unit = "deg"
+            elif "dBm" in disp:
+                self.unit = "dBm"
             else:
                 self.unit = "V"
 
@@ -90,6 +151,7 @@ class ChannelBuffer(ArrayParameter):
             self._instrument._buffer1_ready = True
         else:
             self._instrument._buffer2_ready = True
+
 
     def get_raw(self) -> ParamRawDataType:
         """
@@ -134,7 +196,7 @@ class SR844(VisaInstrument):
 
         # Reference and phase
         self.add_parameter(
-            "phase",
+            "phase_offset",
             label="Phase",
             get_cmd="PHAS?",
             get_parser=float,
@@ -144,7 +206,7 @@ class SR844(VisaInstrument):
         )
 
         self.add_parameter(
-            "reference_source",
+            "reference_source", 
             label="Reference source",
             get_cmd="FMOD?",
             set_cmd="FMOD {}",
@@ -163,13 +225,13 @@ class SR844(VisaInstrument):
             set_cmd="FREQ {:.4f}",
             unit="Hz",
             vals=Numbers(min_value=2.5e4, max_value=2e8),
-        )  # FB: in 2F mode minimum frequency is 50 kHz. See HARM?
+        )  # FB: in 2F mode minimum frequency is 50 kHz. See HARM
 
         self.add_parameter(
-            "harmonic",  # FB: here it sets the 2F mode or not
+            "harmonic",
             label="Harmonic",
             get_cmd="HARM?",
-            set_cmd="HARM {}",
+            set_cmd="HARM {}", #self._set_harmonic
             val_mapping={
                 "f": 0,
                 "2f": 1,
@@ -185,7 +247,6 @@ class SR844(VisaInstrument):
         #                    unit='V',
         #                    vals=Numbers(min_value=0.004, max_value=5.000))
 
-        # Input and filter
         self.add_parameter(
             "input_impedance",
             label="Input impedance",
@@ -197,8 +258,7 @@ class SR844(VisaInstrument):
             },
         )
 
-        # Gain and time constant
-        # FB: sensitivity was read correctly by qcodes for 0 and 1, but not for setting #2. The others have not been tested yet.
+        # FB: sensitivity was read correctly by qcodes for 0 and 1, but not for setting #2. # No issue was noted on a rerun
         self.add_parameter(
             name="sensitivity",
             label="Sensitivity",
@@ -222,7 +282,7 @@ class SR844(VisaInstrument):
                 1: 14,
             },
         )
-        # FB: changed command to WRSV
+
         self.add_parameter(
             "reserve",
             label="Reserve",
@@ -234,7 +294,7 @@ class SR844(VisaInstrument):
                 "low noise": 2,
             },
         )
-        # FB: updated values
+
         self.add_parameter(
             "time_constant",
             label="Time constant",
@@ -262,7 +322,7 @@ class SR844(VisaInstrument):
                 30e3: 17,
             },
         )
-        # FB: modified. 'No filter mode'  is set at 0, a different construct would be required
+
         self.add_parameter(
             "filter_slope",
             label="Filter slope",
@@ -283,7 +343,7 @@ class SR844(VisaInstrument):
             "X_offset",
             get_cmd="DOFF? 1, 0",
             get_parser=float,
-            set_cmd="DOFF 1, 0 {,:.2f}",
+            set_cmd="DOFF 1, 0, {}",
             unit="% of full scale",
             vals=Numbers(min_value=-110, max_value=110),
         )
@@ -292,7 +352,7 @@ class SR844(VisaInstrument):
             "R_V_offset",
             get_cmd="DOFF? 1, 1",
             get_parser=float,
-            set_cmd="DOFF 1, 1 {,:.2f}",
+            set_cmd="DOFF 1, 1, {}",
             unit="% of full scale",
             vals=Numbers(min_value=-110, max_value=110),
         )
@@ -301,7 +361,7 @@ class SR844(VisaInstrument):
             "R_dBm_offset",
             get_cmd="DOFF? 1, 2",
             get_parser=float,
-            set_cmd="DOFF 1, 2 {,:.2f}",
+            set_cmd="DOFF 1, 2, {}",
             unit="% of 200 dBm scale",
             vals=Numbers(min_value=-110, max_value=110),
         )
@@ -309,11 +369,11 @@ class SR844(VisaInstrument):
             "Y_offset",
             get_cmd="DOFF? 2, 0",
             get_parser=float,
-            set_cmd="DOFF 2, 0 {,:.2f}",
+            set_cmd="DOFF 2, 0, {}",
             unit="% of full scale",
             vals=Numbers(min_value=-110, max_value=110),
         )
-        # Aux input/output FB: modified into AUXI and AUXO
+   
         for i in [1, 2]:
             self.add_parameter(
                 f"aux_in{i}",
@@ -326,13 +386,13 @@ class SR844(VisaInstrument):
             self.add_parameter(
                 f"aux_out{i}",
                 label=f"Aux output {i}",
-                get_cmd=f"AUXO? {i}",  # missing limits -10.5 , 10.5 V!
+                get_cmd=f"AUXO? {i}",
                 get_parser=float,
                 set_cmd=f"AUXO {i}, {{}}",
                 unit="V",
+                vals=Numbers(min_value=-10.5, max_value=10.5)
             )
 
-        # Setup
         self.add_parameter(
             "output_interface",
             label="Output interface",
@@ -344,142 +404,147 @@ class SR844(VisaInstrument):
             },
         )
 
-        # FB: Channel setup completely revisited
-        # Set (Query) the Ratio Mode
         self.add_parameter(
             "ratio_mode",
             label="Ratio mode",
             get_cmd="DRAT?",
-            set_cmd="DRAT {}",
+            set_cmd=self._set_ratio,
             val_mapping={
-                "off": 0,
+                "none": 0,
                 "AuxIn1": 1,
                 "AuxIn2": 2,
             },
         )
-        # Se (query) the channels display, could be shortened
-        self.add_parameter(
-            "ch1_display",
-            label="Channel 1 display",
-            get_cmd="DDEF? 1 ",
-            set_cmd="DRAT 1, {{}}",
-            val_mapping={
-                "X": 0,
-                "R_V": 1,
-                "R_dBm": 2,
-                "Xn": 3,
-                "AuxIn1": 4,
-            },
-        )
-        self.add_parameter(
-            "ch2_display",
-            label="Channel 2 display",
-            get_cmd="DDEF? 2 ",
-            set_cmd="DRAT 2, {{}}",
-            val_mapping={
-                "Y": 0,
-                "P": 1,
-                "Yn_V": 2,
-                "Yn_dBm": 3,
-                "AuxIn2": 4,
-            },
-        )
+        
+        # self.add_parameter(
+        #     "ch1_display",
+        #     label="Channel 1 display",
+        #     get_cmd="DDEF? 1 ",
+        #     set_cmd="DDEF 1, {}",
+        #     val_mapping={
+        #         "X": 0,
+        #         "R_V": 1,
+        #         "R_dBm": 2,
+        #         "Xn": 3,
+        #         "AuxIn1": 4,
+        #     },
+        # )
+        
+        # self.add_parameter(
+        #     "ch2_display",
+        #     label="Channel 2 display",
+        #     get_cmd="DDEF? 2 ",
+        #     set_cmd="DDEF 2, {}",
+        #     val_mapping={
+        #         "Y": 0,
+        #         "P": 1,
+        #         "Yn_V": 2,
+        #         "Yn_dBm": 3,
+        #         "AuxIn2": 4,
+        #     },
+        # )
+        
 
-        for ch in range(1, 3):
+        self.add_parameter("buffer_SR",
+                           label="Buffer sample rate",
+                           get_cmd="SRAT ?",
+                           set_cmd=self._set_buffer_SR,
+                           unit="Hz",
+                           val_mapping={
+                                62.5e-3: 0,
+                                0.125: 1,
+                                0.250: 2,
+                                0.5: 3,
+                                1: 4,
+                                2: 5,
+                                4: 6,
+                                8: 7,
+                                16: 8,
+                                32: 9,
+                                64: 10,
+                                128: 11,
+                                256: 12,
+                                512: 13,
+                                "Trigger": 14,
+                           },
+                           get_parser=int)
 
-            # detailed validation and mapping performed in set/get functions
-            # self.add_parameter(f'ch{ch}_ratio',
-            #                    label=f'Channel {ch} ratio',
-            #                    get_cmd=partial(self._get_ch_ratio, ch),
-            #                    set_cmd=partial(self._set_ch_ratio, ch),
-            #                    vals=Strings())
-            # self.add_parameter(f'ch{ch}_display',
-            #                    label=f'Channel {ch} display',
-            #                    get_cmd=partial(self._get_ch_display, ch),
-            #                    set_cmd=partial(self._set_ch_display, ch),
-            #                    vals=Strings())
-            self.add_parameter(
-                f"ch{ch}_databuffer", channel=ch, parameter_class=ChannelBuffer
-            )
+        self.add_parameter("buffer_acq_mode",
+                           label="Buffer acquistion mode",
+                           get_cmd="SEND ?",
+                           set_cmd="SEND {}",
+                           val_mapping={"single shot": 0, "loop": 1},
+                           get_parser=int)
 
-        # Data transfer FB: addeded RSR844m]
-        self.add_parameter("X", get_cmd="OUTP? 1", get_parser=float, unit="V")
+        self.add_parameter("buffer_trig_mode",
+                           label="Buffer trigger start mode",
+                           get_cmd="TSTR ?",
+                           set_cmd="TSTR {}",
+                           val_mapping={"ON": 1, "OFF": 0},
+                           get_parser=int)
 
-        self.add_parameter("Y", get_cmd="OUTP? 2", get_parser=float, unit="V")
+        self.add_parameter("buffer_npts",
+                           label="Buffer number of stored points",
+                           get_cmd="SPTS ?",
+                           get_parser=int)
+        
+        self.add_parameter('sweep_setpoints',
+                           parameter_class=GeneratedSetPoints,
+                           vals=Arrays(shape=(self.buffer_npts.get,)))
+        
+        for ch in [1, 2]:
 
-        self.add_parameter("R_V", get_cmd="OUTP? 3", get_parser=float, unit="V")
+            self.add_parameter(f'ch{ch}_display',
+                               label=f'Channel {ch} display',
+                               get_cmd=partial(self._get_ch_display, ch),
+                               set_cmd=partial(self._set_ch_display, ch),
+                               vals=Strings())
+            self.add_parameter(f"ch{ch}_databuffer", 
+                               channel=ch, 
+                               parameter_class=ChannelBuffer)
+            self.add_parameter(f'ch{ch}_datatrace',
+                               channel=ch,
+                               vals=Arrays(shape=(self.buffer_npts.get,)),
+                        setpoints=(self.sweep_setpoints,),
+                        parameter_class=ChannelTrace)
 
-        self.add_parameter("R_dBm", get_cmd="OUTP? 4", get_parser=float, unit="dBm")
-        self.add_parameter("P_dBm", get_cmd="OUTP? 5", get_parser=float, unit="deg")
+        # Data transfer FB: added RSR844m]
+        self.add_parameter("X", 
+                           get_cmd="OUTP? 1", 
+                           get_parser=float,
+                           unit="V")
 
-        # Data buffer settings
-        self.add_parameter(
-            "buffer_SR",
-            label="Buffer sample rate",
-            get_cmd="SRAT ?",
-            set_cmd=self._set_buffer_SR,
-            unit="Hz",
-            val_mapping={
-                62.5e-3: 0,
-                0.125: 1,
-                0.250: 2,
-                0.5: 3,
-                1: 4,
-                2: 5,
-                4: 6,
-                8: 7,
-                16: 8,
-                32: 9,
-                64: 10,
-                128: 11,
-                256: 12,
-                512: 13,
-                "Trigger": 14,
-            },
-            get_parser=int,
-        )
+        self.add_parameter("Y", 
+                           get_cmd="OUTP? 2", 
+                           get_parser=float, 
+                           unit="V")
 
-        self.add_parameter(
-            "buffer_acq_mode",
-            label="Buffer acquistion mode",
-            get_cmd="SEND ?",
-            set_cmd="SEND {}",
-            val_mapping={"single shot": 0, "loop": 1},
-            get_parser=int,
-        )
+        self.add_parameter("R_V", 
+                           get_cmd="OUTP? 3", 
+                           get_parser=float, 
+                           unit="V")
 
-        self.add_parameter(
-            "buffer_trig_mode",
-            label="Buffer trigger start mode",
-            get_cmd="TSTR ?",
-            set_cmd="TSTR {}",
-            val_mapping={"ON": 1, "OFF": 0},
-            get_parser=int,
-        )
-
-        self.add_parameter(
-            "buffer_npts",
-            label="Buffer number of stored points",
-            get_cmd="SPTS ?",
-            get_parser=int,
-        )
-
+        self.add_parameter("R_dBm", 
+                           get_cmd="OUTP? 4", 
+                           get_parser=float, 
+                           unit="dBm")
+        
+        self.add_parameter("phase", 
+                           get_cmd="OUTP? 5", 
+                           get_parser=float, 
+                           unit="deg")
+                                        ### use of functions is advised against due to code transparency ###
         # Auto functions
         self.add_function("auto_gain", call_cmd="AGAN")
         self.add_function("auto_wideband_reserve ", call_cmd="AWRS")
         self.add_function("auto_close_in_reserve ", call_cmd="ACRS")
         self.add_function("auto_phase", call_cmd="APHS")
         # FB auto offset functions could be improved
-        self.add_function(
-            "auto_offset_ch1", call_cmd="AOFF 1,{0}", args=[Enum(1, 2, 3)]
-        )
-        self.add_function(
-            "auto_offset_ch2", call_cmd="AOFF 2,{0}", args=[Enum(1, 2, 3)]
-        )
+        self.add_function("auto_offset_ch1", call_cmd="AOFF 1, {}", args=[Enum(0, 1, 2)])
+        self.add_function("auto_offset_ch2", call_cmd="AOFF 2, {0}", args=[Enum(0)])
 
         # Interface
         self.add_function("reset", call_cmd="*RST")
-
         self.add_function("disable_front_panel", call_cmd="OVRM 0")
         self.add_function("enable_front_panel", call_cmd="OVRM 1")
 
@@ -633,6 +698,16 @@ class SR844(VisaInstrument):
         """
         return self._change_sensitivity(-1)
 
+    # def _set_harmonic(self, harm: int) -> None:
+    #     print(harm)
+    #     if harm == 0:
+    #         self.write("HARM {0}")
+    #     else:
+    #         freq = self.parameters['frequency'].get()
+    #         if freq < 50000:
+    #             raise ValueError('Frequency must be 50kHz or greater to enable second harmonics')
+    #         self.write("HARM {1}")
+
     def _change_sensitivity(self, dn: int) -> bool:
         if self.input_config() in ["a", "a-b"]:
             n_to = self._N_TO_VOLT
@@ -655,68 +730,116 @@ class SR844(VisaInstrument):
         self._buffer2_ready = False
 
     # def _get_ch_ratio(self, channel: int) -> str:
-    #     val_mapping = {1: {0: 'X',
-    #                        1: 'Aux In 1',
-    #                        2: 'Aux In 1',
-    #                        3: 'Aux In 1',
-    #                        : 'Aux In 2'},
-    #                    2: {0: 'none',
-    #                        1: 'Aux In 3',
-    #                        2: 'Aux In 4'}}
-    #     resp = int(self.ask(f'DDEF ? {channel}').split(',')[1])
+    #     val_mapping = {0: 'none',
+    #                    1: 'AuxIn1',
+    #                    2: 'AuxIn2'}
+    #     resp = int(self.ask(f'DRAT ?').split(',')[1])
 
     #     return val_mapping[channel][resp]
 
-    # def _set_ch_ratio(self, channel: int, ratio: str) -> None:
-    #     val_mapping = {1: {'none': 0,
-    #                        'Aux In 1': 1,
-    #                        'Aux In 2': 2},
-    #                    2: {'none': 0,
-    #                        'Aux In 3': 1,
-    #                        'Aux In 4': 2}}
-    #     vals = val_mapping[channel].keys()
-    #     if ratio not in vals:
-    #         raise ValueError(f'{ratio} not in {vals}')
-    #     ratio_int = val_mapping[channel][ratio]
-    #     disp_val = int(self.ask(f'DDEF ? {channel}').split(',')[0])
-    #     self.write(f'DDEF {channel}, {disp_val}, {ratio_int}')
-    #     self._buffer_ready = False
+    def _set_ratio(self, ratio_int: int) -> None:
+        self.write(f'DRAT {ratio_int}')
+        self._buffer_ready = False
+        params = self.parameters
+        for ch in [1, 2]:
+            dataparam = params[f'ch{ch}_datatrace']
+            assert isinstance(dataparam, ChannelTrace)
+            dataparam.update_unit()
 
-    # def _get_ch_display(self, channel: int) -> str:
-    #     val_mapping = {1: {0: 'X',
-    #                        1: 'R',
-    #                        2: 'X Noise',
-    #                        3: 'Aux In 1',
-    #                        4: 'Aux In 2'},
-    #                    2: {0: 'Y',
-    #                        1: 'Phase',
-    #                        2: 'Y Noise',
-    #                        3: 'Aux In 3',
-    #                        4: 'Aux In 4'}}
-    #     resp = int(self.ask(f'DDEF ? {channel}').split(',')[0])
+    def _get_ch_display(self, channel: int) -> str:
+        val_mapping = {1: {0: 'X',
+                           1: 'R_V',
+                           2: 'R_dBm',
+                           3: 'X Noise',
+                           4: 'AuxIn1'},
+                       2: {0: 'Y',
+                           1: 'Phase',
+                           2: 'Y Noise',
+                           3: 'Y_dBm Noise',
+                           4: 'AuxIn2'}}
+        resp = int(self.ask(f'DDEF ? {channel}').split(',')[0]) 
 
-    #     return val_mapping[channel][resp]
+        return val_mapping[channel][resp]
 
-    # def _set_ch_display(self, channel: int, disp: str) -> None:
-    #     val_mapping = {1: {'X': 0,
-    #                        'R': 1,
-    #                        'X Noise': 2,
-    #                        'Aux In 1': 3,
-    #                        'Aux In 2': 4},
-    #                    2: {'Y': 0,
-    #                        'Phase': 1,
-    #                        'Y Noise': 2,
-    #                        'Aux In 3': 3,
-    #                        'Aux In 4': 4}}
-    #     vals = val_mapping[channel].keys()
-    #     if disp not in vals:
-    #         raise ValueError(f'{disp} not in {vals}')
-    #     disp_int = val_mapping[channel][disp]
-    #     # Since ratio AND display are set simultaneously,
-    #     # we get and then re-set the current ratio value
-    #     ratio_val = int(self.ask(f'DDEF ? {channel}').split(',')[1])
-    #     self.write(f'DDEF {channel}, {disp_int}, {ratio_val}')
-    #     self._buffer_ready = False
+    def _set_ch_display(self, channel: int, disp: str) -> None:
+        val_mapping = {1: {'X': 0,
+                           'R_V': 1,
+                           'R_dBm': 2,
+                           'X Noise': 3,
+                           'AuxIn1': 4},
+                       2: {'Y': 0,
+                           'Phase': 1,
+                           'Y Noise': 2,
+                           'Y_dBm Noise': 3,
+                           'AuxIn2': 4}}
+        vals = val_mapping[channel].keys()
+        if disp not in vals:
+            raise ValueError(f'{disp} not in {vals}')
+        disp_int = val_mapping[channel][disp]
+        # Since ratio AND display are set simultaneously,
+        # we get and then re-set the current ratio value
+        #ratio_val = int(self.ask(f'DRAT ?').split(',')[1])
+        #self.write(f'DRAT {ratio_val}')
+        self.write(f'DDEF {channel}, {disp_int}')
+        self._buffer_ready = False
+        # we update the unit of the datatrace
+        # according to the choice of channel
+        params = self.parameters
+        dataparam = params[f'ch{channel}_datatrace']
+        assert isinstance(dataparam, ChannelTrace)
+        dataparam.update_unit()
+
+    def set_sweep_parameters(self,
+                             sweep_param: Parameter,
+                             start: float,
+                             stop: float,
+                             n_points: int = 10,
+                             label: Union[str, None] = None) -> None:
+
+        self.sweep_setpoints.sweep_array = np.linspace(start, stop, n_points)
+        self.sweep_setpoints.unit = sweep_param.unit
+        if label is not None:
+            self.sweep_setpoints.label = label
+        elif sweep_param.label is not None:
+            self.sweep_setpoints.label = sweep_param.label
+    
+class GeneratedSetPoints(Parameter):
+    """
+    A parameter that generates a setpoint array from start, stop and num points
+    parameters.
+    """
+    def __init__(self,
+                 sweep_array: Iterable[Union[float, int]] = np.linspace(0, 1, 10),
+                 *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self.sweep_array = sweep_array
+        self.update_units_if_constant_sample_rate()
+
+    def update_units_if_constant_sample_rate(self) -> None:
+        """
+        If the buffer is filled at a constant sample rate,
+        update the unit to "s" and label to "Time";
+        otherwise do nothing
+        """
+        assert isinstance(self.root_instrument, SR844)
+        SR = self.root_instrument.buffer_SR.get()
+        if SR != 'Trigger':
+            self.unit = 's'
+            self.label = 'Time'
+
+    def set_raw(self, value: Iterable[Union[float, int]]) -> None:
+        self.sweep_array = value
+
+    def get_raw(self) -> ParamRawDataType:
+        assert isinstance(self.root_instrument, SR844)
+        SR = self.root_instrument.buffer_SR.get()
+        if SR == 'Trigger':
+            return self.sweep_array
+        else:
+            N = self.root_instrument.buffer_npts.get()
+            dt = 1/SR
+
+            return np.linspace(0, N*dt, N)
 
     # def _set_units(self, unit: str) -> None:
     #     # TODO:
