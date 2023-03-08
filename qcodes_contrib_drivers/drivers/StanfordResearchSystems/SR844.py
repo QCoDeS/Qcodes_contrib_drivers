@@ -4,7 +4,7 @@ from typing import Any, Iterable, Tuple, Union
 
 from qcodes import VisaInstrument
 from qcodes.instrument.parameter import ArrayParameter, Parameter, ParamRawDataType, ParameterWithSetpoints
-from qcodes.utils.validators import Numbers, Ints, Enum, Strings, Arrays
+from qcodes.utils.validators import Numbers, Enum, Strings, Arrays
 
 class ChannelTrace(ParameterWithSetpoints):
     """
@@ -66,7 +66,9 @@ class ChannelTrace(ParameterWithSetpoints):
         realdata = np.frombuffer(rawdata, dtype="<i2")
         numbers = realdata[::2] * 2.0 ** (realdata[1::2] - 124)
         return numbers
-
+    def poll_raw_binary_data(self) -> "<i2":
+        self.root_instrument.write(f'TRCL ? {self.channel}, 0, {N}')
+        return self.root_instrument.visa_handle.read_raw()
 
 class ChannelBuffer(ArrayParameter):
     """
@@ -222,16 +224,16 @@ class SR844(VisaInstrument):
             label="Frequency",
             get_cmd="FREQ?",
             get_parser=float,
-            set_cmd=self._set_freq, #"FREQ {:.4f}",
+            set_cmd=self._set_freq,
             unit="Hz",
             vals=Numbers(min_value=2.5e4, max_value=2e8),
-        )  # FB: in 2F mode minimum frequency is 50 kHz. See HARM
+        )
 
         self.add_parameter(
             "harmonic",
             label="Harmonic",
             get_cmd="HARM?",
-            set_cmd=self._set_harmonic,#"HARM {}", #self._set_harmonic
+            set_cmd=self._set_harmonic,
             val_mapping={
                 "f": 0,
                 "2f": 1,
@@ -533,6 +535,16 @@ class SR844(VisaInstrument):
                            get_cmd="OUTP? 5", 
                            get_parser=float, 
                            unit="deg")
+        
+        self.add_parameter("ch1", 
+                           get_cmd="OUTR? 1", 
+                           get_parser=float, 
+                           unit="V")
+                
+        self.add_parameter("ch2", 
+                           get_cmd="OUTR? 2", 
+                           get_parser=float, 
+                           unit="V")
                                         ### use of functions is advised against due to code transparency ###
         # Auto functions
         self.add_function("auto_gain", call_cmd="AGAN")
