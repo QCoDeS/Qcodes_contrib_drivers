@@ -222,7 +222,7 @@ class SR844(VisaInstrument):
             label="Frequency",
             get_cmd="FREQ?",
             get_parser=float,
-            set_cmd="FREQ {:.4f}",
+            set_cmd=self._set_freq, #"FREQ {:.4f}",
             unit="Hz",
             vals=Numbers(min_value=2.5e4, max_value=2e8),
         )  # FB: in 2F mode minimum frequency is 50 kHz. See HARM
@@ -231,7 +231,7 @@ class SR844(VisaInstrument):
             "harmonic",
             label="Harmonic",
             get_cmd="HARM?",
-            set_cmd="HARM {}", #self._set_harmonic
+            set_cmd=self._set_harmonic,#"HARM {}", #self._set_harmonic
             val_mapping={
                 "f": 0,
                 "2f": 1,
@@ -687,6 +687,7 @@ class SR844(VisaInstrument):
         """
         return self._change_sensitivity(1)
 
+
     def decrement_sensitivity(self) -> bool:
         """
         Decrement the sensitivity setting of the lock-in. This is equivalent
@@ -698,15 +699,30 @@ class SR844(VisaInstrument):
         """
         return self._change_sensitivity(-1)
 
-    # def _set_harmonic(self, harm: int) -> None:
-    #     print(harm)
-    #     if harm == 0:
-    #         self.write("HARM {0}")
-    #     else:
-    #         freq = self.parameters['frequency'].get()
-    #         if freq < 50000:
-    #             raise ValueError('Frequency must be 50kHz or greater to enable second harmonics')
-    #         self.write("HARM {1}")
+
+    def _set_harmonic(self, harm: int) -> None:
+        if harm == 0:
+            self.write("HARM 0")
+        else:
+            freq = self.parameters['frequency'].get()
+            if freq < 50000:
+                raise ValueError('Frequency must be 50kHz or greater to enable second harmonics')
+            self.write("HARM 1")
+            
+            
+    def _set_freq(self, freq: float) -> None:
+        params = self.parameters
+        if params['reference_source'].get() != "internal":
+            raise ValueError("Cannot set frequency, since the frequency reference_source is not internal")
+        else:
+            if freq >= 50000:
+                self.write(f"FREQ {freq}")
+            else:
+                harm = params['harmonic'].get()
+                if harm == '2f':
+                    raise ValueError('Frequency must be 50kHz or greater when lockin is in second harmonics configuration')
+                self.write(f"FREQ {freq}")
+
 
     def _change_sensitivity(self, dn: int) -> bool:
         if self.input_config() in ["a", "a-b"]:
@@ -723,6 +739,7 @@ class SR844(VisaInstrument):
 
         self.sensitivity.set(n_to[n + dn])
         return True
+
 
     def _set_buffer_SR(self, SR: int) -> None:
         self.write(f"SRAT {SR}")
