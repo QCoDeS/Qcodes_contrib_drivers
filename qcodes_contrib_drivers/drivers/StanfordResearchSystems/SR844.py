@@ -392,8 +392,8 @@ class SR844(VisaInstrument):
     SNAP_PARAMETERS = {
         "x": "1",
         "y": "2",
-        "r_V": "3",
-        "r_dBm": "4",
+        "r_v": "3",
+        "r_dbm": "4",
         "p": "5",
         "phase": "5",
         "θ": "5",
