@@ -524,28 +524,25 @@ class SR844(VisaInstrument):
             raise ValueError(
                 "Cannot set frequency, since the frequency reference_source is not internal"
             )
-        else:
-            if freq >= 50000:
-                self.write(f"FREQ {freq}")
-            else:
-                harm = params["harmonic"].get()
-                if harm == "2f":
-                    raise ValueError(
-                        "Frequency must be 50kHz or greater when lockin is in second harmonics configuration"
-                    )
-                self.write(f"FREQ {freq}")
+        if freq < 50000:
+            harm = params["harmonic"].get()
+            if harm == "2f":
+                raise ValueError(
+                    "Frequency must be 50kHz or greater when lockin is in second harmonics configuration"
+                )
+        self.write(f"FREQ {freq}")
 
-    def _change_sensitivity(self, dn: int) -> float:
+    def _change_sensitivity(self, dn: int) -> bool:
         n_to = self.value_sensitivity_map
         to_n = self.sensitivity_value_map
 
         n = to_n[self.sensitivity()]
 
         if n + dn > max(n_to.keys()) or n + dn < min(n_to.keys()):
-            raise ValueError("Sensitivity is at its extremum")
+            return False
 
         self.sensitivity.set(n_to[n + dn])
-        return self.sensitivity.get()
+        return True
 
     def update_ch_unit(self, channel: int) -> None:
         params = self.parameters
@@ -645,11 +642,10 @@ class GeneratedSetPoints(Parameter):
         SR = self.root_instrument.buffer_SR.get()
         if SR == "Trigger":
             return self.sweep_array
-        else:
-            N = self.root_instrument.buffer_npts.get()
-            dt = 1 / SR
+        N = self.root_instrument.buffer_npts.get()
+        dt = 1 / SR
 
-            return np.linspace(0, N * dt, N)
+        return np.linspace(0, N * dt, N)
 
 
 class ChannelTrace(ParameterWithSetpoints):
@@ -707,10 +703,12 @@ class ChannelTrace(ParameterWithSetpoints):
         return realdata[::2] * 2.0 ** (realdata[1::2] - 124)
 
     def poll_raw_binary_data(self, N: int) -> Any:
+        assert isinstance(self.root_instrument, SR844)
         self.root_instrument.write(f"TRCL ? {self.channel}, 0, {N}")
         return self.root_instrument.visa_handle.read_raw()
 
     def get_buffer_length(self) -> int:
+        assert isinstance(self.root_instrument, SR844)
         N = self.root_instrument.buffer_npts()
         if N == 0:
             raise ValueError(
