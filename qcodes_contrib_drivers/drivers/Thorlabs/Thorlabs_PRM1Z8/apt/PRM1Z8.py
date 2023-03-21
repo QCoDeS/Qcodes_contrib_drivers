@@ -1,5 +1,5 @@
 from qcodes import Instrument
-from .APT import Thorlabs_APT, ThorlabsHWType
+from qcodes_contrib_drivers.drivers.Thorlabs.APT import Thorlabs_APT, ThorlabsHWType
 
 
 class Thorlabs_PRM1Z8(Instrument):
