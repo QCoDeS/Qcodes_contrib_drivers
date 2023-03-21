@@ -18,22 +18,22 @@ class SR844(VisaInstrument):
     """
 
     sensitivity_value_map = {
-            100e-9: 0,
-            300e-9: 1,
-            1e-6: 2,
-            3e-6: 3,
-            10e-6: 4,
-            30e-6: 5,
-            100e-6: 6,
-            300e-6: 7,
-            1e-3: 8,
-            3e-3: 9,
-            10e-3: 10,
-            30e-3: 11,
-            100e-3: 12,
-            300e-3: 13,
-            1: 14,
-        }
+        100e-9: 0,
+        300e-9: 1,
+        1e-6: 2,
+        3e-6: 3,
+        10e-6: 4,
+        30e-6: 5,
+        100e-6: 6,
+        300e-6: 7,
+        1e-3: 8,
+        3e-3: 9,
+        10e-3: 10,
+        30e-3: 11,
+        100e-3: 12,
+        300e-3: 13,
+        1: 14,
+    }
     value_sensitivity_map = {v: k for k, v in sensitivity_value_map.items()}
 
     def __init__(self, name: str, address: str, **kwargs: Any) -> None:
@@ -182,7 +182,7 @@ class SR844(VisaInstrument):
             unit="% of 200 dBm scale",
             vals=Numbers(min_value=-110, max_value=110),
         )
-        
+
         self.add_parameter(
             "Y_offset",
             get_cmd="DOFF? 2, 0",
@@ -191,7 +191,7 @@ class SR844(VisaInstrument):
             unit="% of full scale",
             vals=Numbers(min_value=-110, max_value=110),
         )
-        
+
         self.add_parameter(
             "complex_voltage",
             label="Voltage",
@@ -311,7 +311,7 @@ class SR844(VisaInstrument):
                 set_cmd=partial(self._set_ch_display, ch),
                 vals=Strings(),
             )
-            
+
             self.add_parameter(
                 f"ch{ch}_datatrace",
                 channel=ch,
@@ -320,22 +320,44 @@ class SR844(VisaInstrument):
                 parameter_class=ChannelTrace,
             )
 
-
-        self.add_parameter("X", label='X', get_cmd="OUTP? 1", get_parser=float, unit="V")
-        self.add_parameter("Y", label='Y', get_cmd="OUTP? 2", get_parser=float, unit="V")
-        self.add_parameter("R_V", label='R_V', get_cmd="OUTP? 3", get_parser=float, unit="V")
-        self.add_parameter("R_dBm", label='R_dBm', get_cmd="OUTP? 4", get_parser=float, unit="dBm")
-        self.add_parameter("phase", label='phase', get_cmd="OUTP? 5", get_parser=float, unit="deg")
-        self.add_parameter("ch1", label='display channel 1', get_cmd="OUTR? 1", get_parser=float, unit="V")
-        self.add_parameter("ch2", label='display channel 2', get_cmd="OUTR? 2", get_parser=float, unit="V")
-
+        self.add_parameter(
+            "X", label="X", get_cmd="OUTP? 1", get_parser=float, unit="V"
+        )
+        self.add_parameter(
+            "Y", label="Y", get_cmd="OUTP? 2", get_parser=float, unit="V"
+        )
+        self.add_parameter(
+            "R_V", label="R_V", get_cmd="OUTP? 3", get_parser=float, unit="V"
+        )
+        self.add_parameter(
+            "R_dBm", label="R_dBm", get_cmd="OUTP? 4", get_parser=float, unit="dBm"
+        )
+        self.add_parameter(
+            "phase", label="phase", get_cmd="OUTP? 5", get_parser=float, unit="deg"
+        )
+        self.add_parameter(
+            "ch1",
+            label="display channel 1",
+            get_cmd="OUTR? 1",
+            get_parser=float,
+            unit="V",
+        )
+        self.add_parameter(
+            "ch2",
+            label="display channel 2",
+            get_cmd="OUTR? 2",
+            get_parser=float,
+            unit="V",
+        )
 
         self.add_function("auto_gain", call_cmd="AGAN")
         self.add_function("auto_wideband_reserve", call_cmd="AWRS")
         self.add_function("auto_close_in_reserve", call_cmd="ACRS")
         self.add_function("auto_phase", call_cmd="APHS")
 
-        self.add_function("auto_offset_ch1", call_cmd="AOFF 1, {}", args=[Enum(0, 1, 2)])
+        self.add_function(
+            "auto_offset_ch1", call_cmd="AOFF 1, {}", args=[Enum(0, 1, 2)]
+        )
         self.add_function("auto_offset_ch2", call_cmd="AOFF 2, {0}", args=[Enum(0)])
 
         self.add_function("reset", call_cmd="*RST")
@@ -404,7 +426,6 @@ class SR844(VisaInstrument):
         "ch2": "10",
     }
 
-
     def snap(self, *parameters: str) -> Tuple[float, ...]:
         """
         Get between 2 and 6 parameters at a single instant. This provides a
@@ -464,7 +485,6 @@ class SR844(VisaInstrument):
 
         return tuple(float(val) for val in output.split(","))
 
-
     def increment_sensitivity(self) -> bool:
         """
         Increment the sensitivity setting of the lock-in. This is equivalent
@@ -475,7 +495,6 @@ class SR844(VisaInstrument):
             Whether or not the sensitivity was actually changed.
         """
         return self._change_sensitivity(1)
-
 
     def decrement_sensitivity(self) -> bool:
         """
@@ -488,7 +507,6 @@ class SR844(VisaInstrument):
         """
         return self._change_sensitivity(-1)
 
-
     def _set_harmonic(self, harm: int) -> None:
         if harm == 0:
             self.write("HARM 0")
@@ -499,7 +517,6 @@ class SR844(VisaInstrument):
                     "Frequency must be 50kHz or greater to enable second harmonics"
                 )
             self.write("HARM 1")
-
 
     def _set_freq(self, freq: float) -> None:
         params = self.parameters
@@ -518,7 +535,6 @@ class SR844(VisaInstrument):
                     )
                 self.write(f"FREQ {freq}")
 
-
     def _change_sensitivity(self, dn: int) -> float:
         n_to = self.value_sensitivity_map
         to_n = self.sensitivity_value_map
@@ -526,13 +542,10 @@ class SR844(VisaInstrument):
         n = to_n[self.sensitivity()]
 
         if n + dn > max(n_to.keys()) or n + dn < min(n_to.keys()):
-            raise ValueError(
-                "Sensitivity is at its extremum"
-            )
+            raise ValueError("Sensitivity is at its extremum")
 
         self.sensitivity.set(n_to[n + dn])
-        return self.sensitivity.get() 
-
+        return self.sensitivity.get()
 
     def update_ch_unit(self, channel: int) -> None:
         params = self.parameters
@@ -540,12 +553,10 @@ class SR844(VisaInstrument):
         assert isinstance(dataparam, ChannelTrace)
         dataparam.update_unit()
 
-
     def _set_ratio(self, ratio_int: int) -> None:
         self.write(f"DRAT {ratio_int}")
         for ch in [1, 2]:
             self.update_ch_unit(ch)
-
 
     def _get_ch_display(self, channel: int) -> str:
         val_mapping = {
@@ -555,7 +566,6 @@ class SR844(VisaInstrument):
         resp = int(self.ask(f"DDEF ? {channel}").split(",")[0])
 
         return val_mapping[channel][resp]
-
 
     def get_display_value(self, channel: int, disp: str) -> int:
         val_mapping = {
@@ -568,23 +578,19 @@ class SR844(VisaInstrument):
 
         return val_mapping[channel][disp]
 
-
     def _set_ch_display(self, channel: int, disp: str) -> None:
         disp_int = self.get_display_value(channel, disp)
 
         self.write(f"DDEF {channel}, {disp_int}")
         self.update_ch_unit(channel)
 
-
     def _set_buffer_SR(self, SR: int) -> None:
-        self.write(f'SRAT {SR}')
+        self.write(f"SRAT {SR}")
         self.sweep_setpoints.update_units_if_constant_sample_rate()
-
 
     def _get_complex_voltage(self) -> complex:
         x, y = self.snap("X", "Y")
         return x + 1.0j * y
-    
 
     def set_sweep_parameters(
         self,
@@ -602,6 +608,7 @@ class SR844(VisaInstrument):
         elif sweep_param.label is not None:
             self.sweep_setpoints.label = sweep_param.label
 
+
 class GeneratedSetPoints(Parameter):
     """
     A parameter that generates a setpoint array from start, stop and num points
@@ -618,7 +625,6 @@ class GeneratedSetPoints(Parameter):
         self.sweep_array = sweep_array
         self.update_units_if_constant_sample_rate()
 
-
     def update_units_if_constant_sample_rate(self) -> None:
         """
         If the buffer is filled at a constant sample rate,
@@ -631,10 +637,8 @@ class GeneratedSetPoints(Parameter):
             self.unit = "s"
             self.label = "Time"
 
-
     def set_raw(self, value: Iterable[Union[float, int]]) -> None:
         self.sweep_array = value
-
 
     def get_raw(self) -> ParamRawDataType:
         assert isinstance(self.root_instrument, SR844)
@@ -646,6 +650,7 @@ class GeneratedSetPoints(Parameter):
             dt = 1 / SR
 
             return np.linspace(0, N * dt, N)
+
 
 class ChannelTrace(ParameterWithSetpoints):
     """
@@ -676,7 +681,6 @@ class ChannelTrace(ParameterWithSetpoints):
         self.channel = channel
         self.update_unit()
 
-
     def update_unit(self) -> None:
         assert isinstance(self.root_instrument, SR844)
         params = self.root_instrument.parameters
@@ -692,23 +696,19 @@ class ChannelTrace(ParameterWithSetpoints):
                 self.unit = "V"
             self.label = disp
 
-
     def get_raw(self) -> ParamRawDataType:
         N = self.get_buffer_length()
         rawdata = self.poll_raw_binary_data(N)
 
         return self.parse_binary(rawdata)
 
-
-    def parse_binary(self, rawdata:bytes) -> NDArray:
+    def parse_binary(self, rawdata: bytes) -> NDArray:
         realdata = np.frombuffer(rawdata, dtype="<i2")
         return realdata[::2] * 2.0 ** (realdata[1::2] - 124)
-
 
     def poll_raw_binary_data(self, N: int) -> Any:
         self.root_instrument.write(f"TRCL ? {self.channel}, 0, {N}")
         return self.root_instrument.visa_handle.read_raw()
-
 
     def get_buffer_length(self) -> int:
         N = self.root_instrument.buffer_npts()
@@ -717,6 +717,3 @@ class ChannelTrace(ParameterWithSetpoints):
                 "No points stored in SR844 data buffer." " Cannot poll anything."
             )
         return N
-
-
-
