@@ -1,7 +1,7 @@
 from functools import partial
 import numpy as np
 from typing import Any, Iterable, Tuple, Union
-
+from numpy.typing import NDArray
 from qcodes import VisaInstrument
 from qcodes.instrument.parameter import (
     Parameter,
@@ -36,7 +36,7 @@ class SR844(VisaInstrument):
         }
     value_sensitivity_map = {v: k for k, v in sensitivity_value_map.items()}
 
-    def __init__(self, name: str, address: str, **kwargs: Any):
+    def __init__(self, name: str, address: str, **kwargs: Any) -> None:
         super().__init__(name, address, **kwargs)
 
         self.add_parameter(
@@ -700,12 +700,12 @@ class ChannelTrace(ParameterWithSetpoints):
         return self.parse_binary(rawdata)
 
 
-    def parse_binary(self, rawdata):
+    def parse_binary(self, rawdata:bytes) -> NDArray:
         realdata = np.frombuffer(rawdata, dtype="<i2")
         return realdata[::2] * 2.0 ** (realdata[1::2] - 124)
 
 
-    def poll_raw_binary_data(self, N: int):
+    def poll_raw_binary_data(self, N: int) -> Any:
         self.root_instrument.write(f"TRCL ? {self.channel}, 0, {N}")
         return self.root_instrument.visa_handle.read_raw()
 
