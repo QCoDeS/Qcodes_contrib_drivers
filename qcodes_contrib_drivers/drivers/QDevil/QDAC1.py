@@ -830,7 +830,7 @@ class QDac(VisaInstrument):
             Sequence[str]: Messages lingering in queue
         """
         lingering = list()
-        with self.timeout.set_to(1):
+        with self.timeout.set_to(0.001):
             while True:
                 try:
                     message = self.visa_handle.read()
