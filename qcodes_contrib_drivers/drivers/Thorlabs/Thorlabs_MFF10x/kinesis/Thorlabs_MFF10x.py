@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import ctypes
 import pathlib
 import warnings
 from typing import Mapping, Any
@@ -11,6 +12,24 @@ from qcodes_contrib_drivers.drivers.Thorlabs._kinesis.core import (
 )
 
 
+def _position_get_parser(val) -> str:
+    val = int(val)
+    if val == 1:
+        return 'open'
+    elif val == 2:
+        return 'close'
+    raise ValueError('Invalid return code', val)
+
+
+def _position_set_parser(val) -> int:
+    if val == 'open':
+        return 1
+    elif val == 'close':
+        return 2
+    else:
+        return int(val)
+
+
 class ThorlabsMFF10x(KinesisInstrument):
     def __init__(self, name: str, dll_dir: str | pathlib.Path | None = None,
                  metadata: Mapping[Any, Any] | None = None,
@@ -19,15 +38,19 @@ class ThorlabsMFF10x(KinesisInstrument):
 
         super().__init__(name, dll_dir, metadata, label)
 
+        self.add_parameter('position',
+                           get_cmd=self.kinesis.get_position,
+                           set_cmd=self.kinesis.set_position,
+                           get_parser=_position_get_parser,
+                           set_parser=_position_set_parser,
+                           label='Position')
+
+    @classmethod
+    @property
+    def _prefix(cls):
+        return 'FF'
+
     @classmethod
     @property
     def hardware_type(cls) -> KinesisHWType:
         return KinesisHWType.FilterFlipper
-
-    def open_device(self, serial: int):
-        super().open_device(serial)
-        self.kinesis.error_check(self.kinesis.lib.FF_Open(self._c_serial))
-
-    def close_device(self):
-        super().close_device()
-        self.kinesis.lib.FF_Close(self._c_serial)

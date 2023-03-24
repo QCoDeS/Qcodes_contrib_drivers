@@ -19,10 +19,7 @@ class KinesisIntegratedStepperMotor(KinesisInstrument):
             dll_dir
         )
 
-    def open_device(self, serial: int):
-        super().open_device(serial)
-        self.kinesis.error_check(self.kinesis.lib.ISC_Open(self._c_serial))
-
-    def close_device(self):
-        super().close_device()
-        self.kinesis.lib.ISC_Open(self._c_serial)
+    @classmethod
+    @property
+    def _prefix(cls) -> str:
+        return 'ISC'

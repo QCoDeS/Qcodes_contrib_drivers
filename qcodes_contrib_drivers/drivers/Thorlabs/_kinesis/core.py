@@ -5,6 +5,7 @@ import ctypes
 import enum
 import os
 import pathlib
+import time
 import warnings
 from typing import Mapping, Any, List, Tuple, Iterable
 
@@ -116,7 +117,8 @@ class ThorlabsKinesis:
                                    'may be busy.'
     }
 
-    def __init__(self, lib: str, dll_dir: str | os.PathLike | None = None):
+    def __init__(self, lib: str, prefix: str,
+                 dll_dir: str | os.PathLike | None = None):
         self.dll_dir = os.add_dll_directory(dll_dir or _DLL_DIR)
 
         if not lib.startswith("Thorlabs.MotionControl"):
@@ -130,6 +132,9 @@ class ThorlabsKinesis:
         self.lib: ctypes.CDLL = ctypes.cdll.LoadLibrary(str(lib))
         self.error_check(self.lib.TLI_BuildDeviceList())
 
+        self.prefix = prefix
+        self.serialNo = ctypes.c_char_p()
+
     def __del__(self):
         self.dll_dir.close()
 
@@ -138,20 +143,102 @@ class ThorlabsKinesis:
         if (status := cls._ERROR_CODES.get(code)) != 'FT_OK':
             raise KinesisError(f'{status}: {cls._ERROR_MESSAGES[status]}')
 
+    @staticmethod
+    def parse_fw_version(fw: int) -> str:
+        parts = [f'{i:02d}' for i in fw.to_bytes(length=4, byteorder='big')]
+        return '.'.join(parts).lstrip('0.')
+
+    def request_status(self):
+        self.error_check(
+            getattr(self.lib, f'{self.prefix}_RequestStatus')(self.serialNo)
+        )
+
+    def get_position(self) -> int | float | str:
+        self.request_status()
+        time.sleep(self.get_polling_duration() * 1e-3)
+        return getattr(self.lib, f'{self.prefix}_GetPosition')(self.serialNo)
+
+    def set_position(self, val: int | str):
+        self.error_check(getattr(self.lib, f'{self.prefix}_MoveToPosition')(
+            self.serialNo, val
+        ))
+
+    def start_polling(self, duration: int):
+        success = getattr(self.lib, f'{self.prefix}_StartPolling')(
+            self.serialNo, duration
+        )
+        if not success:
+            raise KinesisError('Failed')
+
+    def stop_polling(self):
+        getattr(self.lib, f'{self.prefix}_StopPolling')(self.serialNo)
+
+    def get_polling_duration(self) -> int:
+        return getattr(self.lib, f'{self.prefix}_PollingDuration')(self.serialNo)
+
+    def set_polling_duration(self, duration: int):
+        self.stop_polling()
+        self.start_polling(duration)
+
+    def connect(self, polling_duration: int = 100):
+        self.error_check(
+            getattr(self.lib, f'{self.prefix}_Open')(self.serialNo)
+        )
+
+    def disconnect(self):
+        getattr(self.lib, f'{self.prefix}_Close')(self.serialNo)
+
+    def get_hw_info(self) -> Tuple[str, int, int, str, str, int, int]:
+        modelNo = ctypes.create_string_buffer(64)
+        type = ctypes.wintypes.WORD()
+        numChannels = ctypes.wintypes.WORD()
+        notes = ctypes.create_string_buffer(64)
+        firmwareVersion = ctypes.wintypes.DWORD()
+        hardwareVersion = ctypes.wintypes.WORD()
+        modificationState = ctypes.wintypes.WORD()
+        self.error_check(
+            getattr(self.lib, f'{self.prefix}_GetHardwareInfo')(
+                self.serialNo,
+                modelNo, 64,
+                ctypes.byref(type),
+                ctypes.byref(numChannels),
+                notes, 64,
+                ctypes.byref(firmwareVersion),
+                ctypes.byref(hardwareVersion),
+                ctypes.byref(modificationState)
+            )
+        )
+        return (modelNo.value.decode('utf-8'),
+                type.value,
+                numChannels.value,
+                notes.value.decode('utf-8'),
+                self.parse_fw_version(firmwareVersion.value),
+                hardwareVersion.value,
+                modificationState.value)
+
 
 class KinesisInstrument(Instrument):
     def __init__(self, name: str, dll_dir: str | pathlib.Path | None = None,
                  metadata: Mapping[Any, Any] | None = None,
                  label: str | None = None):
         try:
-            self.kinesis = ThorlabsKinesis(self.hardware_type.name, dll_dir)
+            self.kinesis = ThorlabsKinesis(self.hardware_type.name, self._prefix, dll_dir)
         except FileNotFoundError:
             # Subclass needs to handle irregular dll name
             pass
 
-        self.serial: int | None = None
-
         super().__init__(name, metadata, label)
+
+        self.add_parameter('polling_duration',
+                           get_cmd=self.kinesis.get_polling_duration,
+                           set_cmd=self.kinesis.set_polling_duration,
+                           unit='ms')
+
+    @classmethod
+    @property
+    @abc.abstractmethod
+    def _prefix(cls) -> str:
+        pass
 
     @classmethod
     @property
@@ -159,29 +246,38 @@ class KinesisInstrument(Instrument):
     def hardware_type(cls) -> KinesisHWType:
         pass
 
-    @abc.abstractmethod
-    def open_device(self, serial: int):
-        if self.serial is not None:
-            warnings.warn(f'Already opened device with serial {self.serial}. '
-                          'Closing.', UserWarning, stacklevel=2)
-            self.close_device()
-        self.serial = serial
-
-    @abc.abstractmethod
-    def close_device(self):
-        self.serial = None
-
     @property
-    def _c_serial(self) -> ctypes.c_char_p:
-        return ctypes.c_char_p(str(self.serial).encode())
+    def serial(self) -> int | None:
+        sn = self.kinesis.serialNo.value
+        if sn is not None:
+            return int(sn.decode())
+        return None
 
     def list_available_devices(self) -> List[int]:
         return [serial for _, serial in
                 list_available_devices(self.kinesis.lib, self.hardware_type)]
 
-    def close(self):
-        self.close_device()
+    def connect(self, serial: int, polling_duration: int = 100):
+        if self.serial is not None:
+            warnings.warn('Already connected to  device with serial '
+                          f'{self.serial}. Disconnecting.',
+                          UserWarning, stacklevel=2)
+            self.disconnect()
+
+        self.kinesis.serialNo.value = str(serial).encode()
+        self.kinesis.connect()
+        self.kinesis.start_polling(polling_duration)
+
+    def disconnect(self):
+        self.kinesis.stop_polling()
+        self.kinesis.disconnect()
         super().close()
+
+    def get_idn(self) -> dict[str, str]:
+        model, type, num_channels, notes, firmware, hardware, state = \
+            self.kinesis.get_hw_info()
+        return {'vendor': 'Thorlabs', 'model': model, 'firmware': firmware,
+                'serial': self.serial}
 
 
 class KinesisError(Exception):
