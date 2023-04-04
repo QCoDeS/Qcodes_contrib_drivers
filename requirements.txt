@@ -1,2 +1,2 @@
-mypy~=1.0.0
-ipython~=8.10.0
+mypy~=1.1.1
+ipython~=8.12.0
