@@ -4,11 +4,14 @@ import abc
 import ctypes
 import os
 import pathlib
+import sys
 from typing import Mapping, Any, Sequence
+
 from typing_extensions import Literal
 
-from qcodes import InstrumentChannel, ChannelList
-from qcodes.instrument import Instrument, InstrumentBase
+from qcodes.instrument import (Instrument, InstrumentBase, InstrumentChannel,
+                               ChannelList)
+from qcodes.validators import validators
 from ._private.fhr_client import FHRClient
 
 
@@ -81,9 +84,11 @@ class MotorChannel(Dispatcher, InstrumentChannel, metaclass=abc.ABCMeta):
     """ABC for the various motors of the device."""
 
     def __init__(self, parent: InstrumentBase, name: str, cli, handle,
-                 motor: int):
+                 motor: int, metadata: Mapping[Any, Any] | None = None,
+                 label: str | None = None):
         Dispatcher.__init__(self, cli, handle)
-        InstrumentChannel.__init__(self, parent, name)
+        InstrumentChannel.__init__(self, parent, name, metadata=metadata,
+                                   label=label)
         self.motor = motor
         self.step: int | None = None
 
@@ -123,7 +128,11 @@ class MotorChannel(Dispatcher, InstrumentChannel, metaclass=abc.ABCMeta):
         """Stop motor."""
         code, _ = self.cli.SpeCommand(self.handle, f'{self.type}{self.motor}',
                                       'Stop', None)
-        self.error_check(code)
+        try:
+            self.error_check(code)
+        except SpeError as se:
+            if str(se) != 'errAbort':
+                raise
 
     def set_position(self, pos: int):
         """Set motor position. It return final motor position after
@@ -144,38 +153,13 @@ class MotorChannel(Dispatcher, InstrumentChannel, metaclass=abc.ABCMeta):
         self.error_check(code)
 
 
-class DCChannel(MotorChannel):
-    """Handles DC motors (with binary positions)."""
+class PrecisionMotorChannel(MotorChannel, metaclass=abc.ABCMeta):
+    """ABC for the precision motors of the device."""
 
-    def __init__(self, parent: InstrumentBase, name: str, cli, handle, motor: int):
-        MotorChannel.__init__(self, parent, name, cli, handle, motor)
-
-        self.add_parameter('position',
-                           label=f'DC Motor {self.motor} position',
-                           set_cmd=self.set_position,
-                           unit=self.unit)
-
-    @property
-    def unit(self) -> str:
-        return ''
-
-
-class SlitChannel(MotorChannel):
-    """Handles the linear slit motors of the device."""
-
-    def __init__(self, parent: InstrumentBase, name: str, cli, handle, motor: int):
-        # Cannot use super() since parent also defines the position parameter
-        MotorChannel.__init__(self, parent, name, cli, handle, motor)
-
-        self.add_parameter('position',
-                           label=f'Slit {self.motor} position',
-                           get_cmd=self.get_position,
-                           set_cmd=self.set_position,
-                           unit=self.unit)
-
-    @property
-    def unit(self) -> str:
-        return 'pm'
+    def __init__(self, parent: InstrumentBase, name: str, cli, handle,
+                 motor: int, metadata: Mapping[Any, Any] | None = None,
+                 label: str | None = None):
+        super().__init__(parent, name, cli, handle, motor, metadata, label)
 
     def init(self, offset: int):
         """Initialize motor with offset position (optical zero order
@@ -191,7 +175,7 @@ class SlitChannel(MotorChannel):
                   ramp: int = 650,
                   backlash: int = 500,
                   step: int = 2,
-                  revers: bool = False):
+                  reverse: bool = False):
         """Write motor setup data.
 
         Parameters
@@ -208,14 +192,14 @@ class SlitChannel(MotorChannel):
             Operation mode:
                 - 1: position in motor steps
                 - 0, 2, 3 ...: position in picometers
-        revers : bool
+        reverse : bool
             Rotation direction:
                 - 0: direct
                 - 1: inverse
         """
         code, _ = self.cli.SpeCommandSetup(
             self.handle, f'{self.type}{self.motor}',
-            fields=(min_speed, max_speed, ramp, backlash, step, revers)
+            fields=(min_speed, max_speed, ramp, backlash, step, reverse)
         )
         self.error_check(code)
         self.step = step
@@ -232,24 +216,88 @@ class SlitChannel(MotorChannel):
                                           f'{self.type}{self.motor}',
                                           'GetPosition', pos)
         self.error_check(code)
-        return value * self.step
+        return value
 
 
-class GratingChannel(SlitChannel):
-    """Handles the grating rotation motors of the device."""
+class DCChannel(MotorChannel):
+    """Handles DC motors (with binary positions)."""
 
-    def __init__(self, parent: InstrumentBase, name: str, cli, handle, motor: int):
-        # Cannot use super() since parents also define the position parameter
-        MotorChannel.__init__(self, parent, name, cli, handle, motor)
+    def __init__(self, parent: InstrumentBase, name: str, cli, handle,
+                 motor: int,
+                 val_mapping: Mapping[str, Literal[0, 1]] | None = None,
+                 metadata: Mapping[Any, Any] | None = None,
+                 label: str | None = None):
+        label = label or f'DC {motor}'
+        MotorChannel.__init__(self, parent, name, cli, handle, motor, metadata,
+                              label)
 
         self.add_parameter('position',
-                           label=f'Grating {self.motor} position',
+                           label=f'{label} position',
+                           get_cmd=False,
+                           set_cmd=self.set_position,
+                           val_mapping=val_mapping,
+                           unit=self.unit)
+
+    @property
+    def unit(self) -> str:
+        return ''
+
+
+class SlitChannel(PrecisionMotorChannel):
+    """Handles the linear slit motors of the device."""
+
+    def __init__(self, parent: InstrumentBase, name: str, cli, handle,
+                 motor: int, min_value: int = -sys.maxsize - 1,
+                 max_value: int = sys.maxsize,
+                 metadata: Mapping[Any, Any] | None = None,
+                 label: str | None = None):
+        label = label or f'Slit {motor}'
+        super().__init__(parent, name, cli, handle, motor, metadata, label)
+
+        vals = validators.Numbers(min_value, max_value)
+        self.add_parameter('position',
+                           label=f'{label} position',
                            get_cmd=self.get_position,
                            set_cmd=self.set_position,
+                           set_parser=int,
+                           vals=vals,
+                           unit=self.unit)
+
+    @property
+    def unit(self) -> str:
+        return 'pm'
+
+    def get_position(self) -> int:
+        return super().get_position() * self.step
+
+    get_position.__doc__ = PrecisionMotorChannel.get_position.__doc__
+
+
+class GratingChannel(PrecisionMotorChannel):
+    """Handles the grating rotation motors of the device."""
+
+    def __init__(self, parent: InstrumentBase, name: str, cli, handle,
+                 motor: int, min_value: int = -sys.maxsize - 1,
+                 max_value: int = sys.maxsize,
+                 metadata: Mapping[Any, Any] | None = None,
+                 label: str | None = None):
+        label = label or f'Grating {motor}'
+        # Cannot use super() since parent also defines the position parameter
+        super().__init__(parent, name, cli, handle, motor, metadata, label)
+
+        vals = validators.Numbers(min_value, max_value)
+        self.add_parameter('position',
+                           label=f'{label} position',
+                           get_cmd=self.get_position,
+                           set_cmd=self.set_position,
+                           set_parser=int,
+                           vals=vals,
                            unit=self.unit)
         self.add_parameter('shift',
                            label='Zero order shift',
+                           get_cmd=False,
                            set_cmd=self.set_shift,
+                           set_parser=int,
                            unit=self.unit)
 
     @property
@@ -296,9 +344,12 @@ class HoribaFHR1000(Instrument):
                  name: str,
                  port: int,
                  dll_dir: str | os.PathLike | pathlib.Path,
-                 gratings_addr: Sequence[int],
-                 slits_addr: Sequence[int],
-                 dcs_addr: Sequence[int],
+                 grating_addrs: Sequence[int],
+                 slit_addrs: Sequence[int],
+                 dc_addrs: Sequence[int],
+                 grating_kwargs: Sequence[Mapping[str, Any]] | None = None,
+                 slit_kwargs: Sequence[Mapping[str, Any]] | None = None,
+                 dc_kwargs: Sequence[Mapping[str, Any]] | None = None,
                  metadata: Mapping[Any, Any] | None = None,
                  label: str | None = None):
 
@@ -311,16 +362,22 @@ class HoribaFHR1000(Instrument):
         slits = ChannelList(self, 'slits', SlitChannel)
         gratings = ChannelList(self, 'gratings', GratingChannel)
 
-        for i, addr in enumerate(dcs_addr, start=1):
-            dcs.append(DCChannel(self, f'DC_{i}', self.cli, self.handle, i))
+        dc_kwargs = dc_kwargs or [{}] * len(dc_addrs)
+        slit_kwargs = slit_kwargs or [{}] * len(slit_addrs)
+        grating_kwargs = grating_kwargs or [{}] * len(grating_addrs)
+
+        for i, (addr, kw) in enumerate(zip(dc_addrs, dc_kwargs), start=1):
+            dcs.append(DCChannel(self, f'DC_{i}', self.cli, self.handle, i,
+                                 **kw))
             dcs[-1].set_id(addr)
-        for i, addr in enumerate(slits_addr, start=1):
+        for i, (addr, kw) in enumerate(zip(slit_addrs, slit_kwargs), start=1):
             slits.append(SlitChannel(self, f'slit_{i}', self.cli, self.handle,
-                                     i))
+                                     i, **kw))
             slits[-1].set_id(addr)
-        for i, addr in enumerate(gratings_addr, start=1):
+        for i, (addr, kw) in enumerate(zip(grating_addrs, grating_kwargs),
+                                       start=1):
             gratings.append(GratingChannel(self, f'grating_{i}', self.cli,
-                                           self.handle, i))
+                                           self.handle, i, **kw))
             gratings[-1].set_id(addr)
 
         self.add_submodule('port', PortChannel(self, 'port', self.cli,
