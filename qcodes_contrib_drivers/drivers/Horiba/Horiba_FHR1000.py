@@ -304,12 +304,18 @@ class SlitChannel(PrecisionMotorChannel):
 
     @property
     def unit(self) -> str:
-        return 'pm'
+        return 'motor steps'
 
     def get_position(self) -> int:
+        # TODO TH: Untested, step!=1 doesn't work on my device
         return super().get_position() * self.step
 
+    def set_position(self, pos: int):
+        # TODO TH: Untested, step!=1 doesn't work on my device
+        return super().set_position(pos // self.step)
+
     get_position.__doc__ = PrecisionMotorChannel.get_position.__doc__
+    set_position.__doc__ = PrecisionMotorChannel.set_position.__doc__
 
 
 class GratingChannel(PrecisionMotorChannel):
