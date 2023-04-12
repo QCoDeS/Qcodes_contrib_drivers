@@ -90,7 +90,6 @@ class MotorChannel(Dispatcher, InstrumentChannel, metaclass=abc.ABCMeta):
         InstrumentChannel.__init__(self, parent, name, metadata=metadata,
                                    label=label)
         self.motor = motor
-        self.step: int | None = None
 
     @classmethod
     @property
@@ -167,6 +166,17 @@ class PrecisionMotorChannel(MotorChannel, metaclass=abc.ABCMeta):
                  label: str | None = None):
         super().__init__(parent, name, cli, handle, motor, metadata, label)
 
+        self._step: int | None = None
+
+    @property
+    def step(self) -> int:
+        if self._step is None:
+            raise RuntimeError('Please set up the motor using set_setup()')
+        return self._step
+
+    @step.setter
+    def step(self, val: int):
+        self._step = val
     def init(self, offset: int):
         """Initialize motor with offset position (optical zero order
         position in motor steps)."""
@@ -214,9 +224,6 @@ class PrecisionMotorChannel(MotorChannel, metaclass=abc.ABCMeta):
     def get_position(self) -> int:
         """Get current position. The result depends on 'Step' value
         similar to "SetPosition" parameter value."""
-        if self.step is None:
-            raise RuntimeError('Please initialize the slit using set_setup()')
-
         pos = ctypes.c_int()
         code, value = self.cli.SpeCommand(self.handle,
                                           f'{self.type}{self.motor}',
@@ -308,12 +315,14 @@ class GratingChannel(PrecisionMotorChannel):
 
     @property
     def unit(self) -> str:
-        if self.step == 1:
-            return 'motor steps'
-        elif self.step is None:
+        try:
+            if self.step == 1:
+                return 'motor steps'
+            else:
+                return 'pm'
+        except RuntimeError:
+            # Not initialized yet
             return ''
-        else:
-            return 'pm'
 
     def set_ini_params(self,
                        phase: Literal[1, 2, 3],
