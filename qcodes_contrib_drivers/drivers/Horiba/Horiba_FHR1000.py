@@ -167,6 +167,7 @@ class PrecisionMotorChannel(MotorChannel, metaclass=abc.ABCMeta):
         super().__init__(parent, name, cli, handle, motor, metadata, label)
 
         self._step: int | None = None
+        self._offset: int | None = None
 
     @property
     def step(self) -> int:
@@ -177,6 +178,18 @@ class PrecisionMotorChannel(MotorChannel, metaclass=abc.ABCMeta):
     @step.setter
     def step(self, val: int):
         self._step = val
+
+    @property
+    def offset(self) -> int:
+        if self._offset is None:
+            raise RuntimeError(f'Please set {type(self).__name__}.offset or '
+                               'initialize the motor using init().')
+        return self._offset
+
+    @offset.setter
+    def offset(self, val: int):
+        self._offset = val
+
     def init(self, offset: int):
         """Initialize motor with offset position (optical zero order
         position in motor steps)."""
@@ -184,6 +197,7 @@ class PrecisionMotorChannel(MotorChannel, metaclass=abc.ABCMeta):
         code, _ = self.cli.SpeCommand(self.handle, f'{self.type}{self.motor}',
                                       'Init', offset)
         self.error_check(code)
+        self.offset = offset
 
     def set_setup(self,
                   min_speed: int = 50,
@@ -231,6 +245,12 @@ class PrecisionMotorChannel(MotorChannel, metaclass=abc.ABCMeta):
         self.error_check(code)
         return value
 
+    def get_position_relative(self) -> int:
+        return self.get_position() - self.offset
+
+    def set_position_relative(self, pos: int):
+        self.set_position(pos + self.offset)
+
 
 class DCChannel(MotorChannel):
     """Handles DC motors (with binary positions)."""
@@ -275,6 +295,12 @@ class SlitChannel(PrecisionMotorChannel):
                            set_parser=int,
                            vals=vals,
                            unit=self.unit)
+        self.add_parameter('width',
+                           label=f'{label} width',
+                           get_cmd=self.get_position_relative,
+                           set_cmd=self.set_position_relative,
+                           set_parser=int,
+                           unit=self.unit)
 
     @property
     def unit(self) -> str:
@@ -305,6 +331,12 @@ class GratingChannel(PrecisionMotorChannel):
                            set_cmd=self.set_position,
                            set_parser=int,
                            vals=vals,
+                           unit=self.unit)
+        self.add_parameter('position_deviation',
+                           label=f'{label} position deviation from zero order',
+                           get_cmd=self.get_position_relative,
+                           set_cmd=self.set_position_relative,
+                           set_parser=int,
                            unit=self.unit)
         self.add_parameter('shift',
                            label='Zero order shift',
