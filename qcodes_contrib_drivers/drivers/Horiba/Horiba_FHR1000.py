@@ -124,14 +124,20 @@ class MotorChannel(Dispatcher, InstrumentChannel, metaclass=abc.ABCMeta):
         self.error_check(code)
         return value
 
-    def stop(self):
-        """Stop motor."""
+    def stop(self, raise_exception: bool = False):
+        """Stop motor.
+
+        Parameters
+        ----------
+        raise_exception : bool, default: False
+            Raise an 'errAbort' exception upon successful stop.
+        """
         code, _ = self.cli.SpeCommand(self.handle, f'{self.type}{self.motor}',
                                       'Stop', None)
         try:
             self.error_check(code)
         except SpeError as se:
-            if str(se) != 'errAbort':
+            if raise_exception or str(se) != 'errAbort':
                 raise
 
     def set_position(self, pos: int):
