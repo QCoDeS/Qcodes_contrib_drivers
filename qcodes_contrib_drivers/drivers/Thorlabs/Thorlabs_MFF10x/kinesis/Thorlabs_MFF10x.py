@@ -5,6 +5,7 @@ import pathlib
 import warnings
 from typing import Mapping, Any
 
+from qcodes.validators import validators
 from qcodes_contrib_drivers.drivers.Thorlabs._kinesis.core import (
     ThorlabsKinesis,
     KinesisHWType,
@@ -54,3 +55,10 @@ class ThorlabsMFF10x(KinesisInstrument):
     @property
     def hardware_type(cls) -> KinesisHWType:
         return KinesisHWType.FilterFlipper
+
+    def toggle_position(self):
+        """Toggle the position of the flipper."""
+        if self.position() == 'open':
+            self.position('close')
+        else:
+            self.position('open')
