@@ -264,20 +264,30 @@ class KinesisInstrument(Instrument):
                           UserWarning, stacklevel=2)
             self.disconnect()
 
-        self.kinesis.serialNo.value = str(serial).encode()
-        self.kinesis.connect()
+        try:
+            old_serial_value = self.kinesis.serialNo.value
+            self.kinesis.serialNo.value = str(serial).encode()
+            self.kinesis.connect()
+        except KinesisError:
+            self.kinesis.serialNo.value = old_serial_value
+            raise
         self.kinesis.start_polling(polling_duration)
+        self.connect_message()
 
     def disconnect(self):
         self.kinesis.stop_polling()
         self.kinesis.disconnect()
-        super().close()
+        self.kinesis.serialNo.value = None
 
     def get_idn(self) -> dict[str, str]:
         model, type, num_channels, notes, firmware, hardware, state = \
             self.kinesis.get_hw_info()
         return {'vendor': 'Thorlabs', 'model': model, 'firmware': firmware,
                 'serial': self.serial}
+
+    def close(self):
+        self.disconnect()
+        super().close()
 
 
 class KinesisError(Exception):
