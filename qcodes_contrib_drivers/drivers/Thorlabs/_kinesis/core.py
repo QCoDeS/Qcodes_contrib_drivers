@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import abc
 import ctypes
-import enum
 import os
 import pathlib
 import time
@@ -12,13 +11,9 @@ from typing import Mapping, Any, List, Tuple, Iterable
 import numpy as np
 
 from qcodes import Instrument
+from . import enums
 
 _DLL_DIR = r"C:\Program Files\Thorlabs\Kinesis"
-
-
-class KinesisHWType(enum.Enum):
-    CageRotator = 55
-    FilterFlipper = 37
 
 
 class ThorlabsKinesis:
@@ -217,7 +212,7 @@ class ThorlabsKinesis:
                 modificationState.value)
 
 
-class KinesisInstrument(Instrument):
+class KinesisInstrument(Instrument, metaclass=abc.ABCMeta):
     def __init__(self, name: str, dll_dir: str | pathlib.Path | None = None,
                  metadata: Mapping[Any, Any] | None = None,
                  label: str | None = None):
@@ -243,7 +238,7 @@ class KinesisInstrument(Instrument):
     @classmethod
     @property
     @abc.abstractmethod
-    def hardware_type(cls) -> KinesisHWType:
+    def hardware_type(cls) -> enums.KinesisHWType:
         pass
 
     @property
@@ -296,8 +291,8 @@ class KinesisError(Exception):
 
 def list_available_devices(
         lib: str | pathlib.Path | ctypes.CDLL | None = None,
-        hardware_type: Iterable[KinesisHWType] | KinesisHWType | None = None
-) -> List[Tuple[KinesisHWType, int]]:
+        hardware_type: Iterable[enums.KinesisHWType] | enums.KinesisHWType | None = None
+) -> List[Tuple[enums.KinesisHWType, int]]:
     if not isinstance(lib, ctypes.CDLL):
         # Open base directory
         if lib is None:
@@ -337,7 +332,7 @@ def list_available_devices(
             hw_type_id
         ))
         if serialNo.value:
-            devices.append((KinesisHWType(hw_type_id), int(serialNo.value.rstrip(b','))))
+            devices.append((enums.KinesisHWType(hw_type_id), int(serialNo.value.rstrip(b','))))
         if len(devices) == n:
             # Found all devices already
             break

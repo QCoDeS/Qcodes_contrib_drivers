@@ -6,9 +6,9 @@ import warnings
 from typing import Mapping, Any
 
 from qcodes.validators import validators
+from qcodes_contrib_drivers.drivers.Thorlabs._kinesis import enums
 from qcodes_contrib_drivers.drivers.Thorlabs._kinesis.core import (
     ThorlabsKinesis,
-    KinesisHWType,
     KinesisInstrument
 )
 
@@ -53,8 +53,8 @@ class ThorlabsMFF10x(KinesisInstrument):
 
     @classmethod
     @property
-    def hardware_type(cls) -> KinesisHWType:
-        return KinesisHWType.FilterFlipper
+    def hardware_type(cls) -> enums.KinesisHWType:
+        return enums.KinesisHWType.FilterFlipper
 
     def toggle_position(self):
         """Toggle the position of the flipper."""

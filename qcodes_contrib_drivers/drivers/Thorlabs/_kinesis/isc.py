@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import ctypes
 import pathlib
 from typing import Mapping, Any
 
-from .core import KinesisInstrument, ThorlabsKinesis
+from . import enums
+from .core import KinesisInstrument, ThorlabsKinesis, KinesisError
 
 
 class KinesisIntegratedStepperMotor(KinesisInstrument):
@@ -13,11 +15,13 @@ class KinesisIntegratedStepperMotor(KinesisInstrument):
     def __init__(self, name: str, dll_dir: str | pathlib.Path | None = None,
                  metadata: Mapping[Any, Any] | None = None,
                  label: str | None = None):
-        super().__init__(name, dll_dir, metadata, label)
+
         self.kinesis = ThorlabsKinesis(
             'Thorlabs.MotionControl.IntegratedStepperMotors.dll',
+            self._prefix,
             dll_dir
         )
+        super().__init__(name, dll_dir, metadata, label)
 
     @classmethod
     @property
