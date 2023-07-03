@@ -28,15 +28,13 @@ def test_arrangement_steady_state(qdac, mocker):
     commands = qdac.get_recorded_scpi_commands()
     assert commands == [
         'sens:rang low,(@1,2,3)',
+        '*stb?',
         'sens:nplc 2,(@1,2,3)',
-        # (Sleep 1 PLC)
-        'read? (@1,2,3)',
         # (Sleep NPLC / line_freq)
         'read? (@1,2,3)',
     ]
-    discard_s = 1 / 50
     measure_s = (nplc + 1) / 50
-    sleep_s.assert_has_calls([call(discard_s), call(measure_s)])
+    sleep_s.assert_has_calls([call(measure_s)])
 
 
 def test_arrangement_leakage(qdac, mocker):  # noqa
@@ -52,9 +50,8 @@ def test_arrangement_leakage(qdac, mocker):  # noqa
     commands = qdac.get_recorded_scpi_commands()
     assert commands == [
         'sens:rang low,(@1,2,3)',
+        '*stb?',
         'sens:nplc 2,(@1,2,3)',
-        # Discard first reading
-        'read? (@1,2,3)',
         # Steady-state reading
         'read? (@1,2,3)',
         # First modulation
@@ -65,8 +62,8 @@ def test_arrangement_leakage(qdac, mocker):  # noqa
         'sour3:volt:mode fix',
         'sour3:volt 0.4',
         'sens:rang low,(@1,2,3)',
+        '*stb?',
         'sens:nplc 2,(@1,2,3)',
-        'read? (@1,2,3)',
         'read? (@1,2,3)',
         'sour1:volt:mode fix',
         'sour1:volt 0.3',
@@ -82,8 +79,8 @@ def test_arrangement_leakage(qdac, mocker):  # noqa
         'sour3:volt:mode fix',
         'sour3:volt 0.4',
         'sens:rang low,(@1,2,3)',
+        '*stb?',
         'sens:nplc 2,(@1,2,3)',
-        'read? (@1,2,3)',
         'read? (@1,2,3)',
         'sour1:volt:mode fix',
         'sour1:volt 0.3',
@@ -99,8 +96,8 @@ def test_arrangement_leakage(qdac, mocker):  # noqa
         'sour3:volt:mode fix',
         'sour3:volt 0.405',
         'sens:rang low,(@1,2,3)',
+        '*stb?',
         'sens:nplc 2,(@1,2,3)',
-        'read? (@1,2,3)',
         'read? (@1,2,3)',
         'sour1:volt:mode fix',
         'sour1:volt 0.3',
