@@ -6,10 +6,11 @@ from qcodes.instrument.channel import InstrumentChannel, ChannelList
 from qcodes.instrument.visa import VisaInstrument
 from pyvisa.errors import VisaIOError
 from qcodes.utils import validators
-from typing import Any, NewType, Sequence, List, Dict, Tuple, Optional
-from packaging.version import parse
+from typing import NewType, Tuple, Sequence, List, Dict, Optional
+from packaging.version import Version, parse
+import abc
 
-# Version 1.0.0
+# Version 1.2.0
 #
 # Guiding principles for this driver for QDevil QDAC-II
 # -----------------------------------------------------
@@ -48,13 +49,37 @@ error_ambiguous_wave = 'Only one of frequency_Hz or period_s can be ' \
                        'specified for a wave form'
 
 
+def ints_to_comma_separated_list(array: Sequence[int]) -> str:
+    return ','.join([str(x) for x in array])
+
+
+def floats_to_comma_separated_list(array: Sequence[float]) -> str:
+    rounded = [format(x, 'g') for x in array]
+    return ','.join(rounded)
+
+
+def comma_sequence_to_list(sequence: str) -> Sequence[str]:
+    if not sequence:
+        return []
+    return [x.strip() for x in sequence.split(',')]
+
+
+def comma_sequence_to_list_of_floats(sequence: str) -> Sequence[float]:
+    if not sequence:
+        return []
+    return [float(x.strip()) for x in sequence.split(',')]
+
+
 def diff_matrix(initial: Sequence[float],
                 measurements: Sequence[Sequence[float]]) -> np.ndarray:
     """Subtract an array of measurements by an initial measurement
     """
-    origin = np.asarray(initial)
     matrix = np.asarray(measurements)
     return matrix - np.asarray(list(itertools.repeat(initial, matrix.shape[1])))
+
+
+def split_version_string_into_components(version: str) -> List[str]:
+    return version.split('-')
 
 
 """External input trigger
@@ -80,16 +105,12 @@ class QDac2Trigger_Context:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self._parent.free_trigger(self)
-        # Propacontact exceptions
+        # Propagate exceptions
         return False
 
     @property
     def value(self) -> int:
-        """Get the internal SCPI trigger number
-
-        Returns:
-            int: internal trigger number
-        """
+        """internal SCPI trigger number"""
         return self._value
 
 
@@ -153,32 +174,7 @@ class QDac2ExternalTrigger(InstrumentChannel):
         )
 
 
-def ints_to_comma_separated_list(array: Sequence[int]):
-    return ','.join([str(x) for x in array])
-
-
-def floats_to_comma_separated_list(array: Sequence[float]):
-    rounded = [format(x, 'g') for x in array]
-    return ','.join(rounded)
-
-
-def array_to_comma_separated_list(array: str):
-    return ','.join(map(str, array))
-
-
-def comma_sequence_to_list(sequence: str):
-    if not sequence:
-        return []
-    return [x.strip() for x in sequence.split(',')]
-
-
-def comma_sequence_to_list_of_floats(sequence: str):
-    if not sequence:
-        return []
-    return [float(x.strip()) for x in sequence.split(',')]
-
-
-class _Channel_Context():
+class _Channel_Context(metaclass=abc.ABCMeta):
 
     def __init__(self, channel: 'QDac2Channel'):
         self._channel = channel
@@ -187,7 +183,7 @@ class _Channel_Context():
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        # Propacontact exceptions
+        # Propagate exceptions
         return False
 
     def allocate_trigger(self) -> QDac2Trigger_Context:
@@ -197,6 +193,18 @@ class _Channel_Context():
             QDac2Trigger_Context: Context that wraps the trigger
         """
         return self._channel._parent.allocate_trigger()
+
+    @abc.abstractmethod
+    def start_on(self, trigger: QDac2Trigger_Context) -> None:
+        pass
+
+    @abc.abstractmethod
+    def start_on_external(self, trigger: ExternalInput) -> None:
+        pass
+
+    @abc.abstractmethod
+    def abort(self) -> None:
+        pass
 
     def _write_channel(self, cmd: str) -> None:
         self._channel.write_channel(cmd)
@@ -300,6 +308,9 @@ class _Dc_Context(_Channel_Context):
         self._write_channel(f'sour{"{0}"}:dc:mark:sst {self._marker_step_start.value}')
         return self._marker_step_start
 
+    def _set_delay(self, delay_s: float) -> None:
+        self._write_channel(f'sour{"{0}"}:dc:del {delay_s}')
+
     def _set_triggering(self) -> None:
         self._write_channel('sour{0}:dc:trig:sour bus')
         self._make_ready_to_start()
@@ -323,8 +334,8 @@ class _Dc_Context(_Channel_Context):
 class Sweep_Context(_Dc_Context):
 
     def __init__(self, channel: 'QDac2Channel', start_V: float, stop_V: float,
-                 points: int, repetitions: int, dwell_s: float, backwards: bool,
-                 stepped: bool):
+                 points: int, repetitions: int, dwell_s: float, delay_s: float,
+                 backwards: bool, stepped: bool):
         self._repetitions = repetitions
         super().__init__(channel)
         channel.write_channel('sour{0}:volt:mode swe')
@@ -332,6 +343,7 @@ class Sweep_Context(_Dc_Context):
         channel.write_channel(f'sour{"{0}"}:swe:poin {points}')
         self._set_trigger_mode(stepped)
         channel.write_channel(f'sour{"{0}"}:swe:dwel {dwell_s}')
+        super()._set_delay(delay_s)
         self._set_direction(backwards)
         self._set_repetitions()
         self._set_triggering()
@@ -407,14 +419,15 @@ class Sweep_Context(_Dc_Context):
 class List_Context(_Dc_Context):
 
     def __init__(self, channel: 'QDac2Channel', voltages: Sequence[float],
-                 repetitions: int, dwell_s: float, backwards: bool,
-                 stepped: bool):
+                 repetitions: int, dwell_s: float, delay_s: float,
+                 backwards: bool, stepped: bool):
         super().__init__(channel)
         self._repetitions = repetitions
         self._write_channel('sour{0}:volt:mode list')
         self._set_voltages(voltages)
         self._set_trigger_mode(stepped)
         self._write_channel(f'sour{"{0}"}:list:dwel {dwell_s}')
+        super()._set_delay(delay_s)
         self._set_direction(backwards)
         self._set_repetitions()
         self._set_triggering()
@@ -526,7 +539,7 @@ class _Waveform_Context(_Channel_Context):
     def _period_start_marker(self, wave_kind: str) -> QDac2Trigger_Context:
         if not self._marker_period_start:
             self._marker_period_start = self.allocate_trigger()
-        self._write_channel(f'sour{"{0}"}:{wave_kind}:mark:pst {self._marker_period_start.value}')
+        self._write_channel(f'sour{"{0}"}:{wave_kind}:mark:pstart {self._marker_period_start.value}')
         return self._marker_period_start
 
     def _make_ready_to_start(self, wave_kind: str) -> None:
@@ -536,6 +549,9 @@ class _Waveform_Context(_Channel_Context):
     def _switch_to_immediate_trigger(self, wave_kind: str):
         self._write_channel(f'sour{"{0}"}:{wave_kind}:init:cont off')
         self._write_channel(f'sour{"{0}"}:{wave_kind}:trig:sour imm')
+
+    def _set_delay(self, wave_kind: str, delay_s) -> None:
+        self._write_channel(f'sour{"{0}"}:{wave_kind}:del {delay_s}')
 
     def _set_slew(self, wave_kind: str, slew_V_s: Optional[float]) -> None:
         if slew_V_s:
@@ -550,7 +566,8 @@ class Square_Context(_Waveform_Context):
     def __init__(self, channel: 'QDac2Channel', frequency_Hz: Optional[float],
                  repetitions: int, period_s: Optional[float],
                  duty_cycle_percent: float, kind: str, inverted: bool,
-                 span_V: float, offset_V: float, slew_V_s: Optional[float]):
+                 span_V: float, offset_V: float, delay_s: float,
+                 slew_V_s: Optional[float]):
         super().__init__(channel)
         self._repetitions = repetitions
         self._write_channel('sour{0}:squ:trig:sour hold')
@@ -561,6 +578,7 @@ class Square_Context(_Waveform_Context):
         self._write_channel(f'sour{"{0}"}:squ:span {span_V}')
         self._write_channel(f'sour{"{0}"}:squ:offs {offset_V}')
         self._set_slew('squ', slew_V_s)
+        super()._set_delay('squ', delay_s)
         self._write_channel(f'sour{"{0}"}:squ:coun {repetitions}')
         self._set_triggering()
 
@@ -667,7 +685,8 @@ class Sine_Context(_Waveform_Context):
 
     def __init__(self, channel: 'QDac2Channel', frequency_Hz: Optional[float],
                  repetitions: int, period_s: Optional[float], inverted: bool,
-                 span_V: float, offset_V: float, slew_V_s: Optional[float]):
+                 span_V: float, offset_V: float, delay_s: float,
+                 slew_V_s: Optional[float]):
         super().__init__(channel)
         self._repetitions = repetitions
         self._write_channel('sour{0}:sine:trig:sour hold')
@@ -676,6 +695,7 @@ class Sine_Context(_Waveform_Context):
         self._write_channel(f'sour{"{0}"}:sine:span {span_V}')
         self._write_channel(f'sour{"{0}"}:sine:offs {offset_V}')
         self._set_slew('sine', slew_V_s)
+        super()._set_delay('sine', delay_s)
         self._write_channel(f'sour{"{0}"}:sine:coun {repetitions}')
         self._set_triggering()
 
@@ -775,7 +795,7 @@ class Triangle_Context(_Waveform_Context):
     def __init__(self, channel: 'QDac2Channel', frequency_Hz: Optional[float],
                  repetitions: int, period_s: Optional[float],
                  duty_cycle_percent: float, inverted: bool, span_V: float,
-                 offset_V: float, slew_V_s: Optional[float]):
+                 offset_V: float, delay_s: float, slew_V_s: Optional[float]):
         super().__init__(channel)
         self._repetitions = repetitions
         self._write_channel('sour{0}:tri:trig:sour hold')
@@ -785,6 +805,7 @@ class Triangle_Context(_Waveform_Context):
         self._write_channel(f'sour{"{0}"}:tri:span {span_V}')
         self._write_channel(f'sour{"{0}"}:tri:offs {offset_V}')
         self._set_slew('tri', slew_V_s)
+        super()._set_delay('tri', delay_s)
         self._write_channel(f'sour{"{0}"}:tri:coun {repetitions}')
         self._set_triggering()
 
@@ -1056,7 +1077,7 @@ class Measurement_Context(_Channel_Context):
         """
         # Bug circumvention
         if self.n_available() == 0:
-            return []
+            return list()
         return comma_sequence_to_list_of_floats(
             self._ask_channel('sens{0}:data:rem?'))
 
@@ -1267,6 +1288,11 @@ class QDac2Channel(InstrumentChannel):
             call_cmd=f'sour{channum}:all:abor'
         )
 
+    @property
+    def number(self) -> int:
+        """Channel number"""
+        return self._channum
+
     def clear_measurements(self) -> Sequence[float]:
         """Retrieve current measurements
 
@@ -1277,7 +1303,7 @@ class QDac2Channel(InstrumentChannel):
         """
         # Bug circumvention
         if int(self.ask_channel('sens{0}:data:poin?')) == 0:
-            return []
+            return list()
         return comma_sequence_to_list_of_floats(
             self.ask_channel('sens{0}:data:rem?'))
 
@@ -1320,8 +1346,8 @@ class QDac2Channel(InstrumentChannel):
         self.output_filter(filter)
 
     def dc_list(self, voltages: Sequence[float], repetitions: int = 1,
-                dwell_s: float = 1e-03, backwards: bool = False,
-                stepped: bool = False
+                dwell_s: float = 1e-03, delay_s: float = 0,
+                backwards: bool = False, stepped: bool = False
                 ) -> List_Context:
         """Set up a DC-list generator
 
@@ -1329,17 +1355,19 @@ class QDac2Channel(InstrumentChannel):
             voltages (Sequence[float]): Voltages in list
             repetitions (int, optional): Number of repetitions of the list (default 1)
             dwell_s (float, optional): Seconds between each voltage (default 1ms)
+            delay_s (float, optional): Seconds of delay after receiving a trigger (default 0)
             backwards (bool, optional): Use list in reverse (default is forward)
             stepped (bool, optional): True means that each step needs to be triggered (default False)
 
         Returns:
             List_Context: context manager
         """
-        return List_Context(self, voltages, repetitions, dwell_s, backwards,
-                            stepped)
+        return List_Context(self, voltages, repetitions, dwell_s, delay_s,
+                            backwards, stepped)
 
     def dc_sweep(self, start_V: float, stop_V: float, points: int,
-                 repetitions=1, dwell_s=1e-03, backwards=False, stepped=True
+                 repetitions: int = 1, dwell_s: float = 1e-03,
+                 delay_s: float = 0, backwards=False, stepped=True
                  ) -> Sweep_Context:
         """Set up a DC sweep
 
@@ -1349,6 +1377,7 @@ class QDac2Channel(InstrumentChannel):
             points (int): Number of steps
             repetitions (int, optional): Number of repetition (default 1)
             dwell_s (float, optional): Seconds between each voltage (default 1ms)
+            delay_s (float, optional): Seconds of delay after receiving a trigger (default 0)
             backwards (bool, optional): Sweep in reverse (default is forward)
             stepped (bool, optional): True means that each step needs to be triggered (default False)
 
@@ -1356,13 +1385,14 @@ class QDac2Channel(InstrumentChannel):
             Sweep_Context: context manager
         """
         return Sweep_Context(self, start_V, stop_V, points, repetitions,
-                             dwell_s, backwards, stepped)
+                             dwell_s, delay_s, backwards, stepped)
 
     def square_wave(self, frequency_Hz: Optional[float] = None,
                     period_s: Optional[float] = None, repetitions: int = -1,
                     duty_cycle_percent: float = 50.0, kind: str = 'symmetric',
                     inverted: bool = False, span_V: float = 0.2,
-                    offset_V: float = 0.0, slew_V_s: Optional[float] = None
+                    offset_V: float = 0.0, delay_s: float = 0,
+                    slew_V_s: Optional[float] = None
                     ) -> Square_Context:
         """Set up a square-wave generator
 
@@ -1375,6 +1405,7 @@ class QDac2Channel(InstrumentChannel):
             inverted (bool, optional): True means flipped (default False)
             span_V (float, optional): Voltage span (default 200mV)
             offset_V (float, optional): Offset (default 0V)
+            delay_s (float, optional): Seconds of delay after receiving a trigger (default 0)
             slew_V_s (float, optional): Max slew rate in V/s (default None)
 
         Returns:
@@ -1389,12 +1420,13 @@ class QDac2Channel(InstrumentChannel):
             frequency_Hz = 1000
         return Square_Context(self, frequency_Hz, repetitions, period_s,
                               duty_cycle_percent, kind, inverted, span_V,
-                              offset_V, slew_V_s)
+                              offset_V, delay_s, slew_V_s)
 
     def sine_wave(self, frequency_Hz: Optional[float] = None,
                   period_s: Optional[float] = None, repetitions: int = -1,
                   inverted: bool = False, span_V: float = 0.2,
-                  offset_V: float = 0.0, slew_V_s: Optional[float] = None
+                  offset_V: float = 0.0, delay_s: float = 0,
+                  slew_V_s: Optional[float] = None
                   ) -> Sine_Context:
         """Set up a sine-wave generator
 
@@ -1405,6 +1437,7 @@ class QDac2Channel(InstrumentChannel):
             inverted (bool, optional): True means flipped (default False)
             span_V (float, optional): Voltage span (default 200mV)
             offset_V (float, optional): Offset (default 0V)
+            delay_s (float, optional): Seconds of delay after receiving a trigger (default 0)
             slew_V_s (None, optional): Max slew rate in V/s (default None)
 
         Returns:
@@ -1418,13 +1451,13 @@ class QDac2Channel(InstrumentChannel):
         if not frequency_Hz and not period_s:
             frequency_Hz = 1000
         return Sine_Context(self, frequency_Hz, repetitions, period_s,
-                            inverted, span_V, offset_V, slew_V_s)
+                            inverted, span_V, offset_V, delay_s, slew_V_s)
 
     def triangle_wave(self, frequency_Hz: Optional[float] = None,
                       period_s: Optional[float] = None, repetitions: int = -1,
                       duty_cycle_percent: float = 50.0, inverted: bool = False,
                       span_V: float = 0.2, offset_V: float = 0.0,
-                      slew_V_s: Optional[float] = None
+                      delay_s: float = 0, slew_V_s: Optional[float] = None
                       ) -> Triangle_Context:
         """Set up a triangle-wave generator
 
@@ -1436,6 +1469,7 @@ class QDac2Channel(InstrumentChannel):
             inverted (bool, optional): True means flipped (default False)
             span_V (float, optional): Voltage span (default 200mV)
             offset_V (float, optional): Offset (default 0V)
+            delay_s (float, optional): Seconds of delay after receiving a trigger (default 0)
             slew_V_s (float, optional): Max slew rate in V/s (default None)
 
         Returns:
@@ -1450,7 +1484,7 @@ class QDac2Channel(InstrumentChannel):
             frequency_Hz = 1000
         return Triangle_Context(self, frequency_Hz, repetitions, period_s,
                                 duty_cycle_percent, inverted, span_V,
-                                offset_V, slew_V_s)
+                                offset_V, delay_s, slew_V_s)
 
     def arbitrary_wave(self, trace_name: str, repetitions: int = 1,
                        scale: float = 1.0, offset_V: float = 0.0,
@@ -1530,17 +1564,12 @@ class Trace_Context:
 
     @property
     def size(self) -> int:
-        """
-        Returns:
-            int: Number of values in trace
-        """
+        """Number of values in trace"""
         return self._size
 
     @property
     def name(self) -> str:
-        """Returns:
-            str: Name of trace
-        """
+        """Name of trace"""
         return self._name
 
     def waveform(self, values: Sequence[float]) -> None:
@@ -1662,22 +1691,20 @@ class Arrangement_Context:
 
     @property
     def shape(self) -> int:
-        """
-        Returns:
-            int: Number of contacts in the arrangement
-        """
+        """Number of contacts in the arrangement"""
         return len(self._contacts)
 
     @property
     def correction_matrix(self) -> np.ndarray:
-        """
-        Returns:
-            np.ndarray: Correction matrix
-        """
+        """Correction matrix"""
         return self._correction
 
     @property
     def contact_names(self) -> Sequence[str]:
+        """
+        Returns:
+            Sequence[str]: Contact names in the same order as channel_numbers
+        """
         return self._contact_names
 
     def _allocate_internal_triggers(self,
@@ -1759,9 +1786,9 @@ class Arrangement_Context:
         self._correction = np.matmul(multiplier, self._correction)
 
     def _fix_contact_order(self, contacts: Dict[str, int]) -> None:
-        self._contact_names = []
-        self._contacts = {}
-        self._channels = []
+        self._contact_names = list()
+        self._contacts = dict()
+        self._channels = list()
         index = 0
         for contact, channel in contacts.items():
             self._contact_names.append(contact)
@@ -1772,7 +1799,14 @@ class Arrangement_Context:
 
     @property
     def channel_numbers(self) -> Sequence[int]:
+        """
+        Returns:
+            Sequence[int]: Channels numbers in the same order as contact_names
+        """
         return self._channels
+
+    def channel(self, name: str) -> QDac2Channel:
+        return self._qdac.channel(self._channels[self._contacts[name]])
 
     def virtual_voltage(self, contact: str) -> float:
         """
@@ -1780,7 +1814,7 @@ class Arrangement_Context:
             contact (str): Name of contact
 
         Returns:
-            float: Virtual voltage on the contact
+            float: Voltage before correction
         """
         index = self._contact_index(contact)
         return self._virtual_voltages[index]
@@ -1809,22 +1843,26 @@ class Arrangement_Context:
             print(f'Internal triggers: {list(self._internal_triggers.keys())}')
             raise
 
-    def currents_A(self, nplc: int = 1) -> Sequence[float]:
+    def _all_channels_as_suffix(self) -> str:
+        channels_str = ints_to_comma_separated_list(self.channel_numbers)
+        return f'(@{channels_str})'
+
+    def currents_A(self, nplc: int = 1, current_range: str = "low") -> Sequence[float]:
         """Measure currents on all contacts
 
         Args:
-            nplc (int): Number of powerline cycles to average over
+            nplc (int, optional): Number of powerline cycles to average over
+            current_range (str, optional): Current range (default low)
         """
-        slowest_line_freq = 50
-        channels_str = ints_to_comma_separated_list(self.channel_numbers)
-        channels_suffix = f'(@{channels_str})'
-        self._qdac.write(f'sens:rang low,{channels_suffix}')
+        channels_suffix = self._all_channels_as_suffix()
+        self._qdac.write(f'sens:rang {current_range},{channels_suffix}')
         self._qdac.write(f'sens:nplc {nplc},{channels_suffix}')
         # Discard first reading because of possible output-capacitor effects, etc
-        sleep_s(1 / slowest_line_freq)
+        slowest_line_freq_Hz = 50
+        sleep_s(1 / slowest_line_freq_Hz)
         self._qdac.ask(f'read? {channels_suffix}')
-        # Then make the proper reading
-        sleep_s((nplc+1) / slowest_line_freq)
+        # Then make a proper reading
+        sleep_s((nplc + 1) / slowest_line_freq_Hz)
         currents = self._qdac.ask(f'read? {channels_suffix}')
         return comma_sequence_to_list_of_floats(currents)
 
@@ -1849,19 +1887,18 @@ class Arrangement_Context:
         """
         sweep = self._calculate_1d_values(contact, voltages)
         return Virtual_Sweep_Context(self, sweep, start_sweep_trigger,
-                                step_time_s, step_trigger, repetitions)
+                                     step_time_s, step_trigger, repetitions)
 
     def _calculate_1d_values(self, contact: str, voltages: Sequence[float]
-                            ) -> np.ndarray:
+                             ) -> np.ndarray:
         original_voltage = self.virtual_voltage(contact)
         index = self._contact_index(contact)
-        sweep = []
+        sweep = list()
         for v in voltages:
             self._virtual_voltages[index] = v
             sweep.append(self.actual_voltages())
         self._virtual_voltages[index] = original_voltage
         return np.array(sweep)
-
 
     def virtual_sweep2d(self, inner_contact: str, inner_voltages: Sequence[float],
                         outer_contact: str, outer_voltages: Sequence[float],
@@ -1885,9 +1922,9 @@ class Arrangement_Context:
             Virtual_Sweep_Context: context manager
         """
         sweep = self._calculate_2d_values(inner_contact, inner_voltages,
-                                            outer_contact, outer_voltages)
+                                          outer_contact, outer_voltages)
         return Virtual_Sweep_Context(self, sweep, start_sweep_trigger,
-                                inner_step_time_s, inner_step_trigger, repetitions)
+                                     inner_step_time_s, inner_step_trigger, repetitions)
 
     def _calculate_2d_values(self, inner_contact: str,
                              inner_voltages: Sequence[float],
@@ -1897,7 +1934,7 @@ class Arrangement_Context:
         original_slow_voltage = self.virtual_voltage(outer_contact)
         outer_index = self._contact_index(outer_contact)
         inner_index = self._contact_index(inner_contact)
-        sweep = []
+        sweep = list()
         for slow_V in outer_voltages:
             self._virtual_voltages[outer_index] = slow_V
             for fast_V in inner_voltages:
@@ -1913,7 +1950,7 @@ class Arrangement_Context:
                        step_time_s: float = 1e-5,
                        step_trigger: Optional[str] = None,
                        repetitions: int = 1) -> Virtual_Sweep_Context:
-        """Sweep any number of contacts from one set of values to another set of values
+        """Sweep any number of contacts linearly from one set of values to another set of values
 
         Args:
             contacts (Sequence[str]): contacts involved in sweep
@@ -1942,7 +1979,7 @@ class Arrangement_Context:
                                  end_V: Sequence[float], steps: int):
         original_voltages = [self.virtual_voltage(contact) for contact in contacts]
         indices = [self._contact_index(contact) for contact in contacts]
-        sweep = []
+        sweep = list()
         forward_V = [forward_and_back(start_V[i], end_V[i], steps) for i in range(len(contacts))]
         for voltages in zip(*forward_V):
             for index, voltage in zip(indices, voltages):
@@ -1966,16 +2003,22 @@ class Arrangement_Context:
         Returns:
             ndarray: contact-to-contact resistance in Ohms
         """
-        steady_state_A = self.currents_A(nplc)
-        currents_matrix = []
+        steady_state_A, currents_matrix = self._leakage_currents(modulation_V, nplc, 'low')
+        with np.errstate(divide='ignore'):
+            return np.abs(modulation_V / diff_matrix(steady_state_A, currents_matrix))
+
+    def _leakage_currents(self, modulation_V: float, nplc: int,
+                          current_range: str
+                          ) -> Tuple[Sequence[float], Sequence[Sequence[float]]]:
+        steady_state_A = self.currents_A(nplc, 'low')
+        currents_matrix = list()
         for index, channel_nr in enumerate(self.channel_numbers):
             original_V = self._virtual_voltages[index]
             self._effectuate_virtual_voltage(index, original_V + modulation_V)
-            currents = self.currents_A(nplc)
+            currents = self.currents_A(nplc, current_range)
             self._effectuate_virtual_voltage(index, original_V)
             currents_matrix.append(currents)
-        with np.errstate(divide='ignore'):
-            return np.abs(modulation_V / diff_matrix(steady_state_A, currents_matrix))
+        return steady_state_A, currents_matrix
 
     def _contact_index(self, contact: str) -> int:
         return self._contacts[contact]
@@ -1983,14 +2026,14 @@ class Arrangement_Context:
     def _allocate_triggers(self, internal_triggers: Optional[Sequence[str]],
                            output_triggers: Optional[Dict[str, int]]
                            ) -> None:
-        self._internal_triggers: Dict[str, QDac2Trigger_Context] = {}
+        self._internal_triggers: Dict[str, QDac2Trigger_Context] = dict()
         self._allocate_internal_triggers(internal_triggers)
         self._allocate_external_triggers(output_triggers)
 
     def _allocate_external_triggers(self, output_triggers:
                                     Optional[Dict[str, int]]
                                     ) -> None:
-        self._external_triggers = {}
+        self._external_triggers = dict()
         if not output_triggers:
             return
         for name, port in output_triggers.items():
@@ -2199,27 +2242,28 @@ class QDac2(VisaInstrument):
                 output_triggers: Optional[Dict[str, int]] = None,
                 internal_triggers: Optional[Sequence[str]] = None
                 ) -> Arrangement_Context:
-        """An arrangement of contacts and triggers for virtual 2D sweeps
+        """An arrangement of contacts and triggers for virtual gates
 
-        Each contact corresponds to a particular output channel and each trigger
-        corresponds to a particular external or internal trigger.  After
+        Each contact corresponds to a particular output channel.  Each
+        output_trigger corresponds to a particular external output trigger.
+        Each internal_trigger will be allocated from the pool of internal
+        triggers, and can later be used for synchronisation.  After
         initialisation of the arrangement, contacts and triggers can only be
         referred to by name.
 
         The voltages that will appear on each contact depends not only on the
-        specified virtual voltage, but also on a correction matrix.
-
-        Initially, the contacts are assumed to not influence each other, which
-        means that the correction matrix is the identity matrix, ie. the row for
+        specified virtual voltage, but also on a correction matrix.  Initially,
+        the contacts are assumed to not influence each other, which means that
+        the correction matrix is the identity matrix, ie. the row for
         each contact has a value of [0, ..., 0, 1, 0, ..., 0].
 
         Args:
             contacts (Dict[str, int]): Name/channel pairs
-            output_triggers (Optional[Sequence[Tuple[str,int]]], optional): Name/number pairs of output triggers
-            internal_triggers (Optional[Sequence[str]], optional): List of names of internal triggers to allocate
+            output_triggers (Sequence[Tuple[str,int]], optional): Name/number pairs of output triggers
+            internal_triggers (Sequence[str], optional): List of names of internal triggers to allocate
 
         Returns:
-            Arrangement_Context: Description
+            Arrangement_Context: context manager
         """
         return Arrangement_Context(self, contacts, output_triggers,
                                    internal_triggers)
@@ -2237,7 +2281,7 @@ class QDac2(VisaInstrument):
         Any previous recordings are removed.  To inspect the SCPI commands sent
         to the instrument, call get_recorded_scpi_commands().
         """
-        self._scpi_sent: List[str] = []
+        self._scpi_sent: List[str] = list()
         self._record_commands = True
 
     def get_recorded_scpi_commands(self) -> List[str]:
@@ -2246,7 +2290,7 @@ class QDac2(VisaInstrument):
             Sequence[str]: SCPI commands sent to the instrument
         """
         commands = self._scpi_sent
-        self._scpi_sent = []
+        self._scpi_sent = list()
         return commands
 
     def clear(self) -> None:
@@ -2262,7 +2306,7 @@ class QDac2(VisaInstrument):
         Returns:
             Sequence[str]: Messages lingering in queue
         """
-        lingering = []
+        lingering = list()
         original_timeout = self.visa_handle.timeout
         self.visa_handle.timeout = self._message_flush_timeout_ms
         while True:
@@ -2323,7 +2367,7 @@ class QDac2(VisaInstrument):
 
     def _set_up_debug_settings(self) -> None:
         self._record_commands = False
-        self._scpi_sent = []
+        self._scpi_sent = list()
         self._message_flush_timeout_ms = 1
         self._round_off = None
         self._no_binary_values = False
@@ -2339,8 +2383,9 @@ class QDac2(VisaInstrument):
                              ' driver for your instrument?')
 
     def _check_for_incompatiable_firmware(self) -> None:
-        least_compatible_fw = '3-0.9.16'
-        firmware = self.IDN()['firmware']
+        # Only compare the firmware, not the FPGA version
+        firmware = split_version_string_into_components(self.IDN()['firmware'])[1]
+        least_compatible_fw = '0.17.5'
         if parse(firmware) < parse(least_compatible_fw):
             raise ValueError(f'Incompatible firmware {firmware}. You need at '
                              f'least {least_compatible_fw}')
