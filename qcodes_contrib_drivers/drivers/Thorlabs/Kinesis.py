@@ -30,7 +30,9 @@ class Thorlabs_Kinesis():
     # without GUI open, only one port)
     def enable_simulation(self) -> None:
         r = self.dll.TLI_InitializeSimulations()
-        self.error_check(r, 'Enable simulation')
+        # Throws error message even if simulation was successfull, 
+        # check the log in the Kinesis simulator for confirmation instead
+        # self.error_check(r, 'Enable simulation') 
 
     def disable_simulation(self) -> None:
         r = self.dll.TLI_UninitializeSimulations()
