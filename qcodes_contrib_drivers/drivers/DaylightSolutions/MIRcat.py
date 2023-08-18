@@ -30,7 +30,7 @@ class DRSDaylightSolutions_MIRcat(Instrument):
 
     Args:
         name (str): name for the instrument
-        dll_path (Optional[str], optional): path to the MIRcatSDK drivel dll
+        dll_path (Optional[str], optional): path to the MIRcatSDK driver dll
             library file. Defaults to None.
     """
     dll_path = 'C:\\MIRcat_laser\\libs\\x64\\MIRcatSDK.dll'
@@ -90,7 +90,7 @@ class DRSDaylightSolutions_MIRcat(Instrument):
     def __init__(self,
                  name: str,
                  dll_path: Optional[str] = None,
-                 **kwargs):
+                 **kwargs: Any) -> None:
         super().__init__(name, **kwargs)
 
         if sys.platform != 'win32':
