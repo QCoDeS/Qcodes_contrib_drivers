@@ -15,6 +15,8 @@ from qcodes import Parameter, IPInstrument
 from qcodes import validators as vals
 from qcodes.utils.helpers import create_on_off_val_mapping
 
+log = logging.getLogger(__name__)
+
 
 class MontanaInstruments_Cryostation(IPInstrument):
     """
@@ -40,12 +42,6 @@ class MontanaInstruments_Cryostation(IPInstrument):
                          terminator='', timeout=timeout, **kwargs)
         self._address = address
         self._port = port
-
-        #self._heater_range_auto = False
-        #self._heater_range_temp = [0.03, 0.1, 0.3, 1, 12, 40]
-        #self._heater_range_curr = [0.316, 1, 3.16, 10, 31.6, 100]
-        #self._control_channel = 5
-        #self._max_field = 14
 
         self.temp_setpoint = Parameter(
             name='temp_setpoint',
@@ -130,7 +126,6 @@ class MontanaInstruments_Cryostation(IPInstrument):
         
         self.connect_message()
         
-        
     def get_idn(self) -> Dict[str, Optional[str]]:
         """ Return the Instrument Identifier Message """
         idstr = self.ask(self._parse_command('*IDN?'))
@@ -138,33 +133,38 @@ class MontanaInstruments_Cryostation(IPInstrument):
         return dict(zip(idstr, idparts))
         
     def start_cooldown(self) -> None:
+        self.log.info('Start cooldown.')
         self.write(self._parse_command('SCD'))
         
     def standby(self) -> None:
+        self.log.info('Standby.')
         self.write(self._parse_command('SSB'))
         
     def stop_automation(self) -> None:
+        self.log.info('Stop automation.')
         self.write(self._parse_command('STP'))
         
     def start_warmup(self) -> None:
+        self.log.info('Start warmup.')
         self.write(self._parse_command('SWU'))
         
-    def set_temp_and_wait(self, setpoint) -> None:
+    def set_temp_and_wait(self, setpoint: float) -> None:
+        self.log.info('Set temperature and wait until it is stable.')
         self.temp_setpoint.set(setpoint)
         time.sleep(10)
         while self.temp_stability.get() > 0.2:
             time.sleep(10)
         return self.temp_setpoint.get()
         
-    def wait_stability(self, time=10) -> None:
+    def wait_stability(self, time: float = 10) -> None:
+        self.log.info('Wait until the temperature is stable')
         stability = self.temp_stability.get()
         while stability > 0.02 or stability < 0:
             time.sleep(time)
             stability = self.temp_stability.get()
-
         
-    def _set_temp(self, temp):
-        self.ask_raw(self._parse_command('STSP{}'.format(temp)))
+    def _set_temp(self, setpoint: float):
+        self.ask_raw(self._parse_command('STSP{}'.format(setpoint)))
         
     def _parse_command(self, command):
         try:
