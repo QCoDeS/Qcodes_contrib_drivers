@@ -14,6 +14,7 @@ import time
 import sys
 import ctypes
 from typing import Optional, Any, Sequence
+from functools import partial
 
 from qcodes import Instrument, Parameter
 from qcodes import validators as vals
@@ -99,10 +100,6 @@ class DRSDaylightSolutions_MIRcat(Instrument):
         else:
             self._dll = ctypes.cdll.LoadLibrary(dll_path or self.dll_path)
 
-        # get MIRcat API version
-        self._major = ctypes.c_uint16()
-        self._minor = ctypes.c_uint16()
-        self._patch = ctypes.c_uint16()
         # Initialise MIRcatSDK & connect
         self._execute('MIRcatSDK_Initialize')
         self._num_qcl = ctypes.c_uint8()
@@ -156,7 +153,7 @@ class DRSDaylightSolutions_MIRcat(Instrument):
         self.T1 = Parameter(
             'T1',
             label='Temperature of chip 1',
-            get_cmd=self._get_temperature_1,
+            get_cmd=partial(self._get_temperature, chip=1),
             vals=vals.Numbers(),
             unit=u'\u00b0'+'C',
             instrument=self
@@ -165,7 +162,7 @@ class DRSDaylightSolutions_MIRcat(Instrument):
         self.T2 = Parameter(
             'T2',
             label='Temperature of chip 2',
-            get_cmd=self._get_temperature_2,
+            get_cmd=partial(self._get_temperature, chip=2),
             vals=vals.Numbers(),
             unit=u'\u00b0'+'C',
             instrument=self
@@ -174,7 +171,7 @@ class DRSDaylightSolutions_MIRcat(Instrument):
         self.T3 = Parameter(
             'T3',
             label='Temperature of chip 3',
-            get_cmd=self._get_temperature_3,
+            get_cmd=partial(self._get_temperature, chip=3),
             vals=vals.Numbers(),
             unit=u'\u00b0'+'C',
             instrument=self
@@ -183,7 +180,7 @@ class DRSDaylightSolutions_MIRcat(Instrument):
         self.T4 = Parameter(
             'T4',
             label='Temperature of chip 4',
-            get_cmd=self._get_temperature_4,
+            get_cmd=partial(self._get_temperature, chip=4),
             vals=vals.Numbers(),
             unit=u'\u00b0'+'C',
             instrument=self
@@ -192,8 +189,8 @@ class DRSDaylightSolutions_MIRcat(Instrument):
         self.pulse_rate_1 = Parameter(
             'pulse_rate_1',
             label='Pulse rate for chip 1',
-            get_cmd=self._get_pulse_rate_1,
-            set_cmd=self._set_pulse_rate_1,
+            get_cmd=partial(self._get_pulse_rate, chip=1),
+            set_cmd=partial(self._set_pulse_rate, chip=1),
             vals=vals.Numbers(100, 1e6),
             unit='Hz',
             instrument=self
@@ -202,8 +199,8 @@ class DRSDaylightSolutions_MIRcat(Instrument):
         self.pulse_rate_2 = Parameter(
             'pulse_rate_2',
             label='Pulse rate for chip 2',
-            get_cmd=self._get_pulse_rate_2,
-            set_cmd=self._set_pulse_rate_2,
+            get_cmd=partial(self._get_pulse_rate, chip=2),
+            set_cmd=partial(self._set_pulse_rate, chip=2),
             vals=vals.Numbers(100, 1e6),
             unit='Hz',
             instrument=self
@@ -212,8 +209,8 @@ class DRSDaylightSolutions_MIRcat(Instrument):
         self.pulse_rate_3 = Parameter(
             'pulse_rate_3',
             label='Pulse rate for chip 3',
-            get_cmd=self._get_pulse_rate_3,
-            set_cmd=self._set_pulse_rate_3,
+            get_cmd=partial(self._get_pulse_rate, chip=3),
+            set_cmd=partial(self._set_pulse_rate, chip=3),
             vals=vals.Numbers(100, 1e6),
             unit='Hz',
             instrument=self
@@ -222,8 +219,8 @@ class DRSDaylightSolutions_MIRcat(Instrument):
         self.pulse_rate_4 = Parameter(
             'pulse_rate_4',
             label='Pulse rate for chip 4',
-            get_cmd=self._get_pulse_rate_4,
-            set_cmd=self._set_pulse_rate_4,
+            get_cmd=partial(self._get_pulse_rate, chip=4),
+            set_cmd=partial(self._set_pulse_rate, chip=4),
             vals=vals.Numbers(100, 1e6),
             unit='Hz',
             instrument=self
@@ -232,8 +229,8 @@ class DRSDaylightSolutions_MIRcat(Instrument):
         self.pulse_width_1 = Parameter(
             'pulse_width_1',
             label='Pulse width for chip 1',
-            get_cmd=self._get_pulse_width_1,
-            set_cmd=self._set_pulse_width_1,
+            get_cmd=partial(self._get_pulse_width, chip=1),
+            set_cmd=partial(self._set_pulse_width, chip=1),
             vals=vals.Numbers(40e-9, 500e-9),
             unit='s',
             instrument=self
@@ -242,8 +239,8 @@ class DRSDaylightSolutions_MIRcat(Instrument):
         self.pulse_width_2 = Parameter(
             'pulse_width_2',
             label='Pulse width for chip 2',
-            get_cmd=self._get_pulse_width_2,
-            set_cmd=self._set_pulse_width_2,
+            get_cmd=partial(self._get_pulse_width, chip=2),
+            set_cmd=partial(self._set_pulse_width, chip=2),
             vals=vals.Numbers(40e-9, 500e-9),
             unit='s',
             instrument=self
@@ -252,8 +249,8 @@ class DRSDaylightSolutions_MIRcat(Instrument):
         self.pulse_width_3 = Parameter(
             'pulse_width_3',
             label='Pulse width for chip 3',
-            get_cmd=self._get_pulse_width_3,
-            set_cmd=self._set_pulse_width_3,
+            get_cmd=partial(self._get_pulse_width, chip=3),
+            set_cmd=partial(self._set_pulse_width, chip=3),
             vals=vals.Numbers(40e-9, 500e-9),
             unit='s',
             instrument=self
@@ -262,18 +259,18 @@ class DRSDaylightSolutions_MIRcat(Instrument):
         self.pulse_width_4 = Parameter(
             'pulse_width_4',
             label='Pulse width for chip 4',
-            get_cmd=self._get_pulse_width_4,
-            set_cmd=self._set_pulse_width_4,
+            get_cmd=partial(self._get_pulse_width, chip=4),
+            set_cmd=partial(self._set_pulse_width, chip=4),
             vals=vals.Numbers(40e-9, 500e-9),
             unit='s',
             instrument=self
         )
 
-        self. pulse_current_1 = Parameter(
+        self.pulse_current_1 = Parameter(
             'pulse_current_1',
             label='Pulse current for chip 1',
-            get_cmd=self._get_pulse_current_1,
-            set_cmd=self._set_pulse_current_1,
+            get_cmd=partial(self._get_pulse_current, chip=1),
+            set_cmd=partial(self._set_pulse_current, chip=1),
             vals=vals.Numbers(),
             unit='A',
             instrument=self
@@ -282,8 +279,8 @@ class DRSDaylightSolutions_MIRcat(Instrument):
         self.pulse_current_2 = Parameter(
             'pulse_current_2',
             label='Pulse current for chip 2',
-            get_cmd=self._get_pulse_current_2,
-            set_cmd=self._set_pulse_current_2,
+            get_cmd=partial(self._get_pulse_current, chip=2),
+            set_cmd=partial(self._set_pulse_current, chip=2),
             vals=vals.Numbers(),
             unit='A',
             instrument=self
@@ -291,8 +288,8 @@ class DRSDaylightSolutions_MIRcat(Instrument):
         self.pulse_current_3 = Parameter(
             'pulse_current_3',
             label='Pulse current for chip 3',
-            get_cmd=self._get_pulse_current_3,
-            set_cmd=self._set_pulse_current_3,
+            get_cmd=partial(self._get_pulse_current, chip=3),
+            set_cmd=partial(self._set_pulse_current, chip=3),
             vals=vals.Numbers(),
             unit='A',
             instrument=self
@@ -300,8 +297,8 @@ class DRSDaylightSolutions_MIRcat(Instrument):
         self.pulse_current_4 = Parameter(
             'pulse_current_4',
             label='Pulse current for chip 4',
-            get_cmd=self._get_pulse_current_4,
-            set_cmd=self._set_pulse_current_4,
+            get_cmd=partial(self._get_pulse_current, chip=4),
+            set_cmd=partial(self._set_pulse_current, chip=4),
             vals=vals.Numbers(),
             unit='A',
             instrument=self
@@ -319,9 +316,9 @@ class DRSDaylightSolutions_MIRcat(Instrument):
             tuple: (pulse_rate (Hz), pulse_width (s), current (A))
         """
         tup = (
-            self._get_pulse_rate(self, chip=chip),
-            self._get_pulse_width(self, chip=chip),
-            self._get_pulse_current(self, chip=chip)
+            self._get_pulse_rate(chip),
+            self._get_pulse_width(chip),
+            self._get_pulse_current(chip)
         )
         return tup
 
@@ -360,12 +357,12 @@ class DRSDaylightSolutions_MIRcat(Instrument):
         if chip == 0:
             units = ctypes.c_uint8()
             tuned_ww = ctypes.c_float()
-            chip = ctypes.c_uint8()
+            _chip = ctypes.c_uint8()
             self._execute('MIRcatSDK_GetTuneWW',
                           [ctypes.byref(tuned_ww),
                            ctypes.byref(units),
-                           ctypes.byref(chip)])
-            chip = chip.value
+                           ctypes.byref(_chip)])
+            chip = _chip.value
         self.log.info(f'Get limits for QCL chip {chip}.')
         pulse_rate_max = ctypes.c_float()
         pulse_width_max = ctypes.c_float()
@@ -400,9 +397,11 @@ class DRSDaylightSolutions_MIRcat(Instrument):
                       [ctypes.byref(at_temperature)])
         tec_current = ctypes.c_uint16(0)
         qcl_temp = ctypes.c_float(0)
+        num_qcl = ctypes.c_uint8()
+        self._execute('MIRcatSDK_GetNumInstalledQcls', [ctypes.byref(num_qcl)])
 
         while not at_temperature.value:
-            for i in range(0, self._num_qcl.value):
+            for i in range(0, num_qcl.value):
                 self._execute('MIRcatSDK_GetQCLTemperature',
                               [ctypes.c_uint8(i+1), ctypes.byref(qcl_temp)])
                 self._execute('MIRcatSDK_GetTecCurrent',
@@ -442,12 +441,12 @@ class DRSDaylightSolutions_MIRcat(Instrument):
         if chip == 0:
             units = ctypes.c_uint8()
             tuned_ww = ctypes.c_float()
-            chip = ctypes.c_uint8()
+            _chip = ctypes.c_uint8()
             self._execute('MIRcatSDK_GetTuneWW',
                           [ctypes.byref(tuned_ww),
                            ctypes.byref(units),
-                           ctypes.byref(chip)])
-            chip = chip.value
+                           ctypes.byref(_chip)])
+            chip = _chip.value
         self.log.info(f'Get range for QCL QCL chip {chip}.')
         pf_min_range = ctypes.c_float()
         pf_max_range = ctypes.c_float()
@@ -457,7 +456,7 @@ class DRSDaylightSolutions_MIRcat(Instrument):
                       [chip, ctypes.byref(pf_min_range),
                        ctypes.byref(pf_max_range),
                        ctypes.byref(pb_units)])
-        return (pf_min_range*1e6, pf_max_range*1e6)
+        return (pf_min_range.value*1e6, pf_max_range.value*1e6)
 
     def check_tune(self) -> float:
         """Check the QCL tune.
@@ -478,6 +477,8 @@ class DRSDaylightSolutions_MIRcat(Instrument):
             return tuned_ww.value*1e-6
         elif units == ctypes.c_ubyte(2):
             return 1e2/tuned_ww.value  # convert from cm-1 to m
+        else:
+            raise ValueError
 
     def get_idn(self) -> dict:
         idparts = [
@@ -488,9 +489,9 @@ class DRSDaylightSolutions_MIRcat(Instrument):
 
     def _execute(self, func: str, params: Sequence = []) -> int:
         ret = self._dll.__getattr__(func)(*params)
-        self._check_error(ret)
+        return self._check_error(ret)
 
-    def _check_error(self, ret: int) -> None:
+    def _check_error(self, ret: int):
         if not ret:
             return None
         if self._GET_ERROR[ret][-16:] == '*[System Error]*':
@@ -500,11 +501,14 @@ class DRSDaylightSolutions_MIRcat(Instrument):
 
     def _get_api_version(self) -> str:
         self.log.info('Get API version.')
+        major = ctypes.c_uint16()
+        minor = ctypes.c_uint16()
+        patch = ctypes.c_uint16()
         self._execute('MIRcatSDK_GetAPIVersion',
-                      [ctypes.byref(self._major),
-                       ctypes.byref(self._minor),
-                       ctypes.byref(self._patch)])
-        return f'{self._major.value}.{self._minor.value}.{self._patch.value}'
+                      [ctypes.byref(major),
+                       ctypes.byref(minor),
+                       ctypes.byref(patch)])
+        return f'{major.value}.{minor.value}.{patch.value}'
 
     def _get_status(self) -> str:
         self.log.info('Get status.')
@@ -595,102 +599,55 @@ class DRSDaylightSolutions_MIRcat(Instrument):
         temp = ctypes.c_float()
         self._execute('MIRcatSDK_GetQCLTemperature',
                       [chip, ctypes.byref(temp)])
-
-    def _get_temperature_1(self) -> float:
-        return self._get_temperature(chip=1)
-
-    def _get_temperature_2(self) -> float:
-        return self._get_temperature(chip=2)
-
-    def _get_temperature_3(self) -> float:
-        return self._get_temperature(chip=3)
-
-    def _get_temperature_4(self) -> float:
-        return self._get_temperature(chip=4)
-
+        return temp.value
+    
     def _get_pulse_rate(self, chip: int = 0) -> float:
         if chip == 0:
             units = ctypes.c_uint8()
             tuned_ww = ctypes.c_float()
-            chip = ctypes.c_uint8()
+            _chip = ctypes.c_uint8()
             self._execute('MIRcatSDK_GetTuneWW',
                           [ctypes.byref(tuned_ww),
                            ctypes.byref(units),
-                           ctypes.byref(chip)])
-            chip = chip.value
+                           ctypes.byref(_chip)])
+            chip = _chip.value
         self.log.info(f'Get pulse rate for QCL chip {chip}.')
         pulse_rate = ctypes.c_float()
         self._execute('MIRcatSDK_GetQCLPulseRate',
                       [ctypes.c_uint8(chip), ctypes.byref(pulse_rate)])
         return pulse_rate.value
 
-    def _get_pulse_rate_1(self) -> float:
-        return self._get_pulse_rate(chip=1)
-
-    def _get_pulse_rate_2(self) -> float:
-        return self._get_pulse_rate(chip=2)
-
-    def _get_pulse_rate_3(self) -> float:
-        return self._get_pulse_rate(chip=3)
-
-    def _get_pulse_rate_4(self) -> float:
-        return self._get_pulse_rate(chip=4)
-
     def _get_pulse_width(self, chip: int = 0) -> float:
         if chip == 0:
             units = ctypes.c_uint8()
             tuned_ww = ctypes.c_float()
-            chip = ctypes.c_uint8()
+            _chip = ctypes.c_uint8()
             self._execute('MIRcatSDK_GetTuneWW',
                           [ctypes.byref(tuned_ww),
                            ctypes.byref(units),
-                           ctypes.byref(chip)])
-            chip = chip.value
+                           ctypes.byref(_chip)])
+            chip = _chip.value
         self.log.info(f'Get pulse width for QCL chip {chip}.')
         pulse_width = ctypes.c_float()
         self._execute('MIRcatSDK_GetQCLPulseWidth',
                       [ctypes.c_uint8(chip), ctypes.byref(pulse_width)])
         return pulse_width.value/1e9
 
-    def _get_pulse_width_1(self) -> float:
-        return self._get_pulse_width(chip=1)
-
-    def _get_pulse_width_2(self) -> float:
-        return self._get_pulse_width(chip=2)
-
-    def _get_pulse_width_3(self) -> float:
-        return self._get_pulse_width(chip=3)
-
-    def _get_pulse_width_4(self) -> float:
-        return self._get_pulse_width(chip=4)
-
     def _get_pulse_current(self, chip: int = 0) -> float:
         if chip == 0:
             units = ctypes.c_uint8()
             tuned_ww = ctypes.c_float()
-            chip = ctypes.c_uint8()
+            _chip = ctypes.c_uint8()
             self._execute('MIRcatSDK_GetTuneWW',
                           [ctypes.byref(tuned_ww),
                            ctypes.byref(units),
-                           ctypes.byref(chip)])
-            chip = chip.value
+                           ctypes.byref(_chip)])
+            chip = _chip.value
         self.log.info(f'Get pulse current for QCL chip {chip}.')
         pulse_current = ctypes.c_float()
         self._execute('MIRcatSDK_GetQCLCurrent',
                       [ctypes.c_uint8(chip), ctypes.byref(pulse_current)])
         return pulse_current.value/1e3
-
-    def _get_pulse_current_1(self) -> float:
-        return self._get_pulse_current(chip=1)
-
-    def _get_pulse_current_2(self) -> float:
-        return self._get_pulse_current(chip=2)
-
-    def _get_pulse_current_3(self) -> float:
-        return self._get_pulse_current(chip=3)
-
-    def _get_pulse_current_4(self) -> float:
-        return self._get_pulse_current(chip=4)
 
     def _get_chip(self) -> int:
         """Check the active chip"""
@@ -715,12 +672,12 @@ class DRSDaylightSolutions_MIRcat(Instrument):
         if chip == 0:
             units = ctypes.c_uint8()
             tuned_ww = ctypes.c_float()
-            chip = ctypes.c_uint8()
+            _chip = ctypes.c_uint8()
             self._execute('MIRcatSDK_GetTuneWW',
                           [ctypes.byref(tuned_ww),
                            ctypes.byref(units),
-                           ctypes.byref(chip)])
-            chip = chip.value
+                           ctypes.byref(_chip)])
+            chip = _chip.value
 
         self.log.info(f'Set pulse rate to {pulse_rate} on QCL chip {chip}.')
         pulse_width = ctypes.c_float()
@@ -738,28 +695,16 @@ class DRSDaylightSolutions_MIRcat(Instrument):
                        ctypes.c_float(pulse_width.value),
                        ctypes.c_float(pulse_current.value)])
 
-    def _set_pulse_rate_1(self, pulse_rate: float) -> None:
-        return self._set_pulse_rate(pulse_rate, chip=1)
-
-    def _set_pulse_rate_2(self, pulse_rate: float) -> None:
-        return self._set_pulse_rate(pulse_rate, chip=2)
-
-    def _set_pulse_rate_3(self, pulse_rate: float) -> None:
-        return self._set_pulse_rate(pulse_rate, chip=3)
-
-    def _set_pulse_rate_4(self, pulse_rate: float) -> None:
-        return self._set_pulse_rate(pulse_rate, chip=4)
-
     def _set_pulse_width(self, pulse_width: float, chip: int = 0) -> None:
         if chip == 0:
             units = ctypes.c_uint8()
             tuned_ww = ctypes.c_float()
-            chip = ctypes.c_uint8()
+            _chip = ctypes.c_uint8()
             self._execute('MIRcatSDK_GetTuneWW',
                           [ctypes.byref(tuned_ww),
                            ctypes.byref(units),
-                           ctypes.byref(chip)])
-            chip = chip.value
+                           ctypes.byref(_chip)])
+            chip = _chip.value
 
         self.log.info(f'Set pulse width to {pulse_width} on QCL chip {chip}.')
         pulse_rate = ctypes.c_float()
@@ -777,28 +722,16 @@ class DRSDaylightSolutions_MIRcat(Instrument):
                        ctypes.c_float(pulse_width*1e9),
                        ctypes.c_float(pulse_current.value)])
 
-    def _set_pulse_width_1(self, pulse_width: float) -> None:
-        return self._set_pulse_width(pulse_width, chip=1)
-
-    def _set_pulse_width_2(self, pulse_width: float) -> None:
-        return self._set_pulse_width(pulse_width, chip=2)
-
-    def _set_pulse_width_3(self, pulse_width: float) -> None:
-        return self._set_pulse_width(pulse_width, chip=3)
-
-    def _set_pulse_width_4(self, pulse_width: float) -> None:
-        return self._set_pulse_width(pulse_width, chip=4)
-
     def _set_pulse_current(self, pulse_current: float, chip: int = 0) -> None:
         if chip == 0:
             units = ctypes.c_uint8()
             tuned_ww = ctypes.c_float()
-            chip = ctypes.c_uint8()
+            _chip = ctypes.c_uint8()
             self._execute('MIRcatSDK_GetTuneWW',
                           [ctypes.byref(tuned_ww),
                            ctypes.byref(units),
-                           ctypes.byref(chip)])
-            chip = chip.value
+                           ctypes.byref(_chip)])
+            chip = _chip.value
 
         self.log.info(f'Set pulse current to {pulse_current} on QCL chip '
                       f'{chip}.')
@@ -816,18 +749,6 @@ class DRSDaylightSolutions_MIRcat(Instrument):
                        ctypes.c_float(pulse_rate.value),
                        ctypes.c_float(pulse_width.value),
                        ctypes.c_float(pulse_current*1e3)])
-
-    def _set_pulse_current_1(self, pulse_current: float) -> None:
-        return self._set_pulse_current(pulse_current, chip=1)
-
-    def _set_pulse_current_2(self, pulse_current: float) -> None:
-        return self._set_pulse_current(pulse_current, chip=2)
-
-    def _set_pulse_current_3(self, pulse_current: float) -> None:
-        return self._set_pulse_current(pulse_current, chip=3)
-
-    def _set_pulse_current_4(self, pulse_current: float) -> None:
-        return self._set_pulse_current(pulse_current, chip=4)
 
     def _set_wavelength(self, wavelength: float, chip: int = 0) -> None:
         wavelength = wavelength*1e6
