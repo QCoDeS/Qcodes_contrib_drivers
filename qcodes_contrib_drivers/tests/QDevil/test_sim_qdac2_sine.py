@@ -11,7 +11,7 @@ def test_sine_ambiguous(qdac):  # noqa
     assert 'frequency_Hz or period_s can be specified' in repr(error)
 
 
-def test_sine_default_vaules(qdac):  # noqa
+def test_sine_default_values(qdac):  # noqa
     # -----------------------------------------------------------------------
     qdac.ch01.sine_wave()
     # -----------------------------------------------------------------------
@@ -22,6 +22,7 @@ def test_sine_default_vaules(qdac):  # noqa
         'sour1:sine:span 0.2',
         'sour1:sine:offs 0.0',
         'sour1:sine:slew inf',
+        'sour1:sine:del 0',
         'sour1:sine:coun -1',
         'sour1:sine:trig:sour bus',
         'sour1:sine:init:cont on',
@@ -36,6 +37,7 @@ def test_sine_period(qdac):  # noqa
         inverted=True,
         span_V=1,
         offset_V=-0.1,
+        delay_s=0.01,
         slew_V_s=1,
         repetitions=10
     )
@@ -47,6 +49,7 @@ def test_sine_period(qdac):  # noqa
         'sour1:sine:span 1',
         'sour1:sine:offs -0.1',
         'sour1:sine:slew 1',
+        'sour1:sine:del 0.01',
         'sour1:sine:coun 10',
         'sour1:sine:trig:sour bus',
         'sour1:sine:init:cont on',
@@ -65,6 +68,7 @@ def test_sine_frequency(qdac):  # noqa
         'sour1:sine:span 0.2',
         'sour1:sine:offs 0.0',
         'sour1:sine:slew inf',
+        'sour1:sine:del 0',
         'sour1:sine:coun -1',
         'sour1:sine:trig:sour bus',
         'sour1:sine:init:cont on',
@@ -206,7 +210,7 @@ def test_sine_period_start_trigger_alloc(qdac):  # noqa
     trigger = sine.period_start_marker()
     # -----------------------------------------------------------------------
     assert qdac.get_recorded_scpi_commands() == [
-        f'sour1:sine:mark:pst {trigger.value}'
+        f'sour1:sine:mark:pstart {trigger.value}'
     ]
 
 
@@ -220,7 +224,7 @@ def test_sine_period_start_trigger_reuse(qdac):  # noqa
     # -----------------------------------------------------------------------
     assert trigger2 == trigger
     assert qdac.get_recorded_scpi_commands() == [
-        f'sour1:sine:mark:pst {trigger.value}'
+        f'sour1:sine:mark:pstart {trigger.value}'
     ]
 
 

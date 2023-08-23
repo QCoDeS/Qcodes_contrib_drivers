@@ -8,7 +8,7 @@ Author:
 """
 
 import pyvisa
-from qcodes.instrument.visa import VisaInstrument
+from qcodes.instrument import VisaInstrument
 
 # if set to True, every communication line is printed
 _USE_DEBUG = True
@@ -31,7 +31,7 @@ class MockVisaHandle:
     """
     Simulate the API needed for the communication.
     """
-    
+
     # List of possible commands asked the instrument to give a realistic answer.
     cmddef = {'ver': ['attocube ANC300 controller version 1.1.0-1304 2013-10-17 08:16',
                       'ANC150 compatibillity console'],
@@ -107,7 +107,7 @@ class MockVisaHandle:
               'gettd 5': ['Wrong axis type','ERROR'],
               'gettd 6': ['Wrong axis type','ERROR'],
               'gettd 7': ['Wrong axis type','ERROR'],
-              
+
               'getc 1':  ['cap = 5 nF'], # TODO
               'getc 2':  ['cap = 5 nF'], # TODO
               'getc 3':  ['Wrong axis type','ERROR'],
@@ -123,7 +123,7 @@ class MockVisaHandle:
               # There is no simulation for the correct movement
 
               }
-    
+
     def __init__(self):
         if _USE_DEBUG:
             print("DBG-Mock: init")
