@@ -316,9 +316,9 @@ class DRSDaylightSolutions_MIRcat(Instrument):
             tuple: (pulse_rate (Hz), pulse_width (s), current (A))
         """
         tup = (
-            self._get_pulse_rate(self, chip=chip),
-            self._get_pulse_width(self, chip=chip),
-            self._get_pulse_current(self, chip=chip)
+            self._get_pulse_rate(chip),
+            self._get_pulse_width(chip),
+            self._get_pulse_current(chip)
         )
         return tup
 
@@ -489,16 +489,15 @@ class DRSDaylightSolutions_MIRcat(Instrument):
 
     def _execute(self, func: str, params: Sequence = []) -> int:
         ret = self._dll.__getattr__(func)(*params)
-        self._check_error(ret)
+        return self._check_error(ret)
 
-    def _check_error(self, ret: int) -> None:
+    def _check_error(self, ret: int):
         if not ret:
             return None
         if self._GET_ERROR[ret][-16:] == '*[System Error]*':
             raise RuntimeError(self._GET_ERROR[ret][:-16])
         else:
             raise ValueError(self._GET_ERROR[ret])
-        return None
 
     def _get_api_version(self) -> str:
         self.log.info('Get API version.')
@@ -600,8 +599,8 @@ class DRSDaylightSolutions_MIRcat(Instrument):
         temp = ctypes.c_float()
         self._execute('MIRcatSDK_GetQCLTemperature',
                       [chip, ctypes.byref(temp)])
-        return None
-
+        return temp.value
+    
     def _get_pulse_rate(self, chip: int = 0) -> float:
         if chip == 0:
             units = ctypes.c_uint8()
