@@ -19,9 +19,9 @@ log = logging.getLogger(__name__)
 class CS580(VisaInstrument):
     """
     Class to represent an SRS CS580 current source
-    
+
     status: beta-version
-    
+
     Args:
         name (str): name for the instrument
         address (str): Visa resource name to connect
@@ -33,9 +33,9 @@ class CS580(VisaInstrument):
         1e-6: 3, 10e-6: 4, 100e-6: 5,
         1e-3: 6, 10e-3: 7, 50e-3: 8
     }
-    
+
     _n_to_gains = {g: k for k, g in _gains.items()}
-    
+
     _overload_status = {
         0: 'None',
         1: 'Compliance limit reached',
@@ -46,12 +46,12 @@ class CS580(VisaInstrument):
     def __init__(
             self,
             name: str,
-            address: Optional[str] = None,
+            address: str,
             terminator: str = '\r\n',
             **kwargs: Any) -> None:
-        super().__init__(name, address=address, terminator=terminator, **kwargs)
+        super().__init__(name, address=address, terminator=terminator,
+                         **kwargs)
 
-        
         self.gain = Parameter(
             'gain',
             label='Gain',
@@ -68,7 +68,7 @@ class CS580(VisaInstrument):
             label='Analog input',
             get_cmd='INPT?',
             set_cmd='INPT{:d}',
-            vals=vals.Ints(0,1),
+            vals=vals.Ints(0, 1),
             instrument=self
         )
 
@@ -80,7 +80,7 @@ class CS580(VisaInstrument):
             val_mapping={
                 'fast': 0,
                 'slow': 1},
-            vals=vals.Ints(0,1),
+            vals=vals.Ints(0, 1),
             instrument=self
         )
 
@@ -92,7 +92,7 @@ class CS580(VisaInstrument):
             val_mapping={
                 'guard': 0,
                 'return': 1},
-            vals=vals.Ints(0,1),
+            vals=vals.Ints(0, 1),
             instrument=self
         )
 
@@ -113,10 +113,8 @@ class CS580(VisaInstrument):
             label='Output',
             get_cmd='SOUT?',
             set_cmd='SOUT{:d}',
-            val_mapping={
-                'off': 0,
-                'on': 1},
-            vals=vals.Ints(0,1),
+            val_mapping=create_on_off_val_mapping(on_val='1', off_val='0'),
+            vals=vals.Ints(0, 1),
             instrument=self
         )
 
@@ -126,7 +124,7 @@ class CS580(VisaInstrument):
             unit='A',
             get_cmd='CURR?',
             set_cmd='CURR{:e}',
-            vals=vals.Numbers(min_value=-100e-3,max_value=100e-3),
+            vals=vals.Numbers(-100e-3, 100e-3),
             instrument=self
         )
 
@@ -146,20 +144,18 @@ class CS580(VisaInstrument):
             get_cmd='ALRM?',
             set_cmd='ALRM{:d}',
             val_mapping=create_on_off_val_mapping(on_val='1', off_val='0'),
-            vals=vals.Ints(0,1),
+            vals=vals.Ints(0, 1),
             instrument=self
         )
 
         self.connect_message()
 
-
     def get_idn(self) -> Dict[str, Optional[str]]:
         """ Return the Instrument Identifier Message """
         idstr = self.ask('*IDN?')
         idparts = [p.strip() for p in idstr.split(',', 4)][1:]
-
         return dict(zip(('vendor', 'model, serial', 'firmware'), idparts))
-    
+
     def get_overload(self) -> str:
         """ Reads the current avlue of the signal overload status."""
         self.log.info('Get overload status')
@@ -172,10 +168,11 @@ class CS580(VisaInstrument):
             else:
                 raise ValueError
 
-    def reset(self):
+    def reset(self) -> None:
         """Reset the CS580 to its default configuration"""
         self.log.info('Reset CS580 to its default configuration.')
         self.write('*RST')
+        return None
 
     def _parse_get_gain(self, s: int) -> float:
         return self._n_to_gains[int(s)]
