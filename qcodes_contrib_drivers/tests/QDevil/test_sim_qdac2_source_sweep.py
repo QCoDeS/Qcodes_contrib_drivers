@@ -11,6 +11,7 @@ def test_sweep_explicit(qdac):  # noqa
         stop_V=1,
         points=6,
         dwell_s=1e-6,
+        delay_s=0.1,
         backwards=True,
         stepped=True
     )
@@ -23,6 +24,7 @@ def test_sweep_explicit(qdac):  # noqa
         'sour10:swe:poin 6',
         'sour10:swe:gen step',
         'sour10:swe:dwel 1e-06',
+        'sour10:dc:del 0.1',
         'sour10:swe:dir down',
         'sour10:swe:coun 10',
         'sour10:dc:trig:sour bus',
@@ -43,6 +45,7 @@ def test_sweep_implicit(qdac):  # noqa
         'sour10:swe:poin 12',
         'sour10:swe:gen step',
         'sour10:swe:dwel 0.001',
+        'sour10:dc:del 0',
         'sour10:swe:dir up',
         'sour10:swe:coun 1',
         'sour10:dc:trig:sour bus',
@@ -105,6 +108,7 @@ def test_sweep_infinite(qdac):  # noqa
         'sour1:swe:poin 10',
         'sour1:swe:gen step',
         'sour1:swe:dwel 0.001',
+        'sour1:dc:del 0',
         'sour1:swe:dir up',
         'sour1:swe:coun -1',
         'sour1:dc:trig:sour bus',

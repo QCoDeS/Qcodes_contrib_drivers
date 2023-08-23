@@ -7,12 +7,12 @@ from functools import partial
 from math import ceil
 from time import sleep
 
-from qcodes.instrument.base import Instrument
-from qcodes.instrument.channel import InstrumentChannel, ChannelList
-from qcodes.instrument.channel import MultiChannelInstrumentParameter
-from qcodes.instrument.visa import VisaInstrument
+from qcodes.instrument import Instrument
+from qcodes.instrument import InstrumentChannel, ChannelList
+from qcodes.parameters import MultiChannelInstrumentParameter
+from qcodes.instrument import VisaInstrument
 from qcodes.utils import validators as vals
-from qcodes.utils.helpers import create_on_off_val_mapping
+from qcodes.parameters import create_on_off_val_mapping
 
 class iTestChannel(InstrumentChannel):
     """
@@ -315,7 +315,7 @@ class ITest(VisaInstrument):
         elif outf=='ramp':
             mode = '1'
         else:
-            raise ValueError('Got unexpected output function mode: {}.'.format(mode))
+            raise ValueError(f'Got unexpected output function mode: {outf}.')
 
         self.write(chan_id + 'trig:input ' + mode)
 

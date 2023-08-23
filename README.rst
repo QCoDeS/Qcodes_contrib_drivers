@@ -6,6 +6,15 @@ This repository contains QCoDeS instrument drivers developed by members of the Q
 These drivers are not supported by the QCoDeS developers but instead supported on a best effort basis
 by the developers of the individual drivers.
 
+Default branch is now main
+##########################
+
+The default branch in qcodes_contrib_drivers has been remamed to main.
+If you are working with a local clone of qcodes_contrib_drivers you should update it as follows.
+
+* Run ``git fetch origin`` and ``git checkout main``
+* Run ``git symbolic-ref refs/remotes/origin/HEAD refs/remotes/origin/main`` to update your HEAD reference.
+
 Getting started
 ###############
 

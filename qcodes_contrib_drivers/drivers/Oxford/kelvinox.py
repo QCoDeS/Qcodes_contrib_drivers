@@ -10,9 +10,10 @@
 
 from time import sleep
 import pyvisa
+import pyvisa.constants
 import logging
 import numpy
-from qcodes import VisaInstrument
+from qcodes.instrument import VisaInstrument
 from qcodes import validators as vals
 from functools import partial
 
@@ -27,7 +28,7 @@ class OxfordInstruments_Kelvinox_IGH(VisaInstrument):
 
     Usage:
     Initialize with
-    fridge = qcodes.instrument_drivers.oxford.kelvinox.OxfordInstruments_Kelvinox_IGH(name='fridge', address='ASRL4::INSTR')
+    fridge = qcodes_contrib_drivers.drivers.oxford.kelvinox.OxfordInstruments_Kelvinox_IGH(name='fridge', address='ASRL4::INSTR')
 
     Note: Since the ISOBUS allows for several instruments to be managed in parallel, the command
     which is sent to the device starts with '@n', where n is the ISOBUS instrument number.

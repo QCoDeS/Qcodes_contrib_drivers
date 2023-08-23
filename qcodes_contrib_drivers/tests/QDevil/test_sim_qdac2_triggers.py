@@ -3,6 +3,7 @@ from .sim_qdac2_fixtures import qdac  # noqa
 
 
 def test_trigger_all_free(qdac):  # noqa
+    # -----------------------------------------------------------------------
     qdac.free_all_triggers()
     # -----------------------------------------------------------------------
     assert qdac.n_triggers() == len(qdac._internal_triggers)
