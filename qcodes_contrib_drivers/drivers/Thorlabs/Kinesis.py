@@ -99,7 +99,7 @@ class Thorlabs_Kinesis():
         # Note: status bits updated at polling interval, hence no LS_RequestStatusBits
         integer = self.dll.LS_GetStatusBits(self.to_char_p(serial_number))
         if integer == 0x40000000:
-            self.error_check(integer, 'Get status bits')
+            return self.error_check(integer, 'Get status bits')
         else:
             return integer
         
