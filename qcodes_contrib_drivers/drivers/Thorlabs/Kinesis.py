@@ -1,29 +1,29 @@
 import os
+import sys
 import ctypes
 from ctypes import wintypes
+
 
 class Thorlabs_KinesisException(Exception):
     pass
 
+
 class Thorlabs_Kinesis():
     
     def __init__(self, dll_path: str, sim: bool) -> None:
-            
-        os.add_dll_directory(r"C:\Program Files\Thorlabs\Kinesis")
-        self.dll = ctypes.cdll.LoadLibrary(dll_path)
-        
+        if sys.platform == "win32":
+            os.add_dll_directory(r"C:\Program Files\Thorlabs\Kinesis")
+        self.dll_path = dll_path
+        self.dll = ctypes.cdll.LoadLibrary(self.dll_path)
+
         if sim:
             self.enable_simulation()
-        else:
-            pass
 
     # See Thorlabs Kinesis C API documentation for error description
     def error_check(self, r: int, source:str) -> int:
         if r != 0:
             raise Thorlabs_KinesisException("Kinesis: [{}]: Error code {}".format(source, r))
-        else:
-            pass
-        
+
         return r
 
     # Connects to simulator (which must be already running but 
