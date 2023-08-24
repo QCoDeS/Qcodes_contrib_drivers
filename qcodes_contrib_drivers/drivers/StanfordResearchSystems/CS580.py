@@ -9,9 +9,9 @@ Authors:
 import logging
 from typing import Optional, Any, Dict
 
-from qcodes import VisaInstrument, Parameter
+from qcodes.instrument import VisaInstrument
+from qcodes.parameters import Parameter, create_on_off_val_mapping
 from qcodes import validators as vals
-from qcodes.utils.helpers import create_on_off_val_mapping
 
 log = logging.getLogger(__name__)
 
