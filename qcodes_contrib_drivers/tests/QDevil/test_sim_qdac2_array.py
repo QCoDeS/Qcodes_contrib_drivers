@@ -190,24 +190,21 @@ def test_sync_steady_state(qdac, qdac2, mocker):  # noqa
     controller_commands = qdac.get_recorded_scpi_commands()
     assert controller_commands == [
         'sens:rang low,(@2,1)',
+        '*stb?',
         'sens:nplc 2,(@2,1)',
-        # (Sleep 1 PLC)
-        'read? (@2,1)',
         # (Sleep NPLC / line_freq)
         'read? (@2,1)',
     ]
     listener_commands = qdac2.get_recorded_scpi_commands()
     assert listener_commands == [
         'sens:rang low,(@3)',
+        '*stb?',
         'sens:nplc 2,(@3)',
-        # (Sleep 1 PLC)
-        'read? (@3)',
         # (Sleep NPLC / line_freq)
         'read? (@3)',
     ]
-    discard_s = 1 / 50
     measure_s = (nplc + 1) / 50
-    sleep_s.assert_has_calls([call(discard_s), call(measure_s)])
+    sleep_s.assert_has_calls([call(measure_s)])
 
 
 def test_sync_leakage(qdac, qdac2, mocker):  # noqa
@@ -229,39 +226,39 @@ def test_sync_leakage(qdac, qdac2, mocker):  # noqa
     assert controller_commands == [
         # Steady-state reading
         'sens:rang low,(@3)',
+        '*stb?',
         'sens:nplc 2,(@3)',
-        'read? (@3)',
         'read? (@3)',
         # First modulation
         'sour3:volt:mode fix',
         'sour3:volt 0.302',
         'sens:rang low,(@3)',
+        '*stb?',
         'sens:nplc 2,(@3)',
-        'read? (@3)',
         'read? (@3)',
         'sour3:volt:mode fix',
         'sour3:volt 0.3',
         # Second modulation
         'sens:rang low,(@3)',
+        '*stb?',
         'sens:nplc 2,(@3)',
-        'read? (@3)',
         'read? (@3)',
         # Third modulation
         'sens:rang low,(@3)',
+        '*stb?',
         'sens:nplc 2,(@3)',
-        'read? (@3)',
         'read? (@3)'
     ]
     assert listener_commands == [
         # Steady-state reading
         'sens:rang low,(@1,2)',
+        '*stb?',
         'sens:nplc 2,(@1,2)',
-        'read? (@1,2)',
         'read? (@1,2)',
         # First modulation
         'sens:rang low,(@1,2)',
+        '*stb?',
         'sens:nplc 2,(@1,2)',
-        'read? (@1,2)',
         'read? (@1,2)',
         # Second modulation
         'sour1:volt:mode fix',
@@ -269,8 +266,8 @@ def test_sync_leakage(qdac, qdac2, mocker):  # noqa
         'sour2:volt:mode fix',
         'sour2:volt 0.0',
         'sens:rang low,(@1,2)',
+        '*stb?',
         'sens:nplc 2,(@1,2)',
-        'read? (@1,2)',
         'read? (@1,2)',
         'sour1:volt:mode fix',
         'sour1:volt 0.2',
@@ -282,8 +279,8 @@ def test_sync_leakage(qdac, qdac2, mocker):  # noqa
         'sour2:volt:mode fix',
         'sour2:volt 0.002',
         'sens:rang low,(@1,2)',
+        '*stb?',
         'sens:nplc 2,(@1,2)',
-        'read? (@1,2)',
         'read? (@1,2)',
         'sour1:volt:mode fix',
         'sour1:volt 0.2',
