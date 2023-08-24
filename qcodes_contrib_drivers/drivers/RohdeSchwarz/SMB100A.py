@@ -142,6 +142,9 @@ class RohdeSchwarz_SMB100A(VisaInstrument):
             label='Source mode',
             get_cmd='SOUR:FREQ:MODE?',
             set_cmd='SOUR:FREQ:MODE {}',
+            val_mapping={
+                'CW': 'CW',
+                'sweep': 'SWE'},
             vals=vals.Enum('CW', 'SWE'),
             instrument=self
         )
@@ -151,6 +154,9 @@ class RohdeSchwarz_SMB100A(VisaInstrument):
             label='Frequency sweep mode',
             get_cmd='TRIG:FSW:SOUR?',
             set_cmd='TRIG:FSW:SOUR {}',
+            val_mapping={
+                'auto': 'AUTO',
+                'single': 'SING'},
             vals=vals.Enum('AUTO', 'SING'),
             instrument=self
         )
@@ -158,16 +164,21 @@ class RohdeSchwarz_SMB100A(VisaInstrument):
         self.connect_message()
 
     def reset(self) -> None:
+        self.log.info('Reset')
         self.write('*RST')
 
     def run_self_tests(self) -> None:
+        self.log.info('Initiate self-test of the instrument.')
         self.write('*TST?')
 
     def on(self) -> None:
+        self.log.info('Output on')
         self.status('on')
 
     def off(self) -> None:
+        self.log.info('Output off')
         self.status('off')
 
     def start_sweep(self) -> None:
+        self.log.info('Start sweep (generate manual trigger signal)')
         self.write('*TRG')
