@@ -8,12 +8,12 @@ Authors:
 """
 
 import logging
-import time
+from time import sleep
 from typing import Optional, Any, Dict
 
-from qcodes import Parameter, IPInstrument
+from qcodes.instrument import IPInstrument
+from qcodes.parameters import Parameter
 from qcodes import validators as vals
-from qcodes.utils.helpers import create_on_off_val_mapping
 
 log = logging.getLogger(__name__)
 
@@ -53,7 +53,7 @@ class MontanaInstruments_Cryostation(IPInstrument):
             vals=vals.Numbers(min_value=2, max_value=295),
             instrument=self
         )
-        
+
         self.temp_sample = Parameter(
             name='temp_sample',
             unit='K',
@@ -63,7 +63,7 @@ class MontanaInstruments_Cryostation(IPInstrument):
             vals=vals.Numbers(),
             instrument=self
         )
-        
+
         self.temp_platform = Parameter(
             name='temp_platform',
             unit='K',
@@ -73,7 +73,7 @@ class MontanaInstruments_Cryostation(IPInstrument):
             vals=vals.Numbers(),
             instrument=self
         )
-        
+
         self.temp_stage1 = Parameter(
             name='temp_stage1',
             unit='K',
@@ -83,7 +83,7 @@ class MontanaInstruments_Cryostation(IPInstrument):
             vals=vals.Numbers(),
             instrument=self
         )
-        
+
         self.temp_stage2 = Parameter(
             name='temp_stage2',
             unit='K',
@@ -93,7 +93,7 @@ class MontanaInstruments_Cryostation(IPInstrument):
             vals=vals.Numbers(),
             instrument=self
         )
-        
+
         self.power_heater_platform = Parameter(
             name='power_heater_platform',
             unit='W',
@@ -103,7 +103,7 @@ class MontanaInstruments_Cryostation(IPInstrument):
             vals=vals.Numbers(),
             instrument=self
         )
-        
+
         self.power_heater_stage1 = Parameter(
             name='power_heater_stage1',
             unit='W',
@@ -113,7 +113,7 @@ class MontanaInstruments_Cryostation(IPInstrument):
             vals=vals.Numbers(),
             instrument=self
         )
-            
+
         self.temp_stability = Parameter(
             name='temp_stability',
             unit='K',
@@ -123,59 +123,60 @@ class MontanaInstruments_Cryostation(IPInstrument):
             vals=vals.Numbers(),
             instrument=self
         )
-        
+
         self.connect_message()
-        
+
     def get_idn(self) -> Dict[str, Optional[str]]:
         """ Return the Instrument Identifier Message """
         idstr = self.ask(self._parse_command('*IDN?'))
         idparts = [p.strip() for p in idstr.split(':', 4)][1:]
         return dict(zip(idstr, idparts))
-        
+
     def start_cooldown(self) -> None:
         self.log.info('Start cooldown.')
         self.write(self._parse_command('SCD'))
-        
+
     def standby(self) -> None:
         self.log.info('Standby.')
         self.write(self._parse_command('SSB'))
-        
+
     def stop_automation(self) -> None:
         self.log.info('Stop automation.')
         self.write(self._parse_command('STP'))
-        
+
     def start_warmup(self) -> None:
         self.log.info('Start warmup.')
         self.write(self._parse_command('SWU'))
-        
+
     def set_temp_and_wait(self, setpoint: float) -> None:
         self.log.info('Set temperature and wait until it is stable.')
         self.temp_setpoint.set(setpoint)
-        time.sleep(10)
+        sleep(10)
         while self.temp_stability.get() > 0.2:
-            time.sleep(10)
+            sleep(10)
         return self.temp_setpoint.get()
-        
+
     def wait_stability(self, time: float = 10) -> None:
         self.log.info('Wait until the temperature is stable')
         stability = self.temp_stability.get()
         while stability > 0.02 or stability < 0:
-            time.sleep(time)
+            sleep(time)
             stability = self.temp_stability.get()
-        
+
     def _set_temp(self, setpoint: float):
-        self.ask_raw(self._parse_command('STSP{}'.format(setpoint)))
-        
+        self.ask_raw(self._parse_command(f'STSP{setpoint}'))
+
     def _parse_command(self, command):
         try:
             str(command)
-        except:
-            raise ValueError('command to Montana cannot be converted to string')
-        return '{:02d}'.format(len(command)) + command
-        
+        except Exception as error:
+            raise ValueError('command to Montana cannot be converted to string') from error
+        return f'{len(command):02d}' + command
+
     def _parse_temp(self, msg: str) -> float:
         temp = msg[2:]
         try:
             return float(temp)
-        except:
-            raise ValueError('output from Montana cannot be converted to float')
+        except Exception as error:
+            raise ValueError('output from Montana cannot be converted to float') from error
+        
