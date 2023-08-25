@@ -3,12 +3,20 @@ from typing import Tuple, Optional
 
 import qcodes.utils.validators as vals
 from qcodes import Instrument
-
-from .private.APT import Thorlabs_APT, ThorlabsHWType
-from .private.rotators import RotationDirection, HomeLimitSwitch
+from .APT import Thorlabs_APT
 
 
-class Thorlabs_K10CR1(Instrument):
+class RotationDirection(enum.Enum):
+    """Constants for the rotation direction of Thorlabs K10CR1 rotator"""
+    FORWARD = "fwd"
+    REVERSE = "rev"
+
+class HomeLimitSwitch(enum.Enum):
+    """Constants for the home limit switch of Thorlabs K10CR1 rotator"""
+    REVERSE = "rev"
+    FORWARD = "fwd"
+
+class _Thorlabs_rotator(Instrument):
     """
     Instrument driver for the Thorlabs K10CR1 rotator.
 
@@ -24,14 +32,14 @@ class Thorlabs_K10CR1(Instrument):
         version: Firmware version.
     """
 
-    def __init__(self, name: str, device_id: int, apt: Thorlabs_APT, **kwargs):
+    def __init__(self, name: str, device_id: int, hw_type, apt: Thorlabs_APT, **kwargs):
         super().__init__(name, **kwargs)
 
         # Save APT server reference
         self.apt = apt
 
         # initialization
-        self.serial_number = self.apt.get_hw_serial_num_ex(ThorlabsHWType.K10CR1, device_id)
+        self.serial_number = self.apt.get_hw_serial_num_ex(hw_type, device_id)
         self.apt.init_hw_device(self.serial_number)
         self.model, self.version, _ = self.apt.get_hw_info(self.serial_number)
 
