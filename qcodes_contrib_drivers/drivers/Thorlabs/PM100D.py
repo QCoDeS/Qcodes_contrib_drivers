@@ -104,7 +104,7 @@ class Thorlab_PM100D(VisaInstrument):
         self._set_conf_power()
         oper = self.ask('STAT:OPER?')
         start = time.process_time()
-        time_spent = 0
+        time_spent = 0.
         while oper != str(512) and time_spent < self._timeout_pwr:
             oper = self.ask('STAT:OPER?')
             time_spent = time.process_time()-start
