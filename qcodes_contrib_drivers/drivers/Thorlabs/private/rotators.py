@@ -32,14 +32,20 @@ class _Thorlabs_rotator(Instrument):
         version: Firmware version.
     """
 
-    def __init__(self, name: str, device_id: int, hw_type, apt: Thorlabs_APT, **kwargs):
+    def __init__(self, name: str,
+                 device_id: int = 0,
+                 serial_number: int = 0,
+                 hw_type: enum.EnumType = None,
+                 apt: Thorlabs_APT = None,
+                 **kwargs):
         super().__init__(name, **kwargs)
 
         # Save APT server reference
         self.apt = apt
 
         # initialization
-        self.serial_number = self.apt.get_hw_serial_num_ex(hw_type, device_id)
+        if serial_number == 0:
+            self.serial_number = self.apt.get_hw_serial_num_ex(hw_type, device_id)
         self.apt.init_hw_device(self.serial_number)
         self.model, self.version, _ = self.apt.get_hw_info(self.serial_number)
 

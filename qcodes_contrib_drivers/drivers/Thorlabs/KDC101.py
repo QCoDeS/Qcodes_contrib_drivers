@@ -26,5 +26,8 @@ class Thorlabs_KDC101(_Thorlabs_rotator):
         version: Firmware version.
     """
 
-    def __init__(self, name: str, device_id: int, apt: Thorlabs_APT, **kwargs):
-        super().__init__(name, device_id=device_id, hwtype=ThorlabsHWType.KDC101, apt=apt, **kwargs)
+    def __init__(self, name: str, apt: Thorlabs_APT, device_id: int = 0, serial_number=0, **kwargs):
+        super().__init__(name, device_id=device_id,
+                         hw_type=ThorlabsHWType.KDC101,
+                         serial_number=serial_number,
+                         apt=apt, **kwargs)
