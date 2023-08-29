@@ -4,8 +4,6 @@ https://www.thorlabs.com/thorproduct.cfm?partnumber=KDC101
 
 Authors:
     Julien Barrier, <julien@julienbarrier.eu>
-    
-TODO: check that pointers are well coded. ctypes.byref(val) if we need to update the value
 """
 import os
 import sys
@@ -191,14 +189,17 @@ class Thorlabs_KDC101(Instrument):
 
         self.backlash = Parameter(
             'backlash',
+            unit='\u00b0',
             set_cmd=self._set_backlash,
             get_cmd=self._get_backlash,
+            vals=vals.Numbers(0, 25),
             instrument=self
         )
 
         self.connect_message()
 
     def identify(self) -> None:
+        """Sends a command to the device to make it identify itself"""
         self._dll.CC_Identify(self._serial_number)
 
     def get_idn(self) -> dict:
@@ -207,18 +208,31 @@ class Thorlabs_KDC101(Instrument):
         return dict(zip(('vendor', 'model', 'serial', 'firmware'), idparts))
 
     def go_home(self, block=True):
+        """Home the device: set the device to a known state and home position
+
+        Args:
+            block (bool, optional): will wait for completion. Defaults to True.
+        """
         self._check_error(self._dll.CC_Home(self._serial_number))
         self.homed = True
         if block:
             self.wait_for_completion()
 
     def enable_simulation(self) -> None:
+        """Initialise a connection to the simulation manager, which must already be running"""
         self._dll.TLI_InitializeSimulations()
 
     def disable_simulation(self) -> None:
+        """Uninitialize a connection to the simulation manager, which must be running"""
         self._dll.TLI_UninitializeSimulations()
 
-    def wait_for_completion(self, status: str = 'homed', max_time = 5):
+    def wait_for_completion(self, status: str = 'homed', max_time = 5) -> None:
+        """Wait for the current function to be finished.
+
+        Args:
+            status (str, optional): expected status. Defaults to 'homed'.
+            max_time (int, optional): maximum waiting time for the internal loop. Defaults to 5.
+        """
         message_type = ctypes.c_ushort()
         message_id = ctypes.c_ushort()
         message_data = ctypes.c_ulong()
@@ -254,8 +268,18 @@ class Thorlabs_KDC101(Instrument):
                 ctypes.byref(message_id),
                 ctypes.byref(message_data)
             )
+        return None
 
     def _device_unit_to_real(self, device_unit: int, unit_type: int) -> float:
+        """Converts a device unit to a real world unit
+
+        Args:
+            device_unit (int): the device unit.
+            unit_type (int): the type of unit. Distance: 0, velocity: 1, acceleration: 2.
+
+        Returns:
+            float: real unit value
+        """
         real_unit = ctypes.c_double()
         ret = self._dll.CC_GetRealValueFromDeviceUnit(
             self._serial_number, ctypes.c_int(device_unit),
@@ -265,6 +289,15 @@ class Thorlabs_KDC101(Instrument):
         return real_unit.value
 
     def _real_to_device_unit(self, real_unit: float, unit_type: int) -> int:
+        """Converts a real world unit to a device unit
+
+        Args:
+            real_unit (float): the real unit
+            unit_type (int): the type of unit. Distance: 0, velocity: 1, acceleration: 2
+
+        Returns:
+            int: device unit
+        """
         device_unit = ctypes.c_int()
         ret = self._dll.CC_GetDeviceUnitFromRealValue(
             self._serial_number, ctypes.c_double(real_unit),
@@ -274,10 +307,12 @@ class Thorlabs_KDC101(Instrument):
         return device_unit.value
 
     def _get_backlash(self) -> float:
+        """Get the backlash distance setting (used to control hysteresis)"""
         ret = self._dll.CC_GetBacklash(self._serial_number)
         return self._device_unit_to_real(ret, 0)
 
     def _set_backlash(self, value: float) -> None:
+        """Set the backlash distance setting (used to control hysteresis)"""
         val = self._real_to_device_unit(value, 0)
         ret = self._dll.CC_SetBacklash(self._serial_number, ctypes.c_long(val))
         self._check_error(ret)
@@ -404,6 +439,7 @@ class Thorlabs_KDC101(Instrument):
         self.wait_for_completion('limit_updated')
 
     def _get_soft_limits_mode(self) -> str:
+        """Gets the software limits mode."""
         mode = ctypes.c_int16()
         self._dll.CC_GetSoftLimitMode(self._serial_number, ctypes.byref(mode))
         if mode.value == ctypes.c_int16(0).value:
@@ -416,6 +452,7 @@ class Thorlabs_KDC101(Instrument):
             raise RuntimeError('unexpected value received from Kinesis')
 
     def _set_soft_limits_mode(self, mode: str) -> None:
+        """Sets the software limits mode"""
         if mode == 'disallow':
             lmode = ctypes.c_int16(0)
         elif mode == 'partial':
@@ -502,6 +539,7 @@ class Thorlabs_KDC101(Instrument):
         return self._device_unit_to_real(current_position.value, 0)
 
     def is_moving(self) -> bool:
+        """check if the motor cotnroller is moving."""
         status_bit = ctypes.c_short()
         self._dll.CC_GetStatusBits(self._serial_number,
                                    ctypes.byref(status_bit))
@@ -510,7 +548,14 @@ class Thorlabs_KDC101(Instrument):
         else:
             return False
 
-    def move_to(self, position, block=True) -> None:
+    def move_to(self, position: float, block=True) -> None:
+        """Move the device to the specified position.
+        The motor may need to be homed before a position can be set.
+
+        Args:
+            position (float): the set position
+            block (bool, optional): will wait until complete. Defaults to True.
+        """
         pos = self._real_to_device_unit(position, 0)
         ret = self._dll.CC_MoveToPosition(self._serial_number,
                                           ctypes.c_int(pos))
@@ -518,16 +563,30 @@ class Thorlabs_KDC101(Instrument):
 
         if block:
             self.wait_for_completion(status='moved', max_time=15)
+        self.position.get()
 
-    def move_by(self, displacement, block: bool = True):
+    def move_by(self, displacement: float, block: bool = True) -> None:
+        """Move the motor by a relative amount
+
+        Args:
+            displacement (float): amount to move
+            block (bool, optional): will wait until complete. Defaults to True.
+        """
         dis = self._real_to_device_unit(displacement, 0)
         ret = self._dll.CC_MoveRelative(self._serial_number,
                                         ctypes.c_int(dis))
         self._check_error(ret)
         if block:
             self.wait_for_completion(status='moved')
+        self.position.get()
 
-    def move_continuous(self, direction = 'forward') -> None:
+    def move_continuous(self, direction: str = 'forward') -> None:
+        """start moving at the current velocity in the specified direction
+
+        Args:
+            direction (str, optional): the required direction of travel.
+                Defaults to 'forward'. Accepts 'forward' or 'reverse'
+        """
         if direction == 'forward' or direction == 'forwards':
             direction = ctypes.c_short(0x01)
         elif direction == 'reverse' or direction == 'backward' or direction == 'backwards':
@@ -537,8 +596,16 @@ class Thorlabs_KDC101(Instrument):
 
         ret = self._dll.CC_MoveAtVelocity(self._serial_number, direction)
         self._check_error(ret)
+        self.position.get()
 
-    def jog(self, direction, block: bool = True) -> None:
+    def jog(self, direction: str = 'forward', block: bool = True) -> None:
+        """Performs a jog
+
+        Args:
+            direction (str): the jog direction. Defaults to 'forward'.
+                Accepts 'forward' or 'reverse'
+            block (bool, optional): will wait until complete. Defaults to True.
+        """
         if direction == 'forward' or direction == 'forwards':
             direction = ctypes.c_short(0x01)
         elif direction == 'reverse' or direction == 'backward' or direction == 'backwards':
@@ -552,7 +619,15 @@ class Thorlabs_KDC101(Instrument):
             if block:
                 self.wait_for_completion(status='moved')
 
-    def stop(self, immediate=False) -> None:
+    def stop(self, immediate: bool = False) -> None:
+        """Stop the current move
+
+        Args:
+            immediate (bool, optional):
+                True: stops immediately (with risk of losing track of position).
+                False: stops using the current velocity profile.
+                Defaults to False.
+        """
         if immediate:
             ret = self._dll.CC_StopImmediate(self._serial_number)
         else:
@@ -567,7 +642,13 @@ class Thorlabs_KDC101(Instrument):
             self._dll.CC_Close(self._serial_number)
 
     def _get_hardware_info(self) -> list:
-        """this gives a device not found error. TODO: debug this"""
+        """Gets the hardware information from the device
+
+        Returns:
+            list: [model number, hardware type number, number of channels,
+                notes describing the device, firmware version, hardware version,
+                hardware modification state]
+        """
         model = ctypes.create_string_buffer(8)
         model_size = ctypes.c_ulong(8)
         type_num = ctypes.c_ushort()
@@ -591,8 +672,13 @@ class Thorlabs_KDC101(Instrument):
                 notes.value, firmware_version.value, hardware_version.value,
                 modification_state.value]
 
-    def _get_device_info(self):
-        """this gives a device not found error. TODO: debug this"""
+    def _get_device_info(self) -> list:
+        """Get the device information from the USB port
+
+        Returns:
+            list: [type id, description, PID, is known type, motor type,
+            is piezo, is laser, is custom type, is rack, max channels]
+        """
         type_id = ctypes.c_ulong()
         description = ctypes.c_char()
         pid = ctypes.c_ulong()
@@ -624,6 +710,7 @@ class Thorlabs_KDC101(Instrument):
                 max_channels.value]
 
     def _load_settings(self):
+        """Update device with stored settings"""
         self._dll.CC_LoadSettings(self._serial_number)
         return None
 

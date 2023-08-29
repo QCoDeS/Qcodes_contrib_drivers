@@ -5,7 +5,18 @@ import qcodes.utils.validators as vals
 from qcodes import Instrument
 
 from .private.APT import Thorlabs_APT, ThorlabsHWType
-from .private.rotators import RotationDirection, HomeLimitSwitch
+
+
+class RotationDirection(enum.Enum):
+    """Constants for the rotation direction of Thorlabs K10CR1 rotator"""
+    FORWARD = "fwd"
+    REVERSE = "rev"
+
+
+class HomeLimitSwitch(enum.Enum):
+    """Constants for the home limit switch of Thorlabs K10CR1 rotator"""
+    REVERSE = "rev"
+    FORWARD = "fwd"
 
 
 class Thorlabs_K10CR1(Instrument):
