@@ -123,7 +123,7 @@ class Thorlabs_KDC101(Instrument):
             unit='\u00b0/s',
             set_cmd=self._set_jog_velocity,
             get_cmd=self._get_jog_velocity,
-            vals=vals.Numbers(),
+            vals=vals.Numbers(0, 25),
             instrument=self
         )
 
@@ -133,6 +133,7 @@ class Thorlabs_KDC101(Instrument):
             unit='\u00b0/s',
             set_cmd=self._set_homing_velocity,
             get_cmd=self._get_homing_velocity,
+            vals=vals.Numbers(0.1, 25),
             instrument=self
         )
 
@@ -168,6 +169,7 @@ class Thorlabs_KDC101(Instrument):
             'jog_step_size',
             set_cmd=self._set_jog_step_size,
             get_cmd=self._get_jog_step_size,
+            vals=vals.Numbers(0.0005, 360)
             instrument=self
         )
 
@@ -192,7 +194,7 @@ class Thorlabs_KDC101(Instrument):
             unit='\u00b0',
             set_cmd=self._set_backlash,
             get_cmd=self._get_backlash,
-            vals=vals.Numbers(0, 25),
+            vals=vals.Numbers(0, 5),
             instrument=self
         )
 
