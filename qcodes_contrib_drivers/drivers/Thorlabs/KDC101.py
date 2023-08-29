@@ -96,7 +96,6 @@ class Thorlabs_KDC101(Instrument):
             label='Maximum position',
             set_cmd=self._set_max_position,
             get_cmd=self._get_max_position,
-            parser=float,
             vals=vals.Numbers(0, 360),
             instrument=self
         )
@@ -106,7 +105,6 @@ class Thorlabs_KDC101(Instrument):
             label='Minimum position',
             set_cmd=self._set_min_position,
             get_cmd=self._get_min_position,
-            parser=float,
             vals=vals.Numbers(0, 360),
             instrument=self
         )
@@ -117,7 +115,6 @@ class Thorlabs_KDC101(Instrument):
             unit='\u00b0/s',
             set_cmd=self._set_move_velocity,
             get_cmd=self._get_move_velocity,
-            parser=float,
             vals=vals.Numbers(0, 25),
             instrument=self
         )
@@ -128,7 +125,6 @@ class Thorlabs_KDC101(Instrument):
             unit='\u00b0/s',
             set_cmd=self._set_jog_velocity,
             get_cmd=self._get_jog_velocity,
-            parser=float,
             vals=vals.Numbers(),
             instrument=self
         )
@@ -139,7 +135,6 @@ class Thorlabs_KDC101(Instrument):
             unit='\u00b0/s',
             set_cmd=self._set_homing_velocity,
             get_cmd=self._get_homing_velocity,
-            parser=float,
             instrument=self
         )
 
@@ -149,7 +144,6 @@ class Thorlabs_KDC101(Instrument):
             unit='\u00b0/s\u00b2',
             set_cmd=self._set_move_acceleration,
             get_cmd=self._get_move_acceleration,
-            parser=float,
             vals=vals.Numbers(0, 25),
             instrument=self
         )
@@ -160,7 +154,6 @@ class Thorlabs_KDC101(Instrument):
             unit='\u00b0/s\u00b2',
             set_cmd=self._set_jog_acceleration,
             get_cmd=self._get_jog_acceleration,
-            parser=float,
             vals=vals.Numbers(0, 25),
             instrument=self
         )
@@ -169,7 +162,6 @@ class Thorlabs_KDC101(Instrument):
             'jog_mode',
             set_cmd=self._set_jog_mode,
             get_cmd=self._get_jog_mode,
-            parser=str,
             vals=vals.Enum('continuous', 'stepped'),
             instrument=self
         )
@@ -178,7 +170,6 @@ class Thorlabs_KDC101(Instrument):
             'jog_step_size',
             set_cmd=self._set_jog_step_size,
             get_cmd=self._get_jog_step_size,
-            parser=float,
             instrument=self
         )
 
@@ -186,7 +177,6 @@ class Thorlabs_KDC101(Instrument):
             'stop_mode',
             set_cmd=self._set_stop_mode,
             get_cmd=self._get_stop_mode,
-            parser=str,
             vals=vals.Enum('immediate', 'profiled'),
             instrument=self
         )
@@ -195,13 +185,7 @@ class Thorlabs_KDC101(Instrument):
             'soft_limits_mode',
             set_cmd=self._set_soft_limits_mode,
             get_cmd=self._get_soft_limits_mode,
-            parser=str,
             vals=vals.Enum('disallow', 'partial', 'all'),
-            instrument=self
-        )
-
-        self.move_home_zero_offset = Parameter(
-            'move_home_zero_offset',
             instrument=self
         )
 
@@ -209,7 +193,6 @@ class Thorlabs_KDC101(Instrument):
             'backlash',
             set_cmd=self._set_backlash,
             get_cmd=self._get_backlash,
-            parser=float,
             instrument=self
         )
 
