@@ -37,8 +37,8 @@ class Thorlabs_KDC101(Instrument):
                  home: bool = False,
                  **kwargs):
         super().__init__(name, **kwargs)
-
-        self._serial_number = ctypes.c_char_p(serial_number.encode('ascii'))
+        self.serial_number = serial_number
+        self._serial_number = ctypes.c_char_p(self.serial_number.encode('ascii'))
         if sys.platform != 'win32':
             self._dll: Any = None
             raise OSError('Thorlabs Kinesis only works on Windows')
@@ -55,14 +55,14 @@ class Thorlabs_KDC101(Instrument):
             self._dll.CC_Open(self._serial_number)
             self._start_polling(polling)
 
-        # self._info = self._get_hardware_info()
-        #self.model = self._info[0].decode('utf-8')
-        #self.version = self._info[4]
+        self._info = self._get_hardware_info()
+        self.model = self._info[0].decode('utf-8')
+        self.version = self._info[4]
 
-        #self._device_info = dict(zip(
-        #    ['type ID', 'description', 'PID', 'is known type', 'motor type',
-        #     'is piezo', 'is laser', 'is custom', 'is rack', 'max_channels'],
-        #    self._get_device_info()))
+        self._device_info = dict(zip(
+            ['type_ID', 'description', 'PID', 'is_known_type', 'motor_type',
+             'is_piezo', 'is_laser', 'is_custom', 'is_rack', 'max_channels'],
+            self._get_device_info()))
 
         self._load_settings()
         self._set_limits_approach(1)
@@ -83,24 +83,143 @@ class Thorlabs_KDC101(Instrument):
 
         self.position = Parameter(
             'position',
-            label='position',
+            label='Position',
             get_cmd=self._get_position,
             #set_cmd=self._set_position,
-            vals=vals.Numbers(-1, 360),
-            unit='\u37b0',
+            vals=vals.Numbers(0, 360),
+            unit='\u00b0',
+            instrument=self
+        )
+
+        self.max_position = Parameter(
+            'max_position',
+            label='Maximum position',
+            set_cmd=self._set_max_position,
+            get_cmd=self._get_max_position,
+            parser=float,
+            vals=vals.Numbers(0, 360),
+            instrument=self
+        )
+
+        self.min_position = Parameter(
+            'min_position',
+            label='Minimum position',
+            set_cmd=self._set_min_position,
+            get_cmd=self._get_min_position,
+            parser=float,
+            vals=vals.Numbers(0, 360),
             instrument=self
         )
 
         self.velocity = Parameter(
             'velocity',
-            label='velocity',
+            label='Move velocity',
+            unit='\u00b0/s',
+            set_cmd=self._set_move_velocity,
+            get_cmd=self._get_move_velocity,
+            parser=float,
+            vals=vals.Numbers(0, 25),
             instrument=self
         )
+
+        self.jog_velocity = Parameter(
+            'jog_velocity',
+            label='Jog velocity',
+            unit='\u00b0/s',
+            set_cmd=self._set_jog_velocity,
+            get_cmd=self._get_jog_velocity,
+            parser=float,
+            vals=vals.Numbers(),
+            instrument=self
+        )
+
+        self.homing_velocity = Parameter(
+            'homing_velocity',
+            label='Homing velocity',
+            unit='\u00b0/s',
+            set_cmd=self._set_homing_velocity,
+            get_cmd=self._get_homing_velocity,
+            parser=float,
+            instrument=self
+        )
+
+        self.acceleration = Parameter(
+            'acceleration',
+            label='Move acceleration',
+            unit='\u00b0/s\u00b2',
+            set_cmd=self._set_move_acceleration,
+            get_cmd=self._get_move_acceleration,
+            parser=float,
+            vals=vals.Numbers(0, 25),
+            instrument=self
+        )
+
+        self.jog_acceleration = Parameter(
+            'jog_acceleration',
+            label='Jog acceleration',
+            unit='\u00b0/s\u00b2',
+            set_cmd=self._set_jog_acceleration,
+            get_cmd=self._get_jog_acceleration,
+            parser=float,
+            vals=vals.Numbers(0, 25),
+            instrument=self
+        )
+
+        self.jog_mode = Parameter(
+            'jog_mode',
+            set_cmd=self._set_jog_mode,
+            get_cmd=self._get_jog_mode,
+            parser=str,
+            vals=vals.Enum('continuous', 'stepped'),
+            instrument=self
+        )
+
+        self.jog_step_size = Parameter(
+            'jog_step_size',
+            set_cmd=self._set_jog_step_size,
+            get_cmd=self._get_jog_step_size,
+            parser=float,
+            instrument=self
+        )
+
+        self.stop_mode = Parameter(
+            'stop_mode',
+            set_cmd=self._set_stop_mode,
+            get_cmd=self._get_stop_mode,
+            parser=str,
+            vals=vals.Enum('immediate', 'profiled'),
+            instrument=self
+        )
+
+        self.soft_limits_mode = Parameter(
+            'soft_limits_mode',
+            set_cmd=self._set_soft_limits_mode,
+            get_cmd=self._get_soft_limits_mode,
+            parser=str,
+            vals=vals.Enum('disallow', 'partial', 'all'),
+            instrument=self
+        )
+
+        self.move_home_zero_offset = Parameter(
+            'move_home_zero_offset',
+            instrument=self
+        )
+
+        self.backlash = Parameter(
+            'backlash',
+            set_cmd=self._set_backlash,
+            get_cmd=self._get_backlash,
+            parser=float,
+            instrument=self
+        )
+
+        self.connect_message()
 
     def identify(self) -> None:
         self._dll.CC_Identify(self._serial_number)
 
     def get_idn(self) -> dict:
+        """Get device identifier"""
         idparts = ['Thorlabs', self.model, self.version, self.serial_number]
         return dict(zip(('vendor', 'model', 'serial', 'firmware'), idparts))
 
@@ -171,7 +290,7 @@ class Thorlabs_KDC101(Instrument):
         self._check_error(ret)
         return device_unit.value
 
-    def _get_backlash(self):
+    def _get_backlash(self) -> float:
         ret = self._dll.CC_GetBacklash(self._serial_number)
         return self._device_unit_to_real(ret, 0)
 
@@ -180,11 +299,11 @@ class Thorlabs_KDC101(Instrument):
         ret = self._dll.CC_SetBacklash(self._serial_number, ctypes.c_long(val))
         self._check_error(ret)
 
-    def _get_homing_velocity(self):
+    def _get_homing_velocity(self) -> float:
         vel = self._dll.CC_GetHomingVelocity(self._serial_number)
         return self._device_unit_to_real(vel, 1)
 
-    def _set_homing_velocity(self, velocity):
+    def _set_homing_velocity(self, velocity: float) -> None:
         vel = self._real_to_device_unit(velocity, 1)
         ret = self._dll.CC_SetHomingVelocity(self._serial_number,
                                              ctypes.c_uint(vel))
@@ -223,11 +342,11 @@ class Thorlabs_KDC101(Instrument):
         self._check_error(ret)
         return None
 
-    def _get_jog_step_size(self):
+    def _get_jog_step_size(self) -> float:
         ret = self._dll.CC_GetJogStepSize(self._serial_number)
         return self._device_unit_to_real(ret, 0)
 
-    def _set_jog_step_size(self, step_size) -> None:
+    def _set_jog_step_size(self, step_size: float) -> None:
         step = self._real_to_device_unit(step_size, 0)
         ret = self._dll.CC_SetJogStepSize(self._serial_number,
                                           ctypes.c_uint(step))
@@ -252,7 +371,7 @@ class Thorlabs_KDC101(Instrument):
         else:
             raise RuntimeError('unexpected value received from Kinesis')
 
-    def _set_stop_mode(self, mode) -> None:
+    def _set_stop_mode(self, mode: str) -> None:
         jog_mode = ctypes.c_short(0x00)
         stop_mode = ctypes.c_short(0x00)
 
@@ -276,7 +395,7 @@ class Thorlabs_KDC101(Instrument):
         self._dll.CC_GetStageAxisMaxPos(self._serial_number, max_pos)
         return self._device_unit_to_real(max_pos.value, 0)
 
-    def _set_max_position(self, max_val) -> None:
+    def _set_max_position(self, max_val: float) -> None:
         min_val = self._get_min_position()
         min_val = self._real_to_device_unit(min_val, 0)
         max_val = self._real_to_device_unit(max_val, 0)
@@ -291,7 +410,7 @@ class Thorlabs_KDC101(Instrument):
         self._dll.CC_GetStageAxisMinPos(self._serial_number, min_pos)
         return self._device_unit_to_real(min_pos.value, 0)
 
-    def _set_min_position(self, min_val) -> None:
+    def _set_min_position(self, min_val: float) -> None:
         max_val = self._get_max_position()
         max_val = self._real_to_device_unit(max_val, 0)
         min_val = self._real_to_device_unit(min_val, 0)
@@ -334,7 +453,7 @@ class Thorlabs_KDC101(Instrument):
         self._check_error(ret)
         return self._device_unit_to_real(velocity.value, 1)
 
-    def _set_move_velocity(self, velocity):
+    def _set_move_velocity(self, velocity: float) -> None:
         vel = self._real_to_device_unit(velocity, 1)
         accel = self._real_to_device_unit(self._get_move_acceleration(), 2)
         ret = self._dll.CC_SetVelParams(self._serial_number,
@@ -351,7 +470,7 @@ class Thorlabs_KDC101(Instrument):
         self._check_error(ret)
         return self._device_unit_to_real(acceleration.value, 2)
 
-    def _set_move_acceleration(self, acceleration) -> None:
+    def _set_move_acceleration(self, acceleration: float) -> None:
         vel = self._real_to_device_unit(self._get_move_velocity(), 1)
         accel = self._real_to_device_unit(acceleration, 2)
         ret = self._dll.CC_SetVelParams(self._serial_number,
@@ -368,7 +487,7 @@ class Thorlabs_KDC101(Instrument):
         self._check_error(ret)
         return self._device_unit_to_real(velocity.value, 1)
 
-    def _set_jog_velocity(self, velocity) -> None:
+    def _set_jog_velocity(self, velocity: float) -> None:
         vel = self._real_to_device_unit(velocity, 1)
         accel = self._real_to_device_unit(self._get_jog_acceleration(), 2)
         ret = self._dll.CC_SetJogVelParams(self._serial_number,
@@ -385,7 +504,7 @@ class Thorlabs_KDC101(Instrument):
         self._check_error(ret)
         return self._device_unit_to_real(acceleration.value, 2)
 
-    def _set_jog_acceleration(self, acceleration) -> None:
+    def _set_jog_acceleration(self, acceleration: float) -> None:
         vel = self._real_to_device_unit(self._get_jog_velocity(), 1)
         accel = self._real_to_device_unit(acceleration, 2)
         ret = self._dll.CC_SetJogVelParams(self._serial_number,
