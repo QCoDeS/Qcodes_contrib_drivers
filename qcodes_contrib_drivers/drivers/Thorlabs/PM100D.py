@@ -43,8 +43,6 @@ class Thorlab_PM100D(VisaInstrument):
             label='Averaging rate',
             get_cmd='AVER?',
             set_cmd='AVER',
-            #val_mapping=create_on_off_val_mapping(on_val='1', off_val='0'),
-            #vals=vals.Ints(0, 1),
             vals=vals.Numbers(),
             instrument=self
         )
@@ -60,11 +58,72 @@ class Thorlab_PM100D(VisaInstrument):
         )
 
         self.power = Parameter(
-            "power",
+            'power',
             label='Measured power',
-            unit="W",
+            unit='W',
             get_cmd=self._get_power,
             vals=vals.Numbers(),
+            instrument=self
+        )
+        
+        self.attenuation = Parameter(
+            'attenuation',
+            label='Attenuation',
+            unit='dB',
+            get_cmd='SENS:COR:LOSS:INP:MAGN?',
+            get_parser=float,
+            vals=vals.Numbers(-60,60),
+            instrument=self
+        )
+        
+        self.power_range = Parameter(
+            'power_range',
+            label='Power range',
+            unit='W',
+            get_cmd='SENS:POW:RANG:UPP?',
+            set_cmd='SENS:POW:RANG:UPP {}',
+            get_parser=float,
+            set_parser=float,
+            vals=vals.Numbers(),
+            instrument=self
+        )
+        
+        self.auto_range = Parameter(
+            'auto_range',
+            label='Auto range',
+            get_cmd='SENS:POW:RANG:AUTO?',
+            set_cmd='SENS:POW:RANG:AUTO {}',
+            val_mapping=create_on_off_val_mapping(on_val='ON', off_val='OFF'),
+            vals=vals.Enum('ON', 'OFF'),
+            instrument=self
+        )
+        
+        self.frequency = Parameter(
+            'frequency',
+            unit='Hz',
+            get_cmd='MEAS:FREQ?',
+            get_parser=float,
+            vals=vals.Numbers(),
+            instrument=self
+        )
+        
+        self.current = Parameter(
+            'current',
+            label='Current',
+            unit='A',
+            get_cmd='MEAS:CURR?',
+            get_parser=float,
+            vals=vals.Numbers(),
+            instrument=self
+        )
+        
+        self.current_range = Parameter(
+            'current_range',
+            label='Current range',
+            unit='A',
+            get_cmd='SENS:CURR:RANG:UPP?',
+            get_parser=float,
+            vals=vals.Numbers,
             instrument=self
         )
 
@@ -108,3 +167,4 @@ class Thorlab_PM100D(VisaInstrument):
         sleep(.2)
         power = self.ask('FETC?')
         return float(power)
+
