@@ -7,7 +7,7 @@ Authors:
 """
 
 import logging
-import time
+from time import sleep
 from typing import Optional, Any
 
 from qcodes.instrument import VisaInstrument
@@ -37,15 +37,15 @@ class Thorlab_PM100D(VisaInstrument):
                  **kwargs: Any):
         super().__init__(name, address, terminator=terminator, **kwargs)
         self._timeout = timeout
-        self._timeout_pwr = 120
 
         self.averaging = Parameter(
             'averaging',
             label='Averaging rate',
             get_cmd='AVER?',
             set_cmd='AVER',
-            val_mapping=create_on_off_val_mapping(on_val='1', off_val='0'),
-            vals=vals.Ints(0, 1),
+            #val_mapping=create_on_off_val_mapping(on_val='1', off_val='0'),
+            #vals=vals.Ints(0, 1),
+            vals=vals.Numbers(),
             instrument=self
         )
 
@@ -69,9 +69,11 @@ class Thorlab_PM100D(VisaInstrument):
         )
 
         self.write('STAT:OPER:PTR 512')
+        sleep(.2)
         self.write('STAT:OPER:NTR 0')
+        sleep(.2)
         self.ask('STAT:OPER?')
-        self._check_error()
+        sleep(.2)
         self.averaging(300)
         self._set_conf_power()
 
@@ -102,12 +104,7 @@ class Thorlab_PM100D(VisaInstrument):
         """Get the power
         """
         self._set_conf_power()
-        oper = self.ask('STAT:OPER?')
-        start = time.process_time()
-        time_spent = 0.
-        while oper != str(512) and time_spent < self._timeout_pwr:
-            oper = self.ask('STAT:OPER?')
-            time_spent = time.process_time()-start
+        self.write('MEAS:POW')
+        sleep(.2)
         power = self.ask('FETC?')
-        self._check_error()
         return float(power)

@@ -83,8 +83,8 @@ class Thorlabs_KDC101(Instrument):
             'position',
             label='Position',
             get_cmd=self._get_position,
-            #set_cmd=self._set_position, MOT_MoveAbosluteEx()
-            vals=vals.Numbers(0, 360),
+            set_cmd=self._set_position,
+            vals=vals.Numbers(),
             unit='\u00b0',
             instrument=self
         )
@@ -535,19 +535,18 @@ class Thorlabs_KDC101(Instrument):
         self._check_error(ret)
 
     def _get_position(self) -> float:
-        current_position = ctypes.c_int()
-        self._dll.CC_GetPosition(self._serial_number,
-                                 ctypes.byref(current_position))
-        return self._device_unit_to_real(current_position.value, 0)
+        pos = self._dll.CC_GetPosition(self._serial_number)
+        return self._device_unit_to_real(pos, 0)
 
     def _set_position(self, position: float) -> None:
-        pos = self._real_to_device_unit(position, 0)
+        pos = self._real_to_device_unit(position % 360, 0)
         ret = self._dll.CC_SetMoveAbsolutePosition(self._serial_number,
                                                    ctypes.c_int(pos))
         self._check_error(ret)
+        sleep(.25)
         ret = self._dll.CC_MoveAbsolute(self._serial_number)
         self._check_error(ret)
-
+        
     def is_moving(self) -> bool:
         """check if the motor cotnroller is moving."""
         status_bit = ctypes.c_short()
