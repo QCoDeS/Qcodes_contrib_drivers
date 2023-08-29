@@ -3,11 +3,13 @@
 
 Authors:
     Julien Barrier, <julien@julienbarrier.eu>
-""" 
+"""
 import os
 import sys
 import ctypes
 from typing import Any
+
+from qcodes.instrument import Instrument
 from . import GeneralErrors, MotorErrors, ConnexionErrors
 
 class _Thorlabs_Kinesis(Instrument):
@@ -37,10 +39,6 @@ class _Thorlabs_Kinesis(Instrument):
         if self._simulation:
             self.enable_simulation()
 
-        if self._dll.TLI_BuildDeviceList() == 0:
-            self._dll.CC_Open(self._serial_number)
-            self._start_polling(polling)
-
         self._device_info = dict(zip(
             ['type_ID', 'description', 'PID', 'is_known_type', 'motor_type',
              'is_piezo', 'is_laser', 'is_custom', 'is_rack', 'max_channels'],
@@ -55,7 +53,7 @@ class _Thorlabs_Kinesis(Instrument):
         self._is_custom = self._device_info['is_custom']
         self._is_rack = self._device_info['is_rack']
         self._max_channels = self._device_info['max_channels']
-        
+
     def _get_device_info(self) -> list:
         """Get the device information from the USB port
 
@@ -92,7 +90,7 @@ class _Thorlabs_Kinesis(Instrument):
                 is_known_type.value, motor_type.value, is_piezo_device.value,
                 is_laser.value, is_custom_type.value, is_rack.value,
                 max_channels.value]
-        
+
     def _check_error(self, status: int) -> None:
         if status != 0:
             if status in ConnexionErrors:
@@ -106,7 +104,7 @@ class _Thorlabs_Kinesis(Instrument):
         else:
             pass
         return None
-    
+
     def enable_simulation(self) -> None:
         """Initialise a connection to the simulation manager, which must already be running"""
         self._dll.TLI_InitializeSimulations()
