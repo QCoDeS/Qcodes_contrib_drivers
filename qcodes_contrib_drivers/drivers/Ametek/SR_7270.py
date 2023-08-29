@@ -20,8 +20,8 @@ class Signalrecovery7270(VisaInstrument):
     write_raw command have been rewritten to also read after writing using ask_raw.
 
     """
-    def __init__(self, name: str, address: str, **kwargs):
-        super().__init__(name, address, terminator='', device_clear = True, **kwargs)
+    def __init__(self, name: str, address: str, terminator='', **kwargs):
+        super().__init__(name, address, terminator=terminator, device_clear = True, **kwargs)
 
         idn = self.IDN.get()
         self.model = idn['model']
