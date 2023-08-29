@@ -51,8 +51,10 @@ class Thorlab_PM100D(VisaInstrument):
             'wavelength',
             label='Detected wavelength',
             unit='m',
-            get_cmd=self._get_wavelength,
-            set_cmd=self._set_wavelength,
+            get_cmd='SENS:CORR:WAV?',
+            set_cmd='SENS:CORR:WAV {}',
+            get_parser=lambda val: float(val)/1e9,
+            set_parser=lambda val: float(val)*1e9,
             vals=vals.Numbers(185e-9, 25e-6),
             instrument=self
         )
@@ -65,7 +67,7 @@ class Thorlab_PM100D(VisaInstrument):
             vals=vals.Numbers(),
             instrument=self
         )
-        
+
         self.attenuation = Parameter(
             'attenuation',
             label='Attenuation',
@@ -75,7 +77,7 @@ class Thorlab_PM100D(VisaInstrument):
             vals=vals.Numbers(-60,60),
             instrument=self
         )
-        
+
         self.power_range = Parameter(
             'power_range',
             label='Power range',
@@ -87,17 +89,17 @@ class Thorlab_PM100D(VisaInstrument):
             vals=vals.Numbers(),
             instrument=self
         )
-        
+
         self.auto_range = Parameter(
             'auto_range',
-            label='Auto range',
+            label='Auto range power',
             get_cmd='SENS:POW:RANG:AUTO?',
             set_cmd='SENS:POW:RANG:AUTO {}',
             val_mapping=create_on_off_val_mapping(on_val='ON', off_val='OFF'),
             vals=vals.Enum('ON', 'OFF'),
             instrument=self
         )
-        
+
         self.frequency = Parameter(
             'frequency',
             unit='Hz',
@@ -106,7 +108,7 @@ class Thorlab_PM100D(VisaInstrument):
             vals=vals.Numbers(),
             instrument=self
         )
-        
+
         self.current = Parameter(
             'current',
             label='Current',
@@ -116,14 +118,35 @@ class Thorlab_PM100D(VisaInstrument):
             vals=vals.Numbers(),
             instrument=self
         )
-        
+
         self.current_range = Parameter(
             'current_range',
             label='Current range',
             unit='A',
             get_cmd='SENS:CURR:RANG:UPP?',
             get_parser=float,
-            vals=vals.Numbers,
+            vals=vals.Numbers(),
+            instrument=self
+        )
+
+        self.zero_value = Parameter(
+            'zero_value',
+            unit='W',
+            get_cmd='CORR:COLL:ZERO:MAGN?',
+            get_parser=float,
+            vals=vals.Numbers(),
+            instrument=self
+        )
+
+        self.beam_diameter = Parameter(
+            'beam_diameter',
+            label='Beam diameter',
+            unit='m',
+            get_cmd='CORR:BEAM?',
+            set_cmd='CORR:BEAM {}',
+            get_parser=lambda val: float(val)/1e3,
+            set_parser=lambda val: float(val)*1e3,
+            vals=vals.Numbers(),
             instrument=self
         )
 
@@ -143,14 +166,6 @@ class Thorlab_PM100D(VisaInstrument):
         if err[:2] != '+0':
             raise RuntimeError(f'PM100D call failed with error: {err}')
 
-    def _set_wavelength(self, value: float) -> None:
-        value_in_nm = value*1e9
-        self.write(f'SENS:CORR:WAV {value_in_nm}')
-
-    def _get_wavelength(self) -> float:
-        value_in_nm = self.ask('SENS:CORR:WAV?')
-        return float(value_in_nm)/1e9
-
     def _set_conf_power(self) -> None:
         """Set configuration to power mode
         """
@@ -167,4 +182,3 @@ class Thorlab_PM100D(VisaInstrument):
         sleep(.2)
         power = self.ask('FETC?')
         return float(power)
-
