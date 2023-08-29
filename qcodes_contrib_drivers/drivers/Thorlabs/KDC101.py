@@ -83,8 +83,8 @@ class Thorlabs_KDC101(Instrument):
             'position',
             label='Position',
             get_cmd=self._get_position,
-            #set_cmd=self._set_position,
-            vals=vals.Numbers(0, 360),
+            set_cmd=self._set_position,
+            vals=vals.Numbers(),
             unit='\u00b0',
             instrument=self
         )
@@ -535,11 +535,20 @@ class Thorlabs_KDC101(Instrument):
         self._check_error(ret)
 
     def _get_position(self) -> float:
-        current_position = ctypes.c_int()
-        self._dll.CC_GetPosition(self._serial_number,
-                                 ctypes.byref(current_position))
-        return self._device_unit_to_real(current_position.value, 0)
+        pos = self._dll.CC_GetPosition(self._serial_number)
+        return self._device_unit_to_real(pos, 0)
 
+    def _set_position(self, position: float, block: bool=True) -> None:
+        pos = self._real_to_device_unit(position, 0)
+        ret = self._dll.CC_SetMoveAbsolutePosition(self._serial_number,
+                                                   ctypes.c_int(pos))
+        self._check_error(ret)
+        ret = self._dll.CC_MoveAbsolute(self._serial_number)
+        self._check_error(ret)
+        if block:
+            while (self._get_position() - position) < .001:
+                sleep(.2) 
+        
     def is_moving(self) -> bool:
         """check if the motor cotnroller is moving."""
         status_bit = ctypes.c_short()
@@ -590,13 +599,13 @@ class Thorlabs_KDC101(Instrument):
                 Defaults to 'forward'. Accepts 'forward' or 'reverse'
         """
         if direction == 'forward' or direction == 'forwards':
-            dir = ctypes.c_short(0x01)
+            direc = ctypes.c_short(0x01)
         elif direction == 'reverse' or direction == 'backward' or direction == 'backwards':
-            dir = ctypes.c_short(0x02)
+            direc = ctypes.c_short(0x02)
         else:
             raise ValueError('direction unrecognised')
 
-        ret = self._dll.CC_MoveAtVelocity(self._serial_number, dir)
+        ret = self._dll.CC_MoveAtVelocity(self._serial_number, direc)
         self._check_error(ret)
         self.position.get()
 
@@ -609,13 +618,13 @@ class Thorlabs_KDC101(Instrument):
             block (bool, optional): will wait until complete. Defaults to True.
         """
         if direction == 'forward' or direction == 'forwards':
-            dir = ctypes.c_short(0x01)
+            direc = ctypes.c_short(0x01)
         elif direction == 'reverse' or direction == 'backward' or direction == 'backwards':
-            dir = ctypes.c_short(0x02)
+            direc = ctypes.c_short(0x02)
         else:
             raise ValueError('direction unrecognised')
 
-        ret = self._dll.CC_MoveJog(self._serial_number, dir)
+        ret = self._dll.CC_MoveJog(self._serial_number, direc)
         self._check_error(ret)
         if self._get_jog_mode() =='stepped':
             if block:

@@ -7,7 +7,7 @@ Authors:
 """
 
 import logging
-import time
+from time import sleep
 from typing import Optional, Any
 
 from qcodes.instrument import VisaInstrument
@@ -37,15 +37,13 @@ class Thorlab_PM100D(VisaInstrument):
                  **kwargs: Any):
         super().__init__(name, address, terminator=terminator, **kwargs)
         self._timeout = timeout
-        self._timeout_pwr = 120
 
         self.averaging = Parameter(
             'averaging',
             label='Averaging rate',
             get_cmd='AVER?',
             set_cmd='AVER',
-            val_mapping=create_on_off_val_mapping(on_val='1', off_val='0'),
-            vals=vals.Ints(0, 1),
+            vals=vals.Numbers(),
             instrument=self
         )
 
@@ -53,25 +51,111 @@ class Thorlab_PM100D(VisaInstrument):
             'wavelength',
             label='Detected wavelength',
             unit='m',
-            get_cmd=self._get_wavelength,
-            set_cmd=self._set_wavelength,
+            get_cmd='SENS:CORR:WAV?',
+            set_cmd='SENS:CORR:WAV {}',
+            get_parser=lambda val: float(val)/1e9,
+            set_parser=lambda val: float(val)*1e9,
             vals=vals.Numbers(185e-9, 25e-6),
             instrument=self
         )
 
         self.power = Parameter(
-            "power",
+            'power',
             label='Measured power',
-            unit="W",
+            unit='W',
             get_cmd=self._get_power,
             vals=vals.Numbers(),
             instrument=self
         )
 
+        self.attenuation = Parameter(
+            'attenuation',
+            label='Attenuation',
+            unit='dB',
+            get_cmd='SENS:COR:LOSS:INP:MAGN?',
+            get_parser=float,
+            vals=vals.Numbers(-60,60),
+            instrument=self
+        )
+
+        self.power_range = Parameter(
+            'power_range',
+            label='Power range',
+            unit='W',
+            get_cmd='SENS:POW:RANG:UPP?',
+            set_cmd='SENS:POW:RANG:UPP {}',
+            get_parser=float,
+            set_parser=float,
+            vals=vals.Numbers(),
+            instrument=self
+        )
+
+        self.auto_range = Parameter(
+            'auto_range',
+            label='Auto range power',
+            get_cmd='SENS:POW:RANG:AUTO?',
+            set_cmd='SENS:POW:RANG:AUTO {}',
+            val_mapping=create_on_off_val_mapping(on_val='ON', off_val='OFF'),
+            vals=vals.Enum('ON', 'OFF'),
+            instrument=self
+        )
+
+        self.frequency = Parameter(
+            'frequency',
+            unit='Hz',
+            get_cmd='MEAS:FREQ?',
+            get_parser=float,
+            vals=vals.Numbers(),
+            instrument=self
+        )
+
+        self.current = Parameter(
+            'current',
+            label='Current',
+            unit='A',
+            get_cmd='MEAS:CURR?',
+            get_parser=float,
+            vals=vals.Numbers(),
+            instrument=self
+        )
+
+        self.current_range = Parameter(
+            'current_range',
+            label='Current range',
+            unit='A',
+            get_cmd='SENS:CURR:RANG:UPP?',
+            get_parser=float,
+            vals=vals.Numbers(),
+            instrument=self
+        )
+
+        self.zero_value = Parameter(
+            'zero_value',
+            unit='W',
+            get_cmd='CORR:COLL:ZERO:MAGN?',
+            get_parser=float,
+            vals=vals.Numbers(),
+            instrument=self
+        )
+
+        self.beam_diameter = Parameter(
+            'beam_diameter',
+            label='Beam diameter',
+            unit='m',
+            get_cmd='CORR:BEAM?',
+            set_cmd='CORR:BEAM {}',
+            get_parser=lambda val: float(val)/1e3,
+            set_parser=lambda val: float(val)*1e3,
+            vals=vals.Numbers(),
+            instrument=self
+        )
+
         self.write('STAT:OPER:PTR 512')
+        sleep(.2)
         self.write('STAT:OPER:NTR 0')
+        sleep(.2)
         self.ask('STAT:OPER?')
-        self._check_error()
+        sleep(.2)
         self.averaging(300)
         self._set_conf_power()
 
@@ -81,14 +165,6 @@ class Thorlab_PM100D(VisaInstrument):
         err = self.ask('SYST:ERR?')
         if err[:2] != '+0':
             raise RuntimeError(f'PM100D call failed with error: {err}')
-
-    def _set_wavelength(self, value: float) -> None:
-        value_in_nm = value*1e9
-        self.write(f'SENS:CORR:WAV {value_in_nm}')
-
-    def _get_wavelength(self) -> float:
-        value_in_nm = self.ask('SENS:CORR:WAV?')
-        return float(value_in_nm)/1e9
 
     def _set_conf_power(self) -> None:
         """Set configuration to power mode
@@ -102,12 +178,7 @@ class Thorlab_PM100D(VisaInstrument):
         """Get the power
         """
         self._set_conf_power()
-        oper = self.ask('STAT:OPER?')
-        start = time.process_time()
-        time_spent = 0.
-        while oper != str(512) and time_spent < self._timeout_pwr:
-            oper = self.ask('STAT:OPER?')
-            time_spent = time.process_time()-start
+        self.write('MEAS:POW')
+        sleep(.2)
         power = self.ask('FETC?')
-        self._check_error()
         return float(power)
