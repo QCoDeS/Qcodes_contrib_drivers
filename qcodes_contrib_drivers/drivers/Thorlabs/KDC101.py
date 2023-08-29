@@ -538,14 +538,16 @@ class Thorlabs_KDC101(Instrument):
         pos = self._dll.CC_GetPosition(self._serial_number)
         return self._device_unit_to_real(pos, 0)
 
-    def _set_position(self, position: float) -> None:
-        pos = self._real_to_device_unit(position % 360, 0)
+    def _set_position(self, position: float, block: bool=True) -> None:
+        pos = self._real_to_device_unit(position, 0)
         ret = self._dll.CC_SetMoveAbsolutePosition(self._serial_number,
                                                    ctypes.c_int(pos))
         self._check_error(ret)
-        sleep(.25)
         ret = self._dll.CC_MoveAbsolute(self._serial_number)
         self._check_error(ret)
+        if block:
+            while (self._get_position() - position) < .001:
+                sleep(.2) 
         
     def is_moving(self) -> bool:
         """check if the motor cotnroller is moving."""
