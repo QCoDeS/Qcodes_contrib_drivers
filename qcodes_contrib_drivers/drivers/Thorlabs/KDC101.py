@@ -169,7 +169,7 @@ class Thorlabs_KDC101(Instrument):
             'jog_step_size',
             set_cmd=self._set_jog_step_size,
             get_cmd=self._get_jog_step_size,
-            vals=vals.Numbers(0.0005, 360)
+            vals=vals.Numbers(0.0005, 360),
             instrument=self
         )
 
@@ -590,13 +590,13 @@ class Thorlabs_KDC101(Instrument):
                 Defaults to 'forward'. Accepts 'forward' or 'reverse'
         """
         if direction == 'forward' or direction == 'forwards':
-            direction = ctypes.c_short(0x01)
+            dir = ctypes.c_short(0x01)
         elif direction == 'reverse' or direction == 'backward' or direction == 'backwards':
-            direction = ctypes.c_short(0x02)
+            dir = ctypes.c_short(0x02)
         else:
             raise ValueError('direction unrecognised')
 
-        ret = self._dll.CC_MoveAtVelocity(self._serial_number, direction)
+        ret = self._dll.CC_MoveAtVelocity(self._serial_number, dir)
         self._check_error(ret)
         self.position.get()
 
@@ -609,17 +609,18 @@ class Thorlabs_KDC101(Instrument):
             block (bool, optional): will wait until complete. Defaults to True.
         """
         if direction == 'forward' or direction == 'forwards':
-            direction = ctypes.c_short(0x01)
+            dir = ctypes.c_short(0x01)
         elif direction == 'reverse' or direction == 'backward' or direction == 'backwards':
-            direction = ctypes.c_short(0x02)
+            dir = ctypes.c_short(0x02)
         else:
             raise ValueError('direction unrecognised')
 
-        ret = self._dll.CC_MoveJog(self._serial_number, direction)
+        ret = self._dll.CC_MoveJog(self._serial_number, dir)
         self._check_error(ret)
         if self._get_jog_mode() =='stepped':
             if block:
                 self.wait_for_completion(status='moved')
+        self.position.get()
 
     def stop(self, immediate: bool = False) -> None:
         """Stop the current move
@@ -636,6 +637,7 @@ class Thorlabs_KDC101(Instrument):
             ret = self._dll.CC_StopProfiled(self._serial_number)
         self._check_error(ret)
         self.wait_for_completion(status='stopped')
+        self.position.get()
 
     def close(self):
         if self._simulation:
