@@ -5,9 +5,10 @@ Created by Elyjah <elyjah.kiyooka@cea.fr>, Jan 2022
 
 """
 
-from qcodes import VisaInstrument, validators as vals
-from qcodes.utils.delaykeyboardinterrupt import DelayedKeyboardInterrupt
-from qcodes.utils.validators import ComplexNumbers
+from qcodes.instruments import VisaInstrument
+from qcodes import validators as vals
+from qcodes.utils import DelayedKeyboardInterrupt
+from qcodes.validators import ComplexNumbers
 
 class Signalrecovery7270(VisaInstrument):
     """
