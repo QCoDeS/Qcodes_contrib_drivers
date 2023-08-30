@@ -188,6 +188,7 @@ class _Thorlabs_CC(_Thorlabs_Kinesis):
 
     def identify(self) -> None:
         """Sends a command to the device to make it identify itself"""
+        self.log.debug('identify the device')
         self._dll.CC_Identify(self._serial_number)
 
     def get_idn(self) -> dict:
@@ -201,6 +202,7 @@ class _Thorlabs_CC(_Thorlabs_Kinesis):
         Args:
             block (bool, optional): will wait for completion. Defaults to True.
         """
+        self.log.info('home the device.')
         self._check_error(self._dll.CC_Home(self._serial_number))
         self.homed = True
         if block:
@@ -213,6 +215,7 @@ class _Thorlabs_CC(_Thorlabs_Kinesis):
             status (str, optional): expected status. Defaults to 'homed'.
             max_time (int, optional): maximum waiting time for the internal loop. Defaults to 5.
         """
+        self.log.debug('wait for the current function to be completed')
         message_type = ctypes.c_ushort()
         message_id = ctypes.c_ushort()
         message_data = ctypes.c_ulong()
@@ -533,6 +536,7 @@ class _Thorlabs_CC(_Thorlabs_Kinesis):
         
     def is_moving(self) -> bool:
         """check if the motor cotnroller is moving."""
+        self.log.info('check if the motor is moving')
         status_bit = ctypes.c_short()
         self._dll.CC_GetStatusBits(self._serial_number,
                                    ctypes.byref(status_bit))
@@ -549,6 +553,7 @@ class _Thorlabs_CC(_Thorlabs_Kinesis):
             position (float): the set position
             block (bool, optional): will wait until complete. Defaults to True.
         """
+        self.log.info(f'move to {position}')
         pos = self._real_to_device_unit(position, 0)
         ret = self._dll.CC_MoveToPosition(self._serial_number,
                                           ctypes.c_int(pos))
@@ -565,6 +570,7 @@ class _Thorlabs_CC(_Thorlabs_Kinesis):
             displacement (float): amount to move
             block (bool, optional): will wait until complete. Defaults to True.
         """
+        self.log.info(f'move by {displacement}')
         dis = self._real_to_device_unit(displacement, 0)
         ret = self._dll.CC_MoveRelative(self._serial_number,
                                         ctypes.c_int(dis))
@@ -580,6 +586,7 @@ class _Thorlabs_CC(_Thorlabs_Kinesis):
             direction (str, optional): the required direction of travel.
                 Defaults to 'forward'. Accepts 'forward' or 'reverse'
         """
+        self.log.info(f'move continuously. direction: {direction}')
         if direction == 'forward' or direction == 'forwards':
             direc = ctypes.c_short(0x01)
         elif direction == 'reverse' or direction == 'backward' or direction == 'backwards':
@@ -599,6 +606,7 @@ class _Thorlabs_CC(_Thorlabs_Kinesis):
                 Accepts 'forward' or 'reverse'
             block (bool, optional): will wait until complete. Defaults to True.
         """
+        self.log.info(f'perform a jog; direction: {direction}')
         if direction == 'forward' or direction == 'forwards':
             direc = ctypes.c_short(0x01)
         elif direction == 'reverse' or direction == 'backward' or direction == 'backwards':
@@ -622,6 +630,7 @@ class _Thorlabs_CC(_Thorlabs_Kinesis):
                 False: stops using the current velocity profile.
                 Defaults to False.
         """
+        self.log.info('stop the current move')
         if immediate:
             ret = self._dll.CC_StopImmediate(self._serial_number)
         else:
@@ -631,9 +640,11 @@ class _Thorlabs_CC(_Thorlabs_Kinesis):
         self.position.get()
 
     def close(self):
+        self.log.info('close the device')
         if self._simulation:
             self.disable_simulation()
         if hasattr(self, '_serial_number'):
+            self._stop_polling()
             self._dll.CC_Close(self._serial_number)
 
     def _get_hardware_info(self) -> list:
@@ -669,10 +680,11 @@ class _Thorlabs_CC(_Thorlabs_Kinesis):
 
     def _load_settings(self):
         """Update device with stored settings"""
+        self.log.info('update the device with the stored settings')
         self._dll.CC_LoadSettings(self._serial_number)
         return None
 
-    def _set_limits_approach(self, limit: int):
+    def _set_limits_approach(self, limit: int) -> None:
         disallow_illegal_moves = ctypes.c_int16(0)
         allow_partial_moves = ctypes.c_int16(1)
         allow_all_moves = ctypes.c_int16(2)
@@ -685,12 +697,18 @@ class _Thorlabs_CC(_Thorlabs_Kinesis):
         )
         return None
 
-    def _start_polling(self, polling: int):
+    def _start_polling(self, polling: int) -> None:
+        self.log.info('start polling')
         pol = ctypes.c_int(polling)
         self._dll.CC_StartPolling(self._serial_number, ctypes.byref(pol))
         return None
 
+    def _stop_polling(self) -> None:
+        self.log.info('stop polling')
+        self._dll.CC_StopPolling(self._serial_number)
+        
     def _clear_message_queue(self) -> None:
+        self.log.info('clear messages queue')
         self._dll.CC_ClearMessageQueue(self._serial_number)
         return None
 

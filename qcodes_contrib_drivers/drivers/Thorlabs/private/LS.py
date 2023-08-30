@@ -2,7 +2,8 @@
 """QCoDes- Base driver for Thorlab instruments using the LS commands
 
 Authors:
-    Julien Barrier, <julien@julienbarrier.eu>
+    iago-rst https://github.com/iago-rst, 2023
+    Julien Barrier <julien@julienbarrier.eu>, 2023
 """
 import ctypes
 import logging

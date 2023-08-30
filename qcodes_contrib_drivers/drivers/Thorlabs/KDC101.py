@@ -21,7 +21,6 @@ class Thorlabs_KDC101(_Thorlabs_CC):
         polling (int): Polling rate in ms. Defaults to 200.
         home (bool): Sets the device to home state. Defaults to False.
     """
-    _CONDITIONS = ['homed', 'moved', 'stopped', 'limit_updated']
     def __init__(self,
                  name: str,
                  serial_number: str,
