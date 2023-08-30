@@ -26,7 +26,5 @@ class Thorlabs_KLS1550(_Thorlabs_LS):
                  polling: int = 200,
                  **kwargs):
         self._dll_path = 'Thorlabs. .dll'
-        self._polling = kwargs.pop('polling_speed_ms', polling)  # back-compatibility
-        self._simulation = kwargs.pop('sim', simulation)
         super().__init__(name, serial_number, self._dll_path,
                          self._simulation, self._polling, **kwargs)

@@ -31,7 +31,7 @@ class Thorlab_PM100D(VisaInstrument):
     """
     def __init__(self,
                  name: str,
-                 address: Optional[str] = None,
+                 address: str,
                  terminator='\n',
                  timeout: float = 20,
                  **kwargs: Any):
