@@ -16,7 +16,10 @@ class _Thorlabs_Kinesis(Instrument):
     """A base class for Thorlabs kinesis instruments
 
     Args:
-        Instrument (_type_): _description_
+        name (str): Instrument name.
+        serial_number (str): Serial number of the device.
+        dll_path (str): Path to the kinesis dll for the instrument to use.
+        simulation (bool): Enables the simulation manager. Defaults to False.
     """
     def __init__(self,
                  name: str,
