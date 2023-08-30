@@ -72,9 +72,11 @@ class Thorlab_PM100D(VisaInstrument):
             'attenuation',
             label='Attenuation',
             unit='dB',
-            get_cmd='SENS:COR:LOSS:INP:MAGN?',
+            get_cmd='CORR?',
             get_parser=float,
-            vals=vals.Numbers(-60,60),
+            set_cmd='CORR {}',
+            set_parser=float,
+            vals=vals.Numbers(-60, 60),
             instrument=self
         )
 
