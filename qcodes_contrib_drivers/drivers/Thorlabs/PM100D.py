@@ -95,8 +95,8 @@ class Thorlab_PM100D(VisaInstrument):
             label='Auto range power',
             get_cmd='SENS:POW:RANG:AUTO?',
             set_cmd='SENS:POW:RANG:AUTO {}',
-            val_mapping=create_on_off_val_mapping(on_val='ON', off_val='OFF'),
-            vals=vals.Enum('ON', 'OFF'),
+            val_mapping=create_on_off_val_mapping(on_val='1', off_val='0'),
+            vals=vals.Ints(0, 1),
             instrument=self
         )
 
@@ -153,7 +153,7 @@ class Thorlab_PM100D(VisaInstrument):
         self.write('STAT:OPER:PTR 512')
         sleep(.2)
         self.write('STAT:OPER:NTR 0')
-        sleep(.2)
+        sleep(5)
         self.ask('STAT:OPER?')
         sleep(.2)
         self.averaging(300)
