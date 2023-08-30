@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 """QCoDes- Base driver for Thorlab instruments using the CC commands
-https://www.thorlabs.com/thorproduct.cfm?partnumber=KDC101
 
 Authors:
     Julien Barrier, <julien@julienbarrier.eu>
