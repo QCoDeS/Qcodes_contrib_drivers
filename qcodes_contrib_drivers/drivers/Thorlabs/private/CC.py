@@ -524,9 +524,12 @@ class _Thorlabs_CC(_Thorlabs_Kinesis):
         ret = self._dll.CC_MoveAbsolute(self._serial_number)
         self._check_error(ret)
         if block:
-            current_pos = self._get_position()
-            while abs(current_pos - position) > .001 and abs(abs(current_pos - position) - 360) > .001:
-                sleep(.2) 
+            diff = abs(self._get_position() - position)
+            diff -= 360 if diff > 180 else diff
+            while abs(diff) > .001:
+                sleep(.2)
+                diff = abs(self._get_position() - position)
+                diff -= 360 if diff > 180 else diff
         
     def is_moving(self) -> bool:
         """check if the motor cotnroller is moving."""
