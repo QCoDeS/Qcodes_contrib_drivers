@@ -100,12 +100,12 @@ class _Thorlabs_LS(_Thorlabs_Kinesis):
     def _get_status_bits(self) -> int:
         status = self._dll.LS_GetStatusBits(self._serial_number)
         if status == 0x40000000:
-            self._check_error(status)
+            raise ValueError()
         else:
             return int(status)
         
     def _get_output_enabled(self) -> bool:
-        return bool(self._get_status_bits & 1)
+        return bool(self._get_status_bits() & 1)
     
     def _set_output_enabled(self, value: bool) -> None:
         if value:
