@@ -27,4 +27,4 @@ class Thorlabs_KLS1550(_Thorlabs_LS):
                  **kwargs):
         self._dll_path = 'Thorlabs. .dll'
         super().__init__(name, serial_number, self._dll_path,
-                         self._simulation, self._polling, **kwargs)
+                         simulation, polling, **kwargs)
