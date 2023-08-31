@@ -5,8 +5,23 @@ import enum
 
 class ThorlabsHWType(enum.Enum):
     PRM1Z8 = 31
-    MFF10x = 48
-    K10CR1 = 50
+    BSC001 = 11  # 1 ch benchtop stepper driver
+    BSC101 = 12  # 1 ch benchtop stepper driver
+    BSC002 = 13  # 2 ch benchtop stepper driver
+    BDC101 = 14  # 1 ch benchtop dc servo driver
+    SCC001 = 21  # 1 ch stepper driver card (used within BSC102, 103 units)
+    DCC001 = 22  # 1 ch DC servo driver card (used within BDC102, 103 units)
+    ODC001 = 24  # 1 ch DC servo driver cube
+    OST001 = 25  # 1 ch stepper driver cube
+    MST601 = 26  # 2 ch modular stepper driver module
+    TST001 = 29  # 1 ch stepper driver T-cube
+    TDC001 = 31  # 1 ch DC servo driver T-cube
+    LTSxxx = 42  # LTS300/LTS150 long travel integrated driver/stages
+    L490MZ = 43  # L490MZ Integrated Driver/Labjack
+    BBD10x = 44  # 1/2/3 ch benchtop brushless DC servo driver
+    MFF10x = 48  # motorized filter flip
+    K10CR1 = 50  # steper motor rotation mount
+    KDC101 = 63  # 1 ch Brushed DC servo motor controller K-cube
 
 
 class ThorlabsException(Exception):
