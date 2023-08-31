@@ -3,10 +3,7 @@
 https://www.rohde-schwarz.com/us/products/test-and-measurement/analog-signal-generators/rs-smb100a-microwave-signal-generator_63493-9379.html
 
 Authors:
-    Julien Barrier, <julien@julienbarrier.eu>
-
-Future improvements:
-    add modulation functions
+    Julien Barrier <julien@julienbarrier.eu>, 2023
 """
 import logging
 from typing import Any
@@ -25,8 +22,8 @@ class RohdeSchwarz_SMB100A(VisaInstrument):
     status: beta-version
 
     Args:
-        name (str): name for the instrument
-        address (str): Visa resource name to connect
+        name: name for the instrument
+        address: Visa resource name to connect
     """
     def __init__(self, name: str, address: str, **kwargs: Any) -> None:
         super().__init__(name, address, terminator='\n', **kwargs)
@@ -70,6 +67,7 @@ class RohdeSchwarz_SMB100A(VisaInstrument):
             get_cmd=':OUTP:STAT?',
             set_cmd=':OUTP:STAT {}',
             val_mapping=create_on_off_val_mapping(on_val='1', off_val='0'),
+            vals=vals.Ints(0, 1),
             instrument=self
         )
 
@@ -79,6 +77,7 @@ class RohdeSchwarz_SMB100A(VisaInstrument):
             get_cmd=':SOUR:PULM:STAT?',
             set_cmd=':SOUR:PULM:STAT {}',
             val_mapping=create_on_off_val_mapping(on_val='1', off_val='0'),
+            vals=vals.Ints(0, 1),
             instrument=self
         )
 
