@@ -37,6 +37,6 @@ class Thorlabs_KDC101(_Thorlabs_CC):
             self._dll_path = dll_path
         else:
             self._dll_path = 'Thorlabs.MotionControl.KCube.DCServo.dll'
-        self._dll_dir: str | None = dll_dir if dll_dir else None
+        self._dll_dir: Optional[str] = dll_dir if dll_dir else None
         super().__init__(name, serial_number, self._dll_path, self._dll_dir,
                          simulation, polling, home, **kwargs)

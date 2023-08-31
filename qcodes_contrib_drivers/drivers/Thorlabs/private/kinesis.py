@@ -33,7 +33,7 @@ class _Thorlabs_Kinesis(Instrument):
         self.serial_number = serial_number
         self._serial_number = ctypes.c_char_p(self.serial_number.encode('ascii'))
         self._dll_path = dll_path
-        self._dll_dir: str | None = dll_dir if dll_dir else r'C:\Program Files\Thorlabs\Kinesis'
+        self._dll_dir: Optional[str] = dll_dir if dll_dir else r'C:\Program Files\Thorlabs\Kinesis'
         if sys.platform != 'win32':
             self._dll: Any = None
             raise OSError('Thorlabs Kinesis only works on Windows')
