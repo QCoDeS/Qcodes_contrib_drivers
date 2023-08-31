@@ -10,7 +10,7 @@ from typing import NewType, Tuple, Sequence, List, Dict, Optional
 from packaging.version import Version, parse
 import abc
 
-# Version 1.2.0
+# Version 1.3.0
 #
 # Guiding principles for this driver for QDevil QDAC-II
 # -----------------------------------------------------
@@ -1856,12 +1856,11 @@ class Arrangement_Context:
         """
         channels_suffix = self._all_channels_as_suffix()
         self._qdac.write(f'sens:rang {current_range},{channels_suffix}')
+        # Wait for relays to finish switching by doing a query
+        self._qdac.ask(f'*stb?')
         self._qdac.write(f'sens:nplc {nplc},{channels_suffix}')
-        # Discard first reading because of possible output-capacitor effects, etc
+        # Wait for the current sensors to stabilize and then read
         slowest_line_freq_Hz = 50
-        sleep_s(1 / slowest_line_freq_Hz)
-        self._qdac.ask(f'read? {channels_suffix}')
-        # Then make a proper reading
         sleep_s((nplc + 1) / slowest_line_freq_Hz)
         currents = self._qdac.ask(f'read? {channels_suffix}')
         return comma_sequence_to_list_of_floats(currents)
