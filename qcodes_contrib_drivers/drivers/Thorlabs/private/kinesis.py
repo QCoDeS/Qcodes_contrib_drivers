@@ -7,7 +7,7 @@ Authors:
 import os
 import sys
 import ctypes
-from typing import Any
+from typing import Any, Optional
 
 from qcodes.instrument import Instrument
 from . import GeneralErrors, MotorErrors, ConnexionErrors
@@ -16,26 +16,29 @@ class _Thorlabs_Kinesis(Instrument):
     """A base class for Thorlabs kinesis instruments
 
     Args:
-        name (str): Instrument name.
-        serial_number (str): Serial number of the device.
-        dll_path (str): Path to the kinesis dll for the instrument to use.
-        simulation (bool): Enables the simulation manager. Defaults to False.
+        name: Instrument name.
+        serial_number: Serial number of the device.
+        dll_path: Path to the kinesis dll for the instrument to use.
+        dll_dir: Directory in which the kinesis dll are stored.
+        simulation: Enables the simulation manager. Defaults to False.
     """
     def __init__(self,
                  name: str,
                  serial_number: str,
                  dll_path: str,
+                 dll_dir: Optional[str] = None,
                  simulation: bool = False,
                  **kwargs):
         super().__init__(name, **kwargs)
         self.serial_number = serial_number
         self._serial_number = ctypes.c_char_p(self.serial_number.encode('ascii'))
         self._dll_path = dll_path
+        self._dll_dir: str | None = dll_dir if dll_dir else r'C:\Program Files\Thorlabs\Kinesis'
         if sys.platform != 'win32':
             self._dll: Any = None
             raise OSError('Thorlabs Kinesis only works on Windows')
         else:
-            os.add_dll_directory(r'C:\Program Files\Thorlabs\Kinesis')
+            os.add_dll_directory(self._dll_dir)
             self._dll = ctypes.cdll.LoadLibrary(self._dll_path)
 
         self._simulation = simulation

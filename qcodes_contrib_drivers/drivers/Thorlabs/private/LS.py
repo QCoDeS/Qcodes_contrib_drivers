@@ -7,7 +7,8 @@ Authors:
 """
 import ctypes
 import logging
-from time import sleep, time
+from time import sleep
+from typing import Optional
 
 from qcodes.parameters import Parameter
 from qcodes import validators as vals
@@ -20,27 +21,29 @@ class _Thorlabs_LS(_Thorlabs_Kinesis):
     """Instrument driver for Thorlabs instruments using the CC commands
 
     Args:
-        name (str): Instrument name.
-        serial_number (str): Serial number of the device.
-        dll_path (str): Path to the kinesis dll for the instrument to use.
-        simulation (bool): Enables the simulation manager. Defaults to False.
-        polling (int): Polling rate in ms. Defaults to 200.
-        home (bool): Sets the device to home state. Defaults to False.
+        name: Instrument name.
+        serial_number: Serial number of the device.
+        dll_path: Path to the kinesis dll for the instrument to use.
+        dll_dir: Directory in which the kinesis dll are stored.
+        simulation: Enables the simulation manager. Defaults to False.
+        polling: Polling rate in ms. Defaults to 200.
+        home: Sets the device to home state. Defaults to False.
     """
     _CONDITIONS = ['homed', 'moved', 'stopped', 'limit_updated']
     def __init__(self,
                  name: str,
                  serial_number: str,
                  dll_path: str,
+                 dll_dir: Optional[str],
                  simulation: bool = False,
                  polling: int = 200,
                  home: bool = False,
                  **kwargs):
         self._dll_path = dll_path
         super().__init__(name, serial_number,
-                         self._dll_path, simulation,
+                         self._dll_path, dll_dir, simulation,
                          **kwargs)
-        
+
         if self._dll.TLI_BuildDeviceList() == 0:
             self._open_laser()
             self._start_polling(polling)
@@ -75,7 +78,7 @@ class _Thorlabs_LS(_Thorlabs_Kinesis):
             docstring='turn laser output off/on. Note that laser key switch must be turned on to turn output on.',
             instrument=self
         )
-        
+
         self.power = Parameter(
             'power',
             label='Power output',
@@ -103,10 +106,10 @@ class _Thorlabs_LS(_Thorlabs_Kinesis):
             raise ValueError()
         else:
             return int(status)
-        
+
     def _get_output_enabled(self) -> bool:
         return bool(self._get_status_bits() & 1)
-    
+
     def _set_output_enabled(self, value: bool) -> None:
         if value:
             self.enable_output()
@@ -116,17 +119,17 @@ class _Thorlabs_LS(_Thorlabs_Kinesis):
     def enable_output(self) -> None:
         ret = self._dll.LS_EnableOutput(self._serial_number)
         self._check_error(ret)
-        
+
     def disable_output(self) -> None:
         ret = self._dll.LS_DisableOutput(self._serial_number)
         self._check_error(ret)
-        
+
     def _get_power(self) -> float:
         max_num = 32767
         max_power = .007
         num = self._dll.LS_GetPowerReading(self._serial_number)
         return num/max_num * max_power
-    
+
     def _set_power(self, power: float) -> None:
         max_num = 32767
         max_power = .007
@@ -176,11 +179,11 @@ class _Thorlabs_LS(_Thorlabs_Kinesis):
         """Update device with stored settings"""
         self._dll.LS_LoadSettings(self._serial_number)
         return None
-    
+
     def _open_laser(self) -> None:
         ret = self._dll.LS_Open(self._serial_number)
         self._check_error(ret)
-        
+
     def _close_laser(self) -> None:
         ret = self._dll.LS_Close(self._serial_number)
         self._check_error(ret)
@@ -190,7 +193,7 @@ class _Thorlabs_LS(_Thorlabs_Kinesis):
         ret = self._dll.LS_StartPolling(self._serial_number, ctypes.byref(pol))
         self._check_error(ret)
         return None
-    
+
     def _stop_polling(self):
         self._dll.LS_StopPolling(self._serial_number)
 

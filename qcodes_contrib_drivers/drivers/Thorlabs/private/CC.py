@@ -7,6 +7,7 @@ Authors:
 import ctypes
 import logging
 from time import sleep, time
+from typing import Optional
 
 from qcodes.parameters import Parameter
 from qcodes import validators as vals
@@ -19,25 +20,27 @@ class _Thorlabs_CC(_Thorlabs_Kinesis):
     """Instrument driver for Thorlabs instruments using the CC commands
 
     Args:
-        name (str): Instrument name.
-        serial_number (str): Serial number of the device.
-        dll_path (str): Path to the kinesis dll for the instrument to use.
-        simulation (bool): Enables the simulation manager. Defaults to False.
-        polling (int): Polling rate in ms. Defaults to 200.
-        home (bool): Sets the device to home state. Defaults to False.
+        name: Instrument name.
+        serial_number: Serial number of the device.
+        dll_path: Path to the kinesis dll for the instrument to use.
+        dll_dir: Directory in which the kinesis dll are stored.
+        simulation: Enables the simulation manager. Defaults to False.
+        polling: Polling rate in ms. Defaults to 200.
+        home: Sets the device to home state. Defaults to False.
     """
     _CONDITIONS = ['homed', 'moved', 'stopped', 'limit_updated']
     def __init__(self,
                  name: str,
                  serial_number: str,
                  dll_path: str,
+                 dll_dir: Optional[str],
                  simulation: bool = False,
                  polling: int = 200,
                  home: bool = False,
                  **kwargs):
         self._dll_path = dll_path
         super().__init__(name, serial_number,
-                         self._dll_path, simulation,
+                         self._dll_path, dll_dir, simulation,
                          **kwargs)
 
         if self._dll.TLI_BuildDeviceList() == 0:
@@ -200,7 +203,7 @@ class _Thorlabs_CC(_Thorlabs_Kinesis):
         """Home the device: set the device to a known state and home position
 
         Args:
-            block (bool, optional): will wait for completion. Defaults to True.
+            block: will wait for completion. Defaults to True.
         """
         self.log.info('home the device.')
         self._check_error(self._dll.CC_Home(self._serial_number))
@@ -208,12 +211,12 @@ class _Thorlabs_CC(_Thorlabs_Kinesis):
         if block:
             self.wait_for_completion()
 
-    def wait_for_completion(self, status: str = 'homed', max_time = 5) -> None:
+    def wait_for_completion(self, status: str = 'homed', max_time: float = 5) -> None:
         """Wait for the current function to be finished.
 
         Args:
-            status (str, optional): expected status. Defaults to 'homed'.
-            max_time (int, optional): maximum waiting time for the internal loop. Defaults to 5.
+            status: expected status. Defaults to 'homed'.
+            max_time: maximum waiting time for the internal loop.
         """
         self.log.debug('wait for the current function to be completed')
         message_type = ctypes.c_ushort()
@@ -257,8 +260,8 @@ class _Thorlabs_CC(_Thorlabs_Kinesis):
         """Converts a device unit to a real world unit
 
         Args:
-            device_unit (int): the device unit.
-            unit_type (int): the type of unit. Distance: 0, velocity: 1, acceleration: 2.
+            device_unit: the device unit.
+            unit_type: the type of unit. Distance: 0, velocity: 1, acceleration: 2.
 
         Returns:
             float: real unit value
@@ -275,8 +278,8 @@ class _Thorlabs_CC(_Thorlabs_Kinesis):
         """Converts a real world unit to a device unit
 
         Args:
-            real_unit (float): the real unit
-            unit_type (int): the type of unit. Distance: 0, velocity: 1, acceleration: 2
+            real_unit: the real unit
+            unit_type: the type of unit. Distance: 0, velocity: 1, acceleration: 2
 
         Returns:
             int: device unit
@@ -533,7 +536,7 @@ class _Thorlabs_CC(_Thorlabs_Kinesis):
                 sleep(.2)
                 diff = abs(self._get_position() - position)
                 diff -= 360 if diff > 180 else diff
-        
+
     def is_moving(self) -> bool:
         """check if the motor cotnroller is moving."""
         self.log.info('check if the motor is moving')
@@ -583,7 +586,7 @@ class _Thorlabs_CC(_Thorlabs_Kinesis):
         """start moving at the current velocity in the specified direction
 
         Args:
-            direction (str, optional): the required direction of travel.
+            direction: the required direction of travel.
                 Defaults to 'forward'. Accepts 'forward' or 'reverse'
         """
         self.log.info(f'move continuously. direction: {direction}')
@@ -602,9 +605,9 @@ class _Thorlabs_CC(_Thorlabs_Kinesis):
         """Performs a jog
 
         Args:
-            direction (str): the jog direction. Defaults to 'forward'.
+            direction: the jog direction. Defaults to 'forward'.
                 Accepts 'forward' or 'reverse'
-            block (bool, optional): will wait until complete. Defaults to True.
+            block: will wait until complete. Defaults to True.
         """
         self.log.info(f'perform a jog; direction: {direction}')
         if direction == 'forward' or direction == 'forwards':
@@ -625,7 +628,7 @@ class _Thorlabs_CC(_Thorlabs_Kinesis):
         """Stop the current move
 
         Args:
-            immediate (bool, optional):
+            immediate:
                 True: stops immediately (with risk of losing track of position).
                 False: stops using the current velocity profile.
                 Defaults to False.
@@ -706,7 +709,7 @@ class _Thorlabs_CC(_Thorlabs_Kinesis):
     def _stop_polling(self) -> None:
         self.log.info('stop polling')
         self._dll.CC_StopPolling(self._serial_number)
-        
+
     def _clear_message_queue(self) -> None:
         self.log.info('clear messages queue')
         self._dll.CC_ClearMessageQueue(self._serial_number)

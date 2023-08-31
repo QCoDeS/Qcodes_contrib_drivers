@@ -8,7 +8,7 @@ Authors:
 
 import logging
 from time import sleep
-from typing import Optional, Any
+from typing import Any
 
 from qcodes.instrument import VisaInstrument
 from qcodes.parameters import Parameter, create_on_off_val_mapping
@@ -24,19 +24,19 @@ class Thorlab_PM100D(VisaInstrument):
     status: beta-version
     
     Args:
-        name (str): name for the instrument
-        address (str): Visa Resource name to connect
-        terminator (str): Visa terminator
-        timeout (float, optional). Visa timeout. default to 20s
+        name: name for the instrument
+        address: Visa Resource name to connect
+        terminator: Visa terminator
+        timeout. Visa timeout.
     """
     def __init__(self,
                  name: str,
                  address: str,
-                 terminator='\n',
+                 terminator: str = '\n',
                  timeout: float = 20,
                  **kwargs: Any):
-        super().__init__(name, address, terminator=terminator, **kwargs)
-        self._timeout = timeout
+        super().__init__(name, address, terminator=terminator,
+                         timeout=timeout, **kwargs)
 
         self.averaging = Parameter(
             'averaging',
@@ -53,8 +53,7 @@ class Thorlab_PM100D(VisaInstrument):
             unit='m',
             get_cmd='SENS:CORR:WAV?',
             set_cmd='SENS:CORR:WAV {}',
-            get_parser=lambda val: float(val)/1e9,
-            set_parser=lambda val: float(val)*1e9,
+            scale=1e9,
             vals=vals.Numbers(185e-9, 25e-6),
             instrument=self
         )
@@ -146,18 +145,12 @@ class Thorlab_PM100D(VisaInstrument):
             unit='m',
             get_cmd='CORR:BEAM?',
             set_cmd='CORR:BEAM {}',
-            get_parser=lambda val: float(val)/1e3,
-            set_parser=lambda val: float(val)*1e3,
+            scale=1e3,
             vals=vals.Numbers(),
             instrument=self
         )
 
-        self.write('STAT:OPER:PTR 512')
-        sleep(.2)
-        self.write('STAT:OPER:NTR 0')
-        sleep(5)
-        self.ask('STAT:OPER?')
-        sleep(.2)
+        self._set_transition_filter(512, 0)
         self.averaging(300)
         self._set_conf_power()
 
@@ -184,3 +177,13 @@ class Thorlab_PM100D(VisaInstrument):
         sleep(.2)
         power = self.ask('FETC?')
         return float(power)
+
+    def _set_transition_filter(self, positive: int, negative: int) -> None:
+        """Apply filters
+        """
+        self.write(f'STAT:OPER:PTR {positive}')
+        sleep(.2)
+        self.write(f'STAT:OPER:NTR {negative}')
+        sleep(5)
+        self.ask('STAT:OPER?')  # clear register
+        sleep(.2)
