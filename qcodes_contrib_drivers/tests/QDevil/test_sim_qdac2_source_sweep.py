@@ -280,3 +280,6 @@ def test_sweep_get_voltages(qdac):  # noqa
     voltages = dc_sweep.values_V()
     # -----------------------------------------------------------------------
     assert voltages == [-1.23, 0, 1.23]
+
+
+# Here could be the same deallocaction tests as in dc_list.

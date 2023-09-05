@@ -10,7 +10,7 @@ from typing import NewType, Tuple, Sequence, List, Dict, Optional
 from packaging.version import Version, parse
 import abc
 
-# Version 1.3.0
+# Version 1.4.0
 #
 # Guiding principles for this driver for QDevil QDAC-II
 # -----------------------------------------------------
@@ -229,6 +229,30 @@ class _Dc_Context(_Channel_Context):
         self._marker_end: Optional[QDac2Trigger_Context] = None
         self._marker_step_start: Optional[QDac2Trigger_Context] = None
         self._marker_step_end: Optional[QDac2Trigger_Context] = None
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.abort()
+        if self._trigger:
+            self._channel._parent.free_trigger(self._trigger)
+        if self._marker_start:
+            self._channel._parent.free_trigger(self._marker_start)
+            self._write_channel(f'sour{"{0}"}:dc:mark:star 0')
+        if self._marker_end:
+            self._channel._parent.free_trigger(self._marker_end)
+            self._write_channel(f'sour{"{0}"}:dc:mark:end 0')
+        if self._marker_step_start:
+            self._channel._parent.free_trigger(self._marker_step_start)
+            self._write_channel(f'sour{"{0}"}:dc:mark:sst 0')
+        if self._marker_step_end:
+            self._channel._parent.free_trigger(self._marker_step_end)
+            self._write_channel(f'sour{"{0}"}:dc:mark:send 0')
+        # Always disable any triggering
+        self._write_channel(f'sour{"{0}"}:dc:trig:sour imm')
+        # Propagate exceptions
+        return False
 
     def start_on(self, trigger: QDac2Trigger_Context) -> None:
         """Attach internal trigger to DC generator
@@ -500,6 +524,27 @@ class _Waveform_Context(_Channel_Context):
         self._marker_period_start: Optional[QDac2Trigger_Context] = None
         self._marker_period_end: Optional[QDac2Trigger_Context] = None
 
+    def __enter__(self):
+        return self
+
+    def _cleanup(self, wave_kind: str) -> bool:
+        if self._trigger:
+            self._channel._parent.free_trigger(self._trigger)
+        if self._marker_start:
+            self._channel._parent.free_trigger(self._marker_start)
+            self._write_channel(f'sour{"{0}"}:{wave_kind}:mark:star 0')
+        if self._marker_end:
+            self._channel._parent.free_trigger(self._marker_end)
+            self._write_channel(f'sour{"{0}"}:{wave_kind}:mark:end 0')
+        if self._marker_period_start:
+            self._channel._parent.free_trigger(self._marker_period_start)
+            self._write_channel(f'sour{"{0}"}:{wave_kind}:mark:pstart 0')
+        if self._marker_period_end:
+            self._channel._parent.free_trigger(self._marker_period_end)
+            self._write_channel(f'sour{"{0}"}:{wave_kind}:mark:pend 0')
+        # Always disable any triggering
+        self._write_channel(f'sour{"{0}"}:{wave_kind}:trig:sour imm')
+
     def _start(self, wave_kind: str, description: str) -> None:
         if self._trigger:
             self._make_ready_to_start(wave_kind)
@@ -581,6 +626,12 @@ class Square_Context(_Waveform_Context):
         super()._set_delay('squ', delay_s)
         self._write_channel(f'sour{"{0}"}:squ:coun {repetitions}')
         self._set_triggering()
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.abort()
+        super()._cleanup('squ')
+        # Propagate exceptions
+        return False
 
     def start(self) -> None:
         """Start the square wave generator
@@ -699,6 +750,12 @@ class Sine_Context(_Waveform_Context):
         self._write_channel(f'sour{"{0}"}:sine:coun {repetitions}')
         self._set_triggering()
 
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.abort()
+        super()._cleanup('sine')
+        # Propagate exceptions
+        return False
+
     def start(self) -> None:
         """Start the sine wave generator
         """
@@ -808,6 +865,12 @@ class Triangle_Context(_Waveform_Context):
         super()._set_delay('tri', delay_s)
         self._write_channel(f'sour{"{0}"}:tri:coun {repetitions}')
         self._set_triggering()
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.abort()
+        super()._cleanup('tri')
+        # Propagate exceptions
+        return False
 
     def start(self) -> None:
         """Start the triangle wave generator
@@ -922,6 +985,12 @@ class Awg_Context(_Waveform_Context):
         self._set_slew('awg', slew_V_s)
         self._write_channel(f'sour{"{0}"}:awg:coun {repetitions}')
         self._set_triggering()
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.abort()
+        super()._cleanup('awg')
+        # Propagate exceptions
+        return False
 
     def start(self) -> None:
         """Start the AWG
