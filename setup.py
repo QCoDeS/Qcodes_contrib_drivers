@@ -3,9 +3,8 @@ from setuptools import setup
 from versioningit import get_cmdclasses
 
 # this file does not contain configuration
-# std configuration as defined by pep621
-# is in pyproject.toml
-# and setuptools specific config in setup.cfg
+# all config should be in pyproject.toml
+
 
 if int(setuptools.__version__.split(".")[0]) < 61:
     raise RuntimeError(
