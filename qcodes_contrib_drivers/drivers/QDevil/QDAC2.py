@@ -527,7 +527,7 @@ class _Waveform_Context(_Channel_Context):
     def __enter__(self):
         return self
 
-    def _cleanup(self, wave_kind: str) -> bool:
+    def _cleanup(self, wave_kind: str) -> None:
         if self._trigger:
             self._channel._parent.free_trigger(self._trigger)
         if self._marker_start:
