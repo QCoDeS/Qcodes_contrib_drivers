@@ -1,5 +1,6 @@
 # -*- coding: UTF-8 -*-
 # Tongyu Zhao <ty.zhao.work@gmail.com> summer 2022
+import ctypes
 import logging
 from typing import Optional, Any, Literal
 from functools import partial
@@ -31,6 +32,7 @@ NIHSDIO_ATTR_REPEAT_MODE                  = AttributeWrapper(ViAttr(1150026), Vi
 NIHSDIO_ATTR_REPEAT_COUNT                 = AttributeWrapper(ViAttr(1150071), ViInt32)
 
 NIHSDIO_ATTR_DATA_POSITION                = AttributeWrapper(ViAttr(1150056), ViInt32)
+NIHSDIO_ATTR_DATA_WIDTH                   = AttributeWrapper(ViAttr(1150108), ViInt32)
 
 logger = logging.getLogger(__name__)
 
@@ -215,8 +217,7 @@ class NationalInstruments_HSDIO(Instrument):
                         name_in_library=f'WriteNamedWaveform{format}',
                         argtypes=[NamedArgType("vi", ViSession),
                                   NamedArgType("waveformName", ViConstString),
-                                  NamedArgType("samplesToWrite", ViInt32),
-                                  NamedArgType("data", ViUInt32)]))
+                                  NamedArgType("samplesToWrite", ViInt32),]))
 
         self.wrapper.WriteNamedWaveformFromFileHWS = self.wrapper.wrap_dll_function_checked(
                 name_in_library="WriteNamedWaveformFromFileHWS",
@@ -387,22 +388,33 @@ class NationalInstruments_HSDIO(Instrument):
             func = getattr(self.wrapper, f'Configure{channel}VoltageCustomLevels')
             func(self._handle, ViConstString(c_str(channel_list)), ViReal64(low_level), ViReal64(high_level))
 
-    def write_named_waveform_WDT(self, name: str, waveform: list, data_layout='group_by_channel'):
+    def write_named_waveform_WDT(self, name: str, num_of_channels: int, waveform: list, data_layout='group_by_channel'):
         """
         Call the wrapped WriteNamedWaveformWDT function from the library
 
         Args:
             name (str): The name to associate with the allocated waveform memory.
-            waveform (list): The digital waveform data.
+            num_of_channels (int): Number of output channels.
+            waveform (list): The digital waveform data. The list has a shape of (number of channels)*(number of samples)
             data_layout ({'group_by_channel', 'group_by_sample'}): The layout of the waveform contained in waveform.
         """
         if data_layout not in DATA_LAYOUT.keys():
             raise ValueError("data_layout must be either 'group_by_sample' or 'group_by_channel'!")
         
         waveform_length = len(waveform)
+        waveform_length_per_channel = int(waveform_length/num_of_channels)
+
+        # expand the waveform list by inserting 0's in front of actual values
+        # expanded_waveform = [0]*(waveform_length*num_of_channels)
+        # for i in range(waveform_length):
+        #     expanded_waveform[int(num_of_channels*(i+1)-1)] = waveform[i]
+
+        # waveform = (ctypes.c_uint8*(waveform_length*num_of_channels))(*expanded_waveform)
+        waveform = (ctypes.c_uint8*(waveform_length))(*waveform)
+
         self.wrapper.WriteNamedWaveformWDT(self._handle,
                                            ViConstString(c_str(name)),
-                                           ViInt32(waveform_length),
+                                           ViInt32(waveform_length_per_channel),
                                            ViInt32(DATA_LAYOUT[data_layout]),
                                            byref(waveform))
 
@@ -451,6 +463,10 @@ class NationalInstruments_HSDIO(Instrument):
     @property
     def serial(self) -> str:
         return self.get_attribute(NIHSDIO_ATTR_SERIAL_NUMBER)
+
+    @property
+    def data_width(self):
+        return self.get_attribute(NIHSDIO_ATTR_DATA_WIDTH)
 
     def get_idn(self):
         return {
