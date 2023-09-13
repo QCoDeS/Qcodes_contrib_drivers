@@ -3,7 +3,7 @@
 # Simon Zihlmannr <zihlmann.simon@gmail.com>, spring 2021
 # Tongyu Zhao <ty.zhao.work@gmail.com>, spring 2022
 import warnings
-import pyvisa as visa
+import pyvisa
 
 from qcodes import Instrument, VisaInstrument
 from qcodes.instrument.channel import InstrumentChannel
@@ -181,7 +181,7 @@ class HS9008BChannel(InstrumentChannel):
             correctly.
             Otherwise RuntimeError.
         """
-        write_str = ':{}:FREQ:'.format(self.channel) + str(f/1e9) + 'GHz'
+        write_str = ':{}:FREQ:'.format(self.channel) + f'{f:.0f}' + 'Hz'
         read_str = self.ask(write_str)
         if read_str != 'Frequency Set':
             raise RuntimeError(
@@ -262,15 +262,15 @@ class HS9008B(VisaInstrument):
                            get_parser=str,
                            get_cmd=self._get_ref_locked)
 
-        model = self.IDN()['model']
-        knownmodels = ['HS9008B']
-        # Driver was tested with 'HS9008B'.
-        if model not in knownmodels:
-            kmstring = ('{}, '*(len(knownmodels)-1)).format(*knownmodels[:-1])
-            kmstring += 'and {}.'.format(knownmodels[-1])
-            warnings.warn('This model {} is unknown and might not be'
-                          'compatible with the driver. Known models'
-                          'are: {}'.format(model, kmstring))
+        # model = self.IDN()['model']
+        # knownmodels = ['HS9008B']
+        # # Driver was tested with 'HS9008B'.
+        # if model not in knownmodels:
+        #     kmstring = ('{}, '*(len(knownmodels)-1)).format(*knownmodels[:-1])
+        #     kmstring += 'and {}.'.format(knownmodels[-1])
+        #     warnings.warn('This model {} is unknown and might not be'
+        #                   'compatible with the driver. Known models'
+        #                   'are: {}'.format(model, kmstring))
 
         # Add the channel to the instrument
         channels = self.ask_raw(':ATTACH?').split(':')[2:-1]
@@ -280,39 +280,32 @@ class HS9008B(VisaInstrument):
 
         self.connect_message()
 
-    def set_address(self, address: str) -> None:
-        """
-        Set the address for this instrument.
-
-        Args:
-            address: The visa resource name to use to connect. The address
-                should be the actual address and just that. If you wish to
-                change the backend for VISA, use the self.visalib attribute
-                (and then call this function).
-        """
+    def _open_resource(
+        self, address: str, visalib: str
+    ) -> tuple[pyvisa.resources.MessageBasedResource, str]:
 
         # in case we're changing the address - close the old handle first
-        if getattr(self, 'visa_handle', None):
+        if getattr(self, "visa_handle", None):
             self.visa_handle.close()
 
-        if self.visalib:
-            self.visa_log.info('Opening PyVISA Resource Manager with visalib:'
-                          ' {}'.format(self.visalib))
-            resource_manager = visa.ResourceManager(self.visalib)
-            self.visabackend = self.visalib.split('@')[1]
+        if visalib is not None:
+            self.visa_log.info(
+                f"Opening PyVISA Resource Manager with visalib: {visalib}"
+            )
+            resource_manager = pyvisa.ResourceManager(visalib)
+            visabackend = visalib.split("@")[1]
         else:
-            self.visa_log.info('Opening PyVISA Resource Manager with default'
-                          ' backend.')
-            resource_manager = visa.ResourceManager()
-            self.visabackend = 'ni'
+            self.visa_log.info("Opening PyVISA Resource Manager with default backend.")
+            resource_manager = pyvisa.ResourceManager()
+            visabackend = "ivi"
 
-        self.visa_log.info(f'Opening PyVISA resource at address: {address}')
+        self.visa_log.info(f"Opening PyVISA resource at address: {address}")
         resource = resource_manager.open_resource(address, send_end=False)
-        if not isinstance(resource, visa.resources.MessageBasedResource):
-            raise TypeError("QCoDeS only support MessageBasedResource "
-                            "Visa resources")
-        self.visa_handle = resource
-        self._address = address
+        if not isinstance(resource, pyvisa.resources.MessageBasedResource):
+            resource.close()
+            raise TypeError("QCoDeS only support MessageBasedResource Visa resources")
+
+        return resource, visabackend
 
     def _get_channels(self) -> list:
         """Getting the available channel names. Instrument returns string
@@ -373,4 +366,3 @@ class HS9008B(VisaInstrument):
         if read_str == '1 PLL Locked, 0 errors':
             locked = True
         return locked
-
