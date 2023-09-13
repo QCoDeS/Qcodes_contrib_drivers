@@ -140,6 +140,9 @@ class Yokogawa7651(VisaInstrument):
         self.visa_handle.write("OS", termination="\r\n")
         line0 = self.visa_handle.read()
         line1 = self.visa_handle.read()
+        line2 = self.visa_handle.read()
+        line3 = self.visa_handle.read()
+        line4 = self.visa_handle.read()
 
         response_dict = {}
 
