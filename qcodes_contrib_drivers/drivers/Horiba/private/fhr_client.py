@@ -6,7 +6,7 @@ try:
 except ImportError:
     raise ImportError('This driver requires the msl.loadlib package for '
                       'communicating with a 32-bit dll. You can install it '
-                      'by running\npip install msl.loadlib')
+                      "by running 'pip install msl.loadlib'")
 
 _T = TypeVar('_T')
 

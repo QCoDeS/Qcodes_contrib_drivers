@@ -12,7 +12,7 @@ from typing_extensions import Literal
 from qcodes.instrument import (Instrument, InstrumentBase, InstrumentChannel,
                                ChannelList)
 from qcodes.validators import validators
-from ._private.fhr_client import FHRClient
+from .private.fhr_client import FHRClient
 
 
 class SpeError(Exception):
