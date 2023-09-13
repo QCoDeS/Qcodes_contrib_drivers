@@ -15,6 +15,7 @@ series-349-and-349h-octave-band-11-bit-digital-pin-diode-attenuators)
 
 import numpy as np
 
+from typing import Dict, Optional
 from qcodes import Instrument
 from qcodes.instrument.parameter import Parameter
 from qcodes.utils.validators import Numbers
@@ -103,3 +104,9 @@ class GM349(Instrument):
             {J3 pin index: digital line}.
         """
         return self._pin_map
+
+    def get_idn(self):
+        IDN: Dict[str, Optional[str]] = {
+            'vendor': 'General Microwave', 'model': 'GM349',
+            'serial': None, 'firmware': None}
+        return IDN
