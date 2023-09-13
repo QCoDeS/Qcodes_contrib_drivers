@@ -11,8 +11,6 @@ Simulated instrument:
     $ source venv/bin/activate
     $ pytest qcodes_contrib_drivers/tests/QDevil/test_sim_qdac2_*.py
 
-To silence warnings, use `-W ignore::DeprecationWarning`.
-
 Real instrument:
 
     $ source venv/bin/activate
@@ -21,7 +19,7 @@ Real instrument:
 
 Static types:
 
-    $ mypy --no-incremental qcodes_contrib_drivers/drivers/QDevil/QDAC2.py
+    $ mypy --no-incremental qcodes_contrib_drivers/drivers/QDevil/{QDAC2,QDAC2_Array}.py
 
 ### One-time setup
 
@@ -29,4 +27,4 @@ Static types:
     $ source venv/bin/activate
     $ pip install --upgrade pip
     $ pip install -e .[test]
-    $ pip install pyvisa-py==0.5.2
+    $ pip install pyvisa-py==0.5.2 jupyter pyserial

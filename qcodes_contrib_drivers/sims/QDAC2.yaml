@@ -9,9 +9,9 @@ devices:
     error: "-113, \"Undefined header\""
     dialogues:
       - q: "*IDN?"
-        r: "QDevil, QDAC-II, A001234, 4-0.9.20"
+        r: "QDevil, QDAC-II, A001234, 11-1.14"
       - q: "*idn?"
-        r: "QDevil, QDAC-II, A001234, 4-0.9.20"
+        r: "QDevil, QDAC-II, A001234, 11-1.14"
       - q: "syst:comm:lan:mac?"
         r: "\"049162C01016\""
       - q: "syst:err:all?"
@@ -20,6 +20,10 @@ devices:
         r: "0, \"No error\""
       - q: "syst:err:coun?"
         r: 0
+      - q: "syst:cloc:send on"
+      - q: "syst:cloc:sour ext"
+      - q: "syst:cloc:sync"
+      - q: "outp:sync:sign"
       - q: "*rst"
       - q: "abor"
       - q: "*trg"
@@ -30,6 +34,26 @@ devices:
         r: "0.01,0.02"
       - q: "fetc2?"
         r: "0.01,0.02"
+      - q: "sens:rang low,(@1,2,3)"
+      - q: "sens:nplc 1,(@1,2,3)"
+      - q: "sens:nplc 2,(@1,2,3)"
+      - q: "read? (@1,2,3)"
+        r: "0.1,0.2,0.3"
+      - q: "sens:rang low,(@1,2)"
+      - q: "sens:nplc 1,(@1,2)"
+      - q: "sens:nplc 2,(@1,2)"
+      - q: "read? (@1,2)"
+        r: "0.1,0.2"
+      - q: "sens:rang low,(@2,1)"
+      - q: "sens:nplc 1,(@2,1)"
+      - q: "sens:nplc 2,(@2,1)"
+      - q: "read? (@2,1)"
+        r: "0.2,0.1"
+      - q: "sens:rang low,(@3)"
+      - q: "sens:nplc 1,(@3)"
+      - q: "sens:nplc 2,(@3)"
+      - q: "read? (@3)"
+        r: "0.3"
 
     properties:
       manual_trigger:
@@ -199,7 +223,13 @@ devices:
               r: "{}"
             specs:
               type: int
-
+          dc_delay:
+            default: 0.0
+            setter:
+              q: "sour{ch_id}:dc:del {}"
+            getter:
+              q: "sour{ch_id}:dc:del?"
+              r: "{}"
           dc_trigger_source:
             default: "imm"
             setter:
@@ -485,7 +515,7 @@ devices:
           square_mark_pstart:
             default: 1
             setter:
-              q: "sour{ch_id}:squ:mark:pst {}"
+              q: "sour{ch_id}:squ:mark:pstart {}"
             specs:
               valid: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
               type: int
@@ -520,7 +550,7 @@ devices:
           sine_mark_pstart:
             default: 1
             setter:
-              q: "sour{ch_id}:sine:mark:pst {}"
+              q: "sour{ch_id}:sine:mark:pstart {}"
             specs:
               valid: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
               type: int
@@ -555,7 +585,7 @@ devices:
           triangle_mark_pstart:
             default: 1
             setter:
-              q: "sour{ch_id}:tri:mark:pst {}"
+              q: "sour{ch_id}:tri:mark:pstart {}"
             specs:
               valid: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
               type: int
@@ -590,7 +620,7 @@ devices:
           awg_mark_pstart:
             default: 1
             setter:
-              q: "sour{ch_id}:awg:mark:pst {}"
+              q: "sour{ch_id}:awg:mark:pstart {}"
             specs:
               valid: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
               type: int
@@ -634,6 +664,9 @@ devices:
           sine_slew:
             setter:
               q: "sour{ch_id}:sine:slew {}"
+          sine_delay:
+            setter:
+              q: "sour{ch_id}:sine:del {}"
           sine_cycles_left:
             default: 0
             getter:
@@ -676,6 +709,9 @@ devices:
           square_slew:
             setter:
               q: "sour{ch_id}:squ:slew {}"
+          square_delay:
+            setter:
+              q: "sour{ch_id}:squ:del {}"
           square_cycles_left:
             default: 0
             getter:
@@ -711,6 +747,9 @@ devices:
           triangle_slew:
             setter:
               q: "sour{ch_id}:tri:slew {}"
+          triangle_delay:
+            setter:
+              q: "sour{ch_id}:tri:del {}"
           triangle_cycles_left:
             default: 0
             getter:

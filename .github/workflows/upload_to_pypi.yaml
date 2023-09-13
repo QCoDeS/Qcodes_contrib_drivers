@@ -7,15 +7,16 @@ on:
 
 jobs:
   deploy:
-
     runs-on: ubuntu-latest
-
+    permissions:
+      id-token: write
+    environment: pypi-release-env
     steps:
-    - uses: actions/checkout@v3.0.2
+    - uses: actions/checkout@v3.5.3
     - name: Set up Python
-      uses: actions/setup-python@v4.2.0
+      uses: actions/setup-python@v4.7.0
       with:
-        python-version: '3.7'
+        python-version: '3.10'
     - name: Install build deps
       run: pip install --upgrade pip setuptools wheel build
     - name: Build
@@ -23,9 +24,6 @@ jobs:
         python -m build
     - name: Install Twine
       run: pip install twine
-    - name: Publish
-      env:
-        TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
-        TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-      run: |
-        twine upload dist/*
+    - name: Publish to pypi
+      uses: pypa/gh-action-pypi-publish@release/v1
+

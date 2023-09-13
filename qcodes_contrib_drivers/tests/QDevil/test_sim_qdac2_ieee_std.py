@@ -10,7 +10,7 @@ def test_idn(qdac):  # noqa
     assert idn_dict['vendor'] == 'QDevil'
     assert idn_dict['model'] == 'QDAC-II'
     assert re.fullmatch('[A-Z]+[0-9]+', idn_dict['serial'])
-    assert re.fullmatch('[0-9]+-[0-9]+\\.[0-9]+\\.[0-9]+', idn_dict['firmware'])
+    assert re.fullmatch('[0-9]+-[0-9]+\\.[0-9]+(\\.[0-9]+)?', idn_dict['firmware'])
 
 
 def test_abort(qdac):  # noqa

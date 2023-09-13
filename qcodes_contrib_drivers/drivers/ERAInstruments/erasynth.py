@@ -610,7 +610,7 @@ class ERASynthBase(VisaInstrument):
 
     # ERASynth specific methods
 
-    def get_configuration(self, par_name: str = None) -> Union[Dict[str, str], str]:
+    def get_configuration(self, par_name: Optional[str] = None) -> Union[Dict[str, str], str]:
         """
         Returns the configuration JSON that contains all parameters.
         """
@@ -618,7 +618,7 @@ class ERASynthBase(VisaInstrument):
 
         return config_json if par_name is None else config_json[par_name]
 
-    def get_diagnostic_status(self, par_name: str = None) -> Union[Dict[str, str], str]:
+    def get_diagnostic_status(self, par_name: Optional[str] = None) -> Union[Dict[str, str], str]:
         """
         Returns the diagnostic JSON.
         """
@@ -682,7 +682,7 @@ class ERASynthBase(VisaInstrument):
     # set commands
     # ##################################################################################
 
-    def _set_and_confirm(self, cmd: str, cmd_arg: str, str_back: str = None) -> None:
+    def _set_and_confirm(self, cmd: str, cmd_arg: str, str_back: Optional[str] = None) -> None:
         """
         Because for this command the instrument replies with a text containing the
         value, we make use of it to ensure we waited enough time for the changes to

@@ -74,7 +74,7 @@ class Thorlabs_APT:
         code = self.dll.APTInit()
         self.error_check(code, 'APTInit')
 
-    def list_available_devices(self, hw_type: Union[int, ThorlabsHWType] = None) \
+    def list_available_devices(self, hw_type: Union[int, ThorlabsHWType, None] = None) \
             -> List[Tuple[int, int, int]]:
         """Lists all available Thorlabs devices, that can connect to the APT server.
 

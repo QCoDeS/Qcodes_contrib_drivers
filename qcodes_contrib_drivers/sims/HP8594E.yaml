@@ -1,0 +1,40 @@
+spec: "1.1"
+devices:
+
+  HP8594E:
+    eom:
+      GPIB INSTR:
+        q: "\n"
+        r: "\n"
+
+    dialogues:
+      - q: "*IDN?"
+        r: "QCoDeS, HP8594E (Simulated), 1337, 0.0.01"
+
+    properties:
+      start_freq:
+        default: 9000.0
+        getter:
+          q: "FA?"
+          r: "{:02.0f}"
+        setter:
+          q: "FA {:02.0f} Hz"
+        specs:
+          type: float
+      stop_freq:
+        default: 2900000000.0
+        getter:
+          q: "FB?"
+          r: "{:02.0f}"
+        setter:
+          q: "FB {:02.0f} Hz"
+        specs:
+          type: float
+
+
+resources:
+  GPIB::1::INSTR:
+    device: HP8594E
+
+
+

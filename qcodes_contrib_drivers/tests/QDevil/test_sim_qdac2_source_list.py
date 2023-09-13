@@ -9,6 +9,7 @@ def test_list_explicit(qdac):  # noqa
         repetitions=10,
         voltages=[-1, 0, 1],
         dwell_s=1e-6,
+        delay_s=0.1,
         backwards=True,
         stepped=True
     )
@@ -19,6 +20,7 @@ def test_list_explicit(qdac):  # noqa
         'sour1:list:volt -1,0,1',
         'sour1:list:tmod step',
         'sour1:list:dwel 1e-06',
+        'sour1:dc:del 0.1',
         'sour1:list:dir down',
         'sour1:list:coun 10',
         'sour1:dc:trig:sour bus',
@@ -37,6 +39,7 @@ def test_list_implicit(qdac):  # noqa
         'sour1:list:volt 1,2,3,4',
         'sour1:list:tmod auto',
         'sour1:list:dwel 0.001',
+        'sour1:dc:del 0',
         'sour1:list:dir up',
         'sour1:list:coun 1',
         'sour1:dc:trig:sour bus',
@@ -111,6 +114,7 @@ def test_list_infinite(qdac):  # noqa
         'sour1:list:volt 1,2,3,4',
         'sour1:list:tmod auto',
         'sour1:list:dwel 0.001',
+        'sour1:dc:del 0',
         'sour1:list:dir up',
         'sour1:list:coun -1',
         'sour1:dc:trig:sour bus',
