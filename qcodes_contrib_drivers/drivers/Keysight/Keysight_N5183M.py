@@ -1,7 +1,7 @@
 from typing import Any, Dict, Optional
 
 from qcodes import VisaInstrument
-from qcodes.utils.validators import Numbers
+from qcodes.utils.validators import Numbers, Enum
 
 class N5183M(VisaInstrument):
     """
@@ -59,8 +59,14 @@ class N5183M(VisaInstrument):
                            )
 
         self.add_parameter('output_modulation',
+                           get_cmd=':OUTP:MOD?',
                            set_cmd='OUTP:STAT OFF;:OUTP:MOD {}',
                            val_mapping={'on': 1, 'off': 0})
+        
+        self.add_parameter('ref_source',
+                           get_cmd=self._get_ref_source,
+                           set_cmd=self._set_ref_source,
+                           vals=Enum("EXT", "INT", "AUTO"))
 
         self.add_parameter('rf_output',
                            get_cmd='OUTP:STAT?',
@@ -68,6 +74,20 @@ class N5183M(VisaInstrument):
                            val_mapping={'on': 1, 'off': 0})
 
         self.connect_message()
+
+    def _get_ref_source(self):
+        isauto = self.ask(":ROSC:SOUR:AUTO?")
+
+        if isauto == "1":
+            return "AUTO"
+        else:
+            return self.ask(":ROSC:SOUR?")
+        
+    def _set_ref_source(self, source:str):
+        if source == "AUTO":
+            self.write(":ROSC:SOUR:AUTO ON;")
+        else:
+            self.write(f":ROSC:SOUR {source};")
 
     def get_idn(self) -> Dict[str, Optional[str]]:
         IDN_str = self.ask_raw('*IDN?')
