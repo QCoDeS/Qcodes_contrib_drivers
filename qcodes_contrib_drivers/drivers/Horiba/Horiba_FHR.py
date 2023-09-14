@@ -359,7 +359,7 @@ class GratingChannel(PrecisionMotorChannel):
         raise NotImplementedError
 
 
-class HoribaFHR1000(Instrument):
+class HoribaFHR(Instrument):
 
     def __init__(self,
                  name: str,
