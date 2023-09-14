@@ -1,17 +1,18 @@
 from __future__ import annotations
 
 import abc
+import configparser
 import ctypes
 import os
 import pathlib
 import sys
-from typing import Mapping, Any, Sequence
-
-from typing_extensions import Literal
+from typing import Mapping, Any, Dict
 
 from qcodes import validators
 from qcodes.instrument import (Instrument, InstrumentBase, InstrumentChannel,
                                ChannelList)
+from typing_extensions import Literal
+
 from .private.fhr_client import FHRClient
 
 
@@ -100,11 +101,6 @@ class MotorChannel(Dispatcher, InstrumentChannel, metaclass=abc.ABCMeta):
             # Python 3.8
             return cls.__name__[:-7]
 
-    @property
-    @abc.abstractmethod
-    def unit(self) -> str:
-        pass
-
     def set_id(self, i: int):
         """Set motor ID.
 
@@ -139,7 +135,7 @@ class MotorChannel(Dispatcher, InstrumentChannel, metaclass=abc.ABCMeta):
             if raise_exception or str(se) != 'errAbort':
                 raise
 
-    def set_position(self, pos: int):
+    def _set_position(self, pos: int):
         """Set motor position. It return final motor position after
         movement.
 
@@ -162,26 +158,31 @@ class PrecisionMotorChannel(MotorChannel, metaclass=abc.ABCMeta):
     """ABC for the precision motors of the device."""
 
     def __init__(self, parent: InstrumentBase, name: str, cli, handle,
-                 motor: int, metadata: Mapping[Any, Any] | None = None,
+                 motor: int, min_value: int = 0, max_value: int = sys.maxsize,
+                 offset: int = 0, metadata: Mapping[Any, Any] | None = None,
                  label: str | None = None):
         super().__init__(parent, name, cli, handle, motor, metadata, label)
 
-        self._step: int | None = None
+        self._step: int = 1
+        self._offset: int = offset
+
+        self.add_parameter('position',
+                           label=f'{label} position',
+                           get_cmd=self._get_position,
+                           set_cmd=self._set_position,
+                           set_parser=int,
+                           vals=validators.Ints(min_value, max_value),
+                           unit=self.unit)
 
     @property
-    def step(self) -> int:
-        if self._step is None:
-            raise RuntimeError('Please set up the motor using set_setup()')
-        return self._step
+    @abc.abstractmethod
+    def unit(self) -> str:
+        pass
 
-    @step.setter
-    def step(self, val: int):
-        self._step = val
-
-    def init(self, offset: int):
+    def init(self):
         """Initialize motor with offset position (optical zero order
         position in motor steps)."""
-        offset = ctypes.c_int(offset)
+        offset = ctypes.c_int(self._offset)
         code, _ = self.cli.SpeCommand(self.handle, f'{self.type}{self.motor}',
                                       'Init', offset)
         self.error_check(code)
@@ -219,10 +220,10 @@ class PrecisionMotorChannel(MotorChannel, metaclass=abc.ABCMeta):
             fields=(min_speed, max_speed, ramp, backlash, step, reverse)
         )
         self.error_check(code)
-        self.step = step
+        self._step = step
         self.position.unit = self.unit
 
-    def get_position(self) -> int:
+    def _get_position(self) -> int:
         """Get current position. The result depends on 'Step' value
         similar to "SetPosition" parameter value."""
         pos = ctypes.c_int()
@@ -248,49 +249,44 @@ class DCChannel(MotorChannel):
         self.add_parameter('position',
                            label=f'{label} position',
                            get_cmd=False,
-                           set_cmd=self.set_position,
-                           val_mapping=val_mapping,
-                           unit=self.unit)
-
-    @property
-    def unit(self) -> str:
-        return ''
+                           set_cmd=self._set_position,
+                           val_mapping=val_mapping)
 
 
 class SlitChannel(PrecisionMotorChannel):
     """Handles the linear slit motors of the device."""
 
     def __init__(self, parent: InstrumentBase, name: str, cli, handle,
-                 motor: int, min_value: int = -sys.maxsize - 1,
-                 max_value: int = sys.maxsize,
-                 metadata: Mapping[Any, Any] | None = None,
+                 motor: int, min_value: int = 0, max_value: int = sys.maxsize,
+                 offset: int = 0, metadata: Mapping[Any, Any] | None = None,
                  label: str | None = None):
         label = label or f'Slit {motor}'
-        super().__init__(parent, name, cli, handle, motor, metadata, label)
+        super().__init__(parent, name, cli, handle, motor, min_value + offset,
+                         max_value + offset, offset, metadata, label)
 
-        vals = validators.Numbers(min_value, max_value)
-        self.add_parameter('position',
-                           label=f'{label} position',
-                           get_cmd=self.get_position,
-                           set_cmd=self.set_position,
+        self._offset = offset
+        self.add_parameter('width',
+                           label=f'{label} width',
+                           get_cmd=self._get_width,
+                           set_cmd=self._set_width,
                            set_parser=int,
-                           vals=vals,
-                           unit=self.unit)
+                           unit=self.unit,
+                           vals=validators.Ints(min_value, max_value),
+                           docstring="Actual slit opening width")
 
     @property
     def unit(self) -> str:
-        return 'motor steps'
+        # From the manual:
+        #   For slit motors the position in motor steps is the
+        #   'Position' value multiplied by 'Step' value from SpeSetup.
+        # What I take from this is that it always returns microns.
+        return 'μm'
 
-    def get_position(self) -> int:
-        # TODO TH: Untested, step!=1 doesn't work on my device
-        return super().get_position() * self.step
+    def _get_width(self) -> int:
+        return self.position() - self._offset
 
-    def set_position(self, pos: int):
-        # TODO TH: Untested, step!=1 doesn't work on my device
-        return super().set_position(pos // self.step)
-
-    get_position.__doc__ = PrecisionMotorChannel.get_position.__doc__
-    set_position.__doc__ = PrecisionMotorChannel.set_position.__doc__
+    def _set_width(self, width: int):
+        return self.position(width + self._offset)
 
 
 class GratingChannel(PrecisionMotorChannel):
@@ -298,37 +294,23 @@ class GratingChannel(PrecisionMotorChannel):
 
     def __init__(self, parent: InstrumentBase, name: str, cli, handle,
                  motor: int, min_value: int = 0, max_value: int = sys.maxsize,
-                 metadata: Mapping[Any, Any] | None = None,
+                 offset: int = 0, metadata: Mapping[Any, Any] | None = None,
                  label: str | None = None):
         label = label or f'Grating {motor}'
         # Cannot use super() since parent also defines the position parameter
-        super().__init__(parent, name, cli, handle, motor, metadata, label)
+        super().__init__(parent, name, cli, handle, motor, min_value,
+                         max_value, offset, metadata, label)
 
-        vals = validators.Numbers(min_value, max_value)
-        self.add_parameter('position',
-                           label=f'{label} position',
-                           get_cmd=self.get_position,
-                           set_cmd=self.set_position,
-                           set_parser=int,
-                           vals=vals,
-                           unit=self.unit)
         self.add_parameter('shift',
                            label='Zero order shift',
                            get_cmd=False,
-                           set_cmd=self.set_shift,
+                           set_cmd=self._set_shift,
                            set_parser=int,
                            unit=self.unit)
 
     @property
     def unit(self) -> str:
-        try:
-            if self.step == 1:
-                return 'motor steps'
-            else:
-                return 'pm'
-        except RuntimeError:
-            # Not initialized yet
-            return ''
+        return 'motor steps' if self._step == 1 else 'pm'
 
     def set_ini_params(self,
                        phase: Literal[1, 2, 3],
@@ -354,65 +336,180 @@ class GratingChannel(PrecisionMotorChannel):
         )
         self.error_check(code)
 
-    def set_shift(self, shift: int):
-        """Set zero order shift (not available now)."""
-        raise NotImplementedError
+    def _set_shift(self, shift: int):
+        """Set zero order shift."""
+        shift = ctypes.c_int(shift)
+        code, _ = self.cli.SpeCommand(self.handle, f'{self.type}{self.motor}',
+                                      'SetShift', shift)
+        self.error_check(code)
 
 
 class HoribaFHR(Instrument):
+    """Horiba FHR driver for a 32-bit dll.
 
-    def __init__(self,
-                 name: str,
-                 port: int,
-                 dll_dir: str | os.PathLike | pathlib.Path,
-                 grating_addrs: Sequence[int],
-                 slit_addrs: Sequence[int],
-                 dc_addrs: Sequence[int],
-                 grating_kwargs: Sequence[Mapping[str, Any]] | None = None,
-                 slit_kwargs: Sequence[Mapping[str, Any]] | None = None,
-                 dc_kwargs: Sequence[Mapping[str, Any]] | None = None,
-                 metadata: Mapping[Any, Any] | None = None,
-                 label: str | None = None):
+    This driver uses ``msl.loadlib`` to communicate with the 32-bit dll
+    through a 32-bit server from a 64-bit client.
 
-        self.cli = FHRClient(dll_dir=dll_dir)
+    Args:
+        dll_dir (path_like):
+            Directory to search for SpeControl.dll
+        config_file (path_like):
+            Configuration file (see below)
+        dc_val_mappings (dict):
+            val_mappings for the DC motors (mirrors). Should be a dict
+            of mappings with integer keys corresponding to the mirror
+            id. For example, for an instrument with only one mirror
+            "Mirror2", ``{2: {'front': 0, 'side': 1}}``.
+
+    Notes:
+        The configuration file should be an ``ini``-like file with
+        sections
+
+         - ``[Firmware]``
+         - ``[Port]``
+         - ``[Spectrometer]``
+         - ``[Grating1]`` etc.
+         - ``[Slit1]`` etc.
+         - ``[Mirror1]`` etc.
+
+    Examples:
+        See ``docs/examples`` for an example notebook.
+    """
+
+    def __init__(
+            self, name: str,
+            dll_dir: str | os.PathLike | pathlib.Path,
+            config_file: str | os.PathLike | pathlib.Path,
+            dc_val_mappings: Dict[int, Dict[str, Literal[0, 1]] | None] = {},
+            metadata: Mapping[Any, Any] | None = None,
+            label: str | None = None
+    ):
+
+        self.cli = FHRClient(dll_dir)
         self.handle: int = self.cli.CreateSpe()
+        self.config = configparser.ConfigParser(comment_prefixes=('==',))
+        self.config.read(config_file)
 
-        super().__init__(name, metadata, label)
+        additional_metadata = {
+            'Focal length': self.config['Spectrometer'].getint('Focal'),
+            'Coefficient of angle': self.config['Spectrometer'].getfloat(
+                'CoefficientOfAngle'
+            ),
+            'Number of gratings': self.config['Spectrometer'].getint(
+                'GratingNumber'
+            ),
+            'Number of slits': self.config['Spectrometer'].getint(
+                'SlitNumber'
+            )
+        }
 
-        dcs = ChannelList(self, 'dcs', DCChannel)
-        slits = ChannelList(self, 'slits', SlitChannel)
+        super().__init__(name, additional_metadata | (metadata or {}), label)
+
         gratings = ChannelList(self, 'gratings', GratingChannel)
+        slits = ChannelList(self, 'slits', SlitChannel)
+        mirrors = ChannelList(self, 'mirrors', DCChannel)
 
-        dc_kwargs = dc_kwargs or [{}] * len(dc_addrs)
-        slit_kwargs = slit_kwargs or [{}] * len(slit_addrs)
-        grating_kwargs = grating_kwargs or [{}] * len(grating_addrs)
+        for name, section in self.config.items():
+            if name == 'Port':
+                # This relies on Port being the first section because otherwise
+                # communication with the device will fail.
+                port = PortChannel(self, 'port', self.cli, self.handle,
+                                   section.getint('ComPort'))
+                port.open()
+                port.set_baud_rate(section.getint('Baudrate'))
+                port.set_timeout(section.getint('Timeout'))
+                port.config = section
+            elif name.startswith('Grating'):
+                # Grating1, Grating2, etc
+                grating = GratingChannel(
+                    self,
+                    # Cannot use section['Name'] b/c of invalid identifier chars.
+                    f"grating_{section['Value']}",
+                    self.cli,
+                    self.handle,
+                    motor=int(name[-1]),
+                    # TODO: this assumes MotorStepUnit to be != 1
+                    min_value=section.getint('MinNm')*1000,  # pm
+                    max_value=section.getint('MaxNm')*1000,
+                    offset=section.getint('Offset'),  # motor steps
+                    metadata={'Coefficient of linearity': section.getfloat(
+                        'CoefficientOfLinearity'
+                    )}
+                )
+                grating.set_id(section.getint('AddrAxe'))
+                grating.set_setup(
+                    # For whatever reason these parameters are in the
+                    # Spectrometer section...
+                    min_speed=self.config['Spectrometer'].getint('SpeedMin'),
+                    max_speed=self.config['Spectrometer'].getint('SpeedMax'),
+                    ramp=self.config['Spectrometer'].getint('Acceleration'),
+                    backlash=self.config['Spectrometer'].getint('Backlash'),
+                    step=self.config['Spectrometer'].getint('MotorStepUnit'),
+                    reverse=self.config['Spectrometer'].getboolean('Reverse')
+                )
+                # Hardcoded since it is not present in my ini file.
+                # Taken from 'SDK FHR Express -additional informations-.pdf'
+                grating.set_ini_params(phase=1, min_speed=2000,
+                                       max_speed=100000, ramp=400)
+                grating.set_ini_params(phase=2, min_speed=2000,
+                                       max_speed=100000, ramp=400)
+                grating.set_ini_params(phase=3, min_speed=2000,
+                                       max_speed=10000, ramp=400)
+                grating.shift(section.getint('Shift'))
+                grating.config = section
+                gratings.append(grating)
+            elif name.startswith('Slit'):
+                # Slit1, Slit2, etc
+                slit = SlitChannel(
+                    self,
+                    section['Name'].lower().replace(' ', '_'),
+                    self.cli,
+                    self.handle,
+                    motor=int(name[-1]),
+                    # min_value and max_value are used for the slit width,
+                    # not absolute position.
+                    min_value=section.getint('Minum'),
+                    max_value=section.getint('Maxum'),
+                    offset=section.getint('Offset'),
+                    metadata={'Coefficient of linearity': section.getfloat(
+                        'CoefficientOfLinearity'
+                    )}
+                )
+                slit.set_id(section.getint('AddrAxe'))
+                slit.set_setup(min_speed=section.getint('SpeedMin'),
+                               max_speed=section.getint('SpeedMax'),
+                               ramp=section.getint('Acceleration'),
+                               backlash=section.getint('Backlash'),
+                               step=section.getint('MotorStepUnit'),
+                               reverse=section.getboolean('Reverse'))
+                slit.config = section
+                slits.append(slit)
+            elif name.startswith('Mirror'):
+                # Mirror1, Mirror2, etc
+                mirror = DCChannel(
+                    self,
+                    section['Name'].lower().replace(' ', '_'),
+                    self.cli,
+                    self.handle,
+                    motor=int(name[-1]),
+                    val_mapping=dc_val_mappings.get(int(name[-1])),
+                    metadata={'Delay (ms)': section.getint('Delayms'),
+                              'Duty cycle (%)': section.getint('DutyCycle%')}
+                )
+                mirror.set_id(section.getint('AddrAxe'))
+                mirror.config = section
+                mirrors.append(mirror)
 
-        for i, (addr, kw) in enumerate(zip(dc_addrs, dc_kwargs), start=1):
-            dcs.append(DCChannel(self, f'DC_{i}', self.cli, self.handle, i,
-                                 **kw))
-            dcs[-1].set_id(addr)
-        for i, (addr, kw) in enumerate(zip(slit_addrs, slit_kwargs), start=1):
-            slits.append(SlitChannel(self, f'slit_{i}', self.cli, self.handle,
-                                     i, **kw))
-            slits[-1].set_id(addr)
-        for i, (addr, kw) in enumerate(zip(grating_addrs, grating_kwargs),
-                                       start=1):
-            gratings.append(GratingChannel(self, f'grating_{i}', self.cli,
-                                           self.handle, i, **kw))
-            gratings[-1].set_id(addr)
-
-        self.add_submodule('port', PortChannel(self, 'port', self.cli,
-                                               self.handle, port))
-        self.add_submodule('dcs', dcs.to_channel_tuple())
+        self.add_submodule('port', port)
+        self.add_submodule('mirrors', mirrors.to_channel_tuple())
         self.add_submodule('slits', slits.to_channel_tuple())
         self.add_submodule('gratings', gratings.to_channel_tuple())
 
-        self.connect()
-
-    def connect(self):
-        if not self.port.is_open():
-            self.port.open()
-        self.port.set_baud_rate(115200)
+    def get_idn(self) -> Dict[str, str]:
+        return {'serial': self.config['Firmware']['SerialNumber'],
+                'firmware': self.config['Firmware']['VersionNumber'],
+                'model': f"FHR{self.config['Spectrometer']['Focal']}",
+                'vendor': 'Horiba'}
 
     def disconnect(self):
         if self.port.is_open():
