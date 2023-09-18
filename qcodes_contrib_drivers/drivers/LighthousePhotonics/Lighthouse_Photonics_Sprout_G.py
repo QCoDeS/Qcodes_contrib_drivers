@@ -3,7 +3,7 @@ from qcodes.parameters import Parameter, GroupedParameter, DelegateGroup, create
 from qcodes.validators import Enum
 
 
-class SproutG(VisaInstrument):
+class LighthousePhotonicsSproutG(VisaInstrument):
     """Qcodes driver for the Lighthouse Photonics Sprout-G laser.
 
     Inspired by pylablib.
