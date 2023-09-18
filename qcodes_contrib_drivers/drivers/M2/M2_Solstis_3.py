@@ -8,7 +8,7 @@ from qcodes.instrument.ip import IPInstrument
 from qcodes.utils.validators import Numbers, Ints, Enum, MultiType, Anything, Strings
 
 
-class Solstis3(IPInstrument):
+class M2Solstis3(IPInstrument):
     def __init__(self, name, address=None, port=None, timeout=5, controller_address=None,
                   persistent=True, write_confirmation=True, testing=False,**kwargs):
 
