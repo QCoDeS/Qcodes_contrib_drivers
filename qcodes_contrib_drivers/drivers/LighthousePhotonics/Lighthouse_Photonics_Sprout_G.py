@@ -76,7 +76,10 @@ class LighthousePhotonicsSproutG(VisaInstrument):
         response = super().ask(cmd)
         if response.startswith(cmd.replace('?', '=')):
             return response[len(cmd):]
-        msg = f"Unexpected response for command {cmd}: {response}"
+        elif response.isnumeric():
+            msg = f'Unknown command {cmd}.'
+        else:
+            msg = f"Unexpected response for command {cmd}: {response}"
         self.visa_log.exception(msg)
         raise RuntimeError(msg)
 
@@ -86,11 +89,10 @@ class LighthousePhotonicsSproutG(VisaInstrument):
         response = self.visa_handle.read()
         if response == '0':
             return
-        elif response == '1':
-            msg = f'Writing command {cmd} was unsuccessful.'
-            self.visa_log.exception(msg)
-            raise RuntimeError(msg)
-        msg = f'Unexpected response for command {cmd}: {response}'
+        elif response.isnumeric():
+            msg = f'Command {cmd} not accepted.'
+        else:
+            msg = f'Unexpected response for command {cmd}: {response}'
         self.visa_log.exception(msg)
         raise RuntimeError(msg)
 
