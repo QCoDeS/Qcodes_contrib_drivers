@@ -33,12 +33,13 @@ class ThorlabsMFF10x(KinesisInstrument):
             Nicely formatted name of the instrument.
 
     """
+
     def __init__(self, name: str, dll_dir: str | pathlib.Path | None = None,
                  serial: int | None = None,
                  position_mapping: Mapping[str, Literal[1, 2]] | None = None,
                  metadata: Mapping[Any, Any] | None = None,
                  label: str | None = None):
-        super().__init__(name, dll_dir, metadata, label)
+        super().__init__(name, dll_dir, serial, metadata, label)
 
         position_mapping = position_mapping or {'open': 1, 'close': 2}
         self.add_parameter('position',
