@@ -215,17 +215,20 @@ class ThorlabsKinesis:
 
 
 class KinesisInstrument(Instrument, metaclass=abc.ABCMeta):
+
     def __init__(self, name: str, dll_dir: str | pathlib.Path | None = None,
                  serial: int | None = None,
                  metadata: Mapping[Any, Any] | None = None,
                  label: str | None = None):
-        self._initialized: bool = False
         try:
             self.kinesis = ThorlabsKinesis(self.hardware_type.name,
                                            self._prefix, dll_dir)
         except FileNotFoundError:
             # Subclass needs to handle irregular dll name
             self.kinesis = self._init_kinesis(dll_dir)
+
+        self._initialized: bool = False
+        self.kinesis.serialNo.value = serial
 
         super().__init__(name, metadata, label)
 
@@ -234,7 +237,7 @@ class KinesisInstrument(Instrument, metaclass=abc.ABCMeta):
                            set_cmd=self.kinesis.set_polling_duration,
                            unit='ms')
 
-        self.connect(serial)
+        self.connect(self.serial)
 
     def _init_kinesis(self,
                       dll_dir: str | pathlib.Path | None) -> ThorlabsKinesis:
@@ -261,6 +264,10 @@ class KinesisInstrument(Instrument, metaclass=abc.ABCMeta):
             return int(sn.decode())
         return None
 
+    @property
+    def connected(self) -> bool:
+        return self.serial is not None
+
     def list_available_devices(self) -> List[int]:
         self._initialized = True
         try:
@@ -275,12 +282,12 @@ class KinesisInstrument(Instrument, metaclass=abc.ABCMeta):
     def connect(self, serial: int | None, polling_duration: int = 100):
         begin_time = time.time()
         if serial is None or not self._initialized:
-            serials = self.list_available_devices()
+            available_devices = self.list_available_devices()
         if serial is None:
-            if not len(serials):
+            if not len(available_devices):
                 raise RuntimeError(f'No {self.prefix} devices found!')
-            serial = serials[0]
-        if self.serial is not None:
+            serial = available_devices[0]
+        if self.connected:
             warnings.warn('Already connected to device with serial '
                           f'{self.serial}. Disconnecting.',
                           UserWarning, stacklevel=2)
@@ -292,9 +299,10 @@ class KinesisInstrument(Instrument, metaclass=abc.ABCMeta):
         self.connect_message(begin_time=begin_time)
 
     def disconnect(self):
-        self.kinesis.stop_polling()
-        self.kinesis.disconnect()
-        self.kinesis.serialNo.value = None
+        if self.connected:
+            self.kinesis.stop_polling()
+            self.kinesis.disconnect()
+            self.kinesis.serialNo.value = None
 
     def get_idn(self) -> dict[str, str]:
         model, type, num_channels, notes, firmware, hardware, state = \
