@@ -214,7 +214,26 @@ class ThorlabsKinesis:
                 modificationState.value)
 
 
-class KinesisInstrument(Instrument, metaclass=abc.ABCMeta):
+class KinesisInstrument(Instrument, abc.ABC):
+    """Qcodes Instrument subclass for Kinesis instruments.
+
+    Args:
+        name:
+            An identifier for this instrument.
+        dll_dir (optional):
+            The directory where the kinesis dlls reside.
+        serial (optional):
+            The serial number of the device to connect to. If omitted,
+            the first available device found will be used. For a list
+            of all available devices, use
+            :meth:`list_available_devices` on an existing instance or
+            :func:`qcodes_contrib_drivers.drivers.Thorlabs.private.kinesis.core.list_available_devices`.
+        metadata (optional):
+            Additional static metadata.
+        label (optional):
+            Nicely formatted name of the instrument.
+
+    """
 
     def __init__(self, name: str, dll_dir: str | pathlib.Path | None = None,
                  serial: int | None = None,

@@ -10,7 +10,31 @@ from qcodes_contrib_drivers.drivers.Thorlabs.private.kinesis import enums
 
 
 class ThorlabsMFF10x(KinesisInstrument):
+    """Kinesis driver for Thorlabs MFF10x filter flipper.
+
+    Args:
+        name:
+            An identifier for this instrument.
+        dll_dir (optional):
+            The directory where the kinesis dlls reside.
+        serial (optional):
+            The serial number of the device to connect to. If omitted,
+            the first available device found will be used. For a list
+            of all available devices, use
+            :meth:`list_available_devices` on an existing instance or
+            :func:`qcodes_contrib_drivers.drivers.Thorlabs.private.kinesis.core.list_available_devices`.
+        position_mapping (optional):
+            A val mapping for a more human-readable position mapping
+            than the internally used 1 and 2. Defaults to
+            ``{'open': 1, 'close': 2}``.
+        metadata (optional):
+            Additional static metadata.
+        label (optional):
+            Nicely formatted name of the instrument.
+
+    """
     def __init__(self, name: str, dll_dir: str | pathlib.Path | None = None,
+                 serial: int | None = None,
                  position_mapping: Mapping[str, Literal[1, 2]] | None = None,
                  metadata: Mapping[Any, Any] | None = None,
                  label: str | None = None):

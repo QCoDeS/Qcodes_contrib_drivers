@@ -32,6 +32,34 @@ if vxi_32 is not None:
 
 
 class ThorlabsPM100D(Instrument):
+    """TLPM driver for Thorlabs PM100D power meter.
+
+    This driver wraps the example Python driver bundled with the
+    Optical Power Monitor software which can be downloaded `here`_.
+
+    .. _here: https://www.thorlabs.com/software_pages/ViewSoftwarePage.cfm?Code=OPM
+
+    Args:
+        name:
+            An identifier for this instrument.
+        addr (optional):
+            The USB address for the device. If omitted, the first
+            available device found will be used.
+        reset (optional):
+            Reset the instrument on connection. Defaults to False.
+        thorlabs_tlpm (optional):
+            An instance of the :class:`TLPM` class from the power
+            monitor software examples.
+        metadata (optional):
+            Additional static metadata.
+        label (optional):
+            Nicely formatted name of the instrument.
+
+    Raises:
+        FileNotFoundError:
+            If the dll is not found.
+
+    """
     def __init__(self, name: str, addr: str = '', reset: bool = False,
                  thorlabs_tlpm: TLPM | None = None,
                  metadata: Mapping[Any, Any] | None = None,
