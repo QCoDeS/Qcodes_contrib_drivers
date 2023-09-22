@@ -169,7 +169,9 @@ class ThorlabsKinesis:
         getattr(self.lib, f'{self.prefix}_StopPolling')(self.serialNo)
 
     def get_polling_duration(self) -> int:
-        return getattr(self.lib, f'{self.prefix}_PollingDuration')(self.serialNo)
+        return getattr(self.lib, f'{self.prefix}_PollingDuration')(
+            self.serialNo
+        )
 
     def set_polling_duration(self, duration: int):
         self.stop_polling()
@@ -216,11 +218,13 @@ class KinesisInstrument(Instrument, metaclass=abc.ABCMeta):
     def __init__(self, name: str, dll_dir: str | pathlib.Path | None = None,
                  metadata: Mapping[Any, Any] | None = None,
                  label: str | None = None):
+        self._initialized: bool = False
         try:
-            self.kinesis = ThorlabsKinesis(self.hardware_type.name, self._prefix, dll_dir)
+            self.kinesis = ThorlabsKinesis(self.hardware_type.name,
+                                           self._prefix, dll_dir)
         except FileNotFoundError:
             # Subclass needs to handle irregular dll name
-            pass
+            self.kinesis = self._init_kinesis(dll_dir)
 
         super().__init__(name, metadata, label)
 
@@ -228,6 +232,12 @@ class KinesisInstrument(Instrument, metaclass=abc.ABCMeta):
                            get_cmd=self.kinesis.get_polling_duration,
                            set_cmd=self.kinesis.set_polling_duration,
                            unit='ms')
+
+    def _init_kinesis(self,
+                      dll_dir: str | pathlib.Path | None) -> ThorlabsKinesis:
+        raise NotImplementedError(f'The subclass {type(self)} should override '
+                                  'the _init_kinesis() method for irregular '
+                                  'dll name.')
 
     @classmethod
     @property
@@ -249,25 +259,34 @@ class KinesisInstrument(Instrument, metaclass=abc.ABCMeta):
         return None
 
     def list_available_devices(self) -> List[int]:
-        return [serial for _, serial in
-                list_available_devices(self.kinesis.lib, self.hardware_type)]
+        self._initialized = True
+        try:
+            return [serial for _, serial in
+                    list_available_devices(self.kinesis.lib,
+                                           self.hardware_type)]
+        except KinesisError:
+            self._initialized = False
+            raise
 
     def connect(self, serial: int, polling_duration: int = 100):
+        begin_time = time.time()
+        if not self._initialized:
+            self.list_available_devices()
         if self.serial is not None:
-            warnings.warn('Already connected to  device with serial '
+            warnings.warn('Already connected to device with serial '
                           f'{self.serial}. Disconnecting.',
                           UserWarning, stacklevel=2)
             self.disconnect()
 
+        old_serial_value = self.kinesis.serialNo.value
         try:
-            old_serial_value = self.kinesis.serialNo.value
             self.kinesis.serialNo.value = str(serial).encode()
             self.kinesis.connect()
         except KinesisError:
             self.kinesis.serialNo.value = old_serial_value
             raise
         self.kinesis.start_polling(polling_duration)
-        self.connect_message()
+        self.connect_message(begin_time=begin_time)
 
     def disconnect(self):
         self.kinesis.stop_polling()
