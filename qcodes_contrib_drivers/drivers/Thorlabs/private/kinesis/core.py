@@ -216,6 +216,7 @@ class ThorlabsKinesis:
 
 class KinesisInstrument(Instrument, metaclass=abc.ABCMeta):
     def __init__(self, name: str, dll_dir: str | pathlib.Path | None = None,
+                 serial: int | None = None,
                  metadata: Mapping[Any, Any] | None = None,
                  label: str | None = None):
         self._initialized: bool = False
@@ -232,6 +233,8 @@ class KinesisInstrument(Instrument, metaclass=abc.ABCMeta):
                            get_cmd=self.kinesis.get_polling_duration,
                            set_cmd=self.kinesis.set_polling_duration,
                            unit='ms')
+
+        self.connect(serial)
 
     def _init_kinesis(self,
                       dll_dir: str | pathlib.Path | None) -> ThorlabsKinesis:
@@ -261,30 +264,30 @@ class KinesisInstrument(Instrument, metaclass=abc.ABCMeta):
     def list_available_devices(self) -> List[int]:
         self._initialized = True
         try:
-            return [serial for _, serial in
-                    list_available_devices(self.kinesis.lib,
-                                           self.hardware_type)]
+            return [
+                serial for _, serial in
+                list_available_devices(self.kinesis.lib, self.hardware_type)
+            ]
         except KinesisError:
             self._initialized = False
             raise
 
-    def connect(self, serial: int, polling_duration: int = 100):
+    def connect(self, serial: int | None, polling_duration: int = 100):
         begin_time = time.time()
-        if not self._initialized:
-            self.list_available_devices()
+        if serial is None or not self._initialized:
+            serials = self.list_available_devices()
+        if serial is None:
+            if not len(serials):
+                raise RuntimeError(f'No {self.prefix} devices found!')
+            serial = serials[0]
         if self.serial is not None:
             warnings.warn('Already connected to device with serial '
                           f'{self.serial}. Disconnecting.',
                           UserWarning, stacklevel=2)
             self.disconnect()
 
-        old_serial_value = self.kinesis.serialNo.value
-        try:
-            self.kinesis.serialNo.value = str(serial).encode()
-            self.kinesis.connect()
-        except KinesisError:
-            self.kinesis.serialNo.value = old_serial_value
-            raise
+        self.kinesis.serialNo.value = str(serial).encode()
+        self.kinesis.connect()
         self.kinesis.start_polling(polling_duration)
         self.connect_message(begin_time=begin_time)
 
