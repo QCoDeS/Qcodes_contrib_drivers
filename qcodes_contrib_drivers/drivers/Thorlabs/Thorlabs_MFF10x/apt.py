@@ -76,6 +76,7 @@ class ThorlabsMFF10x(Instrument):
 
 
 class MFF10x(ThorlabsMFF10x):
-    def __post_init__(self):
+    def __init__(self, name: str, device_id: int, apt: Thorlabs_APT, **kwargs):
         warnings.warn('This class name is deprecated. Please use the ThorlabsMFF10x class instead',
                       DeprecationWarning)
+        super().__init__(name, device_id, apt, **kwargs)
