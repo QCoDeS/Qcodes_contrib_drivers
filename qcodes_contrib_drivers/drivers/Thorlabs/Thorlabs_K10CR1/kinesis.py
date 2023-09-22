@@ -1,12 +1,20 @@
+from __future__ import annotations
+
+import pathlib
+from functools import partial
+from typing import Mapping, Any
+
+from qcodes import validators as vals
+from qcodes_contrib_drivers.drivers.Thorlabs.private.kinesis import enums
 from qcodes_contrib_drivers.drivers.Thorlabs.private.kinesis.enums import (
     KinesisHWType
 )
 from qcodes_contrib_drivers.drivers.Thorlabs.private.kinesis.isc import (
-    KinesisIntegratedStepperMotor
+    KinesisISCIntrument
 )
 
 
-class ThorlabsK10CR1(KinesisIntegratedStepperMotor):
+class ThorlabsK10CR1(KinesisISCIntrument):
     """Kinesis driver for Thorlabs K10CR1 cage rotator.
 
     Args:
@@ -26,10 +34,25 @@ class ThorlabsK10CR1(KinesisIntegratedStepperMotor):
             Nicely formatted name of the instrument.
 
     """
-    @classmethod
-    @property
-    def _prefix(self):
-        return 'ISC'
+
+    def __init__(self, name: str, dll_dir: str | pathlib.Path | None = None,
+                 serial: int | None = None,
+                 metadata: Mapping[Any, Any] | None = None,
+                 label: str | None = None):
+        super().__init__(name, dll_dir, serial, metadata, label)
+
+        self.add_parameter(
+            "position",
+            get_cmd=self.kinesis.get_position,
+            set_cmd=self.kinesis.set_position,
+            get_parser=partial(self.kinesis.real_value_from_device_unit,
+                               unit_type=enums.ISCUnitType.Distance),
+            set_parser=partial(self.kinesis.device_unit_from_real_value,
+                               unit_type=enums.ISCUnitType.Distance),
+            vals=vals.Numbers(0, 360),
+            unit=u"\u00b0",
+            label="Position"
+        )
 
     @classmethod
     @property
