@@ -29,7 +29,9 @@ class StructureWithEnums(ctypes.Structure):
             if attr in self._map:
                 attrType = self._map[attr]
             value = getattr(self, attr)
-            result.append("    {0} [{1}] = {2!r};".format(attr, attrType.__name__, value))
+            result.append("    {0} [{1}] = {2!r};".format(
+                attr, attrType.__name__, value)
+            )
         result.append("};")
         return '\n'.join(result)
 
@@ -39,10 +41,10 @@ class StructureWithEnums(ctypes.Structure):
 class VelocityParameters(ctypes.Structure):
     """Structure containing the velocity parameters.
 
-    Moves are performed using a velocity profile. The move starts at the
-    Minimum Velocity (always 0 at present) and accelerated to the
-    Maximum Velocity using the defined Acceleration. The move is usually
-    completed using a similar deceleration.
+    Moves are performed using a velocity profile. The move starts at
+    the Minimum Velocity (always 0 at present) and accelerated to the
+    Maximum Velocity using the defined Acceleration. The move is
+    usually completed using a similar deceleration.
 
     Fields
     ------
@@ -113,8 +115,8 @@ class HomingParameters(StructureWithEnums):
 
     Homing is performed using a constant velocity. The home starts
     moving the motor in the defined direction until the limit switch is
-    detected. The device will then back off from the limit switch by the
-    defined offset distance.
+    detected. The device will then back off from the limit switch by
+    the defined offset distance.
 
     Fields
     ------
@@ -156,4 +158,5 @@ class HomingParameters(StructureWithEnums):
                 ('offsetDistance', ctypes.c_uint),
                 ('velocity', ctypes.c_uint)]
 
-    _map = {'direction': enums.TravelDirection, 'limitSwitch': enums.HomeLimitSwitchDirection}
+    _map = {'direction': enums.TravelDirection,
+            'limitSwitch': enums.HomeLimitSwitchDirection}
