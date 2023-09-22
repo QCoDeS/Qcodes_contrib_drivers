@@ -1,7 +1,7 @@
-from qcodes_contrib_drivers.drivers.Thorlabs._kinesis.core import (
+from qcodes_contrib_drivers.drivers.Thorlabs.private.kinesis.enums import (
     KinesisHWType
 )
-from qcodes_contrib_drivers.drivers.Thorlabs._kinesis.isc import (
+from qcodes_contrib_drivers.drivers.Thorlabs.private.kinesis.isc import (
     KinesisIntegratedStepperMotor
 )
 

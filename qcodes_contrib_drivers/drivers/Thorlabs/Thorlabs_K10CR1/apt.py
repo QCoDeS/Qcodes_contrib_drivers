@@ -1,10 +1,11 @@
 import enum
 from typing import Tuple
+import warnings
 
 import qcodes.utils.validators as vals
 from qcodes import Instrument
 
-from qcodes_contrib_drivers.drivers.Thorlabs.APT import Thorlabs_APT, ThorlabsHWType
+from qcodes_contrib_drivers.drivers.Thorlabs.private.APT import Thorlabs_APT, ThorlabsHWType
 
 
 class RotationDirection(enum.Enum):
@@ -19,7 +20,7 @@ class HomeLimitSwitch(enum.Enum):
     FORWARD = "fwd"
 
 
-class K10CR1(Instrument):
+class ThorlabsK10CR1(Instrument):
     """
     Instrument driver for the Thorlabs K10CR1 rotator.
 
@@ -265,3 +266,9 @@ class K10CR1(Instrument):
 
     def _move_home_async(self):
         self.apt.mot_move_home(self.serial_number, False)
+
+
+class K10CR1(ThorlabsK10CR1):
+    def __post_init__(self):
+        warnings.warn('This class name is deprecated. Please use the ThorlabsK10CR1 class instead',
+                      DeprecationWarning)

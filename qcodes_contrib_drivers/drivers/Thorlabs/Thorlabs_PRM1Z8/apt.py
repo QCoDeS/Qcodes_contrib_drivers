@@ -1,37 +1,21 @@
+import warnings
+
 from qcodes import Instrument
-from qcodes_contrib_drivers.drivers.Thorlabs.APT import Thorlabs_APT, ThorlabsHWType
+from qcodes_contrib_drivers.drivers.Thorlabs.private.APT import Thorlabs_APT, ThorlabsHWType
 
 
-def _position_get_parser(val) -> str:
-    val = int(val)
-    if val == 0:
-        return 'open'
-    elif val == 1:
-        return 'close'
-    raise ValueError('Invalid return code', val)
-
-
-def _position_set_parser(val) -> int:
-    if val == 'open':
-        return 0
-    elif val == 'close':
-        return 1
-    else:
-        return int(val)
-
-
-class Thorlabs_MFF10x(Instrument):
+class ThorlabsPRM1Z8(Instrument):
     """
-    Instrument driver for the Thorlabs MFF10x mirror flipper.
+    Instrument driver for the Thorlabs PRMZ1Z8 polarizer wheel.
 
     Args:
         name: Instrument name.
-        device_id: ID for the desired mirror flipper.
+        device_id: ID for the desired polarizer wheel.
         apt: Thorlabs APT server.
 
     Attributes:
         apt: Thorlabs APT server.
-        serial_number: Serial number of the mirror flipper.
+        serial_number: Serial number of the polarizer wheel.
         model: Model description.
         version: Firmware version.
     """
@@ -44,7 +28,7 @@ class Thorlabs_MFF10x(Instrument):
         self.apt = apt
 
         # initialization
-        self.serial_number: int = self.apt.get_hw_serial_num_ex(ThorlabsHWType.MFF10x, device_id)
+        self.serial_number: int = self.apt.get_hw_serial_num_ex(ThorlabsHWType.PRM1Z8, device_id)
         self.apt.init_hw_device(self.serial_number)
         self.model, self.version, _ = self.apt.get_hw_info(self.serial_number)
 
@@ -52,8 +36,7 @@ class Thorlabs_MFF10x(Instrument):
         self.add_parameter('position',
                            get_cmd=self._get_position,
                            set_cmd=self._set_position,
-                           get_parser=_position_get_parser,
-                           set_parser=_position_set_parser,
+                           unit=u"\u00b0",
                            label='Position')
 
         # print connect message
@@ -65,9 +48,14 @@ class Thorlabs_MFF10x(Instrument):
                 'firmware': self.version, 'serial': self.serial_number}
 
     def _get_position(self):
-        status_bits = bin(self.apt.mot_get_status_bits(self.serial_number) & 0xffffffff)
-        return status_bits[-1]
+        return self.apt.mot_get_position(self.serial_number)
 
     # set methods
     def _set_position(self, position):
-        self.apt.mot_move_jog(self.serial_number, position+1, False)
+        self.apt.mot_move_absolute_ex(self.serial_number, position, True)
+
+
+class Thorlabs_PRM1Z8(ThorlabsPRM1Z8):
+    def __post_init__(self):
+        warnings.warn('This class name is deprecated. Please use the ThorlabsPRM1Z8 class instead',
+                      DeprecationWarning)

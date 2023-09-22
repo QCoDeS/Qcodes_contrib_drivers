@@ -1,14 +1,10 @@
 from __future__ import annotations
 
-import ctypes
 import pathlib
-import warnings
 from typing import Mapping, Any
 
-from qcodes.validators import validators
-from qcodes_contrib_drivers.drivers.Thorlabs._kinesis import enums
-from qcodes_contrib_drivers.drivers.Thorlabs._kinesis.core import (
-    ThorlabsKinesis,
+from qcodes_contrib_drivers.drivers.Thorlabs.private.kinesis import enums
+from qcodes_contrib_drivers.drivers.Thorlabs.private.kinesis import (
     KinesisInstrument
 )
 
@@ -35,10 +31,9 @@ class ThorlabsMFF10x(KinesisInstrument):
     def __init__(self, name: str, dll_dir: str | pathlib.Path | None = None,
                  metadata: Mapping[Any, Any] | None = None,
                  label: str | None = None):
-        self.kinesis = ThorlabsKinesis('FilterFlipper', dll_dir)
-
         super().__init__(name, dll_dir, metadata, label)
 
+        # TODO: The positions might be different elsewhere.
         self.add_parameter('position',
                            get_cmd=self.kinesis.get_position,
                            set_cmd=self.kinesis.set_position,
