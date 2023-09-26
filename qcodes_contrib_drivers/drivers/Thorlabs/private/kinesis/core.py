@@ -166,9 +166,24 @@ class ThorlabsKinesis:
         parts = [f'{i:02d}' for i in fw.to_bytes(length=4, byteorder='big')]
         return '.'.join(parts).lstrip('0.')
 
-    def get_function(self, name: str):
-        return partial(getattr(self.lib, f'{self.prefix}_{name}'),
-                       self.serialNo)
+    def get_function(self, name: str, check_errors: bool = False,
+                     check_success: bool = False) -> callable:
+        """Convenience method for getting a function from the dll.
+
+        If check_errors or check_success is True, the return value of
+        the function will be checked for the respective codes.
+        """
+        try:
+            func = partial(getattr(self.lib, f'{self.prefix}_{name}'),
+                           self.serialNo)
+        except AttributeError as err:
+            raise AttributeError(f'Function {self.prefix}_{name} not found in '
+                                 f'dll {self.lib}') from err
+        if check_errors:
+            func = error_check(func)
+        if check_success:
+            func = success_check(func)
+        return func
 
     def enable_simulation(self) -> None:
         """Initialise a connection to the simulation manager, which must
@@ -184,26 +199,22 @@ class ThorlabsKinesis:
     def build_device_list(self):
         return self.lib.TLI_BuildDeviceList()
 
-    @success_check
     def load_settings(self):
-        return self.get_function('LoadSettings')()
+        return self.get_function('LoadSettings', check_success=True)()
 
-    @error_check
     def request_status(self):
-        return self.get_function('RequestStatus')()
+        return self.get_function('RequestStatus', check_errors=True)()
 
     def get_position(self) -> int | float | str:
         self.request_status()
         time.sleep(self.get_polling_duration() * 1e-3)
         return self.get_function('GetPosition')()
 
-    @error_check
     def set_position(self, val: int | str):
-        return self.get_function('MoveToPosition')(val)
+        return self.get_function('MoveToPosition', check_errors=True)(val)
 
-    @success_check
     def start_polling(self, duration: int):
-        return self.get_function('StartPolling')(duration)
+        return self.get_function('StartPolling', check_success=True)(duration)
 
     def stop_polling(self):
         return self.get_function('StopPolling')()
@@ -215,9 +226,8 @@ class ThorlabsKinesis:
         self.stop_polling()
         self.start_polling(duration)
 
-    @error_check
     def connect(self, polling_duration: int = 100):
-        return self.get_function('Open')()
+        return self.get_function('Open', check_errors=True)()
 
     def disconnect(self):
         self.get_function('Close')()
@@ -230,7 +240,7 @@ class ThorlabsKinesis:
         firmwareVersion = ctypes.wintypes.DWORD()
         hardwareVersion = ctypes.wintypes.WORD()
         modificationState = ctypes.wintypes.WORD()
-        error_check(self.get_function('GetHardwareInfo'))(
+        self.get_function('GetHardwareInfo', check_errors=True)(
             modelNo, 64,
             ctypes.byref(type),
             ctypes.byref(numChannels),
@@ -261,7 +271,8 @@ class ThorlabsKinesis:
                             f'not {type(unit_type)}')
 
         device_unit = ctypes.c_int()
-        success_check(self.get_function('GetDeviceUnitFromRealValue'))(
+        # Documentation says success is returned, but actually the error code
+        self.get_function('GetDeviceUnitFromRealValue', check_errors=True)(
             ctypes.c_double(real_unit),
             ctypes.byref(device_unit),
             unit_type.value,
