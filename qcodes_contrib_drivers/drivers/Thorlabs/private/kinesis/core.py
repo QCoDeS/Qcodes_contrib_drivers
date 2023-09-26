@@ -438,6 +438,9 @@ def list_available_devices(
     error_check(lib.TLI_BuildDeviceList())
     n: int = lib.TLI_GetDeviceListSize()
 
+    if not n:
+        return []
+
     devices = []
     hw_type_list = []
     if hardware_type is not None:
@@ -452,16 +455,18 @@ def list_available_devices(
 
     for hw_type_id in hw_type_list:
         # char array, 8 bytes for serial number, 1 for delimiter, plus 1
-        # surplus needed apparently
-        serialNo = (ctypes.c_char * (9 + 1))()
+        # surplus needed, apparently. Since the function returns all serials
+        # of a given hardware type, the char buffer needs to be large enough
+        # to accomodate the worst case (all devices are of this hardware type)
+        serialNo = (ctypes.c_char * (8 * n + 1 + 1))()
 
         error_check(lib.TLI_GetDeviceListByTypeExt)(
             ctypes.byref(serialNo),
-            ctypes.wintypes.DWORD(9 + 1),
+            ctypes.wintypes.DWORD(8 * n + 1 + 1),
             hw_type_id
         )
         if serialNo.value:
-            devices.append((enums.KinesisHWType(hw_type_id), int(serialNo.value.rstrip(b','))))
+            devices.append((enums.KinesisHWType(hw_type_id), int(serialNo.value.split(b',')[0])))
         if len(devices) == n:
             # Found all devices already
             break
