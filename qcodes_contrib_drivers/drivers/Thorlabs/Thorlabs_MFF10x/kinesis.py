@@ -23,6 +23,11 @@ class ThorlabsMFF10x(KinesisInstrument):
             of all available devices, use
             :meth:`list_available_devices` on an existing instance or
             :func:`qcodes_contrib_drivers.drivers.Thorlabs.private.kinesis.core.list_available_devices`.
+        simulation (optional):
+            Enable the Kinesis simulator mode. Note that the serial
+            number assigned to the simulated device should be given
+            since otherwise the first available device will be
+            connected (which might not be a simulated but a real one).
         position_mapping (optional):
             A val mapping for a more human-readable position mapping
             than the internally used 1 and 2. Defaults to
@@ -35,11 +40,11 @@ class ThorlabsMFF10x(KinesisInstrument):
     """
 
     def __init__(self, name: str, dll_dir: str | pathlib.Path | None = None,
-                 serial: int | None = None,
+                 serial: int | None = None, simulation: bool = False,
                  position_mapping: Mapping[str, Literal[1, 2]] | None = None,
                  metadata: Mapping[Any, Any] | None = None,
                  label: str | None = None):
-        super().__init__(name, dll_dir, serial, metadata, label)
+        super().__init__(name, dll_dir, serial, simulation, metadata, label)
 
         position_mapping = position_mapping or {'open': 1, 'close': 2}
         self.add_parameter('position',

@@ -12,21 +12,26 @@ class KinesisISCIntrument(KinesisInstrument, ABC):
     """
 
     def __init__(self, name: str, dll_dir: str | pathlib.Path | None = None,
-                 serial: int | None = None, metadata: Mapping[Any, Any] | None = None,
+                 serial: int | None = None, simulation: bool = False,
+                 metadata: Mapping[Any, Any] | None = None,
                  label: str | None = None):
-        super().__init__(name, dll_dir, serial, metadata, label)
+        super().__init__(name, dll_dir, serial, simulation, metadata, label)
 
         # Update the device with stored settings. This is necessary to be able
         # to convert units since there are specific formulae for each motor
         # taking into account Gearing, Pitch, Steps Per Revolution etc.
         self.kinesis.load_settings()
 
-    def _init_kinesis(self,
-                      dll_dir: str | pathlib.Path | None) -> ThorlabsKinesis:
+    def _init_kinesis(
+            self,
+            dll_dir: str | pathlib.Path | None,
+            simulation: bool
+    ) -> ThorlabsKinesis:
         return ThorlabsKinesis(
             'Thorlabs.MotionControl.IntegratedStepperMotors.dll',
             self._prefix,
-            dll_dir
+            dll_dir,
+            simulation
         )
 
     @classmethod

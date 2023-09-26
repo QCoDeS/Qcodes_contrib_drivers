@@ -28,6 +28,11 @@ class ThorlabsK10CR1(KinesisISCIntrument):
             of all available devices, use
             :meth:`list_available_devices` on an existing instance or
             :func:`qcodes_contrib_drivers.drivers.Thorlabs.private.kinesis.core.list_available_devices`.
+        simulation (optional):
+            Enable the Kinesis simulator mode. Note that the serial
+            number assigned to the simulated device should be given
+            since otherwise the first available device will be
+            connected (which might not be a simulated but a real one).
         metadata (optional):
             Additional static metadata.
         label (optional):
@@ -36,10 +41,10 @@ class ThorlabsK10CR1(KinesisISCIntrument):
     """
 
     def __init__(self, name: str, dll_dir: str | pathlib.Path | None = None,
-                 serial: int | None = None,
+                 serial: int | None = None, simulation: bool = False,
                  metadata: Mapping[Any, Any] | None = None,
                  label: str | None = None):
-        super().__init__(name, dll_dir, serial, metadata, label)
+        super().__init__(name, dll_dir, serial, simulation, metadata, label)
 
         self.add_parameter(
             "position",

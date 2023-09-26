@@ -136,8 +136,13 @@ def error_check(func):
 class ThorlabsKinesis:
 
     def __init__(self, lib: str, prefix: str,
-                 dll_dir: str | os.PathLike | None = None):
+                 dll_dir: str | os.PathLike | None = None,
+                 simulation: bool = False):
+
+        self.prefix = prefix
         self.dll_dir = os.add_dll_directory(dll_dir or DLL_DIR)
+        self.serialNo = ctypes.c_char_p()
+        self.simulation = simulation
 
         if not lib.startswith("Thorlabs.MotionControl"):
             lib = "Thorlabs.MotionControl." + lib
@@ -148,10 +153,10 @@ class ThorlabsKinesis:
             raise FileNotFoundError(f'Did not find DLL {dll}')
 
         self.lib: ctypes.CDLL = ctypes.cdll.LoadLibrary(str(lib))
-        self.build_device_list()
+        if simulation:
+            self.enable_simulation()
 
-        self.prefix = prefix
-        self.serialNo = ctypes.c_char_p()
+        self.build_device_list()
 
     def __del__(self):
         self.dll_dir.close()
@@ -164,6 +169,16 @@ class ThorlabsKinesis:
     def get_function(self, name: str):
         return partial(getattr(self.lib, f'{self.prefix}_{name}'),
                        self.serialNo)
+
+    def enable_simulation(self) -> None:
+        """Initialise a connection to the simulation manager, which must
+        already be running."""
+        self.lib.TLI_InitializeSimulations()
+
+    def disable_simulation(self) -> None:
+        """Uninitialize a connection to the simulation manager, which
+        must be running."""
+        self.lib.TLI_UninitializeSimulations()
 
     @error_check
     def build_device_list(self):
@@ -286,6 +301,11 @@ class KinesisInstrument(Instrument, abc.ABC):
             of all available devices, use
             :meth:`list_available_devices` on an existing instance or
             :func:`qcodes_contrib_drivers.drivers.Thorlabs.private.kinesis.core.list_available_devices`.
+        simulation (optional):
+            Enable the Kinesis simulator mode. Note that the serial
+            number assigned to the simulated device should be given
+            since otherwise the first available device will be
+            connected (which might not be a simulated but a real one).
         metadata (optional):
             Additional static metadata.
         label (optional):
@@ -294,15 +314,15 @@ class KinesisInstrument(Instrument, abc.ABC):
     """
 
     def __init__(self, name: str, dll_dir: str | pathlib.Path | None = None,
-                 serial: int | None = None,
+                 serial: int | None = None, simulation: bool = False,
                  metadata: Mapping[Any, Any] | None = None,
                  label: str | None = None):
         try:
             self.kinesis = ThorlabsKinesis(self.hardware_type.name,
-                                           self._prefix, dll_dir)
+                                           self._prefix, dll_dir, simulation)
         except FileNotFoundError:
             # Subclass needs to handle irregular dll name
-            self.kinesis = self._init_kinesis(dll_dir)
+            self.kinesis = self._init_kinesis(dll_dir, simulation)
 
         self._initialized: bool = False
 
@@ -316,7 +336,8 @@ class KinesisInstrument(Instrument, abc.ABC):
         self.connect(serial)
 
     def _init_kinesis(self,
-                      dll_dir: str | pathlib.Path | None) -> ThorlabsKinesis:
+                      dll_dir: str | pathlib.Path | None,
+                      simulation: bool) -> ThorlabsKinesis:
         raise NotImplementedError(f'The subclass {type(self)} should override '
                                   'the _init_kinesis() method for irregular '
                                   'dll name.')
@@ -375,6 +396,8 @@ class KinesisInstrument(Instrument, abc.ABC):
         self.connect_message(begin_time=begin_time)
 
     def disconnect(self):
+        if self.kinesis.simulation:
+            self.kinesis.disable_simulation()
         if self.connected:
             self.kinesis.stop_polling()
             self.kinesis.disconnect()
