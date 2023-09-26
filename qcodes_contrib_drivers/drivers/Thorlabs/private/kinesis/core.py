@@ -213,6 +213,25 @@ class ThorlabsKinesis:
     def move_to_position(self, val: int | str):
         return self.get_function('MoveToPosition', check_errors=True)(val)
 
+    def get_motor_params_ext(self) -> Tuple[float, float, float]:
+        stepsPerRev = ctypes.c_double()
+        gearBoxRatio = ctypes.c_double()
+        pitch = ctypes.c_double()
+        self.get_function('GetMotorParamsExt', check_errors=True)(
+            ctypes.byref(stepsPerRev),
+            ctypes.byref(gearBoxRatio),
+            ctypes.byref(pitch)
+        )
+        return stepsPerRev.value, gearBoxRatio.value, pitch.value
+
+    def set_motor_params_ext(self, steps_per_rev: float, gearbox_ratio: float,
+                             pitch: float):
+        self.get_function('SetMotorParamsExt', check_errors=True)(
+            ctypes.c_double(steps_per_rev),
+            ctypes.c_double(gearbox_ratio),
+            ctypes.c_double(pitch)
+        )
+
     def start_polling(self, duration: int):
         return self.get_function('StartPolling', check_success=True)(duration)
 
@@ -262,6 +281,11 @@ class ThorlabsKinesis:
             real_unit: float,
             unit_type: enums.ISCUnitType
     ) -> ctypes.c_int:
+        """Convert real values to device units.
+
+        In order to do this, the device settings must be loaded using
+        :meth:`load_settings`
+        """
         if isinstance(unit_type, int):
             unit_type = enums.ISCUnitType(unit_type)
         elif isinstance(unit_type, str):
@@ -281,6 +305,11 @@ class ThorlabsKinesis:
 
     def real_value_from_device_unit(self, device_unit: ctypes.c_int,
                                     unit_type: enums.ISCUnitType) -> float:
+        """Convert device units to real values.
+
+        In order to do this, the device settings must be loaded using
+        :meth:`load_settings`
+        """
         if isinstance(unit_type, int):
             unit_type = enums.ISCUnitType(unit_type)
         elif isinstance(unit_type, str):
