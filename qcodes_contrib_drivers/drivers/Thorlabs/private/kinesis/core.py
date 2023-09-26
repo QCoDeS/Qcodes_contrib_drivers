@@ -115,10 +115,10 @@ ERROR_MESSAGES = {
 def success_check(func):
     """Wraps functions that return a boolean success code.
 
-    0 means success, 1 means failure."""
+    1 means success, 0 means failure."""
     @wraps(func)
     def wrapped(*args, **kwargs):
-        if func(*args, **kwargs):
+        if not func(*args, **kwargs):
             raise KinesisError('Unspecified failure.')
     return wrapped
 
