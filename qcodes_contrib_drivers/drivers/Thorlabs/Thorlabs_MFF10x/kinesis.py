@@ -49,7 +49,7 @@ class ThorlabsMFF10x(KinesisInstrument):
         position_mapping = position_mapping or {'open': 1, 'close': 2}
         self.add_parameter('position',
                            get_cmd=self.kinesis.get_position,
-                           set_cmd=self.kinesis.set_position,
+                           set_cmd=self.kinesis.move_to_position,
                            val_mapping=position_mapping,
                            label='Position')
 

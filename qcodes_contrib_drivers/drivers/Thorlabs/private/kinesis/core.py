@@ -210,7 +210,7 @@ class ThorlabsKinesis:
         time.sleep(self.get_polling_duration() * 1e-3)
         return self.get_function('GetPosition')()
 
-    def set_position(self, val: int | str):
+    def move_to_position(self, val: int | str):
         return self.get_function('MoveToPosition', check_errors=True)(val)
 
     def start_polling(self, duration: int):
@@ -226,10 +226,10 @@ class ThorlabsKinesis:
         self.stop_polling()
         self.start_polling(duration)
 
-    def connect(self, polling_duration: int = 100):
+    def open(self):
         return self.get_function('Open', check_errors=True)()
 
-    def disconnect(self):
+    def close(self):
         self.get_function('Close')()
 
     def get_hw_info(self) -> Tuple[str, int, int, str, str, int, int]:
@@ -402,7 +402,7 @@ class KinesisInstrument(Instrument, abc.ABC):
             self.disconnect()
 
         self.kinesis.serialNo.value = str(serial).encode()
-        self.kinesis.connect()
+        self.kinesis.open()
         self.kinesis.start_polling(polling_duration)
         self.connect_message(begin_time=begin_time)
 
@@ -411,7 +411,7 @@ class KinesisInstrument(Instrument, abc.ABC):
             self.kinesis.disable_simulation()
         if self.connected:
             self.kinesis.stop_polling()
-            self.kinesis.disconnect()
+            self.kinesis.close()
             self.kinesis.serialNo.value = None
 
     def get_idn(self) -> dict[str, str]:

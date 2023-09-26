@@ -49,7 +49,7 @@ class ThorlabsK10CR1(KinesisISCIntrument):
         self.add_parameter(
             "position",
             get_cmd=self.kinesis.get_position,
-            set_cmd=self.kinesis.set_position,
+            set_cmd=self.kinesis.move_to_position,
             get_parser=partial(self.kinesis.real_value_from_device_unit,
                                unit_type=enums.ISCUnitType.Distance),
             set_parser=partial(self.kinesis.device_unit_from_real_value,
