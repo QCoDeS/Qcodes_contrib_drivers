@@ -60,10 +60,8 @@ def test_arrangement_sweep(qdac):  # noqa
         'sour1:list:coun 1',
         'sour1:dc:trig:sour bus',
         'sour1:dc:init:cont on',
-        'sour1:dc:init',
         'sour1:dc:trig:sour int1',
         'sour1:dc:init:cont on',
-        'sour1:dc:init',
         # Plunger 2
         'sour2:dc:trig:sour hold',
         'sour2:volt:mode list',
@@ -75,10 +73,8 @@ def test_arrangement_sweep(qdac):  # noqa
         'sour2:list:coun 1',
         'sour2:dc:trig:sour bus',
         'sour2:dc:init:cont on',
-        'sour2:dc:init',
         'sour2:dc:trig:sour int1',
         'sour2:dc:init:cont on',
-        'sour2:dc:init',
         # Plunger 3
         'sour3:dc:trig:sour hold',
         'sour3:volt:mode list',
@@ -90,10 +86,8 @@ def test_arrangement_sweep(qdac):  # noqa
         'sour3:list:coun 1',
         'sour3:dc:trig:sour bus',
         'sour3:dc:init:cont on',
-        'sour3:dc:init',
         'sour3:dc:trig:sour int1',
         'sour3:dc:init:cont on',
-        'sour3:dc:init',
         # Start sweep
         'tint 1'
     ]
@@ -215,10 +209,8 @@ def test_stability_diagram_external(qdac):  # noqa
         'sour3:list:coun 1',
         'sour3:dc:trig:sour bus',
         'sour3:dc:init:cont on',
-        'sour3:dc:init',
         'sour3:dc:trig:sour int2',
         'sour3:dc:init:cont on',
-        'sour3:dc:init',
         # Plunger 2
         'sour6:dc:trig:sour hold',
         'sour6:volt:mode list',
@@ -230,10 +222,8 @@ def test_stability_diagram_external(qdac):  # noqa
         'sour6:list:coun 1',
         'sour6:dc:trig:sour bus',
         'sour6:dc:init:cont on',
-        'sour6:dc:init',
         'sour6:dc:trig:sour int2',
         'sour6:dc:init:cont on',
-        'sour6:dc:init',
         # Plunger 3
         'sour7:dc:trig:sour hold',
         'sour7:volt:mode list',
@@ -245,10 +235,8 @@ def test_stability_diagram_external(qdac):  # noqa
         'sour7:list:coun 1',
         'sour7:dc:trig:sour bus',
         'sour7:dc:init:cont on',
-        'sour7:dc:init',
         'sour7:dc:trig:sour int2',
         'sour7:dc:init:cont on',
-        'sour7:dc:init',
         # Plunger 4
         'sour8:dc:trig:sour hold',
         'sour8:volt:mode list',
@@ -260,10 +248,8 @@ def test_stability_diagram_external(qdac):  # noqa
         'sour8:list:coun 1',
         'sour8:dc:trig:sour bus',
         'sour8:dc:init:cont on',
-        'sour8:dc:init',
         'sour8:dc:trig:sour int2',
         'sour8:dc:init:cont on',
-        'sour8:dc:init',
         # Start sweep
         'tint 2'
     ]
@@ -309,10 +295,8 @@ def test_arrangement_detune(qdac):  # noqa
         'sour1:list:coun 2',
         'sour1:dc:trig:sour bus',
         'sour1:dc:init:cont on',
-        'sour1:dc:init',
         'sour1:dc:trig:sour int1',
         'sour1:dc:init:cont on',
-        'sour1:dc:init',
         # Plunger 2
         'sour2:dc:trig:sour hold',
         'sour2:volt:mode list',
@@ -324,10 +308,8 @@ def test_arrangement_detune(qdac):  # noqa
         'sour2:list:coun 2',
         'sour2:dc:trig:sour bus',
         'sour2:dc:init:cont on',
-        'sour2:dc:init',
         'sour2:dc:trig:sour int1',
         'sour2:dc:init:cont on',
-        'sour2:dc:init',
         # Start sweep
         'tint 1'
     ]

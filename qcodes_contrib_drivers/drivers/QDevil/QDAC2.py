@@ -10,7 +10,7 @@ from typing import NewType, Tuple, Sequence, List, Dict, Optional
 from packaging.version import Version, parse
 import abc
 
-# Version 1.4.0
+# Version 1.6.0
 #
 # Guiding principles for this driver for QDevil QDAC-II
 # -----------------------------------------------------
@@ -199,7 +199,15 @@ class _Channel_Context(metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
+    def start_once_on(self, trigger: QDac2Trigger_Context) -> None:
+        pass
+
+    @abc.abstractmethod
     def start_on_external(self, trigger: ExternalInput) -> None:
+        pass
+
+    @abc.abstractmethod
+    def start_once_on_external(self, trigger: ExternalInput) -> None:
         pass
 
     @abc.abstractmethod
@@ -265,6 +273,17 @@ class _Dc_Context(_Channel_Context):
         self._write_channel(f'sour{"{0}"}:dc:trig:sour int{internal}')
         self._make_ready_to_start()
 
+    def start_once_on(self, trigger: QDac2Trigger_Context) -> None:
+        """Attach internal one-shot trigger to DC generator
+
+        Args:
+            trigger (QDac2Trigger_Context): trigger that will start DC
+        """
+        self._trigger = trigger
+        internal = _trigger_context_to_value(trigger)
+        self._write_channel(f'sour{"{0}"}:dc:trig:sour int{internal}')
+        self._make_ready_to_start_once()
+
     def start_on_external(self, trigger: ExternalInput) -> None:
         """Attach external trigger to DC generator
 
@@ -274,6 +293,16 @@ class _Dc_Context(_Channel_Context):
         self._trigger = None
         self._write_channel(f'sour{"{0}"}:dc:trig:sour ext{trigger}')
         self._make_ready_to_start()
+
+    def start_once_on_external(self, trigger: ExternalInput) -> None:
+        """Attach external one-shot trigger to DC generator
+
+        Args:
+            trigger (ExternalInput): trigger that will start DC generator
+        """
+        self._trigger = None
+        self._write_channel(f'sour{"{0}"}:dc:trig:sour ext{trigger}')
+        self._make_ready_to_start_once()
 
     def abort(self) -> None:
         """Abort any DC running generator on the channel
@@ -348,7 +377,9 @@ class _Dc_Context(_Channel_Context):
 
     def _make_ready_to_start(self) -> None:
         self._write_channel('sour{0}:dc:init:cont on')
-        self._write_channel('sour{0}:dc:init')
+
+    def _make_ready_to_start_once(self) -> None:
+        self._write_channel('sour{0}:dc:init:cont off')
 
     def _switch_to_immediate_trigger(self) -> None:
         self._write_channel('sour{0}:dc:init:cont off')
@@ -558,10 +589,21 @@ class _Waveform_Context(_Channel_Context):
         self._write_channel(f'sour{"{0}"}:{wave_kind}:trig:sour int{internal}')
         self._make_ready_to_start(wave_kind)
 
+    def _start_once_on(self, trigger: QDac2Trigger_Context, wave_kind: str) -> None:
+        self._trigger = trigger
+        internal = _trigger_context_to_value(trigger)
+        self._write_channel(f'sour{"{0}"}:{wave_kind}:trig:sour int{internal}')
+        self._make_ready_to_start_once(wave_kind)
+
     def _start_on_external(self, trigger: ExternalInput, wave_kind: str) -> None:
         self._trigger = None
         self._write_channel(f'sour{"{0}"}:{wave_kind}:trig:sour ext{trigger}')
         self._make_ready_to_start(wave_kind)
+
+    def _start_once_on_external(self, trigger: ExternalInput, wave_kind: str) -> None:
+        self._trigger = None
+        self._write_channel(f'sour{"{0}"}:{wave_kind}:trig:sour ext{trigger}')
+        self._make_ready_to_start_once(wave_kind)
 
     def _end_marker(self, wave_kind: str) -> QDac2Trigger_Context:
         if not self._marker_end:
@@ -589,7 +631,9 @@ class _Waveform_Context(_Channel_Context):
 
     def _make_ready_to_start(self, wave_kind: str) -> None:
         self._write_channel(f'sour{"{0}"}:{wave_kind}:init:cont on')
-        self._write_channel(f'sour{"{0}"}:{wave_kind}:init')
+
+    def _make_ready_to_start_once(self, wave_kind: str) -> None:
+        self._write_channel(f'sour{"{0}"}:{wave_kind}:init:cont off')
 
     def _switch_to_immediate_trigger(self, wave_kind: str):
         self._write_channel(f'sour{"{0}"}:{wave_kind}:init:cont off')
@@ -723,6 +767,14 @@ class Square_Context(_Waveform_Context):
         """
         return super()._start_on(trigger, 'squ')
 
+    def start_once_on(self, trigger: QDac2Trigger_Context) -> None:
+        """Attach internal one-shot trigger to start the square wave generator
+
+        Args:
+            trigger (QDac2Trigger_Context): trigger that will start square wave
+        """
+        return super()._start_once_on(trigger, 'squ')
+
     def start_on_external(self, trigger: ExternalInput) -> None:
         """Attach external trigger to start the square wave generator
 
@@ -730,6 +782,14 @@ class Square_Context(_Waveform_Context):
             trigger (ExternalInput): external trigger that will start square wave
         """
         return super()._start_on_external(trigger, 'squ')
+
+    def start_once_on_external(self, trigger: ExternalInput) -> None:
+        """Attach external one-shot trigger to start the square wave generator
+
+        Args:
+            trigger (ExternalInput): external trigger that will start square wave
+        """
+        return super()._start_once_on_external(trigger, 'squ')
 
 
 class Sine_Context(_Waveform_Context):
@@ -838,6 +898,14 @@ class Sine_Context(_Waveform_Context):
         """
         return super()._start_on(trigger, 'sine')
 
+    def start_once_on(self, trigger: QDac2Trigger_Context) -> None:
+        """Attach internal one-shot trigger to start the sine wave generator
+
+        Args:
+            trigger (QDac2Trigger_Context): trigger that will start sine wave
+        """
+        return super()._start_once_on(trigger, 'sin')
+
     def start_on_external(self, trigger: ExternalInput) -> None:
         """Attach external trigger to start the sine wave generator
 
@@ -845,6 +913,14 @@ class Sine_Context(_Waveform_Context):
             trigger (ExternalInput): external trigger that will start sine wave
         """
         return super()._start_on_external(trigger, 'sine')
+
+    def start_once_on_external(self, trigger: ExternalInput) -> None:
+        """Attach external one-shot trigger to start the sine wave generator
+
+        Args:
+            trigger (ExternalInput): external trigger that will start sine wave
+        """
+        return super()._start_once_on_external(trigger, 'sin')
 
 
 class Triangle_Context(_Waveform_Context):
@@ -962,6 +1038,14 @@ class Triangle_Context(_Waveform_Context):
         """
         return super()._start_on(trigger, 'tri')
 
+    def start_once_on(self, trigger: QDac2Trigger_Context) -> None:
+        """Attach internal one-shot trigger to start the triangle wave generator
+
+        Args:
+            trigger (QDac2Trigger_Context): trigger that will start triangle wave
+        """
+        return super()._start_once_on(trigger, 'tri')
+
     def start_on_external(self, trigger: ExternalInput) -> None:
         """Attach external trigger to start the triangle wave generator
 
@@ -969,6 +1053,14 @@ class Triangle_Context(_Waveform_Context):
             trigger (ExternalInput): external trigger that will start triangle
         """
         return super()._start_on_external(trigger, 'tri')
+
+    def start_once_on_external(self, trigger: ExternalInput) -> None:
+        """Attach external one-shot trigger to start the triangle wave generator
+
+        Args:
+            trigger (ExternalInput): external trigger that will start triangle wave
+        """
+        return super()._start_once_on_external(trigger, 'tri')
 
 
 class Awg_Context(_Waveform_Context):
@@ -1061,6 +1153,14 @@ class Awg_Context(_Waveform_Context):
         """
         return super()._start_on(trigger, 'awg')
 
+    def start_once_on(self, trigger: QDac2Trigger_Context) -> None:
+        """Attach internal one-shot trigger to start the AWG
+
+        Args:
+            trigger (QDac2Trigger_Context): trigger that will start AWG
+        """
+        return super()._start_once_on(trigger, 'awg')
+
     def start_on_external(self, trigger: ExternalInput) -> None:
         """Attach external trigger to start the AWG
 
@@ -1068,6 +1168,14 @@ class Awg_Context(_Waveform_Context):
             trigger (ExternalInput): external trigger that will start AWG
         """
         return super()._start_on_external(trigger, 'awg')
+
+    def start_once_on_external(self, trigger: ExternalInput) -> None:
+        """Attach external one-shot trigger to start the AWG
+
+        Args:
+            trigger (ExternalInput): external trigger that will start AWG
+        """
+        return super()._start_once_on_external(trigger, 'awg')
 
 
 class Measurement_Context(_Channel_Context):
@@ -1105,7 +1213,17 @@ class Measurement_Context(_Channel_Context):
         internal = _trigger_context_to_value(trigger)
         self._write_channel(f'sens{"{0}"}:trig:sour int{internal}')
         self._write_channel(f'sens{"{0}"}:init:cont on')
-        self._write_channel(f'sens{"{0}"}:init')
+
+    def start_once_on(self, trigger: QDac2Trigger_Context) -> None:
+        """Attach internal once-shot trigger to start the current measurement
+
+        Args:
+            trigger (QDac2Trigger_Context): trigger that will start measurement
+        """
+        self._trigger = trigger
+        internal = _trigger_context_to_value(trigger)
+        self._write_channel(f'sens{"{0}"}:trig:sour int{internal}')
+        self._write_channel(f'sens{"{0}"}:init:cont off')
 
     def start_on_external(self, trigger: ExternalInput) -> None:
         """Attach external trigger to start the current measurement
@@ -1115,7 +1233,15 @@ class Measurement_Context(_Channel_Context):
         """
         self._write_channel(f'sens{"{0}"}:trig:sour ext{trigger}')
         self._write_channel(f'sens{"{0}"}:init:cont on')
-        self._write_channel(f'sens{"{0}"}:init')
+
+    def start_once_on_external(self, trigger: ExternalInput) -> None:
+        """Attach external one-shot trigger to start the current measurement
+
+        Args:
+            trigger (ExternalInput): trigger that will start measurement
+        """
+        self._write_channel(f'sens{"{0}"}:trig:sour ext{trigger}')
+        self._write_channel(f'sens{"{0}"}:init:cont off')
 
     def abort(self) -> None:
         """Abort current measurement
