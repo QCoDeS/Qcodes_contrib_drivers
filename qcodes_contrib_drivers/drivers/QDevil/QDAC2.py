@@ -10,7 +10,7 @@ from typing import NewType, Tuple, Sequence, List, Dict, Optional
 from packaging.version import Version, parse
 import abc
 
-# Version 1.6.0
+# Version 1.8.0
 #
 # Guiding principles for this driver for QDevil QDAC-II
 # -----------------------------------------------------
@@ -44,6 +44,10 @@ import abc
 #
 # - Detect and handle mixing of internal and external triggers (_trigger).
 #
+
+
+pseudo_trigger_voltage = 5
+
 
 error_ambiguous_wave = 'Only one of frequency_Hz or period_s can be ' \
                        'specified for a wave form'
@@ -1871,10 +1875,12 @@ class Virtual_Sweep_Context:
 class Arrangement_Context:
     def __init__(self, qdac: 'QDac2', contacts: Dict[str, int],
                  output_triggers: Optional[Dict[str, int]],
-                 internal_triggers: Optional[Sequence[str]]):
+                 internal_triggers: Optional[Sequence[str]],
+                 outer_trigger_channel: Optional[int]):
         self._qdac = qdac
         self._fix_contact_order(contacts)
         self._allocate_triggers(internal_triggers, output_triggers)
+        self._outer_trigger_channel = outer_trigger_channel
         self._correction = np.identity(self.shape)
 
     def __enter__(self):
@@ -2099,6 +2105,7 @@ class Arrangement_Context:
                         start_sweep_trigger: Optional[str] = None,
                         inner_step_time_s: float = 1e-5,
                         inner_step_trigger: Optional[str] = None,
+                        outer_step_trigger: Optional[str] = None,
                         repetitions: int = 1) -> Virtual_Sweep_Context:
         """Sweep two contacts to create a 2D sweep
 
@@ -2110,15 +2117,41 @@ class Arrangement_Context:
             start_sweep_trigger (None, optional): Trigger that starts sweep
             inner_step_time_s (float, optional): Delay between voltage changes
             inner_step_trigger (None, optional): Trigger that marks each step
+            outer_step_trigger (None, optional): Name of trigger that marks outer step
             repetitions (int, Optional): Number of back-and-forth sweeps, or -1 for infinite
 
         Returns:
             Virtual_Sweep_Context: context manager
         """
+        if not start_sweep_trigger:
+            # Use a random, unique name
+            start_sweep_trigger = uuid.uuid4().hex
         sweep = self._calculate_2d_values(inner_contact, inner_voltages,
                                           outer_contact, outer_voltages)
-        return Virtual_Sweep_Context(self, sweep, start_sweep_trigger,
-                                     inner_step_time_s, inner_step_trigger, repetitions)
+        ctx = Virtual_Sweep_Context(self, sweep, start_sweep_trigger,
+                                    inner_step_time_s, inner_step_trigger,
+                                    repetitions)
+        if outer_step_trigger:
+            self._setup_outer_trigger(outer_step_trigger, start_sweep_trigger,
+                                      len(inner_voltages)*inner_step_time_s,
+                                      len(outer_voltages))
+        return ctx
+
+    def _setup_outer_trigger(self, outer_step_trigger: str,
+                             start_sweep_trigger: str,
+                             period_s: float, outer_cycles: int) -> None:
+        if not self._outer_trigger_channel:
+            raise ValueError("Arrangement needs an outer_trigger_channel when"
+                             " using outer_step_trigger")
+            return
+        helper_ch = self._qdac.channel(self._outer_trigger_channel)
+        helper_ctx = helper_ch.sine_wave(
+            period_s=period_s, repetitions=outer_cycles, span_V=0)
+        helper_ctx.start_on(self.get_trigger_by_name(start_sweep_trigger))
+        trigger = self.get_trigger_by_name(outer_step_trigger)
+        helper_ctx._marker_period_start = trigger
+        helper_ctx.period_start_marker()
+        self._outer_trigger_context = helper_ctx
 
     def _calculate_2d_values(self, inner_contact: str,
                              inner_voltages: Sequence[float],
@@ -2434,7 +2467,8 @@ class QDac2(VisaInstrument):
 
     def arrange(self, contacts: Dict[str, int],
                 output_triggers: Optional[Dict[str, int]] = None,
-                internal_triggers: Optional[Sequence[str]] = None
+                internal_triggers: Optional[Sequence[str]] = None,
+                outer_trigger_channel: Optional[int] = None
                 ) -> Arrangement_Context:
         """An arrangement of contacts and triggers for virtual gates
 
@@ -2455,12 +2489,13 @@ class QDac2(VisaInstrument):
             contacts (Dict[str, int]): Name/channel pairs
             output_triggers (Sequence[Tuple[str,int]], optional): Name/number pairs of output triggers
             internal_triggers (Sequence[str], optional): List of names of internal triggers to allocate
+            outer_trigger_channel (int, optional): Additional channel if outer trigger is needed
 
         Returns:
             Arrangement_Context: context manager
         """
         return Arrangement_Context(self, contacts, output_triggers,
-                                   internal_triggers)
+                                   internal_triggers, outer_trigger_channel)
 
     # -----------------------------------------------------------------------
     # Instrument-wide functions

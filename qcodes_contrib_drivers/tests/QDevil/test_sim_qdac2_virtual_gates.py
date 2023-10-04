@@ -313,3 +313,39 @@ def test_arrangement_detune(qdac):  # noqa
         # Start sweep
         'tint 1'
     ]
+
+
+@pytest.mark.wip
+def test_arrangement_sweep_outer_trigger(qdac):  # noqa
+    qdac.free_all_triggers()
+    arrangement = qdac.arrange(
+        contacts={'plunger1': 1, 'plunger2': 2},
+        output_triggers={'slow': 1},
+        outer_trigger_channel=1)
+    qdac.start_recording_scpi()
+    # -----------------------------------------------------------------------
+    sweep = arrangement.virtual_sweep2d(
+        inner_contact='plunger1',
+        inner_voltages=np.linspace(-1, 1, 5),
+        outer_contact='plunger2',
+        outer_voltages=np.linspace(-1, 1, 3),
+        outer_step_trigger='slow')
+    # -----------------------------------------------------------------------
+    commands = qdac.get_recorded_scpi_commands()
+    assert commands == [
+        # Outer trigger generator
+        'sour1:sine:trig:sour hold',
+        'sour1:sine:per 5e-05',
+        'sour1:sine:pol norm',
+        'sour1:sine:span 0',
+        'sour1:sine:offs 0.0',
+        'sour1:sine:slew inf',
+        'sour1:sine:del 0',
+        'sour1:sine:coun 3',
+        'sour1:sine:trig:sour bus',
+        'sour1:sine:init:cont on',
+        'sour1:sine:trig:sour int2',
+        'sour1:sine:init:cont on',
+        # Internal to external
+        'sour1:sine:mark:pstart 1',
+    ]
