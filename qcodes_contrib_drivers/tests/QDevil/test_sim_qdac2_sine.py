@@ -26,7 +26,6 @@ def test_sine_default_values(qdac):  # noqa
         'sour1:sine:coun -1',
         'sour1:sine:trig:sour bus',
         'sour1:sine:init:cont on',
-        'sour1:sine:init',
     ]
 
 
@@ -53,7 +52,6 @@ def test_sine_period(qdac):  # noqa
         'sour1:sine:coun 10',
         'sour1:sine:trig:sour bus',
         'sour1:sine:init:cont on',
-        'sour1:sine:init',
     ]
 
 
@@ -72,7 +70,6 @@ def test_sine_frequency(qdac):  # noqa
         'sour1:sine:coun -1',
         'sour1:sine:trig:sour bus',
         'sour1:sine:init:cont on',
-        'sour1:sine:init',
     ]
 
 
@@ -171,7 +168,6 @@ def test_sine_start_trigger_fires(qdac):  # noqa
     # -----------------------------------------------------------------------
     assert qdac.get_recorded_scpi_commands() == [
         'sour1:sine:init:cont on',
-        'sour1:sine:init',
         f'tint {trigger.value}'
     ]
 
@@ -238,7 +234,6 @@ def test_sine_trigger_on_internal(qdac):  # noqa
     assert qdac.get_recorded_scpi_commands() == [
         f'sour1:sine:trig:sour int{trigger.value}',
         f'sour1:sine:init:cont on',
-        'sour1:sine:init'
     ]
 
 
@@ -252,5 +247,4 @@ def test_sine_trigger_on_external(qdac):  # noqa
     assert qdac.get_recorded_scpi_commands() == [
         f'sour1:sine:trig:sour ext{trigger}',
         f'sour1:sine:init:cont on',
-        'sour1:sine:init'
     ]

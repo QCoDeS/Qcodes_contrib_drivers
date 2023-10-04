@@ -25,7 +25,6 @@ def test_list_explicit(qdac):  # noqa
         'sour1:list:coun 10',
         'sour1:dc:trig:sour bus',
         'sour1:dc:init:cont on',
-        'sour1:dc:init',
     ]
 
 
@@ -44,7 +43,6 @@ def test_list_implicit(qdac):  # noqa
         'sour1:list:coun 1',
         'sour1:dc:trig:sour bus',
         'sour1:dc:init:cont on',
-        'sour1:dc:init',
     ]
 
 
@@ -78,7 +76,6 @@ def test_list_append(qdac):  # noqa
     assert qdac.get_recorded_scpi_commands() == [
         'sour1:list:volt:app 5,6',
         'sour1:dc:init:cont on',
-        'sour1:dc:init',
     ]
 
 
@@ -119,7 +116,6 @@ def test_list_infinite(qdac):  # noqa
         'sour1:list:coun -1',
         'sour1:dc:trig:sour bus',
         'sour1:dc:init:cont on',
-        'sour1:dc:init',
     ]
 
 
@@ -177,7 +173,6 @@ def test_list_start_trigger_fires(qdac):  # noqa
     # -----------------------------------------------------------------------
     assert qdac.get_recorded_scpi_commands() == [
         'sour1:dc:init:cont on',
-        'sour1:dc:init',
         f'tint {trigger.value}'
     ]
 
@@ -236,7 +231,6 @@ def test_list_trigger_on_internal(qdac):  # noqa
     assert qdac.get_recorded_scpi_commands() == [
         f'sour1:dc:trig:sour int{trigger.value}',
         f'sour1:dc:init:cont on',
-        'sour1:dc:init'
     ]
 
 
@@ -250,7 +244,6 @@ def test_list_trigger_on_external(qdac):  # noqa
     assert qdac.get_recorded_scpi_commands() == [
         f'sour1:dc:trig:sour ext{trigger}',
         f'sour1:dc:init:cont on',
-        'sour1:dc:init'
     ]
 
 
