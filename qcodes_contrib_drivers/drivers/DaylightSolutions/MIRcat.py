@@ -30,9 +30,9 @@ class DRSDaylightSolutions_MIRcat(Instrument):
     status: beta-version
 
     Args:
-        name (str): name for the instrument
-        dll_path (Optional[str], optional): path to the MIRcatSDK driver dll
-            library file. Defaults to None.
+        name: name for the instrument
+        dll_path: path to the MIRcatSDK driver dll library file. Defaults to None.
+        wavelength: sequence of 2-tuple for the wavelength boundaries of all chips.
     """
     dll_path = 'C:\\MIRcat_laser\\libs\\x64\\MIRcatSDK.dll'
 
