@@ -460,7 +460,9 @@ class ANC350(Instrument):
         name: the name of the instrument itself
         library: library that fits to the version of the device and provides the appropriate dll
                  wrappers
-        inst_no: Sequence number of the device to connect to (default: 0, the first device found)
+        inst_no: Sequence number of the device to connect to (default: 0, the first device found).
+                 Note that the :meth:`discover` method of the library must be called before a
+                 device can be connected.
     """
 
     def __init__(self, name: str, library: ANC350v3Lib, inst_no: Optional[int] = None):
