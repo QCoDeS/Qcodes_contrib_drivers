@@ -13,9 +13,9 @@ _T = TypeVar('_T')
 
 class FHRClient(Client64):
 
-    def __init__(self, dll_dir: str):
+    def __init__(self, dll_dir: str, filename: str = 'SpeControl'):
         module32 = str(Path(__file__).parent / 'fhr_server')
-        super().__init__(module32=module32, dll_dir=dll_dir)
+        super().__init__(module32=module32, dll_dir=dll_dir, filename=filename)
 
     def CreateSpe(self) -> int:
         """Create new spectrometer handle."""

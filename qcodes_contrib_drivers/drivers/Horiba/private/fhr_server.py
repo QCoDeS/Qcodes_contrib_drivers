@@ -38,8 +38,8 @@ class FHRServer(Server32):
                     ('MaxSpeed', ctypes.c_int),
                     ('Ramp', ctypes.c_int)]
 
-    def __init__(self, host, port, dll_dir=''):
-        path = str(Path(dll_dir, 'SpeControl.dll'))
+    def __init__(self, host, port, dll_dir='', filename='SpeControl'):
+        path = str(Path(dll_dir, filename).with_suffix('.dll'))
 
         LOG.info('Initializing FHRServer.')
         LOG.debug(f'host = {host}')
