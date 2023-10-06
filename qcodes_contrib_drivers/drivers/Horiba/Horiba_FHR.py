@@ -505,6 +505,8 @@ class HoribaFHR(Instrument):
         self.add_submodule('slits', slits.to_channel_tuple())
         self.add_submodule('gratings', gratings.to_channel_tuple())
 
+        self.connect_message()
+
     def get_idn(self) -> Dict[str, str]:
         return {'serial': self.config['Firmware']['SerialNumber'],
                 'firmware': self.config['Firmware']['VersionNumber'],
