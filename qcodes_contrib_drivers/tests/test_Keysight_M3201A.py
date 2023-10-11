@@ -2,7 +2,7 @@ try:
     from qcodes.tests.driver_test_case import DriverTestCase
 except ImportError:
     # qcodes < 0.37
-    from qcodes.instrument_drivers.test import DriverTestCase  # type: ignore[import,no-redef]
+    from qcodes.instrument_drivers.test import DriverTestCase  # type: ignore[import-not-found,no-redef]
 import unittest
 
 try:
