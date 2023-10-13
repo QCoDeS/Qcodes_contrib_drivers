@@ -1,17 +1,27 @@
 import json
 import random
 import time
+from typing import Sequence, Any
 
 from qcodes.instrument.ip import IPInstrument
 from qcodes.utils.validators import Numbers, Enum
 
 
 class M2Solstis3(IPInstrument):
-    def __init__(self, name, address=None, port=None, timeout=5, controller_address=None,
-                 persistent=True, write_confirmation=True, testing=False, **kwargs):
+    """Driver for the M² Solstis laser.
 
-        super().__init__(name, address=address, port=port, timeout=timeout,
-                         persistent=False, write_confirmation=write_confirmation, terminator='',
+    Args:
+        name: The name of the instrument.
+        address: The IP address of the Laser.
+        port: The Port number of the Laser.
+        controller_address: The IP address of the laser controller (PC).
+
+    """
+
+    def __init__(self, name: str, address: str, port: int, controller_address: str,
+                 timeout: float = 5, terminator: str = "", persistent: bool = False,
+                 write_confirmation: bool = True, **kwargs: Any):
+        super().__init__(name, address, port, timeout, terminator, persistent, write_confirmation,
                          **kwargs)
 
         self._controller_address = controller_address
@@ -44,15 +54,12 @@ class M2Solstis3(IPInstrument):
         return random.randint(1, 2 ** 14)
 
     def _connect(self):
-        if self._controller_address is None:
-            raise RuntimeError('No Controller address')
-
         super()._connect()
         answer = self.send_message('start_link', {'ip_address': self._controller_address})
 
         if answer['status'] != 'ok':
             super()._disconnect()
-            raise RuntimeError('Connection to Solstis failed', answer)
+            raise RuntimeError('Connection to controller failed', answer)
         else:
             print('Connection to Solstis successful')
 
@@ -115,9 +122,7 @@ class M2Solstis3(IPInstrument):
     def send_message(self, op, parameters=None, verbose=False):
         transmission_id = self._generate_transmission_id()
 
-        query = {'message':
-                     {'transmission_id': [transmission_id],
-                      'op': op}}
+        query = {'message': {'transmission_id': [transmission_id], 'op': op}}
         if parameters:
             query['message']['parameters'] = parameters
 
@@ -134,9 +139,8 @@ class M2Solstis3(IPInstrument):
 
         return answer['message']['parameters']
 
-    def snapshot_base(self, update=False):
-        snapshot = super().snapshot_base(update)
-
+    def snapshot_base(self, update: bool | None = False,
+                      params_to_skip_update: Sequence[str] | None = None) -> dict[Any, Any]:
+        snapshot = super().snapshot_base(update, params_to_skip_update)
         snapshot['controller_address'] = self._controller_address
-
         return snapshot
