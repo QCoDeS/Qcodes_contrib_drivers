@@ -132,7 +132,7 @@ class DRSDaylightSolutions_MIRcat(Instrument):
             label='QCL wavelength',
             get_cmd=self._get_wavelength,
             set_cmd=self._set_wavelength,
-            vals=vals.Numbers(self._limits_chip1[0], self._limits_chip4[1]),
+            vals=vals.Numbers(self._limits_chip1[0] * 1e-6, self._limits_chip4[1] * 1e-6),
             unit='m',
             instrument=self
         )
