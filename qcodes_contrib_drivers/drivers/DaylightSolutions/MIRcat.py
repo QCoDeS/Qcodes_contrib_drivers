@@ -91,14 +91,14 @@ class DRSDaylightSolutions_MIRcat(Instrument):
     def __init__(self,
                  name: str,
                  dll_path: Optional[str] = None,
-                 wavelengths: Optional[Sequence[tuple]] = [(3.0, 8.2),(8.2, 10.3), (10.3, 12.7), (12.7,13.3)],
                  **kwargs: Any) -> None:
         super().__init__(name, **kwargs)
         
-        _wavelength_chip1 = wavelengths[0]
-        _wavelength_chip2 = wavelengths[1]
-        _wavelength_chip3 = wavelengths[2]
-        _wavelength_chip4 = wavelengths[3]
+        
+        self._limits_chip1 = self.get_limits(1)
+        self._limits_chip2 = self.get_limits(2)
+        self._limits_chip3 = self.get_limits(3)
+        self._limits_chip4 = self.get_limits(4)
 
         if sys.platform != 'win32':
             self._dll: Any = None
@@ -132,7 +132,7 @@ class DRSDaylightSolutions_MIRcat(Instrument):
             label='QCL wavelength',
             get_cmd=self._get_wavelength,
             set_cmd=self._set_wavelength,
-            vals=vals.Numbers(_wavelength_chip1[0], _wavelength_chip4[1]),
+            vals=vals.Numbers(self._limits_chip1[0], self._limits_chip4[1]),
             unit='m',
             instrument=self
         )
@@ -142,7 +142,7 @@ class DRSDaylightSolutions_MIRcat(Instrument):
             label='QCL wavenumber',
             get_cmd=self._get_wavenumber,
             set_cmd=self._set_wavenumber,
-            vals=vals.Numbers(1/_wavelength_chip4[1]/100, 1/_wavelength_chip1[0]/100),
+            vals=vals.Numbers(1/self._limits_chip4[1]/100, 1/self._limits_chip1[0]/100),
             unit='cm' + u'\u207b\u00b9',
             instrument=self
         )
@@ -759,13 +759,13 @@ class DRSDaylightSolutions_MIRcat(Instrument):
     def _set_wavelength(self, wavelength: float, chip: int = 0) -> None:
         wavelength = wavelength*1e6
         if chip == 0:
-            if wavelength <= self._wavelength_chip1[1]:
+            if wavelength <= self._limits_chip1[1] * 1e6:
                 chip = 1
-            elif self._wavelength_chip2[0] < wavelength <= self._wavelength_chip2[1]:
+            elif self._limits_chip2[0] * 1e6 < wavelength <= self._limits_chip2[1] * 1e6:
                 chip = 2
-            elif self._wavelength_chip3[0] < wavelength <= self._wavelength_chip3[1]:
+            elif self._limits_chip3[0] * 1e6 < wavelength <= self._limits_chip3[1] * 1e6:
                 chip = 3
-            elif self._wavelength_chip4[0] < wavelength:
+            elif self._limits_chip4[0] * 1e6 < wavelength:
                 chip = 4
             else:
                 raise ValueError('selected wavelength is not supported')
@@ -779,13 +779,13 @@ class DRSDaylightSolutions_MIRcat(Instrument):
         
     def _set_wavenumber(self, wavenumber: float, chip: int = 0) -> None:
         if chip == 0:
-            if wavenumber >= 1/self._wavelength_chip4[1]/100:
+            if wavenumber >= 1/self._limits_chip4[1]/100:
                 chip = 4
-            elif 1/self._wavelength_chip3[0]/100 > wavenumber >= 1/self._wavelength_chip3[1]/100:
+            elif 1/self._limits_chip3[0]/100 > wavenumber >= 1/self._limits_chip3[1]/100:
                 chip = 3
-            elif 1/self._wavelength_chip2[0]/100 > wavenumber >= 1/self._wavelength_chip2[1]/100:
+            elif 1/self._limits_chip2[0]/100 > wavenumber >= 1/self._limits_chip2[1]/100:
                 chip = 2
-            elif 1/self._wavelength_chip1[0]/100 > wavenumber:
+            elif 1/self._limits_chip1[0]/100 > wavenumber:
                 chip = 1
             else:
                 raise ValueError('selected wavenumber is not supported')
