@@ -16,6 +16,12 @@ def _delegate_group_factory(name: str, *params: Parameter) -> DelegateGroup:
         [DelegateGroupParameter(param.name, param) for param in params]
     )
 
+
+def _hours_from_str(s: str) -> float:
+    hours, minutes, seconds = map(int, s.split(':'))
+    return hours + minutes / 60 + seconds / 3600
+
+
 class LighthousePhotonicsSproutG(VisaInstrument):
     """Qcodes driver for the Lighthouse Photonics Sprout-G laser.
 
@@ -40,8 +46,10 @@ class LighthousePhotonicsSproutG(VisaInstrument):
         )
         """The device info."""
 
-        self.on_hours = Parameter('on_hours', get_cmd='HOURS?', unit='hours', instrument=self)
-        self.run_hours = Parameter('run_hours', get_cmd='RUN HOURS?', unit='hours',
+        self.on_hours = Parameter('on_hours', get_cmd='HOURS?', unit='h',
+                                  get_parser=_hours_from_str, instrument=self)
+        self.run_hours = Parameter('run_hours', get_cmd='RUN HOURS?',
+                                   unit='h', get_parser=_hours_from_str,
                                    instrument=self)
         self.work_hours = GroupedParameter(
             'work_hours',
@@ -81,10 +89,13 @@ class LighthousePhotonicsSproutG(VisaInstrument):
         """Enable/disable the output."""
         self.output_power = Parameter('output_power', get_cmd='POWER?',
                                       set_cmd='POWER SET={:.2f}',
-                                      unit='Watt', instrument=self)
-        """The current output power. The setter uses the output_setpoint parameter."""
-        self.output_setpoint = Parameter('output_setpoint', get_cmd='POWER SET?', unit='Watt',
-                                         instrument=self)
+                                      get_parser=float,
+                                      unit='W', instrument=self)
+        """The current output power. The setter uses the output_setpoint
+        parameter."""
+        self.output_setpoint = Parameter('output_setpoint',
+                                         get_cmd='POWER SET?', unit='W',
+                                         get_parser=float, instrument=self)
         """The output power setpoint."""
 
         self.connect_message()
