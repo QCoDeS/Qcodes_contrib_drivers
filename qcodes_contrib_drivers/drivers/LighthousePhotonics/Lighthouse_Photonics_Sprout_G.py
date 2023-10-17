@@ -1,7 +1,20 @@
 from qcodes.instrument import VisaInstrument
-from qcodes.parameters import Parameter, GroupedParameter, DelegateGroup, create_on_off_val_mapping
+from qcodes.parameters import (DelegateGroup, DelegateGroupParameter,
+                               GroupedParameter, Parameter,
+                               create_on_off_val_mapping)
 from qcodes.validators import Enum
 
+
+def _delegate_group_factory(name: str, *params: Parameter) -> DelegateGroup:
+    """Returns a DelegateGroup with DelegateGroupParameters
+    that simply forward the underlying parameter.
+
+    GroupedParameter for some reason requires DelegateGroups.
+    """
+    return DelegateGroup(
+        name,
+        [DelegateGroupParameter(param.name, param) for param in params]
+    )
 
 class LighthousePhotonicsSproutG(VisaInstrument):
     """Qcodes driver for the Lighthouse Photonics Sprout-G laser.
@@ -19,9 +32,9 @@ class LighthousePhotonicsSproutG(VisaInstrument):
         self.config = Parameter('config', get_cmd='CONFIG?', instrument=self)
         self.device_info = GroupedParameter(
             'device_info',
-            group=DelegateGroup(
+            group=_delegate_group_factory(
                 'device_info',
-                [self.product, self.version, self.serial, self.config]
+                self.product, self.version, self.serial, self.config
             ),
             instrument=self
         )
@@ -32,7 +45,10 @@ class LighthousePhotonicsSproutG(VisaInstrument):
                                    instrument=self)
         self.work_hours = GroupedParameter(
             'work_hours',
-            group=DelegateGroup('work_hours', [self.on_hours, self.run_hours]),
+            group=_delegate_group_factory(
+                'work_hours',
+                self.on_hours, self.run_hours
+            ),
             instrument=self
         )
         """The running hours of the controller and the laser."""
@@ -49,9 +65,10 @@ class LighthousePhotonicsSproutG(VisaInstrument):
                                           instrument=self)
         self.status = GroupedParameter(
             'status',
-            group=DelegateGroup(
+            group=_delegate_group_factory(
                 'status',
-                [self.output_mode, self.warning_status, self.shutter_status, self.interlock_status]
+                self.output_mode, self.warning_status, self.shutter_status,
+                self.interlock_status
             ),
             instrument=self
         )
