@@ -28,13 +28,18 @@ class LighthousePhotonicsSproutG(VisaInstrument):
     Inspired by pylablib.
     """
 
-    def __init__(self, name, address, timeout=5, terminator='\r', device_clear=True, visalib=None,
+    def __init__(self, name, address, timeout=5, terminator='\r',
+                 device_clear=True, visalib=None,
                  **kwargs):
-        super().__init__(name, address, timeout, terminator, device_clear, visalib, **kwargs)
+        super().__init__(name, address, timeout, terminator, device_clear,
+                         visalib, **kwargs)
 
-        self.product = Parameter('product', get_cmd='PRODUCT?', instrument=self)
-        self.version = Parameter('version', get_cmd='VERSION?', instrument=self)
-        self.serial = Parameter('serial', get_cmd='SERIALNUMBER?', instrument=self)
+        self.product = Parameter('product', get_cmd='PRODUCT?',
+                                 instrument=self)
+        self.version = Parameter('version', get_cmd='VERSION?',
+                                 instrument=self)
+        self.serial = Parameter('serial', get_cmd='SERIALNUMBER?',
+                                instrument=self)
         self.config = Parameter('config', get_cmd='CONFIG?', instrument=self)
         self.device_info = GroupedParameter(
             'device_info',
@@ -63,13 +68,18 @@ class LighthousePhotonicsSproutG(VisaInstrument):
 
         self.output_mode = Parameter('output_mode',
                                      get_cmd='OPMODE?', set_cmd='OPMODE={}',
-                                     get_parser=str.lower, set_parser=str.upper,
-                                     vals=Enum('on', 'off', 'idle', 'calibrate'),
+                                     get_parser=str.lower,
+                                     set_parser=str.upper,
+                                     vals=Enum('on', 'off', 'idle',
+                                               'calibrate'),
                                      instrument=self)
         """The output status."""
-        self.warning_status = Parameter('warning_status', get_cmd='WARNING?', instrument=self)
-        self.shutter_status = Parameter('shutter_status', get_cmd='SHUTTER?', instrument=self)
-        self.interlock_status = Parameter('interlock_status', get_cmd='INTERLOCK?',
+        self.warning_status = Parameter('warning_status', get_cmd='WARNING?',
+                                        instrument=self)
+        self.shutter_status = Parameter('shutter_status', get_cmd='SHUTTER?',
+                                        instrument=self)
+        self.interlock_status = Parameter('interlock_status',
+                                          get_cmd='INTERLOCK?',
                                           instrument=self)
         self.status = GroupedParameter(
             'status',
@@ -80,11 +90,14 @@ class LighthousePhotonicsSproutG(VisaInstrument):
             ),
             instrument=self
         )
-        """Status messages for output mode, warnings, shutter, and interlock."""
+        """Status messages for output mode, warnings, shutter, and
+        interlock."""
 
         self.enabled = Parameter('enabled',
-                                 get_cmd=self.output_mode, set_cmd=self.output_mode,
-                                 val_mapping=create_on_off_val_mapping('on', 'off'),
+                                 get_cmd=self.output_mode,
+                                 set_cmd=self.output_mode,
+                                 val_mapping=create_on_off_val_mapping('on',
+                                                                       'off'),
                                  instrument=self)
         """Enable/disable the output."""
         self.output_power = Parameter('output_power', get_cmd='POWER?',
