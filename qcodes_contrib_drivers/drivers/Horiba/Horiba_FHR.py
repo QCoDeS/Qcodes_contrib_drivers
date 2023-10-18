@@ -13,7 +13,7 @@ from qcodes.instrument import (Instrument, InstrumentBase, InstrumentChannel,
                                ChannelList)
 from typing_extensions import Literal
 
-from .private.fhr_client import FHRClient
+from qcodes_contrib_drivers.drivers.Horiba.private.fhr_client import FHRClient
 
 
 class SpeError(Exception):
