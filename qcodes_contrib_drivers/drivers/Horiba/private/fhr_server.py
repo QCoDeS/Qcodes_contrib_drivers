@@ -8,20 +8,22 @@ try:
     import ctypes.wintypes
 except ImportError:
     import ctypes
-    from unittest import mock
-    ctypes.wintypes = mock.ModuleType('wintypes')
+    from types import ModuleType
+
+    ctypes.wintypes = ModuleType('wintypes')
     ctypes.wintypes.DWORD = ctypes.c_ulong
 
 _T = TypeVar('_T')
 
 LOG = logging.getLogger(__name__)
+
+
 # Uncomment the line below to log (cannot control the logger from the
 # client since the server runs on a different executable).
 # logging.basicConfig(filename='path/to/log', level=logging.DEBUG)
 
 
 class FHRServer(Server32):
-
     class _SpeSetup(ctypes.Structure):
         _fields_ = [('Size', ctypes.wintypes.DWORD),
                     ('MinSpeed', ctypes.c_int),

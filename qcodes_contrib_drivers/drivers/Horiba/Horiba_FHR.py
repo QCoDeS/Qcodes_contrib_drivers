@@ -35,6 +35,7 @@ class Dispatcher:
     def __init__(self, cli, handle):
         self.cli = cli
         self.handle = handle
+        self.config: dict[str, str]
 
     def error_check(self, code: int):
         if code != 0:
@@ -75,9 +76,8 @@ class PortChannel(Dispatcher, InstrumentChannel):
 
     def set_timeout(self, timeout: int = 90000):
         """Set timeout in milliseconds."""
-        timeout = ctypes.c_int(timeout)
         code, _ = self.cli.SpeCommand(self.handle, 'Port', 'SetTimeout',
-                                      timeout)
+                                      ctypes.c_int(timeout))
         self.error_check(code)
 
 
@@ -105,17 +105,15 @@ class MotorChannel(Dispatcher, InstrumentChannel, metaclass=abc.ABCMeta):
         """Set motor ID.
 
         This is the `Addr` address in LabSpec6."""
-        i = ctypes.c_int(i)
         code, _ = self.cli.SpeCommand(self.handle, f'{self.type}{self.motor}',
-                                      'SetID', i)
+                                      'SetID', ctypes.c_int(i))
         self.error_check(code)
 
     def get_id(self) -> int:
         """Get motor ID."""
-        i = ctypes.c_int()
         code, value = self.cli.SpeCommand(self.handle,
                                           f'{self.type}{self.motor}', 'GetID',
-                                          i)
+                                          ctypes.c_int())
         self.error_check(code)
         return value
 
@@ -148,9 +146,8 @@ class MotorChannel(Dispatcher, InstrumentChannel, metaclass=abc.ABCMeta):
 
         For DC motors, the position is binary.
         """
-        pos = ctypes.c_int(pos)
         code, _ = self.cli.SpeCommand(self.handle, f'{self.type}{self.motor}',
-                                      'SetPosition', pos)
+                                      'SetPosition', ctypes.c_int(pos))
         self.error_check(code)
 
 
@@ -338,9 +335,8 @@ class GratingChannel(PrecisionMotorChannel):
 
     def _set_shift(self, shift: int):
         """Set zero order shift."""
-        shift = ctypes.c_int(shift)
         code, _ = self.cli.SpeCommand(self.handle, f'{self.type}{self.motor}',
-                                      'SetShift', shift)
+                                      'SetShift', ctypes.c_int(shift))
         self.error_check(code)
 
 
@@ -419,12 +415,13 @@ class HoribaFHR(Instrument):
                 port.open()
                 port.set_baud_rate(section.getint('Baudrate'))
                 port.set_timeout(section.getint('Timeout'))
-                port.config = section
+                port.config = dict(section)
             elif name.startswith('Grating'):
                 # Grating1, Grating2, etc
                 grating = GratingChannel(
                     self,
-                    # Cannot use section['Name'] b/c of invalid identifier chars.
+                    # Cannot use section['Name'] b/c of invalid identifier
+                    # chars.
                     f"grating_{section['Value']}",
                     self.cli,
                     self.handle,
@@ -457,7 +454,7 @@ class HoribaFHR(Instrument):
                 grating.set_ini_params(phase=3, min_speed=2000,
                                        max_speed=10000, ramp=400)
                 grating.shift(section.getint('Shift'))
-                grating.config = section
+                grating.config = dict(section)
                 gratings.append(grating)
             elif name.startswith('Slit'):
                 # Slit1, Slit2, etc
@@ -483,7 +480,7 @@ class HoribaFHR(Instrument):
                                backlash=section.getint('Backlash'),
                                step=section.getint('MotorStepUnit'),
                                reverse=section.getboolean('Reverse'))
-                slit.config = section
+                slit.config = dict(section)
                 slits.append(slit)
             elif name.startswith('Mirror'):
                 # Mirror1, Mirror2, etc
@@ -498,7 +495,7 @@ class HoribaFHR(Instrument):
                               'Duty cycle (%)': section.getint('DutyCycle%')}
                 )
                 mirror.set_id(section.getint('AddrAxe'))
-                mirror.config = section
+                mirror.config = dict(section)
                 mirrors.append(mirror)
 
         self.add_submodule('port', port)
@@ -508,7 +505,7 @@ class HoribaFHR(Instrument):
 
         self.connect_message()
 
-    def get_idn(self) -> Dict[str, str]:
+    def get_idn(self) -> Dict[str, str | None]:
         return {'serial': self.config['Firmware']['SerialNumber'],
                 'firmware': self.config['Firmware']['VersionNumber'],
                 'model': f"FHR{self.config['Spectrometer']['Focal']}",

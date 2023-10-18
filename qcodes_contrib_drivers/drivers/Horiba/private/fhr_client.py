@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+import os
+import pathlib
 from pathlib import Path
 from typing import TypeVar, Tuple, Union
 
@@ -13,7 +17,7 @@ _T = TypeVar('_T')
 
 class FHRClient(Client64):
 
-    def __init__(self, dll_dir: str, filename: str = 'SpeControl'):
+    def __init__(self, dll_dir: str | os.PathLike | pathlib.Path, filename: str = 'SpeControl'):
         module32 = str(Path(__file__).parent / 'fhr_server')
         super().__init__(module32=module32, dll_dir=dll_dir, filename=filename)
 

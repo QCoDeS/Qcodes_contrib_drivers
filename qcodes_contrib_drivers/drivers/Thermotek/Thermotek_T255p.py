@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import time
 from functools import wraps
-from typing import Any
+from typing import Any, ParamSpec, Callable, TypeVar
 
 from qcodes import Parameter, VisaInstrument
 from qcodes.parameters import Group, GroupParameter, create_on_off_val_mapping
@@ -31,47 +31,49 @@ _CHILLER_STATUS = {'\x30': 'OFF',
 _DRYER_STATUS = {'\x30': 'OFF',
                  '\x31': 'ON'}
 
+_T = TypeVar('_T')
+
 
 def _ascii_checksum(s: str) -> str:
     return f"{sum(s.encode('ascii')) & 0xFF:X}"
 
 
-def _encode_cmd(fun):
+def _encode_cmd(fun: Callable[[Any, Any], _T]) -> Callable[[Any, Any], _T]:
     """Encodes a command into valid format by appending the checksum."""
 
     @wraps(fun)
-    def wrapped(self, cmd: str, *args, **kwargs):
+    def wrapped(self, cmd: str) -> _T:
         cmd = cmd.upper()
         if not cmd.startswith(_SOC):
             cmd = _SOC + cmd
-        return fun(self, cmd + _ascii_checksum(cmd), *args, **kwargs)
+        return fun(self, cmd + _ascii_checksum(cmd))
 
     return wrapped
 
 
-def _command_timeout(fun):
+def _command_timeout(fun: Callable[[Any, Any], _T]) -> Callable[[Any, Any], _T]:
     """Waits for the timeout before another command can be sent."""
 
     @wraps(fun)
-    def wrapped(self, *args, **kwargs):
+    def wrapped(self, cmd: str) -> _T:
         target = self._command_timestamp + _COMMAND_TIMEOUT
         while (now := time.time()) < target:
             time.sleep(0.1)
         self._command_timestamp = now
-        return fun(self, *args, **kwargs)
+        return fun(self, cmd)
 
     return wrapped
 
 
-def _watchdog_timeout(fun):
+def _watchdog_timeout(fun: Callable[[Any, Any], _T]) -> Callable[[Any, Any], _T]:
     """Ensures communication is established using watchdog signal."""
 
     @wraps(fun)
-    def wrapped(self, cmd: str, *args, **kwargs):
+    def wrapped(self, cmd: str) -> _T:
         elapsed_time = time.time() - self._command_timestamp
         if not cmd.startswith('.U') and elapsed_time > _WATCHDOG_TIMEOUT:
             self._watchdog()
-        return fun(self, cmd, *args, **kwargs)
+        return fun(self, cmd)
 
     return wrapped
 
@@ -195,4 +197,4 @@ class ThermotekT255p(VisaInstrument):
         flags = self.ask('J')
         alarms = ['Float Switch', 'Hi Alarm', 'Lo Alarm', 'Sensor Alarm',
                   'EEPROM Fail', 'Watch dog']
-        return {alarm: int(flag) for alarm, flag in zip(alarms, flags)}
+        return {alarm: bool(int(flag)) for alarm, flag in zip(alarms, flags)}
