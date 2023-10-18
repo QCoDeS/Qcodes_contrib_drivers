@@ -33,7 +33,7 @@ jobs:
       PYTHON: ${{ matrix.python-version }}
 
     steps:
-    - uses: actions/checkout@v4.1.0
+    - uses: actions/checkout@v4.1.1
       with:
         submodules: true
     - name: setup ubuntu-latest xvfb
