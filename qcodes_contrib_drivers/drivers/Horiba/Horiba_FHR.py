@@ -374,6 +374,7 @@ class HoribaFHR(Instrument):
 
     Examples:
         See ``docs/examples`` for an example notebook.
+
     """
 
     def __init__(
