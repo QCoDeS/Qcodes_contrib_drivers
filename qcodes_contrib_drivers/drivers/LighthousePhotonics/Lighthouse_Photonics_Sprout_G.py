@@ -1,3 +1,6 @@
+import time
+from tqdm import tqdm
+
 from qcodes.instrument import VisaInstrument
 from qcodes.parameters import (DelegateGroup, DelegateGroupParameter,
                                GroupedParameter, Parameter,
@@ -142,3 +145,33 @@ class LighthousePhotonicsSproutG(VisaInstrument):
                 'model': self.product(),
                 'serial': self.serial(),
                 'firmware': self.version()}
+
+    def ramp_up(self, thresh: float = 0.99, show_progress: bool = True):
+        """Enable and wait for the output to reach the set power.
+
+        Parameters
+        ----------
+        thresh : float, optional
+            Percentage at which the output power is considered to reach
+            the setpoint. The default is 0.99.
+        show_progress : bool, optional
+            Show a progressbar. The default is True.
+
+        """
+        if not self.enabled():
+            self.enabled(True)
+        with tqdm(
+                total=self.output_setpoint(),
+                desc=f'Laser {self.name} ramping up',
+                unit=self.output_power.unit,
+                disable=not show_progress
+        ) as pbar:
+            while (P := self.output_power()) / pbar.total < thresh:
+                # For lack of a better method:
+                # https://github.com/tqdm/tqdm/issues/1264
+                pbar.n = P
+                pbar.refresh()
+                assert self.enabled()
+                time.sleep(1)
+            pbar.n = pbar.total
+            pbar.refresh()
