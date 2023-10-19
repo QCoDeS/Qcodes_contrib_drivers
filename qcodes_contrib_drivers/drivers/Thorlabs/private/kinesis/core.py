@@ -358,8 +358,8 @@ class KinesisInstrument(Instrument, abc.ABC):
                  metadata: Mapping[Any, Any] | None = None,
                  label: str | None = None):
         try:
-            self.kinesis = ThorlabsKinesis(self.hardware_type.name,
-                                           self._prefix, dll_dir, simulation)
+            self.kinesis = ThorlabsKinesis(self.hardware_type().name,
+                                           self._prefix(), dll_dir, simulation)
         except FileNotFoundError:
             # Subclass needs to handle irregular dll name
             self.kinesis = self._init_kinesis(dll_dir, simulation)
@@ -383,13 +383,11 @@ class KinesisInstrument(Instrument, abc.ABC):
                                   'dll name.')
 
     @classmethod
-    @property
     @abc.abstractmethod
     def _prefix(cls) -> str:
         pass
 
     @classmethod
-    @property
     @abc.abstractmethod
     def hardware_type(cls) -> enums.KinesisHWType:
         pass
@@ -410,7 +408,7 @@ class KinesisInstrument(Instrument, abc.ABC):
         try:
             return [
                 serial for _, serial in
-                list_available_devices(self.kinesis.lib, self.hardware_type)
+                list_available_devices(self.kinesis.lib, self.hardware_type())
             ]
         except KinesisError:
             self._initialized = False

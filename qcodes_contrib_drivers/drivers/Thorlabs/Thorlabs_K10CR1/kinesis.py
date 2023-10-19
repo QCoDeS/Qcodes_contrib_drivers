@@ -60,6 +60,5 @@ class ThorlabsK10CR1(KinesisISCIntrument):
         )
 
     @classmethod
-    @property
     def hardware_type(cls) -> KinesisHWType:
         return KinesisHWType.CageRotator

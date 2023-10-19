@@ -54,12 +54,10 @@ class ThorlabsMFF10x(KinesisInstrument):
                            label='Position')
 
     @classmethod
-    @property
-    def _prefix(cls):
+    def _prefix(cls) -> str:
         return 'FF'
 
     @classmethod
-    @property
     def hardware_type(cls) -> enums.KinesisHWType:
         return enums.KinesisHWType.FilterFlipper
 

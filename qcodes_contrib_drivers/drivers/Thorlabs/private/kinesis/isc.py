@@ -29,12 +29,11 @@ class KinesisISCIntrument(KinesisInstrument, ABC):
     ) -> ThorlabsKinesis:
         return ThorlabsKinesis(
             'Thorlabs.MotionControl.IntegratedStepperMotors.dll',
-            self._prefix,
+            self._prefix(),
             dll_dir,
             simulation
         )
 
     @classmethod
-    @property
     def _prefix(cls) -> str:
         return 'ISC'
