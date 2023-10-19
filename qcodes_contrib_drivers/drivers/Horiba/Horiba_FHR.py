@@ -165,7 +165,7 @@ class PrecisionMotorChannel(MotorChannel, metaclass=abc.ABCMeta):
                            get_cmd=self._get_position,
                            set_cmd=self._set_position,
                            set_parser=int,
-                           vals=validators.Ints(min_value, max_value),
+                           vals=validators.Numbers(min_value, max_value),
                            unit=self.unit)
 
     @property
@@ -242,6 +242,7 @@ class DCChannel(MotorChannel):
         self.add_parameter('position',
                            label=f'{label} position',
                            get_cmd=False,
+                           set_parser=int,
                            set_cmd=self._set_position,
                            val_mapping=val_mapping)
 
@@ -264,7 +265,7 @@ class SlitChannel(PrecisionMotorChannel):
                            set_cmd=self._set_width,
                            set_parser=int,
                            unit=self.unit,
-                           vals=validators.Ints(min_value, max_value),
+                           vals=validators.Numbers(min_value, max_value),
                            docstring="Actual slit opening width")
 
     @property
