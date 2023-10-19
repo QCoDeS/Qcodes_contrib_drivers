@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import time
 from functools import wraps
-from typing import Any, ParamSpec, Callable, TypeVar
+from typing import Any, Callable, TypeVar
 
 from qcodes import Parameter, VisaInstrument
 from qcodes.parameters import Group, GroupParameter, create_on_off_val_mapping
