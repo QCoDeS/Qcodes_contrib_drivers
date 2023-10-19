@@ -13,7 +13,7 @@ import logging
 import time
 import sys
 import ctypes
-from typing import Optional, Any, Sequence
+from typing import Optional, Any, Sequence, Tuple
 from functools import partial
 
 from qcodes import Instrument, Parameter
@@ -116,10 +116,10 @@ class DRSDaylightSolutions_MIRcat(Instrument):
         self._limits_chip2 = self.get_limits(2)
         self._limits_chip3 = self.get_limits(3)
         self._limits_chip4 = self.get_limits(4)
-        self._range_chip1 = self.get_ranges(1)
-        self._range_chip2 = self.get_ranges(2)
-        self._range_chip3 = self.get_ranges(3)
-        self._range_chip4 = self.get_ranges(4)
+        self._range_chip1: tuple[float, float] = self.get_ranges(1)
+        self._range_chip2: tuple[float, float] = self.get_ranges(2)
+        self._range_chip3: tuple[float, float] = self.get_ranges(3)
+        self._range_chip4: tuple[float, float] = self.get_ranges(4)
 
         self.status = Parameter(
             'status',
@@ -146,7 +146,7 @@ class DRSDaylightSolutions_MIRcat(Instrument):
             get_cmd=self._get_wavenumber,
             set_cmd=self._set_wavenumber,
             vals=vals.Numbers(1/self._range_chip4[1]/100, 1/self._range_chip1[0]/100),
-            unit='cm' + u'\u207b\u00b9',
+            unit='cm' + '\u207b\u00b9',
             instrument=self
         )
 
@@ -164,7 +164,7 @@ class DRSDaylightSolutions_MIRcat(Instrument):
             label='Temperature of chip 1',
             get_cmd=partial(self._get_temperature, chip=1),
             vals=vals.Numbers(),
-            unit=u'\u00b0'+'C',
+            unit='\u00b0'+'C',
             instrument=self
         )
 
@@ -173,7 +173,7 @@ class DRSDaylightSolutions_MIRcat(Instrument):
             label='Temperature of chip 2',
             get_cmd=partial(self._get_temperature, chip=2),
             vals=vals.Numbers(),
-            unit=u'\u00b0'+'C',
+            unit='\u00b0'+'C',
             instrument=self
         )
 
@@ -182,7 +182,7 @@ class DRSDaylightSolutions_MIRcat(Instrument):
             label='Temperature of chip 3',
             get_cmd=partial(self._get_temperature, chip=3),
             vals=vals.Numbers(),
-            unit=u'\u00b0'+'C',
+            unit='\u00b0'+'C',
             instrument=self
         )
 
@@ -191,7 +191,7 @@ class DRSDaylightSolutions_MIRcat(Instrument):
             label='Temperature of chip 4',
             get_cmd=partial(self._get_temperature, chip=4),
             vals=vals.Numbers(),
-            unit=u'\u00b0'+'C',
+            unit='\u00b0'+'C',
             instrument=self
         )
 
@@ -353,7 +353,7 @@ class DRSDaylightSolutions_MIRcat(Instrument):
                        ctypes.c_float(pulse_width*1e9),
                        ctypes.c_float(current*1e3)])
 
-    def get_limits(self, chip: int = 0) -> tuple:
+    def get_limits(self, chip: int = 0) -> Tuple[float, ...]:
         """Get the limits for a given QCL chip.
 
         Args:
@@ -438,7 +438,7 @@ class DRSDaylightSolutions_MIRcat(Instrument):
                 self._execute('MIRcatSDK_IsLaserArmed', [ctypes.byref(is_armed)])
                 time.sleep(1)
 
-    def get_ranges(self, chip: int = 0) -> tuple:
+    def get_ranges(self, chip: int = 0) -> tuple[float, float]:
         """Get the acceptable range for a given QCL chip.
 
         Args:
