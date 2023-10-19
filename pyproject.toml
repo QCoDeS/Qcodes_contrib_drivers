@@ -73,7 +73,8 @@ module = [
     "pyspcm",
     "spirack",
     "zhinst.*",
-    "ruamel.*"
+    "ruamel.*",
+    "msl.loadlib"
 ]
 ignore_missing_imports = true
 
