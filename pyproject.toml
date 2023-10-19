@@ -49,7 +49,7 @@ test = [
     "pyvisa-sim",
     "types-tqdm>=4.64.6"
 ]
-docs = [ "sphinx", "sphinx_rtd_theme", "nbsphinx",]
+docs = [ "sphinx", "sphinx_rtd_theme", "nbsphinx", "msl.loadlib" ]
 
 [tool.mypy]
 strict_optional = true
