@@ -93,7 +93,6 @@ class MotorChannel(Dispatcher, InstrumentChannel, metaclass=abc.ABCMeta):
         self.motor = motor
 
     @classmethod
-    @property
     def type(cls) -> str:
         try:
             return cls.__name__.removesuffix('Channel')
@@ -105,15 +104,16 @@ class MotorChannel(Dispatcher, InstrumentChannel, metaclass=abc.ABCMeta):
         """Set motor ID.
 
         This is the `Addr` address in LabSpec6."""
-        code, _ = self.cli.SpeCommand(self.handle, f'{self.type}{self.motor}',
-                                      'SetID', ctypes.c_int(i))
+        code, _ = self.cli.SpeCommand(self.handle,
+                                      f'{self.type()}{self.motor}', 'SetID',
+                                      ctypes.c_int(i))
         self.error_check(code)
 
     def get_id(self) -> int:
         """Get motor ID."""
         code, value = self.cli.SpeCommand(self.handle,
-                                          f'{self.type}{self.motor}', 'GetID',
-                                          ctypes.c_int())
+                                          f'{self.type()}{self.motor}',
+                                          'GetID', ctypes.c_int())
         self.error_check(code)
         return value
 
@@ -125,8 +125,9 @@ class MotorChannel(Dispatcher, InstrumentChannel, metaclass=abc.ABCMeta):
         raise_exception : bool, default: False
             Raise an 'errAbort' exception upon successful stop.
         """
-        code, _ = self.cli.SpeCommand(self.handle, f'{self.type}{self.motor}',
-                                      'Stop', None)
+        code, _ = self.cli.SpeCommand(self.handle,
+                                      f'{self.type()}{self.motor}', 'Stop',
+                                      None)
         try:
             self.error_check(code)
         except SpeError as se:
@@ -146,7 +147,8 @@ class MotorChannel(Dispatcher, InstrumentChannel, metaclass=abc.ABCMeta):
 
         For DC motors, the position is binary.
         """
-        code, _ = self.cli.SpeCommand(self.handle, f'{self.type}{self.motor}',
+        code, _ = self.cli.SpeCommand(self.handle,
+                                      f'{self.type()}{self.motor}',
                                       'SetPosition', ctypes.c_int(pos))
         self.error_check(code)
 
@@ -180,8 +182,9 @@ class PrecisionMotorChannel(MotorChannel, metaclass=abc.ABCMeta):
         """Initialize motor with offset position (optical zero order
         position in motor steps)."""
         offset = ctypes.c_int(self._offset)
-        code, _ = self.cli.SpeCommand(self.handle, f'{self.type}{self.motor}',
-                                      'Init', offset)
+        code, _ = self.cli.SpeCommand(self.handle,
+                                      f'{self.type()}{self.motor}', 'Init',
+                                      offset)
         self.error_check(code)
 
     def set_setup(self,
@@ -213,7 +216,7 @@ class PrecisionMotorChannel(MotorChannel, metaclass=abc.ABCMeta):
                 - 1: inverse
         """
         code, _ = self.cli.SpeCommandSetup(
-            self.handle, f'{self.type}{self.motor}',
+            self.handle, f'{self.type()}{self.motor}',
             fields=(min_speed, max_speed, ramp, backlash, step, reverse)
         )
         self.error_check(code)
@@ -225,7 +228,7 @@ class PrecisionMotorChannel(MotorChannel, metaclass=abc.ABCMeta):
         similar to "SetPosition" parameter value."""
         pos = ctypes.c_int()
         code, value = self.cli.SpeCommand(self.handle,
-                                          f'{self.type}{self.motor}',
+                                          f'{self.type()}{self.motor}',
                                           'GetPosition', pos)
         self.error_check(code)
         return value
@@ -328,14 +331,15 @@ class GratingChannel(PrecisionMotorChannel):
             Acceleration
         """
         code, _ = self.cli.SpeCommandIniParams(
-            self.handle, f'{self.type}{self.motor}',
+            self.handle, f'{self.type()}{self.motor}',
             fields=(phase, min_speed, max_speed, ramp)
         )
         self.error_check(code)
 
     def _set_shift(self, shift: int):
         """Set zero order shift."""
-        code, _ = self.cli.SpeCommand(self.handle, f'{self.type}{self.motor}',
+        code, _ = self.cli.SpeCommand(self.handle,
+                                      f'{self.type()}{self.motor}',
                                       'SetShift', ctypes.c_int(shift))
         self.error_check(code)
 
