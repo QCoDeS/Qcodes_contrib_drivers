@@ -58,20 +58,20 @@ class PortChannel(Dispatcher, InstrumentChannel):
 
     def close(self):
         """Close serial port."""
-        code, _ = self.cli.SpeCommand(self.handle, 'Port', 'Close', None)
+        code, _ = self.cli.SpeCommand(self.handle, 'Port', 'Close')
         self.error_check(code)
 
     def is_open(self) -> bool:
         """Check if the port is open."""
-        par = ctypes.c_int()
-        code, value = self.cli.SpeCommand(self.handle, 'Port', 'IsOpen', par)
+        code, value = self.cli.SpeCommand(self.handle, 'Port', 'IsOpen',
+                                          ctypes.c_int())
         self.error_check(code)
         return bool(value)
 
     def set_baud_rate(self, baud_rate: int = 115200):
         """Set port baud rate for opened pot. Should be the default."""
-        rate = ctypes.c_int(baud_rate)
-        code, _ = self.cli.SpeCommand(self.handle, 'Port', 'SetBaudRate', rate)
+        code, _ = self.cli.SpeCommand(self.handle, 'Port', 'SetBaudRate',
+                                      ctypes.c_int(baud_rate))
         self.error_check(code)
 
     def set_timeout(self, timeout: int = 90000):
@@ -122,8 +122,7 @@ class MotorChannel(Dispatcher, InstrumentChannel, metaclass=abc.ABCMeta):
             Raise an 'errAbort' exception upon successful stop.
         """
         code, _ = self.cli.SpeCommand(self.handle,
-                                      f'{self.type()}{self.motor}', 'Stop',
-                                      None)
+                                      f'{self.type()}{self.motor}', 'Stop')
         try:
             self.error_check(code)
         except SpeError as se:
@@ -177,10 +176,9 @@ class PrecisionMotorChannel(MotorChannel, metaclass=abc.ABCMeta):
     def init(self):
         """Initialize motor with offset position (optical zero order
         position in motor steps)."""
-        offset = ctypes.c_int(self._offset)
         code, _ = self.cli.SpeCommand(self.handle,
                                       f'{self.type()}{self.motor}', 'Init',
-                                      offset)
+                                      ctypes.c_int(self._offset))
         self.error_check(code)
 
     def set_setup(self,
@@ -222,10 +220,9 @@ class PrecisionMotorChannel(MotorChannel, metaclass=abc.ABCMeta):
     def _get_position(self) -> int:
         """Get current position. The result depends on 'Step' value
         similar to "SetPosition" parameter value."""
-        pos = ctypes.c_int()
         code, value = self.cli.SpeCommand(self.handle,
                                           f'{self.type()}{self.motor}',
-                                          'GetPosition', pos)
+                                          'GetPosition', ctypes.c_int())
         self.error_check(code)
         return value
 
