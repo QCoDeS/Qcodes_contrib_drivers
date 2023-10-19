@@ -31,7 +31,7 @@ class FHRClient(Client64):
 
     def SpeCommand(
             self, h_spe: int, a_dsp: str, a_fun: str,
-            aPar: ctypes._CData | None = None
+            aPar: ctypes._SimpleCData | None = None
     ) -> Tuple[int, int | None]:
         """Send command (execute a function) named "a_fun" for the
         function dispatcher named "a_dsp" for the spectrometer handled

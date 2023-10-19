@@ -84,7 +84,7 @@ class FHRServer(Server32):
         code = self.lib.SpeCommand(
             hSpe, aDsp, aFun, ctypes.byref(aPar) if aPar is not None else None
         )
-        if isinstance(aPar, ctypes._CData):
+        if isinstance(aPar, ctypes._SimpleCData):
             return code, aPar.value
         return code, None
 
