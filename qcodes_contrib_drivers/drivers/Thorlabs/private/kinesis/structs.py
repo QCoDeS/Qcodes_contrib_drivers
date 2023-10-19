@@ -1,4 +1,5 @@
 import ctypes
+import enum
 
 from . import enums
 
@@ -8,7 +9,7 @@ class StructureWithEnums(ctypes.Structure):
 
     Taken from https://gist.github.com/christoph2/9c390e5c094796903097
     """
-    _map = {}
+    _map: dict[str, enum.EnumMeta] = {}
 
     def __getattribute__(self, name):
         _map = ctypes.Structure.__getattribute__(self, '_map')

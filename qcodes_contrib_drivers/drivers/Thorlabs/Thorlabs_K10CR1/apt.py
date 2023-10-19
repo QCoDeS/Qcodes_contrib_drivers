@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import enum
 from typing import Tuple
 import warnings
@@ -170,7 +172,8 @@ class ThorlabsK10CR1(Instrument):
         return self.apt.mot_get_velocity_parameters(self.serial_number)
 
     def _set_velocity_parameters(self,
-                                 min_vel: float = None, accn: float = None, max_vel: float = None):
+                                 min_vel: float | None = None, accn: float | None = None,
+                                 max_vel: float | None = None):
         if min_vel is None or accn is None or max_vel is None:
             old_min_vel, old_accn, old_max_vel = self._get_velocity_parameters()
             if min_vel is None:
@@ -205,8 +208,8 @@ class ThorlabsK10CR1(Instrument):
     def _get_home_parameters(self) -> Tuple[int, int, float, float]:
         return self.apt.mot_get_home_parameters(self.serial_number)
 
-    def _set_home_parameters(self, direction: int = None, lim_switch: int = None,
-                             velocity: float = None, zero_offset:float = None):
+    def _set_home_parameters(self, direction: int | None = None, lim_switch: int | None = None,
+                             velocity: float | None = None, zero_offset: float | None = None):
         if direction is None or lim_switch is None or velocity is None or zero_offset is None:
             old_direction, old_lim_switch, old_velocity, old_zero_offset = self._get_home_parameters()
             if direction is None:

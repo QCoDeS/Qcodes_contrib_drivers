@@ -5,6 +5,7 @@ from functools import partial
 from typing import Mapping, Any
 
 from qcodes import validators as vals
+
 from qcodes_contrib_drivers.drivers.Thorlabs.private.kinesis import enums
 from qcodes_contrib_drivers.drivers.Thorlabs.private.kinesis.enums import (
     KinesisHWType

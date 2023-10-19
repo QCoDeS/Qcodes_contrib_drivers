@@ -1,18 +1,26 @@
 from __future__ import annotations
 
 import abc
-import ctypes
 import os
 import pathlib
 import time
 import warnings
 from functools import wraps, partial
-from typing import Mapping, Any, List, Tuple, Iterable
-
-import numpy as np
+from typing import Mapping, Any, List, Tuple, Iterable, Callable
 
 from qcodes import Instrument
+
 from . import enums
+
+try:
+    import ctypes.wintypes
+except ImportError:
+    import ctypes
+    from types import ModuleType
+
+    ctypes.wintypes = ModuleType('wintypes')
+    ctypes.wintypes.WORD = ctypes.c_ushort
+    ctypes.wintypes.DWORD = ctypes.c_ulong
 
 DLL_DIR = r"C:\Program Files\Thorlabs\Kinesis"
 
@@ -140,7 +148,7 @@ class ThorlabsKinesis:
                  simulation: bool = False):
 
         self.prefix = prefix
-        self.dll_dir = os.add_dll_directory(dll_dir or DLL_DIR)
+        self.dll_dir = pathlib.Path(dll_dir or DLL_DIR)
         self.serialNo = ctypes.c_char_p()
         self.simulation = simulation
 
@@ -148,18 +156,14 @@ class ThorlabsKinesis:
             lib = "Thorlabs.MotionControl." + lib
         if not lib.endswith(".dll"):
             lib = lib + ".dll"
-        lib = pathlib.Path(lib)
-        if not (dll := (self.dll_dir.path / lib)).exists():
+        if not (dll := self.dll_dir / lib).exists():
             raise FileNotFoundError(f'Did not find DLL {dll}')
 
-        self.lib: ctypes.CDLL = ctypes.cdll.LoadLibrary(str(lib))
+        self.lib: ctypes.CDLL = ctypes.cdll.LoadLibrary(str(dll))
         if simulation:
             self.enable_simulation()
 
         self.build_device_list()
-
-    def __del__(self):
-        self.dll_dir.close()
 
     @staticmethod
     def parse_fw_version(fw: int) -> str:
@@ -167,7 +171,7 @@ class ThorlabsKinesis:
         return '.'.join(parts).lstrip('0.')
 
     def get_function(self, name: str, check_errors: bool = False,
-                     check_success: bool = False) -> callable:
+                     check_success: bool = False) -> Callable:
         """Convenience method for getting a function from the dll.
 
         If check_errors or check_success is True, the return value of
@@ -416,12 +420,16 @@ class KinesisInstrument(Instrument, abc.ABC):
 
     def connect(self, serial: int | None, polling_duration: int = 100):
         begin_time = time.time()
-        if serial is None or not self._initialized:
-            available_devices = self.list_available_devices()
+
         if serial is None:
+            available_devices = self.list_available_devices()
             if not len(available_devices):
                 raise RuntimeError(f'No {self.prefix} devices found!')
             serial = available_devices[0]
+
+        if not self._initialized:
+            error_check(self.kinesis.lib.TLI_BuildDeviceList())
+
         if self.connected:
             warnings.warn('Already connected to device with serial '
                           f'{self.serial}. Disconnecting.',
@@ -441,11 +449,11 @@ class KinesisInstrument(Instrument, abc.ABC):
             self.kinesis.close()
             self.kinesis.serialNo.value = None
 
-    def get_idn(self) -> dict[str, str]:
+    def get_idn(self) -> dict[str, str | None]:
         model, type, num_channels, notes, firmware, hardware, state = \
             self.kinesis.get_hw_info()
         return {'vendor': 'Thorlabs', 'model': model, 'firmware': firmware,
-                'serial': self.serial}
+                'serial': str(self.serial)}
 
     def close(self):
         self.disconnect()
@@ -457,21 +465,20 @@ class KinesisError(Exception):
 
 
 def list_available_devices(
-        lib: str | pathlib.Path | ctypes.CDLL | None = None,
+        lib: str | os.PathLike | ctypes.CDLL | None = None,
         hardware_type: Iterable[enums.KinesisHWType] | enums.KinesisHWType | None = None
 ) -> List[Tuple[enums.KinesisHWType, int]]:
     if not isinstance(lib, ctypes.CDLL):
-        # Open base directory
         if lib is None:
             lib = DLL_DIR
-        lib = pathlib.Path(lib)
-        if lib.is_file():
-            lib = lib.parent
-        lib = os.add_dll_directory(str(lib))
-        lib = ctypes.cdll.LoadLibrary(str(pathlib.Path(
-            lib.path,
-            'Thorlabs.MotionControl.DeviceManager.dll'
-        )))
+
+        if not isinstance(lib, pathlib.Path):
+            lib = pathlib.Path(lib)
+
+        if lib.is_dir():
+            lib /= 'Thorlabs.MotionControl.DeviceManager.dll'
+
+        lib = ctypes.cdll.LoadLibrary(str(lib))
 
     error_check(lib.TLI_BuildDeviceList())
     n: int = lib.TLI_GetDeviceListSize()
@@ -479,19 +486,17 @@ def list_available_devices(
     if not n:
         return []
 
-    devices = []
-    hw_type_list = []
-    if hardware_type is not None:
-        # Only search for devices of the passed hardware type (model)
-        if not np.iterable(hardware_type):
-            hardware_type = [hardware_type]
-        for hw in hardware_type:
-            hw_type_list.append(hw.value)
-    else:
+    if hardware_type is None:
         # Search for all models
-        hw_type_list = list(range(1, 101))
+        hw_type_ids = list(range(1, 101))
+    elif isinstance(hardware_type, Iterable):
+        # Only search for devices of the passed hardware type (model)
+        hw_type_ids = [hw.value for hw in hardware_type]
+    else:
+        hw_type_ids = [hardware_type.value]
 
-    for hw_type_id in hw_type_list:
+    devices = []
+    for hw_type_id in hw_type_ids:
         # char array, 8 bytes for serial number, 1 for delimiter, plus 1
         # surplus needed, apparently. Since the function returns all serials
         # of a given hardware type, the char buffer needs to be large enough

@@ -9,17 +9,11 @@ from typing import Dict, Mapping, Any
 
 from qcodes import Instrument
 
-_bitness = platform.architecture()[0][:2]
-try:
-    vxi_32 = os.environ['VXIPNPPATH']
-    vxi_64 = os.environ['VXIPNPPATH64']
-except KeyError:
-    vxi_32 = None
-    vxi_64 = None
-    raise RuntimeError('IVI VXIPNP path not detected.')
+vxi_32 = os.environ.get('VXIPNPPATH')
+vxi_64 = os.environ.get('VXIPNPPATH64')
 
 if vxi_32 is not None:
-    if _bitness == '64':
+    if platform.architecture()[0][:2] == '64' and vxi_64 is not None:
         dll_path = pathlib.Path(vxi_64, 'Win64', 'Bin', 'TLPM_64.dll')
     else:
         dll_path = pathlib.Path(vxi_32, 'WinNT', 'Bin', 'TLPM_32.dll')
@@ -113,7 +107,7 @@ class ThorlabsPM100D(Instrument):
     def _set_wavelength(self, wavelength: float):
         self.tlpm.setWavelength(ctypes.c_double(wavelength))
 
-    def get_idn(self) -> Dict[str, str]:
+    def get_idn(self) -> Dict[str, str | None]:
         manufacturerName = ctypes.create_string_buffer(1024)
         deviceName = ctypes.create_string_buffer(1024)
         serialNumber = ctypes.create_string_buffer(1024)
