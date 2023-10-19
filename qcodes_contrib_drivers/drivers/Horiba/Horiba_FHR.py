@@ -94,11 +94,7 @@ class MotorChannel(Dispatcher, InstrumentChannel, metaclass=abc.ABCMeta):
 
     @classmethod
     def type(cls) -> str:
-        try:
-            return cls.__name__.removesuffix('Channel')
-        except AttributeError:
-            # Python 3.8
-            return cls.__name__[:-7]
+        return cls.__name__.removesuffix('Channel')
 
     def set_id(self, i: int):
         """Set motor ID.
