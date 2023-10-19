@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+import ctypes
 import os
 import pathlib
 from pathlib import Path
-from typing import TypeVar, Tuple, Union
+from typing import Tuple
 
 try:
     from msl.loadlib import Client64
@@ -12,12 +13,11 @@ except ImportError:
                       'communicating with a 32-bit dll. You can install it '
                       "by running 'pip install msl.loadlib'")
 
-_T = TypeVar('_T')
-
 
 class FHRClient(Client64):
 
-    def __init__(self, dll_dir: str | os.PathLike | pathlib.Path, filename: str = 'SpeControl'):
+    def __init__(self, dll_dir: str | os.PathLike | pathlib.Path,
+                 filename: str = 'SpeControl'):
         module32 = str(Path(__file__).parent / 'fhr_server')
         super().__init__(module32=module32, dll_dir=dll_dir, filename=filename)
 
@@ -29,8 +29,10 @@ class FHRClient(Client64):
         """Delete spectrometer handle h_spe."""
         return self.request32('DeleteSpe', h_spe)
 
-    def SpeCommand(self, h_spe: int, a_dsp: str, a_fun: str,
-                   aPar: _T) -> Tuple[int, Union[_T, None]]:
+    def SpeCommand(
+            self, h_spe: int, a_dsp: str, a_fun: str,
+            aPar: ctypes._CData | None = None
+    ) -> Tuple[int, int | None]:
         """Send command (execute a function) named "a_fun" for the
         function dispatcher named "a_dsp" for the spectrometer handled
         "h_spe". "a_par" is a pointer to the function parameters."""

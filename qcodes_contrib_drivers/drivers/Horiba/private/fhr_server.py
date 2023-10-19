@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import logging
 from pathlib import Path
-from typing import TypeVar, Tuple, Union
+from typing import Tuple
 
 from msl.loadlib import Server32
 
@@ -12,8 +14,6 @@ except ImportError:
 
     ctypes.wintypes = ModuleType('wintypes')
     ctypes.wintypes.DWORD = ctypes.c_ulong
-
-_T = TypeVar('_T')
 
 LOG = logging.getLogger(__name__)
 
@@ -64,8 +64,10 @@ class FHRServer(Server32):
 
         self.lib.DeleteSpe(hSpe)
 
-    def SpeCommand(self, h_spe: int, a_dsp: str, a_fun: str,
-                   aPar: _T) -> Tuple[int, Union[_T, None]]:
+    def SpeCommand(
+            self, h_spe: int, a_dsp: str, a_fun: str,
+            aPar: _SpeSetup | _SpeIniParams | ctypes.c_int | None = None
+    ) -> Tuple[int, int | None]:
         """Send command (execute a function) named "a_fun" for the
         function dispatcher named "a_dsp" for the spectrometer handled
         "h_spe". "a_par" is a pointer to the function parameters."""
@@ -82,10 +84,12 @@ class FHRServer(Server32):
         code = self.lib.SpeCommand(
             hSpe, aDsp, aFun, ctypes.byref(aPar) if aPar is not None else None
         )
-        return code, (aPar.value if hasattr(aPar, 'value') else None)
+        if isinstance(aPar, ctypes._CData):
+            return code, aPar.value
+        return code, None
 
     def SpeCommandSetup(self, h_spe: int, a_dsp: str,
-                        fields: Tuple[int, ...]) -> Tuple[int, None]:
+                        fields: Tuple[int, ...]) -> Tuple[int, int | None]:
         """Send command to set up a motor.
 
         Need to treat this separately since the SpeSetup structure
@@ -96,7 +100,7 @@ class FHRServer(Server32):
         return self.SpeCommand(h_spe, a_dsp, 'SetSetup', setup)
 
     def SpeCommandIniParams(self, h_spe: int, a_dsp: str,
-                            fields: Tuple[int, ...]) -> Tuple[int, None]:
+                            fields: Tuple[int, ...]) -> Tuple[int, int | None]:
         """Send command to initialize a grating motor.
 
         Need to treat this separately since the SpeIniParams structure
