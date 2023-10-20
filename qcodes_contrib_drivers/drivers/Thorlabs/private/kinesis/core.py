@@ -468,6 +468,16 @@ def list_available_devices(
         lib: str | os.PathLike | ctypes.CDLL | None = None,
         hardware_type: Iterable[enums.KinesisHWType] | enums.KinesisHWType | None = None
 ) -> List[Tuple[enums.KinesisHWType, int]]:
+    """Discover and list available Kinesis devices.
+
+    Args:
+        lib: Either the path to a Kinesis dll or a CDLL instance.
+        hardware_type: List only devices of a given type.
+
+    Returns:
+        A list of two-tuples (hardware_type_id, serial_number).
+
+    """
     if not isinstance(lib, ctypes.CDLL):
         if lib is None:
             lib = DLL_DIR
