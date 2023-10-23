@@ -13,7 +13,7 @@ import logging
 import time
 import sys
 import ctypes
-from typing import Optional, Any, Sequence, Tuple
+from typing import Optional, Any, Sequence
 from functools import partial
 
 from qcodes import Instrument, Parameter
@@ -353,7 +353,7 @@ class DRSDaylightSolutions_MIRcat(Instrument):
                        ctypes.c_float(pulse_width*1e9),
                        ctypes.c_float(current*1e3)])
 
-    def get_limits(self, chip: int = 0) -> Tuple[float, ...]:
+    def get_limits(self, chip: int = 0) -> tuple[float, ...]:
         """Get the limits for a given QCL chip.
 
         Args:
@@ -791,7 +791,7 @@ class DRSDaylightSolutions_MIRcat(Instrument):
             elif 1/self._range_chip1[0]/100 > wavenumber:
                 chip = 1
             else:
-                raise ValueError('selected wavenumber is not supported')
+                raise ValueError(f'selected wavenumber {wavenumber} is not supported')
 
         self.log.info(f'Set wavenumber to {wavenumber} on QCL chip {chip}.')
         self._execute('MIRcatSDK_TuneToWW',
