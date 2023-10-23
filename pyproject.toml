@@ -40,8 +40,16 @@ Source = "https://github.com/qcodes/qcodes_contrib_drivers"
 Tracker = "https://github.com/QCoDeS/Qcodes_contrib_drivers/issues"
 
 [project.optional-dependencies]
-test = [ "pytest>=6.2.2", "pytest-mock", "mypy>=0.940", "pytest-cov>=3.0.0", "coverage[toml]>=6.2", "pyvisa-sim",]
-docs = [ "sphinx", "sphinx_rtd_theme", "nbsphinx",]
+test = [
+    "pytest>=6.2.2",
+    "pytest-mock",
+    "mypy>=0.940",
+    "pytest-cov>=3.0.0",
+    "coverage[toml]>=6.2",
+    "pyvisa-sim",
+    "types-tqdm>=4.64.6"
+]
+docs = [ "sphinx", "sphinx_rtd_theme", "nbsphinx", ]
 
 [tool.mypy]
 strict_optional = true
@@ -73,7 +81,8 @@ module = [
     "pyspcm",
     "spirack",
     "zhinst.*",
-    "ruamel.*"
+    "ruamel.*",
+    "msl.loadlib"
 ]
 ignore_missing_imports = true
 
