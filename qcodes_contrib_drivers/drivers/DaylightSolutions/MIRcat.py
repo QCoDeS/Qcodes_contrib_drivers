@@ -30,9 +30,9 @@ class DRSDaylightSolutions_MIRcat(Instrument):
     status: beta-version
 
     Args:
-        name (str): name for the instrument
-        dll_path (Optional[str], optional): path to the MIRcatSDK driver dll
-            library file. Defaults to None.
+        name: name for the instrument
+        dll_path: path to the MIRcatSDK driver dll library file. Defaults to None.
+        wavelength: sequence of 2-tuple for the wavelength boundaries of all chips.
     """
     dll_path = 'C:\\MIRcat_laser\\libs\\x64\\MIRcatSDK.dll'
 
@@ -93,6 +93,7 @@ class DRSDaylightSolutions_MIRcat(Instrument):
                  dll_path: Optional[str] = None,
                  **kwargs: Any) -> None:
         super().__init__(name, **kwargs)
+        
 
         if sys.platform != 'win32':
             self._dll: Any = None
@@ -111,6 +112,14 @@ class DRSDaylightSolutions_MIRcat(Instrument):
         self._is_keyswitch_set = ctypes.c_bool(False)
         self._execute('MIRcatSDK_IsKeySwitchStatusSet',
                       [ctypes.byref(self._is_keyswitch_set)])
+        self._limits_chip1 = self.get_limits(1)
+        self._limits_chip2 = self.get_limits(2)
+        self._limits_chip3 = self.get_limits(3)
+        self._limits_chip4 = self.get_limits(4)
+        self._range_chip1: tuple[float, float] = self.get_ranges(1)
+        self._range_chip2: tuple[float, float] = self.get_ranges(2)
+        self._range_chip3: tuple[float, float] = self.get_ranges(3)
+        self._range_chip4: tuple[float, float] = self.get_ranges(4)
 
         self.status = Parameter(
             'status',
@@ -126,7 +135,7 @@ class DRSDaylightSolutions_MIRcat(Instrument):
             label='QCL wavelength',
             get_cmd=self._get_wavelength,
             set_cmd=self._set_wavelength,
-            vals=vals.Numbers(3e-6, 13e-6),
+            vals=vals.Numbers(self._range_chip1[0], self._range_chip4[1]),
             unit='m',
             instrument=self
         )
@@ -136,8 +145,8 @@ class DRSDaylightSolutions_MIRcat(Instrument):
             label='QCL wavenumber',
             get_cmd=self._get_wavenumber,
             set_cmd=self._set_wavenumber,
-            vals=vals.Numbers(0, 1600),
-            unit='cm' + u'\u207b\u00b9',
+            vals=vals.Numbers(1/self._range_chip4[1]/100, 1/self._range_chip1[0]/100),
+            unit='cm' + '\u207b\u00b9',
             instrument=self
         )
 
@@ -155,7 +164,7 @@ class DRSDaylightSolutions_MIRcat(Instrument):
             label='Temperature of chip 1',
             get_cmd=partial(self._get_temperature, chip=1),
             vals=vals.Numbers(),
-            unit=u'\u00b0'+'C',
+            unit='\u00b0'+'C',
             instrument=self
         )
 
@@ -164,7 +173,7 @@ class DRSDaylightSolutions_MIRcat(Instrument):
             label='Temperature of chip 2',
             get_cmd=partial(self._get_temperature, chip=2),
             vals=vals.Numbers(),
-            unit=u'\u00b0'+'C',
+            unit='\u00b0'+'C',
             instrument=self
         )
 
@@ -173,7 +182,7 @@ class DRSDaylightSolutions_MIRcat(Instrument):
             label='Temperature of chip 3',
             get_cmd=partial(self._get_temperature, chip=3),
             vals=vals.Numbers(),
-            unit=u'\u00b0'+'C',
+            unit='\u00b0'+'C',
             instrument=self
         )
 
@@ -182,7 +191,7 @@ class DRSDaylightSolutions_MIRcat(Instrument):
             label='Temperature of chip 4',
             get_cmd=partial(self._get_temperature, chip=4),
             vals=vals.Numbers(),
-            unit=u'\u00b0'+'C',
+            unit='\u00b0'+'C',
             instrument=self
         )
 
@@ -191,7 +200,7 @@ class DRSDaylightSolutions_MIRcat(Instrument):
             label='Pulse rate for chip 1',
             get_cmd=partial(self._get_pulse_rate, chip=1),
             set_cmd=partial(self._set_pulse_rate, chip=1),
-            vals=vals.Numbers(100, 1e6),
+            vals=vals.Numbers(max_value=self._limits_chip1[0]),
             unit='Hz',
             instrument=self
         )
@@ -201,7 +210,7 @@ class DRSDaylightSolutions_MIRcat(Instrument):
             label='Pulse rate for chip 2',
             get_cmd=partial(self._get_pulse_rate, chip=2),
             set_cmd=partial(self._set_pulse_rate, chip=2),
-            vals=vals.Numbers(100, 1e6),
+            vals=vals.Numbers(max_value=self._limits_chip2[0]),
             unit='Hz',
             instrument=self
         )
@@ -211,7 +220,7 @@ class DRSDaylightSolutions_MIRcat(Instrument):
             label='Pulse rate for chip 3',
             get_cmd=partial(self._get_pulse_rate, chip=3),
             set_cmd=partial(self._set_pulse_rate, chip=3),
-            vals=vals.Numbers(100, 1e6),
+            vals=vals.Numbers(max_value=self._limits_chip3[0]),
             unit='Hz',
             instrument=self
         )
@@ -221,7 +230,7 @@ class DRSDaylightSolutions_MIRcat(Instrument):
             label='Pulse rate for chip 4',
             get_cmd=partial(self._get_pulse_rate, chip=4),
             set_cmd=partial(self._set_pulse_rate, chip=4),
-            vals=vals.Numbers(100, 1e6),
+            vals=vals.Numbers(max_value=self._limits_chip4[0]),
             unit='Hz',
             instrument=self
         )
@@ -231,7 +240,7 @@ class DRSDaylightSolutions_MIRcat(Instrument):
             label='Pulse width for chip 1',
             get_cmd=partial(self._get_pulse_width, chip=1),
             set_cmd=partial(self._set_pulse_width, chip=1),
-            vals=vals.Numbers(40e-9, 500e-9),
+            vals=vals.Numbers(max_value=self._limits_chip1[1]),
             unit='s',
             instrument=self
         )
@@ -241,7 +250,7 @@ class DRSDaylightSolutions_MIRcat(Instrument):
             label='Pulse width for chip 2',
             get_cmd=partial(self._get_pulse_width, chip=2),
             set_cmd=partial(self._set_pulse_width, chip=2),
-            vals=vals.Numbers(40e-9, 500e-9),
+            vals=vals.Numbers(max_value=self._limits_chip2[1]),
             unit='s',
             instrument=self
         )
@@ -251,7 +260,7 @@ class DRSDaylightSolutions_MIRcat(Instrument):
             label='Pulse width for chip 3',
             get_cmd=partial(self._get_pulse_width, chip=3),
             set_cmd=partial(self._set_pulse_width, chip=3),
-            vals=vals.Numbers(40e-9, 500e-9),
+            vals=vals.Numbers(max_value=self._limits_chip3[1]),
             unit='s',
             instrument=self
         )
@@ -261,7 +270,7 @@ class DRSDaylightSolutions_MIRcat(Instrument):
             label='Pulse width for chip 4',
             get_cmd=partial(self._get_pulse_width, chip=4),
             set_cmd=partial(self._set_pulse_width, chip=4),
-            vals=vals.Numbers(40e-9, 500e-9),
+            vals=vals.Numbers(max_value=self._limits_chip4[1]),
             unit='s',
             instrument=self
         )
@@ -271,7 +280,7 @@ class DRSDaylightSolutions_MIRcat(Instrument):
             label='Pulse current for chip 1',
             get_cmd=partial(self._get_pulse_current, chip=1),
             set_cmd=partial(self._set_pulse_current, chip=1),
-            vals=vals.Numbers(),
+            vals=vals.Numbers(max_value=self._limits_chip1[3]),
             unit='A',
             instrument=self
         )
@@ -281,7 +290,7 @@ class DRSDaylightSolutions_MIRcat(Instrument):
             label='Pulse current for chip 2',
             get_cmd=partial(self._get_pulse_current, chip=2),
             set_cmd=partial(self._set_pulse_current, chip=2),
-            vals=vals.Numbers(),
+            vals=vals.Numbers(max_value=self._limits_chip2[3]),
             unit='A',
             instrument=self
         )
@@ -290,7 +299,7 @@ class DRSDaylightSolutions_MIRcat(Instrument):
             label='Pulse current for chip 3',
             get_cmd=partial(self._get_pulse_current, chip=3),
             set_cmd=partial(self._set_pulse_current, chip=3),
-            vals=vals.Numbers(),
+            vals=vals.Numbers(max_value=self._limits_chip3[3]),
             unit='A',
             instrument=self
         )
@@ -299,7 +308,7 @@ class DRSDaylightSolutions_MIRcat(Instrument):
             label='Pulse current for chip 4',
             get_cmd=partial(self._get_pulse_current, chip=4),
             set_cmd=partial(self._set_pulse_current, chip=4),
-            vals=vals.Numbers(),
+            vals=vals.Numbers(max_value=self._limits_chip4[3]),
             unit='A',
             instrument=self
         )
@@ -344,7 +353,7 @@ class DRSDaylightSolutions_MIRcat(Instrument):
                        ctypes.c_float(pulse_width*1e9),
                        ctypes.c_float(current*1e3)])
 
-    def get_limits(self, chip: int = 0) -> tuple:
+    def get_limits(self, chip: int = 0) -> tuple[float, ...]:
         """Get the limits for a given QCL chip.
 
         Args:
@@ -429,7 +438,7 @@ class DRSDaylightSolutions_MIRcat(Instrument):
                 self._execute('MIRcatSDK_IsLaserArmed', [ctypes.byref(is_armed)])
                 time.sleep(1)
 
-    def get_ranges(self, chip: int = 0) -> tuple:
+    def get_ranges(self, chip: int = 0) -> tuple[float, float]:
         """Get the acceptable range for a given QCL chip.
 
         Args:
@@ -456,7 +465,7 @@ class DRSDaylightSolutions_MIRcat(Instrument):
                       [chip, ctypes.byref(pf_min_range),
                        ctypes.byref(pf_max_range),
                        ctypes.byref(pb_units)])
-        return (pf_min_range.value*1e6, pf_max_range.value*1e6)
+        return (pf_min_range.value*1e-6, pf_max_range.value*1e-6)
 
     def check_tune(self) -> float:
         """Check the QCL tune.
@@ -753,14 +762,16 @@ class DRSDaylightSolutions_MIRcat(Instrument):
     def _set_wavelength(self, wavelength: float, chip: int = 0) -> None:
         wavelength = wavelength*1e6
         if chip == 0:
-            if wavelength <= 8.2:
+            if wavelength <= self._range_chip1[1]:
                 chip = 1
-            elif 8.2 < wavelength <= 10.3:
+            elif self._range_chip2[0] < wavelength <= self._range_chip2[1]:
                 chip = 2
-            elif 10.3 < wavelength <= 12.7:
+            elif self._range_chip3[0] < wavelength <= self._range_chip3[1]:
                 chip = 3
-            else:
+            elif self._range_chip4[0] < wavelength:
                 chip = 4
+            else:
+                raise ValueError('selected wavelength is not supported')
 
         self.log.info(f'Set wavelength to {wavelength} on QCL chip {chip}.')
         self._execute('MIRcatSDK_TuneToWW',
@@ -768,17 +779,19 @@ class DRSDaylightSolutions_MIRcat(Instrument):
                        ctypes.c_ubyte(1),
                        ctypes.c_uint8(chip)])
         self._get_wavenumber()
-
+        
     def _set_wavenumber(self, wavenumber: float, chip: int = 0) -> None:
         if chip == 0:
-            if wavenumber >= 1219:
-                chip = 1
-            elif 971 <= wavenumber < 1219:
-                chip = 2
-            elif 788 <= wavenumber < 971:
-                chip = 3
-            else:
+            if wavenumber >= 1/self._range_chip4[1]/100:
                 chip = 4
+            elif 1/self._range_chip3[0]/100 > wavenumber >= 1/self._range_chip3[1]/100:
+                chip = 3
+            elif 1/self._range_chip2[0]/100 > wavenumber >= 1/self._range_chip2[1]/100:
+                chip = 2
+            elif 1/self._range_chip1[0]/100 > wavenumber:
+                chip = 1
+            else:
+                raise ValueError(f'selected wavenumber {wavenumber} is not supported')
 
         self.log.info(f'Set wavenumber to {wavenumber} on QCL chip {chip}.')
         self._execute('MIRcatSDK_TuneToWW',
