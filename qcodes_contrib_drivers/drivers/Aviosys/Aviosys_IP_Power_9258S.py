@@ -69,6 +69,8 @@ class AviosysIPPower9258S(Instrument):
         super().__init__(name, **kwargs)
 
         # save access settings
+        if not address.startswith('http://'):
+            address = f'http://{address}'
         self.address = address
 
         # set up http connection
