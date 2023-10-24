@@ -20,15 +20,15 @@ class M2Solstis3(IPInstrument):
 
     """
 
-    def __init__(self, name: str, address: str, port: int, controller_address: str,
-                 timeout: float = 5, terminator: str = "", persistent: bool = False,
+    def __init__(self, name: str, address: str, port: int,
+                 controller_address: str, timeout: float = 5,
+                 terminator: str = "", persistent: bool = True,
                  write_confirmation: bool = True, **kwargs: Any):
-        super().__init__(name, address, port, timeout, terminator, persistent, write_confirmation,
-                         **kwargs)
 
         self._controller_address = controller_address
 
-        self.set_persistent(persistent)
+        super().__init__(name, address, port, timeout, terminator, persistent,
+                         write_confirmation, **kwargs)
 
         self.add_parameter('wavelength_m',
                            get_cmd=self._get_wavelength,
@@ -51,19 +51,20 @@ class M2Solstis3(IPInstrument):
                            set_cmd=self._lock_wave_m,
                            vals=Enum(True, False))
 
+        self.connect_message()
+
     @staticmethod
     def _generate_transmission_id():
         return random.randint(1, 2 ** 14)
 
     def _connect(self):
         super()._connect()
-        answer = self.send_message('start_link', {'ip_address': self._controller_address})
+        answer = self.send_message('start_link',
+                                   {'ip_address': self._controller_address})
 
         if answer['status'] != 'ok':
             super()._disconnect()
             raise RuntimeError('Connection to controller failed', answer)
-        else:
-            print('Connection to Solstis successful')
 
     ########## tuning WITHOUT solstis ##########
     def _move_wave_t(self, wavelength):
@@ -80,7 +81,9 @@ class M2Solstis3(IPInstrument):
 
     def stop_move_wave_t(self):
         self.send_message('stop_move_wave_t')
-        time.sleep(0.5)  # delay between stop cmd sent and effective stop -> read final wavelength
+        # delay between stop cmd sent and effective stop -> read final
+        # wavelength
+        time.sleep(0.5)
         return self._get_wavelength()
 
     ########## tuning WITH solstis ##########
@@ -109,7 +112,7 @@ class M2Solstis3(IPInstrument):
         locking_status = self.send_message('lock_wave_m', parameters)
 
     def _is_wave_locked_m(self):
-        onProgress, current_wavelength, lock_status = self.poll_wave_m()
+        inProgress, current_wavelength, lock_status = self.poll_wave_m()
         return lock_status
 
     ######### read STATUS #########
@@ -119,6 +122,12 @@ class M2Solstis3(IPInstrument):
 
     def get_status(self):
         return self.send_message('get_status')
+
+    def get_idn(self) -> dict[str, str | None]:
+        return {'vendor': 'M²',
+                'model': 'Solstis 3',
+                'serial': None,
+                'firmware': None}
 
     ######### ASK command #########
     def send_message(self, op, parameters=None, verbose=False):
@@ -141,8 +150,12 @@ class M2Solstis3(IPInstrument):
 
         return answer['message']['parameters']
 
-    def snapshot_base(self, update: bool | None = False,
-                      params_to_skip_update: Sequence[str] | None = None) -> dict[Any, Any]:
+    def snapshot_base(
+            self, update: bool | None = False,
+            params_to_skip_update: Sequence[str] | None = None
+    ) -> dict[Any, Any]:
         snapshot = super().snapshot_base(update, params_to_skip_update)
         snapshot['controller_address'] = self._controller_address
+        if update and 'status' not in params_to_skip_update:
+            snapshot['status'] = self.get_status()
         return snapshot
