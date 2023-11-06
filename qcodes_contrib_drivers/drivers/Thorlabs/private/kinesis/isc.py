@@ -5,9 +5,9 @@ from functools import partial
 from typing import Any, Mapping
 
 from qcodes import validators as vals
-from qcodes.parameters import Group, GroupParameter, Parameter
+from qcodes.parameters import Parameter
 from . import enums
-from .core import KinesisInstrument, ThorlabsKinesis
+from .core import KinesisInstrument, ThorlabsKinesis, to_enum
 
 
 class KinesisISCInstrument(KinesisInstrument):
@@ -70,6 +70,27 @@ class KinesisISCInstrument(KinesisInstrument):
                                unit_type=enums.ISCUnitType.Acceleration),
             unit=u"\u00b0/s\u00b2",
             label="Acceleration",
+            instrument=self
+        )
+
+        self.jog_mode = Parameter(
+            "jog_mode",
+            get_cmd=lambda: self._kinesis.get_jog_mode()[0],
+            set_cmd=lambda val: self._kinesis.set_jog_mode(
+                val, self._kinesis.get_jog_mode()[1]
+            ),
+            set_parser=to_enum,
+            label="Jog mode",
+            instrument=self
+        )
+        self.stop_mode = Parameter(
+            "stop_mode",
+            get_cmd=lambda: self._kinesis.get_jog_mode()[1],
+            set_cmd=lambda val: self._kinesis.set_jog_mode(
+                self._kinesis.get_jog_mode()[0], val
+            ),
+            set_parser=to_enum,
+            label="Stop mode",
             instrument=self
         )
 

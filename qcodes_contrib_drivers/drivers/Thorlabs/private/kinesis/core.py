@@ -12,7 +12,7 @@ import time
 import warnings
 from enum import EnumMeta
 from functools import partial, wraps
-from typing import Any, Callable, Iterable, List, Mapping, Tuple
+from typing import Any, Callable, Iterable, List, Literal, Mapping, Tuple
 from typing import Sequence, TypeVar
 
 from typing_extensions import ParamSpec
@@ -135,7 +135,8 @@ def to_enum(arg: EnumMeta | str | int, enum: EnumMeta):
     """Return an instance of type enum for a given name, value, or the
     enum itself."""
     if isinstance(arg, str):
-        arg = getattr(enum, arg)
+        # Try to catch at least single-noun names that are not capitalized.
+        arg = getattr(enum, arg.capitalize())
     elif isinstance(arg, int):
         arg = enum(arg)
     return arg
@@ -265,8 +266,7 @@ class ThorlabsKinesis:
 
         Note:
             This is called automatically if Polling is enabled for the
-            device using ISC_StartPolling(char const * serialNo, int
-            milliseconds).
+            device using :meth:`start_polling`.
 
         """
         self.get_function('RequestStatus', check_errors=True)()
@@ -289,6 +289,37 @@ class ThorlabsKinesis:
         self.get_function('SetRotationModes', check_errors=True)(
             to_enum(mode, enums.MovementModes).value,
             to_enum(direction, enums.MovementDirections).value
+        )
+
+    def get_jog_mode(self) -> Tuple[enums.JogModes, enums.StopModes]:
+        """Gets the jog mode.
+
+        Returns:
+            jog_mode
+            stop_mode
+
+        """
+        mode = ctypes.c_short()
+        stopMode = ctypes.c_short()
+        self.get_function('GetJogMode', check_errors=True)(
+            ctypes.byref(mode),
+            ctypes.byref(stopMode)
+        )
+        return enums.JogModes(mode.value), enums.StopModes(stopMode.value)
+
+    def set_jog_mode(self,
+                     jog_mode: enums.JogModes | int | str,
+                     stop_mode: enums.StopModes | int | str):
+        """Sets the jog mode.
+
+        Args:
+            jog_mode: The jog mode.
+            stop_mode: The StopMode.
+
+        """
+        self.get_function('SetJogMode', check_errors=True)(
+            to_enum(jog_mode, enums.JogModes),
+            to_enum(stop_mode, enums.StopModes)
         )
 
     @register_prefix(['FF', 'ISC', 'CC'])
