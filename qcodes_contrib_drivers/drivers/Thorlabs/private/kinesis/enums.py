@@ -94,6 +94,24 @@ class StopModes(enum.Enum):
     """Stops using a velocity profile."""
 
 
+class MovementModes(enum.Enum):
+    LinearRange = 0
+    """Fixed Limit, cannot rotate."""
+    RotationalUnlimited = 1
+    """Ranges between +/- Infinity."""
+    RotationalWrapping = 2
+    """Ranges between 0 to 360 with wrapping."""
+
+
+class MovementDirections(enum.Enum):
+    Quickest = 0
+    """Always takes the shortest path."""
+    Forwards = 1
+    "Always moves forwards."
+    Backwards = 2
+    "Always moves backwards."
+
+
 class TravelDirection(enum.Enum):
     TravelDirectionDisabled = 0
     """Disabled or Undefined."""

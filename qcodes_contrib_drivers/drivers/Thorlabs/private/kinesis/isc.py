@@ -30,7 +30,7 @@ class KinesisISCInstrument(KinesisInstrument):
                                unit_type=enums.ISCUnitType.Distance),
             set_parser=partial(self._kinesis.device_unit_from_real_value,
                                unit_type=enums.ISCUnitType.Distance),
-            vals=vals.Numbers(0, 360),
+            vals=vals.Numbers(),
             unit=u"\u00b0",
             label="Position",
             instrument=self

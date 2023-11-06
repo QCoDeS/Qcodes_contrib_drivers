@@ -10,14 +10,15 @@ import os
 import pathlib
 import time
 import warnings
+from enum import EnumMeta
 from functools import partial, wraps
-from typing import Any, Callable, Dict, Iterable, List, Mapping, Tuple
+from typing import Any, Callable, Iterable, List, Mapping, Tuple
 from typing import Sequence, TypeVar
 
 from typing_extensions import ParamSpec
 
 from qcodes import Instrument
-from . import enums, structs
+from . import enums
 
 try:
     import ctypes.wintypes
@@ -128,6 +129,16 @@ ERROR_MESSAGES = {
 
 P = ParamSpec('P')
 T = TypeVar('T')
+
+
+def to_enum(arg: EnumMeta | str | int, enum: EnumMeta):
+    """Return an instance of type enum for a given name, value, or the
+    enum itself."""
+    if isinstance(arg, str):
+        arg = getattr(enum, arg)
+    elif isinstance(arg, int):
+        arg = enum(arg)
+    return arg
 
 
 def register_prefix(prefixes: Sequence[str]) -> Callable:
@@ -260,6 +271,26 @@ class ThorlabsKinesis:
         """
         self.get_function('RequestStatus', check_errors=True)()
 
+    @register_prefix(['ISC', 'CC'])
+    def reset_rotation_modes(self):
+        """Reset the rotation modes for a rotational device."""
+        self.get_function('ResetRotationModes', check_errors=True)()
+
+    @register_prefix(['ISC', 'CC'])
+    def set_rotation_modes(self, mode: enums.MovementModes | str | int,
+                           direction: enums.MovementDirections | str | int):
+        """Set the rotation modes for a rotational device.
+
+        Args:
+            mode: The rotation mode.
+            direction: The rotation direction when moving between two
+            angles.
+        """
+        self.get_function('SetRotationModes', check_errors=True)(
+            to_enum(mode, enums.MovementModes).value,
+            to_enum(direction, enums.MovementDirections).value
+        )
+
     @register_prefix(['FF', 'ISC', 'CC'])
     def identify(self) -> None:
         """Sends a command to the device to make it identify iteself."""
@@ -319,11 +350,9 @@ class ThorlabsKinesis:
     ) -> None:
         """Start moving at the current velocity in the specified
         direction."""
-        if isinstance(direction, str):
-            direction = getattr(enums.TravelDirection, direction)
-        elif isinstance(direction, int):
-            direction = enums.TravelDirection(direction)
-        self.get_function('MoveAtVelocity', check_errors=True)(direction.value)
+        self.get_function('MoveAtVelocity', check_errors=True)(
+            to_enum(direction, enums.TravelDirection).value
+        )
 
     @register_prefix(['ISC', 'CC'])
     def move_relative(self, displacement: int):
@@ -513,18 +542,15 @@ class ThorlabsKinesis:
     def device_unit_from_real_value(
             self,
             real_unit: float,
-            unit_type: enums.ISCUnitType
+            unit_type: enums.ISCUnitType | int | str
     ) -> ctypes.c_int:
         """Convert real values to device units.
 
         In order to do this, the device settings must be loaded using
         :meth:`load_settings`.
         """
-        if isinstance(unit_type, int):
-            unit_type = enums.ISCUnitType(unit_type)
-        elif isinstance(unit_type, str):
-            unit_type = getattr(enums.ISCUnitType, unit_type)
-        elif not isinstance(unit_type, enums.ISCUnitType):
+        unit_type = to_enum(unit_type, enums.ISCUnitType)
+        if not isinstance(unit_type, enums.ISCUnitType):
             raise TypeError('unit_type should be int, str, or ISCUnitType, '
                             f'not {type(unit_type)}')
 
@@ -537,18 +563,18 @@ class ThorlabsKinesis:
         )
         return device_unit
 
-    def real_value_from_device_unit(self, device_unit: ctypes.c_int,
-                                    unit_type: enums.ISCUnitType) -> float:
+    def real_value_from_device_unit(
+            self,
+            device_unit: ctypes.c_int,
+            unit_type: enums.ISCUnitType | int | str
+    ) -> float:
         """Convert device units to real values.
 
         In order to do this, the device settings must be loaded using
         :meth:`load_settings`
         """
-        if isinstance(unit_type, int):
-            unit_type = enums.ISCUnitType(unit_type)
-        elif isinstance(unit_type, str):
-            unit_type = getattr(enums.ISCUnitType, unit_type)
-        elif not isinstance(unit_type, enums.ISCUnitType):
+        unit_type = to_enum(unit_type, enums.ISCUnitType)
+        if not isinstance(unit_type, enums.ISCUnitType):
             raise TypeError('unit_type should be int, str, or ISCUnitType, '
                             f'not {type(unit_type)}')
 
@@ -741,8 +767,7 @@ class KinesisError(Exception):
 
 def list_available_devices(
         lib: str | os.PathLike | ctypes.CDLL | None = None,
-        hardware_type: Iterable[
-                           enums.KinesisHWType] | enums.KinesisHWType | None = None
+        hardware_type: Iterable[enums.KinesisHWType] | enums.KinesisHWType | None = None
 ) -> List[Tuple[enums.KinesisHWType, int]]:
     """Discover and list available Kinesis devices.
 

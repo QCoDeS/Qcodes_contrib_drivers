@@ -27,16 +27,17 @@ class KinesisCCInstrument(KinesisInstrument):
                                unit_type=enums.ISCUnitType.Distance),
             set_parser=partial(self._kinesis.device_unit_from_real_value,
                                unit_type=enums.ISCUnitType.Distance),
-            vals=vals.Numbers(0, 360),
+            vals=vals.Numbers(),
             unit=u"\u00b0",
             label="Position",
             instrument=self
         )
         """The position in degrees. 
 
-        Use :meth:`move_to_position` with argument block=True to block 
-        execution until the targeted position is reached. You should 
-        probably invalidate the parameter cache afterwards though.
+        Note:
+            Use :meth:`move_to_position` with argument block=True to 
+            block execution until the targeted position is reached. You 
+            should probably invalidate the parameter cache afterwards.
         """
 
         # Would be nice to use Group and GroupParameter here, but
@@ -55,6 +56,7 @@ class KinesisCCInstrument(KinesisInstrument):
             label="Velocity",
             instrument=self
         )
+        """The velocity in degrees per second."""
         self.acceleration = Parameter(
             "acceleration",
             get_cmd=lambda: self._kinesis.get_vel_params()[1],
@@ -69,6 +71,7 @@ class KinesisCCInstrument(KinesisInstrument):
             label="Acceleration",
             instrument=self
         )
+        """The acceleration in degrees per square second."""
 
     def _init_kinesis(self, dll_dir: str | pathlib.Path | None,
                       simulation: bool) -> ThorlabsKinesis:
