@@ -271,6 +271,37 @@ class ThorlabsKinesis:
         """
         self.get_function('RequestStatus', check_errors=True)()
 
+    def request_status_bits(self) -> None:
+        """Request the status bits which identify the current motor
+        state.
+
+        This needs to be called to get the device to send it's current
+        status bits.
+
+        Note:
+            This is called automatically if Polling is enabled for the
+            device using :meth:`start_polling`.
+
+        """
+        self.get_function('RequestStatusBits', check_errors=True)()
+
+    def get_status_bits(self) -> int:
+        """Get the current status bits.
+
+        This returns the latest status bits received from the device.
+        To get new status bits, use :meth:`request_status` or use the
+        polling functions, :meth:`start_polling`.
+
+        Returns:
+            The status bits from the device. See the API manual for more
+            information on their meaning.
+
+        """
+        self.request_status_bits()
+        function = self.get_function('GetStatusBits')
+        function.restype = ctypes.wintypes.DWORD
+        return function()
+
     @register_prefix(['ISC', 'CC'])
     def reset_rotation_modes(self):
         """Reset the rotation modes for a rotational device."""
@@ -370,9 +401,9 @@ class ThorlabsKinesis:
 
         """
         self.get_function('MoveToPosition', check_errors=True)(position)
-        if block:
-            while self.get_position() != position:
-                time.sleep(50e-3)
+
+        while block and self.is_moving():
+            time.sleep(50e-3)
 
     @register_prefix(['ISC', 'CC'])
     def move_at_velocity(
@@ -394,6 +425,15 @@ class ThorlabsKinesis:
 
         """
         self.get_function('MoveRelative', check_errors=True)(displacement)
+
+    @register_prefix(['FF', 'ISC', 'CC'])
+    def is_moving(self) -> bool:
+        """If the device is moving or not.
+
+        Note that for the FilterFlipper devices, this is always false.
+        """
+        status = self.get_status_bits()
+        return bool((status & 0x00000010) | (status & 0x00000020))
 
     @register_prefix(['ISC', 'CC'])
     def get_vel_params(self) -> Tuple[int, int]:
