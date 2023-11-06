@@ -1,1 +1,1 @@
-from .core import KinesisInstrument, list_available_devices
+from .core import list_available_devices

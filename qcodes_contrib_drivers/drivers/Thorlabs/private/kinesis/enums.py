@@ -6,6 +6,20 @@ class KinesisHWType(enum.Enum):
     FilterFlipper = 37
 
 
+class MotorTypes(enum.Enum):
+    """Values that represent different Motor Types."""
+    NotMotor = 0
+    """Not a motor."""
+    DCMotor = 1
+    """Motor is a DC Servo motor."""
+    StepperMotor = 2
+    """Motor is a Stepper Motor."""
+    BrushlessMotor = 3
+    """Motor is a Brushless Motor."""
+    CustomMotor = 100
+    """Motor is a custom motor."""
+
+
 class ISCUnitType(enum.Enum):
     Distance = 0
     Velocity = 1

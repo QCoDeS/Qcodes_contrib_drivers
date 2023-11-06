@@ -1,16 +1,23 @@
+"""Core Kinesis functionality.
+
+New instruments should inherit from :class:`KinesisInstrument` or one of
+the specialized sublasses (eg :class:`isc.KinesisISCInstrument`). See
+their docstrings for instructions.
+"""
 from __future__ import annotations
 
-import abc
 import os
 import pathlib
 import time
 import warnings
-from functools import wraps, partial
-from typing import Mapping, Any, List, Tuple, Iterable, Callable
+from functools import partial, wraps
+from typing import Any, Callable, Dict, Iterable, List, Mapping, Tuple
+from typing import Sequence, TypeVar
+
+from typing_extensions import ParamSpec
 
 from qcodes import Instrument
-
-from . import enums
+from . import enums, structs
 
 try:
     import ctypes.wintypes
@@ -119,48 +126,70 @@ ERROR_MESSAGES = {
                                'may be busy.'
 }
 
+P = ParamSpec('P')
+T = TypeVar('T')
+
+
+def register_prefix(prefixes: Sequence[str]) -> Callable:
+    """Registers a warpped DLL function for a given Kinesis device.
+
+    prefixes is a sequence of string identifier prefixes that are
+    returned by a KinesisInstrument's :meth:`_prefix` classmethod.
+    """
+
+    def decorator(func: Callable[P, T]) -> Callable[P, T]:
+        func.__prefixes = prefixes
+        return func
+
+    return decorator
+
 
 def success_check(func):
     """Wraps functions that return a boolean success code.
 
-    1 means success, 0 means failure."""
+    1 means success, 0 means failure.
+    """
+
     @wraps(func)
     def wrapped(*args, **kwargs):
         if not func(*args, **kwargs):
             raise KinesisError('Unspecified failure.')
+
     return wrapped
 
 
 def error_check(func):
     """Wraps functions that return an integer error code."""
+
     @wraps(func)
     def wrapped(*args, **kwargs):
         code = func(*args, **kwargs)
         if (status := ERROR_CODES.get(code)) != 'FT_OK':
             raise KinesisError(f'{status}: {ERROR_MESSAGES[status]}')
+
     return wrapped
 
 
 class ThorlabsKinesis:
+    """The interface to Kinesis dlls."""
 
     def __init__(self, lib: str, prefix: str,
-                 dll_dir: str | os.PathLike | None = None,
+                 dll_dir: str | os.PathLike | None = '',
                  simulation: bool = False):
-
-        self.prefix = prefix
-        self.dll_dir = pathlib.Path(dll_dir or DLL_DIR)
-        self.serialNo = ctypes.c_char_p()
-        self.simulation = simulation
 
         if not lib.startswith("Thorlabs.MotionControl"):
             lib = "Thorlabs.MotionControl." + lib
         if not lib.endswith(".dll"):
             lib = lib + ".dll"
-        if not (dll := self.dll_dir / lib).exists():
-            raise FileNotFoundError(f'Did not find DLL {dll}')
 
-        self.lib: ctypes.CDLL = ctypes.cdll.LoadLibrary(str(dll))
-        if simulation:
+        self.prefix = prefix
+        self.lib: ctypes.CDLL = ctypes.cdll.LoadLibrary(
+            os.path.join(dll_dir if dll_dir is not None else DLL_DIR, lib)
+        )
+        self.serialNo = ctypes.c_char_p()
+        self.simulation = simulation
+
+        if self.simulation:
             self.enable_simulation()
 
         self.build_device_list()
@@ -200,24 +229,129 @@ class ThorlabsKinesis:
         self.lib.TLI_UninitializeSimulations()
 
     @error_check
-    def build_device_list(self):
+    def build_device_list(self) -> None:
+        """Build the DeviceList.
+
+        This function builds an internal collection of all devices found
+        on the USB that are not currently open.
+
+        Note:
+             If a device is open, it will not appear in the list until
+             the device has been closed.
+
+        """
         return self.lib.TLI_BuildDeviceList()
 
-    def load_settings(self):
-        return self.get_function('LoadSettings', check_success=True)()
+    def load_settings(self) -> None:
+        """Update device with stored settings."""
+        self.get_function('LoadSettings', check_success=True)()
 
-    def request_status(self):
-        return self.get_function('RequestStatus', check_errors=True)()
+    def request_status(self) -> None:
+        """Request position and status bits.
 
+        This needs to be called to get the device to send it's current
+        status.
+
+        Note:
+            This is called automatically if Polling is enabled for the
+            device using ISC_StartPolling(char const * serialNo, int
+            milliseconds).
+
+        """
+        self.get_function('RequestStatus', check_errors=True)()
+
+    @register_prefix(['FF', 'ISC'])
+    def identify(self) -> None:
+        """Sends a command to the device to make it identify iteself."""
+        self.get_function('Identify')()
+
+    @register_prefix(['FF', 'ISC'])
+    def get_number_positions(self) -> int:
+        """Get number of positions.
+
+        The GetNumberPositions function will get the maximum position
+        reachable by the device. The motor may need to be Homed before
+        this parameter can be used.
+        """
+        return int(self.get_function('GetNumberPositions')())
+
+    @register_prefix(['FF', 'ISC'])
     def get_position(self) -> int | float | str:
+        """Get the current position.
+
+        The current position is the last recorded position.
+        The current position is updated either by the polling mechanism
+        or by calling RequestPosition or RequestStatus.
+
+        Returns:
+            The current position.
+        """
         self.request_status()
         time.sleep(self.get_polling_duration() * 1e-3)
         return self.get_function('GetPosition')()
 
-    def move_to_position(self, val: int | str):
-        return self.get_function('MoveToPosition', check_errors=True)(val)
+    @register_prefix(['FF', 'ISC'])
+    def move_to_position(self, position: int | str,
+                         block: bool = False) -> None:
+        """Move the device to the specified position (index).
 
+        The motor may need to be Homed before a position can be set. See
+        Positioning for more detail.
+
+        Args:
+            position:
+                The required position. must be 1 or 2 for the filter
+                flipper or in device units else.
+            block:
+                Block the interpreter until the target position is
+                reached.
+
+        """
+        self.get_function('MoveToPosition', check_errors=True)(position)
+        if block:
+            while self.get_position() != position:
+                time.sleep(50e-3)
+
+    @register_prefix(['ISC'])
+    def move_at_velocity(
+            self,
+            direction: enums.TravelDirection | str | int
+    ) -> None:
+        """Start moving at the current velocity in the specified
+        direction."""
+        if isinstance(direction, str):
+            direction = getattr(enums.TravelDirection, direction)
+        elif isinstance(direction, int):
+            direction = enums.TravelDirection(direction)
+        self.get_function('MoveAtVelocity', check_errors=True)(direction.value)
+
+    @register_prefix(['FF'])
+    def get_transit_time(self) -> int:
+        """Gets the transit time.
+
+        Returns:
+            The transit time in milliseconds, range 300 to 2800 ms.
+        """
+        return self.get_function('GetTransitTime')()
+
+    @register_prefix(['FF'])
+    def set_transit_time(self, transit_time: int) -> None:
+        """Sets the transit time.
+
+        Args:
+             transit_time: The transit time in milliseconds, range 300
+             to 2800 ms.
+        """
+        self.get_function('SetTransitTime', check_errors=True)(transit_time)
+
+    @register_prefix(['ISC'])
     def get_motor_params_ext(self) -> Tuple[float, float, float]:
+        """Gets the motor stage parameters.
+
+        These parameters, when combined define the stage motion in terms
+        of Real World Units. (mm or degrees) The real world unit is
+        defined from stepsPerRev * gearBoxRatio / pitch.
+        """
         stepsPerRev = ctypes.c_double()
         gearBoxRatio = ctypes.c_double()
         pitch = ctypes.c_double()
@@ -228,33 +362,90 @@ class ThorlabsKinesis:
         )
         return stepsPerRev.value, gearBoxRatio.value, pitch.value
 
+    @register_prefix(['ISC'])
     def set_motor_params_ext(self, steps_per_rev: float, gearbox_ratio: float,
-                             pitch: float):
+                             pitch: float) -> None:
+        """Sets the motor stage parameters.
+
+        These parameters, when combined define the stage motion in terms
+        of Real World Units. (mm or degrees) The real world unit is
+        defined from stepsPerRev * gearBoxRatio / pitch.
+        """
         self.get_function('SetMotorParamsExt', check_errors=True)(
             ctypes.c_double(steps_per_rev),
             ctypes.c_double(gearbox_ratio),
             ctypes.c_double(pitch)
         )
 
-    def start_polling(self, duration: int):
-        return self.get_function('StartPolling', check_success=True)(duration)
+    def start_polling(self, duration: int) -> None:
+        """Starts the internal polling loop which continuously requests
+        position and status."""
+        self.get_function('StartPolling', check_success=True)(duration)
 
-    def stop_polling(self):
-        return self.get_function('StopPolling')()
+    def stop_polling(self) -> None:
+        """Stops the internal polling loop."""
+        self.get_function('StopPolling')()
 
     def get_polling_duration(self) -> int:
+        """Gets the polling loop duration."""
         return self.get_function('PollingDuration')()
 
-    def set_polling_duration(self, duration: int):
+    def set_polling_duration(self, duration: int) -> None:
+        """Stops polling and starts it again with given duration."""
         self.stop_polling()
         self.start_polling(duration)
 
-    def open(self):
-        return self.get_function('Open', check_errors=True)()
+    def open(self) -> None:
+        """Open the device for communications."""
+        self.get_function('Open', check_errors=True)()
 
-    def close(self):
+    def close(self) -> None:
+        """Disconnect and close the device."""
         self.get_function('Close')()
 
+    @register_prefix(['ISC'])
+    def disable_channel(self) -> None:
+        """Disable the channel so that motor can be moved by hand.
+
+        When disabled power is removed from the motor and it can be
+        freely moved.
+        """
+        self.get_function('DisableChannel', check_errors=True)()
+
+    @register_prefix(['ISC'])
+    def enable_channel(self) -> None:
+        """Enable channel for computer control.
+
+        When enabled power is applied to the motor so it is fixed in
+        position.
+        """
+        self.get_function('EnableChannel', check_errors=True)()
+
+    @register_prefix(['ISC'])
+    def stop(self) -> None:
+        """Stop the current move using the current velocity profile."""
+        self.get_function('StopProfiled', check_errors=True)()
+
+    @register_prefix(['ISC'])
+    def can_home(self) -> bool:
+        """Can the device perform a Home."""
+        return bool(self.get_function('CanHome')())
+
+    @register_prefix(['ISC'])
+    def needs_homing(self) -> bool:
+        """Can this device be moved without Homing."""
+        return not bool(self.get_function('CanMoveWithoutHomingFirst')())
+
+    @register_prefix(['FF', 'ISC'])
+    def home(self) -> None:
+        """Home the device.
+
+        Homing the device will set the device to a known state and
+        determine the home position, see Homing for more detail.
+        """
+        self.get_function('Home', check_errors=True)()
+
+    @register_prefix(['FF', 'ISC'])
     def get_hw_info(self) -> Tuple[str, int, int, str, str, int, int]:
         modelNo = ctypes.create_string_buffer(64)
         type = ctypes.wintypes.WORD()
@@ -331,8 +522,19 @@ class ThorlabsKinesis:
         return real_unit.value
 
 
-class KinesisInstrument(Instrument, abc.ABC):
-    """Qcodes Instrument subclass for Kinesis instruments.
+class KinesisInstrument(Instrument):
+    """Base class for Qcodes Kinesis instruments.
+
+    A subclass declaration requires two mandatory keyword arguments:
+
+        prefix (str):
+            The Kinesis DLL function prefix for this hardware type
+        hardware_type (:class:`enums.HardwareType`):
+            The instrument hardware type id (an integer enumeration).
+
+    To automatically forward common DLL methods, they should be marked
+    with the above prefix and the @register_prefix decorator in
+    :class:`ThorlabsKinesis`. This will expose them in the subclass.
 
     Args:
         name:
@@ -357,27 +559,60 @@ class KinesisInstrument(Instrument, abc.ABC):
 
     """
 
-    def __init__(self, name: str, dll_dir: str | pathlib.Path | None = None,
+    def __init__(self, name: str, dll_dir: str | pathlib.Path | None = '',
                  serial: int | None = None, simulation: bool = False,
                  metadata: Mapping[Any, Any] | None = None,
                  label: str | None = None):
+        if self._prefix is None or self.hardware_type is None:
+            raise NotImplementedError('Incorrectly implemented subclass. '
+                                      'Needs to be declared with prefix and '
+                                      'hardware_type arguments.')
+
         try:
-            self.kinesis = ThorlabsKinesis(self.hardware_type().name,
-                                           self._prefix(), dll_dir, simulation)
+            self._kinesis = ThorlabsKinesis(self.hardware_type.name,
+                                            self._prefix, dll_dir, simulation)
         except FileNotFoundError:
             # Subclass needs to handle irregular dll name
-            self.kinesis = self._init_kinesis(dll_dir, simulation)
+            self._kinesis = self._init_kinesis(dll_dir, simulation)
 
         self._initialized: bool = False
 
         super().__init__(name, metadata, label)
 
         self.add_parameter('polling_duration',
-                           get_cmd=self.kinesis.get_polling_duration,
-                           set_cmd=self.kinesis.set_polling_duration,
+                           get_cmd=self._kinesis.get_polling_duration,
+                           set_cmd=self._kinesis.set_polling_duration,
                            unit='ms')
 
         self.connect(serial)
+
+    def __init_subclass__(cls,
+                          prefix: str | None = None,
+                          hardware_type: enums.KinesisHWType | None = None,
+                          **kwargs):
+        super().__init_subclass__(**kwargs)
+
+        cls._prefix = prefix
+        """The prefix of DLL functions."""
+        cls.hardware_type = hardware_type
+        """The hardware type identifier (an integer enumeration)."""
+
+        def is_registered_method(item) -> bool:
+            key, val = item
+            return callable(val) and prefix in getattr(val, '__prefixes', [])
+
+        # Forward functions marked by @register_prefix in ThorlabsKinesis
+        for name, meth in filter(is_registered_method,
+                                 ThorlabsKinesis.__dict__.items()):
+            def make_wrapper(method):
+                # Outer wrapper required to avoid closure problems.
+                @wraps(method)
+                def wrapped(self, *args, **kw):
+                    return method(getattr(self, '_kinesis'), *args, **kw)
+
+                return wrapped
+
+            setattr(cls, name, make_wrapper(meth))
 
     def _init_kinesis(self,
                       dll_dir: str | pathlib.Path | None,
@@ -386,19 +621,9 @@ class KinesisInstrument(Instrument, abc.ABC):
                                   'the _init_kinesis() method for irregular '
                                   'dll name.')
 
-    @classmethod
-    @abc.abstractmethod
-    def _prefix(cls) -> str:
-        pass
-
-    @classmethod
-    @abc.abstractmethod
-    def hardware_type(cls) -> enums.KinesisHWType:
-        pass
-
     @property
     def serial(self) -> int | None:
-        sn = self.kinesis.serialNo.value
+        sn = self._kinesis.serialNo.value
         if sn is not None:
             return int(sn.decode())
         return None
@@ -412,7 +637,7 @@ class KinesisInstrument(Instrument, abc.ABC):
         try:
             return [
                 serial for _, serial in
-                list_available_devices(self.kinesis.lib, self.hardware_type())
+                list_available_devices(self._kinesis.lib, self.hardware_type)
             ]
         except KinesisError:
             self._initialized = False
@@ -424,11 +649,11 @@ class KinesisInstrument(Instrument, abc.ABC):
         if serial is None:
             available_devices = self.list_available_devices()
             if not len(available_devices):
-                raise RuntimeError(f'No {self.prefix} devices found!')
+                raise RuntimeError(f'No {self._prefix} devices found!')
             serial = available_devices[0]
 
         if not self._initialized:
-            error_check(self.kinesis.lib.TLI_BuildDeviceList())
+            error_check(self._kinesis.lib.TLI_BuildDeviceList())
 
         if self.connected:
             warnings.warn('Already connected to device with serial '
@@ -436,22 +661,22 @@ class KinesisInstrument(Instrument, abc.ABC):
                           UserWarning, stacklevel=2)
             self.disconnect()
 
-        self.kinesis.serialNo.value = str(serial).encode()
-        self.kinesis.open()
-        self.kinesis.start_polling(polling_duration)
+        self._kinesis.serialNo.value = str(serial).encode()
+        self._kinesis.open()
+        self._kinesis.start_polling(polling_duration)
         self.connect_message(begin_time=begin_time)
 
     def disconnect(self):
-        if self.kinesis.simulation:
-            self.kinesis.disable_simulation()
+        if self._kinesis.simulation:
+            self._kinesis.disable_simulation()
         if self.connected:
-            self.kinesis.stop_polling()
-            self.kinesis.close()
-            self.kinesis.serialNo.value = None
+            self._kinesis.stop_polling()
+            self._kinesis.close()
+            self._kinesis.serialNo.value = None
 
     def get_idn(self) -> dict[str, str | None]:
         model, type, num_channels, notes, firmware, hardware, state = \
-            self.kinesis.get_hw_info()
+            self._kinesis.get_hw_info()
         return {'vendor': 'Thorlabs', 'model': model, 'firmware': firmware,
                 'serial': str(self.serial)}
 
@@ -466,7 +691,8 @@ class KinesisError(Exception):
 
 def list_available_devices(
         lib: str | os.PathLike | ctypes.CDLL | None = None,
-        hardware_type: Iterable[enums.KinesisHWType] | enums.KinesisHWType | None = None
+        hardware_type: Iterable[
+                           enums.KinesisHWType] | enums.KinesisHWType | None = None
 ) -> List[Tuple[enums.KinesisHWType, int]]:
     """Discover and list available Kinesis devices.
 
@@ -519,7 +745,8 @@ def list_available_devices(
             hw_type_id
         )
         if serialNo.value:
-            devices.append((enums.KinesisHWType(hw_type_id), int(serialNo.value.split(b',')[0])))
+            devices.append((enums.KinesisHWType(hw_type_id),
+                            int(serialNo.value.split(b',')[0])))
         if len(devices) == n:
             # Found all devices already
             break
