@@ -73,7 +73,7 @@ class ThorlabsPM100D(Instrument):
         self.add_parameter('power',
                            get_cmd=self._get_power,
                            label='Power',
-                           unit='Watt')
+                           unit='W')
         self.add_parameter('wavelength',
                            get_cmd=self._get_wavelength,
                            set_cmd=self._set_wavelength,
