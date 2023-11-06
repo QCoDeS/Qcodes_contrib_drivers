@@ -561,9 +561,15 @@ class ThorlabsKinesis:
         self.get_function('EnableChannel', check_errors=True)()
 
     @register_prefix(['ISC', 'CC'])
-    def stop(self) -> None:
+    def stop(self, mode: enums.StopModes | int | str = 'Profiled') -> None:
         """Stop the current move using the current velocity profile."""
-        self.get_function('StopProfiled', check_errors=True)()
+        mode = to_enum(mode, enums.StopModes)
+        if mode == enums.StopModes.Immediate:
+            self.get_function('StopImmediate', check_errors=True)()
+        elif mode == enums.StopModes.Profiled:
+            self.get_function('StopProfiled', check_errors=True)()
+        else:
+            raise ValueError('Invalid profile')
 
     @register_prefix(['ISC', 'CC'])
     def can_home(self) -> bool:
