@@ -1,7 +1,9 @@
 import warnings
 
 from qcodes import Instrument
-from qcodes_contrib_drivers.drivers.Thorlabs.private.APT import Thorlabs_APT, ThorlabsHWType
+from qcodes_contrib_drivers.drivers.Thorlabs.private.APT import (
+    ThorlabsHWType, Thorlabs_APT
+)
 
 
 def _position_get_parser(val) -> str:
