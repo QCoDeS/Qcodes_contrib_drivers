@@ -394,12 +394,20 @@ class ThorlabsKinesis:
         Args:
             position:
                 The required position. must be 1 or 2 for the filter
-                flipper or in device units else.
+                flipper or in real units else.
             block:
                 Block the interpreter until the target position is
                 reached.
 
         """
+        try:
+            # FilterFlipper does not have device units
+            position = self.device_unit_from_real_value(
+                position, enums.UnitType.Distance
+            )
+        except AttributeError:
+            pass
+
         self.get_function('MoveToPosition', check_errors=True)(position)
 
         while block and self.is_moving():
@@ -417,13 +425,17 @@ class ThorlabsKinesis:
         )
 
     @register_prefix(['ISC', 'CC'])
-    def move_relative(self, displacement: int):
+    def move_relative(self, displacement: float):
         """Move the motor by a relative amount.
 
         Args:
-            displacement: Signed displacement in Device Units.
+            displacement: Signed displacement in real units.
 
         """
+        displacement = self.device_unit_from_real_value(
+            displacement, enums.UnitType.Distance
+        )
+
         self.get_function('MoveRelative', check_errors=True)(displacement)
 
     @register_prefix(['FF', 'ISC', 'CC'])
@@ -436,12 +448,12 @@ class ThorlabsKinesis:
         return bool((status & 0x00000010) | (status & 0x00000020))
 
     @register_prefix(['ISC', 'CC'])
-    def get_vel_params(self) -> Tuple[int, int]:
+    def get_vel_params(self) -> Tuple[float, float]:
         """Gets the move velocity parameters.
 
         Returns:
-            acceleration: The new acceleration value in Device Units.
-            max_velocity: The new maximum velocity value in Device Units.
+            acceleration: The new acceleration value in real units.
+            max_velocity: The new maximum velocity value in real units.
 
         """
         acceleration = ctypes.c_int()
@@ -450,17 +462,32 @@ class ThorlabsKinesis:
             ctypes.byref(acceleration),
             ctypes.byref(maxVelocity)
         )
-        return acceleration.value, maxVelocity.value
+
+        return (
+            self.real_value_from_device_unit(
+                acceleration, enums.UnitType.Acceleration
+            ),
+            self.real_value_from_device_unit(
+                maxVelocity, enums.UnitType.Velocity
+            )
+        )
 
     @register_prefix(['ISC', 'CC'])
-    def set_vel_params(self, acceleration: int, max_velocity: int):
+    def set_vel_params(self, acceleration: float, max_velocity: float):
         """Sets the move velocity parameters.
 
         Args:
-            acceleration: The new acceleration value in Device Units.
-            max_velocity: The new maximum velocity value in Device Units.
+            acceleration: The new acceleration value in real units.
+            max_velocity: The new maximum velocity value in real units.
 
         """
+        acceleration = self.device_unit_from_real_value(
+            acceleration, enums.UnitType.Acceleration
+        )
+        max_velocity = self.device_unit_from_real_value(
+            max_velocity, enums.UnitType.Velocity
+        )
+
         self.get_function('SetVelParams', check_errors=True)(acceleration,
                                                              max_velocity)
 
