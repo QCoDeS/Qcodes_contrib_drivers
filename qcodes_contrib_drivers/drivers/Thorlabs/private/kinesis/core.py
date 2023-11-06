@@ -260,12 +260,12 @@ class ThorlabsKinesis:
         """
         self.get_function('RequestStatus', check_errors=True)()
 
-    @register_prefix(['FF', 'ISC'])
+    @register_prefix(['FF', 'ISC', 'CC'])
     def identify(self) -> None:
         """Sends a command to the device to make it identify iteself."""
         self.get_function('Identify')()
 
-    @register_prefix(['FF', 'ISC'])
+    @register_prefix(['FF', 'ISC', 'CC'])
     def get_number_positions(self) -> int:
         """Get number of positions.
 
@@ -275,7 +275,7 @@ class ThorlabsKinesis:
         """
         return int(self.get_function('GetNumberPositions')())
 
-    @register_prefix(['FF', 'ISC'])
+    @register_prefix(['FF', 'ISC', 'CC'])
     def get_position(self) -> int | float | str:
         """Get the current position.
 
@@ -290,7 +290,7 @@ class ThorlabsKinesis:
         time.sleep(self.get_polling_duration() * 1e-3)
         return self.get_function('GetPosition')()
 
-    @register_prefix(['FF', 'ISC'])
+    @register_prefix(['FF', 'ISC', 'CC'])
     def move_to_position(self, position: int | str,
                          block: bool = False) -> None:
         """Move the device to the specified position (index).
@@ -312,7 +312,7 @@ class ThorlabsKinesis:
             while self.get_position() != position:
                 time.sleep(50e-3)
 
-    @register_prefix(['ISC'])
+    @register_prefix(['ISC', 'CC'])
     def move_at_velocity(
             self,
             direction: enums.TravelDirection | str | int
@@ -324,6 +324,45 @@ class ThorlabsKinesis:
         elif isinstance(direction, int):
             direction = enums.TravelDirection(direction)
         self.get_function('MoveAtVelocity', check_errors=True)(direction.value)
+
+    @register_prefix(['ISC', 'CC'])
+    def move_relative(self, displacement: int):
+        """Move the motor by a relative amount.
+
+        Args:
+            displacement: Signed displacement in Device Units.
+
+        """
+        self.get_function('MoveRelative', check_errors=True)(displacement)
+
+    @register_prefix(['ISC', 'CC'])
+    def get_vel_params(self) -> Tuple[int, int]:
+        """Gets the move velocity parameters.
+
+        Returns:
+            acceleration: The new acceleration value in Device Units.
+            max_velocity: The new maximum velocity value in Device Units.
+
+        """
+        acceleration = ctypes.c_int()
+        maxVelocity = ctypes.c_int()
+        self.get_function('GetVelParams', check_errors=True)(
+            ctypes.byref(acceleration),
+            ctypes.byref(maxVelocity)
+        )
+        return acceleration.value, maxVelocity.value
+
+    @register_prefix(['ISC', 'CC'])
+    def set_vel_params(self, acceleration: int, max_velocity: int):
+        """Sets the move velocity parameters.
+
+        Args:
+            acceleration: The new acceleration value in Device Units.
+            max_velocity: The new maximum velocity value in Device Units.
+
+        """
+        self.get_function('SetVelParams', check_errors=True)(acceleration,
+                                                             max_velocity)
 
     @register_prefix(['FF'])
     def get_transit_time(self) -> int:
@@ -344,7 +383,7 @@ class ThorlabsKinesis:
         """
         self.get_function('SetTransitTime', check_errors=True)(transit_time)
 
-    @register_prefix(['ISC'])
+    @register_prefix(['ISC', 'CC'])
     def get_motor_params_ext(self) -> Tuple[float, float, float]:
         """Gets the motor stage parameters.
 
@@ -362,7 +401,7 @@ class ThorlabsKinesis:
         )
         return stepsPerRev.value, gearBoxRatio.value, pitch.value
 
-    @register_prefix(['ISC'])
+    @register_prefix(['ISC', 'CC'])
     def set_motor_params_ext(self, steps_per_rev: float, gearbox_ratio: float,
                              pitch: float) -> None:
         """Sets the motor stage parameters.
@@ -403,7 +442,7 @@ class ThorlabsKinesis:
         """Disconnect and close the device."""
         self.get_function('Close')()
 
-    @register_prefix(['ISC'])
+    @register_prefix(['ISC', 'CC'])
     def disable_channel(self) -> None:
         """Disable the channel so that motor can be moved by hand.
 
@@ -412,7 +451,7 @@ class ThorlabsKinesis:
         """
         self.get_function('DisableChannel', check_errors=True)()
 
-    @register_prefix(['ISC'])
+    @register_prefix(['ISC', 'CC'])
     def enable_channel(self) -> None:
         """Enable channel for computer control.
 
@@ -421,22 +460,22 @@ class ThorlabsKinesis:
         """
         self.get_function('EnableChannel', check_errors=True)()
 
-    @register_prefix(['ISC'])
+    @register_prefix(['ISC', 'CC'])
     def stop(self) -> None:
         """Stop the current move using the current velocity profile."""
         self.get_function('StopProfiled', check_errors=True)()
 
-    @register_prefix(['ISC'])
+    @register_prefix(['ISC', 'CC'])
     def can_home(self) -> bool:
         """Can the device perform a Home."""
         return bool(self.get_function('CanHome')())
 
-    @register_prefix(['ISC'])
+    @register_prefix(['ISC', 'CC'])
     def needs_homing(self) -> bool:
         """Can this device be moved without Homing."""
         return not bool(self.get_function('CanMoveWithoutHomingFirst')())
 
-    @register_prefix(['FF', 'ISC'])
+    @register_prefix(['FF', 'ISC', 'CC'])
     def home(self) -> None:
         """Home the device.
 
@@ -445,7 +484,7 @@ class ThorlabsKinesis:
         """
         self.get_function('Home', check_errors=True)()
 
-    @register_prefix(['FF', 'ISC'])
+    @register_prefix(['FF', 'ISC', 'CC'])
     def get_hw_info(self) -> Tuple[str, int, int, str, str, int, int]:
         modelNo = ctypes.create_string_buffer(64)
         type = ctypes.wintypes.WORD()
@@ -479,7 +518,7 @@ class ThorlabsKinesis:
         """Convert real values to device units.
 
         In order to do this, the device settings must be loaded using
-        :meth:`load_settings`
+        :meth:`load_settings`.
         """
         if isinstance(unit_type, int):
             unit_type = enums.ISCUnitType(unit_type)
@@ -561,6 +600,7 @@ class KinesisInstrument(Instrument):
 
     def __init__(self, name: str, dll_dir: str | pathlib.Path | None = '',
                  serial: int | None = None, simulation: bool = False,
+                 polling: int = 200, home: bool = False,
                  metadata: Mapping[Any, Any] | None = None,
                  label: str | None = None):
         if self._prefix is None or self.hardware_type is None:
@@ -584,7 +624,13 @@ class KinesisInstrument(Instrument):
                            set_cmd=self._kinesis.set_polling_duration,
                            unit='ms')
 
-        self.connect(serial)
+        self.connect(serial, polling)
+
+        if home:
+            if self._kinesis.can_home():
+                self._kinesis.home()
+            else:
+                raise RuntimeError('Device `{}` is not homeable')
 
     def __init_subclass__(cls,
                           prefix: str | None = None,
@@ -664,6 +710,10 @@ class KinesisInstrument(Instrument):
         self._kinesis.serialNo.value = str(serial).encode()
         self._kinesis.open()
         self._kinesis.start_polling(polling_duration)
+        # Update the device with stored settings. This is necessary to be able
+        # to convert units since there are specific formulae for each motor
+        # taking into account Gearing, Pitch, Steps Per Revolution etc.
+        self._kinesis.load_settings()
         self.connect_message(begin_time=begin_time)
 
     def disconnect(self):

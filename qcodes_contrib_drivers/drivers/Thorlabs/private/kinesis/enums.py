@@ -2,8 +2,58 @@ import enum
 
 
 class KinesisHWType(enum.Enum):
-    CageRotator = 55
+    BenchtopBrushlessMotor20X = 73
+    BenchtopBrushlessMotor30X = 103
+    BenchtopDCServo1Ch = 43
+    BenchtopDCServo3Ch = 79
+    BenchtopNanoTrak = 22
+    BenchtopPiezo1Ch = 41
+    BenchtopPiezo3Ch = 71
+    BenchtopPrecisionPiezo1Ch = 44
+    BenchtopPrecisionPiezo2Ch = 95
+    BenchtopStepperMotor1Ch = 40
+    BenchtopStepperMotor3Ch = 70
+    BenchtopVoiceCoil = 100
     FilterFlipper = 37
+    FilterWheel = 47
+    IntegratedPrecisionPiezo = 92
+    IntegratedXStage = 105
+    IntegratedXYStage = 101
+    KCubeBrushlessMotor = 28
+    KCubeDCServo = 27
+    KCubeInertialMotor1Ch = 74
+    KCubeInertialMotor4Ch = 97
+    KCubeLaserDiode = 98
+    KCubeLaserSource = 56
+    KCubeNanoTrak = 57
+    KCubePiezo = 29
+    KCubePositionAligner = 69
+    KCubeSolenoid = 68
+    KCubeStepperMotor = 26
+    LongTravelStage = 45
+    CageRotator = 55
+    LabJack490 = 46
+    LabJack050 = 49
+    ModularRack = 48
+    # ModularRack = 75  # ??
+    ModularBrushless = 54
+    ModularNanoTrak = 52
+    ModularPiezo = 51
+    ModularStepperMotor = 50
+    Polarizer = 38
+    PositionReadoutEncoder = 111
+    TCubeBrushlessMotor = 67
+    TCubeDCServo = 83
+    TCubeInertialMotor = 65
+    TCubeLaserSource = 86
+    TCubeLaserDiode = 64
+    TCubeNanoTrak = 82
+    TCubeQuad = 89
+    TCubeSolenoid = 85
+    TCubeStepperMotor = 80
+    TCubeStrainGauge = 84
+    TCubeTEC = 87
+    VerticalStage = 24
 
 
 class MotorTypes(enum.Enum):
