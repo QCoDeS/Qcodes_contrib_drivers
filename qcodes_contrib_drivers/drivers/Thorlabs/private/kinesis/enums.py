@@ -70,7 +70,7 @@ class MotorTypes(enum.Enum):
     """Motor is a custom motor."""
 
 
-class ISCUnitType(enum.Enum):
+class UnitType(enum.Enum):
     Distance = 0
     Velocity = 1
     Acceleration = 2

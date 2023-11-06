@@ -619,15 +619,15 @@ class ThorlabsKinesis:
     def device_unit_from_real_value(
             self,
             real_unit: float,
-            unit_type: enums.ISCUnitType | int | str
+            unit_type: enums.UnitType | int | str
     ) -> ctypes.c_int:
         """Convert real values to device units.
 
         In order to do this, the device settings must be loaded using
         :meth:`load_settings`.
         """
-        unit_type = to_enum(unit_type, enums.ISCUnitType)
-        if not isinstance(unit_type, enums.ISCUnitType):
+        unit_type = to_enum(unit_type, enums.UnitType)
+        if not isinstance(unit_type, enums.UnitType):
             raise TypeError('unit_type should be int, str, or ISCUnitType, '
                             f'not {type(unit_type)}')
 
@@ -643,15 +643,15 @@ class ThorlabsKinesis:
     def real_value_from_device_unit(
             self,
             device_unit: ctypes.c_int,
-            unit_type: enums.ISCUnitType | int | str
+            unit_type: enums.UnitType | int | str
     ) -> float:
         """Convert device units to real values.
 
         In order to do this, the device settings must be loaded using
         :meth:`load_settings`
         """
-        unit_type = to_enum(unit_type, enums.ISCUnitType)
-        if not isinstance(unit_type, enums.ISCUnitType):
+        unit_type = to_enum(unit_type, enums.UnitType)
+        if not isinstance(unit_type, enums.UnitType):
             raise TypeError('unit_type should be int, str, or ISCUnitType, '
                             f'not {type(unit_type)}')
 
