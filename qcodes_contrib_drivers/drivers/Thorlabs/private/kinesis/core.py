@@ -422,7 +422,7 @@ class ThorlabsKinesis:
                 float(position), enums.UnitType.Distance
             )
         except AttributeError:
-            device_position = ctypes.c_int(int(position))
+            device_position = int(position)
 
         self.get_function('MoveToPosition', check_errors=True)(device_position)
 
@@ -666,7 +666,7 @@ class ThorlabsKinesis:
             self,
             real_unit: float,
             unit_type: enums.UnitType | int | str
-    ) -> ctypes.c_int:
+    ) -> int:
         """Convert real values to device units.
 
         In order to do this, the device settings must be loaded using
@@ -684,7 +684,7 @@ class ThorlabsKinesis:
             ctypes.byref(device_unit),
             unit_type.value,
         )
-        return device_unit
+        return device_unit.value
 
     def real_value_from_device_unit(
             self,
