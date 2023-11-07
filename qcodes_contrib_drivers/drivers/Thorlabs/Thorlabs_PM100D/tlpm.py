@@ -54,6 +54,7 @@ class ThorlabsPM100D(Instrument):
             If the dll is not found.
 
     """
+
     def __init__(self, name: str, addr: str = '', reset: bool = False,
                  thorlabs_tlpm: TLPM | None = None,
                  metadata: Mapping[Any, Any] | None = None,
