@@ -8,17 +8,21 @@ from __future__ import annotations
 
 import os
 import pathlib
+import sys
 import time
 import warnings
-from enum import EnumMeta
+from enum import Enum
 from functools import partial, wraps
-from typing import Any, Callable, Iterable, List, Literal, Mapping, Tuple
+from typing import (
+    Any, Callable, Iterable, List, Mapping, Optional, Tuple, Type
+)
 from typing import Sequence, TypeVar
 
 from typing_extensions import ParamSpec
 
 from qcodes import Instrument
 from . import enums
+from .. import ConnexionErrors, GeneralErrors, MotorErrors
 
 try:
     import ctypes.wintypes
@@ -129,16 +133,17 @@ ERROR_MESSAGES = {
 
 P = ParamSpec('P')
 T = TypeVar('T')
+EnumT = TypeVar('EnumT', bound=Enum)
 
 
-def to_enum(arg: EnumMeta | str | int, enum: EnumMeta):
+def to_enum(arg: EnumT | str | int, enum: Type[EnumT]) -> EnumT:
     """Return an instance of type enum for a given name, value, or the
     enum itself."""
     if isinstance(arg, str):
         # Try to catch at least single-noun names that are not capitalized.
-        arg = getattr(enum, arg.capitalize())
-    elif isinstance(arg, int):
-        arg = enum(arg)
+        return getattr(enum, arg.capitalize())
+    if isinstance(arg, int):
+        return enum(arg)
     return arg
 
 
@@ -150,33 +155,35 @@ def register_prefix(prefixes: Sequence[str]) -> Callable:
     """
 
     def decorator(func: Callable[P, T]) -> Callable[P, T]:
-        func.__prefixes = prefixes
+        func.__prefixes = prefixes  # type: ignore[attr-defined]
         return func
 
     return decorator
 
 
-def success_check(func):
+def success_check(func: Callable[P, int]) -> Callable[P, None]:
     """Wraps functions that return a boolean success code.
 
     1 means success, 0 means failure.
     """
 
     @wraps(func)
-    def wrapped(*args, **kwargs):
+    def wrapped(*args: P.args, **kwargs: P.kwargs) -> None:
         if not func(*args, **kwargs):
             raise KinesisError('Unspecified failure.')
 
     return wrapped
 
 
-def error_check(func):
+def error_check(func: Callable[P, int]) -> Callable[P, None]:
     """Wraps functions that return an integer error code."""
 
     @wraps(func)
-    def wrapped(*args, **kwargs):
+    def wrapped(*args: P.args, **kwargs: P.kwargs) -> None:
         code = func(*args, **kwargs)
         if (status := ERROR_CODES.get(code)) != 'FT_OK':
+            if status is None:
+                raise RuntimeError('Unknown error code')
             raise KinesisError(f'{status}: {ERROR_MESSAGES[status]}')
 
     return wrapped
@@ -224,10 +231,11 @@ class ThorlabsKinesis:
         except AttributeError as err:
             raise AttributeError(f'Function {self.prefix}_{name} not found in '
                                  f'dll {self.lib}') from err
+
         if check_errors:
-            func = error_check(func)
+            return error_check(func)
         if check_success:
-            func = success_check(func)
+            return success_check(func)
         return func
 
     def enable_simulation(self) -> None:
@@ -241,7 +249,7 @@ class ThorlabsKinesis:
         self.lib.TLI_UninitializeSimulations()
 
     @error_check
-    def build_device_list(self) -> None:
+    def build_device_list(self) -> int:
         """Build the DeviceList.
 
         This function builds an internal collection of all devices found
@@ -299,7 +307,7 @@ class ThorlabsKinesis:
         """
         self.request_status_bits()
         function = self.get_function('GetStatusBits')
-        function.restype = ctypes.wintypes.DWORD
+        function.restype = ctypes.wintypes.DWORD  # type: ignore[attr-defined]
         return function()
 
     @register_prefix(['ISC', 'CC'])
@@ -384,7 +392,7 @@ class ThorlabsKinesis:
         return self.get_function('GetPosition')()
 
     @register_prefix(['FF', 'ISC', 'CC'])
-    def move_to_position(self, position: int | str,
+    def move_to_position(self, position: int | float,
                          block: bool = False) -> None:
         """Move the device to the specified position (index).
 
@@ -402,13 +410,13 @@ class ThorlabsKinesis:
         """
         try:
             # FilterFlipper does not have device units
-            position = self.device_unit_from_real_value(
-                position, enums.UnitType.Distance
+            device_position = self.device_unit_from_real_value(
+                float(position), enums.UnitType.Distance
             )
         except AttributeError:
-            pass
+            device_position = ctypes.c_int(int(position))
 
-        self.get_function('MoveToPosition', check_errors=True)(position)
+        self.get_function('MoveToPosition', check_errors=True)(device_position)
 
         while block and self.is_moving():
             time.sleep(50e-3)
@@ -432,11 +440,13 @@ class ThorlabsKinesis:
             displacement: Signed displacement in real units.
 
         """
-        displacement = self.device_unit_from_real_value(
+        device_displacement = self.device_unit_from_real_value(
             displacement, enums.UnitType.Distance
         )
 
-        self.get_function('MoveRelative', check_errors=True)(displacement)
+        self.get_function('MoveRelative', check_errors=True)(
+            device_displacement
+        )
 
     @register_prefix(['FF', 'ISC', 'CC'])
     def is_moving(self) -> bool:
@@ -481,15 +491,16 @@ class ThorlabsKinesis:
             max_velocity: The new maximum velocity value in real units.
 
         """
-        acceleration = self.device_unit_from_real_value(
+        device_acceleration = self.device_unit_from_real_value(
             acceleration, enums.UnitType.Acceleration
         )
-        max_velocity = self.device_unit_from_real_value(
+        device_max_velocity = self.device_unit_from_real_value(
             max_velocity, enums.UnitType.Velocity
         )
 
-        self.get_function('SetVelParams', check_errors=True)(acceleration,
-                                                             max_velocity)
+        self.get_function('SetVelParams', check_errors=True)(
+            device_acceleration, device_max_velocity
+        )
 
     @register_prefix(['FF'])
     def get_transit_time(self) -> int:
@@ -727,12 +738,17 @@ class KinesisInstrument(Instrument):
             Nicely formatted name of the instrument.
 
     """
+    _prefix: str
+    """The prefix of DLL functions."""
+    hardware_type: enums.KinesisHWType
+    """The hardware type identifier (an integer enumeration)."""
 
     def __init__(self, name: str, dll_dir: str | pathlib.Path | None = '',
                  serial: int | None = None, simulation: bool = False,
                  polling: int = 200, home: bool = False,
                  metadata: Mapping[Any, Any] | None = None,
                  label: str | None = None):
+
         if self._prefix is None or self.hardware_type is None:
             raise NotImplementedError('Incorrectly implemented subclass. '
                                       'Needs to be declared with prefix and '
@@ -768,10 +784,10 @@ class KinesisInstrument(Instrument):
                           **kwargs):
         super().__init_subclass__(**kwargs)
 
-        cls._prefix = prefix
-        """The prefix of DLL functions."""
-        cls.hardware_type = hardware_type
-        """The hardware type identifier (an integer enumeration)."""
+        # Ignore type as mypy is not smart enough to detect that the None case
+        # is checked in __init__
+        cls._prefix = prefix  # type: ignore[assignment]
+        cls.hardware_type = hardware_type  # type: ignore[assignment]
 
         def is_registered_method(item) -> bool:
             key, val = item
@@ -871,7 +887,8 @@ class KinesisError(Exception):
 
 def list_available_devices(
         lib: str | os.PathLike | ctypes.CDLL | None = None,
-        hardware_type: Iterable[enums.KinesisHWType] | enums.KinesisHWType | None = None
+        hardware_type: Iterable[
+                           enums.KinesisHWType] | enums.KinesisHWType | None = None
 ) -> List[Tuple[enums.KinesisHWType, int]]:
     """Discover and list available Kinesis devices.
 
@@ -931,3 +948,116 @@ def list_available_devices(
             break
 
     return devices
+
+
+# Main branch implementation.
+# TODO: merge
+class _Thorlabs_Kinesis(Instrument):
+    """A base class for Thorlabs kinesis instruments
+
+    Args:
+        name: Instrument name.
+        serial_number: Serial number of the device.
+        dll_path: Path to the kinesis dll for the instrument to use.
+        dll_dir: Directory in which the kinesis dll are stored.
+        simulation: Enables the simulation manager. Defaults to False.
+    """
+
+    def __init__(self,
+                 name: str,
+                 serial_number: str,
+                 dll_path: str,
+                 dll_dir: Optional[str] = None,
+                 simulation: bool = False,
+                 **kwargs):
+        super().__init__(name, **kwargs)
+        self.serial_number = serial_number
+        self._serial_number = ctypes.c_char_p(
+            self.serial_number.encode('ascii'))
+        self._dll_path = dll_path
+        self._dll_dir: Optional[
+            str] = dll_dir if dll_dir else r'C:\Program Files\Thorlabs\Kinesis'
+        if sys.platform != 'win32':
+            self._dll: Any = None
+            raise OSError('Thorlabs Kinesis only works on Windows')
+        else:
+            os.add_dll_directory(self._dll_dir)
+            self._dll = ctypes.cdll.LoadLibrary(self._dll_path)
+
+        self._simulation = simulation
+        if self._simulation:
+            self.enable_simulation()
+
+        self._device_info = dict(zip(
+            ['type_ID', 'description', 'PID', 'is_known_type', 'motor_type',
+             'is_piezo', 'is_laser', 'is_custom', 'is_rack', 'max_channels'],
+            self._get_device_info()))
+        self._type_ID = self._device_info['type_ID']
+        self._description = self._device_info['description']
+        self._PID = self._device_info['PID']
+        self._is_known_type = self._device_info['is_known_type']
+        self._motor_type = self._device_info['motor_type']
+        self._is_piezo = self._device_info['is_piezo']
+        self._is_laser = self._device_info['is_laser']
+        self._is_custom = self._device_info['is_custom']
+        self._is_rack = self._device_info['is_rack']
+        self._max_channels = self._device_info['max_channels']
+
+    def _get_device_info(self) -> list:
+        """Get the device information from the USB port
+
+        Returns:
+            list: [type id, description, PID, is known type, motor type,
+            is piezo, is laser, is custom type, is rack, max channels]
+        """
+        type_id = ctypes.c_ulong()
+        description = ctypes.c_char()
+        pid = ctypes.c_ulong()
+        is_known_type = ctypes.c_bool()
+        motor_type = ctypes.c_int()
+        is_piezo_device = ctypes.c_bool()
+        is_laser = ctypes.c_bool()
+        is_custom_type = ctypes.c_bool()
+        is_rack = ctypes.c_bool()
+        max_channels = ctypes.c_bool()
+
+        ret = self._dll.TLI_GetDeviceInfo(
+            ctypes.byref(self._serial_number),
+            ctypes.byref(type_id),
+            ctypes.byref(description),
+            ctypes.byref(pid),
+            ctypes.byref(is_known_type),
+            ctypes.byref(motor_type),
+            ctypes.byref(is_piezo_device),
+            ctypes.byref(is_laser),
+            ctypes.byref(is_custom_type),
+            ctypes.byref(is_rack),
+            ctypes.byref(max_channels)
+        )
+        self._check_error(ret)
+        return [type_id.value, description.value, pid.value,
+                is_known_type.value, motor_type.value, is_piezo_device.value,
+                is_laser.value, is_custom_type.value, is_rack.value,
+                max_channels.value]
+
+    def _check_error(self, status: int) -> None:
+        if status != 0:
+            if status in ConnexionErrors:
+                raise ConnectionError(f'{ConnexionErrors[status]} ({status})')
+            elif status in GeneralErrors:
+                raise OSError(f'{GeneralErrors[status]} ({status})')
+            elif status in MotorErrors:
+                raise RuntimeError(f'{MotorErrors[status]} ({status})')
+            else:
+                raise ValueError(f'Unknown error code ({status})')
+        else:
+            pass
+        return None
+
+    def enable_simulation(self) -> None:
+        """Initialise a connection to the simulation manager, which must already be running"""
+        self._dll.TLI_InitializeSimulations()
+
+    def disable_simulation(self) -> None:
+        """Uninitialize a connection to the simulation manager, which must be running"""
+        self._dll.TLI_UninitializeSimulations()
