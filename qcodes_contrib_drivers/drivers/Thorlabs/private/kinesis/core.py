@@ -393,11 +393,12 @@ class ThorlabsKinesis:
         or by calling RequestPosition or RequestStatus.
 
         Returns:
-            The current position.
+            The current position in real units.
         """
         self.request_status()
-        time.sleep(self.get_polling_duration() * 1e-3)
-        return self.get_function('GetPosition')()
+        return self.real_value_from_device_unit(
+            self.get_function('GetPosition')(), enums.UnitType.Distance
+        )
 
     @register_prefix(['FF', 'ISC', 'CC'])
     def move_to_position(self, position: int | float,

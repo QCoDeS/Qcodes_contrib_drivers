@@ -26,11 +26,6 @@ class KinesisISCInstrument(KinesisInstrument):
             "position",
             get_cmd=self._kinesis.get_position,
             set_cmd=self._kinesis.move_to_position,
-            get_parser=partial(self._kinesis.real_value_from_device_unit,
-                               unit_type=enums.UnitType.Distance),
-            set_parser=partial(self._kinesis.device_unit_from_real_value,
-                               unit_type=enums.UnitType.Distance),
-            vals=vals.Numbers(),
             unit=u"\u00b0",
             label="Position",
             instrument=self
@@ -50,10 +45,6 @@ class KinesisISCInstrument(KinesisInstrument):
             set_cmd=lambda val: self._kinesis.set_vel_params(
                 val, self.acceleration.get()
             ),
-            get_parser=partial(self._kinesis.real_value_from_device_unit,
-                               unit_type=enums.UnitType.Velocity),
-            set_parser=partial(self._kinesis.device_unit_from_real_value,
-                               unit_type=enums.UnitType.Velocity),
             unit=u"\u00b0/s",
             label="Velocity",
             instrument=self
@@ -64,10 +55,6 @@ class KinesisISCInstrument(KinesisInstrument):
             set_cmd=lambda val: self._kinesis.set_vel_params(
                 self.acceleration.get(), val
             ),
-            get_parser=partial(self._kinesis.real_value_from_device_unit,
-                               unit_type=enums.UnitType.Acceleration),
-            set_parser=partial(self._kinesis.device_unit_from_real_value,
-                               unit_type=enums.UnitType.Acceleration),
             unit=u"\u00b0/s\u00b2",
             label="Acceleration",
             instrument=self
