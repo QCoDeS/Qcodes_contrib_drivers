@@ -315,7 +315,6 @@ def test_arrangement_detune(qdac):  # noqa
     ]
 
 
-@pytest.mark.wip
 def test_arrangement_sweep_outer_trigger(qdac):  # noqa
     qdac.free_all_triggers()
     arrangement = qdac.arrange(
