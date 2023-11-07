@@ -7,7 +7,7 @@ from qcodes.instrument.visa import VisaInstrument
 from qcodes.utils import validators
 from pyvisa.errors import VisaIOError
 from typing import (
-    TypeAlias, Tuple, Sequence, List, Dict, Set, Union, Optional)
+    Tuple, Sequence, List, Dict, Set, Union, Optional)
 from packaging.version import parse
 
 # Version 0.1.0
@@ -223,7 +223,7 @@ class QSwitch(VisaInstrument):
     # Manipulation by name
     # -----------------------------------------------------------------------
 
-    OneOrMore: TypeAlias = Union[str, Sequence[str]]
+    OneOrMore = Union[str, Sequence[str]]
 
     def unground(self, lines: OneOrMore) -> None:
         if isinstance(lines, str):
