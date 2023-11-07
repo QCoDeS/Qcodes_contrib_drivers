@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import os
 import pathlib
+import re
 import sys
 import time
 import warnings
@@ -200,6 +201,13 @@ class ThorlabsKinesis:
             lib = "Thorlabs.MotionControl." + lib
         if not lib.endswith(".dll"):
             lib = lib + ".dll"
+
+        # Cover some frequent libraries that have periods in their name
+        lib = lib.replace('Benchtop', 'Benchtop.')
+        lib = lib.replace('KCube', 'KCube.')
+        lib = lib.replace('TCube', 'TCube.')
+        # Remove # of channel suffixes from hardware type
+        lib = re.sub(r'(\d+Ch)*$', '', lib)
 
         self.prefix = prefix
         self.lib: ctypes.CDLL = ctypes.cdll.LoadLibrary(
