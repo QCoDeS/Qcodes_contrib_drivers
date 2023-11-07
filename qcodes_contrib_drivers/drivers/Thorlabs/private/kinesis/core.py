@@ -384,7 +384,6 @@ class ThorlabsKinesis:
         """
         return int(self.get_function('GetNumberPositions')())
 
-    @register_prefix(['FF', 'ISC', 'CC'])
     def get_position(self) -> int | float | str:
         """Get the current position.
 
@@ -466,7 +465,6 @@ class ThorlabsKinesis:
         status = self.get_status_bits()
         return bool((status & 0x00000010) | (status & 0x00000020))
 
-    @register_prefix(['ISC', 'CC'])
     def get_vel_params(self) -> Tuple[float, float]:
         """Gets the move velocity parameters.
 
@@ -491,7 +489,6 @@ class ThorlabsKinesis:
             )
         )
 
-    @register_prefix(['ISC', 'CC'])
     def set_vel_params(self, acceleration: float, max_velocity: float):
         """Sets the move velocity parameters.
 
@@ -511,7 +508,6 @@ class ThorlabsKinesis:
             device_acceleration, device_max_velocity
         )
 
-    @register_prefix(['FF'])
     def get_transit_time(self) -> int:
         """Gets the transit time.
 
@@ -520,7 +516,6 @@ class ThorlabsKinesis:
         """
         return self.get_function('GetTransitTime')()
 
-    @register_prefix(['FF'])
     def set_transit_time(self, transit_time: int) -> None:
         """Sets the transit time.
 
@@ -724,6 +719,10 @@ class KinesisInstrument(Instrument):
     To automatically forward common DLL methods, they should be marked
     with the above prefix and the @register_prefix decorator in
     :class:`ThorlabsKinesis`. This will expose them in the subclass.
+
+    Methods that are wrapped in qcodes parameters should not be
+    forwarded in this way for the sake of keeping the instrument
+    namespace free of clutter.
 
     Args:
         name:
