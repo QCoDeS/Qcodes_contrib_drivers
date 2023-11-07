@@ -1,12 +1,9 @@
 from __future__ import annotations
 
 import pathlib
-from functools import partial
 from typing import Any, Mapping
 
-from qcodes import validators as vals
 from qcodes.parameters import Parameter
-from . import enums
 from .core import KinesisInstrument, ThorlabsKinesis, to_enum
 
 
