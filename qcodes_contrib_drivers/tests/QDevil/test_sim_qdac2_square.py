@@ -28,7 +28,6 @@ def test_square_default_values(qdac):  # noqa
         'sour24:squ:coun -1',
         'sour24:squ:trig:sour bus',
         'sour24:squ:init:cont on',
-        'sour24:squ:init',
     ]
 
 
@@ -58,7 +57,6 @@ def test_square_period(qdac):  # noqa
         'sour24:squ:coun -1',
         'sour24:squ:trig:sour bus',
         'sour24:squ:init:cont on',
-        'sour24:squ:init',
     ]
 
 
@@ -79,7 +77,6 @@ def test_square_slew(qdac):  # noqa
         'sour24:squ:coun -1',
         'sour24:squ:trig:sour bus',
         'sour24:squ:init:cont on',
-        'sour24:squ:init',
     ]
 
 
@@ -106,7 +103,6 @@ def test_square_negative(qdac):  # noqa
         'sour24:squ:coun 10',
         'sour24:squ:trig:sour bus',
         'sour24:squ:init:cont on',
-        'sour24:squ:init',
     ]
 
 
@@ -127,7 +123,6 @@ def test_square_frequency(qdac):  # noqa
         'sour24:squ:coun -1',
         'sour24:squ:trig:sour bus',
         'sour24:squ:init:cont on',
-        'sour24:squ:init',
     ]
 
 
@@ -226,7 +221,6 @@ def test_square_start_trigger_fires(qdac):  # noqa
     # -----------------------------------------------------------------------
     assert qdac.get_recorded_scpi_commands() == [
         'sour1:squ:init:cont on',
-        'sour1:squ:init',
         f'tint {trigger.value}'
     ]
 
@@ -293,7 +287,6 @@ def test_square_trigger_on_internal(qdac):  # noqa
     assert qdac.get_recorded_scpi_commands() == [
         f'sour1:squ:trig:sour int{trigger.value}',
         f'sour1:squ:init:cont on',
-        'sour1:squ:init'
     ]
 
 
@@ -307,7 +300,6 @@ def test_square_trigger_on_external(qdac):  # noqa
     assert qdac.get_recorded_scpi_commands() == [
         f'sour1:squ:trig:sour ext{trigger}',
         f'sour1:squ:init:cont on',
-        'sour1:squ:init'
     ]
 
 
