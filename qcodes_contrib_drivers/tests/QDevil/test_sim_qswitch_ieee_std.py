@@ -21,4 +21,4 @@ def test_reset_syncs_and_wait(qswitch, mocker):  # noqa
     # -----------------------------------------------------------------------
     commands = qswitch.get_recorded_scpi_commands()
     assert commands == ['*rst', 'stat?']
-    sleep_fn.assert_any_call(0.1)
+    sleep_fn.assert_any_call(0.6)

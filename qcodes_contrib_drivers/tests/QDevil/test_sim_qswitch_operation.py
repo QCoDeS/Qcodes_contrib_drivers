@@ -1,6 +1,5 @@
 import pytest
 from unittest.mock import call
-from .common import assert_items_equal
 from .sim_qswitch_fixtures import qswitch  # noqa
 
 
@@ -116,15 +115,3 @@ def test_arrangement_gives_names_to_connections(qswitch):  # noqa
     # -----------------------------------------------------------------------
     commands = qswitch.get_recorded_scpi_commands()
     assert commands == ['clos (@14!1)', 'open (@3!0)']
-
-
-@pytest.mark.wip
-def test_writes_are_throttled(qswitch, mocker):  # noqa
-    sleep_fn = mocker.patch(
-        'qcodes_contrib_drivers.drivers.QDevil.QSwitch.sleep_s')
-    # -----------------------------------------------------------------------
-    qswitch.unground('22')
-    qswitch.connect('22')
-    qswitch.breakout('22', '7')
-    # -----------------------------------------------------------------------
-    sleep_fn.assert_has_calls([call(0.02), call(0.02), call(0.02)])

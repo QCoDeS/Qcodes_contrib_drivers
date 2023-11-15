@@ -1,7 +1,6 @@
 import re
 import itertools
-from time import perf_counter as perf_s, sleep as sleep_s
-from qcodes.instrument.channel import InstrumentChannel
+from time import sleep as sleep_s
 from qcodes.instrument.parameter import DelegateParameter
 from qcodes.instrument.visa import VisaInstrument
 from qcodes.utils import validators
@@ -10,7 +9,7 @@ from typing import (
     Tuple, Sequence, List, Dict, Set, Union, Optional)
 from packaging.version import parse
 
-# Version 0.1.0
+# Version 0.3.0
 
 State = Sequence[Tuple[int, int]]
 
@@ -102,20 +101,12 @@ def compress_channel_list(channel_list: str) -> str:
 
 relay_lines = 24
 relays_per_line = 9
-write_throttle_s = 0.02
 
 
 def _state_diff(before: State, after: State) -> Tuple[State, State, State]:
     initial = frozenset(before)
     target = frozenset(after)
     return list(target - initial), list(initial - target), list(target)
-
-
-class QSwitchChannel(InstrumentChannel):
-
-    def __init__(self, parent: 'QSwitch', name: str, channum: int):
-        super().__init__(parent, name)
-        self._channum = channum
 
 
 class QSwitch(VisaInstrument):
@@ -130,7 +121,6 @@ class QSwitch(VisaInstrument):
         """
         self._check_instrument_name(name)
         super().__init__(name, address, terminator='\n', **kwargs)
-        self._reset_throttles()
         self._set_up_serial()
         self._set_up_debug_settings()
         self._set_up_simple_functions()
@@ -141,7 +131,7 @@ class QSwitch(VisaInstrument):
         self.state_force_update()
         self.add_parameter(
             name='state',
-            label="relays",
+            label='relays',
             set_cmd=self._set_state,
             get_cmd=self._get_state,
         )
@@ -176,8 +166,8 @@ class QSwitch(VisaInstrument):
     # -----------------------------------------------------------------------
 
     def reset(self) -> None:
-        self.write('*rst')
-        sleep_s(0.1)
+        self._write('*rst')
+        sleep_s(0.6)
         self.state_force_update()
 
     def errors(self) -> str:
@@ -204,7 +194,7 @@ class QSwitch(VisaInstrument):
     # -----------------------------------------------------------------------
 
     def close_relays(self, relays: State) -> None:
-        currently = channel_list_to_state(self._get_state())
+        currently = channel_list_to_state(self._state)
         union = list(itertools.chain(currently, relays))
         self._effectuate(union)
 
@@ -212,7 +202,7 @@ class QSwitch(VisaInstrument):
         self.close_relays([(line, tap)])
 
     def open_relays(self, relays: State) -> None:
-        currently = frozenset(channel_list_to_state(self._get_state()))
+        currently = frozenset(channel_list_to_state(self._state))
         subtraction = frozenset(relays)
         self._effectuate(list(currently - subtraction))
 
@@ -321,7 +311,7 @@ class QSwitch(VisaInstrument):
         return lingering
 
     # -----------------------------------------------------------------------
-    # Override communication methods to make it possible throttle the rate
+    # Override communication methods to make it possible to check for errors
     # and to record the communication with the instrument.
 
     def write(self, cmd: str) -> None:
@@ -330,10 +320,15 @@ class QSwitch(VisaInstrument):
         Args:
             cmd (str): SCPI command
         """
-        if self._record_commands:
-            self._scpi_sent.append(cmd)
-        self._throttle_writes()
-        super().write(cmd)
+        try:
+            self._write(cmd)
+            sleep_s(0.075)
+            errors = super().ask('all?')
+        except Exception as error:
+            raise ValueError(f'Error: {repr(error)} after executing {cmd}')
+        if errors == '0,"No error"':
+            return
+        raise ValueError(f'Error: {errors} after executing {cmd}')
 
     def ask(self, cmd: str) -> str:
         """Send SCPI query to instrument
@@ -350,6 +345,11 @@ class QSwitch(VisaInstrument):
         return answer
 
     # -----------------------------------------------------------------------
+
+    def _write(self, cmd: str) -> None:
+        if self._record_commands:
+            self._scpi_sent.append(cmd)
+        super().write(cmd)
 
     def _channel_list_to_overview(self, channel_list: str) -> dict[str, List[str]]:
         state = channel_list_to_state(channel_list)
@@ -374,16 +374,6 @@ class QSwitch(VisaInstrument):
                 result[line_name].append(tap_name)
         return result
 
-    def _reset_throttles(self) -> None:
-        self._last_write_time = perf_s()
-
-    def _throttle_writes(self) -> None:
-        now = perf_s()
-        if now - self._last_write_time < write_throttle_s:
-            sleep_s(write_throttle_s)
-        now += write_throttle_s
-        self._last_write_time = now
-
     def _to_line(self, name: str) -> int:
         try:
             return self._line_names[name]
@@ -397,6 +387,7 @@ class QSwitch(VisaInstrument):
             raise ValueError(f'Unknown tap "{name}"')
 
     def _get_state(self) -> str:
+        self.state_force_update()
         return self._state
 
     def _set_state_raw(self, channel_list: str) -> None:
@@ -406,7 +397,7 @@ class QSwitch(VisaInstrument):
         self._effectuate(channel_list_to_state(channel_list))
 
     def _effectuate(self, state: State) -> None:
-        currently = channel_list_to_state(self._get_state())
+        currently = channel_list_to_state(self._state)
         positive, negative, total = _state_diff(currently, state)
         if positive:
             self.write(f'clos {state_to_compressed_list(positive)}')
@@ -432,7 +423,7 @@ class QSwitch(VisaInstrument):
 
     def _check_for_incompatiable_firmware(self) -> None:
         firmware = self.IDN()['firmware']
-        least_compatible_fw = '0.1.0'
+        least_compatible_fw = '0.155'
         if parse(firmware) < parse(least_compatible_fw):
             raise ValueError(f'Incompatible firmware {firmware}. You need at '
                              f'least {least_compatible_fw}')

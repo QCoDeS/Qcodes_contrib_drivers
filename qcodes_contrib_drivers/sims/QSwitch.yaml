@@ -16,7 +16,7 @@ devices:
         r: "\"049162C01016\""
       - q: "syst:err:all?"
         r: "0,\"No error\""
-      - q: "syst:err?"
+      - q: "all?"
         r: "0,\"No error\""
       - q: "stat?"
         r: "(@1!0:24!0)"
@@ -64,7 +64,6 @@ devices:
           - q: "clos (@14!0:15!0)"
           - q: "clos (@14!9:15!9)"
           - q: "open (@14!9:15!9)"
-
   wrong_model:
     eom:
       GPIB INSTR:
