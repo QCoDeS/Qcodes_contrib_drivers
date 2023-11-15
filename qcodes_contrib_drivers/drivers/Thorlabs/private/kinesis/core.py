@@ -710,10 +710,13 @@ class ThorlabsKinesis:
         """
         self.get_function('EnableChannel', check_errors=True)()
 
-    def stop(self, mode: enums.StopModes | int | str = 'Profiled') -> None:
     @register_prefix('ISC', 'CC')
+    def stop(self, mode: enums.StopModes | int | str | None = None) -> None:
         """Stop the current move using the current velocity profile."""
-        mode = to_enum(mode, enums.StopModes)
+        if mode is None:
+            mode = self.get_jog_mode()[1]
+        else:
+            mode = to_enum(mode, enums.StopModes)
         if mode == enums.StopModes.Immediate:
             self.get_function('StopImmediate', check_errors=True)()
         elif mode == enums.StopModes.Profiled:
