@@ -100,11 +100,15 @@ class Valon5015(VisaInstrument):
 
     def _get_status(self):
         responses = [self.ask("stat") for _ in range(14)]
-        return "\n".join(responses[1:])
+        responses = "\n".join(responses[1:])
+        self._flush()
+        return responses
 
     def _get_id(self):
         responses = [self.ask("id") for _ in range(2)]
-        return "\n".join(responses[1:])
+        responses = "\n".join(responses[1:])
+        self._flush()
+        return responses
     
     def _set_id(self, n):
         self.ask(f"id {n}")
@@ -114,6 +118,7 @@ class Valon5015(VisaInstrument):
         response = [self.ask("frequency") for _ in range(2)][1]
         match = self.__frequency_regex.match(response)
         frequency = match.group("frequency")
+        self._flush()
         return float(frequency) * 1e6
 
     def _set_frequency(self, frequency):
@@ -124,6 +129,7 @@ class Valon5015(VisaInstrument):
         response = [self.ask("offset") for _ in range(2)][1]
         match = self.__offset_regex.match(response)
         offset = match.group("offset")
+        self._flush()
         return float(offset) * 1e6
 
     def _set_offset(self, offset):
@@ -134,6 +140,7 @@ class Valon5015(VisaInstrument):
         response = [self.ask("power") for _ in range(2)][1]
         match = self.__power_regex.match(response)
         power = match.group("power")
+        self._flush()
         return float(power)
 
     def _set_power(self, power):
@@ -144,6 +151,7 @@ class Valon5015(VisaInstrument):
         response = [self.ask("amd") for _ in range(2)][1]
         match = self.__modulation_db_regex.match(response)
         modulation_db = match.group("modulation_db")
+        self._flush()
         return float(modulation_db)
 
     def _set_modulation_db(self, modulation_db):
@@ -154,6 +162,7 @@ class Valon5015(VisaInstrument):
         response = [self.ask("amf") for _ in range(2)][1]
         match = self.__modulation_frequency_regex.match(response)
         modulation_frequency = match.group("modulation_frequency")
+        self._flush()
         return float(modulation_frequency) * 1e3
 
     def _set_modulation_frequency(self, modulation_frequency):
@@ -164,6 +173,7 @@ class Valon5015(VisaInstrument):
         response = [self.ask("pdn") for _ in range(2)][1]
         match = self.__low_power_mode_enabled_regex.match(response)
         low_power_mode_enabled = match.group("low_power_mode_enabled")
+        self._flush()
         return True if low_power_mode_enabled == "1" else False
 
     def _set_low_power_mode_enabled(self, low_power_mode_enabled):
@@ -175,6 +185,7 @@ class Valon5015(VisaInstrument):
         response = [self.ask("oen") for _ in range(2)][1]
         match = self.__buffer_amplifiers_enabled_regex.match(response)
         buffer_amplifiers_enabled = match.group("buffer_amplifiers_enabled")
+        self._flush()
         return True if buffer_amplifiers_enabled == "1" else False
 
     def _set_buffer_amplifiers_enabled(self, buffer_amplifiers_enabled):
