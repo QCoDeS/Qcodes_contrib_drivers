@@ -84,6 +84,35 @@ class KinesisISCInstrument(KinesisInstrument):
             instrument=self
         )
 
+        self.jog_acceleration = Parameter(
+            'jog_acceleration',
+            get_cmd=lambda: self._kinesis.get_jog_vel_params()[0],
+            set_cmd=lambda val: self._kinesis.set_jog_vel_params(
+                val, self.jog_max_velocity.get()
+            ),
+            unit=u"\u00b0/s\u00b2",
+            label="Jog acceleration",
+            instrument=self
+        )
+        self.jog_max_velocity = Parameter(
+            'jog_max_velocity',
+            get_cmd=lambda: self._kinesis.get_jog_vel_params()[1],
+            set_cmd=lambda val: self._kinesis.set_jog_vel_params(
+                self.jog_acceleration.get(), val
+            ),
+            unit=u"\u00b0/s",
+            label="Jog max velocity",
+            instrument=self
+        )
+        self.jog_step_size = Parameter(
+            'jog_step_size',
+            get_cmd=self._kinesis.get_jog_step_size,
+            set_cmd=self._kinesis.set_jog_step_size,
+            unit=u"\u00b0",
+            label="Jog step size",
+            instrument=self
+        )
+
     def _init_kinesis(self, dll_dir: str | pathlib.Path | None,
                       simulation: bool) -> ThorlabsKinesis:
         return ThorlabsKinesis(

@@ -369,6 +369,86 @@ class ThorlabsKinesis:
             to_enum(stop_mode, enums.StopModes).value
         )
 
+    def get_jog_step_size(self) -> float:
+        """Gets the distance to move when jogging."""
+        return self.real_value_from_device_unit(
+            self.get_function('GetJogStepSize')(),
+            enums.UnitType.Distance
+        )
+
+    def set_jog_step_size(self, step_size: float):
+        """Sets the distance to move on jogging.
+
+        Args:
+            step_size: The step in real units.
+
+        """
+        self.get_function('SetJogStepSize', check_errors=True)(
+            ctypes.c_uint(self.device_unit_from_real_value(
+                step_size, enums.UnitType.Distance
+            ))
+        )
+
+    def get_jog_vel_params(self) -> Tuple[float, float]:
+        """Gets the jog velocity parameters."""
+        acceleration = ctypes.c_int()
+        max_velocity = ctypes.c_int()
+        self.get_function('GetJogVelParams', check_errors=True)(
+            ctypes.byref(acceleration), ctypes.byref(max_velocity)
+        )
+        return (
+            self.real_value_from_device_unit(
+                acceleration, enums.UnitType.Acceleration
+            ),
+            self.real_value_from_device_unit(
+                max_velocity, enums.UnitType.Velocity
+            )
+        )
+
+    def set_jog_vel_params(self, acceleration: float, max_velocity: float):
+        """Sets jog velocity parameters.
+
+        Args:
+            acceleration: The acceleration in real units.
+            max_velocity: The maximum velocity in real units.
+
+        """
+        self.get_function('SetJogVelParams', check_errors=True)(
+            self.device_unit_from_real_value(
+                acceleration, enums.UnitType.Acceleration
+            ),
+            self.device_unit_from_real_value(
+                max_velocity, enums.UnitType.Velocity
+            )
+        )
+
+    @register_prefix('FF', 'ISC', 'CC')
+    def is_jogging(self) -> bool:
+        """If the device is jogging or not.
+
+        Note that for the FilterFlipper devices, this is always false.
+        """
+        status = self.get_status_bits()
+        return bool((status & 0x00000040) | (status & 0x00000080))
+
+    @register_prefix('ISC', 'CC')
+    def move_jog(self, jog_direction: enums.TravelDirection | str | int):
+        """Perform a jog.
+
+        Args:
+            jog_direction: The jog direction.
+
+            +----------+---+
+            | Forwards | 1 |
+            +----------+---+
+            | Reverse  | 2 |
+            +----------+---+
+
+        """
+        self.get_function('MoveJog', check_errors=True)(
+            to_enum(jog_direction, enums.TravelDirection).value
+        )
+
     @register_prefix('FF', 'ISC', 'CC')
     def identify(self) -> None:
         """Sends a command to the device to make it identify iteself."""
