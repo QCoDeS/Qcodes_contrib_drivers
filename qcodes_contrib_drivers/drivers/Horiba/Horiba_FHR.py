@@ -51,17 +51,23 @@ class PortChannel(Dispatcher, InstrumentChannel):
         InstrumentChannel.__init__(self, parent, name)
         self.port = ctypes.c_int(port)
 
-    def open(self):
+        self.add_parameter(
+            'open',
+            get_cmd=self._is_open,
+            set_cmd=lambda flag: self._open() if flag else self._close()
+        )
+
+    def _open(self):
         """Open serial port."""
         code, _ = self.cli.SpeCommand(self.handle, 'Port', 'Open', self.port)
         self.error_check(code)
 
-    def close(self):
+    def _close(self):
         """Close serial port."""
         code, _ = self.cli.SpeCommand(self.handle, 'Port', 'Close')
         self.error_check(code)
 
-    def is_open(self) -> bool:
+    def _is_open(self) -> bool:
         """Check if the port is open."""
         code, value = self.cli.SpeCommand(self.handle, 'Port', 'IsOpen',
                                           ctypes.c_int())
@@ -410,7 +416,7 @@ class HoribaFHR(Instrument):
                 # communication with the device will fail.
                 port = PortChannel(self, 'port', self.cli, self.handle,
                                    section.getint('ComPort'))
-                port.open()
+                port.open.set(True)
                 port.set_baud_rate(section.getint('Baudrate'))
                 port.set_timeout(section.getint('Timeout'))
                 port.config = dict(section)
@@ -510,8 +516,8 @@ class HoribaFHR(Instrument):
                 'vendor': 'Horiba'}
 
     def disconnect(self):
-        if self.port.is_open():
-            self.port.close()
+        if self.port.open.get():
+            self.port.open.set(False)
 
     def close(self) -> None:
         self.disconnect()
