@@ -727,18 +727,47 @@ class ThorlabsKinesis:
         return bool(self.get_function('CanHome')())
 
     @register_prefix('ISC', 'CC')
+    def is_homing(self) -> bool:
+        """Is the device currently homing?"""
+        status = self.get_status_bits()
+        return bool(status & 0x00000200)
+
+    @register_prefix('ISC', 'CC')
+    def is_homed(self) -> bool:
+        """Is the device homed?"""
+        status = self.get_status_bits()
+        return bool(status & 0x00000400)
+
+    @register_prefix('ISC', 'CC')
     def needs_homing(self) -> bool:
         """Can this device be moved without Homing."""
         return not bool(self.get_function('CanMoveWithoutHomingFirst')())
 
-    def home(self) -> None:
     @register_prefix('FF', 'ISC', 'CC')
+    def home(self, block: bool = True) -> None:
         """Home the device.
 
         Homing the device will set the device to a known state and
         determine the home position, see Homing for more detail.
         """
         self.get_function('Home', check_errors=True)()
+
+        if block:
+            # TODO: In principle, is_homing() should do, but does not.
+            # Neither request_status() nor request_status_bits() seem to do the
+            # job. Waiting for at least twice the polling duration should work,
+            # but can take much longer than necessary. Hence, use the message
+            # queue to see if the status changed
+            self.clear_message_queue()
+
+            try:
+                while not (self.message_queue_size and not self.is_homing()):
+                    pass
+            except KeyboardInterrupt:
+                try:
+                    self.stop()
+                except AttributeError:
+                    return
 
     @register_prefix('FF', 'ISC', 'CC')
     def get_hw_info(self) -> Tuple[str, int, int, str, str, int, int]:
