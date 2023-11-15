@@ -557,6 +557,15 @@ class ThorlabsKinesis:
             device_displacement
         )
 
+    def clear_message_queue(self):
+        """Clears the device message queue."""
+        self.get_function('ClearMessageQueue', check_errors=True)()
+
+    @property
+    def message_queue_size(self) -> int:
+        """Gets the MessageQueue size."""
+        return self.get_function('MessageQueueSize')()
+
     @register_prefix('FF', 'ISC', 'CC')
     def is_moving(self) -> bool:
         """If the device is moving or not.
