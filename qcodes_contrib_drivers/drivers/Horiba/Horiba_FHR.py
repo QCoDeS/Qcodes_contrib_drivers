@@ -328,6 +328,11 @@ class GratingChannel(PrecisionMotorChannel):
         )
         self.error_check(code)
 
+    def _set_position(self, pos: int):
+        # Override to keep track of currently active grating in parent instrument
+        super()._set_position(pos)
+        self.parent._active_grating = self
+
     def _set_shift(self, shift: int):
         """Set zero order shift."""
         code, _ = self.cli.SpeCommand(self.handle,
@@ -368,6 +373,10 @@ class HoribaFHR(Instrument):
         See ``docs/examples`` for an example notebook.
 
     """
+    _active_grating: GratingChannel | None = None
+    """Stores the currently selected grating.
+
+    Needs to be initialized by setting the position of any grating."""
 
     def __init__(
             self, name: str,
@@ -499,7 +508,31 @@ class HoribaFHR(Instrument):
         self.add_submodule('slits', slits.to_channel_tuple())
         self.add_submodule('gratings', gratings.to_channel_tuple())
 
+        self.active_grating = Parameter(
+            'active_grating',
+            get_cmd=lambda: getattr(self, '_active_grating', None),
+            set_cmd=self._set_active_grating,
+            label='Active grating',
+            instrument=self
+        )
+        """The currently active grating.
+
+        It can be set using either the number of lines (eg ``600``) or
+        the :class:`GratingChannel` object itself. If the set value is
+        not the currently active one, the selected grating will be
+        moved to the current one's position.
+        """
+
         self.connect_message()
+
+    def _set_active_grating(self, grating: str | int | GratingChannel):
+        if (active_grating := self.active_grating.get()) is None:
+            raise ValueError('No grating has previously been moved. Please '
+                             'do so before setting this parameter.')
+        if isinstance(grating, (int, str)):
+            grating = self.gratings.get_channel_by_name(f'grating_{grating}')
+        if grating is not active_grating:
+            grating.position(active_grating.position())
 
     def get_idn(self) -> Dict[str, str | None]:
         return {'serial': self.config['Firmware']['SerialNumber'],
