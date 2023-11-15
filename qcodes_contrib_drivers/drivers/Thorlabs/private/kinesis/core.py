@@ -17,7 +17,7 @@ from functools import partial, wraps
 from typing import (
     Any, Callable, Iterable, List, Mapping, Optional, Tuple, Type
 )
-from typing import Sequence, TypeVar
+from typing import TypeVar
 
 from typing_extensions import ParamSpec
 
@@ -147,7 +147,7 @@ def to_enum(arg: EnumT | str | int, enum: Type[EnumT]) -> EnumT:
     return arg
 
 
-def register_prefix(prefixes: Sequence[str]) -> Callable:
+def register_prefix(*prefixes: str) -> Callable:
     """Registers a warpped DLL function for a given Kinesis device.
 
     prefixes is a sequence of string identifier prefixes that are
@@ -317,12 +317,12 @@ class ThorlabsKinesis:
         function.restype = ctypes.wintypes.DWORD  # type: ignore[attr-defined]
         return function()
 
-    @register_prefix(['ISC', 'CC'])
+    @register_prefix('ISC', 'CC')
     def reset_rotation_modes(self):
         """Reset the rotation modes for a rotational device."""
         self.get_function('ResetRotationModes', check_errors=True)()
 
-    @register_prefix(['ISC', 'CC'])
+    @register_prefix('ISC', 'CC')
     def set_rotation_modes(self, mode: enums.MovementModes | str | int,
                            direction: enums.MovementDirections | str | int):
         """Set the rotation modes for a rotational device.
@@ -368,12 +368,12 @@ class ThorlabsKinesis:
             to_enum(stop_mode, enums.StopModes).value
         )
 
-    @register_prefix(['FF', 'ISC', 'CC'])
+    @register_prefix('FF', 'ISC', 'CC')
     def identify(self) -> None:
         """Sends a command to the device to make it identify iteself."""
         self.get_function('Identify')()
 
-    @register_prefix(['FF', 'ISC', 'CC'])
+    @register_prefix('FF', 'ISC', 'CC')
     def get_number_positions(self) -> int:
         """Get number of positions.
 
@@ -401,9 +401,9 @@ class ThorlabsKinesis:
         except AttributeError:
             return self.get_function('GetPosition')()
 
-    @register_prefix(['FF', 'ISC', 'CC'])
     def move_to_position(self, position: int | float,
                          block: bool = False) -> None:
+    @register_prefix('FF', 'ISC', 'CC')
         """Move the device to the specified position (index).
 
         The motor may need to be Homed before a position can be set. See
@@ -436,7 +436,7 @@ class ThorlabsKinesis:
         while block and self.is_moving():
             time.sleep(50e-3)
 
-    @register_prefix(['ISC', 'CC'])
+    @register_prefix('ISC', 'CC')
     def move_at_velocity(
             self,
             direction: enums.TravelDirection | str | int
@@ -447,7 +447,7 @@ class ThorlabsKinesis:
             to_enum(direction, enums.TravelDirection).value
         )
 
-    @register_prefix(['ISC', 'CC'])
+    @register_prefix('ISC', 'CC')
     def move_relative(self, displacement: float):
         """Move the motor by a relative amount.
 
@@ -463,7 +463,7 @@ class ThorlabsKinesis:
             device_displacement
         )
 
-    @register_prefix(['FF', 'ISC', 'CC'])
+    @register_prefix('FF', 'ISC', 'CC')
     def is_moving(self) -> bool:
         """If the device is moving or not.
 
@@ -532,7 +532,7 @@ class ThorlabsKinesis:
         """
         self.get_function('SetTransitTime', check_errors=True)(transit_time)
 
-    @register_prefix(['ISC', 'CC'])
+    @register_prefix('ISC', 'CC')
     def get_motor_params_ext(self) -> Tuple[float, float, float]:
         """Gets the motor stage parameters.
 
@@ -550,7 +550,7 @@ class ThorlabsKinesis:
         )
         return stepsPerRev.value, gearBoxRatio.value, pitch.value
 
-    @register_prefix(['ISC', 'CC'])
+    @register_prefix('ISC', 'CC')
     def set_motor_params_ext(self, steps_per_rev: float, gearbox_ratio: float,
                              pitch: float) -> None:
         """Sets the motor stage parameters.
@@ -587,7 +587,8 @@ class ThorlabsKinesis:
     def set_polling_duration(self, duration: int) -> None:
         """Stops polling and starts it again with given duration."""
         self.stop_polling()
-        self.start_polling(duration)
+        if duration > 0:
+            self.start_polling(duration)
 
     def open(self) -> None:
         """Open the device for communications."""
@@ -597,7 +598,7 @@ class ThorlabsKinesis:
         """Disconnect and close the device."""
         self.get_function('Close')()
 
-    @register_prefix(['ISC', 'CC'])
+    @register_prefix('ISC', 'CC')
     def disable_channel(self) -> None:
         """Disable the channel so that motor can be moved by hand.
 
@@ -606,7 +607,7 @@ class ThorlabsKinesis:
         """
         self.get_function('DisableChannel', check_errors=True)()
 
-    @register_prefix(['ISC', 'CC'])
+    @register_prefix('ISC', 'CC')
     def enable_channel(self) -> None:
         """Enable channel for computer control.
 
@@ -615,8 +616,8 @@ class ThorlabsKinesis:
         """
         self.get_function('EnableChannel', check_errors=True)()
 
-    @register_prefix(['ISC', 'CC'])
     def stop(self, mode: enums.StopModes | int | str = 'Profiled') -> None:
+    @register_prefix('ISC', 'CC')
         """Stop the current move using the current velocity profile."""
         mode = to_enum(mode, enums.StopModes)
         if mode == enums.StopModes.Immediate:
@@ -626,18 +627,18 @@ class ThorlabsKinesis:
         else:
             raise ValueError('Invalid profile')
 
-    @register_prefix(['ISC', 'CC'])
+    @register_prefix('ISC', 'CC')
     def can_home(self) -> bool:
         """Can the device perform a Home."""
         return bool(self.get_function('CanHome')())
 
-    @register_prefix(['ISC', 'CC'])
+    @register_prefix('ISC', 'CC')
     def needs_homing(self) -> bool:
         """Can this device be moved without Homing."""
         return not bool(self.get_function('CanMoveWithoutHomingFirst')())
 
-    @register_prefix(['FF', 'ISC', 'CC'])
     def home(self) -> None:
+    @register_prefix('FF', 'ISC', 'CC')
         """Home the device.
 
         Homing the device will set the device to a known state and
@@ -645,7 +646,7 @@ class ThorlabsKinesis:
         """
         self.get_function('Home', check_errors=True)()
 
-    @register_prefix(['FF', 'ISC', 'CC'])
+    @register_prefix('FF', 'ISC', 'CC')
     def get_hw_info(self) -> Tuple[str, int, int, str, str, int, int]:
         modelNo = ctypes.create_string_buffer(64)
         type = ctypes.wintypes.WORD()
