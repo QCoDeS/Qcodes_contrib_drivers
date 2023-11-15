@@ -94,7 +94,7 @@ class M2Solstis3(IPInstrument):
     def poll_wave_m(self):
         current_status = self.send_message('poll_wave_m')
         inProgress = False
-        if current_status['status'][0] == 1:
+        if current_status['status'][0] == 2:
             inProgress = True
         current_wavelength = current_status['current_wavelength'][0]
         lock_status = current_status['lock_status'][0]
@@ -156,6 +156,6 @@ class M2Solstis3(IPInstrument):
     ) -> dict[Any, Any]:
         snapshot = super().snapshot_base(update, params_to_skip_update)
         snapshot['controller_address'] = self._controller_address
-        if update and 'status' not in params_to_skip_update:
+        if update and 'status' not in (params_to_skip_update or []):
             snapshot['status'] = self.get_status()
         return snapshot
