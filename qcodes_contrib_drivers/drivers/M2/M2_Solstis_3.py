@@ -3,10 +3,11 @@ from __future__ import annotations
 import json
 import random
 import time
-from typing import Sequence, Any
+from typing import Any, Sequence
 
 from qcodes.instrument.ip import IPInstrument
-from qcodes.utils.validators import Numbers, Enum
+from qcodes.parameters import create_on_off_val_mapping
+from qcodes.utils.validators import Numbers
 
 
 class M2Solstis3(IPInstrument):
@@ -49,7 +50,15 @@ class M2Solstis3(IPInstrument):
         self.add_parameter('lock',
                            get_cmd=self._is_wave_locked_m,
                            set_cmd=self._lock_wave_m,
-                           vals=Enum(True, False))
+                           val_mapping=create_on_off_val_mapping())
+
+        self.add_parameter('tuning_m',
+                           get_cmd=lambda: self.poll_wave_m()[0],
+                           docstring='Wavelength locked tuning in progress.')
+
+        self.add_parameter('tuning_t',
+                           get_cmd=lambda: self.poll_move_wave_t()[0],
+                           docstring='Wavelength table tuning in progress.')
 
         self.connect_message()
 
@@ -70,6 +79,8 @@ class M2Solstis3(IPInstrument):
     def _move_wave_t(self, wavelength):
         parameters = {'wavelength': [wavelength]}
         self.send_message('move_wave_t', parameters)
+        while self.tuning_t():
+            time.sleep(0.1)
 
     def poll_move_wave_t(self):
         current_status = self.send_message('poll_move_wave_t')
@@ -90,6 +101,8 @@ class M2Solstis3(IPInstrument):
     def _set_wave_m(self, wavelength):
         parameters = {'wavelength': [wavelength]}
         self.send_message('set_wave_m', parameters)
+        while self.tuning_m():
+            time.sleep(0.1)
 
     def poll_wave_m(self):
         current_status = self.send_message('poll_wave_m')
