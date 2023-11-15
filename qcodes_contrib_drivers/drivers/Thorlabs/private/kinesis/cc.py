@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 import pathlib
+from functools import partial
 from typing import Any, Mapping
 
 from qcodes.parameters import Parameter
+
+from . import enums
 from .core import KinesisInstrument, ThorlabsKinesis, to_enum
 
 
@@ -24,12 +27,12 @@ class KinesisCCInstrument(KinesisInstrument):
             label="Position",
             instrument=self
         )
-        """The position in degrees. 
+        """The position in degrees.
 
         Note:
-            Use :meth:`move_to_position` with argument block=True to 
-            block execution until the targeted position is reached. You 
-            should probably invalidate the parameter cache afterwards.
+            Use :meth:`move_to_position` with argument block=False to
+            move asynchronously. You should probably invalidate the
+            parameter cache afterwards though.
         """
 
         # Would be nice to use Group and GroupParameter here, but
@@ -63,7 +66,7 @@ class KinesisCCInstrument(KinesisInstrument):
             set_cmd=lambda val: self._kinesis.set_jog_mode(
                 val, self._kinesis.get_jog_mode()[1]
             ),
-            set_parser=to_enum,
+            set_parser=partial(to_enum, enum=enums.JogModes),
             label="Jog mode",
             instrument=self
         )
@@ -73,7 +76,7 @@ class KinesisCCInstrument(KinesisInstrument):
             set_cmd=lambda val: self._kinesis.set_jog_mode(
                 self._kinesis.get_jog_mode()[0], val
             ),
-            set_parser=to_enum,
+            set_parser=partial(to_enum, enum=enums.StopModes),
             label="Stop mode",
             instrument=self
         )

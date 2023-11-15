@@ -141,8 +141,7 @@ def to_enum(arg: EnumT | str | int, enum: Type[EnumT]) -> EnumT:
     """Return an instance of type enum for a given name, value, or the
     enum itself."""
     if isinstance(arg, str):
-        # Try to catch at least single-noun names that are not capitalized.
-        return getattr(enum, arg.capitalize())
+        return getattr(enum, arg)
     if isinstance(arg, int):
         return enum(arg)
     return arg
@@ -365,8 +364,8 @@ class ThorlabsKinesis:
 
         """
         self.get_function('SetJogMode', check_errors=True)(
-            to_enum(jog_mode, enums.JogModes),
-            to_enum(stop_mode, enums.StopModes)
+            to_enum(jog_mode, enums.JogModes).value,
+            to_enum(stop_mode, enums.StopModes).value
         )
 
     @register_prefix(['FF', 'ISC', 'CC'])
@@ -384,7 +383,7 @@ class ThorlabsKinesis:
         """
         return int(self.get_function('GetNumberPositions')())
 
-    def get_position(self) -> int | float | str:
+    def get_position(self) -> int | float:
         """Get the current position.
 
         The current position is the last recorded position.
@@ -395,9 +394,12 @@ class ThorlabsKinesis:
             The current position in real units.
         """
         self.request_status()
-        return self.real_value_from_device_unit(
-            self.get_function('GetPosition')(), enums.UnitType.Distance
-        )
+        try:
+            return self.real_value_from_device_unit(
+                self.get_function('GetPosition')(), enums.UnitType.Distance
+            )
+        except AttributeError:
+            return self.get_function('GetPosition')()
 
     @register_prefix(['FF', 'ISC', 'CC'])
     def move_to_position(self, position: int | float,
@@ -421,8 +423,13 @@ class ThorlabsKinesis:
             device_position = self.device_unit_from_real_value(
                 float(position), enums.UnitType.Distance
             )
+            # To avoid mismatch due to finite resolution
+            position = self.real_value_from_device_unit(
+                device_position,
+                enums.UnitType.Distance
+            )
         except AttributeError:
-            device_position = int(position)
+            device_position = position = int(position)
 
         self.get_function('MoveToPosition', check_errors=True)(device_position)
 
@@ -568,7 +575,13 @@ class ThorlabsKinesis:
         self.get_function('StopPolling')()
 
     def get_polling_duration(self) -> int:
-        """Gets the polling loop duration."""
+        """Gets the polling loop duration.
+
+        Returns:
+            The time between polls in milliseconds or 0 if polling is
+            not active.
+
+        """
         return self.get_function('PollingDuration')()
 
     def set_polling_duration(self, duration: int) -> None:
