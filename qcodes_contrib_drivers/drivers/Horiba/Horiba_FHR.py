@@ -6,11 +6,11 @@ import ctypes
 import os
 import pathlib
 import sys
-from typing import Mapping, Any, Dict
+from typing import Any, Dict, Mapping
 
-from qcodes import validators
-from qcodes.instrument import (Instrument, InstrumentBase, InstrumentChannel,
-                               ChannelList)
+from qcodes import DelegateParameter, Parameter, validators
+from qcodes.instrument import (ChannelList, Instrument, InstrumentBase,
+                               InstrumentChannel)
 from typing_extensions import Literal
 
 from qcodes_contrib_drivers.drivers.Horiba.private.fhr_client import FHRClient
@@ -266,12 +266,11 @@ class SlitChannel(PrecisionMotorChannel):
 
         self._offset = offset
         self.add_parameter('width',
+                           parameter_class=DelegateParameter,
+                           source=self.position,
                            label=f'{label} width',
-                           get_cmd=self._get_width,
-                           set_cmd=self._set_width,
-                           set_parser=int,
-                           unit=self.unit,
                            vals=validators.Numbers(min_value, max_value),
+                           offset=self._offset,
                            docstring="Actual slit opening width")
 
     @property
@@ -282,12 +281,6 @@ class SlitChannel(PrecisionMotorChannel):
         # What I take from this is that it always returns microns.
         return 'μm'
 
-    def _get_width(self) -> int:
-        return self.position() - self._offset
-
-    def _set_width(self, width: int):
-        return self.position(width + self._offset)
-
 
 class GratingChannel(PrecisionMotorChannel):
     """Handles the grating rotation motors of the device."""
@@ -297,7 +290,6 @@ class GratingChannel(PrecisionMotorChannel):
                  offset: int = 0, metadata: Mapping[Any, Any] | None = None,
                  label: str | None = None):
         label = label or f'Grating {motor}'
-        # Cannot use super() since parent also defines the position parameter
         super().__init__(parent, name, cli, handle, motor, min_value,
                          max_value, offset, metadata, label)
 
