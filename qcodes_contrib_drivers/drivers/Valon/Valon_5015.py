@@ -31,7 +31,7 @@ class Valon5015(VisaInstrument):
     __buffer_amplifiers_enabled_regex = re.compile(r"OEN (?P<buffer_amplifiers_enabled>[01])")
 
     def __init__(self, name: str, address: str, **kwargs: Any):
-        super().__init__(name, address, terminator='\r', **kwargs)
+        super().__init__(name, address, terminator='\r\n', **kwargs)
 
         self.add_parameter(name='status',
                            label='Status',
