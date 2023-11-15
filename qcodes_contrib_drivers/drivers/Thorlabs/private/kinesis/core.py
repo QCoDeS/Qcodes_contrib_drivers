@@ -312,7 +312,8 @@ class ThorlabsKinesis:
             information on their meaning.
 
         """
-        self.request_status_bits()
+        if not self.get_polling_duration():
+            self.request_status()
         function = self.get_function('GetStatusBits')
         function.restype = ctypes.wintypes.DWORD  # type: ignore[attr-defined]
         return function()
@@ -401,9 +402,8 @@ class ThorlabsKinesis:
         except AttributeError:
             return self.get_function('GetPosition')()
 
-    def move_to_position(self, position: int | float,
-                         block: bool = False) -> None:
     @register_prefix('FF', 'ISC', 'CC')
+    def move_to_position(self, position: int | float, block: bool = True):
         """Move the device to the specified position (index).
 
         The motor may need to be Homed before a position can be set. See
@@ -415,7 +415,8 @@ class ThorlabsKinesis:
                 flipper or in real units else.
             block:
                 Block the interpreter until the target position is
-                reached.
+                reached. If a keyboard interrupt is sent while moving,
+                :meth:`stop` is called.
 
         """
         try:
@@ -433,8 +434,21 @@ class ThorlabsKinesis:
 
         self.get_function('MoveToPosition', check_errors=True)(device_position)
 
-        while block and self.is_moving():
-            time.sleep(50e-3)
+        if block:
+            # TODO: In principle, is_moving() should do, but does not.
+            # Neither request_status() nor request_status_bits() seem to do the
+            # job. Waiting for at least twice the polling duration should work,
+            # but can take much longer than necessary. Checking the message
+            # queue to see if the status changed also proved inconsistent.
+
+            try:
+                while self.get_position() != position:
+                    time.sleep(0.1)
+            except KeyboardInterrupt:
+                try:
+                    self.stop()
+                except AttributeError:
+                    return
 
     @register_prefix('ISC', 'CC')
     def move_at_velocity(
