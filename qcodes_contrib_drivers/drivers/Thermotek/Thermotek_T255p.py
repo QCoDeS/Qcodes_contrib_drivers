@@ -81,7 +81,7 @@ def _watchdog_timeout(fun: Callable[[Any, Any], _T]) -> Callable[[Any, Any], _T]
 class ThermotekT255p(VisaInstrument):
     """Driver for the Thermotek T255p laser chiller."""
 
-    def __init__(self, name: str, address: str, timeout: float = 3,
+    def __init__(self, name: str, address: str, timeout: float = 5,
                  device_clear: bool = True, visalib: str | None = None,
                  pyvisa_sim_file: str | None = None, **kwargs: Any):
         super().__init__(name, address, timeout, terminator='\r',
@@ -96,6 +96,7 @@ class ThermotekT255p(VisaInstrument):
             set_cmd='G{}',
             get_cmd=lambda: self._watchdog()[2],
             val_mapping=create_on_off_val_mapping('1', '0'),
+            snapshot_get=False,
             instrument=self
         )
         """Mode Select (0: Stand By, 1: Run Mode)."""
@@ -108,6 +109,7 @@ class ThermotekT255p(VisaInstrument):
             # through the get_parser...
             get_parser=lambda v: int(v[1:] if isinstance(v, str) else v) / 10,
             set_parser=lambda v: int(v * 10),
+            snapshot_get=False,
             instrument=self
         )
         self.max_power_setpoint = GroupParameter(
@@ -115,6 +117,7 @@ class ThermotekT255p(VisaInstrument):
             label='Max Power Setting',
             unit='W',
             get_parser=float,
+            snapshot_get=False,
             instrument=self
         )
         self.setpoints = Group(
@@ -128,6 +131,7 @@ class ThermotekT255p(VisaInstrument):
             unit='°C',
             get_cmd='I',
             get_parser=lambda v: int(v) / 100,
+            snapshot_get=False,
             instrument=self
         )
         self.temperature_sense_mode = Parameter(
@@ -136,6 +140,7 @@ class ThermotekT255p(VisaInstrument):
             get_cmd=False,
             set_cmd='O{}',
             val_mapping={'Internal': '0', 'External': '1'},
+            snapshot_get=False,
             instrument=self
         )
 
