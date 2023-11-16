@@ -245,7 +245,7 @@ class Spectrum(Parameter):
         name: Parameter name.
     """
 
-    def __init__(self, name: str, instrument: "Andor_DU401", **kwargs):
+    def __init__(self, name: str, instrument: "AndorIDus4xx", **kwargs):
         super().__init__(name, instrument=instrument, **kwargs)
         self.ccd = instrument
 
@@ -272,9 +272,9 @@ class Spectrum(Parameter):
         raise NotImplementedError()
 
 
-class Andor_DU401(Instrument):
+class AndorIDus4xx(Instrument):
     """
-    Instrument driver for the Andor DU401 BU2 CCD.
+    Instrument driver for the Andor iDus 4xx family CCDs.
 
     Args:
         name: Instrument name.
