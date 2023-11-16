@@ -1,8 +1,8 @@
 try:
-    from qcodes.tests.driver_test_case import DriverTestCase
+    from qcodes.extensions import DriverTestCase
 except ImportError:
-    # qcodes < 0.37
-    from qcodes.instrument_drivers.test import DriverTestCase  # type: ignore[import-not-found,no-redef]
+    # qcodes < 0.42.0
+    from qcodes.tests.driver_test_case import DriverTestCase
 import unittest
 
 try:
