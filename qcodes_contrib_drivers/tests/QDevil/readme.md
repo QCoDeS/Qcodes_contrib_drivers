@@ -9,7 +9,7 @@ This directory tests the QDevil QDAC-II driver.
 Simulated instrument:
 
     $ source venv/bin/activate
-    $ pytest qcodes_contrib_drivers/tests/QDevil/test_sim_qdac2_*.py
+    $ pytest qcodes_contrib_drivers/tests/QDevil/test_sim_*_*.py
 
 Real instrument:
 
@@ -19,7 +19,7 @@ Real instrument:
 
 Static types:
 
-    $ mypy --no-incremental qcodes_contrib_drivers/drivers/QDevil/{QDAC2,QDAC2_Array}.py
+    $ mypy --no-incremental qcodes_contrib_drivers/drivers/QDevil/{QDAC2,QDAC2_Array,QSwitch}.py
 
 ### One-time setup
 

@@ -78,7 +78,7 @@ devices:
             setter:
               q: "outp:trig{ch_id}:sour {}"
             specs:
-              valid: ["bus", "hold", "int1", "int2", "int3", "int4", "int5", "int6", "int7", "int8", "int9", "int10", "int11", "int12", "int13", "int14", int15", "int16", "ext1", "ext2", "ext3", "ext4"]
+              valid: ["bus", "hold", "int1", "int2", "int3", "int4", "int5", "int6", "int7", "int8", "int9", "int10", "int11", "int12", "int13", "int14", "int15", "int16", "ext1", "ext2", "ext3", "ext4"]
               type: str
           trigger_width:
             default: 10e-6
@@ -238,7 +238,7 @@ devices:
               q: "sour{ch_id}:dc:trig:sour?"
               r: "{}"
             specs:
-              valid: ["bus", "hold", "int1", "int2", "int3", "int4", "int5", "int6", "int7", "int8", "int9", "int10", "int11", "int12", "int13", "int14", int15", "int16", "ext1", "ext2", "ext3", "ext4", "ext5", "imm"]
+              valid: ["bus", "hold", "int1", "int2", "int3", "int4", "int5", "int6", "int7", "int8", "int9", "int10", "int11", "int12", "int13", "int14", "int15", "int16", "ext1", "ext2", "ext3", "ext4", "ext5", "imm"]
               type: str
           voltage:
             default: 0.0
@@ -255,7 +255,7 @@ devices:
               q: "sour{ch_id}:squ:trig:sour?"
               r: "{}"
             specs:
-              valid: ["bus", "hold", "int1", "int2", "int3", "int4", "int5", "int6", "int7", "int8", "int9", "int10", "int11", "int12", "int13", "int14", int15", "int16", "ext1", "ext2", "ext3", "ext4", "ext5", "imm"]
+              valid: ["bus", "hold", "int1", "int2", "int3", "int4", "int5", "int6", "int7", "int8", "int9", "int10", "int11", "int12", "int13", "int14", "int15", "int16", "ext1", "ext2", "ext3", "ext4", "ext5", "imm"]
               type: str
           sine_trigger_source:
             default: "imm"
@@ -265,7 +265,7 @@ devices:
               q: "sour{ch_id}:sine:trig:sour?"
               r: "{}"
             specs:
-              valid: ["bus", "hold", "int1", "int2", "int3", "int4", "int5", "int6", "int7", "int8", "int9", "int10", "int11", "int12", "int13", "int14", int15", "int16", "ext1", "ext2", "ext3", "ext4", "ext5", "imm"]
+              valid: ["bus", "hold", "int1", "int2", "int3", "int4", "int5", "int6", "int7", "int8", "int9", "int10", "int11", "int12", "int13", "int14", "int15", "int16", "ext1", "ext2", "ext3", "ext4", "ext5", "imm"]
               type: str
           triangle_trigger_source:
             default: "imm"
@@ -275,7 +275,7 @@ devices:
               q: "sour{ch_id}:tri:trig:sour?"
               r: "{}"
             specs:
-              valid: ["bus", "hold", "int1", "int2", "int3", "int4", "int5", "int6", "int7", "int8", "int9", "int10", "int11", "int12", "int13", "int14", int15", "int16", "ext1", "ext2", "ext3", "ext4", "ext5", "imm"]
+              valid: ["bus", "hold", "int1", "int2", "int3", "int4", "int5", "int6", "int7", "int8", "int9", "int10", "int11", "int12", "int13", "int14", "int15", "int16", "ext1", "ext2", "ext3", "ext4", "ext5", "imm"]
               type: str
           awg_trigger_source:
             default: "imm"
@@ -285,7 +285,7 @@ devices:
               q: "sour{ch_id}:awg:trig:sour?"
               r: "{}"
             specs:
-              valid: ["bus", "hold", "int1", "int2", "int3", "int4", "int5", "int6", "int7", "int8", "int9", "int10", "int11", "int12", "int13", "int14", int15", "int16", "ext1", "ext2", "ext3", "ext4", "ext5", "imm"]
+              valid: ["bus", "hold", "int1", "int2", "int3", "int4", "int5", "int6", "int7", "int8", "int9", "int10", "int11", "int12", "int13", "int14", "int15", "int16", "ext1", "ext2", "ext3", "ext4", "ext5", "imm"]
               type: str
           current_aperture:
             default: 0.02
@@ -326,7 +326,7 @@ devices:
             setter:
               q: "sens{ch_id}:trig:sour {}"
             specs:
-              valid: ["bus", "hold", "int1", "int2", "int3", "int4", "int5", "int6", "int7", "int8", "int9", "int10", "int11", "int12", "int13", "int14", int15", "int16", "ext1", "ext2", "ext3", "ext4", "ext5", "imm"]
+              valid: ["bus", "hold", "int1", "int2", "int3", "int4", "int5", "int6", "int7", "int8", "int9", "int10", "int11", "int12", "int13", "int14", "int15", "int16", "ext1", "ext2", "ext3", "ext4", "ext5", "imm"]
               type: str
           current_range:
             default: "low"
