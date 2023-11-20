@@ -92,6 +92,8 @@ class ThorlabsPM100D(Instrument):
         for i in range(0, deviceCount.value):
             self.tlpm.getRsrcName(ctypes.c_int(i), resourceName)
             break
+        else:
+            raise ValueError('No devices found.')
 
         return resourceName
 
