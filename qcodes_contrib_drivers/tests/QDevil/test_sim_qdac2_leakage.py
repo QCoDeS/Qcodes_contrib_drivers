@@ -1,7 +1,6 @@
 import pytest
-from unittest.mock import MagicMock, call
+from unittest.mock import call
 import numpy as np
-import itertools
 import math
 from .sim_qdac2_fixtures import qdac  # noqa
 from qcodes_contrib_drivers.drivers.QDevil.QDAC2 import diff_matrix
