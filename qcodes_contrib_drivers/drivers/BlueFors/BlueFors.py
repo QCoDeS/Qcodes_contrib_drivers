@@ -167,6 +167,7 @@ class BlueFors(Instrument):
                 )
             df["date_time"] = date_time
             df.set_index("date_time", inplace=True)
+            df.sort_index(inplace=True)
             return df.iloc[-1]["y"]
         except (PermissionError, OSError) as err:
             self.log.warn('Cannot access log file: {}. Returning np.nan instead of the temperature value.'.format(err))
@@ -206,6 +207,7 @@ class BlueFors(Instrument):
 
             df["date_time"] = pd.to_datetime(df['date']+'-'+df['time'], format='%d-%m-%y-%H:%M:%S')
             df.set_index("date_time", inplace=True)
+            df.sort_index(inplace=True)
 
             return df.iloc[-1]['ch'+str(channel)+'_pressure']
         except (PermissionError, OSError) as err:
