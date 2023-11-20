@@ -9,7 +9,7 @@ from typing import (
     Tuple, Sequence, List, Dict, Set, Union, Optional)
 from packaging.version import parse
 
-# Version 0.3.0
+# Version 0.4.0
 
 State = Sequence[Tuple[int, int]]
 
@@ -136,7 +136,7 @@ class QSwitch(VisaInstrument):
             get_cmd=self._get_state,
         )
         self.add_parameter(
-            name='all_closed_relays',
+            name='closed_relays',
             source=self.state,
             set_parser=state_to_compressed_list,
             get_parser=channel_list_to_state,
@@ -215,43 +215,38 @@ class QSwitch(VisaInstrument):
 
     OneOrMore = Union[str, Sequence[str]]
 
-    def unground(self, lines: OneOrMore) -> None:
-        if isinstance(lines, str):
-            self.open_relay(self._to_line(lines), 0)
-        else:
-            numbers = map(self._to_line, lines)
-            pairs = list(itertools.zip_longest(numbers, [], fillvalue=0))
-            self.open_relays(pairs)
-
     def ground(self, lines: OneOrMore) -> None:
+        connections: List[Tuple[int, int]] = []
         if isinstance(lines, str):
-            self.close_relay(self._to_line(lines), 0)
+            line = self._to_line(lines)
+            self.close_relay(line, 0)
+            taps = range(1, relays_per_line + 1)
+            connections = list(itertools.zip_longest([], taps, fillvalue=line))
+            self.open_relays(connections)
         else:
             numbers = map(self._to_line, lines)
-            pairs = list(itertools.zip_longest(numbers, [], fillvalue=0))
-            self.close_relays(pairs)
+            grounds = list(itertools.zip_longest(numbers, [], fillvalue=0))
+            self.close_relays(grounds)
+            for tap in range(1, relays_per_line + 1):
+                connections += itertools.zip_longest(
+                                    map(self._to_line, lines), [], fillvalue=tap)
+            self.open_relays(connections)
 
     def connect(self, lines: OneOrMore) -> None:
         if isinstance(lines, str):
             self.close_relay(self._to_line(lines), 9)
+            self.open_relay(self._to_line(lines), 0)
         else:
             numbers = map(self._to_line, lines)
             pairs = list(itertools.zip_longest(numbers, [], fillvalue=9))
             self.close_relays(pairs)
-
-    def disconnect(self, lines: OneOrMore) -> None:
-        if isinstance(lines, str):
-            self.open_relay(self._to_line(lines), 9)
-        else:
             numbers = map(self._to_line, lines)
-            pairs = list(itertools.zip_longest(numbers, [], fillvalue=9))
-            self.open_relays(pairs)
+            connections = list(itertools.zip_longest(numbers, [], fillvalue=0))
+            self.open_relays(connections)
 
     def breakout(self, line: str, tap: str) -> None:
         self.close_relay(self._to_line(line), self._to_tap(tap))
-
-    def unbreakout(self, line: str, tap: str) -> None:
-        self.open_relay(self._to_line(line), self._to_tap(tap))
+        self.open_relay(self._to_line(line), 0)
 
     def arrange(self, breakouts: Optional[Dict[str, int]] = None,
                 lines: Optional[Dict[str, int]] = None) -> None:

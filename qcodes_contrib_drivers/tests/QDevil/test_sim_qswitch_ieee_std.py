@@ -2,7 +2,7 @@ import pytest
 import re
 from .sim_qswitch_fixtures import qswitch  # noqa
 
-@pytest.mark.wip
+
 def test_idn(qswitch):  # noqa
     # -----------------------------------------------------------------------
     idn_dict = qswitch.IDN()
@@ -13,7 +13,6 @@ def test_idn(qswitch):  # noqa
     assert re.fullmatch('[0-9]+\\.[0-9]+', idn_dict['firmware'])
 
 
-@pytest.mark.wip
 def test_reset_syncs_and_wait(qswitch, mocker):  # noqa
     sleep_fn = mocker.patch('qcodes_contrib_drivers.drivers.QDevil.QSwitch.sleep_s')
     # -----------------------------------------------------------------------

@@ -2,7 +2,6 @@ import pytest
 from .sim_qswitch_fixtures import qswitch  # noqa
 
 
-@pytest.mark.wip
 def test_unknown_line_name_gives_error(qswitch):  # noqa
     # -----------------------------------------------------------------------
     with pytest.raises(ValueError) as error:
@@ -11,7 +10,6 @@ def test_unknown_line_name_gives_error(qswitch):  # noqa
     assert 'Unknown line' in repr(error)
 
 
-@pytest.mark.wip
 def test_unknown_tap_name_gives_error(qswitch):  # noqa
     # -----------------------------------------------------------------------
     with pytest.raises(ValueError) as error:

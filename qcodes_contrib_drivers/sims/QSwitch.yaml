@@ -64,6 +64,8 @@ devices:
           - q: "clos (@14!0:15!0)"
           - q: "clos (@14!9:15!9)"
           - q: "open (@14!9:15!9)"
+          - q: "open (@15!1,15!9)"
+          - q: "open (@14!1:15!1,14!9:15!9)"
   wrong_model:
     eom:
       GPIB INSTR:

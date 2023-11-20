@@ -3,7 +3,6 @@ from qcodes_contrib_drivers.drivers.QDevil.QSwitch import QSwitch
 from .sim_qswitch_fixtures import visalib
 
 
-@pytest.mark.wip
 def test_refuse_wrong_model():
     # -----------------------------------------------------------------------
     with pytest.raises(ValueError) as error:
@@ -12,7 +11,6 @@ def test_refuse_wrong_model():
     assert 'Unknown model' in repr(error)
 
 
-@pytest.mark.wip
 def test_refuse_incompatible_firmware():
     # -----------------------------------------------------------------------
     with pytest.raises(ValueError) as error:
@@ -21,7 +19,6 @@ def test_refuse_incompatible_firmware():
     assert 'Incompatible firmware' in repr(error)
 
 
-@pytest.mark.wip
 def test_refuse_qcodes_incompatible_name():
     # -----------------------------------------------------------------------
     with pytest.raises(ValueError) as error:
