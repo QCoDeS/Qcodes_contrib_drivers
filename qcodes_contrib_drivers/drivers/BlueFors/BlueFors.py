@@ -157,12 +157,18 @@ class BlueFors(Instrument):
 
             try:
                 # There is a space before the day for old BlueFors Control Sofware versions
-                df.index = pd.to_datetime(df['date']+'-'+df['time'], format=' %d-%m-%y-%H:%M:%S')
-            except:
+                date_time = pd.to_datetime(
+                    df["date"] + "-" + df["time"], format=" %d-%m-%y-%H:%M:%S"
+                )
+            except Exception:
                 # There is no space before the day with BlueFors Control Software v2.2
-                df.index = pd.to_datetime(df['date']+'-'+df['time'], format='%d-%m-%y-%H:%M:%S')
-
-            return df.iloc[-1]['y']
+                date_time = pd.to_datetime(
+                    df["date"] + "-" + df["time"], format="%d-%m-%y-%H:%M:%S"
+                )
+            df["date_time"] = date_time
+            df.set_index("date_time", inplace=True)
+            df.sort_index(inplace=True)
+            return df.iloc[-1]["y"]
         except (PermissionError, OSError) as err:
             self.log.warn('Cannot access log file: {}. Returning np.nan instead of the temperature value.'.format(err))
             return np.nan
@@ -199,7 +205,9 @@ class BlueFors(Instrument):
                                     'void'],
                             header=None)
 
-            df.index = pd.to_datetime(df['date']+'-'+df['time'], format='%d-%m-%y-%H:%M:%S')
+            df["date_time"] = pd.to_datetime(df['date']+'-'+df['time'], format='%d-%m-%y-%H:%M:%S')
+            df.set_index("date_time", inplace=True)
+            df.sort_index(inplace=True)
 
             return df.iloc[-1]['ch'+str(channel)+'_pressure']
         except (PermissionError, OSError) as err:
