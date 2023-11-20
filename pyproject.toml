@@ -64,7 +64,8 @@ show_error_codes = true
 
 [[tool.mypy.overrides]]
 module = [
-    "qcodes_contrib_drivers.drivers.Spectrum.pyspcm"
+    "qcodes_contrib_drivers.drivers.Spectrum.pyspcm",
+    "qcodes_contrib_drivers.drivers.Thorlabs.Thorlabs_PM100D.tlpm",
     ]
 ignore_errors = true
 

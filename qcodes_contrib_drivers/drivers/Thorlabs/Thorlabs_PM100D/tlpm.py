@@ -12,7 +12,7 @@ from qcodes import Instrument
 vxi_32 = os.environ.get('VXIPNPPATH')
 vxi_64 = os.environ.get('VXIPNPPATH64')
 
-if vxi_32 is not None:
+if sys.platform == 'win32' and vxi_32 is not None:
     if platform.architecture()[0][:2] == '64' and vxi_64 is not None:
         dll_path = pathlib.Path(vxi_64, 'Win64', 'Bin', 'TLPM_64.dll')
     else:
@@ -59,6 +59,9 @@ class ThorlabsPM100D(Instrument):
                  thorlabs_tlpm: TLPM | None = None,
                  metadata: Mapping[Any, Any] | None = None,
                  label: str | None = None):
+        if sys.platform != 'win32':
+            raise NotImplementedError('This driver is only available on '
+                                      'Windows.')
         if vxi_32 is None:
             raise FileNotFoundError('IVI VXIPNP path not detected.')
 
