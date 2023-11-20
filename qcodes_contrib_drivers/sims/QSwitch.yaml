@@ -1,0 +1,93 @@
+spec: "1.1"
+devices:
+
+  qswitch_after_rst:
+    eom:
+      GPIB INSTR:
+        q: "\n"
+        r: "\n"
+    error: "-113,\"Undefined header\""
+    dialogues:
+      - q: "*IDN?"
+        r: "Quantum Machines,QSwitch,123,1.0"
+      - q: "*idn?"
+        r: "Quantum Machines,QSwitch,123,1.0"
+      - q: "syst:comm:lan:mac?"
+        r: "\"049162C01016\""
+      - q: "syst:err:all?"
+        r: "0,\"No error\""
+      - q: "all?"
+        r: "0,\"No error\""
+      - q: "stat?"
+        r: "(@1!0:24!0)"
+      - q: "*rst"
+    properties:
+      beeper:
+        default: "off"
+        setter:
+          q: "beep:stat {}"
+        getter:
+          q: "beep:stat?"
+          r: "{}"
+        specs:
+          valid: ["on", "off", "0", "1"]
+          type: str
+      autosave:
+        default: "off"
+        setter:
+          q: "aut {}"
+        getter:
+          q: "aut?"
+          r: "{}"
+        specs:
+          valid: ["on", "off", "0", "1"]
+          type: str
+    channels:
+      line:
+        ids: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]
+        can_select: True
+        dialogues:
+          - q: "clos (@{ch_id}!0)"
+          - q: "clos (@{ch_id}!1)"
+          - q: "clos (@{ch_id}!8)"
+          - q: "clos (@{ch_id}!9)"
+          - q: "open (@{ch_id}!0)"
+          - q: "open (@{ch_id}!2)"
+          - q: "open (@{ch_id}!7)"
+          - q: "open (@{ch_id}!9)"
+          - q: "clos (@20!6,22!7,24!8,1!9)"
+          - q: "clos (@14!1,22!7)"
+          - q: "clos (@22!7)"
+          - q: "open (@1!0,3!0:24!0)"
+          - q: "open (@14!0,22!0)"
+          - q: "open (@14!0:15!0)"
+          - q: "clos (@14!0:15!0)"
+          - q: "clos (@14!9:15!9)"
+          - q: "open (@14!9:15!9)"
+          - q: "open (@15!1,15!9)"
+          - q: "open (@14!1:15!1,14!9:15!9)"
+  wrong_model:
+    eom:
+      GPIB INSTR:
+        q: "\n"
+        r: "\n"
+    dialogues:
+      - q: "*IDN?"
+        r: "QDevil,QAJAX,B009876,0.0.1"
+
+  incompatible_firmware:
+    eom:
+      GPIB INSTR:
+        q: "\n"
+        r: "\n"
+    dialogues:
+      - q: "*IDN?"
+        r: "Quantum Machines,QSwitch,123,0.0"
+
+resources:
+  GPIB::4::INSTR:
+    device: qswitch_after_rst
+  GPIB::5::INSTR:
+    device: wrong_model
+  GPIB::6::INSTR:
+    device: incompatible_firmware
