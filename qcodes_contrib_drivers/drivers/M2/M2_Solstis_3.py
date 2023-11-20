@@ -20,6 +20,10 @@ class M2Solstis3(IPInstrument):
         controller_address: The IP address of the laser controller (PC).
 
     """
+    _sleep_interval: float = 0.2
+    """Amount of time slept before querying for the status after a wavelength 
+    move. If 0, the status will often not be updated yet and the blocking 
+    mechanism will fail."""
 
     def __init__(self, name: str, address: str, port: int,
                  controller_address: str, timeout: float = 5,
@@ -54,10 +58,17 @@ class M2Solstis3(IPInstrument):
 
         self.add_parameter('tuning_m',
                            get_cmd=lambda: self.poll_wave_m()[0],
-                           docstring='Wavelength locked tuning in progress.')
+                           val_mapping={'tuning software not active': 0,
+                                        'no link to wavelength meter': 1,
+                                        'tuning in progress': 2,
+                                        'wavelength lock being maintained': 3},
+                           docstring='Wavelength locked tuning status.')
 
         self.add_parameter('tuning_t',
                            get_cmd=lambda: self.poll_move_wave_t()[0],
+                           val_mapping={'tuning completed': 0,
+                                        'tuning in progress': 1,
+                                        'tuning failed': 2},
                            docstring='Wavelength table tuning in progress.')
 
         self.connect_message()
@@ -79,16 +90,20 @@ class M2Solstis3(IPInstrument):
     def _move_wave_t(self, wavelength):
         parameters = {'wavelength': [wavelength]}
         self.send_message('move_wave_t', parameters)
-        while self.tuning_t():
-            time.sleep(0.1)
+        time.sleep(self._sleep_interval)
+        while self.tuning_t() == 'tuning in progress':
+            pass
+
+        if self.tuning_t.get_latest() == 'tuning completed':
+            self.log.info(f'Completed move_wave_t to {wavelength}.')
+        elif self.tuning_t.get_latest() == 'tuning failed':
+            self.log.error(f'Failed move_wave_t to {wavelength}.')
 
     def poll_move_wave_t(self):
         current_status = self.send_message('poll_move_wave_t')
-        inProgress = False
-        if current_status['status'][0] == 1:
-            inProgress = True
+        status = current_status['status'][0]
         current_wavelength = current_status['current_wavelength'][0]
-        return inProgress, current_wavelength
+        return status, current_wavelength
 
     def stop_move_wave_t(self):
         self.send_message('stop_move_wave_t')
@@ -101,17 +116,22 @@ class M2Solstis3(IPInstrument):
     def _set_wave_m(self, wavelength):
         parameters = {'wavelength': [wavelength]}
         self.send_message('set_wave_m', parameters)
-        while self.tuning_m():
-            time.sleep(0.1)
+        time.sleep(self._sleep_interval)
+        while self.tuning_m() == 'tuning in progress':
+            pass
+
+        if self.tuning_m.get_latest() == 'wavelength lock being maintained':
+            self.log.info(f'Completed set_wave_m to {wavelength}.')
+        else:
+            self.log.error(f'Failed move_wave_t to {wavelength}: '
+                           f'{self.tuning_m.get_latest()}.')
 
     def poll_wave_m(self):
         current_status = self.send_message('poll_wave_m')
-        inProgress = False
-        if current_status['status'][0] == 2:
-            inProgress = True
+        status = current_status['status'][0]
         current_wavelength = current_status['current_wavelength'][0]
         lock_status = current_status['lock_status'][0]
-        return inProgress, current_wavelength, lock_status
+        return status, current_wavelength, lock_status
 
     def stop_wave_m(self):
         stop_status = self.send_message('stop_wave_m')
@@ -125,7 +145,7 @@ class M2Solstis3(IPInstrument):
         locking_status = self.send_message('lock_wave_m', parameters)
 
     def _is_wave_locked_m(self):
-        inProgress, current_wavelength, lock_status = self.poll_wave_m()
+        status, current_wavelength, lock_status = self.poll_wave_m()
         return lock_status
 
     ######### read STATUS #########
