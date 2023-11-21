@@ -398,10 +398,10 @@ class ThorlabsKinesis:
         )
         return (
             self.real_value_from_device_unit(
-                acceleration, enums.UnitType.Acceleration
+                acceleration.value, enums.UnitType.Acceleration
             ),
             self.real_value_from_device_unit(
-                max_velocity, enums.UnitType.Velocity
+                max_velocity.value, enums.UnitType.Velocity
             )
         )
 
@@ -592,10 +592,10 @@ class ThorlabsKinesis:
 
         return (
             self.real_value_from_device_unit(
-                acceleration, enums.UnitType.Acceleration
+                acceleration.value, enums.UnitType.Acceleration
             ),
             self.real_value_from_device_unit(
-                maxVelocity, enums.UnitType.Velocity
+                maxVelocity.value, enums.UnitType.Velocity
             )
         )
 
@@ -833,7 +833,7 @@ class ThorlabsKinesis:
 
     def real_value_from_device_unit(
             self,
-            device_unit: ctypes.c_int,
+            device_unit: int,
             unit_type: enums.UnitType | int | str
     ) -> float:
         """Convert device units to real values.
@@ -848,7 +848,7 @@ class ThorlabsKinesis:
 
         real_unit = ctypes.c_double()
         error_check(self.get_function('GetRealValueFromDeviceUnit'))(
-            device_unit,
+            ctypes.c_int(int(device_unit)),
             ctypes.byref(real_unit),
             unit_type.value
         )
