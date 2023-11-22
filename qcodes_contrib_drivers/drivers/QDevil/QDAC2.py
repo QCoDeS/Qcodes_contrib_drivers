@@ -7,7 +7,7 @@ from qcodes.instrument.visa import VisaInstrument
 from pyvisa.errors import VisaIOError
 from qcodes.utils import validators
 from typing import NewType, Tuple, Sequence, List, Dict, Optional
-from packaging.version import Version, parse
+from packaging.version import parse
 import abc
 
 # Version 1.8.0
@@ -400,7 +400,7 @@ class Sweep_Context(_Dc_Context):
         channel.write_channel('sour{0}:volt:mode swe')
         self._set_voltages(start_V, stop_V)
         channel.write_channel(f'sour{"{0}"}:swe:poin {points}')
-        self._set_trigger_mode(stepped)
+        self._set_generation_mode(stepped)
         channel.write_channel(f'sour{"{0}"}:swe:dwel {dwell_s}')
         super()._set_delay(delay_s)
         self._set_direction(backwards)
@@ -411,10 +411,10 @@ class Sweep_Context(_Dc_Context):
         self._write_channel(f'sour{"{0}"}:swe:star {start_V}')
         self._write_channel(f'sour{"{0}"}:swe:stop {stop_V}')
 
-    def _set_trigger_mode(self, stepped: bool) -> None:
+    def _set_generation_mode(self, stepped: bool) -> None:
         if stepped:
             return self._write_channel('sour{0}:swe:gen step')
-        self._write_channel('sour{0}:swe:gen auto')
+        self._write_channel('sour{0}:swe:gen anal')
 
     def _set_direction(self, backwards: bool) -> None:
         if backwards:
@@ -1578,7 +1578,7 @@ class QDac2Channel(InstrumentChannel):
             dwell_s (float, optional): Seconds between each voltage (default 1ms)
             delay_s (float, optional): Seconds of delay after receiving a trigger (default 0)
             backwards (bool, optional): Sweep in reverse (default is forward)
-            stepped (bool, optional): True means that each step needs to be triggered (default False)
+            stepped (bool, optional): True means discrete steps (default True)
 
         Returns:
             Sweep_Context: context manager
