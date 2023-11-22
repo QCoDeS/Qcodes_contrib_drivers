@@ -10,7 +10,7 @@ from typing import NewType, Tuple, Sequence, List, Dict, Optional
 from packaging.version import parse
 import abc
 
-# Version 1.8.0
+# Version 1.9.0
 #
 # Guiding principles for this driver for QDevil QDAC-II
 # -----------------------------------------------------
