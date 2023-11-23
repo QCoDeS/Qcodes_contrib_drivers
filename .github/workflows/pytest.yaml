@@ -13,6 +13,8 @@ on:
     tags:
       - 'v*'
   pull_request:
+  merge_group:
+    branches: ['main']
 
 jobs:
   pytestmypy:
