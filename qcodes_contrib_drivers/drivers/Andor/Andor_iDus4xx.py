@@ -81,24 +81,6 @@ class _PostProcessingCallable(vals.Validator[Callable[[npt.NDArray[np.int32]], n
             raise TypeError(f"{value!r} is not a post-processing function; {context}")
 
 
-class _MonitoredCacheMixin:
-    """This mixin class keeps track of all instances of its subclasses
-    so that all their caches can be invalidated centrally.
-
-    This is useful to prevent out-of-date parameter caches for
-    parameters whose value will depend on other settings.
-    """
-    __registry: Set[Parameter] = set()
-
-    def __init__(self, *args, **kwargs):
-        type(self).__registry.add(self)
-
-    @classmethod
-    def invalidate_monitored_caches(cls):
-        for param in cls.__registry:
-            param.cache.invalidate()
-
-
 class DetectorPixels(MultiParameter):
     """Stores the detector size in pixels."""
 
@@ -131,7 +113,7 @@ class DetectorSize(MultiParameter):
         return px_x * size_x, px_y * size_y
 
 
-class AcquiredPixels(MultiParameter, _MonitoredCacheMixin):
+class AcquiredPixels(MultiParameter):
     """Returns the shape of a single frame for the current settings."""
 
     def get_raw(self) -> Tuple[int, int]:
@@ -154,23 +136,6 @@ class AcquiredPixels(MultiParameter, _MonitoredCacheMixin):
         return width, height
 
 
-class AcquisitionTimingsParameter(Parameter, _MonitoredCacheMixin):
-    """Acquisition timing parameters that are mutually constrained by
-    hardware such that actual values might be different to set values
-    and furthermore influence other timing parameters."""
-
-    def __init__(self, name: str,
-                 get_cmd: Union[str, Callable[..., Any], Literal[False], None] = None,
-                 set_cmd: Union[str, Callable[..., Any], Literal[False], None] = False,
-                 **kwargs: Any) -> None:
-        self._set_cmd = set_cmd
-        super().__init__(name, get_cmd=get_cmd, set_cmd=None, **kwargs)
-
-    def set_raw(self, value):
-        self._set_cmd(value)
-        _MonitoredCacheMixin.invalidate_monitored_caches()
-
-
 class SingleTrackSettings(MultiParameter):
     """Represents the settings for single-track acquisition."""
 
@@ -185,7 +150,6 @@ class SingleTrackSettings(MultiParameter):
             raise RuntimeError("No instrument attached to Parameter.")
 
         self.instrument.atmcd64d.set_single_track(*val)
-        _MonitoredCacheMixin.invalidate_monitored_caches()
 
 
 class MultiTrackSettings(MultiParameter):
@@ -205,7 +169,6 @@ class MultiTrackSettings(MultiParameter):
             raise RuntimeError("No instrument attached to Parameter.")
 
         self._bottom, self._gap = self.instrument.atmcd64d.set_multi_track(*val)
-        _MonitoredCacheMixin.invalidate_monitored_caches()
 
 
 class RandomTrackSettings(MultiParameter):
@@ -222,7 +185,6 @@ class RandomTrackSettings(MultiParameter):
             raise RuntimeError("No instrument attached to Parameter.")
 
         self.instrument.atmcd64d.set_random_tracks(*val)
-        _MonitoredCacheMixin.invalidate_monitored_caches()
 
 
 class ImageSettings(MultiParameter):
@@ -239,7 +201,6 @@ class ImageSettings(MultiParameter):
             raise RuntimeError("No instrument attached to Parameter.")
 
         self.instrument.atmcd64d.set_image(*val)
-        _MonitoredCacheMixin.invalidate_monitored_caches()
 
 
 class PixelAxis(Parameter):
@@ -296,12 +257,11 @@ class CCDData(ParameterWithSetpoints):
             raise RuntimeError("No instrument attached to Parameter.")
 
         shape = tuple(setpoints.get().size for setpoints in self.setpoints)
+        # Can use get_latest here since acquisition_mode and read_mode set parsres
+        # already take care of invalidating caches if things changed.
         number_frames = self.instrument.acquired_frames.get_latest()
+        number_accumulations = self.instrument.acquired_accumulations.get_latest()
         number_pixels = np.prod(self.instrument.acquired_pixels.get_latest())
-        if self.instrument.acquisition_mode.get_latest() == 'single scan':
-            number_accumulations = 1
-        else:
-            number_accumulations = self.instrument.number_accumulations.get_latest()
 
         # We decide here which method we use to fetch data from the SDK. The CCD
         # has a circular buffer, so we should fetch data during acquisition if
@@ -309,7 +269,7 @@ class CCDData(ParameterWithSetpoints):
         fetch_lazy = self.instrument.atmcd64d.get_size_of_circular_buffer() < number_frames
 
         # TODO (thangleiter): for fast kinetics, one might want to fetch a number of images
-        # every few acquisitions.
+        #                     every few acquisitions.
         if fetch_lazy:
             data_buffer = np.empty(number_frames * number_pixels, dtype=np.int32)
         else:
@@ -328,6 +288,8 @@ class CCDData(ParameterWithSetpoints):
                     self.instrument.atmcd64d.wait_for_acquisition()
 
                 if not fetch_lazy:
+                    # TODO (thangleiter): For unforeseen reasons, this might fetch old data. Better
+                    #                     to clear internal buffer before acquisitoin start?
                     self.instrument.log.debug(f'Fetching frame {frame}/{number_frames}.')
                     self.instrument.atmcd64d.get_oldest_image_by_reference(data_buffer[frame])
 
@@ -391,10 +353,10 @@ class AndorIDus4xx(Instrument):
 
         # add the instrument parameters
         self.add_parameter('accumulation_cycle_time',
-                           parameter_class=AcquisitionTimingsParameter,
                            get_cmd=self.atmcd64d.get_acquisition_timings,
                            set_cmd=self.atmcd64d.set_accumulation_cycle_time,
                            get_parser=lambda ans: float(ans[1]),
+                           max_val_age=0,
                            unit='s',
                            label='accumulation cycle time')
 
@@ -403,7 +365,8 @@ class AndorIDus4xx(Instrument):
                            names=('horizontal', 'vertical'),
                            shapes=((), ()),
                            units=('μm', 'μm'),
-                           labels=('Horizontal chip size', 'Vertical chip size'))
+                           labels=('Horizontal chip size', 'Vertical chip size'),
+                           snapshot_value=True)
 
         self.add_parameter('cooler',
                            get_cmd=self.atmcd64d.is_cooler_on,
@@ -426,10 +389,10 @@ class AndorIDus4xx(Instrument):
                            ))
 
         self.add_parameter('exposure_time',
-                           parameter_class=AcquisitionTimingsParameter,
                            get_cmd=self.atmcd64d.get_acquisition_timings,
                            set_cmd=self.atmcd64d.set_exposure_time,
                            get_parser=lambda ans: float(ans[0]),
+                           max_val_age=0,
                            unit='s',
                            label='exposure time')
 
@@ -463,10 +426,10 @@ class AndorIDus4xx(Instrument):
                            label='Keep clean cycle duration')
 
         self.add_parameter('kinetic_cycle_time',
-                           parameter_class=AcquisitionTimingsParameter,
                            get_cmd=self.atmcd64d.get_acquisition_timings,
                            set_cmd=self.atmcd64d.set_kinetic_cycle_time,
                            get_parser=lambda ans: float(ans[2]),
+                           max_val_age=0,
                            unit='s',
                            label='Kinetic cycle time')
 
@@ -486,7 +449,8 @@ class AndorIDus4xx(Instrument):
                                bottom, gap) is return. The last two are calculated by the dll
                                function and are thus only available when getting.
                                """
-                           ))
+                           ),
+                           snapshot_value=True)
 
         self.add_parameter('number_accumulations',
                            set_cmd=self.atmcd64d.set_number_accumulations,
@@ -501,14 +465,16 @@ class AndorIDus4xx(Instrument):
                            names=('horizontal', 'vertical'),
                            shapes=((), ()),
                            units=('px', 'px'),
-                           labels=('Horizontal number of pixels', 'Vertical number of pixels'))
+                           labels=('Horizontal number of pixels', 'Vertical number of pixels'),
+                           snapshot_value=True)
 
         self.add_parameter('pixel_size',
                            parameter_class=PixelSize,
                            names=('horizontal', 'vertical'),
                            shapes=((), ()),
                            units=('μm', 'μm'),
-                           labels=('Horizontal pixel size', 'Vertical pixel size'))
+                           labels=('Horizontal pixel size', 'Vertical pixel size'),
+                           snapshot_value=True)
 
         self.add_parameter('post_processing_function',
                            label='Post processing function',
@@ -533,7 +499,8 @@ class AndorIDus4xx(Instrument):
                            vals=_HeterogeneousSequence([
                                vals.Ints(1),
                                vals.Sequence(vals.Ints(1))
-                           ]))
+                           ]),
+                           snapshot_value=True)
 
         temperature_range = self.atmcd64d.get_temperature_range()
         self.add_parameter('set_temperature',
@@ -556,7 +523,8 @@ class AndorIDus4xx(Instrument):
                            names=('centre', 'height'),
                            shapes=((), ()),
                            units=('px', 'px'),
-                           vals=vals.Sequence(vals.Ints(1), length=2))
+                           vals=vals.Sequence(vals.Ints(1), length=2),
+                           snapshot_value=True)
 
         self.add_parameter('status',
                            label='Camera Status',
@@ -598,21 +566,31 @@ class AndorIDus4xx(Instrument):
                                vals.Ints(2, self.detector_pixels.get_latest()[1])
                            ]),
                            docstring="For iDus, it is recommended that you set horizontal binning "
-                                     "to 1.")
+                                     "to 1.",
+                           snapshot_value=True)
+
+        self.add_parameter('acquired_accumulations',
+                           get_cmd=self._get_acquired_accumulations,
+                           # Always infer from acquisition mode, never use cache
+                           max_val_age=0,
+                           docstring='Number of accumulations per frame.')
 
         self.add_parameter('acquired_frames',
                            get_cmd=self._get_acquired_frames,
+                           # Always infer from acquisition mode, never use cache
+                           max_val_age=0,
                            docstring='Number of frames that will be acquired.')
 
         self.add_parameter('acquired_pixels',
                            parameter_class=AcquiredPixels,
                            names=('horizontal', 'vertical'),
                            shapes=((), ()),
-                           units=('px', 'px'))
+                           units=('px', 'px'),
+                           snapshot_value=True)
 
         self.add_parameter('time_axis',
                            parameter_class=TimeAxis,
-                           vals=vals.Arrays(shape=(self.acquired_frames.get,)),
+                           vals=vals.Arrays(shape=(self.acquired_frames.get_latest,)),
                            unit='s',
                            label='Time axis (frames)')
 
@@ -634,7 +612,7 @@ class AndorIDus4xx(Instrument):
                            setpoints=(self.time_axis, self.vertical_axis, self.horizontal_axis,),
                            parameter_class=CCDData,
                            vals=vals.Arrays(shape=(
-                               self.acquired_frames.get,
+                               self.acquired_frames.get_latest,
                                self._acquired_vertical_pixels,
                                self._acquired_horizontal_pixels
                            )),
@@ -662,10 +640,14 @@ class AndorIDus4xx(Instrument):
                            initial_value='full vertical binning',
                            label='read mode')
 
-        # print connect message
         self.connect_message()
 
     # get methods
+    def _get_acquired_accumulations(self) -> int:
+        if self.acquisition_mode.get_latest() == 'single scan':
+            return 1
+        return self.number_accumulations.get_latest()
+
     def _get_acquired_frames(self) -> int:
         if 'kinetics' in self.acquisition_mode.get_latest():
             return self.number_kinetics.get_latest()
@@ -697,6 +679,11 @@ class AndorIDus4xx(Instrument):
         return self.acquired_pixels.get_latest()[1]
 
     def _parse_acquisition_mode(self, val) -> None:
+        # Invalidate relevant caches
+        self.acquired_frames.cache.invalidate()
+        self.acquired_accumulations.cache.invalidate()
+
+        # Update self.ccd_data with correct dimensions
         if self.vertical_axis in self.ccd_data.setpoints:
             setpoints = (self.vertical_axis, self.horizontal_axis)
             shape = (self._acquired_vertical_pixels, self._acquired_horizontal_pixels)
@@ -706,7 +693,7 @@ class AndorIDus4xx(Instrument):
 
         if self._has_time_dimension(val):
             self.ccd_data.setpoints = (self.time_axis,) + setpoints
-            self.ccd_data.vals = vals.Arrays(shape=(self.acquired_frames.get,) + shape)
+            self.ccd_data.vals = vals.Arrays(shape=(self.acquired_frames.get_latest,) + shape)
         else:
             self.ccd_data.setpoints = setpoints
             self.ccd_data.vals = vals.Arrays(shape=shape)
@@ -714,12 +701,16 @@ class AndorIDus4xx(Instrument):
         return val
 
     def _parse_read_mode(self, val) -> None:
+        # Invalidate relevant caches
+        self.acquired_pixels.cache.invalidate()
+
+        # Update self.ccd_data with correct dimensions
         if self.time_axis in self.ccd_data.setpoints:
             setpoints = (self.time_axis,)
-            shape = (self.acquired_frames.get,)
+            shape = (self.acquired_frames.get_latest,)
         else:
-            setpoints = ()
-            shape = ()
+            setpoints = tuple()
+            shape = tuple()
 
         if self._has_vertical_dimension(val):
             self.ccd_data.setpoints = setpoints + (self.vertical_axis, self.horizontal_axis)
@@ -731,10 +722,12 @@ class AndorIDus4xx(Instrument):
 
         return val
 
-    def _has_vertical_dimension(self, read_mode) -> bool:
+    @staticmethod
+    def _has_vertical_dimension(read_mode) -> bool:
         return read_mode in (1, 2, 4)
 
-    def _has_time_dimension(self, acquisition_mode) -> bool:
+    @staticmethod
+    def _has_time_dimension(acquisition_mode) -> bool:
         return acquisition_mode not in (1, 2)
 
     def _parse_status(self, code: int) -> str:
