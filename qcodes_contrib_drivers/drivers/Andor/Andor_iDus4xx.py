@@ -11,16 +11,33 @@ like this::
     ccd.random_track_settings((2, [20, 30, 40, 40]))
     # The following time parameters are computed to a closest valid
     # value by the SDK. Setting all to zero would hence result in the
-    # shortest possible acquisition time.
+    # shortest possible acquisition time. These values should be set
+    # last since they depend on other settings.
     ccd.exposure_time(0)
     ccd.accumulation_cycle_time(0)
     ccd.kinetic_cycle_time(0)
     # Acquire data
     data = ccd.ccd_data()
     data.shape  # (10, 2, 2000)
+    # The shape of the ccd_data parameter is automatically adjusted to
+    # the acquisition and read modes
+    ccd.acquisition_mode('single scan')
+    ccd.read_mode('full vertical binning')
+    data = ccd.ccd_data()
+    data.shape  # (2000,)
 
 Note:
     :meth:`atmcd64d.GetImages` and related are still untested.
+
+TODO (thangleiter, 23/11/11):
+    - Document
+    - Switch data unit between counts and counts per second using parameter
+    - Implement filters and averaging
+    - Test post processing
+    - Live monitor using 'run till abort' mode and async event queue
+    - Fast kinetics acquisition mode
+    - Triggering
+    - Handle shutter modes
 
 """
 import itertools
