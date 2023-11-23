@@ -5,3 +5,4 @@ QDevil drivers
 
    QDAC1/index
    QDAC2/index
+   QSwitch/index

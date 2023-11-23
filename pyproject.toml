@@ -19,7 +19,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Topic :: Scientific/Engineering",]
 requires-python = ">=3.9"
-dependencies = [ "qcodes>=0.37.0", "versioningit>=2.0.1", "packaging"]
+dependencies = [ "qcodes>=0.42.0", "versioningit>=2.0.1", "packaging", "pandas"]
 dynamic = [ "version",]
 
 [[project.maintainers]]
@@ -47,7 +47,8 @@ test = [
     "pytest-cov>=3.0.0",
     "coverage[toml]>=6.2",
     "pyvisa-sim",
-    "types-tqdm>=4.64.6"
+    "types-tqdm>=4.64.6",
+    "pandas-stubs",
 ]
 docs = [ "sphinx", "sphinx_rtd_theme", "nbsphinx", ]
 
