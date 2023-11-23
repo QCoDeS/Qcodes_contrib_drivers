@@ -45,7 +45,7 @@ import operator
 import textwrap
 from collections import abc
 from functools import partial
-from typing import Any, Callable, Dict, Literal, Optional, Sequence, Set, Tuple, Union
+from typing import Any, Callable, Dict, Literal, Optional, Sequence, Tuple
 
 import numpy as np
 import numpy.typing as npt
