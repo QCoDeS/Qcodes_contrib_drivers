@@ -38,7 +38,7 @@ class M2Solstis3(IPInstrument):
         self.add_parameter('wavelength_m',
                            get_cmd=self._get_wavelength,
                            set_cmd=self._set_wave_m,
-                           label='Wavelength',
+                           label='Wavelength locked',
                            unit='nm',
                            vals=Numbers(min_value=700, max_value=1000),
                            docstring='wavelength locked')
@@ -46,7 +46,7 @@ class M2Solstis3(IPInstrument):
         self.add_parameter('wavelength_t',
                            get_cmd=self._get_wavelength,
                            set_cmd=self._move_wave_t,
-                           label='Wavelength',
+                           label='Wavelength table',
                            unit='nm',
                            vals=Numbers(min_value=700, max_value=1000),
                            docstring='wavelength not locked')
