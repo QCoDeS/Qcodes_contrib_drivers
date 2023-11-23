@@ -761,3 +761,11 @@ class AndorIDus4xx(Instrument):
         """Start the acquisition. Exposed to be used with 'run till
         abort' mode."""
         self.atmcd64d.start_acquisition()
+
+    def arm(self) -> None:
+        """TODO: Placeholder."""
+        self.clear_circular_buffer()
+        self.prepare_acquisition()
+
+    def clear_circular_buffer(self) -> None:
+        self.atmcd64d.free_internal_memory()
