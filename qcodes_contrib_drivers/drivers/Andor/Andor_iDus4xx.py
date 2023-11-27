@@ -87,6 +87,8 @@ class _HeterogeneousSequence(vals.Validator[Sequence[Any]]):
 
 
 class _PostProcessingCallable(vals.Validator[Callable[[npt.NDArray[np.int32]], npt.NDArray[np.int32]]]):
+    """A validator for post-processing functions."""
+    
     def __init__(self) -> None:
         self._valid_values = (lambda x: x,)
 
@@ -170,7 +172,16 @@ class SingleTrackSettings(MultiParameter):
 
 
 class MultiTrackSettings(MultiParameter):
-    """Represents the settings for multi-track acquisition."""
+    """Represents the settings for multi-track acquisition.
+    
+    When setting, a sequence of *three* numbers (number, height, and
+    offset).
+
+    When getting, a tuple of *five* numbers (number, height, offset,
+    bottom, gap) is returned. The last two are calculated by the dll
+    function and are thus only available when getting.
+    """
+    # Bottom and gap are computed by the dll
     _bottom: Optional[int] = None
     _gap: Optional[int] = None
 
@@ -259,12 +270,13 @@ class TimeAxis(Parameter):
 class CCDData(ParameterWithSetpoints):
     """Parameter class for data taken with an Andor CCD.
 
-    The data is saved in an integer array with shape (number of frames,
-    number of y pixels, number of x pixels). Depending on the read mode,
-    the first two dimensions may be singletons.
+    The data is saved in an integer array with dynamic shape depending on the acquisition and readout modes. 
+    
+     - If the acquisition mode is a kinetic series, the first axis is a :class:`TimeAxis` with size the number of frames, otherwise it is empty.
+     - The last axes correspond to the image dimensions, which may be 1d or 2d depending on the readout mode. If 2d, the y-axis (vertical dimension) is stored first.
 
     Note:
-        The last two axes are switched around compared to the rest of
+        In 2d mode, the last two axes are switched around compared to the rest of
         this driver.
 
     """
@@ -383,6 +395,7 @@ class AndorIDus4xx(Instrument):
                            shapes=((), ()),
                            units=('μm', 'μm'),
                            labels=('Horizontal chip size', 'Vertical chip size'),
+                           docstring=DetectorPixels.__doc__,
                            snapshot_value=True)
 
         self.add_parameter('cooler',
@@ -456,17 +469,7 @@ class AndorIDus4xx(Instrument):
                            shapes=((), (), (), (), ()),
                            units=('px', 'px', 'px', 'px', 'px'),
                            vals=_HeterogeneousSequence([vals.Ints(1), vals.Ints(1), vals.Ints(0)]),
-                           docstring=textwrap.dedent(
-                               """Multi-track settings.
-
-                               When setting, a sequence of *three* numbers (number, height, and
-                               offset); refer to the SDK documentation for explanation.
-
-                               When getting, a tuple of *five* numbers (number, height, offset,
-                               bottom, gap) is return. The last two are calculated by the dll
-                               function and are thus only available when getting.
-                               """
-                           ),
+                           docstring=MultiTrackSettings.__doc__,
                            snapshot_value=True)
 
         self.add_parameter('number_accumulations',
@@ -483,6 +486,7 @@ class AndorIDus4xx(Instrument):
                            shapes=((), ()),
                            units=('px', 'px'),
                            labels=('Horizontal number of pixels', 'Vertical number of pixels'),
+                           docstring=DetectorPixels.__doc__,
                            snapshot_value=True)
 
         self.add_parameter('pixel_size',
@@ -491,13 +495,15 @@ class AndorIDus4xx(Instrument):
                            shapes=((), ()),
                            units=('μm', 'μm'),
                            labels=('Horizontal pixel size', 'Vertical pixel size'),
+                           docstring=PixelSize.__doc__,
                            snapshot_value=True)
 
         self.add_parameter('post_processing_function',
                            label='Post processing function',
                            set_cmd=self._set_post_processing_function,
                            initial_value=None,
-                           vals=vals.MultiType(_PostProcessingCallable(), vals.Enum(None)))
+                           vals=vals.MultiType(_PostProcessingCallable(), vals.Enum(None)),
+                           docstring="A callable with signature f(data) -> processed_data that is set as get_parser for the ccd_data parameter.")
 
         gains = [round(self.atmcd64d.get_preamp_gain(index), 3)
                  for index in range(self.atmcd64d.get_number_preamp_gains())]
@@ -517,6 +523,7 @@ class AndorIDus4xx(Instrument):
                                vals.Ints(1),
                                vals.Sequence(vals.Ints(1))
                            ]),
+                           docstring=RandomTrackSettings.__doc__,
                            snapshot_value=True)
 
         temperature_range = self.atmcd64d.get_temperature_range()
@@ -541,6 +548,7 @@ class AndorIDus4xx(Instrument):
                            shapes=((), ()),
                            units=('px', 'px'),
                            vals=vals.Sequence(vals.Ints(1), length=2),
+                           docstring=SingleTrackSettings.__doc__,
                            snapshot_value=True)
 
         self.add_parameter('status',
@@ -582,8 +590,7 @@ class AndorIDus4xx(Instrument):
                                vals.Ints(1, self.detector_pixels.get_latest()[1] - 1),
                                vals.Ints(2, self.detector_pixels.get_latest()[1])
                            ]),
-                           docstring="For iDus, it is recommended that you set horizontal binning "
-                                     "to 1.",
+                           docstring=ImageSettings.__doc__,
                            snapshot_value=True)
 
         self.add_parameter('acquired_accumulations',
@@ -603,27 +610,31 @@ class AndorIDus4xx(Instrument):
                            names=('horizontal', 'vertical'),
                            shapes=((), ()),
                            units=('px', 'px'),
+                           docstring=AcquiredPixels.__doc__,
                            snapshot_value=True)
 
         self.add_parameter('time_axis',
                            parameter_class=TimeAxis,
                            vals=vals.Arrays(shape=(self.acquired_frames.get_latest,)),
                            unit='s',
-                           label='Time axis (frames)')
+                           label='Time axis (frames)',
+                           docstring=TimeAxis.__doc__)
 
         self.add_parameter('horizontal_axis',
                            parameter_class=PixelAxis,
                            dimension=0,
                            vals=vals.Arrays(shape=(self._acquired_horizontal_pixels,)),
                            unit='px',
-                           label='Horizontal axis')
+                           label='Horizontal axis',
+                           docstring=PixelAxis.__doc__)
 
         self.add_parameter('vertical_axis',
                            parameter_class=PixelAxis,
                            dimension=1,
                            vals=vals.Arrays(shape=(self._acquired_vertical_pixels,)),
                            unit='px',
-                           label='Vertical axis')
+                           label='Vertical axis',
+                           docstring=PixelAxis.__doc__)
 
         self.add_parameter('ccd_data',
                            setpoints=(self.time_axis, self.vertical_axis, self.horizontal_axis,),
@@ -634,7 +645,8 @@ class AndorIDus4xx(Instrument):
                                self._acquired_horizontal_pixels
                            )),
                            unit='cts',
-                           label='CCD Data')
+                           label='CCD Data',
+                           docstring=CCDData.__doc__)
 
         self.add_parameter('acquisition_mode',
                            set_cmd=self.atmcd64d.set_acquisition_mode,

@@ -1,3 +1,7 @@
+"""Interface to the Andor dll post-processing functions.
+
+Functions are implemented as classes so that parameters are persistent when snapshotted.
+"""
 import dataclasses
 import enum
 from typing import Protocol, Sequence, runtime_checkable
