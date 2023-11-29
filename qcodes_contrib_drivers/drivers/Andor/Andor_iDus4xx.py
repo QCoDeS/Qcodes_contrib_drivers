@@ -618,7 +618,11 @@ class AndorIDus4xx(Instrument):
 
         self.add_parameter('trigger_mode',
                            set_cmd=self.atmcd64d.set_trigger_mode,
-                           val_mapping={'internal': 0},
+                           val_mapping={'internal': 0,
+                                        'external': 1,
+                                        'external start': 6,
+                                        'external exposure': 7,
+                                        'software trigger': 10},
                            initial_value='internal',
                            docstring=dedent(self.atmcd64d.set_trigger_mode.__doc__))
 
