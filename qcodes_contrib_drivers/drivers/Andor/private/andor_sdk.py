@@ -386,6 +386,7 @@ class atmcd64d:
             return temperature_codes[code]
 
         self.error_check(code, 'GetTemperature')
+        return self.success_codes.get(code, self.error_codes.get(code, '')), ''
 
     # SDK functions
     def abort_acquisition(self) -> None:

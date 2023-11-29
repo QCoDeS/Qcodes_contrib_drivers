@@ -950,6 +950,7 @@ class AndorIDus4xx(Instrument):
         if setpoint is None and (setpoint := self.set_temperature.get()) is None:
             raise ValueError('Please set the set_temperature first or specify setpoint.')
 
+        targets: tuple[str, str] | tuple[str]
         if target.lower() == 'reached':
             targets = ('DRV_TEMP_NOT_STABILIZED', 'DRV_TEMP_STABILIZED')
         elif target.lower() == 'stabilized':
