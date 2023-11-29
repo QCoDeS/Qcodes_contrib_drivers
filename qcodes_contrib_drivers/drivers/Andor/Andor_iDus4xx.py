@@ -537,10 +537,11 @@ class AndorIDus4xx(Instrument):
 
         self.add_parameter('post_processing_function',
                            label='Post processing function',
-                           set_cmd=self._set_post_processing_function,
-                           initial_value=None,
-                           vals=vals.MultiType(_PostProcessingCallable(), vals.Enum(None)),
-                           docstring="A callable with signature f(data) -> processed_data that is set as get_parser for the ccd_data parameter.")
+                           parameter_class=ManualParameter,
+                           initial_value=post_processing.Identity(),
+                           vals=_PostProcessingCallable(),
+                           docstring="A callable with signature f(data) -> processed_data that is "
+                                     "used injected into the ccd_data parameter get_parser.")
 
         gains = [round(self.atmcd64d.get_preamp_gain(index), 3)
                  for index in range(self.atmcd64d.get_number_preamp_gains())]
@@ -686,6 +687,7 @@ class AndorIDus4xx(Instrument):
         self.add_parameter('ccd_data',
                            setpoints=(self.time_axis, self.vertical_axis, self.horizontal_axis,),
                            parameter_class=CCDData,
+                           get_parser=lambda val: self.post_processing_function()(val),
                            vals=vals.Arrays(shape=(
                                self.acquired_frames.get_latest,
                                self._acquired_vertical_pixels,
@@ -742,9 +744,6 @@ class AndorIDus4xx(Instrument):
             self.atmcd64d.cooler_on()
         elif cooler_on == 0:
             self.atmcd64d.cooler_off()
-
-    def _set_post_processing_function(self, val) -> None:
-        self.ccd_data.get_parser = val
 
     def _set_shutter_mode(self, shutter_mode: int) -> None:
         self.atmcd64d.set_shutter(1, shutter_mode, 30, 30)

@@ -34,6 +34,14 @@ class PostProcessingFunction(Protocol):
 
 
 @dataclasses.dataclass
+class Identity:
+    """Returns a copy of the input image."""
+
+    def __call__(self, input_image: npt.NDArray[np.int32]) -> npt.NDArray[np.int32]:
+        return np.copy(input_image)
+
+
+@dataclasses.dataclass
 class NoiseFilter:
     """
     This function will apply a filter to the input image and return the
