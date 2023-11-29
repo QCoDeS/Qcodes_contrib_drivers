@@ -1,6 +1,7 @@
 """Interface to the Andor dll post-processing functions.
 
-Functions are implemented as classes so that parameters are persistent when snapshotted.
+Functions are implemented as classes so that parameters are persistent
+when snapshotted.
 """
 import dataclasses
 import enum
@@ -26,6 +27,7 @@ class CountConversionMode(enum.IntEnum):
 
 @runtime_checkable
 class PostProcessingFunction(Protocol):
+    """Protocol specifying a valid, stateful post-processing function."""
 
     def __call__(self, input_image: npt.NDArray[np.int32]) -> npt.NDArray[np.int32]:
         pass
@@ -33,6 +35,33 @@ class PostProcessingFunction(Protocol):
 
 @dataclasses.dataclass
 class NoiseFilter:
+    """
+    This function will apply a filter to the input image and return the
+    processed image in the output buffer.
+
+    The filter applied is chosen by the user by setting Mode to a
+    permitted value.
+
+    Parameters
+    ----------
+    int Baseline:
+        The baseline associated with the image.
+    int Mode:
+        The mode to use to process the data. Valid options are:
+
+        = ==============================
+        1 Use Median Filter
+        2 Use Level Above Filter
+        3 Use Interquartile Range Filter
+        4 Use Noise Threshold Filter
+        = ==============================
+
+    float Threshold:
+        This is the Threshold multiplier for the Median, Interquartile
+        and Noise Threshold filters. For the Level Above filter this is
+        Threshold count above the baseline.
+
+    """
     atmcd64d: atmcd64d = dataclasses.field(repr=False)
     baseline: int
     mode: NoiseFilterMode
@@ -48,6 +77,16 @@ class NoiseFilter:
 
 @dataclasses.dataclass
 class PhotonCounting:
+    """
+    This function will convert the input image data to photons and
+    return the processed image in the output buffer.
+
+    Parameters
+    ----------
+    float * Threshold:
+        The Thresholds used to define a photon.
+
+    """
     atmcd64d: atmcd64d = dataclasses.field(repr=False)
     thresholds: Sequence[float]
 
@@ -61,6 +100,7 @@ class PhotonCounting:
 
 @dataclasses.dataclass
 class CountConvert:
+    # TODO (thangleiter): untested because unavailable.
     atmcd64d: atmcd64d = dataclasses.field(repr=False)
     baseline: int
     mode: CountConversionMode

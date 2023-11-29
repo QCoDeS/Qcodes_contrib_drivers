@@ -30,7 +30,6 @@ Note:
     :meth:`atmcd64d.GetImages` and related are still untested.
 
 TODO (thangleiter, 23/11/11):
-    - Document
     - Switch data unit between counts and counts per second using parameter
     - Implement filters and averaging
     - Test post processing
@@ -44,7 +43,7 @@ import itertools
 import operator
 import textwrap
 from collections import abc
-from functools import partial
+from functools import partial, wraps
 from typing import Any, Callable, Dict, Literal, Optional, Sequence, Tuple
 
 import numpy as np
@@ -55,6 +54,12 @@ from qcodes.utils.helpers import create_on_off_val_mapping
 
 from . import post_processing
 from .private.andor_sdk import SDKError, atmcd64d
+
+
+@wraps(textwrap.dedent)
+def dedent(text: str | None) -> str | None:
+    """Wrap textwrap.dedent for mypy for use with __doc__ attributes."""
+    return textwrap.dedent(text) if text is not None else None
 
 
 class _HeterogeneousSequence(vals.Validator[Sequence[Any]]):
@@ -86,9 +91,10 @@ class _HeterogeneousSequence(vals.Validator[Sequence[Any]]):
         return len(self.elt_validators)
 
 
-class _PostProcessingCallable(vals.Validator[Callable[[npt.NDArray[np.int32]], npt.NDArray[np.int32]]]):
+class _PostProcessingCallable(vals.Validator[Callable[[npt.NDArray[np.int32]],
+                                                      npt.NDArray[np.int32]]]):
     """A validator for post-processing functions."""
-    
+
     def __init__(self) -> None:
         self._valid_values = (lambda x: x,)
 
@@ -172,8 +178,9 @@ class SingleTrackSettings(MultiParameter):
 
 
 class MultiTrackSettings(MultiParameter):
-    """Represents the settings for multi-track acquisition.
-    
+    """
+    Represents the settings for multi-track acquisition.
+
     When setting, a sequence of *three* numbers (number, height, and
     offset).
 
@@ -232,7 +239,8 @@ class ImageSettings(MultiParameter):
 
 
 class PixelAxis(Parameter):
-    """A parameter that enumerates the pixels along an axis.
+    """
+    A parameter that enumerates the pixels along an axis.
 
     If you have a calibration of horizontal pixels to, for example in a
     spectrograph, wavelength at hand, set this parameter's get_parser
@@ -252,7 +260,8 @@ class PixelAxis(Parameter):
 
 
 class TimeAxis(Parameter):
-    """A parameter that holds the start of each exposure window.
+    """
+    A parameter that holds the start of each exposure window.
 
     If the acquisition mode is a kinetic series, the size corresponds
     to number_kinetics(), otherwise it's always 1.
@@ -268,16 +277,23 @@ class TimeAxis(Parameter):
 
 
 class CCDData(ParameterWithSetpoints):
-    """Parameter class for data taken with an Andor CCD.
+    """
+    Parameter class for data taken with an Andor CCD.
 
-    The data is saved in an integer array with dynamic shape depending on the acquisition and readout modes. 
-    
-     - If the acquisition mode is a kinetic series, the first axis is a :class:`TimeAxis` with size the number of frames, otherwise it is empty.
-     - The last axes correspond to the image dimensions, which may be 1d or 2d depending on the readout mode. If 2d, the y-axis (vertical dimension) is stored first.
+    The data is saved in an integer array with dynamic shape depending
+    on the acquisition and readout modes.
+
+     - If the acquisition mode is a kinetic series, the first axis is a
+       :class:`TimeAxis` with size the number of frames, otherwise it is
+       empty.
+     - The last axes correspond to the image dimensions, which may be 1d
+       or 2d depending on the readout mode. If 2d, the y-axis (vertical
+       dimension) is stored first.
 
     Note:
-        In 2d mode, the last two axes are switched around compared to the rest of
-        this driver.
+
+        In 2d mode, the last two axes are switched around compared to
+        the rest of this driver.
 
     """
 
@@ -387,7 +403,28 @@ class AndorIDus4xx(Instrument):
                            get_parser=lambda ans: float(ans[1]),
                            max_val_age=0,
                            unit='s',
-                           label='accumulation cycle time')
+                           label='accumulation cycle time',
+                           docstring=dedent(self.atmcd64d.set_accumulation_cycle_time.__doc__))
+
+        self.add_parameter('cooler',
+                           get_cmd=self.atmcd64d.is_cooler_on,
+                           set_cmd=self._set_cooler,
+                           val_mapping=create_on_off_val_mapping(on_val=1, off_val=0),
+                           label='cooler',
+                           docstring=dedent(self.atmcd64d.cooler_on.__doc__))
+
+        self.add_parameter('cooler_mode',
+                           set_cmd=self.atmcd64d.set_cooler_mode,
+                           val_mapping={'maintain': 1, 'return': 0},
+                           label='Cooler mode',
+                           initial_value='return',
+                           docstring=dedent("""
+                           Determines whether the cooler is switched off when the camera is
+                           shut down.
+
+                           'maintain' means it is maintained on shutdown, 'return' means the
+                           camera returns to ambient temperature. Defaults to 'return'.
+                           """))
 
         self.add_parameter('detector_size',
                            parameter_class=DetectorPixels,
@@ -398,46 +435,29 @@ class AndorIDus4xx(Instrument):
                            docstring=DetectorPixels.__doc__,
                            snapshot_value=True)
 
-        self.add_parameter('cooler',
-                           get_cmd=self.atmcd64d.is_cooler_on,
-                           set_cmd=self._set_cooler,
-                           val_mapping=create_on_off_val_mapping(on_val=1, off_val=0),
-                           label='cooler')
-
-        self.add_parameter('cooler_mode',
-                           set_cmd=self.atmcd64d.set_cooler_mode,
-                           val_mapping={'maintain': 1, 'return': 0},
-                           label='Cooler mode',
-                           initial_value='return',
-                           docstring=textwrap.dedent(
-                               """Determines whether the cooler is switched off when the camera is
-                               shut down.
-
-                               'maintain' means it is maintained on shutdown, 'return' means the
-                               camera returns to ambient temperature. Defaults to 'return'.
-                               """
-                           ))
-
         self.add_parameter('exposure_time',
                            get_cmd=self.atmcd64d.get_acquisition_timings,
                            set_cmd=self.atmcd64d.set_exposure_time,
                            get_parser=lambda ans: float(ans[0]),
                            max_val_age=0,
                            unit='s',
-                           label='exposure time')
+                           label='exposure time',
+                           docstring=dedent(self.atmcd64d.set_exposure_time.__doc__))
 
         self.add_parameter('fastest_recommended_vertical_shift_speed',
-                           get_cmd=self.atmcd64d.get_fastest_recommended_vertical_shift_speed,
+                           get_cmd=self.atmcd64d.get_fastest_recommended_vs_speed,
                            get_parser=operator.itemgetter(1),
-                           docstring='Fastest recommended vertical shift speed for curent '
-                                     'vertical clock voltage',
-                           unit='μs/px')
+                           unit='μs/px',
+                           docstring=dedent(
+                               self.atmcd64d.get_fastest_recommended_vs_speed.__doc__
+                           ))
 
         self.add_parameter('filter_mode',
                            get_cmd=self.atmcd64d.get_filter_mode,
                            set_cmd=self.atmcd64d.set_filter_mode,
                            val_mapping=create_on_off_val_mapping(on_val=2, off_val=0),
-                           label='filter mode')
+                           label='filter mode',
+                           docstring=dedent(self.atmcd64d.set_filter_mode.__doc__))
 
         speeds = [round(self.atmcd64d.get_hs_speed(self._CHANNEL, self._AMPLIFIER, index), 3)
                   for index
@@ -448,12 +468,14 @@ class AndorIDus4xx(Instrument):
                            val_mapping={speed: index
                                         for index, speed in enumerate(speeds)} | {'Unset': -1},
                            initial_cache_value='Unset',
-                           unit='MHz')
+                           unit='MHz',
+                           docstring=dedent(self.atmcd64d.set_hs_speed.__doc__))
 
         self.add_parameter('keep_clean_time',
                            get_cmd=self.atmcd64d.get_keep_clean_time,
                            unit='s',
-                           label='Keep clean cycle duration')
+                           label='Keep clean cycle duration',
+                           docstring=dedent(self.atmcd64d.get_keep_clean_time.__doc__))
 
         self.add_parameter('kinetic_cycle_time',
                            get_cmd=self.atmcd64d.get_acquisition_timings,
@@ -461,7 +483,8 @@ class AndorIDus4xx(Instrument):
                            get_parser=lambda ans: float(ans[2]),
                            max_val_age=0,
                            unit='s',
-                           label='Kinetic cycle time')
+                           label='Kinetic cycle time',
+                           docstring=dedent(self.atmcd64d.set_kinetic_cycle_time.__doc__))
 
         self.add_parameter('multi_track_settings',
                            parameter_class=MultiTrackSettings,
@@ -469,16 +492,20 @@ class AndorIDus4xx(Instrument):
                            shapes=((), (), (), (), ()),
                            units=('px', 'px', 'px', 'px', 'px'),
                            vals=_HeterogeneousSequence([vals.Ints(1), vals.Ints(1), vals.Ints(0)]),
-                           docstring=MultiTrackSettings.__doc__,
+                           docstring=dedent(self.atmcd64d.set_multi_track.__doc__),
                            snapshot_value=True)
 
         self.add_parameter('number_accumulations',
                            set_cmd=self.atmcd64d.set_number_accumulations,
-                           label='number accumulations')
+                           initial_value=1,
+                           label='number accumulations',
+                           docstring=dedent(self.atmcd64d.set_number_accumulations.__doc__))
 
         self.add_parameter('number_kinetics',
                            set_cmd=self.atmcd64d.set_number_kinetics,
-                           label='number of scans during a single acquisition sequence')
+                           initial_value=1,
+                           label='number of frames',
+                           docstring=dedent(self.atmcd64d.set_number_kinetics.__doc__))
 
         self.add_parameter('detector_pixels',
                            parameter_class=DetectorPixels,
@@ -512,18 +539,17 @@ class AndorIDus4xx(Instrument):
                            set_cmd=self.atmcd64d.set_preamp_gain,
                            val_mapping={gain: index
                                         for index, gain in enumerate(gains)} | {'Unset': -1},
-                           initial_cache_value='Unset')
+                           initial_cache_value='Unset',
+                           docstring=dedent(self.atmcd64d.set_preamp_gain.__doc__))
 
         self.add_parameter('random_track_settings',
                            parameter_class=RandomTrackSettings,
                            names=('number_tracks', 'areas'),
                            shapes=((), ()),
                            units=('', 'px'),
-                           vals=_HeterogeneousSequence([
-                               vals.Ints(1),
-                               vals.Sequence(vals.Ints(1))
-                           ]),
-                           docstring=RandomTrackSettings.__doc__,
+                           vals=_HeterogeneousSequence([vals.Ints(1),
+                                                        vals.Sequence(vals.Ints(1))]),
+                           docstring=dedent(self.atmcd64d.set_random_tracks.__doc__),
                            snapshot_value=True)
 
         temperature_range = self.atmcd64d.get_temperature_range()
@@ -532,7 +558,8 @@ class AndorIDus4xx(Instrument):
                            vals=vals.Ints(min_value=min_temperature or temperature_range[0],
                                           max_value=temperature_range[1]),
                            unit=u"\u00b0" + 'C',
-                           label='set temperature')
+                           label='set temperature',
+                           docstring=dedent(self.atmcd64d.set_temperature.__doc__))
 
         self.add_parameter('shutter_mode',
                            set_cmd=self._set_shutter_mode,
@@ -540,7 +567,8 @@ class AndorIDus4xx(Instrument):
                                         'permanently open': 1,
                                         'permanently closed': 2},
                            label='shutter mode',
-                           initial_value='fully auto')
+                           initial_value='fully auto',
+                           docstring=dedent(self.atmcd64d.set_shutter.__doc__))
 
         self.add_parameter('single_track_settings',
                            parameter_class=SingleTrackSettings,
@@ -548,23 +576,26 @@ class AndorIDus4xx(Instrument):
                            shapes=((), ()),
                            units=('px', 'px'),
                            vals=vals.Sequence(vals.Ints(1), length=2),
-                           docstring=SingleTrackSettings.__doc__,
+                           docstring=dedent(self.atmcd64d.set_single_track.__doc__),
                            snapshot_value=True)
 
         self.add_parameter('status',
                            label='Camera Status',
                            get_cmd=self.atmcd64d.get_status,
-                           get_parser=self._parse_status)
+                           get_parser=self._parse_status,
+                           docstring=dedent(self.atmcd64d.get_status.__doc__))
 
         self.add_parameter('temperature',
                            get_cmd=self.atmcd64d.get_temperature,
                            unit=u"\u00b0" + 'C',
-                           label='temperature')
+                           label='temperature',
+                           docstring=dedent(self.atmcd64d.get_temperature.__doc__))
 
         self.add_parameter('trigger_mode',
                            set_cmd=self.atmcd64d.set_trigger_mode,
                            val_mapping={'internal': 0},
-                           initial_value='internal')
+                           initial_value='internal',
+                           docstring=dedent(self.atmcd64d.set_trigger_mode.__doc__))
 
         speeds = [self.atmcd64d.get_vs_speed(index)
                   for index in range(self.atmcd64d.get_number_vs_speeds())]
@@ -574,7 +605,8 @@ class AndorIDus4xx(Instrument):
                            val_mapping={speed: index
                                         for index, speed in enumerate(speeds)} | {'Unset': -1},
                            initial_cache_value='Unset',
-                           unit='μs/px')
+                           unit='μs/px',
+                           docstring=dedent(self.atmcd64d.set_vs_speed.__doc__))
 
         # Parameters that depend on other parameters and therefore cannot be sorted alphabetically
         self.add_parameter('image_settings',
@@ -590,7 +622,7 @@ class AndorIDus4xx(Instrument):
                                vals.Ints(1, self.detector_pixels.get_latest()[1] - 1),
                                vals.Ints(2, self.detector_pixels.get_latest()[1])
                            ]),
-                           docstring=ImageSettings.__doc__,
+                           docstring=dedent(self.atmcd64d.set_image.__doc__),
                            snapshot_value=True)
 
         self.add_parameter('acquired_accumulations',
