@@ -3,9 +3,12 @@
 TODO: Copy documentation from the SDK help.
 """
 import ctypes
+import functools
 import sys
+from collections import OrderedDict
 from contextlib import contextmanager
-from typing import Any, Literal, Optional, Sequence, Tuple
+from enum import IntEnum
+from typing import Any, Optional, Sequence, Tuple
 
 import numpy as np
 from numpy import typing as npt
@@ -23,6 +26,208 @@ def out_argtypes(func):
 
 class SDKError(Exception):
     """An error originating in the andor SDK"""
+
+
+class AndorCapabilities(ctypes.Structure):
+    """Structure populated by the GetCapabilities function."""
+
+    _fields_ = [
+        ('ulSize', ctypes.c_ulong),
+        ('ulAcqModes', ctypes.c_ulong),
+        ('ulReadModes', ctypes.c_ulong),
+        ('ulTriggerModes', ctypes.c_ulong),
+        ('ulCameraType', ctypes.c_ulong),
+        ('ulPixelMode', ctypes.c_ulong),
+        ('ulSetFunctions', ctypes.c_ulong),
+        ('ulGetFunctions', ctypes.c_ulong),
+        ('ulFeatures', ctypes.c_ulong),
+        ('ulPCICard', ctypes.c_ulong),
+        ('ulEMGainCapability', ctypes.c_ulong),
+        ('ulFTReadModes', ctypes.c_ulong),
+        ('ulFeatures2', ctypes.c_ulong)
+    ]
+
+
+class _AndorCapabilitiesMember(int):
+    """Parser for AndorCapabilities structs."""
+    _bits: OrderedDict[str, str] = OrderedDict()
+    """name-docstring pairs."""
+    _bytes: OrderedDict[str, tuple[int, int]] = OrderedDict()
+    """name-(start_bit, stop_bit) pairs to interpret as integer."""
+
+    def _is_bit_set(self, bit) -> bool:
+        return bool((1 << bit) & self)
+
+    def _byte_value(self, start, stop) -> int:
+        """Interprets bits between start and stop as an integer."""
+        bitmask = ((1 << (stop - start + 1)) - 1) << start
+        return (bitmask & self) >> start
+
+    def __repr__(self) -> str:
+        return (
+                f'{type(self).__name__}('
+                + ', '.join((f'{name}={getattr(self, name)}' for name in self._bits))
+                + (', ' if len(self._bits) and len(self._bytes) else '')
+                + ', '.join((f'{name}={str(getattr(self, name))}' for name in self._bytes))
+                + ')'
+        )
+
+    def __init_subclass__(cls):
+        """Automatically sets properties based on _bits and _bytes."""
+        super().__init_subclass__()
+        for i, (name, doc) in enumerate(cls._bits.items()):
+            setattr(cls, name, property(functools.partial(cls._is_bit_set, bit=i), doc=doc))
+        for name, (start_bit, stop_bit) in cls._bytes.items():
+            enum = getattr(cls, name.capitalize())
+            setattr(cls, name, property(lambda self: enum(self._byte_value(start_bit, stop_bit))))
+
+
+class AcquisitionModes(_AndorCapabilitiesMember):
+    _bits = OrderedDict(
+        single='Single Scan Acquisition Mode available using '
+               ':meth:`atmcd64d.set_acquisition_mode`.',
+        video='Video (Run Till Abort) Acquisition Mode available using '
+              ':meth:`atmcd64d.set_acquisition_mode`.',
+        accumulate='Accumulation Acquisition Mode available using '
+                   ':meth:`atmcd64d.set_acquisition_mode`.',
+        kinetic='Kinetic Series Acquisition Mode available using '
+                ':meth:`atmcd64d.set_acquisition_mode`.',
+        frametransfer='Frame Transfer Acquisition Mode available using '
+                      ':meth:`atmcd64d.set_acquisition_mode`.',
+        fastkinetics='Fast Kinetics Acquisition Mode available using '
+                     ':meth:`atmcd64d.set_acquisition_mode`.',
+        overlap='Overlap Acquisition Mode available using '
+                ':meth:`atmcd64d.set_acquisition_mode`.'
+    )
+
+
+class ReadModes(_AndorCapabilitiesMember):
+    _bits = OrderedDict(
+        fullimage='Full Image Read Mode available using :meth:`atmcd64d.set_read_mode`.',
+        subimage='Sub Image Read Mode available using :meth:`atmcd64d.set_read_mode`.',
+        singletrack='Single track Read Mode available using :meth:`atmcd64d.set_read_mode`.',
+        fvb='Full Vertical Binning Read Mode available using :meth:`atmcd64d.set_read_mode`.',
+        multitrack='Multi Track Read Mode available using :meth:`atmcd64d.set_read_mode`.',
+        randomtrack='Random-Track Read Mode available using :meth:`atmcd64d.set_read_mode`.'
+    )
+
+
+class TriggerModes(_AndorCapabilitiesMember):
+    _bits = OrderedDict(
+        internal='Internal Trigger Mode available using :meth:`atmcd64d.set_trigger_mode`.',
+        external='External Trigger Mode available using :meth:`atmcd64d.set_trigger_mode`.',
+        external_fvb_em='External FVB EM Trigger Mode available using '
+                        ':meth:`atmcd64d.set_trigger_mode`.',
+        continuous='Continuous Trigger Mode available using :meth:`atmcd64d.set_trigger_mode`.',
+        externalstart='External Start Trigger Mode available using '
+                      ':meth:`atmcd64d.set_trigger_mode`.',
+        externalexposure='External Exposure Trigger Mode available using '
+                         ':meth:`atmcd64d.set_trigger_mode`.',
+        inverted='Inverted Trigger Mode available using :meth:`atmcd64d.set_trigger_invert`.',
+        external_chargeshifting='External Charge Shifting Trigger Mode available using '
+                                ':meth:`atmcd64d.set_charge_shifting`.'
+    )
+
+
+class CameraType(_AndorCapabilitiesMember):
+    _bytes = OrderedDict(model=(0, 31))
+
+    class Model(IntEnum):
+        PDA = 0
+        IXON = 1
+        ICCD = 2
+        EMCCD = 3
+        CCD = 4
+        ISTAR = 5
+        VIDEO = 6
+        IDUS = 7
+        NEWTON = 8
+        SURCAM = 9
+        USBICCD = 10
+        LUCA = 11
+        IKON = 13
+        INGAAS = 14
+        IVAC = 15
+        CLARA = 17
+        USBISTAR = 18
+        IXONULTRA = 21
+        IVAC_CCD = 23
+        IKONXL = 28
+        ISTAR_SCMOS = 30
+        IKONLR = 31
+
+
+class PixelMode(_AndorCapabilitiesMember):
+    _bits = OrderedDict(
+        bit8='Camera can acquire in 8-bit mode.',
+        bit14='Camera can acquire in 14-bit mode.',
+        bit16='Camera can acquire in 16-bit mode.',
+        bit32='Camera can acquire in 32-bit mode.'
+    )
+    _bytes = OrderedDict(
+        color=(16, 31)
+    )
+
+    class Color(IntEnum):
+        MONO = 0
+        """Camera acquires data in grey scale."""
+        RGB = 1
+        """Camera acquires data in RGB mode."""
+        CMY = 2
+        """Camera acquires data in CMY mode."""
+
+
+class Features(_AndorCapabilitiesMember):
+    _bits = OrderedDict(
+        polling='The status of the current acquisition can be determined through the '
+                ':meth:`atmcd64d.get_status` function call.',
+        events='A Windows Event can be passed to the SDK to alert the user at certain stages of '
+               'the Acquisition. See :meth:`atmcd64d.set_driver_event`',
+        spooling='Acquisition Data can be made to spool to disk using the SetSpool function.',
+        shutter='Shutter settings can be adjusted through the :meth:`atmcd64d.set_shutter` '
+                'function.',
+        shutterex='Shutter settings can be adjusted through the SetShutterEx function.',
+        external_i2c='The camera has its own dedicated external I2C bus.',
+        saturationevent='Sensor saturation can be determined through the SetSaturationEvent '
+                        'function.',
+        fancontrol='Fan settings can be adjusted through the SetFanMode function.',
+        midfancontrol='It is possible to select a low fan setting through the SetFanMode '
+                      'function.',
+        temperatureduringacquisition='It is possible to read the camera temperature during an '
+                                     'acquisition with the :meth:`atmcd64d.get_temperature` '
+                                     'function.',
+        keepcleancontrol='It is possible to turn off keep cleans between scans',
+        ddglite='Reserved for internal use.',
+        ftexternalexposure='The combination of Frame Transfer and External Exposure modes is '
+                           'available.',
+        kineticexternalexposure='External Exposure trigger mode is available in Kinetic '
+                                'acquisition mode.',
+        daccontrol='Reserved for internal use.',
+        metadata='System supports metadata. SetMetaData',
+        iocontrol='Configurable IO’s available. See SetIOLevel.',
+        photoncounting='System supports photon counting. See SetPhotonCounting.',
+        countconvert='System supports Count Convert. See SetCountConvertMode.',
+        dualmode='Dual exposure mode. See SetDualExposureMode.',
+        optacquire='OptAcquire features are available. See OA_Initialize.',
+        realtimespuriousnoisefilter='Real time noise filtering is available. See '
+                                    'meth:`atmcd64d.filter_set_mode`.',
+        postprocessspuriousnoisefilter='Post process noise filtering is available. See '
+                                       ':meth:`atmcd64d.post_process_noise_filter`.',
+        dualpreampgain='Reserved for internal use.',
+        defect_correction='Reserved for internal use.',
+        startofexposure_event='Camera supports start of exposure events. See '
+                              ':meth:`atmcd64d.set_driver_event`.',
+        endofexposure_event='Camera supports start of exposure events. See '
+                            ':meth:`atmcd64d.set_driver_event`.',
+        cameralink='Cameralink output can be enabled/disabled. See SetCameraLinkMode.',
+        fifofull_event='Camera supports FIFO full events. See :meth:`atmcd64d.set_driver_event`.',
+        sensor_port_configuration='Camera supports multiple sensor port outputs. See '
+                                  'SetSensorPortMode.',
+        sensor_compensation='Camera supports on-camera sensor compensation. See '
+                            'EnableSensorCompensation.',
+        irig_support='Camera supports external IRIG device. See SetIRIGModulation.',
+        esd_events='Camera supports detection of ESD events. See SetESDEvent. '
+    )
 
 
 class atmcd64d:
@@ -190,6 +395,88 @@ class atmcd64d:
         code = self.dll.CoolerON()
         self.error_check(code, 'CoolerON')
 
+    def filter_get_averaging_factor(self) -> int:
+        """
+        Returns the current averaging factor value.
+
+        Returns
+        -------
+        int * averagingFactor:
+            The current averaging factor value.
+
+        """
+        c_averaging_factor = ctypes.c_uint()
+        code = self.dll.Filter_GetAveragingFactor(ctypes.byref(c_averaging_factor))
+        self.error_check(code, 'Filter_GetAveragingFactor')
+        return c_averaging_factor.value
+
+    def filter_get_averaging_frame_count(self) -> int:
+        """
+        Returns the current frame count value.
+
+        Returns
+        -------
+        int * frames:
+            The current frame count value.
+
+        """
+        c_frames = ctypes.c_uint()
+        code = self.dll.Filter_GetAveragingFrameCount(ctypes.byref(c_frames))
+        self.error_check(code, 'Filter_GetAveragingFrameCount')
+        return c_frames.value
+
+    def filter_get_data_averaging_mode(self) -> int:
+        """
+        Returns the current averaging mode.
+
+        Returns
+        -------
+        int * mode:
+            The current averaging mode.
+        """
+        c_mode = ctypes.c_uint()
+        code = self.dll.Filter_GetDataAveragingMode(ctypes.byref(c_mode))
+        self.error_check(code, 'Filter_GetDataAveragingMode')
+        return c_mode.value
+
+    def filter_get_mode(self) -> int:
+        """
+        Returns the current Noise Filter mode.
+
+        Returns
+        -------
+        unsigned int * mode:
+            Noise Filter mode.
+
+        """
+        c_mode = ctypes.c_uint()
+        code = self.dll.Filter_GetMode(ctypes.byref(c_mode))
+        self.error_check(code, 'Filter_GetMode')
+        return c_mode.value
+
+    def filter_get_threshold(self) -> float:
+        """
+        Returns the current Noise Filter threshold value.
+
+        Returns
+        -------
+        float * threshold:
+            The current threshold value.
+
+        """
+        c_threshold = ctypes.c_float()
+        code = self.dll.Filter_GetThreshold(ctypes.byref(c_threshold))
+        self.error_check(code, 'Filter_GetThreshold')
+        return c_threshold.value
+
+    def filter_set_averaging_factor(self, averaging_factor: int) -> None:
+        """
+        Sets the averaging factor to be used with the recursive filter.
+
+        For information on the various data averaging filters available
+        see DATA AVERAGING FILTERS in the Special Guides section of the
+        manual.
+
         Parameters
         ----------
         int averagingFactor:
@@ -199,6 +486,98 @@ class atmcd64d:
         # TODO: untested
         code = self.dll.Filter_SetAveragingFactor(averaging_factor)
         self.error_check(code, 'Filter_SetAveragingFactor ')
+
+    def filter_set_averaging_frame_count(self, frames: int) -> None:
+        """
+        Sets the number of frames to be used when using the frame
+        averaging filter.
+
+        For information on the various data averaging filters available
+        see DATA AVERAGING FILTERS in the Special Guides section of the
+        manual.
+
+        Parameters
+        ----------
+        int frames:
+            Number of frames to be averaged.
+
+        """
+        # TODO: untested
+        code = self.dll.Filter_SetAveragingFrameCount(frames)
+        self.error_check(code, 'Filter_SetAveragingFrameCount')
+
+    def filter_set_data_averaging_mode(self, mode: int) -> None:
+        """
+        Sets the current data averaging mode.
+
+        For information on the various data averaging filters available
+        see DATA AVERAGING FILTERS in the Special Guides section of the
+        manual.
+
+        Parameters
+        ----------
+        int mode:
+            The averaging factor mode to use. Valid options are:
+
+            = ==========================
+            0 No Averaging Filter
+            5 Recursive Averaging Filter
+            6 Frame Averaging Filter
+            = ==========================
+
+        """
+        # TODO: untested
+        code = self.dll.Filter_SetDataAveragingMode(mode)
+        self.error_check(code, 'Filter_SetDataAveragingMode')
+
+    def filter_set_mode(self, mode: int) -> None:
+        """
+        Set the Noise Filter to use.
+
+        For information on the various spurious noise filters available
+        see SPURIOUS NOISE FILTERS in the Special Guides section of the
+        manual.
+
+        Parameters
+        ----------
+        unsigned int mode:
+            Filter mode to use. Valid options are:
+
+            = ==========================
+            0 No Filter
+            1 Median Filter
+            2 Level Above Filter
+            3 Interquartile Range Filter
+            4 Noise Threshold Filter
+            = ==========================
+
+        """
+        # TODO: untested
+        code = self.dll.Filter_SetMode(mode)
+        self.error_check(code, 'Filter_SetMode')
+
+    def filter_set_threshold(self, threshold: float) -> None:
+        """
+        Sets the threshold value for the Noise Filter.
+
+        For information on the various spurious noise filters available
+        see SPURIOUS NOISE FILTERS in the Special Guides section of the
+        manual.
+
+        Parameters
+        ----------
+        float threshold:
+            Threshold value used to process image. Valid values are:
+
+            ========= ======================
+            0 – 65535 for Level Above filter
+            0 – 10    for all other filters
+            ========= ======================
+
+        """
+        # TODO: untested
+        code = self.dll.Filter_SetThreshold(ctypes.c_float(threshold))
+        self.error_check(code, 'Filter_SetThreshold')
 
     def free_internal_memory(self) -> None:
         """
@@ -340,6 +719,28 @@ class atmcd64d:
         self.error_check(code, 'GetCameraSerialNumber')
         return c_serial_number.value
 
+    def get_capabilities(self) -> Tuple[_AndorCapabilitiesMember, ...]:
+        """
+        This function will fill in an :class:`AndorCapabilities`
+        structure with the capabilities associated with the connected
+        camera.
+
+        Individual capabilities are determined by examining certain
+        bits and combinations of bits in the member variables of the
+        :class:`AndorCapabilites` structure.
+        """
+        andorcaps = AndorCapabilities(ctypes.sizeof(AndorCapabilities))
+        code = self.dll.GetCapabilities(ctypes.byref(andorcaps))
+        self.error_check(code, 'GetCapabilities')
+
+        return (
+            AcquisitionModes(andorcaps.ulAcqModes),
+            ReadModes(andorcaps.ulReadModes),
+            TriggerModes(andorcaps.ulTriggerModes),
+            CameraType(andorcaps.ulCameraType),
+            PixelMode(andorcaps.ulPixelMode),
+            Features(np.array([andorcaps.ulFeatures, andorcaps.ulFeatures2]).view(np.int64)[0])
+        )
 
     def get_detector(self) -> Tuple[int, int]:
         """
@@ -1313,6 +1714,8 @@ class atmcd64d:
         code = self.dll.SetAcquisitionMode(c_mode)
         self.error_check(code, 'SetAcquisitionMode')
 
+    def set_charge_shifting(self, *args, **kwargs) -> None:
+        raise NotImplementedError
 
     def set_cooler_mode(self, mode: int) -> None:
         """This function determines whether the cooler is switched off

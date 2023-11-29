@@ -368,6 +368,11 @@ class AndorIDus4xx(Instrument):
         head_model: Head model of the CCD.
         firmware_version: Firmware version of the CCD.
         firmware_build: Firmware build of the CCD.
+        acquisition_mode_capabilities: Available acquisition modes.
+        read_mode_capabilities: Available read modes.
+        trigger_mode_capabilities: Available trigger modes.
+        pixel_mode_capabilities: Bit-depth and color mode.
+        feature_capabilities: Available camera and SDK features.
 
     """
     # For iDus models, there are only a single channel and amplifier each AFAIK
@@ -395,6 +400,11 @@ class AndorIDus4xx(Instrument):
         self.head_model = self.atmcd64d.get_head_model()
         self.firmware_version = self.atmcd64d.get_hardware_version()[4]
         self.firmware_build = self.atmcd64d.get_hardware_version()[5]
+        self.acquisition_mode_capabilities = self.atmcd64d.get_capabilities()[0]
+        self.read_mode_capabilities = self.atmcd64d.get_capabilities()[1]
+        self.trigger_mode_capabilities = self.atmcd64d.get_capabilities()[2]
+        self.pixel_mode_capabilities = self.atmcd64d.get_capabilities()[4]
+        self.feature_capabilities = self.atmcd64d.get_capabilities()[5]
 
         # add the instrument parameters
         self.add_parameter('accumulation_cycle_time',
@@ -552,6 +562,11 @@ class AndorIDus4xx(Instrument):
                            docstring=dedent(self.atmcd64d.set_random_tracks.__doc__),
                            snapshot_value=True)
 
+        self.add_parameter('readout_time',
+                           get_cmd=self.atmcd64d.get_readout_time,
+                           label='Readout time',
+                           docstring=dedent(self.atmcd64d.get_readout_time.__doc__))
+
         temperature_range = self.atmcd64d.get_temperature_range()
         self.add_parameter('set_temperature',
                            set_cmd=self.atmcd64d.set_temperature,
@@ -688,7 +703,8 @@ class AndorIDus4xx(Instrument):
                                         'kinetics': 3,
                                         'run till abort': 5},
                            initial_value='single scan',
-                           label='acquisition mode')
+                           label='acquisition mode',
+                           docstring=dedent(self.atmcd64d.set_acquisition_mode.__doc__))
 
         self.add_parameter('read_mode',
                            set_cmd=self.atmcd64d.set_read_mode,
@@ -699,7 +715,8 @@ class AndorIDus4xx(Instrument):
                                         'single track': 3,
                                         'image': 4},
                            initial_value='full vertical binning',
-                           label='read mode')
+                           label='read mode',
+                           docstring=dedent(self.atmcd64d.set_read_mode.__doc__))
 
         self.connect_message()
 
