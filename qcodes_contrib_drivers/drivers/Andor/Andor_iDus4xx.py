@@ -30,7 +30,6 @@ Note:
     :meth:`atmcd64d.GetImages` and related are still untested.
 
 TODO (thangleiter, 23/11/11):
-    - Switch data unit between counts and counts per second using parameter
     - Implement filters and averaging
     - Test post processing
     - Live monitor using 'run till abort' mode and async event queue
@@ -48,8 +47,10 @@ from typing import Any, Callable, Dict, Literal, Optional, Sequence, Tuple
 
 import numpy as np
 import numpy.typing as npt
-from qcodes import Instrument, MultiParameter, Parameter, ParameterWithSetpoints
+from qcodes import (DelegateParameter, Instrument, ManualParameter, MultiParameter, Parameter,
+                    ParameterWithSetpoints)
 from qcodes import validators as vals
+from qcodes.parameters.cache import _Cache, _CacheProtocol
 from qcodes.utils.helpers import create_on_off_val_mapping
 
 from . import post_processing
@@ -274,6 +275,14 @@ class TimeAxis(Parameter):
         n_pts = self.instrument.acquired_frames.get()
         dt = self.instrument.kinetic_cycle_time.get()
         return np.arange(0, dt * n_pts, dt)
+
+
+class PersistentDelegateParameter(DelegateParameter):
+    """A delegate parameter with an independent cache."""
+
+    def __init__(self, name: str, source: Parameter | None, *args: Any, **kwargs: Any):
+        super().__init__(name, source, *args, **kwargs)
+        self.cache: _CacheProtocol = _Cache(self, max_val_age=kwargs.get('max_val_age', None))
 
 
 class CCDData(ParameterWithSetpoints):
@@ -697,6 +706,43 @@ class AndorIDus4xx(Instrument):
                            label='CCD Data',
                            docstring=CCDData.__doc__)
 
+        self.add_parameter('ccd_data_bg_corrected',
+                           parameter_class=DelegateParameter,
+                           source=self.ccd_data,
+                           get_parser=self._subtract_background,
+                           label='CCD Data (bg corrected)',
+                           unit='cts',
+                           docstring="CCD data with a background image previously taken "
+                                     "subtracted.")
+
+        self.add_parameter('ccd_data_per_second',
+                           parameter_class=DelegateParameter,
+                           source=self.ccd_data,
+                           get_parser=lambda val: val / self.exposure_time.get_latest(),
+                           label='CCD Data per second',
+                           unit='cps',
+                           docstring="CCD data (counts) divided by the exposure time.")
+
+        self.add_parameter('ccd_data_bg_corrected_per_second',
+                           parameter_class=DelegateParameter,
+                           source=self.ccd_data_bg_corrected,
+                           get_parser=lambda val: val / self.exposure_time.get_latest(),
+                           label='CCD Data (bg corrected) per second',
+                           unit='cps',
+                           docstring="CCD data with a background image previously taken "
+                                     "subtracted and divided by the exposure time.")
+
+        self.add_parameter('background',
+                           parameter_class=PersistentDelegateParameter,
+                           source=self.ccd_data,
+                           get_parser=self._parse_background,
+                           docstring=dedent("""
+                           Takes a background image for the current acquisiton settings.
+
+                           Note that data conversions set in post_processing_function are
+                           still run.
+                           """))
+
         self.add_parameter('acquisition_mode',
                            set_cmd=self.atmcd64d.set_acquisition_mode,
                            set_parser=self._parse_acquisition_mode,
@@ -755,7 +801,17 @@ class AndorIDus4xx(Instrument):
     def _acquired_vertical_pixels(self) -> int:
         return self.acquired_pixels.get_latest()[1]
 
-    def _parse_acquisition_mode(self, val) -> None:
+    def _freeze_acquisition_settings(self) -> dict[str, Any]:
+        acquisition_settings = {'acquisition_mode': self.acquisition_mode.get_latest(),
+                                'acquisition_timings': self.atmcd64d.get_acquisition_timings(),
+                                'read_mode': self.read_mode.get_latest()}
+
+        settings = getattr(self, self.read_mode.get_latest().replace(' ', '_') + '_settings', None)
+        if settings is not None:
+            acquisition_settings['read_mode_settings'] = settings.get_latest()
+        return acquisition_settings
+
+    def _parse_acquisition_mode(self, val: str) -> str:
         # Invalidate relevant caches
         self.acquired_frames.cache.invalidate()
         self.acquired_accumulations.cache.invalidate()
@@ -777,7 +833,12 @@ class AndorIDus4xx(Instrument):
 
         return val
 
-    def _parse_read_mode(self, val) -> None:
+    def _parse_background(self, data: npt.NDArray) -> npt.NDArray:
+        """Stores current acquisition settings as parameter metadata."""
+        self.background.load_metadata(self._freeze_acquisition_settings())
+        return data
+
+    def _parse_read_mode(self, val: str) -> str:
         # Invalidate relevant caches
         self.acquired_pixels.cache.invalidate()
 
@@ -823,6 +884,19 @@ class AndorIDus4xx(Instrument):
         }
         status_code = self.atmcd64d.error_codes[code]
         return f'{status_code}: {status[status_code]}'
+
+    def _subtract_background(self, data: npt.NDArray) -> npt.NDArray:
+        if (background := self.background.cache.get(False)) is None:
+            raise ValueError("No background acquired. Perform a get on the 'background' parameter")
+
+        current_settings = self._freeze_acquisition_settings()
+        background_settings = {key: self.background.metadata.get(key, None)
+                               for key in current_settings}
+        if background_settings != current_settings:
+            raise ValueError('Background was acquired for different settings; cannot subtract '
+                             'it. Consider taking a new background or changing the settings. '
+                             f'Previous settings were: {background_settings}')
+        return data - background
 
     def close(self) -> None:
         self.atmcd64d.shut_down()
