@@ -2,7 +2,6 @@
 
 TODO: Copy documentation from the SDK help.
 """
-import ctypes
 import functools
 import sys
 from collections import OrderedDict
@@ -12,6 +11,14 @@ from typing import Any, Optional, Sequence, Tuple
 
 import numpy as np
 from numpy import typing as npt
+
+try:
+    import ctypes.wintypes
+except ImportError:
+    import ctypes
+    from types import ModuleType
+
+    ctypes.wintypes = ModuleType('wintypes')
 
 
 @contextmanager

@@ -817,6 +817,8 @@ class AndorIDus4xx(Instrument):
         self.acquired_accumulations.cache.invalidate()
 
         # Update self.ccd_data with correct dimensions
+        setpoints: tuple[PixelAxis] | tuple[PixelAxis, PixelAxis]
+        shape: tuple[Callable[[], int]] | tuple[Callable[[], int], Callable[[], int]]
         if self.vertical_axis in self.ccd_data.setpoints:
             setpoints = (self.vertical_axis, self.horizontal_axis)
             shape = (self._acquired_vertical_pixels, self._acquired_horizontal_pixels)
@@ -843,12 +845,14 @@ class AndorIDus4xx(Instrument):
         self.acquired_pixels.cache.invalidate()
 
         # Update self.ccd_data with correct dimensions
+        setpoints: tuple[TimeAxis] | tuple[()]
+        shape: tuple[Callable[[], int]] | tuple[()]
         if self.time_axis in self.ccd_data.setpoints:
             setpoints = (self.time_axis,)
             shape = (self.acquired_frames.get_latest,)
         else:
-            setpoints = tuple()
-            shape = tuple()
+            setpoints = ()
+            shape = ()
 
         if self._has_vertical_dimension(val):
             self.ccd_data.setpoints = setpoints + (self.vertical_axis, self.horizontal_axis)
