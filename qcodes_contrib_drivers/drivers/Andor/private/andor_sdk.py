@@ -369,6 +369,24 @@ class atmcd64d:
             print("atmcd64d: [%s]: Unknown code: %s" % (function_name, code))
             raise SDKError()
 
+    def get_cooling_status(self) -> tuple[str, str]:
+        """
+        Returns a tuple with temperature status code and explanation.
+        """
+        temperature_codes = {
+            20034: ('DRV_TEMP_OFF', 'Temperature is OFF.'),
+            20035: ('DRV_TEMP_NOT_STABILIZED', 'Temperature reached but not stabilized.'),
+            20036: ('DRV_TEMP_STABILIZED', 'Temperature has stabilized at set point.'),
+            20037: ('DRV_TEMP_NOT_REACHED', 'Temperature has not reached set point.'),
+            20040: ('DRV_TEMP_DRIFT', 'Temperature had stabilized but has since drifted.')
+        }
+        c_temperature = ctypes.c_int()
+        code = self.dll.GetTemperature(ctypes.byref(c_temperature))
+        if code in temperature_codes:
+            return temperature_codes[code]
+
+        self.error_check(code, 'GetTemperature')
+
     # SDK functions
     def abort_acquisition(self) -> None:
         """

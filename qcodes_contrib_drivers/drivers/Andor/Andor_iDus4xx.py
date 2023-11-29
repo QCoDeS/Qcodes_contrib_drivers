@@ -41,6 +41,7 @@ TODO (thangleiter, 23/11/11):
 import itertools
 import operator
 import textwrap
+import time
 from collections import abc
 from functools import partial, wraps
 from typing import Any, Callable, Dict, Literal, Optional, Sequence, Tuple
@@ -52,6 +53,7 @@ from qcodes import (DelegateParameter, Instrument, ManualParameter, MultiParamet
 from qcodes import validators as vals
 from qcodes.parameters.cache import _Cache, _CacheProtocol
 from qcodes.utils.helpers import create_on_off_val_mapping
+from tqdm import tqdm
 
 from . import post_processing
 from .private.andor_sdk import SDKError, atmcd64d
@@ -928,3 +930,50 @@ class AndorIDus4xx(Instrument):
 
     def clear_circular_buffer(self) -> None:
         self.atmcd64d.free_internal_memory()
+
+    def cool_down(self, setpoint: int | None = None,
+                  target: Literal['stabilized', 'reached'] = 'reached',
+                  show_progress: bool = True) -> None:
+        """Turn the cooler on and wait for the temperature to stabilize.
+
+        Parameters
+        ----------
+        setpoint : int, optional
+            The target temperature. Required if *set_temperature* is
+            not initialized.
+        target : {'stabilized', 'reached'}
+            Finish if temperature is reached or reached and stabilized.
+        show_progress : bool, optional
+            Show a progressbar. The default is True.
+
+        """
+        if setpoint is None and (setpoint := self.set_temperature.get()) is None:
+            raise ValueError('Please set the set_temperature first or specify setpoint.')
+
+        if target.lower() == 'reached':
+            targets = ('DRV_TEMP_NOT_STABILIZED', 'DRV_TEMP_STABILIZED')
+        elif target.lower() == 'stabilized':
+            targets = ('DRV_TEMP_STABILIZED',)
+        else:
+            raise ValueError('target should be one of reached or stabilized.')
+
+        self.set_temperature(setpoint)
+        self.cooler.set('on')
+
+        # bar does not show for negative totals, but ok
+        with tqdm(
+                total=setpoint,
+                desc=f'{self.name} cooling down to {setpoint}{self.temperature.unit}',
+                unit=self.temperature.unit,
+                disable=not show_progress
+        ) as pbar:
+            while (status := self.atmcd64d.get_cooling_status()[0]) not in targets:
+                # For lack of a better method:
+                # https://github.com/tqdm/tqdm/issues/1264
+                pbar.postfix = f'status={status}'
+                pbar.n = self.temperature.get()
+                pbar.refresh()
+                time.sleep(1)
+            pbar.postfix = status
+            pbar.n = pbar.total
+            pbar.refresh()
