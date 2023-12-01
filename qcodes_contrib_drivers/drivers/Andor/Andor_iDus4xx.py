@@ -341,6 +341,8 @@ class CCDData(ParameterWithSetpoints):
                 for accumulation in range(number_accumulations):
                     self.instrument.log.debug('Acquiring accumulation '
                                               f'{accumulation}/{number_accumulations}.')
+                    # TODO (thangleiter): If using an external trigger and it does not arrive for
+                    #                     whatever reason, the interpreter will live here forever.
                     self.instrument.atmcd64d.wait_for_acquisition()
 
                 if not fetch_lazy:
@@ -372,7 +374,7 @@ class AndorIDus4xx(Instrument):
         dll_path: Path to the atmcd64.dll file. If not set, a default path is used.
         camera_id: ID for the desired CCD.
         min_temperature: The minimum temperature of operation for the CCD. Defaults to the value
-        the model supports. Note that that might apply for water cooling only.
+                         the model supports. Note that that might apply for water cooling only.
 
     Attributes:
         serial_number: Serial number of the CCD.
@@ -936,15 +938,11 @@ class AndorIDus4xx(Instrument):
                   show_progress: bool = True) -> None:
         """Turn the cooler on and wait for the temperature to stabilize.
 
-        Parameters
-        ----------
-        setpoint : int, optional
-            The target temperature. Required if *set_temperature* is
-            not initialized.
-        target : {'stabilized', 'reached'}
-            Finish if temperature is reached or reached and stabilized.
-        show_progress : bool, optional
-            Show a progressbar. The default is True.
+        Args:
+            setpoint: The target temperature. Required if
+                *set_temperature* is not initialized.
+            target: Finish if temperature is reached or reached and stabilized.
+            show_progress: Show a progressbar. The default is True.
 
         """
         if setpoint is None and (setpoint := self.set_temperature.get()) is None:
@@ -963,7 +961,8 @@ class AndorIDus4xx(Instrument):
 
         # bar does not show for negative totals, but ok
         with tqdm(
-                total=setpoint,
+                initial=(initial := self.temperature.get()),
+                total=(setpoint - initial),
                 desc=f'{self.name} cooling down to {setpoint}{self.temperature.unit}',
                 unit=self.temperature.unit,
                 disable=not show_progress
@@ -972,7 +971,7 @@ class AndorIDus4xx(Instrument):
                 # For lack of a better method:
                 # https://github.com/tqdm/tqdm/issues/1264
                 pbar.postfix = f'status={status}'
-                pbar.n = self.temperature.get()
+                pbar.n = self.temperature.get() - initial
                 pbar.refresh()
                 time.sleep(1)
             pbar.postfix = status
