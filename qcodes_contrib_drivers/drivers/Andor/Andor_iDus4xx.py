@@ -328,8 +328,9 @@ class CCDData(ParameterWithSetpoints):
         else:
             data_buffer = np.empty((number_frames, number_pixels), dtype=np.int32)
 
-        self.instrument.log.debug('Starting acquisition.')
-        self.instrument.atmcd64d.start_acquisition()
+        if not self.instrument.status().startswith('DRV_ACQUIRING'):
+            self.instrument.log.debug('Starting acquisition.')
+            self.instrument.atmcd64d.start_acquisition()
 
         try:
             for frame in range(number_frames):
@@ -881,7 +882,7 @@ class AndorIDus4xx(Instrument):
         status = {
             'DRV_IDLE': 'IDLE waiting on instructions.',
             'DRV_TEMPCYCLE': 'Executing temperature cycle.',
-            'DRV_ACQUIRING': ' Acquisition in progress.',
+            'DRV_ACQUIRING': 'Acquisition in progress.',
             'DRV_ACCUM_TIME_NOT_MET': 'Unable to meet Accumulate cycle time.',
             'DRV_KINETIC_TIME_NOT_MET': 'Unable to meet Kinetic cycle time.',
             'DRV_ERROR_ACK': 'Unable to communicate with card.',
