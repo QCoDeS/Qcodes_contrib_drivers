@@ -511,6 +511,12 @@ class AndorIDus4xx(Instrument):
                            docstring=dedent(self.atmcd64d.set_fast_kinetics.__doc__),
                            snapshot_value=True)
 
+        self.add_parameter('fast_external_trigger',
+                           set_cmd=self.atmcd64d.set_fast_ext_trigger,
+                           val_mapping=create_on_off_val_mapping(on_val=1, off_val=0),
+                           label='Fast external trigger mode',
+                           docstring=dedent(self.atmcd64d.set_fast_ext_trigger.__doc__))
+
         self.add_parameter('fastest_recommended_vertical_shift_speed',
                            get_cmd=self.atmcd64d.get_fastest_recommended_vs_speed,
                            get_parser=operator.itemgetter(1),
@@ -967,8 +973,8 @@ class AndorIDus4xx(Instrument):
         self.atmcd64d.prepare_acquisition()
 
     def start_acquisition(self) -> None:
-        """Start the acquisition. Exposed to be used with 'run till
-        abort' mode."""
+        """Start the acquisition. Exposed for 'run till abort'
+        acquisition mode and external triggering."""
         self.atmcd64d.start_acquisition()
 
     def arm(self) -> None:
