@@ -1834,6 +1834,35 @@ class atmcd64d:
         code = self.dll.SetFastExtTrigger(mode)
         self.error_check(code, 'SetFastExtTrigger')
 
+    def set_fast_kinetics(self, exposed_rows: int, series_length: int, time: float, mode: int,
+                          hbin: int, vbin: int, offset: int) -> None:
+        """
+        This function will set the parameters to be used when taking a
+        fast kinetics acquisition.
+
+        Parameters
+        ----------
+        int exposedRows:
+            sub-area height in rows.
+        int seriesLength:
+            number in series.
+        float time:
+            exposure time in seconds.
+        int mode:
+            binning mode (0 – FVB , 4 – Image).
+        int hbin:
+            horizontal binning.
+        int vbin:
+            vertical binning (only used when in image mode).
+        Int offset:
+            offset of first row to be used in Fast Kinetics from the
+            bottom of the CCD.
+
+        """
+        code = self.dll.SetFastKineticsEx(exposed_rows, series_length, ctypes.c_float(time), mode,
+                                          hbin, vbin, offset)
+        self.error_check(code, 'SetFastKineticsEx')
+
     def set_filter_mode(self, mode: int) -> None:
         """
         This function will set the state of the cosmic ray filter mode

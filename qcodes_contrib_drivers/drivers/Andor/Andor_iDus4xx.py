@@ -27,12 +27,17 @@ like this::
     data.shape  # (2000,)
 
 TODO (thangleiter, 23/11/11):
-    - Implement filters and averaging
-    - Test post processing
+    - Document
+    - Switch data unit between counts and counts per second using parameter
+    - Test filters, averaging, and post processing
     - Live monitor using 'run till abort' mode and async event queue
     - Fast kinetics acquisition mode
     - Triggering
     - Handle shutter modes
+    - It might be smarter not to use :meth:`AndorIDus4xx.wait_for_acquisition`
+      in :class:`CCDData` since it will lock the dll away forever if there are
+      incorrect acquisition settings or it's waiting for a trigger that never
+      comes. This might lead to a reboot of the computer being required.
 
 """
 import itertools
@@ -197,7 +202,7 @@ class MultiTrackSettings(MultiParameter):
             raise RuntimeError("No instrument attached to Parameter.")
 
         val = self.cache.get(False)
-        return tuple(val) + (self._bottom, self._gap) if val is not None else None  # type: ignore[return-value]
+        return tuple(val) + (self._bottom, self._gap) if val is not None else None
 
     def set_raw(self, val: Tuple[int, int, int]):
         if self.instrument is None:
@@ -236,6 +241,28 @@ class ImageSettings(MultiParameter):
             raise RuntimeError("No instrument attached to Parameter.")
 
         self.instrument.atmcd64d.set_image(*val)
+
+
+class FastKineticsSettings(MultiParameter):
+    """Represents fast kinetics settings."""
+
+    def get_raw(self) -> Optional[Tuple[int, int, float, int, int, int, int]]:
+        if self.instrument is None:
+            raise RuntimeError("No instrument attached to Parameter.")
+
+        return self.cache.get(False)
+
+    def set_raw(self, val: Tuple[int, int, float, int, int, int, int]):
+        if self.instrument is None:
+            raise RuntimeError("No instrument attached to Parameter.")
+
+        self.instrument.atmcd64d.set_fast_kinetics(*val)
+        # Set the number of frames so that CCDData knows the correct
+        # shape of the data.
+        self.instrument.number_kinetics.set(val[1])
+        # The exposure time always seems to be 0 in fast kinetics mode
+        # self.instrument.exposure_time.set(val[2])
+        self.instrument.read_mode.set(self.instrument.read_mode.inverse_val_mapping[val[3]])
 
 
 class PixelAxis(Parameter):
@@ -316,6 +343,13 @@ class CCDData(ParameterWithSetpoints):
         number_accumulations = self.instrument.acquired_accumulations.get_latest()
         number_pixels = np.prod(self.instrument.acquired_pixels.get_latest())
 
+        # In fast kinetics mode, an acquisition event only occurs once per series,
+        # not number_frames times like in regular kinetic series mode.
+        if self.instrument.acquisition_mode.get_latest() != 'fast kinetics':
+            number_acquisitions = number_frames
+        else:
+            number_acquisitions = 1
+
         # We decide here which method we use to fetch data from the SDK. The CCD
         # has a circular buffer, so we should fetch data during acquisition if
         # the desired result is larger.
@@ -333,7 +367,7 @@ class CCDData(ParameterWithSetpoints):
             self.instrument.atmcd64d.start_acquisition()
 
         try:
-            for frame in range(number_frames):
+            for frame in range(number_acquisitions):
                 self.instrument.log.debug(f'Acquiring frame {frame}/{number_frames}.')
 
                 for accumulation in range(number_accumulations):
@@ -464,6 +498,18 @@ class AndorIDus4xx(Instrument):
                            unit='s',
                            label='exposure time',
                            docstring=dedent(self.atmcd64d.set_exposure_time.__doc__))
+
+        self.add_parameter('fast_kinetics_settings',
+                           parameter_class=FastKineticsSettings,
+                           names=('exposed_rows', 'series_length', 'time', 'mode', 'hbin',
+                                  'vbin', 'offset'),
+                           shapes=((), (), (), (), (), (), ()),
+                           units=('px', 'px', 's', '', 'px', 'px', 'px'),
+                           vals=_HeterogeneousSequence([vals.Ints(1), vals.Ints(1),
+                                                        vals.Numbers(0), vals.Enum(0, 4),
+                                                        vals.Ints(1), vals.Ints(1), vals.Ints(0)]),
+                           docstring=dedent(self.atmcd64d.set_fast_kinetics.__doc__),
+                           snapshot_value=True)
 
         self.add_parameter('fastest_recommended_vertical_shift_speed',
                            get_cmd=self.atmcd64d.get_fastest_recommended_vs_speed,
@@ -755,6 +801,7 @@ class AndorIDus4xx(Instrument):
                            val_mapping={'single scan': 1,
                                         'accumulate': 2,
                                         'kinetics': 3,
+                                        'fast kinetics': 4,
                                         'run till abort': 5},
                            initial_value='single scan',
                            label='acquisition mode',
@@ -776,7 +823,8 @@ class AndorIDus4xx(Instrument):
 
     # get methods
     def _get_acquired_accumulations(self) -> int:
-        if self.acquisition_mode.get_latest() == 'single scan':
+        # Fast kinetics does not seem to support accumulations
+        if self.acquisition_mode.get_latest() in {'single scan', 'fast kinetics'}:
             return 1
         return self.number_accumulations.get_latest()
 
