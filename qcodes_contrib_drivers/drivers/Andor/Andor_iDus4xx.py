@@ -319,7 +319,7 @@ class CCDData(ParameterWithSetpoints):
         # We decide here which method we use to fetch data from the SDK. The CCD
         # has a circular buffer, so we should fetch data during acquisition if
         # the desired result is larger.
-        fetch_lazy = self.instrument.atmcd64d.get_size_of_circular_buffer() < number_frames
+        fetch_lazy = number_frames < self.instrument.atmcd64d.get_size_of_circular_buffer()
 
         # TODO (thangleiter): for fast kinetics, one might want to fetch a number of images
         #                     every few acquisitions.
