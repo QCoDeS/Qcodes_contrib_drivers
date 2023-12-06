@@ -1,7 +1,4 @@
-"""Interface to the Andor SDK.
-
-TODO: Copy documentation from the SDK help.
-"""
+"""Interface to the Andor SDK."""
 import functools
 import sys
 from collections import OrderedDict
@@ -981,17 +978,23 @@ class atmcd64d:
         long* validlast:
             index of the last valid image.
 
+        Note
+        ----
+        *first* and *last* as returned by :meth:`get_number_available_images`
+        or :meth:`get_number_new_images` are switched around and start
+        with  the wrong index. For example, if those functions return
+        (6, 0), *first* and *last* should be 1 and 6, respectively.
+
         See Also
         --------
         :meth:`get_images_by_value`: by-value version of this method.
 
         """
-        """Get images from the CCD and write into the 1D array *arr*."""
         c_validfirst = ctypes.c_long()
         c_validlast = ctypes.c_long()
-        code = self.dll.GetMostRecentImage(first, last, arr, arr.size,
-                                           ctypes.byref(c_validfirst), ctypes.byref(c_validlast))
-        self.error_check(code, 'GetMostRecentImage')
+        code = self.dll.GetImages(first, last, arr, arr.size,
+                                  ctypes.byref(c_validfirst), ctypes.byref(c_validlast))
+        self.error_check(code, 'GetImages')
         return c_validfirst.value, c_validlast.value
 
     def get_images_by_value(self, first: int, last: int, size: int) -> Tuple[npt.NDArray[np.int32],
@@ -1022,12 +1025,18 @@ class atmcd64d:
         long* validlast:
             index of the last valid image.
 
+        Note
+        ----
+        *first* and *last* as returned by :meth:`get_number_available_images`
+        or :meth:`get_number_new_images` are switched around and start
+        with  the wrong index. For example, if those functions return
+        (6, 0), *first* and *last* should be 1 and 6, respectively.
+
         See Also
         --------
         :meth:`get_images_by_reference`: by-reference version of this method.
 
         """
-        """Get data of *size* from the CCD and return as an array."""
         c_data_array = ctypes.c_int * size
         c_data = c_data_array()
         c_validfirst = ctypes.c_long()

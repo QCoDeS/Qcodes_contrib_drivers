@@ -26,9 +26,6 @@ like this::
     data = ccd.ccd_data()
     data.shape  # (2000,)
 
-Note:
-    :meth:`atmcd64d.GetImages` and related are still untested.
-
 TODO (thangleiter, 23/11/11):
     - Implement filters and averaging
     - Test post processing
