@@ -27,7 +27,6 @@ def test_triangle_default_values(qdac):  # noqa
         'sour24:tri:coun -1',
         'sour24:tri:trig:sour bus',
         'sour24:tri:init:cont on',
-        'sour24:tri:init',
     ]
 
 
@@ -55,7 +54,6 @@ def test_triangle_period(qdac):  # noqa
         'sour24:tri:coun -1',
         'sour24:tri:trig:sour bus',
         'sour24:tri:init:cont on',
-        'sour24:tri:init',
     ]
 
 
@@ -80,7 +78,6 @@ def test_triangle_negative(qdac):  # noqa
         'sour24:tri:coun 10',
         'sour24:tri:trig:sour bus',
         'sour24:tri:init:cont on',
-        'sour24:tri:init',
     ]
 
 
@@ -100,7 +97,6 @@ def test_triangle_frequency(qdac):  # noqa
         'sour24:tri:coun -1',
         'sour24:tri:trig:sour bus',
         'sour24:tri:init:cont on',
-        'sour24:tri:init',
     ]
 
 
@@ -199,7 +195,6 @@ def test_triangle_start_trigger_fires(qdac):  # noqa
     # -----------------------------------------------------------------------
     assert qdac.get_recorded_scpi_commands() == [
         'sour1:tri:init:cont on',
-        'sour1:tri:init',
         f'tint {trigger.value}'
     ]
 
@@ -266,7 +261,6 @@ def test_triangle_trigger_on_internal(qdac):  # noqa
     assert qdac.get_recorded_scpi_commands() == [
         f'sour1:tri:trig:sour int{trigger.value}',
         f'sour1:tri:init:cont on',
-        'sour1:tri:init'
     ]
 
 
@@ -280,5 +274,4 @@ def test_triangle_trigger_on_external(qdac):  # noqa
     assert qdac.get_recorded_scpi_commands() == [
         f'sour1:tri:trig:sour ext{trigger}',
         f'sour1:tri:init:cont on',
-        'sour1:tri:init'
     ]

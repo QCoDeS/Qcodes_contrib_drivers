@@ -142,13 +142,13 @@ def test_sync_square_waves(qdac, qdac2):  # noqa
     assert 'sour1:squ:per 1e-05' in controller_commands
     assert 'sour1:squ:span 1' in controller_commands
     assert 'sour1:squ:trig:sour ext3' in controller_commands
-    assert 'sour1:squ:init' in controller_commands
+    assert 'sour1:squ:init:cont on' in controller_commands
     assert 'outp:trig4:sour int1' in controller_commands
     listener_commands = qdac2.get_recorded_scpi_commands()
     assert 'sour1:squ:per 1e-05' in listener_commands
     assert 'sour1:squ:span 1' in listener_commands
     assert 'sour1:squ:trig:sour ext3' in listener_commands
-    assert 'sour1:squ:init' in listener_commands
+    assert 'sour1:squ:init:cont on' in listener_commands
     # -----------------------------------------------------------------------
     qdacs.trigger(start_trigger)
     # -----------------------------------------------------------------------

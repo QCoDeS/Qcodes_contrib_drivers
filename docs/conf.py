@@ -131,4 +131,5 @@ autodoc_mock_imports = [
     "nidaqmx",
     "niswitch",
     "zhinst",
+    "msl"
 ]
