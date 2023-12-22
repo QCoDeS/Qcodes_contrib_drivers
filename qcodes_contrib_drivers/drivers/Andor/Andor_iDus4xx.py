@@ -53,8 +53,10 @@ import numpy.typing as npt
 from qcodes import (DelegateParameter, Instrument, ManualParameter, MultiParameter, Parameter,
                     ParameterWithSetpoints)
 from qcodes import validators as vals
+from qcodes.parameters import ParameterBase
 from qcodes.parameters.cache import _Cache, _CacheProtocol
 from qcodes.utils.helpers import create_on_off_val_mapping
+from qcodes.validators import Validator
 from tqdm import tqdm
 
 from . import post_processing
@@ -331,6 +333,7 @@ class CCDData(ParameterWithSetpoints):
         the rest of this driver.
 
     """
+    _delegates: set['CCDDataDelegateParameter'] = set()
 
     def get_raw(self) -> npt.NDArray[np.int32]:
         if self.instrument is None:
@@ -395,6 +398,53 @@ class CCDData(ParameterWithSetpoints):
 
         self.instrument.log.debug('Finished acquisition.')
         return data_buffer.reshape(shape)
+
+    def register_delegate(self, delegate: 'CCDDataDelegateParameter'):
+        self._delegates.add(delegate)
+
+    @property
+    def setpoints(self) -> Sequence[ParameterBase]:
+        # Only here for mypy: https://github.com/python/mypy/issues/5936
+        return super().setpoints
+
+    @setpoints.setter
+    def setpoints(self, setpoints: Sequence[ParameterBase]) -> None:
+        # https://github.com/python/mypy/issues/5936#issuecomment-1429175144
+        ParameterWithSetpoints.setpoints.fset(self, setpoints)  # type: ignore[attr-defined]
+        for delegate in self._delegates:
+            delegate.setpoints = setpoints
+
+    @property
+    def vals(self) -> Validator | None:
+        # Only here for mypy: https://github.com/python/mypy/issues/5936
+        return super().vals
+
+    @vals.setter
+    def vals(self, vals: Validator | None) -> None:
+        # https://github.com/python/mypy/issues/5936#issuecomment-1429175144
+        ParameterWithSetpoints.vals.fset(self, vals)  # type: ignore[attr-defined]
+        for delegate in self._delegates:
+            delegate.vals = vals
+
+
+class CCDDataDelegateParameter(DelegateParameter, ParameterWithSetpoints):
+    """A DelegateParameter that can be used as a ParameterWithSetpoints."""
+
+    def __init__(self, name: str, source: CCDData, **kwargs: Any):
+        kwargs.setdefault('vals', getattr(source, 'vals'))
+        kwargs.setdefault('setpoints', getattr(source, 'setpoints'))
+        kwargs.setdefault('snapshot_get', getattr(source, '_snapshot_get'))
+        kwargs.setdefault('snapshot_value', getattr(source, '_snapshot_value'))
+        super().__init__(name, source, **kwargs)
+        self._register_with_source(source)
+
+    def _register_with_source(self, source):
+        while not isinstance(source, CCDData):
+            try:
+                source = source.source
+            except AttributeError:
+                raise ValueError('Expected source to be CCData or delegate thereof.')
+        source.register_delegate(self)
 
 
 class AndorIDus4xx(Instrument):
@@ -765,7 +815,7 @@ class AndorIDus4xx(Instrument):
                            docstring=CCDData.__doc__)
 
         self.add_parameter('ccd_data_bg_corrected',
-                           parameter_class=DelegateParameter,
+                           parameter_class=CCDDataDelegateParameter,
                            source=self.ccd_data,
                            get_parser=self._subtract_background,
                            label='CCD Data (bg corrected)',
@@ -774,7 +824,7 @@ class AndorIDus4xx(Instrument):
                                      "subtracted.")
 
         self.add_parameter('ccd_data_per_second',
-                           parameter_class=DelegateParameter,
+                           parameter_class=CCDDataDelegateParameter,
                            source=self.ccd_data,
                            get_parser=lambda val: val / self.exposure_time.get_latest(),
                            label='CCD Data per second',
@@ -782,7 +832,7 @@ class AndorIDus4xx(Instrument):
                            docstring="CCD data (counts) divided by the exposure time.")
 
         self.add_parameter('ccd_data_bg_corrected_per_second',
-                           parameter_class=DelegateParameter,
+                           parameter_class=CCDDataDelegateParameter,
                            source=self.ccd_data_bg_corrected,
                            get_parser=lambda val: val / self.exposure_time.get_latest(),
                            label='CCD Data (bg corrected) per second',
