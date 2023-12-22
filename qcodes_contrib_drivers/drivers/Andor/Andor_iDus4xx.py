@@ -1006,11 +1006,18 @@ class AndorIDus4xx(Instrument):
         current_settings = self._freeze_acquisition_settings()
         background_settings = {key: self.background.metadata.get(key, None)
                                for key in current_settings}
-        if background_settings != current_settings:
+        if not self.background_is_valid:
             raise ValueError('Background was acquired for different settings; cannot subtract '
                              'it. Consider taking a new background or changing the settings. '
                              f'Previous settings were: {background_settings}')
         return data - background
+
+    @property
+    def background_is_valid(self) -> bool:
+        current_settings = self._freeze_acquisition_settings()
+        background_settings = {key: self.background.metadata.get(key, None)
+                               for key in current_settings}
+        return background_settings == current_settings
 
     def close(self) -> None:
         self.atmcd64d.shut_down()
