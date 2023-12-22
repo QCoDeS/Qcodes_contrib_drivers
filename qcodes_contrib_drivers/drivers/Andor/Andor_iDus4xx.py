@@ -28,10 +28,8 @@ like this::
 
 TODO (thangleiter, 23/11/11):
     - Document
-    - Switch data unit between counts and counts per second using parameter
     - Test filters, averaging, and post processing
     - Live monitor using 'run till abort' mode and async event queue
-    - Fast kinetics acquisition mode
     - Triggering
     - Handle shutter modes
     - It might be smarter not to use :meth:`AndorIDus4xx.wait_for_acquisition`
@@ -340,7 +338,7 @@ class CCDData(ParameterWithSetpoints):
             raise RuntimeError("No instrument attached to Parameter.")
 
         shape = tuple(setpoints.get().size for setpoints in self.setpoints)
-        # Can use get_latest here since acquisition_mode and read_mode set parsres
+        # Can use get_latest here since acquisition_mode and read_mode set parses
         # already take care of invalidating caches if things changed.
         number_frames = self.instrument.acquired_frames.get_latest()
         number_accumulations = self.instrument.acquired_accumulations.get_latest()
@@ -382,7 +380,7 @@ class CCDData(ParameterWithSetpoints):
 
                 if not fetch_lazy:
                     # TODO (thangleiter): For unforeseen reasons, this might fetch old data. Better
-                    #                     to clear internal buffer before acquisitoin start?
+                    #                     to clear internal buffer before acquisition start?
                     self.instrument.log.debug(f'Fetching frame {frame}/{number_frames}.')
                     self.instrument.atmcd64d.get_oldest_image_by_reference(data_buffer[frame])
 
@@ -845,7 +843,7 @@ class AndorIDus4xx(Instrument):
                            source=self.ccd_data,
                            get_parser=self._parse_background,
                            docstring=dedent("""
-                           Takes a background image for the current acquisiton settings.
+                           Takes a background image for the current acquisition settings.
 
                            Note that data conversions set in post_processing_function are
                            still run.
@@ -1036,8 +1034,10 @@ class AndorIDus4xx(Instrument):
 
     def arm(self) -> None:
         """TODO: Placeholder."""
+        self.log.debug('Arming: clear buffer, prepare and starting acquisition.')
         self.clear_circular_buffer()
         self.prepare_acquisition()
+        self.start_acquisition()
 
     def clear_circular_buffer(self) -> None:
         self.atmcd64d.free_internal_memory()
