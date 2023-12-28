@@ -14,5 +14,6 @@ ViSession = ctypes.c_ulong
 ViBoolean = ctypes.c_ushort
 ViAttr = ctypes.c_long
 ViReal64 = ctypes.c_double
+ViUInt32 = ctypes.c_uint32
 
 VI_NULL = 0

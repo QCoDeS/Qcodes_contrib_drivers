@@ -2,18 +2,18 @@
 # Valentin John, spring 2021
 # Simon Zihlmannr <zihlmann.simon@gmail.com>, spring 2021
 # Tongyu Zhao <ty.zhao.work@gmail.com>, spring 2022
-import warnings
-import pyvisa
+from typing import Optional
 
-from qcodes import Instrument, VisaInstrument
+from qcodes import Instrument
 from qcodes.instrument.channel import InstrumentChannel
 from qcodes.utils.validators import Numbers, Enum
 from qcodes.utils.helpers import create_on_off_val_mapping
+from .dll_wrapper import HOLZWORTHDLLWrapper
 
 
-class HS9008BChannel(InstrumentChannel):
+class HS9004AChannel(InstrumentChannel):
     """
-    Class to hold the Holzworth HS9008B channels, i.e.
+    Class to hold the Holzworth HS9004A channels, i.e.
     CH1, CH2, ...
     """
 
@@ -23,8 +23,7 @@ class HS9008BChannel(InstrumentChannel):
             parent: The Instrument instance to which the channel is
                 to be attached.
             name: The 'colloquial' name of the channel
-            channel: The name used by the Holzworth, i.e. either
-                     'CH1' or 'CH2'
+            channel: The name used by the Holzworth, e.g. 'CH1' or 'CH2'
         """
 
         super().__init__(parent, name)
@@ -32,17 +31,17 @@ class HS9008BChannel(InstrumentChannel):
         self.channel = channel
 
         self._min_f = self._parse_f_unit(
-                      self.ask_raw(':{}:Freq:MIN?'.format(channel)))
+                      self.parent.ask(':{}:Freq:MIN?'.format(channel)))
         self._max_f = self._parse_f_unit(
-                      self.ask_raw(':{}:Freq:MAX?'.format(channel)))
+                      self.parent.ask(':{}:Freq:MAX?'.format(channel)))
         self._min_pwr = self._parse_pwr_unit(
-                        self.ask_raw(':{}:PWR:MIN?'.format(channel)))
+                        self.parent.ask(':{}:PWR:MIN?'.format(channel)))
         self._max_pwr = self._parse_pwr_unit(
-                        self.ask_raw(':{}:PWR:MAX?'.format(channel)))
+                        self.parent.ask(':{}:PWR:MAX?'.format(channel)))
         self._min_phase = self._parse_phase_unit(
-                          self.ask_raw(':{}:PHASE:MIN?'.format(channel)))
+                          self.parent.ask(':{}:PHASE:MIN?'.format(channel)))
         self._max_phase = self._parse_phase_unit(
-                          self.ask_raw(':{}:PHASE:MAX?'.format(channel)))
+                          self.parent.ask(':{}:PHASE:MAX?'.format(channel)))
 
         self.add_parameter(name='state',
                            label='State',
@@ -152,7 +151,7 @@ class HS9008BChannel(InstrumentChannel):
             RuntimeError if state setting was not performed sucessfully
         """
         write_str = ':{}:PWR:RF:'.format(self.channel) + str(st)
-        read_str = self.ask(write_str)
+        read_str = self.parent.ask(write_str)
         if read_str != 'RF POWER '+str(st):
             raise RuntimeError(
                          '{} is not \'State Set\'. Setting state did not work'
@@ -167,7 +166,7 @@ class HS9008BChannel(InstrumentChannel):
         Returns:
             float: frequency in Hz, e.g. 0.8e9
         """
-        raw_str = self.ask(':{}:FREQ?'.format(self.channel))
+        raw_str = self.parent.ask(':{}:FREQ?'.format(self.channel))
         return self._parse_f_unit(raw_str)
 
     def _set_f(self, f:float) -> None:
@@ -182,7 +181,7 @@ class HS9008BChannel(InstrumentChannel):
             Otherwise RuntimeError.
         """
         write_str = ':{}:FREQ:'.format(self.channel) + f'{f:.0f}' + 'Hz'
-        read_str = self.ask(write_str)
+        read_str = self.parent.ask(write_str)
         if read_str != 'Frequency Set':
             raise RuntimeError(
                  '{} is not \'Frequency Set\'. Setting frequency did not work'
@@ -200,8 +199,8 @@ class HS9008BChannel(InstrumentChannel):
             Otherwise RuntimeError.
         """
         write_str = f':{self.channel}:PWR:{pwr:.2f}dBm'
-        read_str = self.ask(write_str)
-        if read_str != f'Power Set to {pwr:.2f} dBm':
+        read_str = self.parent.ask(write_str)
+        if read_str != f'Power Set':
             raise RuntimeError(
                          f'{read_str} is not \'Power Set to {pwr:.2f} dBm\'. Setting power did not work')
 
@@ -216,7 +215,7 @@ class HS9008BChannel(InstrumentChannel):
             Otherwise RuntimeError.
         """
         write_str = ':{}:PHASE:'.format(self.channel) + str(float(ph)) + 'deg'
-        read_str = self.ask(write_str)
+        read_str = self.parent.ask(write_str)
         if read_str != 'Phase Set':
             raise RuntimeError(
                          '{} is not \'Phase Set\'. Setting phase did not work'
@@ -229,21 +228,26 @@ class HS9008BChannel(InstrumentChannel):
         Returns:
             float: Temperature in C, e.g. 54
         """
-        raw_str = self.ask(':{}:TEMP?'.format(self.channel))
+        raw_str = self.parent.ask(':{}:TEMP?'.format(self.channel))
         T = raw_str.split(' ')[-1][:-1]
         return float(T)
 
-class HS9008B(VisaInstrument):
+class HS9004A(Instrument):
     """
-    QCoDeS driver for the Holzworth HS9008B RF synthesizer.
+    QCoDeS driver for the Holzworth HS9004A RF synthesizer.
     """
-    def __init__(self, name: str, address: str, **kwargs) -> None:
+
+    dll_path = r"D:\QMM\Qcodes_contrib_drivers\qcodes_contrib_drivers\drivers\Holzworth\HolzworthMulti64.dll" # 64-bit version
+
+    def __init__(self, name: str, address: str, dll_path: Optional[str] = None, **kwargs) -> None:
         """
         Args:
             name: Name to use internally in QCoDeS
             address: VISA ressource address
         """
-        super().__init__(name, address, terminator='', **kwargs)
+        super().__init__(name, **kwargs)
+        self.address = address
+        self.wrapper = HOLZWORTHDLLWrapper(dll_path=dll_path or self.dll_path)
 
         self.add_parameter(name='channel_names',
                            label='Channels',
@@ -262,50 +266,13 @@ class HS9008B(VisaInstrument):
                            get_parser=str,
                            get_cmd=self._get_ref_locked)
 
-        # model = self.IDN()['model']
-        # knownmodels = ['HS9008B']
-        # # Driver was tested with 'HS9008B'.
-        # if model not in knownmodels:
-        #     kmstring = ('{}, '*(len(knownmodels)-1)).format(*knownmodels[:-1])
-        #     kmstring += 'and {}.'.format(knownmodels[-1])
-        #     warnings.warn('This model {} is unknown and might not be'
-        #                   'compatible with the driver. Known models'
-        #                   'are: {}'.format(model, kmstring))
-
         # Add the channel to the instrument
-        channels = self.ask_raw(':ATTACH?').split(':')[2:-1]
+        channels = self.ask(':ATTACH?').split(':')[2:-1]
         for ch_name in channels:
-            channel = HS9008BChannel(self, ch_name, ch_name)
+            channel = HS9004AChannel(self, ch_name, ch_name)
             self.add_submodule(ch_name, channel)
 
-        self.connect_message()
-
-    def _open_resource(
-        self, address: str, visalib: str
-    ) -> tuple[pyvisa.resources.MessageBasedResource, str]:
-
-        # in case we're changing the address - close the old handle first
-        if getattr(self, "visa_handle", None):
-            self.visa_handle.close()
-
-        if visalib is not None:
-            self.visa_log.info(
-                f"Opening PyVISA Resource Manager with visalib: {visalib}"
-            )
-            resource_manager = pyvisa.ResourceManager(visalib)
-            visabackend = visalib.split("@")[1]
-        else:
-            self.visa_log.info("Opening PyVISA Resource Manager with default backend.")
-            resource_manager = pyvisa.ResourceManager()
-            visabackend = "ivi"
-
-        self.visa_log.info(f"Opening PyVISA resource at address: {address}")
-        resource = resource_manager.open_resource(address, send_end=False)
-        if not isinstance(resource, pyvisa.resources.MessageBasedResource):
-            resource.close()
-            raise TypeError("QCoDeS only support MessageBasedResource Visa resources")
-
-        return resource, visabackend
+        # self.connect_message()
 
     def _get_channels(self) -> list:
         """Getting the available channel names. Instrument returns string
@@ -366,3 +333,8 @@ class HS9008B(VisaInstrument):
         if read_str == '1 PLL Locked, 0 errors':
             locked = True
         return locked
+    
+    def ask(self, command_string: str):
+        rtn = self.wrapper.write_command(serial_number=self.address+"-1", command=command_string)
+
+        return rtn
