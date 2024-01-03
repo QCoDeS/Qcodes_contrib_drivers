@@ -7,10 +7,10 @@ from qcodes.instrument.visa import VisaInstrument
 from pyvisa.errors import VisaIOError
 from qcodes.utils import validators
 from typing import NewType, Tuple, Sequence, List, Dict, Optional
-from packaging.version import Version, parse
+from packaging.version import parse
 import abc
 
-# Version 1.8.0
+# Version 1.10.0
 #
 # Guiding principles for this driver for QDevil QDAC-II
 # -----------------------------------------------------
@@ -28,9 +28,9 @@ import abc
 #
 #        qdac.n_channels()
 #
-# 3. Allocation of resources should be automated as much as possible, preferably
-#    by python context managers that automatically clean up on exit.  Such
-#    context managers have a name with a '_Context' suffix.
+# 3. Allocation of resources should be automated as much as possible,
+#    preferably by python context managers that automatically clean up on exit.
+#    Such context managers have a name with a '_Context' suffix.
 #
 # 4. Any generator should by default be set to start on the BUS trigger
 #    (*TRG) so that it is possible to synchronise several generators without
@@ -139,14 +139,12 @@ class QDac2ExternalTrigger(InstrumentChannel):
             name='source_from_input',
             # Route external input to external output
             set_cmd='outp:trig{0}:sour ext{1}'.format(external, '{}'),
-            get_parser=int
         )
         self.add_parameter(
             name='source_from_trigger',
             # Route internal trigger to external output
             set_parser=_trigger_context_to_value,
             set_cmd='outp:trig{0}:sour int{1}'.format(external, '{}'),
-            get_parser=int
         )
         self.add_parameter(
             name='width_s',
@@ -400,7 +398,7 @@ class Sweep_Context(_Dc_Context):
         channel.write_channel('sour{0}:volt:mode swe')
         self._set_voltages(start_V, stop_V)
         channel.write_channel(f'sour{"{0}"}:swe:poin {points}')
-        self._set_trigger_mode(stepped)
+        self._set_generation_mode(stepped)
         channel.write_channel(f'sour{"{0}"}:swe:dwel {dwell_s}')
         super()._set_delay(delay_s)
         self._set_direction(backwards)
@@ -411,10 +409,10 @@ class Sweep_Context(_Dc_Context):
         self._write_channel(f'sour{"{0}"}:swe:star {start_V}')
         self._write_channel(f'sour{"{0}"}:swe:stop {stop_V}')
 
-    def _set_trigger_mode(self, stepped: bool) -> None:
+    def _set_generation_mode(self, stepped: bool) -> None:
         if stepped:
             return self._write_channel('sour{0}:swe:gen step')
-        self._write_channel('sour{0}:swe:gen auto')
+        self._write_channel('sour{0}:swe:gen anal')
 
     def _set_direction(self, backwards: bool) -> None:
         if backwards:
@@ -1578,7 +1576,7 @@ class QDac2Channel(InstrumentChannel):
             dwell_s (float, optional): Seconds between each voltage (default 1ms)
             delay_s (float, optional): Seconds of delay after receiving a trigger (default 0)
             backwards (bool, optional): Sweep in reverse (default is forward)
-            stepped (bool, optional): True means that each step needs to be triggered (default False)
+            stepped (bool, optional): True means discrete steps (default True)
 
         Returns:
             Sweep_Context: context manager
@@ -2058,7 +2056,7 @@ class Arrangement_Context:
         channels_suffix = self._all_channels_as_suffix()
         self._qdac.write(f'sens:rang {current_range},{channels_suffix}')
         # Wait for relays to finish switching by doing a query
-        self._qdac.ask(f'*stb?')
+        self._qdac.ask('*stb?')
         self._qdac.write(f'sens:nplc {nplc},{channels_suffix}')
         # Wait for the current sensors to stabilize and then read
         slowest_line_freq_Hz = 50
@@ -2219,9 +2217,9 @@ class Arrangement_Context:
     def leakage(self, modulation_V: float, nplc: int = 2) -> np.ndarray:
         """Run a simple leakage test between the contacts
 
-        Each contact is changed in turn and the resulting change in current from
-        steady-state is recorded.  The resulting resistance matrix is calculated
-        as modulation_voltage divided by current_change.
+        Each contact is changed in turn and the resulting change in current
+        from steady-state is recorded.  The resulting resistance matrix is
+        calculated as modulation_voltage divided by current_change.
 
         Args:
             modulation_V (float): Virtual voltage added to each contact
