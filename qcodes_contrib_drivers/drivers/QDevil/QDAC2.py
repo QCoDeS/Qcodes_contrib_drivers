@@ -10,7 +10,7 @@ from typing import NewType, Tuple, Sequence, List, Dict, Optional
 from packaging.version import parse
 import abc
 
-# Version 1.9.0
+# Version 1.10.0
 #
 # Guiding principles for this driver for QDevil QDAC-II
 # -----------------------------------------------------
@@ -28,9 +28,9 @@ import abc
 #
 #        qdac.n_channels()
 #
-# 3. Allocation of resources should be automated as much as possible, preferably
-#    by python context managers that automatically clean up on exit.  Such
-#    context managers have a name with a '_Context' suffix.
+# 3. Allocation of resources should be automated as much as possible,
+#    preferably by python context managers that automatically clean up on exit.
+#    Such context managers have a name with a '_Context' suffix.
 #
 # 4. Any generator should by default be set to start on the BUS trigger
 #    (*TRG) so that it is possible to synchronise several generators without
@@ -139,14 +139,12 @@ class QDac2ExternalTrigger(InstrumentChannel):
             name='source_from_input',
             # Route external input to external output
             set_cmd='outp:trig{0}:sour ext{1}'.format(external, '{}'),
-            get_parser=int
         )
         self.add_parameter(
             name='source_from_trigger',
             # Route internal trigger to external output
             set_parser=_trigger_context_to_value,
             set_cmd='outp:trig{0}:sour int{1}'.format(external, '{}'),
-            get_parser=int
         )
         self.add_parameter(
             name='width_s',
@@ -2058,7 +2056,7 @@ class Arrangement_Context:
         channels_suffix = self._all_channels_as_suffix()
         self._qdac.write(f'sens:rang {current_range},{channels_suffix}')
         # Wait for relays to finish switching by doing a query
-        self._qdac.ask(f'*stb?')
+        self._qdac.ask('*stb?')
         self._qdac.write(f'sens:nplc {nplc},{channels_suffix}')
         # Wait for the current sensors to stabilize and then read
         slowest_line_freq_Hz = 50
@@ -2219,9 +2217,9 @@ class Arrangement_Context:
     def leakage(self, modulation_V: float, nplc: int = 2) -> np.ndarray:
         """Run a simple leakage test between the contacts
 
-        Each contact is changed in turn and the resulting change in current from
-        steady-state is recorded.  The resulting resistance matrix is calculated
-        as modulation_voltage divided by current_change.
+        Each contact is changed in turn and the resulting change in current
+        from steady-state is recorded.  The resulting resistance matrix is
+        calculated as modulation_voltage divided by current_change.
 
         Args:
             modulation_V (float): Virtual voltage added to each contact
