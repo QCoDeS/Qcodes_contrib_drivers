@@ -253,6 +253,7 @@ class Signalrecovery7270(VisaInstrument):
 
         Returns:
             str: Return string from lockin with terminator character stripped of.
+
         """
         with DelayedKeyboardInterrupt():
             response = self.visa_handle.query(cmd)
@@ -272,6 +273,7 @@ class Signalrecovery7270(VisaInstrument):
 
         Args:
             cmd: Command to be sent (asked) to lockin.
+
         """
         with DelayedKeyboardInterrupt():
             status = self.ask_raw(cmd)
@@ -283,6 +285,7 @@ class Signalrecovery7270(VisaInstrument):
 
         Returns:
             Dict of 'vendor', 'model', 'serial', 'firmware'
+
         """
         response = self.ask_raw('IDN?')
         idparts = ['Ametek', response, None, None]
@@ -294,6 +297,7 @@ class Signalrecovery7270(VisaInstrument):
 
         Returns:
             complex: x + j*y as one complex number
+
         """
         XY = self.ask_raw('XY.')
         x = float(XY.split(',',1)[0])
