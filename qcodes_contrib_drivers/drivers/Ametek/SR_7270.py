@@ -5,7 +5,7 @@ Created by Elyjah <elyjah.kiyooka@cea.fr>, Jan 2022
 
 """
 
-from qcodes.instruments import VisaInstrument
+from qcodes.instrument import VisaInstrument
 from qcodes import validators as vals
 from qcodes.utils import DelayedKeyboardInterrupt
 from qcodes.validators import ComplexNumbers
