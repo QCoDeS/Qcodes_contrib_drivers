@@ -249,7 +249,7 @@ class Signalrecovery7270(VisaInstrument):
             cmd: Command to be sent (asked) to lockin.
 
         Raises:
-            Runtimeerror: If the response does not end with the expected terminators '\n\x00' or '\x00'
+            Runtimeerror: If the response does not end with the expected terminators '\\n\\x00' or '\\x00'
 
         Returns:
             str: Return string from lockin with terminator character stripped of.
