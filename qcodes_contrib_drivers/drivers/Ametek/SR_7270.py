@@ -20,7 +20,7 @@ class Signalrecovery7270(VisaInstrument):
     write_raw command have been rewritten to also read after writing using ask_raw.
 
     """
-    def __init__(self, name: str, address: str, terminator='', **kwargs):
+    def __init__(self, name: str, address: str, terminator='\n\x00', **kwargs):
         super().__init__(name, address, terminator=terminator, device_clear = True, **kwargs)
 
         idn = self.IDN.get()
@@ -256,6 +256,7 @@ class Signalrecovery7270(VisaInstrument):
 
         """
         with DelayedKeyboardInterrupt():
+            self.visa_handle.clear()
             response = self.visa_handle.query(cmd)
             if response.endswith('\x00'):
                 resp = response[:-1]
@@ -264,7 +265,7 @@ class Signalrecovery7270(VisaInstrument):
                 else:
                     return resp
             else:
-                raise RuntimeError(response)
+                return response
 
     def write_raw(self, cmd:str) -> None:
         """
