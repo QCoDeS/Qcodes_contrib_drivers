@@ -1,49 +1,120 @@
-from functools import partial
-from qcodes import VisaInstrument
-from qcodes.instrument.parameter import MultiParameter
+import logging
+import numpy as np
+from typing import Any, Tuple
+from qcodes.instrument import VisaInstrument
+from qcodes.parameters import MultiParameter, Parameter
+
+log = logging.getLogger(__name__)
 
 class TimeStatistics(MultiParameter):
-    def __init__(self, name, instrument):
+    """
+    Returns the statistical values of a timing statistics.
+    """
+    def __init__(self,
+                 name:str,
+                 instrument:"FCA3100",
+                 **kwargs: Any
+                 ) -> None:
+        """
+        Statistical values of a timing statistics.
 
-        super().__init__(name=name, names=("mean", "stddev", "minval", "maxval"), 
-                          shapes=((), (),(),()),
-                          labels=('Mean time', 'Standart deviation','Min value', 'Max value'),
-                          units=('s', 's', 's', 's'),
-                          setpoints=((), (), (), ()))
-        self._instrument = instrument
-        
-    def get_raw(self):
-        self._instrument.write('CALCulate:AVERage:STAT 1')
-        self._instrument.write('INIT') # start measurement
-        self._instrument.ask('*OPC?') # wait for it to complete
-        reply = self._instrument.ask("CALCulate:AVERage:ALL?")
+        Args:
+            name (str): name of the timing statistics
+            instrument (FCA3100): Instrument to which the timing statistic is bound to.
+        """
+
+        super().__init__(name=name,
+                         instrument=instrument,
+                         names=(
+                            f"{instrument.short_name}_{name}_mean",
+                            f"{instrument.short_name}_{name}_stddev",
+                            f"{instrument.short_name}_{name}_minval",
+                            f"{instrument.short_name}_{name}_maxval"),
+                         shapes=((), (),(),()),
+                         labels=(
+                            f"{instrument.short_name} {name} mean time",
+                            f"{instrument.short_name} {name} standard deviation",
+                            f"{instrument.short_name} {name} min value",
+                            f"{instrument.short_name} {name} max value"),
+                         units=('s', 's', 's', 's'),
+                         setpoints=((), (), (), ()),
+                         **kwargs)
+
+    def get_raw(self) -> Tuple[float, float, float, float]:
+        """
+        Gets data from the instrument
+
+        Returns:
+            Tuple[float, float, float, float]: Statistical values of the time statistic
+        """
+        assert isinstance(self.instrument, FCA3100)
+        self.instrument.write('CALCulate:AVERage:STAT 1')
+        self.instrument.write('INIT') # start measurement
+        self.instrument.ask('*OPC?') # wait for it to complete
+        reply = self.instrument.ask("CALCulate:AVERage:ALL?")
         mean, stddev, minval, maxval, _ = reply.split(",")
 
-        return (float(mean), float(stddev), float(minval), float(maxval))
+        return float(mean), float(stddev), float(minval), float(maxval)
 
-        
+class CompleteTimeStatistics(Parameter):
+    def __init__(self,
+                 name:str,
+                 instrument:"FCA3100",
+                 **kwargs: Any
+                 ) -> None:
+        super().__init__(name=name,
+                         instrument=instrument,
+                         shape=(npts,),
+                         label='Times till switching',
+                         unit='s',
+                         setpoint=(list(range(npts)),),
+                         docstring='Arrays of switching times',
+                         **kwargs)
+
+    def get_raw(self):
+        assert isinstance(self.instrument, FCA3100)
+        self.instrument.write('CALCulate:AVERage:STATe 0')
+        npts = self.instrument.samples_number()
+        try:
+            data_str=self.instrument.ask("READ:ARRay? {}".format(npts))
+            data = np.array(data_str.rstrip().split(",")).astype("float64")
+            return data
+        except:
+            print('Cannot measure swithing time arry')
 
 
 class FCA3100(VisaInstrument):
     """
     This is the qcodes driver for the FCA3100 counter
-
-    Args:
-      name (str): What this instrument is called locally.
-      address (str): The GPIB address of this instrument
-      kwargs (dict): kwargs to be passed to VisaInstrument class
-      terminator (str): read terminator for reads/writes to the instrument.
     """
 
     def __init__(self,
                  name: str,
-                 address: str, 
+                 address: str,
                  terminator : str="\n",
                  timeout    : int=10,
                  **kwargs) -> None:
-        super().__init__(name, address, terminator = terminator, timeout = timeout, device_clear = False, **kwargs)
+        """
+        Qcodes driver for the Textronix FCA3100 frequency counter.
+
+        Args:
+            name (str): Name of the instrument
+            address (str): Address of the instrument
+            terminator (str, optional): Terminator character of
+                the string reply. Defaults to "\n".
+            timeout (int, optional): VISA timeout is set purposely
+                to a long time to allow long measurements. Defaults to 10.
+        """
+
+        super().__init__(name = name,
+                         address = address,
+                         terminator = terminator,
+                         timeout = timeout,
+                         device_clear = False,
+                         **kwargs)
+
         self.write('INIT:CONT 0')
-       
+
         self.add_parameter('timeinterval',
                            label='timeinterval',
                            unit='s',
@@ -81,14 +152,11 @@ class FCA3100(VisaInstrument):
                           docstring='Absolute voltage trigger threshold channel B'
                           )
 
+        self.add_parameter(name='time_array',
+                           parameter_class=CompleteTimeStatistics)
 
-        
         self.connect_message()
 
-    
-    def reset(self):
-        return
-    
     def startread(self):
         self.ask("Read?")
         return
