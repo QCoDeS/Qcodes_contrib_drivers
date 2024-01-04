@@ -242,7 +242,8 @@ class Signalrecovery7270(VisaInstrument):
                                    "only settable."))
 
     def ask_raw(self, cmd:str) -> str:
-        """Reimplementaion of ask function to handle lockin echo.
+        """
+        Reimplementaion of ask function to handle lockin echo.
 
         Args:
             cmd: Command to be sent (asked) to lockin.
@@ -265,7 +266,8 @@ class Signalrecovery7270(VisaInstrument):
                 raise RuntimeError(response)
 
     def write_raw(self, cmd:str) -> None:
-        """Reimplementation of write function to handle lockin echo.
+        """
+        Reimplementation of write function to handle lockin echo.
         Calls on ask_raw (defined above) to read echo.
 
         Args:
@@ -275,7 +277,8 @@ class Signalrecovery7270(VisaInstrument):
             status = self.ask_raw(cmd)
 
     def get_idn(self):
-        """Rewrite default get_idn commmand since SR7270 uses different IDN command.
+        """
+        Rewrite default get_idn commmand since SR7270 uses different IDN command.
         vendor is hard input; model is called; serial and firmware remain unknown.
 
         Returns:
@@ -286,7 +289,8 @@ class Signalrecovery7270(VisaInstrument):
         return dict(zip(('vendor', 'model', 'serial', 'firmware'), idparts))
 
     def _get_complex_voltage(self) -> complex:
-        """Function to get XY lockin components and return a complex number.
+        """
+        Function to get XY lockin components and return a complex number.
 
         Returns:
             complex: x + j*y as one complex number
