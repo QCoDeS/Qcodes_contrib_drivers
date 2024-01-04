@@ -20,10 +20,10 @@ def test_floats_to_list_empty():
 
 
 def test_floats_to_list_direct():
-    assert floats_to_comma_separated_list([1, 2]) == '1, 2'
+    assert floats_to_comma_separated_list([1, 2]) == '1,2'
 
 
 def test_floats_to_list_rounding():
     unrounded = numpy.linspace(0, 1, 11)
     assert floats_to_comma_separated_list(unrounded) == \
-        '0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1'
+        '0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1'

@@ -610,7 +610,7 @@ class ERASynthBase(VisaInstrument):
 
     # ERASynth specific methods
 
-    def get_configuration(self, par_name: str = None) -> Union[Dict[str, str], str]:
+    def get_configuration(self, par_name: Optional[str] = None) -> Union[Dict[str, str], str]:
         """
         Returns the configuration JSON that contains all parameters.
         """
@@ -618,7 +618,7 @@ class ERASynthBase(VisaInstrument):
 
         return config_json if par_name is None else config_json[par_name]
 
-    def get_diagnostic_status(self, par_name: str = None) -> Union[Dict[str, str], str]:
+    def get_diagnostic_status(self, par_name: Optional[str] = None) -> Union[Dict[str, str], str]:
         """
         Returns the diagnostic JSON.
         """
@@ -682,7 +682,7 @@ class ERASynthBase(VisaInstrument):
     # set commands
     # ##################################################################################
 
-    def _set_and_confirm(self, cmd: str, cmd_arg: str, str_back: str = None) -> None:
+    def _set_and_confirm(self, cmd: str, cmd_arg: str, str_back: Optional[str] = None) -> None:
         """
         Because for this command the instrument replies with a text containing the
         value, we make use of it to ensure we waited enough time for the changes to
@@ -825,7 +825,7 @@ class ERASynthPlus(ERASynthBase):
         """Chooses reference type."""
 
 
-class ERASynthPlusPlus(ERASynthPlus):
+class ERASynthPlusPlus(ERASynthBase):
     """
     Driver for the ERASynth++ model instrument.
 
@@ -841,6 +841,15 @@ class ERASynthPlusPlus(ERASynthPlus):
         self.sweep_step_frequency = _mk_sweep_step_frequency(
             self, max_frequency=20e9 - 250e3
         )
+
+        self.reference_tcxo_ocxo = Parameter(
+            name="reference_tcxo_ocxo",
+            instrument=self,
+            val_mapping={"tcxo": "0", "ocxo": "1"},
+            get_cmd=f"RA:{_CMD_TO_JSON_MAPPING['P5']}",
+            set_cmd="P5{}",
+        )
+        """Chooses reference type."""
 
 
 _SELF_TEST_LIST: List[Tuple[str, Union[bool, float, int, str]]] = [

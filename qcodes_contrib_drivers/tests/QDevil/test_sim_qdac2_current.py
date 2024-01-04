@@ -69,7 +69,19 @@ def test_measurement_trigger_on_internal(qdac):  # noqa
     assert qdac.get_recorded_scpi_commands() == [
         f'sens2:trig:sour int{trigger.value}',
         f'sens2:init:cont on',
-        'sens2:init'
+    ]
+
+
+def test_measurement_trigger_once_on_internal(qdac):  # noqa
+    measurement = qdac.ch02.measurement()
+    trigger = qdac.allocate_trigger()
+    qdac.start_recording_scpi()
+    # -----------------------------------------------------------------------
+    measurement.start_once_on(trigger)
+    # -----------------------------------------------------------------------
+    assert qdac.get_recorded_scpi_commands() == [
+        f'sens2:trig:sour int{trigger.value}',
+        f'sens2:init:cont off',
     ]
 
 
@@ -96,7 +108,19 @@ def test_measurement_trigger_on_external(qdac):  # noqa
     assert qdac.get_recorded_scpi_commands() == [
         f'sens2:trig:sour ext{trigger}',
         f'sens2:init:cont on',
-        'sens2:init'
+    ]
+
+
+def test_measurement_trigger_once_on_external(qdac):  # noqa
+    measurement = qdac.ch02.measurement()
+    trigger = ExternalInput(1)
+    qdac.start_recording_scpi()
+    # -----------------------------------------------------------------------
+    measurement.start_once_on_external(trigger)
+    # -----------------------------------------------------------------------
+    assert qdac.get_recorded_scpi_commands() == [
+        f'sens2:trig:sour ext{trigger}',
+        f'sens2:init:cont off',
     ]
 
 
@@ -151,6 +175,8 @@ def test_measurement_remove_two(qdac):  # noqa
         'sens2:data:rem?'
     ]
     assert len(available) == 2
+    assert isinstance(available[0], float)
+    assert isinstance(available[1], float)
 
 
 def test_measurement_last(qdac):  # noqa

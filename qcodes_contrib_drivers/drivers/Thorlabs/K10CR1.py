@@ -1,10 +1,10 @@
 import enum
-from typing import Tuple
+from typing import Tuple, Optional
 
 import qcodes.utils.validators as vals
 from qcodes import Instrument
 
-from .APT import Thorlabs_APT, ThorlabsHWType
+from .private.APT import Thorlabs_APT, ThorlabsHWType
 
 
 class RotationDirection(enum.Enum):
@@ -169,7 +169,7 @@ class Thorlabs_K10CR1(Instrument):
         return self.apt.mot_get_velocity_parameters(self.serial_number)
 
     def _set_velocity_parameters(self,
-                                 min_vel: float = None, accn: float = None, max_vel: float = None):
+                                 min_vel: Optional[float] = None, accn: Optional[float] = None, max_vel: Optional[float] = None):
         if min_vel is None or accn is None or max_vel is None:
             old_min_vel, old_accn, old_max_vel = self._get_velocity_parameters()
             if min_vel is None:
@@ -204,8 +204,8 @@ class Thorlabs_K10CR1(Instrument):
     def _get_home_parameters(self) -> Tuple[int, int, float, float]:
         return self.apt.mot_get_home_parameters(self.serial_number)
 
-    def _set_home_parameters(self, direction: int = None, lim_switch: int = None,
-                             velocity: float = None, zero_offset:float = None):
+    def _set_home_parameters(self, direction: Optional[int] = None, lim_switch: Optional[int] = None,
+                             velocity: Optional[float] = None, zero_offset: Optional[float] = None):
         if direction is None or lim_switch is None or velocity is None or zero_offset is None:
             old_direction, old_lim_switch, old_velocity, old_zero_offset = self._get_home_parameters()
             if direction is None:

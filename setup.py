@@ -1,7 +1,26 @@
+import setuptools
 from setuptools import setup
-import versioneer
+from versioningit import get_cmdclasses
 
-setup(
-      version=versioneer.get_version(),
-      cmdclass=versioneer.get_cmdclass()
-)
+# this file does not contain configuration
+# all config should be in pyproject.toml
+
+
+if int(setuptools.__version__.split(".")[0]) < 61:
+    raise RuntimeError(
+        "At least setuptools 61 is required to install qcodes-contrib-drivers from source"
+    )
+
+try:
+    import pip
+
+    if int(pip.__version__.split(".")[0]) < 19:
+        raise RuntimeError("At least pip 19 is required to install qcodes-contrib-drivers from source")
+except ImportError:
+    # we are not being executed from pip so pip version is not important
+    pass
+
+if __name__ == "__main__":
+    setup(
+        cmdclass=get_cmdclasses(),
+    )

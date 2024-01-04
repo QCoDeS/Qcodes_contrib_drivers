@@ -11,6 +11,7 @@ def test_sweep_explicit(qdac):  # noqa
         stop_V=1,
         points=6,
         dwell_s=1e-6,
+        delay_s=0.1,
         backwards=True,
         stepped=True
     )
@@ -23,11 +24,11 @@ def test_sweep_explicit(qdac):  # noqa
         'sour10:swe:poin 6',
         'sour10:swe:gen step',
         'sour10:swe:dwel 1e-06',
+        'sour10:dc:del 0.1',
         'sour10:swe:dir down',
         'sour10:swe:coun 10',
         'sour10:dc:trig:sour bus',
         'sour10:dc:init:cont on',
-        'sour10:dc:init',
     ]
 
 
@@ -43,11 +44,11 @@ def test_sweep_implicit(qdac):  # noqa
         'sour10:swe:poin 12',
         'sour10:swe:gen step',
         'sour10:swe:dwel 0.001',
+        'sour10:dc:del 0',
         'sour10:swe:dir up',
         'sour10:swe:coun 1',
         'sour10:dc:trig:sour bus',
         'sour10:dc:init:cont on',
-        'sour10:dc:init',
     ]
 
 
@@ -105,11 +106,11 @@ def test_sweep_infinite(qdac):  # noqa
         'sour1:swe:poin 10',
         'sour1:swe:gen step',
         'sour1:swe:dwel 0.001',
+        'sour1:dc:del 0',
         'sour1:swe:dir up',
         'sour1:swe:coun -1',
         'sour1:dc:trig:sour bus',
         'sour1:dc:init:cont on',
-        'sour1:dc:init',
     ]
 
 
@@ -177,7 +178,6 @@ def test_sweep_start_trigger_fires(qdac):  # noqa
     # -----------------------------------------------------------------------
     assert qdac.get_recorded_scpi_commands() == [
         'sour1:dc:init:cont on',
-        'sour1:dc:init',
         f'tint {trigger.value}'
     ]
 
@@ -236,7 +236,6 @@ def test_sweep_trigger_on_internal(qdac):  # noqa
     assert qdac.get_recorded_scpi_commands() == [
         f'sour1:dc:trig:sour int{trigger.value}',
         f'sour1:dc:init:cont on',
-        'sour1:dc:init'
     ]
 
 
@@ -250,5 +249,31 @@ def test_sweep_trigger_on_external(qdac):  # noqa
     assert qdac.get_recorded_scpi_commands() == [
         f'sour1:dc:trig:sour ext{trigger}',
         f'sour1:dc:init:cont on',
-        'sour1:dc:init'
     ]
+
+
+def test_sweep_get_start(qdac):  # noqa
+    dc_sweep = qdac.ch01.dc_sweep(start_V=-1.2345, stop_V=1.2345, points=3)
+    # -----------------------------------------------------------------------
+    voltage = dc_sweep.start_V()
+    # -----------------------------------------------------------------------
+    assert voltage == -1.2345
+
+
+def test_sweep_get_stop(qdac):  # noqa
+    dc_sweep = qdac.ch01.dc_sweep(start_V=-1.2345, stop_V=1.2345, points=3)
+    # -----------------------------------------------------------------------
+    voltage = dc_sweep.stop_V()
+    # -----------------------------------------------------------------------
+    assert voltage == 1.2345
+
+
+def test_sweep_get_voltages(qdac):  # noqa
+    dc_sweep = qdac.ch01.dc_sweep(start_V=-1.23, stop_V=1.23, points=3)
+    # -----------------------------------------------------------------------
+    voltages = dc_sweep.values_V()
+    # -----------------------------------------------------------------------
+    assert voltages == [-1.23, 0, 1.23]
+
+
+# Here could be the same deallocaction tests as in dc_list.

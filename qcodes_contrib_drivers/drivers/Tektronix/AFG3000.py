@@ -1,11 +1,19 @@
-from typing import Any, Tuple
+from typing import Any, Tuple, Sequence, cast
 
+import numpy as np
 from qcodes import VisaInstrument
 import qcodes.utils.validators as vals
+from qcodes.utils.helpers import create_on_off_val_mapping
+
+
+
+MIN_WAVEFORM_LENGTH = 2
+MAX_WAVEFORM_LENGTH = 131072
+
 
 class AFG3000(VisaInstrument):
     """Qcodes driver for Tektronix AFG3000 series arbitrary function generator.
-    
+
     Not all instrument functionality is included here.
     """
 
@@ -20,6 +28,8 @@ class AFG3000(VisaInstrument):
             set_cmd='OUTPut:TRIGger:MODE {}',
             vals=vals.Enum('TRIGger', 'TRIG', 'SYNC')
         )
+
+        on_off_map = create_on_off_val_mapping(on_val=1, off_val=0)
 
         # Source/output parameters, 2 channels
         for src in [1, 2]:
@@ -41,15 +51,14 @@ class AFG3000(VisaInstrument):
                 get_parser=str,
                 set_cmd=f'OUTPut{src}:POLarity {{}}',
                 vals=vals.Enum('NORMal', 'NORM', 'INVerted', 'INV')
-            ) 
+            )
             self.add_parameter(
                 name=f'state_output{src}',
                 label=f'Output {src} state',
                 get_cmd=f'OUTPut{src}:STATe?',
-                get_parser=lambda x: bool(int(x)),
                 set_cmd=f'OUTPut{src}:STATe {{}}',
-                vals=vals.Enum('OFF', 0, 'ON', 1)
-            )  
+                val_mapping=on_off_map
+            )
 
             # Amplitude modulation
             self.add_parameter(
@@ -59,7 +68,9 @@ class AFG3000(VisaInstrument):
                 get_cmd=f'SOURce{src}:AM:DEPTh?',
                 get_parser=float,
                 set_cmd=f'SOURce{src}:AM:DEPTh {{}}PCT',
-                vals=vals.PermissiveMultiples(divisor=0.1)  # TODO min_value=0, max_value=120
+                vals=vals.MultiType(vals.Numbers(min_value=0, max_value=120),
+                                    vals.PermissiveMultiples(divisor=0.1),
+                                    combiner='AND')
             )
 
             # Frequency modulation
@@ -104,8 +115,10 @@ class AFG3000(VisaInstrument):
                     get_cmd=f'SOURce{src}:{mod_type}:INTernal:FREQuency?',
                     get_parser=float,
                     set_cmd=f'SOURce{src}:{mod_type}:INTernal:FREQuency {{}}Hz',
-                    vals=vals.PermissiveMultiples(divisor=1e-3)  # TODO min_value=2e-3, max_value=5e4
-                )              
+                    vals=vals.MultiType(vals.Numbers(min_value=2e-3, max_value=5e4),
+                                        vals.PermissiveMultiples(divisor=1e-3),
+                                        combiner='AND')
+                )
                 self.add_parameter(
                     name=f'{mod_type.lower()}_internal_function{src}',
                     label=f'Source {src} {mod_type} interal function',
@@ -122,7 +135,7 @@ class AFG3000(VisaInstrument):
                     'USER', 'USER1', 'USER2', 'USER3', 'USER4',
                     'EMEMory', 'EMEM',
                     'EFILe', 'EFIL')
-                ) 
+                )
                 self.add_parameter(
                     name=f'{mod_type.lower()}_internal_efile{src}',
                     label=f'Source {src} {mod_type} interal EFile',
@@ -143,9 +156,8 @@ class AFG3000(VisaInstrument):
                     name=f'{mod_type.lower()}_state{src}',
                     label=f'Source {src} {mod_type} interal state',
                     get_cmd=f'SOURce{src}:{mod_type}:STATe?',
-                    get_parser=lambda x: bool(int(x)),
                     set_cmd=f'SOURce{src}:{mod_type}:STATe {{}}',
-                    vals=vals.Enum('OFF', 0, 'ON', 1)
+                    val_mapping=on_off_map
                 )
 
             # Burst mode
@@ -171,9 +183,8 @@ class AFG3000(VisaInstrument):
                 name=f'burst_state{src}',
                 label=f'Source {src} burst state',
                 get_cmd=f'SOURce{src}:BURSt:STATe?',
-                get_parser=lambda x: bool(int(x)),
                 set_cmd=f'SOURce{src}:BURSt:STATe {{}}',
-                vals=vals.Enum('OFF', 0, 'ON', 1)
+                val_mapping=on_off_map
             )
             self.add_parameter(
                 name=f'burst_tdelay{src}',
@@ -203,9 +214,9 @@ class AFG3000(VisaInstrument):
                 get_parser=str,
                 set_cmd=f'SOURce{src}:COMBine:FEED {{}}',
                 vals=vals.Enum(combine_enum)
-            ) 
+            )
 
-            # Frequency controls                 
+            # Frequency controls
             self.add_parameter(
                 name=f'center_freq{src}',
                 label=f'Source {src} center frequency',
@@ -219,10 +230,9 @@ class AFG3000(VisaInstrument):
                 name=f'freq_concurrent{src}',
                 label=f'Source {src} concurrent frequency',
                 get_cmd=f'SOURce{src}:FREQuency:CONCurrent?',
-                get_parser=lambda x: bool(int(x)),
                 set_cmd=f'SOURce{src}:FREQuency:CONCurrent {{}}',
-                vals=vals.Enum('OFF', 0, 'ON', 1)
-            ) 
+                val_mapping=on_off_map
+            )
             self.add_parameter(
                 name=f'freq_cw{src}',
                 label=f'Source {src} continuous frequency',
@@ -277,7 +287,7 @@ class AFG3000(VisaInstrument):
                 get_parser=float,
                 set_cmd=f'SOURce{src}:FSKey:FREQuency {{}}Hz',
                 vals=vals.Numbers()
-            )            
+            )
             self.add_parameter(
                 name=f'fsk_internal_rate{src}',
                 label=f'Source {src} FSK internal rate',
@@ -299,9 +309,8 @@ class AFG3000(VisaInstrument):
                 name=f'fsk_state{src}',
                 label=f'Source {src} FSK state',
                 get_cmd=f'SOURce{src}:FSKey:STATe?',
-                get_parser=lambda x: bool(int(x)),
                 set_cmd=f'SOURce{src}:FSKey:STATe {{}}',
-                vals=vals.Enum('OFF', 0, 'ON', 1)
+                val_mapping=on_off_map
             )
 
             # Function parameters
@@ -338,7 +347,7 @@ class AFG3000(VisaInstrument):
                 'USER', 'USER1', 'USER2', 'USER3', 'USER4',
                 'EMEMory', 'EMEM',
                 'EFILe', 'EFIL',
-                'USER', 'USER1', 
+                'USER', 'USER1',
                 'USER2', 'USER3', 'USER4',
                 'EMEMory', 'EMEM',
                 'EFILe', 'EFIL')
@@ -364,7 +373,7 @@ class AFG3000(VisaInstrument):
                 get_parser=float,
                 set_cmd=f'SOURce{src}:PULSe:DCYCle {{}}PCT',
                 vals=vals.Numbers(1e-3, 99.999)
-            )            
+            )
             self.add_parameter(
                 name=f'pulse_delay{src}',
                 label=f'Source {src} pulse delay',
@@ -428,7 +437,7 @@ class AFG3000(VisaInstrument):
                 get_parser=float,
                 set_cmd=f'SOURce{src}:SWEep:HTIMe {{}}s',
                 vals=vals.Numbers()
-            )            
+            )
             self.add_parameter(
                 name=f'sweep_mode{src}',
                 label=f'Source {src} sweep mode',
@@ -445,7 +454,7 @@ class AFG3000(VisaInstrument):
                 get_parser=float,
                 set_cmd=f'SOURce{src}:SWEep:RTIMe {{}}s',
                 vals=vals.Numbers()
-            )                  
+            )
             self.add_parameter(
                 name=f'sweep_spacing{src}',
                 label=f'Source {src} sweep spacing',
@@ -464,15 +473,14 @@ class AFG3000(VisaInstrument):
                 vals=vals.Numbers(1e-3, 300)
             )
 
-            # Voltage parameters       
+            # Voltage parameters
             self.add_parameter(
                 name=f'voltage_concurrent{src}',
                 label=f'Source {src} concurrent voltage',
                 get_cmd=f'SOURce{src}:VOLTage:CONCurrent:STATe?',
-                get_parser=lambda x: bool(int(x)),
                 set_cmd=f'SOURce{src}:VOLTage:CONCurrent:STATe {{}}',
-                vals=vals.Enum('OFF', 0, 'ON', 1)
-            ) 
+                val_mapping=on_off_map
+            )
             self.add_parameter(
                 name=f'voltage_high{src}',
                 label=f'Source {src} high voltage level',
@@ -481,7 +489,7 @@ class AFG3000(VisaInstrument):
                 get_parser=float,
                 set_cmd=f'SOURce{src}:VOLTage:LEVel:IMMediate:HIGH {{}}V',
                 vals=vals.Numbers()
-            ) 
+            )
             self.add_parameter(
                 name=f'voltage_low{src}',
                 label=f'Source {src} low voltage level',
@@ -623,6 +631,68 @@ class AFG3000(VisaInstrument):
         self.log.info('Synchronizing CH1 and CH2 phase.')
         self.write(f'SOURce{src}:PHASe:INITiate')
 
+    def reset_edit_memory(self, points: int = 1000):
+        """
+        Reset the contents of the edit memory (EMEM), and set its size to
+        `points`.
+
+        Each point will be initialized with the value 8191, which corresponds
+        to the voltage half-way between `voltage_low` and `voltage_high`.
+        """
+        if (points < MIN_WAVEFORM_LENGTH or
+            points > MAX_WAVEFORM_LENGTH):
+            raise ValueError(f"Trying to reset edit memory with invalid length: {points}")
+
+        self.write(f"DATA:DEFINE EMEM,{points}")
+
+    def upload_waveform(self, waveform: Sequence[float], memory: int):
+        """
+        Upload a waveform to the editable memory (EMEM), and then copy it to the
+        USER1, USER2, USER3 or USER4 memory.
+
+        The waveform data should contain values in the range 0..1. Note that
+        the actual voltage values that are output will depend on the values of
+        the `voltage_low1/2` and `voltage_high1/2` parameters; 0 will be
+        mapped to `voltage_low` and 1 to `voltage_high`.
+
+        Args:
+            waveform: sequence of points containing the waveform data,
+                containing values from 0 to 1.
+            memory: The USER# memory where to to store the waveform, from 1 to 4.
+        """
+        if (len(waveform) < MIN_WAVEFORM_LENGTH or
+            len(waveform) > MAX_WAVEFORM_LENGTH):
+            raise ValueError(f"Invalid waveform length: {len(waveform)}")
+
+        if memory not in [1, 2, 3, 4]:
+            raise ValueError(f"Invalid value for memory: '{memory}'")
+
+        # convert to numpy array and raise ValueError if data contains inf or nan
+        wf_array = np.asarray_chkfinite(waveform)
+
+        if np.any(wf_array > 1.0):
+            raise ValueError("Waveform contains data above 1.0")
+        if np.any(wf_array < 0.0):
+            raise ValueError("Waveform contains data below 0.0")
+
+        self.reset_edit_memory(len(waveform))
+
+        # convert waveform to two-byte integer values in the range 0..16382 (= 2**14-2)
+        wf_codes = (wf_array * (2**14-2)).astype(np.uint16)
+
+        # write data to the editable memory
+        self.visa_handle.write_binary_values(
+            f"DATA:DATA EMEM,",
+            cast(Sequence[float], wf_codes), # cast to make types correct
+            datatype="H", # unsigned short (16 bits)
+            is_big_endian=True, # the AFG expects data in big endian order
+            header_fmt="ieee",
+        )
+
+        # copy data from editable memory to USER.
+        self.write(f"DATA:COPY USER{memory},EMEM")
+
+
 class AFG3252(AFG3000):
     pass
-    
+

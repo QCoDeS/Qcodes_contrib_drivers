@@ -11,21 +11,21 @@ def test_sine_ambiguous(qdac):  # noqa
     assert 'frequency_Hz or period_s can be specified' in repr(error)
 
 
-def test_sine_default_vaules(qdac):  # noqa
+def test_sine_default_values(qdac):  # noqa
     # -----------------------------------------------------------------------
     qdac.ch01.sine_wave()
     # -----------------------------------------------------------------------
     assert qdac.get_recorded_scpi_commands() == [
-        'sour1:sin:trig:sour hold',
-        'sour1:sin:freq 1000',
-        'sour1:sin:pol norm',
-        'sour1:sin:span 0.2',
-        'sour1:sin:offs 0.0',
-        'sour1:sin:slew inf',
-        'sour1:sin:coun -1',
-        'sour1:sin:trig:sour bus',
-        'sour1:sin:init:cont on',
-        'sour1:sin:init',
+        'sour1:sine:trig:sour hold',
+        'sour1:sine:freq 1000',
+        'sour1:sine:pol norm',
+        'sour1:sine:span 0.2',
+        'sour1:sine:offs 0.0',
+        'sour1:sine:slew inf',
+        'sour1:sine:del 0',
+        'sour1:sine:coun -1',
+        'sour1:sine:trig:sour bus',
+        'sour1:sine:init:cont on',
     ]
 
 
@@ -36,21 +36,22 @@ def test_sine_period(qdac):  # noqa
         inverted=True,
         span_V=1,
         offset_V=-0.1,
+        delay_s=0.01,
         slew_V_s=1,
         repetitions=10
     )
     # -----------------------------------------------------------------------
     assert qdac.get_recorded_scpi_commands() == [
-        'sour1:sin:trig:sour hold',
-        'sour1:sin:per 11',
-        'sour1:sin:pol inv',
-        'sour1:sin:span 1',
-        'sour1:sin:offs -0.1',
-        'sour1:sin:slew 1',
-        'sour1:sin:coun 10',
-        'sour1:sin:trig:sour bus',
-        'sour1:sin:init:cont on',
-        'sour1:sin:init',
+        'sour1:sine:trig:sour hold',
+        'sour1:sine:per 11',
+        'sour1:sine:pol inv',
+        'sour1:sine:span 1',
+        'sour1:sine:offs -0.1',
+        'sour1:sine:slew 1',
+        'sour1:sine:del 0.01',
+        'sour1:sine:coun 10',
+        'sour1:sine:trig:sour bus',
+        'sour1:sine:init:cont on',
     ]
 
 
@@ -59,16 +60,16 @@ def test_sine_frequency(qdac):  # noqa
     qdac.ch01.sine_wave(frequency_Hz=1e5)
     # -----------------------------------------------------------------------
     assert qdac.get_recorded_scpi_commands() == [
-        'sour1:sin:trig:sour hold',
-        'sour1:sin:freq 100000.0',
-        'sour1:sin:pol norm',
-        'sour1:sin:span 0.2',
-        'sour1:sin:offs 0.0',
-        'sour1:sin:slew inf',
-        'sour1:sin:coun -1',
-        'sour1:sin:trig:sour bus',
-        'sour1:sin:init:cont on',
-        'sour1:sin:init',
+        'sour1:sine:trig:sour hold',
+        'sour1:sine:freq 100000.0',
+        'sour1:sine:pol norm',
+        'sour1:sine:span 0.2',
+        'sour1:sine:offs 0.0',
+        'sour1:sine:slew inf',
+        'sour1:sine:del 0',
+        'sour1:sine:coun -1',
+        'sour1:sine:trig:sour bus',
+        'sour1:sine:init:cont on',
     ]
 
 
@@ -79,9 +80,9 @@ def test_sine_start_without_explicit_trigger(qdac):  # noqa
     sine.start()
     # -----------------------------------------------------------------------
     assert qdac.get_recorded_scpi_commands() == [
-        'sour24:sin:init:cont off',
-        'sour24:sin:trig:sour imm',
-        'sour24:sin:init'
+        'sour24:sine:init:cont off',
+        'sour24:sine:trig:sour imm',
+        'sour24:sine:init'
     ]
 
 
@@ -91,7 +92,7 @@ def test_sine_abort(qdac):  # noqa
     # -----------------------------------------------------------------------
     sine.abort()
     # -----------------------------------------------------------------------
-    assert qdac.get_recorded_scpi_commands() == ['sour1:sin:abor']
+    assert qdac.get_recorded_scpi_commands() == ['sour1:sine:abor']
 
 
 def test_sine_remaining(qdac):  # noqa
@@ -101,7 +102,7 @@ def test_sine_remaining(qdac):  # noqa
     sine.cycles_remaining()
     # -----------------------------------------------------------------------
     # Cannot sim test: assert remaining == 1
-    assert qdac.get_recorded_scpi_commands() == ['sour1:sin:ncl?']
+    assert qdac.get_recorded_scpi_commands() == ['sour1:sine:ncl?']
 
 
 def test_sine_end_marker_alloc(qdac):  # noqa
@@ -112,7 +113,7 @@ def test_sine_end_marker_alloc(qdac):  # noqa
     trigger = sine.end_marker()
     # -----------------------------------------------------------------------
     assert qdac.get_recorded_scpi_commands() == [
-        f'sour1:sin:mark:end {trigger.value}'
+        f'sour1:sine:mark:end {trigger.value}'
     ]
 
 
@@ -126,7 +127,7 @@ def test_sine_end_marker_reuse(qdac):  # noqa
     # -----------------------------------------------------------------------
     assert trigger2 == trigger
     assert qdac.get_recorded_scpi_commands() == [
-        f'sour1:sin:mark:end {trigger.value}'
+        f'sour1:sine:mark:end {trigger.value}'
     ]
 
 
@@ -138,7 +139,7 @@ def test_sine_start_marker_alloc(qdac):  # noqa
     trigger = sine.start_marker()
     # -----------------------------------------------------------------------
     assert qdac.get_recorded_scpi_commands() == [
-        f'sour1:sin:mark:star {trigger.value}'
+        f'sour1:sine:mark:star {trigger.value}'
     ]
 
 
@@ -152,7 +153,7 @@ def test_sine_start_marker_reuse(qdac):  # noqa
     # -----------------------------------------------------------------------
     assert trigger2 == trigger
     assert qdac.get_recorded_scpi_commands() == [
-        f'sour1:sin:mark:star {trigger.value}'
+        f'sour1:sine:mark:star {trigger.value}'
     ]
 
 
@@ -166,8 +167,7 @@ def test_sine_start_trigger_fires(qdac):  # noqa
     sine.start()
     # -----------------------------------------------------------------------
     assert qdac.get_recorded_scpi_commands() == [
-        'sour1:sin:init:cont on',
-        'sour1:sin:init',
+        'sour1:sine:init:cont on',
         f'tint {trigger.value}'
     ]
 
@@ -180,7 +180,7 @@ def test_sine_period_end_trigger_alloc(qdac):  # noqa
     trigger = sine.period_end_marker()
     # -----------------------------------------------------------------------
     assert qdac.get_recorded_scpi_commands() == [
-        f'sour1:sin:mark:pend {trigger.value}'
+        f'sour1:sine:mark:pend {trigger.value}'
     ]
 
 
@@ -194,7 +194,7 @@ def test_sine_period_end_trigger_reuse(qdac):  # noqa
     # -----------------------------------------------------------------------
     assert trigger2 == trigger
     assert qdac.get_recorded_scpi_commands() == [
-        f'sour1:sin:mark:pend {trigger.value}'
+        f'sour1:sine:mark:pend {trigger.value}'
     ]
 
 
@@ -206,7 +206,7 @@ def test_sine_period_start_trigger_alloc(qdac):  # noqa
     trigger = sine.period_start_marker()
     # -----------------------------------------------------------------------
     assert qdac.get_recorded_scpi_commands() == [
-        f'sour1:sin:mark:psta {trigger.value}'
+        f'sour1:sine:mark:pstart {trigger.value}'
     ]
 
 
@@ -220,7 +220,7 @@ def test_sine_period_start_trigger_reuse(qdac):  # noqa
     # -----------------------------------------------------------------------
     assert trigger2 == trigger
     assert qdac.get_recorded_scpi_commands() == [
-        f'sour1:sin:mark:psta {trigger.value}'
+        f'sour1:sine:mark:pstart {trigger.value}'
     ]
 
 
@@ -232,9 +232,8 @@ def test_sine_trigger_on_internal(qdac):  # noqa
     sine.start_on(trigger)
     # -----------------------------------------------------------------------
     assert qdac.get_recorded_scpi_commands() == [
-        f'sour1:sin:trig:sour int{trigger.value}',
-        f'sour1:sin:init:cont on',
-        'sour1:sin:init'
+        f'sour1:sine:trig:sour int{trigger.value}',
+        f'sour1:sine:init:cont on',
     ]
 
 
@@ -246,7 +245,6 @@ def test_sine_trigger_on_external(qdac):  # noqa
     sine.start_on_external(trigger)
     # -----------------------------------------------------------------------
     assert qdac.get_recorded_scpi_commands() == [
-        f'sour1:sin:trig:sour ext{trigger}',
-        f'sour1:sin:init:cont on',
-        'sour1:sin:init'
+        f'sour1:sine:trig:sour ext{trigger}',
+        f'sour1:sine:init:cont on',
     ]
