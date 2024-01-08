@@ -5,9 +5,10 @@ Created by Elyjah <elyjah.kiyooka@cea.fr>, Jan 2022
 
 """
 
-from qcodes import VisaInstrument, validators as vals
-from qcodes.utils.delaykeyboardinterrupt import DelayedKeyboardInterrupt
-from qcodes.utils.validators import ComplexNumbers
+from qcodes.instrument import VisaInstrument
+from qcodes import validators as vals
+from qcodes.utils import DelayedKeyboardInterrupt
+from qcodes.validators import ComplexNumbers
 
 class Signalrecovery7270(VisaInstrument):
     """
@@ -19,8 +20,8 @@ class Signalrecovery7270(VisaInstrument):
     write_raw command have been rewritten to also read after writing using ask_raw.
 
     """
-    def __init__(self, name: str, address: str, **kwargs):
-        super().__init__(name, address, terminator='', device_clear = True, **kwargs)
+    def __init__(self, name: str, address: str, terminator='\n\x00', **kwargs):
+        super().__init__(name, address, terminator=terminator, device_clear = True, **kwargs)
 
         idn = self.IDN.get()
         self.model = idn['model']
@@ -241,18 +242,21 @@ class Signalrecovery7270(VisaInstrument):
                                    "only settable."))
 
     def ask_raw(self, cmd:str) -> str:
-        """Reimplementaion of ask function to handle lockin echo.
+        """
+        Reimplementaion of ask function to handle lockin echo.
 
         Args:
             cmd: Command to be sent (asked) to lockin.
 
         Raises:
-            Runtimeerror: If the response does not end with the expected terminators '\n\x00' or '\x00'
+            Runtimeerror: If the response does not end with the expected terminators '\\n\\x00' or '\\x00'
 
         Returns:
             str: Return string from lockin with terminator character stripped of.
+
         """
         with DelayedKeyboardInterrupt():
+            self.visa_handle.clear()
             response = self.visa_handle.query(cmd)
             if response.endswith('\x00'):
                 resp = response[:-1]
@@ -261,34 +265,40 @@ class Signalrecovery7270(VisaInstrument):
                 else:
                     return resp
             else:
-                raise RuntimeError(response)
+                return response
 
     def write_raw(self, cmd:str) -> None:
-        """Reimplementation of write function to handle lockin echo.
+        """
+        Reimplementation of write function to handle lockin echo.
         Calls on ask_raw (defined above) to read echo.
 
         Args:
             cmd: Command to be sent (asked) to lockin.
+
         """
         with DelayedKeyboardInterrupt():
             status = self.ask_raw(cmd)
 
     def get_idn(self):
-        """Rewrite default get_idn commmand since SR7270 uses different IDN command.
+        """
+        Rewrite default get_idn commmand since SR7270 uses different IDN command.
         vendor is hard input; model is called; serial and firmware remain unknown.
 
         Returns:
             Dict of 'vendor', 'model', 'serial', 'firmware'
+
         """
         response = self.ask_raw('IDN?')
         idparts = ['Ametek', response, None, None]
         return dict(zip(('vendor', 'model', 'serial', 'firmware'), idparts))
 
     def _get_complex_voltage(self) -> complex:
-        """Function to get XY lockin components and return a complex number.
+        """
+        Function to get XY lockin components and return a complex number.
 
         Returns:
             complex: x + j*y as one complex number
+
         """
         XY = self.ask_raw('XY.')
         x = float(XY.split(',',1)[0])
