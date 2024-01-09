@@ -371,3 +371,19 @@ def test_list_step_end_marker_is_removed_on_exit(qdac):  # noqa
         'sour1:dc:trig:sour imm'
     ]
     assert trigger.value in qdac._internal_triggers
+
+
+def test_list_step_end_marker_is_removed_on_close(qdac):  # noqa
+    qdac._set_up_internal_triggers()
+    dc_list = qdac.ch01.dc_list(voltages=range(1, 5))
+    trigger = dc_list.step_end_marker()
+    qdac.start_recording_scpi()
+    # -----------------------------------------------------------------------
+    dc_list.close()
+    # -----------------------------------------------------------------------
+    assert qdac.get_recorded_scpi_commands() == [
+        'sour1:dc:abor',
+        'sour1:dc:mark:send 0',
+        'sour1:dc:trig:sour imm'
+    ]
+    assert trigger.value in qdac._internal_triggers

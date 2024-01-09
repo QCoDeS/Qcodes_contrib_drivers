@@ -389,3 +389,19 @@ def test_square_period_end_marker_is_removed_on_exit(qdac):  # noqa
         'sour1:squ:trig:sour imm'
     ]
     assert trigger.value in qdac._internal_triggers
+
+
+def test_square_period_end_marker_is_removed_on_close(qdac):  # noqa
+    qdac._set_up_internal_triggers()
+    square = qdac.ch01.square_wave(frequency_Hz=1000)
+    trigger = square.period_end_marker()
+    qdac.start_recording_scpi()
+    # -----------------------------------------------------------------------
+    square.close()
+    # -----------------------------------------------------------------------
+    assert qdac.get_recorded_scpi_commands() == [
+        'sour1:squ:abor',
+        'sour1:squ:mark:pend 0',
+        'sour1:squ:trig:sour imm'
+    ]
+    assert trigger.value in qdac._internal_triggers
