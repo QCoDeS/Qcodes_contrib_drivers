@@ -260,7 +260,7 @@ def test_triangle_trigger_on_internal(qdac):  # noqa
     # -----------------------------------------------------------------------
     assert qdac.get_recorded_scpi_commands() == [
         f'sour1:tri:trig:sour int{trigger.value}',
-        f'sour1:tri:init:cont on',
+        'sour1:tri:init:cont on',
     ]
 
 
@@ -273,5 +273,5 @@ def test_triangle_trigger_on_external(qdac):  # noqa
     # -----------------------------------------------------------------------
     assert qdac.get_recorded_scpi_commands() == [
         f'sour1:tri:trig:sour ext{trigger}',
-        f'sour1:tri:init:cont on',
+        'sour1:tri:init:cont on',
     ]
