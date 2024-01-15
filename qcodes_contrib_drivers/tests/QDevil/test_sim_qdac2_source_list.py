@@ -230,7 +230,7 @@ def test_list_trigger_on_internal(qdac):  # noqa
     # -----------------------------------------------------------------------
     assert qdac.get_recorded_scpi_commands() == [
         f'sour1:dc:trig:sour int{trigger.value}',
-        f'sour1:dc:init:cont on',
+        'sour1:dc:init:cont on',
     ]
 
 
@@ -243,7 +243,7 @@ def test_list_trigger_on_external(qdac):  # noqa
     # -----------------------------------------------------------------------
     assert qdac.get_recorded_scpi_commands() == [
         f'sour1:dc:trig:sour ext{trigger}',
-        f'sour1:dc:init:cont on',
+        'sour1:dc:init:cont on',
     ]
 
 
@@ -276,7 +276,7 @@ def test_list_get_voltages(qdac):  # noqa
 
 def test_list_cleanup_triggering_on_exit(qdac):  # noqa
     # -----------------------------------------------------------------------
-    with qdac.ch01.dc_list(voltages=range(1, 5)) as dc_list:
+    with qdac.ch01.dc_list(voltages=range(1, 5)):
         qdac.start_recording_scpi()
     # -----------------------------------------------------------------------
     assert qdac.get_recorded_scpi_commands() == [
@@ -364,6 +364,22 @@ def test_list_step_end_marker_is_removed_on_exit(qdac):  # noqa
     with qdac.ch01.dc_list(voltages=range(1, 5)) as dc_list:
         trigger = dc_list.step_end_marker()
         qdac.start_recording_scpi()
+    # -----------------------------------------------------------------------
+    assert qdac.get_recorded_scpi_commands() == [
+        'sour1:dc:abor',
+        'sour1:dc:mark:send 0',
+        'sour1:dc:trig:sour imm'
+    ]
+    assert trigger.value in qdac._internal_triggers
+
+
+def test_list_step_end_marker_is_removed_on_close(qdac):  # noqa
+    qdac._set_up_internal_triggers()
+    dc_list = qdac.ch01.dc_list(voltages=range(1, 5))
+    trigger = dc_list.step_end_marker()
+    qdac.start_recording_scpi()
+    # -----------------------------------------------------------------------
+    dc_list.close()
     # -----------------------------------------------------------------------
     assert qdac.get_recorded_scpi_commands() == [
         'sour1:dc:abor',

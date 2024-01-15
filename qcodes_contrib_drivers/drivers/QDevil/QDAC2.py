@@ -10,7 +10,7 @@ from typing import NewType, Tuple, Sequence, List, Dict, Optional
 from packaging.version import parse
 import abc
 
-# Version 1.10.0
+# Version 2.0.0
 #
 # Guiding principles for this driver for QDevil QDAC-II
 # -----------------------------------------------------
@@ -44,6 +44,28 @@ import abc
 #
 # - Detect and handle mixing of internal and external triggers (_trigger).
 #
+
+
+# Context manager hierarchy
+# -------------------------
+#
+# _Channel_Context
+#   _Dc_Context
+#     Sweep_Context
+#     List_Context
+#   _Waveform_Context
+#     Square_Context
+#     Sine_Context
+#     Triangle_Context
+#     Awg_Context
+#   Measurement_Context
+# Virtual_Sweep_Context
+# Arrangement_Context
+# QDac2Trigger_Context
+#
+# Calling close() on any context manager will clean up any triggers or
+# markers that were set up by the context.  Use with-statements to
+# have this done automatically.
 
 
 pseudo_trigger_voltage = 5
@@ -111,6 +133,9 @@ class QDac2Trigger_Context:
         self._parent.free_trigger(self)
         # Propagate exceptions
         return False
+
+    def close(self) -> None:
+        self.__exit__(None, None, None)
 
     @property
     def value(self) -> int:
@@ -188,6 +213,10 @@ class _Channel_Context(metaclass=abc.ABCMeta):
         # Propagate exceptions
         return False
 
+    @abc.abstractmethod
+    def close(self) -> None:
+        pass
+
     def allocate_trigger(self) -> QDac2Trigger_Context:
         """Allocate internal trigger
 
@@ -263,6 +292,9 @@ class _Dc_Context(_Channel_Context):
         self._write_channel(f'sour{"{0}"}:dc:trig:sour imm')
         # Propagate exceptions
         return False
+
+    def close(self) -> None:
+        self.__exit__(None, None, None)
 
     def start_on(self, trigger: QDac2Trigger_Context) -> None:
         """Attach internal trigger to DC generator
@@ -560,7 +592,13 @@ class _Waveform_Context(_Channel_Context):
     def __enter__(self):
         return self
 
+    def _abort(self, wave_kind: str) -> None:
+        """Abort any running wave generator
+        """
+        self._write_channel(f'sour{"{0}"}:{wave_kind}:abor')
+
     def _cleanup(self, wave_kind: str) -> None:
+        self._abort(wave_kind)
         if self._trigger:
             self._channel._parent.free_trigger(self._trigger)
         if self._marker_start:
@@ -674,10 +712,12 @@ class Square_Context(_Waveform_Context):
         self._set_triggering()
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.abort()
         super()._cleanup('squ')
         # Propagate exceptions
         return False
+
+    def close(self) -> None:
+        super()._cleanup('squ')
 
     def start(self) -> None:
         """Start the square wave generator
@@ -813,10 +853,12 @@ class Sine_Context(_Waveform_Context):
         self._set_triggering()
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.abort()
         super()._cleanup('sine')
         # Propagate exceptions
         return False
+
+    def close(self) -> None:
+        super()._cleanup('sine')
 
     def start(self) -> None:
         """Start the sine wave generator
@@ -945,10 +987,12 @@ class Triangle_Context(_Waveform_Context):
         self._set_triggering()
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.abort()
         super()._cleanup('tri')
         # Propagate exceptions
         return False
+
+    def close(self) -> None:
+        super()._cleanup('tri')
 
     def start(self) -> None:
         """Start the triangle wave generator
@@ -1081,10 +1125,12 @@ class Awg_Context(_Waveform_Context):
         self._set_triggering()
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.abort()
         super()._cleanup('awg')
         # Propagate exceptions
         return False
+
+    def close(self) -> None:
+        super()._cleanup('awg')
 
     def start(self) -> None:
         """Start the AWG
@@ -1192,6 +1238,21 @@ class Measurement_Context(_Channel_Context):
         self._set_aperture(aperture_s, nplc)
         self._write_channel(f'sens{"{0}"}:coun {repetitions}')
         self._set_triggering()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.abort()
+        if self._trigger:
+            self._channel._parent.free_trigger(self._trigger)
+        # Always disable any triggering
+        self._write_channel(f'sens{"{0}"}:trig:sour imm')
+        # Propagate exceptions
+        return False
+
+    def close(self) -> None:
+        self.__exit__(None, None, None)
 
     def start(self) -> None:
         """Start a current measurement
@@ -1326,7 +1387,7 @@ class QDac2Channel(InstrumentChannel):
         )
         self.add_parameter(
             name='measurement_delay_s',
-            label=f'delay',
+            label='delay',
             unit='s',
             set_cmd='sens{1}:del {0}'.format('{}', channum),
             get_cmd=f'sens{channum}:del?',
@@ -1410,7 +1471,7 @@ class QDac2Channel(InstrumentChannel):
         )
         self.add_parameter(
             name='output_filter',
-            label=f'low-pass cut-off',
+            label='low-pass cut-off',
             unit='Hz',
             set_cmd='sour{1}:filt {0}'.format('{}', channum),
             get_cmd=f'sour{channum}:filt?',
@@ -1467,7 +1528,7 @@ class QDac2Channel(InstrumentChannel):
         )
         self.add_parameter(
             name='dc_mode',
-            label=f'DC mode',
+            label='DC mode',
             set_cmd='sour{1}:volt:mode {0}'.format('{}', channum),
             get_cmd=f'sour{channum}:volt:mode?',
             vals=validators.Enum('fixed', 'list', 'sweep')
@@ -1802,8 +1863,20 @@ class Virtual_Sweep_Context:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        # Stop markers
+        channel = self._get_channel(0)
+        channel.write_channel(f'sour{"{0}"}:dc:mark:sst 0')
+        # Stop any lists
+        for contact_index in range(self._arrangement.shape):
+            channel = self._get_channel(contact_index)
+            channel.dc_abort()
+            channel.write_channel(f'sour{"{0}"}:dc:trig:sour imm')
         # Let Arrangement take care of freeing triggers
         return False
+
+    def close(self) -> None:
+        self.__exit__(None, None, None)
+        self._arrangement.close()
 
     def actual_values_V(self, contact: str) -> np.ndarray:
         """The corrected values that would actually be sent to the contact
@@ -1879,14 +1952,23 @@ class Arrangement_Context:
         self._fix_contact_order(contacts)
         self._allocate_triggers(internal_triggers, output_triggers)
         self._outer_trigger_channel = outer_trigger_channel
+        self._outer_trigger_context: Optional[Sine_Context] = None
         self._correction = np.identity(self.shape)
 
     def __enter__(self):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        if self._external_triggers:
+            for port in self._external_triggers.values():
+                self._qdac.write(f'outp:trig{port}:sour hold')
+        if self._outer_trigger_context:
+            self._outer_trigger_context.close()
         self._free_triggers()
         return False
+
+    def close(self) -> None:
+        self.__exit__(None, None, None)
 
     @property
     def shape(self) -> int:
@@ -2141,7 +2223,6 @@ class Arrangement_Context:
         if not self._outer_trigger_channel:
             raise ValueError("Arrangement needs an outer_trigger_channel when"
                              " using outer_step_trigger")
-            return
         helper_ch = self._qdac.channel(self._outer_trigger_channel)
         helper_ctx = helper_ch.sine_wave(
             period_s=period_s, repetitions=outer_cycles, span_V=0)

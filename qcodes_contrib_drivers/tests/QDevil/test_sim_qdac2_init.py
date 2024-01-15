@@ -3,6 +3,7 @@ from qcodes_contrib_drivers.drivers.QDevil.QDAC2 import QDac2, split_version_str
 from qcodes.instrument.base import Instrument
 from .sim_qdac2_fixtures import visalib
 
+
 @pytest.mark.parametrize('version,components', [
     ('3-0.9.6', ['3', '0.9.6']),
     ('10.2-1.14', ['10.2', '1.14'])

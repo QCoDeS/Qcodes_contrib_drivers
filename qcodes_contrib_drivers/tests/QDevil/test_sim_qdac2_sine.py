@@ -233,7 +233,7 @@ def test_sine_trigger_on_internal(qdac):  # noqa
     # -----------------------------------------------------------------------
     assert qdac.get_recorded_scpi_commands() == [
         f'sour1:sine:trig:sour int{trigger.value}',
-        f'sour1:sine:init:cont on',
+        'sour1:sine:init:cont on',
     ]
 
 
@@ -246,5 +246,5 @@ def test_sine_trigger_on_external(qdac):  # noqa
     # -----------------------------------------------------------------------
     assert qdac.get_recorded_scpi_commands() == [
         f'sour1:sine:trig:sour ext{trigger}',
-        f'sour1:sine:init:cont on',
+        'sour1:sine:init:cont on',
     ]
