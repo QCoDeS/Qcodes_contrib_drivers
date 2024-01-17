@@ -5,6 +5,7 @@ when snapshotted.
 """
 import dataclasses
 import enum
+from abc import abstractmethod
 from typing import Protocol, Sequence, runtime_checkable
 
 import numpy as np
@@ -26,15 +27,19 @@ class CountConversionMode(enum.IntEnum):
 
 
 @runtime_checkable
+@dataclasses.dataclass
 class PostProcessingFunction(Protocol):
     """Protocol specifying a valid, stateful post-processing function."""
 
     def __call__(self, input_image: npt.NDArray[np.int32]) -> npt.NDArray[np.int32]:
         pass
 
+    def _JSONEncoder(self) -> dict:
+        return dataclasses.asdict(self)
+
 
 @dataclasses.dataclass
-class Identity:
+class Identity(PostProcessingFunction):
     """Returns a copy of the input image."""
 
     def __call__(self, input_image: npt.NDArray[np.int32]) -> npt.NDArray[np.int32]:
@@ -42,7 +47,7 @@ class Identity:
 
 
 @dataclasses.dataclass
-class NoiseFilter:
+class NoiseFilter(PostProcessingFunction):
     """
     This function will apply a filter to the input image and return the
     processed image in the output buffer.
@@ -84,7 +89,7 @@ class NoiseFilter:
 
 
 @dataclasses.dataclass
-class PhotonCounting:
+class PhotonCounting(PostProcessingFunction):
     """
     This function will convert the input image data to photons and
     return the processed image in the output buffer.
@@ -107,7 +112,7 @@ class PhotonCounting:
 
 
 @dataclasses.dataclass
-class CountConvert:
+class CountConvert(PostProcessingFunction):
     # TODO (thangleiter): untested because unavailable.
     atmcd64d: atmcd64d = dataclasses.field(repr=False)
     baseline: int
