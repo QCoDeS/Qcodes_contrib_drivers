@@ -51,7 +51,8 @@ import numpy.typing as npt
 from qcodes import (DelegateParameter, Instrument, ManualParameter, MultiParameter, Parameter,
                     ParameterWithSetpoints)
 from qcodes import validators as vals
-from qcodes.parameters import ParameterBase
+from qcodes.instrument import InstrumentBase
+from qcodes.parameters import ParameterBase, ParamRawDataType
 from qcodes.parameters.cache import _Cache, _CacheProtocol
 from qcodes.utils.helpers import create_on_off_val_mapping
 from qcodes.validators import Validator
@@ -263,6 +264,35 @@ class FastKineticsSettings(MultiParameter):
         # The exposure time always seems to be 0 in fast kinetics mode
         # self.instrument.exposure_time.set(val[2])
         self.instrument.read_mode.set(self.instrument.read_mode.inverse_val_mapping[val[3]])
+
+
+class ParameterWithSetSideEffect(Parameter):
+    """A :class:`Parameter` allowing for side effects on set events.
+
+    Parameters
+    ----------
+    set_side_effect :
+        A callable that is run before every set event. Receives self and
+        the set value as arguments.
+    """
+
+    def __init__(self, name: str, set_side_effect: Callable[[Parameter, Any], None],
+                 instrument: InstrumentBase | None = None, label: str | None = None,
+                 unit: str | None = None,
+                 get_cmd: str | Callable[..., Any] | Literal[False] | None = None,
+                 set_cmd: str | Callable[..., Any] | Literal[False] | None = False,
+                 initial_value: float | str | None = None, max_val_age: float | None = None,
+                 vals: Validator[Any] | None = None, docstring: str | None = None,
+                 initial_cache_value: float | str | None = None, bind_to_instrument: bool = True,
+                 **kwargs: Any) -> None:
+        super().__init__(name, instrument, label, unit, get_cmd, set_cmd, initial_value,
+                         max_val_age, vals, docstring, initial_cache_value, bind_to_instrument,
+                         **kwargs)
+        self.set_side_effect = set_side_effect
+
+    def set_raw(self, value: ParamRawDataType) -> None:
+        self.set_side_effect(self, value)
+        super().set_raw(value)
 
 
 class PixelAxis(Parameter):
@@ -850,8 +880,9 @@ class AndorIDus4xx(Instrument):
                            """))
 
         self.add_parameter('acquisition_mode',
+                           parameter_class=ParameterWithSetSideEffect,
                            set_cmd=self.atmcd64d.set_acquisition_mode,
-                           set_parser=self._parse_acquisition_mode,
+                           set_side_effect=self._parse_acquisition_mode,
                            val_mapping={'single scan': 1,
                                         'accumulate': 2,
                                         'kinetics': 3,
@@ -862,8 +893,9 @@ class AndorIDus4xx(Instrument):
                            docstring=dedent(self.atmcd64d.set_acquisition_mode.__doc__))
 
         self.add_parameter('read_mode',
+                           parameter_class=ParameterWithSetSideEffect,
                            set_cmd=self.atmcd64d.set_read_mode,
-                           set_parser=self._parse_read_mode,
+                           set_side_effect=self._parse_read_mode,
                            val_mapping={'full vertical binning': 0,
                                         'multi track': 1,
                                         'random track': 2,
@@ -919,7 +951,7 @@ class AndorIDus4xx(Instrument):
             acquisition_settings['read_mode_settings'] = settings.get_latest()
         return acquisition_settings
 
-    def _parse_acquisition_mode(self, val: str) -> str:
+    def _parse_acquisition_mode(self, val: str):
         # Invalidate relevant caches
         self.acquired_frames.cache.invalidate()
         self.acquired_accumulations.cache.invalidate()
@@ -941,14 +973,12 @@ class AndorIDus4xx(Instrument):
             self.ccd_data.setpoints = setpoints
             self.ccd_data.vals = vals.Arrays(shape=shape)
 
-        return val
-
     def _parse_background(self, data: npt.NDArray) -> npt.NDArray:
         """Stores current acquisition settings as parameter metadata."""
         self.background.load_metadata(self._freeze_acquisition_settings())
         return data
 
-    def _parse_read_mode(self, val: str) -> str:
+    def _parse_read_mode(self, val: str):
         # Invalidate relevant caches
         self.acquired_pixels.cache.invalidate()
 
@@ -969,8 +999,6 @@ class AndorIDus4xx(Instrument):
         else:
             self.ccd_data.setpoints = setpoints + (self.horizontal_axis,)
             self.ccd_data.vals = vals.Arrays(shape=shape + (self._acquired_horizontal_pixels,))
-
-        return val
 
     @staticmethod
     def _has_vertical_dimension(read_mode) -> bool:
