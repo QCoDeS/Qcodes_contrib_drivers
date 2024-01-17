@@ -48,14 +48,12 @@ from typing import Any, Callable, Dict, Literal, Optional, Sequence, Tuple
 
 import numpy as np
 import numpy.typing as npt
-from qcodes import (DelegateParameter, Instrument, ManualParameter, MultiParameter, Parameter,
-                    ParameterWithSetpoints)
 from qcodes import validators as vals
-from qcodes.instrument import InstrumentBase
-from qcodes.parameters import ParameterBase, ParamRawDataType
+from qcodes.instrument import InstrumentBase, Instrument
+from qcodes.parameters import (ParameterBase, ParamRawDataType, DelegateParameter,
+                               ManualParameter, MultiParameter, Parameter, ParameterWithSetpoints)
 from qcodes.parameters.cache import _Cache, _CacheProtocol
 from qcodes.utils.helpers import create_on_off_val_mapping
-from qcodes.validators import Validator
 from tqdm import tqdm
 
 from . import post_processing
@@ -282,7 +280,7 @@ class ParameterWithSetSideEffect(Parameter):
                  get_cmd: str | Callable[..., Any] | Literal[False] | None = None,
                  set_cmd: str | Callable[..., Any] | Literal[False] | None = False,
                  initial_value: float | str | None = None, max_val_age: float | None = None,
-                 vals: Validator[Any] | None = None, docstring: str | None = None,
+                 vals: vals.Validator[Any] | None = None, docstring: str | None = None,
                  initial_cache_value: float | str | None = None, bind_to_instrument: bool = True,
                  **kwargs: Any) -> None:
         super().__init__(name, instrument, label, unit, get_cmd, set_cmd, initial_value,
@@ -443,12 +441,12 @@ class CCDData(ParameterWithSetpoints):
             delegate.setpoints = setpoints
 
     @property
-    def vals(self) -> Validator | None:
+    def vals(self) -> vals.Validator | None:
         # Only here for mypy: https://github.com/python/mypy/issues/5936
         return super().vals
 
     @vals.setter
-    def vals(self, vals: Validator | None) -> None:
+    def vals(self, vals: vals.Validator | None) -> None:
         # https://github.com/python/mypy/issues/5936#issuecomment-1429175144
         ParameterWithSetpoints.vals.fset(self, vals)  # type: ignore[attr-defined]
         for delegate in self._delegates:

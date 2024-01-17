@@ -5,7 +5,6 @@ when snapshotted.
 """
 import dataclasses
 import enum
-from abc import abstractmethod
 from typing import Protocol, Sequence, runtime_checkable
 
 import numpy as np
