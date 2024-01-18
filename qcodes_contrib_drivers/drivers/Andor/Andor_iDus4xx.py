@@ -270,27 +270,21 @@ class ParameterWithSetSideEffect(Parameter):
     Parameters
     ----------
     set_side_effect :
-        A callable that is run before every set event. Receives self and
-        the set value as arguments.
+        A callable that is run before every set event. Receives the
+        parameter instance and the set value as arguments.
     """
 
     def __init__(self, name: str, set_side_effect: Callable[[Parameter, Any], None],
-                 instrument: InstrumentBase | None = None, label: str | None = None,
-                 unit: str | None = None,
-                 get_cmd: str | Callable[..., Any] | Literal[False] | None = None,
-                 set_cmd: str | Callable[..., Any] | Literal[False] | None = False,
-                 initial_value: float | str | None = None, max_val_age: float | None = None,
-                 vals: validators.Validator[Any] | None = None, docstring: str | None = None,
-                 initial_cache_value: float | str | None = None, bind_to_instrument: bool = True,
                  **kwargs: Any) -> None:
-        super().__init__(name, instrument, label, unit, get_cmd, set_cmd, initial_value,
-                         max_val_age, vals, docstring, initial_cache_value, bind_to_instrument,
-                         **kwargs)
-        self.set_side_effect = set_side_effect
+        if not callable(set_cmd := kwargs.pop('set_cmd', False)):
+            raise ValueError('ParameterWithSetSideEffect requires a set_cmd')
 
-    def set_raw(self, value: ParamRawDataType) -> None:
-        self.set_side_effect(self, value)
-        super().set_raw(value)
+        def set_raw(value: ParamRawDataType) -> None:
+            # Parameter does not allow overriding set_raw method
+            set_side_effect(self, value)
+            set_cmd(value)
+
+        super().__init__(name, set_cmd=set_raw, **kwargs)
 
 
 class PixelAxis(Parameter):
@@ -882,7 +876,7 @@ class AndorIDus4xx(Instrument):
         self.add_parameter('acquisition_mode',
                            parameter_class=ParameterWithSetSideEffect,
                            set_cmd=self.atmcd64d.set_acquisition_mode,
-                           set_side_effect=self._parse_acquisition_mode,
+                           set_side_effect=self._process_acquisition_mode,
                            val_mapping={'single scan': 1,
                                         'accumulate': 2,
                                         'kinetics': 3,
@@ -895,7 +889,7 @@ class AndorIDus4xx(Instrument):
         self.add_parameter('read_mode',
                            parameter_class=ParameterWithSetSideEffect,
                            set_cmd=self.atmcd64d.set_read_mode,
-                           set_side_effect=self._parse_read_mode,
+                           set_side_effect=self._process_read_mode,
                            val_mapping={'full vertical binning': 0,
                                         'multi track': 1,
                                         'random track': 2,
@@ -951,7 +945,12 @@ class AndorIDus4xx(Instrument):
             acquisition_settings['read_mode_settings'] = settings.get_latest()
         return acquisition_settings
 
-    def _parse_acquisition_mode(self, val: str):
+    def _parse_background(self, data: npt.NDArray) -> npt.NDArray:
+        """Stores current acquisition settings as parameter metadata."""
+        self.background.load_metadata(self._freeze_acquisition_settings())
+        return data
+
+    def _process_acquisition_mode(self, param: Parameter, param_val: str):
         # Invalidate relevant caches
         self.acquired_frames.cache.invalidate()
         self.acquired_accumulations.cache.invalidate()
@@ -966,7 +965,7 @@ class AndorIDus4xx(Instrument):
             setpoints = (self.horizontal_axis,)
             shape = (self._acquired_horizontal_pixels,)
 
-        if self._has_time_dimension(val):
+        if self._has_time_dimension(param_val):
             self.ccd_data.setpoints = (self.time_axis,) + setpoints
             self.ccd_data.vals = validators.Arrays(
                 shape=(self.acquired_frames.get_latest,) + shape
@@ -975,12 +974,7 @@ class AndorIDus4xx(Instrument):
             self.ccd_data.setpoints = setpoints
             self.ccd_data.vals = validators.Arrays(shape=shape)
 
-    def _parse_background(self, data: npt.NDArray) -> npt.NDArray:
-        """Stores current acquisition settings as parameter metadata."""
-        self.background.load_metadata(self._freeze_acquisition_settings())
-        return data
-
-    def _parse_read_mode(self, val: str):
+    def _process_read_mode(self, param: Parameter, param_val: str):
         # Invalidate relevant caches
         self.acquired_pixels.cache.invalidate()
 
@@ -994,7 +988,7 @@ class AndorIDus4xx(Instrument):
             setpoints = ()
             shape = ()
 
-        if self._has_vertical_dimension(val):
+        if self._has_vertical_dimension(param_val):
             self.ccd_data.setpoints = setpoints + (self.vertical_axis, self.horizontal_axis)
             self.ccd_data.vals = validators.Arrays(
                 shape=shape + (self._acquired_vertical_pixels, self._acquired_horizontal_pixels)
