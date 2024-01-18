@@ -48,7 +48,7 @@ from typing import Any, Callable, Dict, Literal, Optional, Sequence, Tuple
 
 import numpy as np
 import numpy.typing as npt
-from qcodes import validators as vals
+from qcodes import validators
 from qcodes.instrument import InstrumentBase, Instrument
 from qcodes.parameters import (ParameterBase, ParamRawDataType, DelegateParameter,
                                ManualParameter, MultiParameter, Parameter, ParameterWithSetpoints)
@@ -66,10 +66,10 @@ def dedent(text: str | None) -> str | None:
     return textwrap.dedent(text) if text is not None else None
 
 
-class _HeterogeneousSequence(vals.Validator[Sequence[Any]]):
+class _HeterogeneousSequence(validators.Validator[Sequence[Any]]):
     """A validator for heterogeneous sequences."""
 
-    def __init__(self, elt_validators: Sequence[vals.Validator[Any]] = (vals.Anything(),)) -> None:
+    def __init__(self, elt_validators: Sequence[validators.Validator[Any]] = (validators.Anything(),)) -> None:
         self._elt_validators = elt_validators
         self._valid_values = ([vval for vval in itertools.chain(*(
             elt_validator._valid_values for elt_validator in self._elt_validators
@@ -83,11 +83,11 @@ class _HeterogeneousSequence(vals.Validator[Sequence[Any]]):
                 f"{value!r} has not length {self.length} but {len(value)}"
             )
         for elt, validator in zip(value, self._elt_validators):
-            if not isinstance(validator, vals.Anything):
+            if not isinstance(validator, validators.Anything):
                 validator.validate(elt)
 
     @property
-    def elt_validators(self) -> Sequence[vals.Validator[Any]]:
+    def elt_validators(self) -> Sequence[validators.Validator[Any]]:
         return self._elt_validators
 
     @property
@@ -95,8 +95,8 @@ class _HeterogeneousSequence(vals.Validator[Sequence[Any]]):
         return len(self.elt_validators)
 
 
-class _PostProcessingCallable(vals.Validator[Callable[[npt.NDArray[np.int32]],
-                                                      npt.NDArray[np.int32]]]):
+class _PostProcessingCallable(validators.Validator[Callable[[npt.NDArray[np.int32]],
+                              npt.NDArray[np.int32]]]):
     """A validator for post-processing functions."""
 
     def __init__(self) -> None:
@@ -280,7 +280,7 @@ class ParameterWithSetSideEffect(Parameter):
                  get_cmd: str | Callable[..., Any] | Literal[False] | None = None,
                  set_cmd: str | Callable[..., Any] | Literal[False] | None = False,
                  initial_value: float | str | None = None, max_val_age: float | None = None,
-                 vals: vals.Validator[Any] | None = None, docstring: str | None = None,
+                 vals: validators.Validator[Any] | None = None, docstring: str | None = None,
                  initial_cache_value: float | str | None = None, bind_to_instrument: bool = True,
                  **kwargs: Any) -> None:
         super().__init__(name, instrument, label, unit, get_cmd, set_cmd, initial_value,
@@ -441,12 +441,12 @@ class CCDData(ParameterWithSetpoints):
             delegate.setpoints = setpoints
 
     @property
-    def vals(self) -> vals.Validator | None:
+    def vals(self) -> validators.Validator | None:
         # Only here for mypy: https://github.com/python/mypy/issues/5936
         return super().vals
 
     @vals.setter
-    def vals(self, vals: vals.Validator | None) -> None:
+    def vals(self, vals: validators.Validator | None) -> None:
         # https://github.com/python/mypy/issues/5936#issuecomment-1429175144
         ParameterWithSetpoints.vals.fset(self, vals)  # type: ignore[attr-defined]
         for delegate in self._delegates:
@@ -581,9 +581,10 @@ class AndorIDus4xx(Instrument):
                                   'vbin', 'offset'),
                            shapes=((), (), (), (), (), (), ()),
                            units=('px', 'px', 's', '', 'px', 'px', 'px'),
-                           vals=_HeterogeneousSequence([vals.Ints(1), vals.Ints(1),
-                                                        vals.Numbers(0), vals.Enum(0, 4),
-                                                        vals.Ints(1), vals.Ints(1), vals.Ints(0)]),
+                           vals=_HeterogeneousSequence([validators.Ints(1), validators.Ints(1),
+                                                        validators.Numbers(0),
+                                                        validators.Enum(0, 4), validators.Ints(1),
+                                                        validators.Ints(1), validators.Ints(0)]),
                            docstring=dedent(self.atmcd64d.set_fast_kinetics.__doc__),
                            snapshot_value=True)
 
@@ -640,7 +641,8 @@ class AndorIDus4xx(Instrument):
                            names=('number', 'height', 'offset', 'bottom', 'gap'),
                            shapes=((), (), (), (), ()),
                            units=('px', 'px', 'px', 'px', 'px'),
-                           vals=_HeterogeneousSequence([vals.Ints(1), vals.Ints(1), vals.Ints(0)]),
+                           vals=_HeterogeneousSequence([validators.Ints(1), validators.Ints(1),
+                                                        validators.Ints(0)]),
                            docstring=dedent(self.atmcd64d.set_multi_track.__doc__),
                            snapshot_value=True)
 
@@ -697,8 +699,8 @@ class AndorIDus4xx(Instrument):
                            names=('number_tracks', 'areas'),
                            shapes=((), ()),
                            units=('', 'px'),
-                           vals=_HeterogeneousSequence([vals.Ints(1),
-                                                        vals.Sequence(vals.Ints(1))]),
+                           vals=_HeterogeneousSequence([validators.Ints(1),
+                                                        validators.Sequence(validators.Ints(1))]),
                            docstring=dedent(self.atmcd64d.set_random_tracks.__doc__),
                            snapshot_value=True)
 
@@ -710,8 +712,8 @@ class AndorIDus4xx(Instrument):
         temperature_range = self.atmcd64d.get_temperature_range()
         self.add_parameter('set_temperature',
                            set_cmd=self.atmcd64d.set_temperature,
-                           vals=vals.Ints(min_value=min_temperature or temperature_range[0],
-                                          max_value=temperature_range[1]),
+                           vals=validators.Ints(min_value=min_temperature or temperature_range[0],
+                                                max_value=temperature_range[1]),
                            unit=u"\u00b0" + 'C',
                            label='set temperature',
                            docstring=dedent(self.atmcd64d.set_temperature.__doc__))
@@ -730,7 +732,7 @@ class AndorIDus4xx(Instrument):
                            names=('centre', 'height'),
                            shapes=((), ()),
                            units=('px', 'px'),
-                           vals=vals.Sequence(vals.Ints(1), length=2),
+                           vals=validators.Sequence(validators.Ints(1), length=2),
                            docstring=dedent(self.atmcd64d.set_single_track.__doc__),
                            snapshot_value=True)
 
@@ -774,12 +776,12 @@ class AndorIDus4xx(Instrument):
                            shapes=((), (), (), (), (), ()),
                            units=('px', 'px', 'px', 'px', 'px', 'px'),
                            vals=_HeterogeneousSequence([
-                               vals.Ints(1, self.detector_pixels.get_latest()[0]),
-                               vals.Ints(1, self.detector_pixels.get_latest()[1]),
-                               vals.Ints(1, self.detector_pixels.get_latest()[0] - 1),
-                               vals.Ints(2, self.detector_pixels.get_latest()[0]),
-                               vals.Ints(1, self.detector_pixels.get_latest()[1] - 1),
-                               vals.Ints(2, self.detector_pixels.get_latest()[1])
+                               validators.Ints(1, self.detector_pixels.get_latest()[0]),
+                               validators.Ints(1, self.detector_pixels.get_latest()[1]),
+                               validators.Ints(1, self.detector_pixels.get_latest()[0] - 1),
+                               validators.Ints(2, self.detector_pixels.get_latest()[0]),
+                               validators.Ints(1, self.detector_pixels.get_latest()[1] - 1),
+                               validators.Ints(2, self.detector_pixels.get_latest()[1])
                            ]),
                            docstring=dedent(self.atmcd64d.set_image.__doc__),
                            snapshot_value=True)
@@ -806,7 +808,7 @@ class AndorIDus4xx(Instrument):
 
         self.add_parameter('time_axis',
                            parameter_class=TimeAxis,
-                           vals=vals.Arrays(shape=(self.acquired_frames.get_latest,)),
+                           vals=validators.Arrays(shape=(self.acquired_frames.get_latest,)),
                            unit='s',
                            label='Time axis (frames)',
                            docstring=TimeAxis.__doc__)
@@ -814,7 +816,7 @@ class AndorIDus4xx(Instrument):
         self.add_parameter('horizontal_axis',
                            parameter_class=PixelAxis,
                            dimension=0,
-                           vals=vals.Arrays(shape=(self._acquired_horizontal_pixels,)),
+                           vals=validators.Arrays(shape=(self._acquired_horizontal_pixels,)),
                            unit='px',
                            label='Horizontal axis',
                            docstring=PixelAxis.__doc__)
@@ -822,7 +824,7 @@ class AndorIDus4xx(Instrument):
         self.add_parameter('vertical_axis',
                            parameter_class=PixelAxis,
                            dimension=1,
-                           vals=vals.Arrays(shape=(self._acquired_vertical_pixels,)),
+                           vals=validators.Arrays(shape=(self._acquired_vertical_pixels,)),
                            unit='px',
                            label='Vertical axis',
                            docstring=PixelAxis.__doc__)
@@ -831,7 +833,7 @@ class AndorIDus4xx(Instrument):
                            setpoints=(self.time_axis, self.vertical_axis, self.horizontal_axis,),
                            parameter_class=CCDData,
                            get_parser=lambda val: self.post_processing_function()(val),
-                           vals=vals.Arrays(shape=(
+                           vals=validators.Arrays(shape=(
                                self.acquired_frames.get_latest,
                                self._acquired_vertical_pixels,
                                self._acquired_horizontal_pixels
@@ -966,10 +968,12 @@ class AndorIDus4xx(Instrument):
 
         if self._has_time_dimension(val):
             self.ccd_data.setpoints = (self.time_axis,) + setpoints
-            self.ccd_data.vals = vals.Arrays(shape=(self.acquired_frames.get_latest,) + shape)
+            self.ccd_data.vals = validators.Arrays(
+                shape=(self.acquired_frames.get_latest,) + shape
+            )
         else:
             self.ccd_data.setpoints = setpoints
-            self.ccd_data.vals = vals.Arrays(shape=shape)
+            self.ccd_data.vals = validators.Arrays(shape=shape)
 
     def _parse_background(self, data: npt.NDArray) -> npt.NDArray:
         """Stores current acquisition settings as parameter metadata."""
@@ -992,11 +996,14 @@ class AndorIDus4xx(Instrument):
 
         if self._has_vertical_dimension(val):
             self.ccd_data.setpoints = setpoints + (self.vertical_axis, self.horizontal_axis)
-            self.ccd_data.vals = vals.Arrays(shape=shape + (self._acquired_vertical_pixels,
-                                                            self._acquired_horizontal_pixels))
+            self.ccd_data.vals = validators.Arrays(
+                shape=shape + (self._acquired_vertical_pixels, self._acquired_horizontal_pixels)
+            )
         else:
             self.ccd_data.setpoints = setpoints + (self.horizontal_axis,)
-            self.ccd_data.vals = vals.Arrays(shape=shape + (self._acquired_horizontal_pixels,))
+            self.ccd_data.vals = validators.Arrays(
+                shape=shape + (self._acquired_horizontal_pixels,)
+            )
 
     @staticmethod
     def _has_vertical_dimension(read_mode) -> bool:
