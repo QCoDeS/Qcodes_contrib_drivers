@@ -59,6 +59,8 @@ from tqdm import tqdm
 from . import post_processing
 from .private.andor_sdk import SDKError, atmcd64d
 
+_T = TypeVar('_T')
+
 
 @wraps(textwrap.dedent)
 def dedent(text: str | None) -> str | None:
@@ -675,6 +677,7 @@ class AndorIDus4xx(Instrument):
                            parameter_class=ManualParameter,
                            initial_value=post_processing.Identity(),
                            vals=_PostProcessingCallable(),
+                           set_parser=self._parse_post_processing_function,
                            docstring="A callable with signature f(data) -> processed_data that is "
                                      "used injected into the ccd_data parameter get_parser.")
 
@@ -1016,6 +1019,13 @@ class AndorIDus4xx(Instrument):
         if not self._has_vertical_dimension(self.read_mode.get_latest()):
             shp.insert(1, 1)
         return self.post_processing_function()(val.reshape(shp)).reshape(val.shape)
+
+    def _parse_post_processing_function(self, val: _T) -> _T:
+        # Make sure the post-processing function knows the dll
+        if not hasattr(val, 'atmcd64d') or val.atmcd64d is None:
+            val.atmcd64d = self.atmcd64d
+        return val
+
     def _parse_status(self, code: int) -> str:
         status = {
             'DRV_IDLE': 'IDLE waiting on instructions.',

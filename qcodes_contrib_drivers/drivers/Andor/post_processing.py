@@ -37,8 +37,10 @@ class PostProcessingFunction(Protocol):
     def __call__(self, input_image: npt.NDArray[np.int32]) -> npt.NDArray[np.int32]:
         pass
 
-    def _JSONEncoder(self) -> dict:
-        return dataclasses.asdict(self)
+    def _JSONEncoder(self) -> dict[str, Any]:
+        asdict = dataclasses.asdict(self)
+        asdict.pop('atmcd64d', None)
+        return asdict
 
 
 @dataclasses.dataclass
@@ -78,12 +80,14 @@ class NoiseFilter(PostProcessingFunction):
         Threshold count above the baseline.
 
     """
-    atmcd64d: atmcd64d = dataclasses.field(repr=False)
     baseline: int
     mode: NoiseFilterMode
     threshold: float
+    atmcd64d: andor_sdk.atmcd64d | None = dataclasses.field(default=None, repr=False)
 
     def __call__(self, input_image: npt.NDArray[np.int32]) -> npt.NDArray[np.int32]:
+        if self.atmcd64d is None:
+            raise RuntimeError('Provide an atmcd64d instance to use this function')
         _, height, width = input_image.shape
         output_image = self.atmcd64d.post_process_noise_filter(input_image.reshape(-1),
                                                                self.baseline, self.mode.value,
@@ -103,10 +107,12 @@ class PhotonCounting(PostProcessingFunction):
         The Thresholds used to define a photon (min and max)
 
     """
-    atmcd64d: atmcd64d = dataclasses.field(repr=False)
     thresholds: tuple[int, int]
+    atmcd64d: andor_sdk.atmcd64d | None = dataclasses.field(default=None, repr=False)
 
     def __call__(self, input_image: npt.NDArray[np.int32]) -> npt.NDArray[np.int32]:
+        if self.atmcd64d is None:
+            raise RuntimeError('Provide an atmcd64d instance to use this function')
         num_images, height, width = input_image.shape
         # ??? Unclear from documentation what difference num_frames makes.
         num_frames = num_images
@@ -119,14 +125,16 @@ class PhotonCounting(PostProcessingFunction):
 @dataclasses.dataclass
 class CountConvert(PostProcessingFunction):
     # TODO (thangleiter): untested because unavailable.
-    atmcd64d: atmcd64d = dataclasses.field(repr=False)
     baseline: int
     mode: CountConversionMode
     em_gain: int
     quantum_efficiency: float
     sensitivity: float = 0.0
+    atmcd64d: andor_sdk.atmcd64d | None = dataclasses.field(default=None, repr=False)
 
     def __call__(self, input_image: npt.NDArray[np.int32]) -> npt.NDArray[np.int32]:
+        if self.atmcd64d is None:
+            raise RuntimeError('Provide an atmcd64d instance to use this function')
         num_frames, height, width = input_image.shape
         output_image = self.atmcd64d.post_process_count_convert(input_image.reshape(-1),
                                                                 num_frames, self.baseline,
