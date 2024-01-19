@@ -1091,7 +1091,7 @@ class AndorIDus4xx(Instrument):
     def _parse_post_processing_function(self, val: _T) -> _T:
         # Make sure the post-processing function knows the dll
         if not hasattr(val, 'atmcd64d') or val.atmcd64d is None:
-            val.atmcd64d = self.atmcd64d
+            setattr(val, 'atmcd64d', self.atmcd64d)
         return val
 
     def _parse_status(self, code: int) -> str:
