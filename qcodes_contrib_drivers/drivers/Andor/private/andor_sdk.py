@@ -982,7 +982,7 @@ class atmcd64d:
         ----
         *first* and *last* as returned by :meth:`get_number_available_images`
         or :meth:`get_number_new_images` are switched around and start
-        with  the wrong index. For example, if those functions return
+        with the wrong index. For example, if those functions return
         (6, 0), *first* and *last* should be 1 and 6, respectively.
 
         See Also

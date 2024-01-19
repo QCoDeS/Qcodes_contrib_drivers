@@ -44,12 +44,12 @@ import textwrap
 import time
 from collections import abc
 from functools import partial, wraps
-from typing import Any, Callable, Dict, Literal, Optional, Sequence, Tuple
+from typing import Any, Callable, Dict, Literal, Optional, Sequence, Tuple, TypeVar
 
 import numpy as np
 import numpy.typing as npt
 from qcodes import validators
-from qcodes.instrument import InstrumentBase, Instrument
+from qcodes.instrument import Instrument
 from qcodes.parameters import (ParameterBase, ParamRawDataType, DelegateParameter,
                                ManualParameter, MultiParameter, Parameter, ParameterWithSetpoints)
 from qcodes.parameters.cache import _Cache, _CacheProtocol
@@ -71,7 +71,10 @@ def dedent(text: str | None) -> str | None:
 class _HeterogeneousSequence(validators.Validator[Sequence[Any]]):
     """A validator for heterogeneous sequences."""
 
-    def __init__(self, elt_validators: Sequence[validators.Validator[Any]] = (validators.Anything(),)) -> None:
+    def __init__(
+            self,
+            elt_validators: Sequence[validators.Validator[Any]] = (validators.Anything(),)
+    ) -> None:
         self._elt_validators = elt_validators
         self._valid_values = ([vval for vval in itertools.chain(*(
             elt_validator._valid_values for elt_validator in self._elt_validators
@@ -679,7 +682,7 @@ class AndorIDus4xx(Instrument):
                            vals=_PostProcessingCallable(),
                            set_parser=self._parse_post_processing_function,
                            docstring="A callable with signature f(data) -> processed_data that is "
-                                     "used injected into the ccd_data parameter get_parser.")
+                                     "used as the ccd_data parameter get_parser.")
 
         gains = [round(self.atmcd64d.get_preamp_gain(index), 3)
                  for index in range(self.atmcd64d.get_number_preamp_gains())]
@@ -948,10 +951,6 @@ class AndorIDus4xx(Instrument):
             acquisition_settings['read_mode_settings'] = settings.get_latest()
         return acquisition_settings
 
-    def _parse_background(self, data: npt.NDArray) -> npt.NDArray:
-        """Stores current acquisition settings as parameter metadata."""
-        self.background.load_metadata(self._freeze_acquisition_settings())
-        return data
     def _process_acquisition_mode(self, param: Parameter, param_val: str):
         # Invalidate relevant caches
         self.acquired_frames.cache.invalidate()
@@ -1009,6 +1008,10 @@ class AndorIDus4xx(Instrument):
     def _has_time_dimension(acquisition_mode) -> bool:
         return acquisition_mode not in (1, 2)
 
+    def _parse_background(self, data: npt.NDArray) -> npt.NDArray:
+        """Stores current acquisition settings as parameter metadata."""
+        self.background.load_metadata(self._freeze_acquisition_settings())
+        return data
 
     def _parse_ccd_data(self, val: npt.NDArray) -> npt.NDArray:
         # Make sure post_processing_function always gets a 3d array but return
@@ -1045,15 +1048,16 @@ class AndorIDus4xx(Instrument):
 
     def _subtract_background(self, data: npt.NDArray) -> npt.NDArray:
         if (background := self.background.cache.get(False)) is None:
-            raise ValueError("No background acquired. Perform a get on the 'background' parameter")
+            raise RuntimeError("No background acquired. Perform a get on the 'background' "
+                               "parameter")
 
         current_settings = self._freeze_acquisition_settings()
         background_settings = {key: self.background.metadata.get(key, None)
                                for key in current_settings}
         if not self.background_is_valid:
-            raise ValueError('Background was acquired for different settings; cannot subtract '
-                             'it. Consider taking a new background or changing the settings. '
-                             f'Previous settings were: {background_settings}')
+            raise RuntimeError('Background was acquired for different settings; cannot subtract '
+                               'it. Consider taking a new background or changing the settings. '
+                               f'Previous settings were: {background_settings}')
         return data - background
 
     @property

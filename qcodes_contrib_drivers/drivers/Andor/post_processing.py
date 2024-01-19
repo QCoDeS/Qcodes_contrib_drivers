@@ -12,12 +12,42 @@ import numpy.typing as npt
 
 from .private import andor_sdk
 
+__all__ = ['NoiseFilterMode', 'CountConversionMode', 'Identity', 'NoiseFilter', 'PhotonCounting',
+           'CountConvert']
+
 
 class NoiseFilterMode(enum.IntEnum):
     median = 1
+    """Each pixel is measured relative to the median value of its
+    nearest neighbor pixels. A pixel is replaced with the median value
+    of a 3x3 array centered on the pixel concerned if the pixel value is
+    greater than the median by a given multiplation factor (defined by
+    the user)."""
     level_above = 2
+    """The user defines the threshold based on the number of counts
+    above the baseline. Spurious noise events are defined as those
+    pixels in the image which are above this threshold. A pixel is
+    replaced with the median value of a 3x3 array centered on the pixel
+    concerned if the pixel is above the threshold AND six or more of the
+    nearest neighbours (contained within the 3x3 array) are below the
+    threshold."""
     interquartile_range = 3
+    """For each pixel, the Median and Interquartile values of a 3x3
+    square centred on the pixel concerned are calculated. A pixel is
+    replaced with the median value the 3x3 array centered on the pixel
+    concerned if the pixel is greater than the median plus the
+    interquartile ranges times a given multiplication factor (defined by
+    the user) AND six or more of the nearest neighbours (contained
+    within the 3x3 array) are below the threshold."""
     noise_threshold = 4
+    """The Standard Deviation's of 10x10 pixel sub images from the whole
+    image are first calculated. The mean of the lowest 10% of these
+    standard deviations defines the Image Noise. A pixel is replaced
+    with the median value of the 3x3 array centered on the pixel
+    concerned if the pixel is greater than the median plus the Image
+    Noise times a given multiplication factor (defined by the user) AND
+    six or more of the nearest neighbours (contained within the 3x3
+    array) are below the threshold."""
 
 
 class CountConversionMode(enum.IntEnum):
