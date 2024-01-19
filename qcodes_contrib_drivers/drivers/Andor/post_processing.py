@@ -5,12 +5,12 @@ when snapshotted.
 """
 import dataclasses
 import enum
-from typing import Protocol, Sequence, runtime_checkable
+from typing import Any, Protocol, runtime_checkable
 
 import numpy as np
 import numpy.typing as npt
 
-from .private.andor_sdk import atmcd64d
+from .private import andor_sdk
 
 
 class NoiseFilterMode(enum.IntEnum):
@@ -28,7 +28,11 @@ class CountConversionMode(enum.IntEnum):
 @runtime_checkable
 @dataclasses.dataclass
 class PostProcessingFunction(Protocol):
-    """Protocol specifying a valid, stateful post-processing function."""
+    """Protocol specifying a valid, stateful post-processing function.
+
+    Note that the input image should always be a 3d array (num_frames,
+    num_ypx, num_xpx).
+    """
 
     def __call__(self, input_image: npt.NDArray[np.int32]) -> npt.NDArray[np.int32]:
         pass
@@ -80,7 +84,7 @@ class NoiseFilter(PostProcessingFunction):
     threshold: float
 
     def __call__(self, input_image: npt.NDArray[np.int32]) -> npt.NDArray[np.int32]:
-        height, width = input_image.shape[-2:]
+        _, height, width = input_image.shape
         output_image = self.atmcd64d.post_process_noise_filter(input_image.reshape(-1),
                                                                self.baseline, self.mode.value,
                                                                self.threshold, height, width)
@@ -96,16 +100,18 @@ class PhotonCounting(PostProcessingFunction):
     Parameters
     ----------
     float * Threshold:
-        The Thresholds used to define a photon.
+        The Thresholds used to define a photon (min and max)
 
     """
     atmcd64d: atmcd64d = dataclasses.field(repr=False)
-    thresholds: Sequence[float]
+    thresholds: tuple[int, int]
 
     def __call__(self, input_image: npt.NDArray[np.int32]) -> npt.NDArray[np.int32]:
-        num_frames, height, width = input_image.shape
+        num_images, height, width = input_image.shape
+        # ??? Unclear from documentation what difference num_frames makes.
+        num_frames = num_images
         output_image = self.atmcd64d.post_process_photon_counting(input_image.reshape(-1),
-                                                                  num_frames, num_frames,
+                                                                  num_images, num_frames,
                                                                   self.thresholds, height, width)
         return output_image.reshape(input_image.shape)
 

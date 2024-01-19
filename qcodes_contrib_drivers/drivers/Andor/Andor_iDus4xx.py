@@ -826,7 +826,7 @@ class AndorIDus4xx(Instrument):
         self.add_parameter('ccd_data',
                            setpoints=(self.time_axis, self.vertical_axis, self.horizontal_axis,),
                            parameter_class=CCDData,
-                           get_parser=lambda val: self.post_processing_function()(val),
+                           get_parser=self._parse_ccd_data,
                            vals=validators.Arrays(shape=(
                                self.acquired_frames.get_latest,
                                self._acquired_vertical_pixels,
@@ -949,7 +949,6 @@ class AndorIDus4xx(Instrument):
         """Stores current acquisition settings as parameter metadata."""
         self.background.load_metadata(self._freeze_acquisition_settings())
         return data
-
     def _process_acquisition_mode(self, param: Parameter, param_val: str):
         # Invalidate relevant caches
         self.acquired_frames.cache.invalidate()
@@ -1007,6 +1006,16 @@ class AndorIDus4xx(Instrument):
     def _has_time_dimension(acquisition_mode) -> bool:
         return acquisition_mode not in (1, 2)
 
+
+    def _parse_ccd_data(self, val: npt.NDArray) -> npt.NDArray:
+        # Make sure post_processing_function always gets a 3d array but return
+        # the shape that CCDData returns.
+        shp = list(val.shape)
+        if not self._has_time_dimension(self.acquisition_mode.get_latest()):
+            shp.insert(0, 1)
+        if not self._has_vertical_dimension(self.read_mode.get_latest()):
+            shp.insert(1, 1)
+        return self.post_processing_function()(val.reshape(shp)).reshape(val.shape)
     def _parse_status(self, code: int) -> str:
         status = {
             'DRV_IDLE': 'IDLE waiting on instructions.',
