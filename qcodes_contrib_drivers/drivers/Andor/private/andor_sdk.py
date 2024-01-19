@@ -1188,6 +1188,24 @@ class atmcd64d:
         self.error_check(code, 'GetNumberNewImages')
         return c_first.value, c_last.value
 
+    def get_number_photon_counting_divisions(self) -> int:
+        """
+        Available in some systems is photon counting mode. This function
+        gets the number of photon counting divisions available. The
+        functions :meth:`set_photon_counting` and
+        :meth:`set_photon_counting_threshold` can be used to specify
+        which of these divisions is to be used.
+
+        Returns
+        -------
+        unsigned long* noOfDivisions:
+            number of allowed photon counting divisions
+        """
+        c_no_of_divisions = ctypes.c_ulong()
+        code = self.dll.GetNumberPhotonCountingDivisions(ctypes.byref(c_no_of_divisions))
+        self.error_check(code, 'GetNumberPhotonCountingDivisions')
+        return c_no_of_divisions.value
+
     def get_number_preamp_gains(self) -> int:
         """
         Available in some systems are a number of pre amp gains that can
@@ -2214,6 +2232,57 @@ class atmcd64d:
         c_mode = ctypes.c_int(mode)
         code = self.dll.SetTriggerMode(c_mode)
         self.error_check(code, 'SetTriggerMode')
+
+    def set_photon_counting(self, state: int) -> None:
+        """This function activates the photon counting option.
+
+        Parameters
+        ----------
+        int state:
+            ON/OFF switch for the photon counting option.
+
+            = ==============================
+            0 to switch photon counting OFF.
+            1 to switch photon counting ON.
+            = ==============================
+        """
+        c_state = ctypes.c_int(state)
+        code = self.dll.SetPhotonCounting(c_state)
+        self.error_check(code, 'SetPhotonCounting')
+
+    def set_photon_counting_divisions(self, no_of_divisions: int,
+                                      thresholds: Sequence[int]) -> None:
+        """
+        This function sets the thresholds for the photon counting option.
+
+        Parameters
+        ----------
+        unsigned long noOfDivisions:
+            number of thresholds to be used.
+        long* divisions:
+            threshold levels.
+        """
+        c_no_of_divisions = ctypes.c_ulong(no_of_divisions)
+        c_thresholds = (ctypes.c_long * len(thresholds))(*thresholds)
+        code = self.dll.SetPhotonCountingDivisions(c_no_of_divisions, ctypes.byref(c_thresholds))
+        self.error_check(code, 'SetPhotonCountingDivisions')
+
+    def set_photon_counting_threshold(self, min_max: tuple[int, int]) -> None:
+        """
+        This function sets the minimum and maximum threshold for the
+        photon counting option.
+
+        Parameters
+        ----------
+        long min:
+            minimum threshold in counts for photon counting.
+        long max:
+            maximum threshold in counts for photon counting
+        """
+        c_min = ctypes.c_long(min_max[0])
+        c_max = ctypes.c_long(min_max[1])
+        code = self.dll.SetPhotonCountingThreshold(c_min, c_max)
+        self.error_check(code, 'SetPhotonCountingThreshold')
 
     def set_preamp_gain(self, index: int) -> None:
         """

@@ -27,8 +27,6 @@ like this::
     data.shape  # (2000,)
 
 TODO (thangleiter, 23/11/11):
-    - Document
-    - Test filters, averaging, and post processing
     - Live monitor using 'run till abort' mode and async event queue
     - Triggering
     - Handle shutter modes
@@ -556,6 +554,36 @@ class AndorIDus4xx(Instrument):
                            camera returns to ambient temperature. Defaults to 'return'.
                            """))
 
+        self.add_parameter('cosmic_ray_filter_mode',
+                           get_cmd=self.atmcd64d.get_filter_mode,
+                           set_cmd=self.atmcd64d.set_filter_mode,
+                           val_mapping=create_on_off_val_mapping(on_val=2, off_val=0),
+                           label='Cosmic ray filter mode',
+                           docstring=dedent(self.atmcd64d.set_filter_mode.__doc__))
+
+        self.add_parameter('data_averaging_filter_mode',
+                           get_cmd=self.atmcd64d.filter_get_data_averaging_mode,
+                           set_cmd=self.atmcd64d.filter_set_data_averaging_mode,
+                           val_mapping={'No Averaging Filter': 0,
+                                        'Recursive Averaging Filter': 5,
+                                        'Frame Averaging Filter': 6},
+                           label='Data averaging filter mode',
+                           docstring=dedent(self.atmcd64d.filter_set_data_averaging_mode.__doc__))
+
+        self.add_parameter('data_averaging_filter_factor',
+                           get_cmd=self.atmcd64d.filter_get_averaging_factor,
+                           set_cmd=self.atmcd64d.filter_set_averaging_factor,
+                           vals=validators.Ints(1),
+                           label='Data averaging filter factor',
+                           docstring=dedent(self.atmcd64d.filter_set_averaging_factor.__doc__))
+
+        self.add_parameter('data_averaging_filter_frame_count',
+                           get_cmd=self.atmcd64d.filter_get_averaging_frame_count,
+                           set_cmd=self.atmcd64d.filter_set_averaging_frame_count,
+                           vals=validators.Ints(1),
+                           label='Data averaging filter frame count',
+                           docstring=dedent(self.atmcd64d.filter_set_averaging_frame_count.__doc__))
+
         self.add_parameter('detector_size',
                            parameter_class=DetectorPixels,
                            names=('horizontal', 'vertical'),
@@ -600,13 +628,6 @@ class AndorIDus4xx(Instrument):
                            docstring=dedent(
                                self.atmcd64d.get_fastest_recommended_vs_speed.__doc__
                            ))
-
-        self.add_parameter('filter_mode',
-                           get_cmd=self.atmcd64d.get_filter_mode,
-                           set_cmd=self.atmcd64d.set_filter_mode,
-                           val_mapping=create_on_off_val_mapping(on_val=2, off_val=0),
-                           label='filter mode',
-                           docstring=dedent(self.atmcd64d.set_filter_mode.__doc__))
 
         speeds = [round(self.atmcd64d.get_hs_speed(self._CHANNEL, self._AMPLIFIER, index), 3)
                   for index
@@ -675,6 +696,31 @@ class AndorIDus4xx(Instrument):
                            docstring=PixelSize.__doc__,
                            snapshot_value=True)
 
+        # Real-time photon counting
+        self.add_parameter('photon_counting',
+                           set_cmd=self.atmcd64d.set_photon_counting,
+                           val_mapping=create_on_off_val_mapping(),
+                           label='Photon counting enabled',
+                           initial_cache_value=False,
+                           docstring=dedent(self.atmcd64d.set_photon_counting.__doc__))
+
+        no_of_divisions = self.atmcd64d.get_number_photon_counting_divisions()
+        self.add_parameter('photon_counting_divisions',
+                           set_cmd=partial(self.atmcd64d.set_photon_counting_divisions,
+                                           no_of_divisions),
+                           vals=validators.Sequence(validators.Ints(1, 65535),
+                                                    length=no_of_divisions + 1,
+                                                    require_sorted=True),
+                           label='Photon counting divisions',
+                           docstring=dedent(self.atmcd64d.set_photon_counting_divisions.__doc__))
+
+        self.add_parameter('photon_counting_threshold',
+                           set_cmd=self.atmcd64d.set_photon_counting_threshold,
+                           vals=validators.Sequence(validators.Ints(1, 65535), length=2,
+                                                    require_sorted=True),
+                           label='Photon counting threshold',
+                           docstring=dedent(self.atmcd64d.set_photon_counting_threshold.__doc__))
+
         self.add_parameter('post_processing_function',
                            label='Post processing function',
                            parameter_class=ManualParameter,
@@ -735,6 +781,25 @@ class AndorIDus4xx(Instrument):
                            vals=validators.Sequence(validators.Ints(1), length=2),
                            docstring=dedent(self.atmcd64d.set_single_track.__doc__),
                            snapshot_value=True)
+
+        # Real-time spurious noise filter
+        self.add_parameter('spurious_noise_filter_mode',
+                           get_cmd=self.atmcd64d.filter_get_mode,
+                           set_cmd=self.atmcd64d.filter_set_mode,
+                           val_mapping={'No Filter': 0,
+                                        'Median Filter': 1,
+                                        'Level Above Filter': 2,
+                                        'Interquartile Range Filter': 3,
+                                        'Noise Threshold Filter': 4},
+                           label='Spurious noise filter mode',
+                           docstring=dedent(self.atmcd64d.filter_set_mode.__doc__))
+
+        self.add_parameter('spurious_noise_filter_threshold',
+                           get_cmd=self.atmcd64d.filter_get_threshold,
+                           set_cmd=self.atmcd64d.filter_set_threshold,
+                           vals=validators.Ints(0, 65535),
+                           label='Spurious noise threshold',
+                           docstring=dedent(self.atmcd64d.filter_set_threshold.__doc__))
 
         self.add_parameter('status',
                            label='Camera Status',
