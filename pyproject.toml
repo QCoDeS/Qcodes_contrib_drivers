@@ -95,9 +95,6 @@ license-files = [
 ]
 include-package-data = false
 
-[tool.setuptools.packages]
-find = {namespaces = false}
-
 [tool.versioningit]
 default-version = "0.0"
 
