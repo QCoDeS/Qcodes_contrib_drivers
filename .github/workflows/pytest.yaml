@@ -56,10 +56,10 @@ jobs:
       run: |
         pip install .[test] -c requirements.txt
     - name: Run Mypy
-      run: mypy qcodes_contrib_drivers
+      run: mypy src
     - name: Run tests
       run: |
-        pytest --cov=qcodes_contrib_drivers --cov-report xml --cov-config=pyproject.toml qcodes_contrib_drivers
+        pytest --cov=qcodes_contrib_drivers --cov-report xml --cov-config=pyproject.toml tests
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3.1.5
       with:
