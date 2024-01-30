@@ -93,7 +93,6 @@ license-files = [
     "LICENSE_TEKTRONIX_AWG520_KEITHLEY_2700",
     "LICENSE",
 ]
-include-package-data = false
 
 [tool.versioningit]
 default-version = "0.0"
