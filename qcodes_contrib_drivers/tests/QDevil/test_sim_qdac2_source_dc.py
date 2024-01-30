@@ -30,7 +30,7 @@ def test_voltage_range_low_min(qdac):  # noqa
     voltage = qdac.ch02.output_low_range_minimum_V()
     # -----------------------------------------------------------------------
     assert -10 < voltage < 10
-    assert qdac.get_recorded_scpi_commands() == [f'sour2:rang:low:min?']
+    assert qdac.get_recorded_scpi_commands() == ['sour2:rang:low:min?']
 
 
 def test_voltage_range_low_max(qdac):  # noqa
@@ -38,7 +38,7 @@ def test_voltage_range_low_max(qdac):  # noqa
     voltage = qdac.ch02.output_low_range_maximum_V()
     # -----------------------------------------------------------------------
     assert -10 < voltage < 10
-    assert qdac.get_recorded_scpi_commands() == [f'sour2:rang:low:max?']
+    assert qdac.get_recorded_scpi_commands() == ['sour2:rang:low:max?']
 
 
 def test_voltage_range_high_min(qdac):  # noqa
@@ -46,7 +46,7 @@ def test_voltage_range_high_min(qdac):  # noqa
     voltage = qdac.ch02.output_high_range_minimum_V()
     # -----------------------------------------------------------------------
     assert -10 < voltage < 10
-    assert qdac.get_recorded_scpi_commands() == [f'sour2:rang:high:min?']
+    assert qdac.get_recorded_scpi_commands() == ['sour2:rang:high:min?']
 
 
 def test_voltage_range_high_max(qdac):  # noqa
@@ -54,7 +54,7 @@ def test_voltage_range_high_max(qdac):  # noqa
     voltage = qdac.ch02.output_high_range_maximum_V()
     # -----------------------------------------------------------------------
     assert -10 < voltage < 10
-    assert qdac.get_recorded_scpi_commands() == [f'sour2:rang:high:max?']
+    assert qdac.get_recorded_scpi_commands() == ['sour2:rang:high:max?']
 
 
 @pytest.mark.parametrize('selector', ['dc', 'med', 'high'])

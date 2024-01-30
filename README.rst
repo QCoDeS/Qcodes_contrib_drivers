@@ -40,7 +40,7 @@ The documentations of the drivers in this repository can be read `here <https://
 Contributing
 ############
 
-This repository is open for contribution of new drivers, 
+This repository is open for contribution of new drivers,
 as well as improvements to existing drivers. Each driver should
 contain an implementation of the driver and a Jupyter notebook showing how the
 driver should be used. In addition we strongly encourage writing tests for the drivers.
@@ -52,8 +52,8 @@ while examples should be added to the ``docs/examples`` folder and tests placed 
 ``qcodes_contrib_drivers/tests/MakerOfInstrument`` folder. Please follow naming conventions for
 consistency.
 
-For general information about writing drivers and how to write tests refer to the `QCoDeS documentation <http://qcodes.github.io/Qcodes/>`_.
-Especially the examples `here <https://qcodes.github.io/Qcodes/examples/index.html#writing-drivers>`__
+For general information about writing drivers and how to write tests refer to the `QCoDeS documentation <http://microsoft.github.io/Qcodes/>`_.
+Especially the examples `here <https://microsoft.github.io/Qcodes/examples/index.html#writing-drivers>`__
 are useful.
 
 LICENSE
