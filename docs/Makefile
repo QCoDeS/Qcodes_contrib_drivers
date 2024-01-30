@@ -19,8 +19,8 @@ clean:
 
 # generate api docs for instruments automatically
 genapi:
-	sphinx-apidoc -o _auto -d 10 ../qcodes_contrib_drivers \
-	    ../qcodes_contrib_drivers/drivers/Spectrum/pyspcm.py
+	sphinx-apidoc -o _auto -d 10 ../src/qcodes_contrib_drivers \
+	    ../src/qcodes_contrib_drivers/drivers/Spectrum/pyspcm.py
 	mkdir -p api/generated/
 	cp _auto/qcodes_contrib_drivers.drivers.* api/generated/
 

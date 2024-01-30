@@ -29,8 +29,8 @@ if errorlevel 9009 (
 
 REM generate api docs
 
-sphinx-apidoc.exe -o _auto -d 10 ..\qcodes_contrib_drivers ^
-    ..\qcodes_contrib_drivers\drivers\Spectrum\pyspcm.py
+sphinx-apidoc.exe -o _auto -d 10 ..\src\qcodes_contrib_drivers ^
+    ..\src\qcodes_contrib_drivers\drivers\Spectrum\pyspcm.py
 mkdir api\generated\
 copy _auto\qcodes_contrib_drivers.drivers.* api\generated\
 
