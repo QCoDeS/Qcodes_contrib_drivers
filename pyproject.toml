@@ -111,5 +111,5 @@ method = "git"
 match = ["v*"]
 
 [tool.versioningit.onbuild]
-source-file = "qcodes_contrib_drivers/_version.py"
+source-file = "src/qcodes_contrib_drivers/_version.py"
 build-file = "qcodes_contrib_drivers/_version.py"
