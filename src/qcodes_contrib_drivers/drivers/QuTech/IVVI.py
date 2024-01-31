@@ -167,7 +167,7 @@ class IVVI(VisaInstrument):
         print('Initialized IVVI-rack in %.2fs' % (t1 - t0))
 
     def get_idn(self):
-        """
+        r"""
         Overwrites the get_idn function using constants as the hardware
         does not have a proper \*IDN function.
         """
