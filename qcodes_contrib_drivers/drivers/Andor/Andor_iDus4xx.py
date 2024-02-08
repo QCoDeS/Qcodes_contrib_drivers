@@ -1149,6 +1149,9 @@ class AndorIDus4xx(Instrument):
         acquisition mode and external triggering."""
         self.atmcd64d.start_acquisition()
 
+    def send_software_trigger(self) -> None:
+        self.atmcd64d.send_software_trigger()
+
     def arm(self) -> None:
         """TODO: Placeholder."""
         self.log.debug('Arming: clear buffer, prepare and starting acquisition.')

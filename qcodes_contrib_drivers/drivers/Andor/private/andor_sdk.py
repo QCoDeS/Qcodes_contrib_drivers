@@ -1727,6 +1727,27 @@ class atmcd64d:
         code = self.dll.PrepareAcquisition()
         self.error_check(code, 'PrepareAcquisition')
 
+    def send_software_trigger(self) -> None:
+        """
+        This function sends an event to the camera to take an
+        acquisition when in Software Trigger mode. Not all cameras have
+        this mode available to them. To check if your camera can operate
+        in this mode check the GetCapabilities function for the Trigger
+        Mode AC_TRIGGERMODE_CONTINUOUS. If this mode is physically
+        possible and other settings are suitable
+        (IsTriggerModeAvailable) and the camera is acquiring then this
+        command will take an acquisition.
+
+        Notes
+        -----
+        The settings of the camera must be as follows:
+         - ReadOut mode is full image
+         - RunMode is Run Till Abort
+         - TriggerMode is 10
+        """
+        code = self.dll.SendSoftwareTrigger()
+        self.error_check(code, 'SendSoftwareTrigger')
+
     def set_accumulation_cycle_time(self, cycle_time: float) -> None:
         """
         This function will set the accumulation cycle time to the
