@@ -1230,7 +1230,7 @@ class AndorIDus4xx(Instrument):
                 unit=self.temperature.unit,
                 disable=not show_progress
         ) as pbar:
-            while (temp := self.temperature.get()) != target:
+            while (temp := self.temperature.get()) < target:
                 # For lack of a better method:
                 # https://github.com/tqdm/tqdm/issues/1264
                 pbar.n = temp - target
