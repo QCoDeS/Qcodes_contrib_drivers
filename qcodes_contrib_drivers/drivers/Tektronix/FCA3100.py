@@ -3,6 +3,7 @@ import numpy as np
 from typing import Any, Tuple
 from qcodes.instrument import VisaInstrument
 from qcodes.parameters import MultiParameter, Parameter
+from qcodes.utils.validators import Arrays, Ints
 
 log = logging.getLogger(__name__)
 
@@ -64,23 +65,31 @@ class CompleteTimeStatistics(Parameter):
                  ) -> None:
         super().__init__(name=name,
                          instrument=instrument,
-                         shape=(npts,),
                          label='Times till switching',
                          unit='s',
-                         setpoint=(list(range(npts)),),
                          docstring='Arrays of switching times',
                          **kwargs)
 
     def get_raw(self):
         assert isinstance(self.instrument, FCA3100)
         self.instrument.write('CALCulate:AVERage:STATe 0')
-        npts = self.instrument.samples_number()
-        try:
-            data_str=self.instrument.ask("READ:ARRay? {}".format(npts))
-            data = np.array(data_str.rstrip().split(",")).astype("float64")
-            return data
-        except:
-            print('Cannot measure swithing time arry')
+        self._instrument.write('INIT') # start measurement
+        self._instrument.ask('*OPC?') # wait for it to complete
+        data_str=self.instrument.ask("READ:ARRay? {}".format(self.instrument.samples_number()))
+        data = np.array(data_str.rstrip().split(",")).astype("float64")
+        return data
+    
+class GeneratedSetPoints(Parameter):
+    """
+    A parameter that generates a setpoint array from start, stop and num points
+    parameters.
+    """
+    def __init__(self, numpointsparam, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._numpointsparam = numpointsparam
+
+    def get_raw(self):
+        return np.arange(self._numpointsparam())
 
 
 class FCA3100(VisaInstrument):
@@ -131,8 +140,16 @@ class FCA3100(VisaInstrument):
                            get_cmd='CALCulate:AVERage:COUNt?',
                            set_cmd='CALCulate:AVERage:COUNt {}',
                            get_parser=float,
+                           vals=Ints(2, 2e9),
                            docstring='Number of samples in the current statistics sampling'
                            )
+        
+        self.add_parameter('counter_axis',
+                           unit='#',
+                           label='Counter Axis',
+                           parameter_class=GeneratedSetPoints,
+                           numpointsparam=self.samples_number,
+                           vals=Arrays(shape=(self.samples_number.get_latest,)))
 
         self.add_parameter(name='threshold_A',
                           label='threshold_A',
@@ -153,7 +170,10 @@ class FCA3100(VisaInstrument):
                           )
 
         self.add_parameter(name='time_array',
-                           parameter_class=CompleteTimeStatistics)
+                           parameter_class=CompleteTimeStatistics,
+                           setpoints=(self.counter_axis,),
+                           vals=Arrays(shape=(self.samples_number.get_latest,))
+                           )
 
         self.connect_message()
 
