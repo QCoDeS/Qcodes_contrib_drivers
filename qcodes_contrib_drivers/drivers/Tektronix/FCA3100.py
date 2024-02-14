@@ -2,7 +2,7 @@ import logging
 import numpy as np
 from typing import Any, Tuple
 from qcodes.instrument import VisaInstrument
-from qcodes.parameters import MultiParameter, Parameter
+from qcodes.parameters import MultiParameter, Parameter, ParameterWithSetpoints
 from qcodes.utils.validators import Arrays, Ints
 
 log = logging.getLogger(__name__)
@@ -57,7 +57,7 @@ class TimeStatistics(MultiParameter):
 
         return float(mean), float(stddev), float(minval), float(maxval)
 
-class CompleteTimeStatistics(Parameter):
+class CompleteTimeStatistics(ParameterWithSetpoints):
     def __init__(self,
                  name:str,
                  instrument:"FCA3100",
@@ -124,14 +124,6 @@ class FCA3100(VisaInstrument):
 
         self.write('INIT:CONT 0')
 
-        self.add_parameter('timeinterval',
-                           label='timeinterval',
-                           unit='s',
-                           get_cmd="MEASure:TINTerval",
-                           get_parser=float,
-                           docstring='Measured time interval'
-                           )
-
         self.add_parameter(name='timestats',
                            parameter_class=TimeStatistics)
 
@@ -140,7 +132,7 @@ class FCA3100(VisaInstrument):
                            get_cmd='CALCulate:AVERage:COUNt?',
                            set_cmd='CALCulate:AVERage:COUNt {}',
                            get_parser=float,
-                           vals=Ints(2, 2e9),
+                           vals=Ints(2, int(2e9)),
                            docstring='Number of samples in the current statistics sampling'
                            )
         
