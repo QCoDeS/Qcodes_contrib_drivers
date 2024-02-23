@@ -1,6 +1,6 @@
 from qcodes import Instrument, ChannelList, InstrumentChannel
 from qcodes.utils.validators import Numbers,Bool,Enum
-from qcodes_contrib_drivers.drivers.QPhox.CryoSwitchController.CryoSwitchController import Cryoswitch
+from qcodes_contrib_drivers.drivers.QphoX.CryoSwitchController.CryoSwitchController import Cryoswitch
 
 class CryoSwitchChannel(InstrumentChannel):
     def __init__(self, parent: Instrument, name: str, channel: str):
@@ -111,3 +111,6 @@ class CryoSwitchControllerDriver(Instrument):
 
     def disconnect(self, port: str, contact: int):
         return self._controller.disconnect(port, contact)
+
+    def get_idn(self):
+        pass
