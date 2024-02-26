@@ -18,21 +18,25 @@ class CryoSwitchChannel(InstrumentChannel):
     def connect(self, contact: int):
         trace = self.parent.connect(self._channel, contact)
         self._active_contact = contact
+        self.active_contact()
         return trace
 
     def disconnect(self, contact: int):
         trace = self.parent.disconnect(self._channel, contact)
         self._active_contact = 0
+        self.active_contact()
         return trace
 
     def disconnect_all(self):
         trace = self.parent.disconnect_all(self._channel)
         self._active_contact = 0
+        self.active_contact()
         return trace
 
     def smart_connect(self, contact: int):
         trace = self.parent.smart_connect(self._channel, contact)
         self._active_contact = contact
+        self.active_contact()
         return trace
 
     def _get_active_contact(self):
