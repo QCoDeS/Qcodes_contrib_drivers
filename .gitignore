@@ -112,3 +112,4 @@ venv.bak/
 *.DS_Store
 desktop.ini
 src/qcodes_contrib_drivers/drivers/QphoX/CryoSwitchController/pulse_logging.txt
+src/qcodes_contrib_drivers/drivers/QphoX/CryoSwitchController/data
