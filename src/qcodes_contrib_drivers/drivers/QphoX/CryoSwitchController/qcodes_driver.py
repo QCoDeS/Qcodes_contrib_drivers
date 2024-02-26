@@ -3,7 +3,27 @@ from qcodes.utils.validators import Numbers,Bool,Enum
 from qcodes_contrib_drivers.drivers.QphoX.CryoSwitchController.CryoSwitchController import Cryoswitch
 
 class CryoSwitchChannel(InstrumentChannel):
+    """
+    CryoSwitchChannel class is used to define the channels for the CryoSwitchControllerDriver. 
+    It is a subclass of the InstrumentChannel class from qcodes.
+
+    Attributes:
+        parent (Instrument): The parent instrument to which the channel is attached.
+        name (str): The name of the channel.
+        channel (str): The channel identifier.
+        active_contact (Parameter): The active contact for the channel. 
+            It can be a number between 0 and 6.
+    """
+
     def __init__(self, parent: Instrument, name: str, channel: str):
+        """
+        Initializes a new instance of the CryoSwitchChannel class.
+
+        Args:
+            parent (Instrument): The parent instrument to which the channel is attached.
+            name (str): The name of the channel.
+            channel (str): The channel identifier.
+        """
         super().__init__(parent, name)
 
         self.add_parameter(
@@ -16,34 +36,100 @@ class CryoSwitchChannel(InstrumentChannel):
         self._active_contact = 0
 
     def connect(self, contact: int):
+        """
+        Applies a current pulse to make a specified contact.
+
+        Args:
+            contact (int): The contact to be connected.
+
+        Returns:
+            trace: The current waveform after the connection.
+        """
         trace = self.parent.connect(self._channel, contact)
         self._active_contact = contact
         self.active_contact()
         return trace
 
     def disconnect(self, contact: int):
+        """
+        Applies a current pulse to disconnect a specified contact.
+
+        Args:
+            contact (int): The contact to be disconnected.
+
+        Returns:
+            trace: The current waveform after the disconnection.
+        """
         trace = self.parent.disconnect(self._channel, contact)
         self._active_contact = 0
         self.active_contact()
         return trace
 
     def disconnect_all(self):
+        """
+        Applies a disconnecting pulse to all contacts.
+
+        Returns:
+            trace: The current waveform after all contacts are disconnected.
+        """
         trace = self.parent.disconnect_all(self._channel)
         self._active_contact = 0
         self.active_contact()
         return trace
 
     def smart_connect(self, contact: int):
+        """
+        Connects a contact to the channel smartly, i.e., disconnects the previously connected 
+        contacts and connects the specified switch contact based on the tracking history.
+
+        Args:
+            contact (int): The contact to be connected.
+
+        Returns:
+            trace: The current waveform after the smart connection.
+        """
         trace = self.parent.smart_connect(self._channel, contact)
         self._active_contact = contact
         self.active_contact()
         return trace
 
     def _get_active_contact(self):
+        """
+        Gets the active contact for the channel.
+
+        Returns:
+            int: The active contact for the channel.
+        """
         return self._active_contact
 
 class CryoSwitchControllerDriver(Instrument):
+    """
+    CryoSwitchControllerDriver class is used to control the Cryoswitch. 
+    It is a subclass of the Instrument class from qcodes.
+
+    Attributes:
+        name (str): The name of the instrument.
+        output_voltage (Parameter): The output voltage of the controller. 
+            It can be a number between 0 and 10.
+        pulse_duration (Parameter): The pulse duration of the controller. 
+            It can be a number between 0 and 1000.
+        OCP_value (Parameter): The overcurrent protection trigger value of the controller. 
+            It can be a number between 0 and 1000.
+        chopping (Parameter): The chopping function status of the controller. 
+            It can be a boolean value.
+        switch_model (Parameter): The switch model used by the controller. 
+            It can be either 'R583423141' or 'R573423600'.
+        power_status (Parameter): The power status of the controller. 
+            It can be either 0 (disabled) or 1 (enabled).
+    """
+
     def __init__(self, name: str, **kwargs):
+        """
+        Initializes a new instance of the CryoSwitchControllerDriver class.
+
+        Args:
+            name (str): The name of the instrument.
+        """
         super().__init__(name, **kwargs)
 
         self._controller = Cryoswitch()
@@ -105,16 +191,48 @@ class CryoSwitchControllerDriver(Instrument):
         self.add_submodule("channels", channels)
 
     def _enable_disable_chopping(self, enable: bool):
+        """
+        Enables or disables the chopping function of the controller.
+
+        Args:
+            enable (bool): True to enable the chopping function, False to disable it.
+        """
         if enable:
             self._controller.enable_chopping()
         else:
             self._controller.disable_chopping()
 
     def connect(self, port: str, contact: int):
+        """
+        Applies a current pulse to connect a specific contact of
+        a switch at a selected port.
+
+        Args:
+            port (str): The port to which the contact is connected.
+            contact (int): The contact to be connected.
+
+        Returns:
+            trace: The current waveform after the connection.
+        """
         return self._controller.connect(port, contact)
 
     def disconnect(self, port: str, contact: int):
+        """
+        Applies a current pulse to disconnect a specific contact of
+        a switch at a selected port.
+
+        Args:
+            port (str): The port from which the contact is disconnected.
+            contact (int): The contact to be disconnected.
+
+        Returns:
+            trace: The current waveform after the disconnection.
+        """
         return self._controller.disconnect(port, contact)
 
     def get_idn(self):
+        """
+        A dummy getidn function for the instrument initialization
+        in QCoDeS to work.
+        """
         pass
