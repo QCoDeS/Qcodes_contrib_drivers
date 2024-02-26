@@ -173,7 +173,7 @@
         "port_A": {
             "contact_1": 0,
             "contact_2": 0,
-            "contact_3": 1,
+            "contact_3": 0,
             "contact_4": 0,
             "contact_5": 0,
             "contact_6": 0
