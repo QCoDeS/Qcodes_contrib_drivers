@@ -122,7 +122,7 @@ class FCA3100(VisaInstrument):
             name (str): Name of the instrument
             address (str): Address of the instrument
             terminator (str, optional): Terminator character of
-                the string reply. Defaults to "\n".
+                the string reply. Defaults to "\\n".
             timeout (int, optional): VISA timeout is set purposely
                 to a long time to allow long measurements. Defaults to 10.
         """
