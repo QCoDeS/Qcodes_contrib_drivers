@@ -84,7 +84,7 @@ Note: If running with oi:DECS firmware =< 0.5.1, ingore the error "Error parsing
 
 ![firmware_error](./img/firmware_error.PNG)
 
-Note: The `DECS<->VISA` simple TCP socket server is started using the python `subprocess` package. If struggling to start the subprocess check whether python is called "python3" or "python" on your machine. This may need to be ammended in the lines shown below.
+Note: The `DECS<->VISA` simple TCP socket server is started using the python `subprocess` package. If struggling to start the subprocess check whether python is called "python3" or "python" on your machine. This may need to be ammended in the lines shown below in the file `Proteox.py`.
 
 ````python
 if running_on.startswith("Windows"):
