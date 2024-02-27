@@ -94,4 +94,4 @@ else:
     print(f"Running on {running_on} - start subprocess with PIPEd output")
     subprocess.Popen(["python3", decs_visa_path], stdout=subprocess.PIPE)
 ````
-The default is "python" for windows and "python3" for linux and MAC.
+The default is "python" for Windows and "python3" for Linux and MAC.
