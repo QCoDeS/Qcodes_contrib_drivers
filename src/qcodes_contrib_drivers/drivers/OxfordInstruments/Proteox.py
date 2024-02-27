@@ -13,7 +13,7 @@ from qcodes.parameters import MultiParameter
 
 '''
 
-    Please see the READ_ME.md file in this directory for setup instructions.
+    Please see the README.md file in this directory for setup instructions.
 
 '''
 
@@ -140,7 +140,7 @@ class MagnetCurrentParameters(MultiParameter):
         print("*** Current cannot be set directly with this function ***")
 
 class oiDECS(VisaInstrument):
-    """ Main implementation of the oi:DECS driver """
+    """ Main implementation of the oi.DECS driver """
     def __init__(self, name, **kwargs):
 
         running_on = platform.platform()
