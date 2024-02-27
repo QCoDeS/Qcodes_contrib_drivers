@@ -170,14 +170,6 @@ class CryoSwitchControllerDriver(Instrument):
             vals=Enum(0, 1)
         )
 
-        def get_switches_state(self, port: str = None):
-            return self._controller.get_switches_state(port)
-
-        def disconnect_all(self, port: str):
-            self._controller.disconnect_all(port)
-
-        def smart_connect(self, port: str, contact: int):
-            return self._controller.smart_connect(port, contact)
         
         self.add_function('start', call_cmd=self._controller.start)
         self.add_function('enable_OCP', call_cmd=self._controller.enable_OCP)
@@ -185,10 +177,19 @@ class CryoSwitchControllerDriver(Instrument):
 
         channels = ChannelList(self, "Channels", CryoSwitchChannel, snapshotable=False)
         for ch in ['A', 'B', 'C', 'D']:
-            channel = CryoSwitchChannel(self, f"channel_{ch}", ch)
+            channel = CryoSwitchChannel(self, f"{ch}", ch)
             channels.append(channel)
         channels.lock()
         self.add_submodule("channels", channels)
+
+    def get_switches_state(self, port: str = None):
+            return self._controller.get_switches_state(port)
+
+    def disconnect_all(self, port: str):
+            self._controller.disconnect_all(port)
+
+    def smart_connect(self, port: str, contact: int):
+            return self._controller.smart_connect(port, contact)
 
     def _enable_disable_chopping(self, enable: bool):
         """
