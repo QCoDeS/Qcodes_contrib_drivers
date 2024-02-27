@@ -80,7 +80,7 @@ Once connected, the driver can be used in the same way as any other `QCoDeS` dri
 
 Note: If running on a Windows platform, debug/information produced by the `DECS<->VISA` simple TCP socket server will be outputted to a `decs_visa.log file` created in your working directory. If struggling to establish a connection please check this log file for information on why.
 
-Note: If running with oi.DECS firmware =< 0.5.1, ingore the error "Error parsing response: Length of data record inconsistent with record type" when setting the magnet target. You will recieve this error because the data sent back from oiDECS is not yet being correctly handled for firware versions =< 0.5.1. The magnet target should still have been set.
+Note: If running with oi.DECS firmware =< 0.5.1, ingore the error "Error parsing response: Length of data record inconsistent with record type" when setting the magnet target. You will recieve this error because the data sent back from oi.DECS won't be handled correctly for firmware versions =< 0.5.1. The magnet target should still have been set.
 
 ![firmware_error](./img/firmware_error.PNG)
 
