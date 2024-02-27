@@ -89,9 +89,9 @@ Note: The `DECS<->VISA` simple TCP socket server is started using the python `su
 ````python
 if running_on.startswith("Windows"):
     print(f"Running on {running_on} - start subprocess without PIPEd output")
-    subprocess.Popen(["python3", decs_visa_path])
+    subprocess.Popen(["python", decs_visa_path])
 else:
     print(f"Running on {running_on} - start subprocess with PIPEd output")
     subprocess.Popen(["python3", decs_visa_path], stdout=subprocess.PIPE)
 ````
-The default is "python3".
+The default is "python" for windows and "python3" for linux and MAC.
