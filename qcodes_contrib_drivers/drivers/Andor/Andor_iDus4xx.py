@@ -921,7 +921,7 @@ class AndorIDus4xx(Instrument):
         self.add_parameter('ccd_data_per_second',
                            parameter_class=CCDDataDelegateParameter,
                            source=self.ccd_data,
-                           get_parser=lambda val: val / self.exposure_time.get_latest(),
+                           get_parser=self._to_count_rate,
                            label='CCD Data per second',
                            unit='cps',
                            docstring="CCD data (counts) divided by the exposure time.")
@@ -929,7 +929,7 @@ class AndorIDus4xx(Instrument):
         self.add_parameter('ccd_data_bg_corrected_per_second',
                            parameter_class=CCDDataDelegateParameter,
                            source=self.ccd_data_bg_corrected,
-                           get_parser=lambda val: val / self.exposure_time.get_latest(),
+                           get_parser=self._to_count_rate,
                            label='CCD Data (bg corrected) per second',
                            unit='cps',
                            docstring="CCD data with a background image previously taken "
@@ -1075,6 +1075,14 @@ class AndorIDus4xx(Instrument):
     def _has_time_dimension(acquisition_mode) -> bool:
         return acquisition_mode not in (1, 2)
 
+    def _to_count_rate(self, val: npt.NDArray[int]) -> npt.NDArray[float]:
+        """Parser to convert counts into count rate."""
+        # Always get the exposure time since it's computed by the camera lazily.
+        total_exposure_time = self.exposure_time.get()
+        if self.acquisition_mode.get_latest() not in {'single scan', 'run till abort'}:
+            total_exposure_time *= self.number_accumulations.get_latest()
+        return val / total_exposure_time
+
     def _parse_background(self, data: npt.NDArray) -> npt.NDArray:
         """Stores current acquisition settings as parameter metadata."""
         self.background.load_metadata(self._freeze_acquisition_settings())
@@ -1118,10 +1126,9 @@ class AndorIDus4xx(Instrument):
             raise RuntimeError("No background acquired. Perform a get on the 'background' "
                                "parameter")
 
-        current_settings = self._freeze_acquisition_settings()
-        background_settings = {key: self.background.metadata.get(key, None)
-                               for key in current_settings}
         if not self.background_is_valid:
+            background_settings = {key: self.background.metadata.get(key, None)
+                                   for key in self._freeze_acquisition_settings()}
             raise RuntimeError('Background was acquired for different settings; cannot subtract '
                                'it. Consider taking a new background or changing the settings. '
                                f'Previous settings were: {background_settings}')
@@ -1132,7 +1139,7 @@ class AndorIDus4xx(Instrument):
         current_settings = self._freeze_acquisition_settings()
         background_settings = {key: self.background.metadata.get(key, None)
                                for key in current_settings}
-        return background_settings == current_settings
+        return self.background.cache.valid and background_settings == current_settings
 
     def close(self) -> None:
         self.atmcd64d.shut_down()
