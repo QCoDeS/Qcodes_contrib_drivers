@@ -1,4 +1,4 @@
-"""oi:DECS driver for Proteox dilution refrigerator systems"""
+"""oi.DECS driver for Proteox dilution refrigerator systems"""
 
 from functools import partial
 from typing import Any, Union
@@ -146,7 +146,7 @@ class oiDECS(VisaInstrument):
         running_on = platform.platform()
         if running_on.startswith("Windows"):
             print(f"Running on {running_on} - start subprocess without PIPEd output")
-            subprocess.Popen(["python3", decs_visa_path])
+            subprocess.Popen(["python", decs_visa_path])
         else:
             print(f"Running on {running_on} - start subprocess with PIPEd output")
             subprocess.Popen(["python3", decs_visa_path], stdout=subprocess.PIPE)
