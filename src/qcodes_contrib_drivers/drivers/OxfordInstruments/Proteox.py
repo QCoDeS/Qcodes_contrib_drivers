@@ -1,4 +1,4 @@
-"""oi:DECS driver for Proteox dilution refrigerator systems"""
+"""oi.DECS driver for Proteox dilution refrigerator systems"""
 
 from functools import partial
 from typing import Any, Union
