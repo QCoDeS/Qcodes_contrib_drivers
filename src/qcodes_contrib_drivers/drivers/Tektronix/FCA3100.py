@@ -3,7 +3,7 @@ import numpy as np
 from typing import Any, Tuple
 from qcodes.instrument import VisaInstrument
 from qcodes.parameters import MultiParameter, Parameter, ParameterWithSetpoints
-from qcodes.utils.validators import Arrays, Ints
+from qcodes.validators import Arrays, Ints
 
 log = logging.getLogger(__name__)
 
@@ -20,8 +20,8 @@ class TimeStatistics(MultiParameter):
         Statistical values of a timing statistics.
 
         Args:
-            name (str): name of the timing statistics
-            instrument (FCA3100): Instrument to which the timing statistic is bound to.
+            name: name of the timing statistics
+            instrument: Instrument to which the timing statistic is bound to.
         """
 
         super().__init__(name=name,
@@ -46,7 +46,7 @@ class TimeStatistics(MultiParameter):
         Gets data from the instrument
 
         Returns:
-            Tuple[float, float, float, float]: Statistical values of the time statistic
+            Tuple: Statistical values of the time statistic
         """
         assert isinstance(self.instrument, FCA3100)
         self.instrument.write('CALCulate:AVERage:STAT 1')
@@ -67,8 +67,8 @@ class CompleteTimeStatistics(ParameterWithSetpoints):
         Parameter for a complete time statistics containing all measured switching times.
 
         Args:
-            name (str): name of the complete time statistics
-            instrument (FCA3100): Instrument to which the complete time statistic is bound to.
+            name: name of the complete time statistics
+            instrument: Instrument to which the complete time statistic is bound to.
         """
         super().__init__(name=name,
                          instrument=instrument,
@@ -119,11 +119,11 @@ class FCA3100(VisaInstrument):
         Qcodes driver for the Textronix FCA3100 frequency counter.
 
         Args:
-            name (str): Name of the instrument
-            address (str): Address of the instrument
-            terminator (str, optional): Terminator character of
+            name: Name of the instrument
+            address: Address of the instrument
+            terminator (optional): Terminator character of
                 the string reply. Defaults to "\\n".
-            timeout (int, optional): VISA timeout is set purposely
+            timeout (optional): VISA timeout is set purposely
                 to a long time to allow long measurements. Defaults to 10.
         """
 
