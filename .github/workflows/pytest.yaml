@@ -23,12 +23,14 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest]
-        python-version: ["3.9", "3.10", "3.11"]
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
         exclude:
           - os: windows-latest
             python-version: "3.10"
           - os: windows-latest
             python-version: "3.11"
+          - os: windows-latest
+            python-version: "3.12"
     env:
       DISPLAY: ':99.0'
       OS: ${{ matrix.os }}
@@ -56,12 +58,14 @@ jobs:
       run: |
         pip install .[test] -c requirements.txt
     - name: Run Mypy
-      run: mypy qcodes_contrib_drivers
+      run: mypy src
     - name: Run tests
       run: |
-        pytest --cov=qcodes_contrib_drivers --cov-report xml --cov-config=pyproject.toml qcodes_contrib_drivers
+        pytest --cov=qcodes_contrib_drivers --cov-report xml --cov-config=pyproject.toml tests
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3.1.4
+      uses: codecov/codecov-action@v4.1.0
       with:
         file: ./coverage.xml
         env_vars: OS,PYTHON
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
