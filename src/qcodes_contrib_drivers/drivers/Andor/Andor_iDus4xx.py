@@ -295,18 +295,17 @@ class ParameterWithSetSideEffect(Parameter):
     Parameters
     ----------
     set_side_effect :
-        A callable that is run before every set event. Receives the
-        parameter instance and the set value as arguments.
+        A callable that is run before every set event. Receives the set
+        value as sole argument.
     """
 
-    def __init__(self, name: str, set_side_effect: Callable[[Parameter, Any], None],
-                 **kwargs: Any) -> None:
+    def __init__(self, name: str, set_side_effect: Callable[[Any], None], **kwargs: Any) -> None:
         if not callable(set_cmd := kwargs.pop('set_cmd', False)):
             raise ValueError('ParameterWithSetSideEffect requires a set_cmd')
 
         def set_raw(value: ParamRawDataType) -> None:
             # Parameter does not allow overriding set_raw method
-            set_side_effect(self, value)
+            set_side_effect(value)
             set_cmd(value)
 
         super().__init__(name, set_cmd=set_raw, **kwargs)
@@ -1056,7 +1055,7 @@ class AndorIDus4xx(Instrument):
             self.ccd_data.setpoints = setpoints
             self.ccd_data.vals = validators.Arrays(shape=shape)
 
-    def _process_read_mode(self, param: Parameter, param_val: str):
+    def _process_read_mode(self, param_val: str):
         # Invalidate relevant caches
         self.acquired_pixels.cache.invalidate()
 
