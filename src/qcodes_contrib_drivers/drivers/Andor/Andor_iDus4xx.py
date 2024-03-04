@@ -69,6 +69,14 @@ def dedent(text: str | None) -> str | None:
     return textwrap.dedent(text) if text is not None else None
 
 
+def _merge_docstrings(*objs) -> str | None:
+    doc = ''
+    for obj in objs:
+        if obj.__doc__ is not None:
+            doc = doc + obj.__doc__
+    return doc if doc != '' else None
+
+
 class _HeterogeneousSequence(validators.Validator[Sequence[Any]]):
     """A validator for heterogeneous sequences."""
 
@@ -1183,20 +1191,6 @@ class AndorIDus4xx(Instrument):
         self.atmcd64d.shut_down()
         super().close()
 
-    def abort_acquisition(self) -> None:
-        self.atmcd64d.abort_acquisition()
-
-    def prepare_acquisition(self) -> None:
-        self.atmcd64d.prepare_acquisition()
-
-    def start_acquisition(self) -> None:
-        """Start the acquisition. Exposed for 'run till abort'
-        acquisition mode and external triggering."""
-        self.atmcd64d.start_acquisition()
-
-    def send_software_trigger(self) -> None:
-        self.atmcd64d.send_software_trigger()
-
     def arm(self) -> None:
         """TODO: Placeholder."""
         self.log.debug('Arming: clear buffer, prepare and starting acquisition.')
@@ -1204,8 +1198,53 @@ class AndorIDus4xx(Instrument):
         self.prepare_acquisition()
         self.start_acquisition()
 
+    # Some methods of the dll that we expose directly on the instrument
+    def abort_acquisition(self) -> None:
+        self.atmcd64d.abort_acquisition()
+
+    abort_acquisition.__doc__ = atmcd64d.abort_acquisition.__doc__
+
+    def prepare_acquisition(self) -> None:
+        self.atmcd64d.prepare_acquisition()
+
+    prepare_acquisition.__doc__ = atmcd64d.prepare_acquisition.__doc__
+
+    def start_acquisition(self) -> None:
+        """Start the acquisition. Exposed for 'run till abort'
+        acquisition mode and external triggering."""
+        self.atmcd64d.start_acquisition()
+
+    start_acquisition.__doc__ = atmcd64d.start_acquisition.__doc__
+
+    def send_software_trigger(self) -> None:
+        self.atmcd64d.send_software_trigger()
+
+    send_software_trigger.__doc__ = atmcd64d.send_software_trigger.__doc__
+
     def clear_circular_buffer(self) -> None:
         self.atmcd64d.free_internal_memory()
+
+    clear_circular_buffer.__doc__ = atmcd64d.free_internal_memory.__doc__
+
+    def get_acquisition_timings(self) -> AcquisitionTimings:
+        """The current acquisition timing parameters actually used by
+        the device.
+
+        This method also updates the caches of the corresponding
+        parameters. This can be used to ensure they are snapshotted
+        correctly when measuring.
+
+        Docstring of the dll function:
+        ------------------------------
+        """
+        timings = AcquisitionTimings(*self.atmcd64d.get_acquisition_timings())
+        self.exposure_time.cache.set(timings.exposure_time)
+        self.accumulation_cycle_time.cache.set(timings.accumulation_cycle_time)
+        self.kinetic_cycle_time.cache.set(timings.kinetic_cycle_time)
+        return timings
+
+    get_acquisition_timings.__doc__ = _merge_docstrings(get_acquisition_timings,
+                                                        atmcd64d.get_acquisition_timings)
 
     def cool_down(self, setpoint: int | None = None,
                   target: Literal['stabilized', 'reached'] = 'reached',
