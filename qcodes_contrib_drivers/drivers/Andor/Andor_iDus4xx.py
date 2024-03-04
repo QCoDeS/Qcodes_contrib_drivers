@@ -40,7 +40,7 @@ import itertools
 import operator
 import textwrap
 import time
-from collections import abc
+from collections import abc, namedtuple
 from functools import partial, wraps
 from typing import Any, Callable, Dict, Literal, Optional, Sequence, Tuple, TypeVar
 
@@ -58,6 +58,9 @@ from . import post_processing
 from .private.andor_sdk import SDKError, atmcd64d
 
 _T = TypeVar('_T')
+
+AcquisitionTimings = namedtuple('AcquisitionTimings',
+                                ('exposure_time', 'accumulation_cycle_time', 'kinetic_cycle_time'))
 
 
 @wraps(textwrap.dedent)
@@ -113,42 +116,46 @@ class _PostProcessingCallable(validators.Validator[Callable[[npt.NDArray[np.int3
             raise TypeError(f"{value!r} is not a post-processing function; {context}")
 
 
-class DetectorPixels(MultiParameter):
+class DetectorPixelsParameter(MultiParameter):
     """Stores the detector size in pixels."""
+    DetectorPixels = namedtuple('DetectorPixels', ['horizontal', 'vertical'])
 
-    def get_raw(self) -> Tuple[int, int]:
+    def get_raw(self) -> DetectorPixels:
         if self.instrument is None:
             raise RuntimeError("No instrument attached to Parameter.")
 
-        return self.instrument.atmcd64d.get_detector()
+        return self.DetectorPixels(*self.instrument.atmcd64d.get_detector())
 
 
-class PixelSize(MultiParameter):
+class PixelSizeParameter(MultiParameter):
     """Stores the pixel size in microns."""
+    PixelSize = namedtuple('PixelSize', ['horizontal', 'vertical'])
 
-    def get_raw(self) -> Tuple[float, float]:
+    def get_raw(self) -> PixelSize:
         if self.instrument is None:
             raise RuntimeError("No instrument attached to Parameter.")
 
-        return self.instrument.atmcd64d.get_pixel_size()
+        return self.PixelSize(*self.instrument.atmcd64d.get_pixel_size())
 
 
-class DetectorSize(MultiParameter):
+class DetectorSizeParameter(MultiParameter):
     """Stores the detector size in microns."""
+    DetectorSize = namedtuple('DetectorSize', ['horizontal', 'vertical'])
 
-    def get_raw(self) -> Tuple[float, float]:
+    def get_raw(self) -> DetectorSize:
         if self.instrument is None:
             raise RuntimeError("No instrument attached to Parameter.")
 
         px_x, px_y = self.instrument.atmcd64d.get_detector()
         size_x, size_y = self.instrument.atmcd64d.get_pixel_size()
-        return px_x * size_x, px_y * size_y
+        return self.DetectorSize(px_x * size_x, px_y * size_y)
 
 
-class AcquiredPixels(MultiParameter):
+class AcquiredPixelsParameter(MultiParameter):
     """Returns the shape of a single frame for the current settings."""
+    AcquiredPixels = namedtuple('AcquiredPixels', ['horizontal', 'vertical'])
 
-    def get_raw(self) -> Tuple[int, int]:
+    def get_raw(self) -> AcquiredPixels:
         if self.instrument is None:
             raise RuntimeError("No instrument attached to Parameter.")
 
@@ -165,26 +172,28 @@ class AcquiredPixels(MultiParameter):
         elif read_mode in ('single track', 'full vertical binning'):
             height = 1
 
-        return width, height
+        return self.AcquiredPixels(width, height)
 
 
-class SingleTrackSettings(MultiParameter):
+class SingleTrackSettingsParameter(MultiParameter):
     """Represents the settings for single-track acquisition."""
+    SingleTrackSettings = namedtuple('SingleTrackSettings', ['centre', 'height'])
 
-    def get_raw(self) -> Optional[Tuple[int, int]]:
+    def get_raw(self) -> Optional[SingleTrackSettings]:
         if self.instrument is None:
             raise RuntimeError("No instrument attached to Parameter.")
 
-        return self.cache.get(False)
+        val = self.cache.get(False)
+        return self.SingleTrackSettings(*self.cache.get(False)) if val is not None else None
 
-    def set_raw(self, val: Tuple[int, int]):
+    def set_raw(self, val: SingleTrackSettings):
         if self.instrument is None:
             raise RuntimeError("No instrument attached to Parameter.")
 
         self.instrument.atmcd64d.set_single_track(*val)
 
 
-class MultiTrackSettings(MultiParameter):
+class MultiTrackSettingsParameter(MultiParameter):
     """
     Represents the settings for multi-track acquisition.
 
@@ -195,66 +204,75 @@ class MultiTrackSettings(MultiParameter):
     bottom, gap) is returned. The last two are calculated by the dll
     function and are thus only available when getting.
     """
-    # Bottom and gap are computed by the dll
-    _bottom: Optional[int] = None
-    _gap: Optional[int] = None
+    MultiTrackSettings = namedtuple('MultiTrackSettings',
+                                    ['number', 'height', 'offset', 'bottom', 'gap'])
 
-    def get_raw(self) -> Optional[Tuple[int, int, int, int, int]]:
+    def get_raw(self) -> Optional[MultiTrackSettings]:
         if self.instrument is None:
             raise RuntimeError("No instrument attached to Parameter.")
 
         val = self.cache.get(False)
-        return tuple(val) + (self._bottom, self._gap) if val is not None else None
+        return self.MultiTrackSettings(*val) if val is not None else None
 
     def set_raw(self, val: Tuple[int, int, int]):
         if self.instrument is None:
             raise RuntimeError("No instrument attached to Parameter.")
 
-        self._bottom, self._gap = self.instrument.atmcd64d.set_multi_track(*val)
+        bottom, gap = self.instrument.atmcd64d.set_multi_track(*val)
+        self.cache.set(val + (bottom, gap))
 
 
-class RandomTrackSettings(MultiParameter):
+class RandomTrackSettingsParameter(MultiParameter):
     """Represents the settings for random-track acquisition."""
+    RandomTrackSettings = namedtuple('RandomTrackSettings', ['number_tracks', 'areas'])
 
-    def get_raw(self) -> Optional[Tuple[int, ...]]:
+    def get_raw(self) -> Optional[RandomTrackSettings]:
         if self.instrument is None:
             raise RuntimeError("No instrument attached to Parameter.")
 
-        return self.cache.get(False)
+        val = self.cache.get(False)
+        return self.RandomTrackSettings(*val) if val is not None else None
 
-    def set_raw(self, val: Tuple[int, Sequence[int]]):
+    def set_raw(self, val: RandomTrackSettings):
         if self.instrument is None:
             raise RuntimeError("No instrument attached to Parameter.")
 
         self.instrument.atmcd64d.set_random_tracks(*val)
 
 
-class ImageSettings(MultiParameter):
+class ImageSettingsParameter(MultiParameter):
     """Represents the settings for image acquisition."""
+    ImageSettings = namedtuple('ImageSettings',
+                               ['hbin', 'vbin', 'hstart', 'hend', 'vstart', 'vend'])
 
-    def get_raw(self) -> Optional[Tuple[int, int, int, int, int, int]]:
+    def get_raw(self) -> Optional[ImageSettings]:
         if self.instrument is None:
             raise RuntimeError("No instrument attached to Parameter.")
 
-        return self.cache.get(False)
+        val = self.cache.get(False)
+        return self.ImageSettings(*val) if val is not None else None
 
-    def set_raw(self, val: Tuple[int, int, int, int, int, int]):
+    def set_raw(self, val: ImageSettings):
         if self.instrument is None:
             raise RuntimeError("No instrument attached to Parameter.")
 
         self.instrument.atmcd64d.set_image(*val)
 
 
-class FastKineticsSettings(MultiParameter):
+class FastKineticsSettingsParameter(MultiParameter):
     """Represents fast kinetics settings."""
+    FastKineticsSettings = namedtuple('FastKineticsSettings',
+                                      ['exposed_rows', 'series_length', 'time', 'mode', 'hbin',
+                                       'vbin', 'offset'])
 
-    def get_raw(self) -> Optional[Tuple[int, int, float, int, int, int, int]]:
+    def get_raw(self) -> Optional[FastKineticsSettings]:
         if self.instrument is None:
             raise RuntimeError("No instrument attached to Parameter.")
 
-        return self.cache.get(False)
+        val = self.cache.get(False)
+        return self.FastKineticsSettings(*val) if val is not None else None
 
-    def set_raw(self, val: Tuple[int, int, float, int, int, int, int]):
+    def set_raw(self, val: FastKineticsSettings):
         if self.instrument is None:
             raise RuntimeError("No instrument attached to Parameter.")
 
@@ -590,12 +608,12 @@ class AndorIDus4xx(Instrument):
                            ))
 
         self.add_parameter('detector_size',
-                           parameter_class=DetectorSize,
-                           names=('horizontal', 'vertical'),
+                           parameter_class=DetectorSizeParameter,
+                           names=DetectorSizeParameter.DetectorSize._fields,
                            shapes=((), ()),
                            units=('μm', 'μm'),
                            labels=('Horizontal chip size', 'Vertical chip size'),
-                           docstring=DetectorSize.__doc__,
+                           docstring=DetectorSizeParameter.__doc__,
                            snapshot_value=True)
 
         self.add_parameter('exposure_time',
@@ -608,9 +626,8 @@ class AndorIDus4xx(Instrument):
                            docstring=dedent(self.atmcd64d.set_exposure_time.__doc__))
 
         self.add_parameter('fast_kinetics_settings',
-                           parameter_class=FastKineticsSettings,
-                           names=('exposed_rows', 'series_length', 'time', 'mode', 'hbin',
-                                  'vbin', 'offset'),
+                           parameter_class=FastKineticsSettingsParameter,
+                           names=FastKineticsSettingsParameter.FastKineticsSettings._fields,
                            shapes=((), (), (), (), (), (), ()),
                            units=('px', 'px', 's', '', 'px', 'px', 'px'),
                            vals=_HeterogeneousSequence([validators.Ints(1), validators.Ints(1),
@@ -662,8 +679,8 @@ class AndorIDus4xx(Instrument):
                            docstring=dedent(self.atmcd64d.set_kinetic_cycle_time.__doc__))
 
         self.add_parameter('multi_track_settings',
-                           parameter_class=MultiTrackSettings,
-                           names=('number', 'height', 'offset', 'bottom', 'gap'),
+                           parameter_class=MultiTrackSettingsParameter,
+                           names=MultiTrackSettingsParameter.MultiTrackSettings._fields,
                            shapes=((), (), (), (), ()),
                            units=('px', 'px', 'px', 'px', 'px'),
                            vals=_HeterogeneousSequence([validators.Ints(1), validators.Ints(1),
@@ -684,21 +701,21 @@ class AndorIDus4xx(Instrument):
                            docstring=dedent(self.atmcd64d.set_number_kinetics.__doc__))
 
         self.add_parameter('detector_pixels',
-                           parameter_class=DetectorPixels,
-                           names=('horizontal', 'vertical'),
+                           parameter_class=DetectorPixelsParameter,
+                           names=DetectorPixelsParameter.DetectorPixels._fields,
                            shapes=((), ()),
                            units=('px', 'px'),
                            labels=('Horizontal number of pixels', 'Vertical number of pixels'),
-                           docstring=DetectorPixels.__doc__,
+                           docstring=DetectorPixelsParameter.__doc__,
                            snapshot_value=True)
 
         self.add_parameter('pixel_size',
-                           parameter_class=PixelSize,
-                           names=('horizontal', 'vertical'),
+                           parameter_class=PixelSizeParameter,
+                           names=PixelSizeParameter.PixelSize._fields,
                            shapes=((), ()),
                            units=('μm', 'μm'),
                            labels=('Horizontal pixel size', 'Vertical pixel size'),
-                           docstring=PixelSize.__doc__,
+                           docstring=PixelSizeParameter.__doc__,
                            snapshot_value=True)
 
         # Real-time photon counting
@@ -746,8 +763,8 @@ class AndorIDus4xx(Instrument):
                            docstring=dedent(self.atmcd64d.set_preamp_gain.__doc__))
 
         self.add_parameter('random_track_settings',
-                           parameter_class=RandomTrackSettings,
-                           names=('number_tracks', 'areas'),
+                           parameter_class=RandomTrackSettingsParameter,
+                           names=RandomTrackSettingsParameter.RandomTrackSettings._fields,
                            shapes=((), ()),
                            units=('', 'px'),
                            vals=_HeterogeneousSequence([validators.Ints(1),
@@ -779,8 +796,8 @@ class AndorIDus4xx(Instrument):
                            docstring=dedent(self.atmcd64d.set_shutter.__doc__))
 
         self.add_parameter('single_track_settings',
-                           parameter_class=SingleTrackSettings,
-                           names=('centre', 'height'),
+                           parameter_class=SingleTrackSettingsParameter,
+                           names=SingleTrackSettingsParameter.SingleTrackSettings._fields,
                            shapes=((), ()),
                            units=('px', 'px'),
                            vals=validators.Sequence(validators.Ints(1), length=2),
@@ -841,8 +858,8 @@ class AndorIDus4xx(Instrument):
 
         # Parameters that depend on other parameters and therefore cannot be sorted alphabetically
         self.add_parameter('image_settings',
-                           parameter_class=ImageSettings,
-                           names=('hbin', 'vbin', 'hstart', 'hend', 'vstart', 'vend'),
+                           parameter_class=ImageSettingsParameter,
+                           names=ImageSettingsParameter.ImageSettings._fields,
                            shapes=((), (), (), (), (), ()),
                            units=('px', 'px', 'px', 'px', 'px', 'px'),
                            vals=_HeterogeneousSequence([
@@ -869,11 +886,11 @@ class AndorIDus4xx(Instrument):
                            docstring='Number of frames that will be acquired.')
 
         self.add_parameter('acquired_pixels',
-                           parameter_class=AcquiredPixels,
-                           names=('horizontal', 'vertical'),
+                           parameter_class=AcquiredPixelsParameter,
+                           names=AcquiredPixelsParameter.AcquiredPixels._fields,
                            shapes=((), ()),
                            units=('px', 'px'),
-                           docstring=AcquiredPixels.__doc__,
+                           docstring=AcquiredPixelsParameter.__doc__,
                            snapshot_value=True)
 
         self.add_parameter('time_axis',
@@ -921,22 +938,24 @@ class AndorIDus4xx(Instrument):
                            docstring="CCD data with a background image previously taken "
                                      "subtracted.")
 
-        self.add_parameter('ccd_data_per_second',
+        self.add_parameter('ccd_data_rate',
                            parameter_class=CCDDataDelegateParameter,
                            source=self.ccd_data,
                            get_parser=self._to_count_rate,
-                           label='CCD Data per second',
+                           label='CCD Data rate',
                            unit='cps',
-                           docstring="CCD data (counts) divided by the exposure time.")
+                           docstring="CCD data (counts) divided by the total exposure time per "
+                                     "frame (including accumulations).")
 
-        self.add_parameter('ccd_data_bg_corrected_per_second',
+        self.add_parameter('ccd_data_rate_bg_corrected',
                            parameter_class=CCDDataDelegateParameter,
                            source=self.ccd_data_bg_corrected,
                            get_parser=self._to_count_rate,
-                           label='CCD Data (bg corrected) per second',
+                           label='CCD Data rate (bg corrected)',
                            unit='cps',
                            docstring="CCD data with a background image previously taken "
-                                     "subtracted and divided by the exposure time.")
+                                     "subtracted and divided by the total exposure time per "
+                                     "frame (including accumulations).")
 
         self.add_parameter('background',
                            parameter_class=PersistentDelegateParameter,
