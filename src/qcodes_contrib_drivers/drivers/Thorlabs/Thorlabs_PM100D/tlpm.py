@@ -22,7 +22,7 @@ if sys.platform == 'win32' and vxi_32 is not None:
     sys.path.append(str(pathlib.Path(vxi_32, 'WinNT', 'TLPM', 'Examples',
                                      'Python')))
 
-    from TLPM import TLPM
+    import TLPM
 
 
 class ThorlabsPM100D(Instrument):
@@ -56,7 +56,7 @@ class ThorlabsPM100D(Instrument):
     """
 
     def __init__(self, name: str, address: str = '', reset: bool = False,
-                 thorlabs_tlpm: TLPM | None = None,
+                 thorlabs_tlpm: TLPM.TLPM | None = None,
                  metadata: Mapping[Any, Any] | None = None,
                  label: str | None = None):
         if sys.platform != 'win32':
@@ -65,7 +65,7 @@ class ThorlabsPM100D(Instrument):
         if vxi_32 is None:
             raise FileNotFoundError('IVI VXIPNP path not detected.')
 
-        self.tlpm = thorlabs_tlpm or TLPM()
+        self.tlpm = thorlabs_tlpm or TLPM.TLPM()
         # NEED to call with IDQuery==True, otherwise the following error is
         # raised: NameError: The given session or object reference does not
         # support this operation.
@@ -83,6 +83,11 @@ class ThorlabsPM100D(Instrument):
                            set_cmd=self._set_wavelength,
                            label='Wavelength',
                            unit='nm')
+        self.add_parameter('averaging_time',
+                           get_cmd=self._get_averaging_time,
+                           set_cmd=self._set_averaging_time,
+                           label='Averaging time',
+                           unit='s')
 
         self.connect_message()
 
@@ -107,11 +112,20 @@ class ThorlabsPM100D(Instrument):
 
     def _get_wavelength(self) -> float:
         wavelength = ctypes.c_double()
-        self.tlpm.getWavelength(0, ctypes.byref(wavelength))
+        self.tlpm.getWavelength(TLPM.TLPM_ATTR_SET_VAL,
+                                ctypes.byref(wavelength))
         return wavelength.value
 
     def _set_wavelength(self, wavelength: float):
         self.tlpm.setWavelength(ctypes.c_double(wavelength))
+
+    def _get_averaging_time(self) -> float:
+        avgTime = ctypes.c_double()
+        self.tlpm.getAvgTime(TLPM.TLPM_ATTR_SET_VAL, ctypes.byref(avgTime))
+        return avgTime.value
+
+    def _set_averaging_time(self, time: float):
+        self.tlpm.setAvgTime(ctypes.c_double(time))
 
     def get_idn(self) -> Dict[str, str | None]:
         manufacturerName = ctypes.create_string_buffer(1024)
