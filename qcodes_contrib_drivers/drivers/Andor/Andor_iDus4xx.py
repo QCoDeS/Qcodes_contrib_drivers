@@ -362,16 +362,19 @@ class CCDData(ParameterWithSetpoints):
         if self.instrument is None:
             raise RuntimeError("No instrument attached to Parameter.")
 
+        # Calls get_acquisition_timings() to get the correct timing info.
+        acquisition_settings = self.instrument.freeze_acquisition_settings()
+
         shape = tuple(setpoints.get().size for setpoints in self.setpoints)
         # Can use get_latest here since acquisition_mode and read_mode set parses
         # already take care of invalidating caches if things changed.
-        number_frames = self.instrument.acquired_frames.get_latest()
-        number_accumulations = self.instrument.acquired_accumulations.get_latest()
-        number_pixels = np.prod(self.instrument.acquired_pixels.get_latest())
+        number_frames = acquisition_settings['acquired_frames']
+        number_accumulations = acquisition_settings['acquired_accumulations']
+        number_pixels = np.prod(acquisition_settings['acquired_pixels'])
 
         # In fast kinetics mode, an acquisition event only occurs once per series,
         # not number_frames times like in regular kinetic series mode.
-        if self.instrument.acquisition_mode.get_latest() != 'fast kinetics':
+        if acquisition_settings['acquisition_mode'] != 'fast kinetics':
             number_acquisitions = number_frames
         else:
             number_acquisitions = 1
@@ -1008,17 +1011,7 @@ class AndorIDus4xx(Instrument):
     def _acquired_vertical_pixels(self) -> int:
         return self.acquired_pixels.get_latest()[1]
 
-    def _freeze_acquisition_settings(self) -> dict[str, Any]:
-        acquisition_settings = {'acquisition_mode': self.acquisition_mode.get_latest(),
-                                'acquisition_timings': self.atmcd64d.get_acquisition_timings(),
-                                'read_mode': self.read_mode.get_latest()}
-
-        settings = getattr(self, self.read_mode.get_latest().replace(' ', '_') + '_settings', None)
-        if settings is not None:
-            acquisition_settings['read_mode_settings'] = settings.get_latest()
-        return acquisition_settings
-
-    def _process_acquisition_mode(self, param: Parameter, param_val: str):
+    def _process_acquisition_mode(self, param_val: str):
         # Invalidate relevant caches
         self.acquired_frames.cache.invalidate()
         self.acquired_accumulations.cache.invalidate()
@@ -1085,7 +1078,7 @@ class AndorIDus4xx(Instrument):
 
     def _parse_background(self, data: npt.NDArray) -> npt.NDArray:
         """Stores current acquisition settings as parameter metadata."""
-        self.background.load_metadata(self._freeze_acquisition_settings())
+        self.background.load_metadata(self.freeze_acquisition_settings())
         return data
 
     def _parse_ccd_data(self, val: npt.NDArray) -> npt.NDArray:
@@ -1128,18 +1121,43 @@ class AndorIDus4xx(Instrument):
 
         if not self.background_is_valid:
             background_settings = {key: self.background.metadata.get(key, None)
-                                   for key in self._freeze_acquisition_settings()}
+                                   for key in self.freeze_acquisition_settings()}
             raise RuntimeError('Background was acquired for different settings; cannot subtract '
                                'it. Consider taking a new background or changing the settings. '
                                f'Previous settings were: {background_settings}')
         return data - background
 
+    def freeze_acquisition_settings(self) -> dict[str, Any]:
+        return {'acquisition_mode': self.acquisition_mode.get_latest(),
+                'acquisition_timings': self.get_acquisition_timings(),
+                'acquired_frames': self._get_acquired_frames(),
+                'acquired_accumulations': self._get_acquired_accumulations(),
+                'acquired_pixels': self.acquired_pixels.get_latest(),
+                'fast_kinetics_settings': self.fast_kinetics_settings.get_latest(),
+                'read_mode': self.read_mode.get_latest(),
+                'single_track_settings': self.single_track_settings.get_latest(),
+                'multi_track_settings': self.multi_track_settings.get_latest(),
+                'random_track_settings': self.random_track_settings.get_latest(),
+                'image_settings': self.image_settings.get_latest()}
+
     @property
     def background_is_valid(self) -> bool:
-        current_settings = self._freeze_acquisition_settings()
+        if not self.background.cache.valid:
+            return False
+
+        current_settings = self.freeze_acquisition_settings()
         background_settings = {key: self.background.metadata.get(key, None)
                                for key in current_settings}
-        return self.background.cache.valid and background_settings == current_settings
+
+        keys_to_ignore = {'single_track_settings', 'multi_track_settings', 'random_track_settings',
+                          'image_settings', 'fast_kinetics_settings'}
+        if current_settings['acquisition_mode'] == 'fast kinetics':
+            keys_to_ignore.remove('fast_kinetics_settings')
+        if current_settings['read_mode'] != 'full vertical binning':
+            keys_to_ignore.remove(current_settings['read_mode'].replace(' ', '_') + '_settings')
+
+        return all(current_settings[key] == background_settings[key] for key in
+                   keys_to_ignore.symmetric_difference(current_settings.keys()))
 
     def close(self) -> None:
         self.atmcd64d.shut_down()
