@@ -133,11 +133,12 @@ class CryoSwitchControllerDriver(Instrument):
         super().__init__(name, **kwargs)
 
         self._controller = Cryoswitch()
+        self._switch_model = None
 
         self.add_parameter(
             'output_voltage',
             set_cmd=self._controller.set_output_voltage,
-            vals=Numbers(0, 10)
+            vals=Numbers(0, 25)
         )
 
         self.add_parameter(
@@ -160,8 +161,9 @@ class CryoSwitchControllerDriver(Instrument):
 
         self.add_parameter(
             'switch_model',
-            set_cmd=self._controller.select_switch_model,
-            vals=Enum('R583423141', 'R573423600')
+            set_cmd=self._select_switch_model,
+            get_cmd=self._get_switch_model,
+            vals=Enum('R583423141', 'R573423600','CRYO','RT')
         )
 
         self.add_parameter(
@@ -182,14 +184,27 @@ class CryoSwitchControllerDriver(Instrument):
         channels.lock()
         self.add_submodule("channels", channels)
 
+    def _select_switch_model(self, switch_type: str = None):
+        if switch_type in ['R583423141', 'CRYO']:
+            self._controller.select_switch_model('R583423141')
+            self._switch_model = 'R583423141'
+        elif switch_type in ['R573423600', 'RT']:
+            self._controller.select_switch_model('R573423600')
+            self._switch_model = 'R573423600'
+        else:
+            print('Selected switch type does not exist.')
+
+    def _get_switch_model(self):
+        return self._switch_model
+
     def get_switches_state(self, port: str = None):
-            return self._controller.get_switches_state(port)
+        return self._controller.get_switches_state(port)
 
     def disconnect_all(self, port: str):
-            self._controller.disconnect_all(port)
+        self._controller.disconnect_all(port)
 
     def smart_connect(self, port: str, contact: int):
-            return self._controller.smart_connect(port, contact)
+        return self._controller.smart_connect(port, contact)
 
     def _enable_disable_chopping(self, enable: bool):
         """
