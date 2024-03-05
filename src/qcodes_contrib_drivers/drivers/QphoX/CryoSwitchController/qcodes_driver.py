@@ -1,6 +1,7 @@
 from qcodes import Instrument, ChannelList, InstrumentChannel
 from qcodes.utils.validators import Numbers,Bool,Enum
 from qcodes_contrib_drivers.drivers.QphoX.CryoSwitchController.CryoSwitchController import Cryoswitch
+import os
 
 class CryoSwitchChannel(InstrumentChannel):
     """
@@ -120,6 +121,7 @@ class CryoSwitchControllerDriver(Instrument):
         switch_model (Parameter): The switch model used by the controller. 
             It can be either 'R583423141' or 'R573423600'.
             Equvalently, one may set the model using 'RT' (room temperature) for R573423600, and 'CRYO' instead of 'R583423141'.
+            The two switch types require different connectivity between the D-Sub on the controller box and the switch.
         power_status (Parameter): The power status of the controller. 
             It can be either 0 (disabled) or 1 (enabled).
     """
@@ -132,6 +134,16 @@ class CryoSwitchControllerDriver(Instrument):
             name (str): The name of the instrument.
         """
         super().__init__(name, **kwargs)
+
+        # create an empty states file if it does not exist
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        target_file = os.path.join(current_dir, 'states.json')
+        source_file = os.path.join(current_dir, 'states_empty.json')
+        if not os.path.exists(target_file):
+            with open(source_file, 'r') as src:
+                contents = src.read()
+            with open(target_file, 'w') as tgt:
+                tgt.write(contents)
 
         self._controller = Cryoswitch()
         self._switch_model = None
@@ -188,9 +200,11 @@ class CryoSwitchControllerDriver(Instrument):
         if switch_type in ['R583423141', 'CRYO']:
             self._controller.select_switch_model('R583423141')
             self._switch_model = 'R583423141'
+            print('Note that R583423141 and R573423600 models require different connection to the switch box.')
         elif switch_type in ['R573423600', 'RT']:
             self._controller.select_switch_model('R573423600')
             self._switch_model = 'R573423600'
+            print('Note that R583423141 and R573423600 models require different connection to the switch box.')
         else:
             print('Selected switch type does not exist.')
 
