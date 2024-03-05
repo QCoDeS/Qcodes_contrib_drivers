@@ -110,15 +110,16 @@ class CryoSwitchControllerDriver(Instrument):
     Attributes:
         name (str): The name of the instrument.
         output_voltage (Parameter): The output voltage of the controller. 
-            It can be a number between 0 and 10.
+            It can be a number between 0 and 25 (V).
         pulse_duration (Parameter): The pulse duration of the controller. 
-            It can be a number between 0 and 1000.
+            It can be a number between 0 and 1000 (ms).
         OCP_value (Parameter): The overcurrent protection trigger value of the controller. 
-            It can be a number between 0 and 1000.
+            It can be a number between 0 and 1000 (mA).
         chopping (Parameter): The chopping function status of the controller. 
             It can be a boolean value.
         switch_model (Parameter): The switch model used by the controller. 
             It can be either 'R583423141' or 'R573423600'.
+            Equvalently, one may set the model using 'RT' (room temperature) for R573423600, and 'CRYO' instead of 'R583423141'.
         power_status (Parameter): The power status of the controller. 
             It can be either 0 (disabled) or 1 (enabled).
     """
@@ -171,7 +172,6 @@ class CryoSwitchControllerDriver(Instrument):
             get_cmd=self._controller.get_power_status,
             vals=Enum(0, 1)
         )
-
         
         self.add_function('start', call_cmd=self._controller.start)
         self.add_function('enable_OCP', call_cmd=self._controller.enable_OCP)
