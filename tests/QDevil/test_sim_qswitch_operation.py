@@ -11,7 +11,7 @@ def test_ground_by_name(qswitch):  # noqa
     qswitch.ground('15')
     # -----------------------------------------------------------------------
     commands = qswitch.get_recorded_scpi_commands()
-    assert commands == ['clos (@15!0)', 'open (@15!9)']
+    assert commands == ['clos (@15!0)', '*opc?', 'open (@15!9)', '*opc?']
 
 
 def test_ground_by_names(qswitch):  # noqa
@@ -24,7 +24,9 @@ def test_ground_by_names(qswitch):  # noqa
     qswitch.ground(['15', '14'])
     # -----------------------------------------------------------------------
     commands = qswitch.get_recorded_scpi_commands()
-    assert commands == ['clos (@14!0:15!0)', 'open (@14!9:15!9)']
+    assert commands == [
+        'clos (@14!0:15!0)', '*opc?',
+        'open (@14!9:15!9)', '*opc?']
 
 
 def test_connect_by_name(qswitch):  # noqa
@@ -32,7 +34,7 @@ def test_connect_by_name(qswitch):  # noqa
     qswitch.connect('15')
     # -----------------------------------------------------------------------
     commands = qswitch.get_recorded_scpi_commands()
-    assert commands == ['clos (@15!9)', 'open (@15!0)']
+    assert commands == ['clos (@15!9)', '*opc?', 'open (@15!0)', '*opc?']
 
 
 def test_connect_by_names(qswitch):  # noqa
@@ -40,7 +42,9 @@ def test_connect_by_names(qswitch):  # noqa
     qswitch.connect(['14', '15'])
     # -----------------------------------------------------------------------
     commands = qswitch.get_recorded_scpi_commands()
-    assert commands == ['clos (@14!9:15!9)', 'open (@14!0:15!0)']
+    assert commands == [
+        'clos (@14!9:15!9)', '*opc?',
+        'open (@14!0:15!0)', '*opc?']
 
 
 def test_breakout_by_name(qswitch):  # noqa
@@ -48,7 +52,7 @@ def test_breakout_by_name(qswitch):  # noqa
     qswitch.breakout('22', '7')
     # -----------------------------------------------------------------------
     commands = qswitch.get_recorded_scpi_commands()
-    assert commands == ['clos (@22!7)', 'open (@22!0)']
+    assert commands == ['clos (@22!7)', '*opc?', 'open (@22!0)', '*opc?']
 
 
 def test_arrangement_gives_names_to_connections(qswitch):  # noqa
@@ -62,8 +66,8 @@ def test_arrangement_gives_names_to_connections(qswitch):  # noqa
     # -----------------------------------------------------------------------
     commands = qswitch.get_recorded_scpi_commands()
     assert commands == [
-        'clos (@14!1)', 'open (@14!0)',
-        'clos (@3!9)', 'open (@3!0)']
+        'clos (@14!1)', '*opc?', 'open (@14!0)', '*opc?',
+        'clos (@3!9)', '*opc?', 'open (@3!0)', '*opc?']
 
 
 def test_ground_disconnects_everything(qswitch):  # noqa
@@ -75,7 +79,9 @@ def test_ground_disconnects_everything(qswitch):  # noqa
     qswitch.ground('15')
     # -----------------------------------------------------------------------
     commands = qswitch.get_recorded_scpi_commands()
-    assert commands == ['clos (@15!0)', 'open (@15!1,15!9)']
+    assert commands == [
+        'clos (@15!0)', '*opc?',
+        'open (@15!1,15!9)', '*opc?']
 
 
 def test_ground_disconnects_multiple(qswitch):  # noqa
@@ -90,5 +96,6 @@ def test_ground_disconnects_multiple(qswitch):  # noqa
     qswitch.ground(['15', '14'])
     # -----------------------------------------------------------------------
     commands = qswitch.get_recorded_scpi_commands()
-    assert commands == ['clos (@14!0:15!0)', 'open (@14!1:15!1,14!9:15!9)']
-
+    assert commands == [
+        'clos (@14!0:15!0)', '*opc?',
+        'open (@14!1:15!1,14!9:15!9)', '*opc?']

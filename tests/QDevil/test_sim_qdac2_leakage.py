@@ -14,8 +14,8 @@ def test_diff_matrix():
     assert np.allclose(diff, expected)
 
 
-def test_arrangement_steady_state(qdac, mocker):
-    sleep_s = mocker.patch('qcodes_contrib_drivers.drivers.QDevil.QDAC2.sleep_s') # Don't sleep
+def test_arrangement_steady_state(qdac, mocker):  # noqa
+    sleep_s = mocker.patch('qcodes_contrib_drivers.drivers.QDevil.QDAC2.sleep_s')  # Don't sleep
     gates = {'sensor1': 1, 'plunger2': 2, 'plunger3': 3}
     arrangement = qdac.arrange(gates)
     qdac.start_recording_scpi()

@@ -319,7 +319,7 @@ class Tektronix_AWG520(VisaInstrument):
             return
         else:
             self._fname = fname
-            filename = "\%s/%s.seq" % (fname, fname)
+            filename = r"\%s/%s.seq" % (fname, fname)
             self.set_sequence(filename=filename)
             print('Waiting for AWG to load file "%s"' % fname)
             sleeptime = 0.5

@@ -323,7 +323,7 @@ def test_arrangement_sweep_outer_trigger(qdac):  # noqa
         outer_trigger_channel=1)
     qdac.start_recording_scpi()
     # -----------------------------------------------------------------------
-    sweep = arrangement.virtual_sweep2d(
+    arrangement.virtual_sweep2d(
         inner_contact='plunger1',
         inner_voltages=np.linspace(-1, 1, 5),
         outer_contact='plunger2',

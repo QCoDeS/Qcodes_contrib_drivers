@@ -286,7 +286,7 @@ def test_square_trigger_on_internal(qdac):  # noqa
     # -----------------------------------------------------------------------
     assert qdac.get_recorded_scpi_commands() == [
         f'sour1:squ:trig:sour int{trigger.value}',
-        f'sour1:squ:init:cont on',
+        'sour1:squ:init:cont on',
     ]
 
 
@@ -299,7 +299,7 @@ def test_square_trigger_on_external(qdac):  # noqa
     # -----------------------------------------------------------------------
     assert qdac.get_recorded_scpi_commands() == [
         f'sour1:squ:trig:sour ext{trigger}',
-        f'sour1:squ:init:cont on',
+        'sour1:squ:init:cont on',
     ]
 
 
@@ -382,6 +382,22 @@ def test_square_period_end_marker_is_removed_on_exit(qdac):  # noqa
     with qdac.ch01.square_wave(frequency_Hz=1000) as square:
         trigger = square.period_end_marker()
         qdac.start_recording_scpi()
+    # -----------------------------------------------------------------------
+    assert qdac.get_recorded_scpi_commands() == [
+        'sour1:squ:abor',
+        'sour1:squ:mark:pend 0',
+        'sour1:squ:trig:sour imm'
+    ]
+    assert trigger.value in qdac._internal_triggers
+
+
+def test_square_period_end_marker_is_removed_on_close(qdac):  # noqa
+    qdac._set_up_internal_triggers()
+    square = qdac.ch01.square_wave(frequency_Hz=1000)
+    trigger = square.period_end_marker()
+    qdac.start_recording_scpi()
+    # -----------------------------------------------------------------------
+    square.close()
     # -----------------------------------------------------------------------
     assert qdac.get_recorded_scpi_commands() == [
         'sour1:squ:abor',

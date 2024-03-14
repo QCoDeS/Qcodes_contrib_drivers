@@ -36,7 +36,6 @@ def test_measurement_aperture(qdac):  # noqa
     )
     # -----------------------------------------------------------------------
     assert qdac.get_recorded_scpi_commands() == [
-        #'sens2:trig:sour hold',
         'sens2:del 0.001',
         'sens2:rang low',
         'sens2:aper 0.001',
@@ -68,7 +67,7 @@ def test_measurement_trigger_on_internal(qdac):  # noqa
     # -----------------------------------------------------------------------
     assert qdac.get_recorded_scpi_commands() == [
         f'sens2:trig:sour int{trigger.value}',
-        f'sens2:init:cont on',
+        'sens2:init:cont on',
     ]
 
 
@@ -81,7 +80,7 @@ def test_measurement_trigger_once_on_internal(qdac):  # noqa
     # -----------------------------------------------------------------------
     assert qdac.get_recorded_scpi_commands() == [
         f'sens2:trig:sour int{trigger.value}',
-        f'sens2:init:cont off',
+        'sens2:init:cont off',
     ]
 
 
@@ -107,7 +106,7 @@ def test_measurement_trigger_on_external(qdac):  # noqa
     # -----------------------------------------------------------------------
     assert qdac.get_recorded_scpi_commands() == [
         f'sens2:trig:sour ext{trigger}',
-        f'sens2:init:cont on',
+        'sens2:init:cont on',
     ]
 
 
@@ -120,7 +119,7 @@ def test_measurement_trigger_once_on_external(qdac):  # noqa
     # -----------------------------------------------------------------------
     assert qdac.get_recorded_scpi_commands() == [
         f'sens2:trig:sour ext{trigger}',
-        f'sens2:init:cont off',
+        'sens2:init:cont off',
     ]
 
 
@@ -349,3 +348,58 @@ def test_current_trigger_on_internal(qdac):  # noqa
     assert qdac.get_recorded_scpi_commands() == [
         f'sens2:trig:sour int{trigger.value}'
     ]
+
+
+def test_current_cleanup_triggering_on_exit(qdac):  # noqa
+    # -----------------------------------------------------------------------
+    with qdac.ch02.measurement():
+        qdac.start_recording_scpi()
+    # -----------------------------------------------------------------------
+    assert qdac.get_recorded_scpi_commands() == [
+        'sens2:abor',
+        'sens2:trig:sour imm'
+    ]
+
+
+def test_current_trigger_is_deallocated_on_exit(qdac):  # noqa
+    qdac._set_up_internal_triggers()
+    trigger = qdac.allocate_trigger()
+    # -----------------------------------------------------------------------
+    with qdac.ch02.measurement() as measurement:
+        measurement.start_on(trigger)
+        qdac.start_recording_scpi()
+    # -----------------------------------------------------------------------
+    assert qdac.get_recorded_scpi_commands() == [
+        'sens2:abor',
+        'sens2:trig:sour imm'
+    ]
+    assert trigger.value in qdac._internal_triggers
+
+
+def test_current_external_trigger_is_dismissed_on_exit(qdac):  # noqa
+    trigger = ExternalInput(2)
+    # -----------------------------------------------------------------------
+    with qdac.ch02.measurement() as measurement:
+        measurement.start_on_external(trigger)
+        qdac.start_recording_scpi()
+    # -----------------------------------------------------------------------
+    assert qdac.get_recorded_scpi_commands() == [
+        'sens2:abor',
+        'sens2:trig:sour imm'
+    ]
+
+
+def test_current_trigger_is_removed_on_close(qdac):  # noqa
+    qdac._set_up_internal_triggers()
+    trigger = qdac.allocate_trigger()
+    measurement = qdac.ch02.measurement()
+    measurement.start_on(trigger)
+    qdac.start_recording_scpi()
+    # -----------------------------------------------------------------------
+    measurement.close()
+    # -----------------------------------------------------------------------
+    assert qdac.get_recorded_scpi_commands() == [
+        'sens2:abor',
+        'sens2:trig:sour imm'
+    ]
+    assert trigger.value in qdac._internal_triggers

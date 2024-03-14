@@ -9,7 +9,7 @@ from typing import (
     Tuple, Sequence, List, Dict, Set, Union, Optional)
 from packaging.version import parse
 
-# Version 0.4.0
+# Version 0.5.0
 
 State = Sequence[Tuple[int, int]]
 
@@ -317,7 +317,7 @@ class QSwitch(VisaInstrument):
         """
         try:
             self._write(cmd)
-            sleep_s(0.075)
+            self.ask('*opc?')
             errors = super().ask('all?')
         except Exception as error:
             raise ValueError(f'Error: {repr(error)} after executing {cmd}')
@@ -418,7 +418,7 @@ class QSwitch(VisaInstrument):
 
     def _check_for_incompatiable_firmware(self) -> None:
         firmware = self.IDN()['firmware']
-        least_compatible_fw = '0.155'
+        least_compatible_fw = '0.178'
         if parse(firmware) < parse(least_compatible_fw):
             raise ValueError(f'Incompatible firmware {firmware}. You need at '
                              f'least {least_compatible_fw}')
