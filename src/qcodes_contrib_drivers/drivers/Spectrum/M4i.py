@@ -990,7 +990,8 @@ class M4i(Instrument):
         # convert buffer to numpy array
         # this does not typecheck with numpy 1.22 should be updated
         # by someone with access to test on the real data.
-        output = np.frombuffer(data_buffer, dtype=sample_ctype) # type: ignore[call-overload]
+        # for some reason this does type check with 3.12 but not earlier
+        output = np.frombuffer(data_buffer, dtype=sample_ctype) # type: ignore[call-overload,unused-ignore]
 
         return output
 

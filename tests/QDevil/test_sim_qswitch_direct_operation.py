@@ -35,9 +35,10 @@ def test_set_state_only_sends_diff(qswitch):  # noqa
         [(24, 8), (24, 8), (22, 7), (20, 6), (1, 9), (2, 0)])
     # -----------------------------------------------------------------------
     commands = qswitch.get_recorded_scpi_commands()
+    print(commands)
     assert commands == [
-        'clos (@20!6,22!7,24!8,1!9)',
-        'open (@1!0,3!0:24!0)'
+        'clos (@20!6,22!7,24!8,1!9)', '*opc?',
+        'open (@1!0,3!0:24!0)', '*opc?'
     ]
 
 
@@ -69,7 +70,7 @@ def test_individual_relays_can_be_closed(qswitch):  # noqa
     qswitch.close_relays([(14, 1), (22, 7)])
     # -----------------------------------------------------------------------
     commands = qswitch.get_recorded_scpi_commands()
-    assert commands == ['clos (@14!1,22!7)']
+    assert commands == ['clos (@14!1,22!7)', '*opc?']
 
 
 def test_individual_relay_can_be_closed(qswitch):  # noqa
@@ -77,7 +78,7 @@ def test_individual_relay_can_be_closed(qswitch):  # noqa
     qswitch.close_relay(22, 7)
     # -----------------------------------------------------------------------
     commands = qswitch.get_recorded_scpi_commands()
-    assert commands == ['clos (@22!7)']
+    assert commands == ['clos (@22!7)', '*opc?']
 
 
 def test_individual_relays_can_be_opened(qswitch):  # noqa
@@ -85,7 +86,7 @@ def test_individual_relays_can_be_opened(qswitch):  # noqa
     qswitch.open_relays([(14, 0), (22, 0), (1, 1)])
     # -----------------------------------------------------------------------
     commands = qswitch.get_recorded_scpi_commands()
-    assert commands == ['open (@14!0,22!0)']
+    assert commands == ['open (@14!0,22!0)', '*opc?']
 
 
 def test_individual_relay_can_be_opened(qswitch):  # noqa
@@ -93,7 +94,7 @@ def test_individual_relay_can_be_opened(qswitch):  # noqa
     qswitch.open_relay(14, 0)
     # -----------------------------------------------------------------------
     commands = qswitch.get_recorded_scpi_commands()
-    assert commands == ['open (@14!0)']
+    assert commands == ['open (@14!0)', '*opc?']
 
 
 def test_beeper_can_be_turned_on(qswitch):  # noqa
@@ -101,7 +102,7 @@ def test_beeper_can_be_turned_on(qswitch):  # noqa
     qswitch.error_indicator('on')
     # -----------------------------------------------------------------------
     commands = qswitch.get_recorded_scpi_commands()
-    assert commands == ['beep:stat on']
+    assert commands == ['beep:stat on', '*opc?']
 
 
 def test_beeper_can_be_turned_off(qswitch):  # noqa
@@ -109,7 +110,7 @@ def test_beeper_can_be_turned_off(qswitch):  # noqa
     qswitch.error_indicator('off')
     # -----------------------------------------------------------------------
     commands = qswitch.get_recorded_scpi_commands()
-    assert commands == ['beep:stat off']
+    assert commands == ['beep:stat off', '*opc?']
 
 
 def test_beeper_state_can_be_queried(qswitch):  # noqa
@@ -126,7 +127,7 @@ def test_autosave_can_be_turned_on(qswitch):  # noqa
     qswitch.auto_save('on')
     # -----------------------------------------------------------------------
     commands = qswitch.get_recorded_scpi_commands()
-    assert commands == ['aut on']
+    assert commands == ['aut on', '*opc?']
 
 
 def test_autosave_can_be_turned_off(qswitch):  # noqa
@@ -134,7 +135,7 @@ def test_autosave_can_be_turned_off(qswitch):  # noqa
     qswitch.auto_save('off')
     # -----------------------------------------------------------------------
     commands = qswitch.get_recorded_scpi_commands()
-    assert commands == ['aut off']
+    assert commands == ['aut off', '*opc?']
 
 
 def test_autosave_state_can_be_queried(qswitch):  # noqa

@@ -101,7 +101,7 @@ intersphinx_mapping = {
         "https://ipython.readthedocs.io/en/stable/",
         None,
     ),
-    "qcodes": ("https://qcodes.github.io/Qcodes/", None),
+    "qcodes": ("https://microsoft.github.io/Qcodes/", None),
 }
 
 

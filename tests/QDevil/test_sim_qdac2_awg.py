@@ -292,7 +292,7 @@ def test_awg_trigger_on_internal(qdac):  # noqa
     # -----------------------------------------------------------------------
     assert qdac.get_recorded_scpi_commands() == [
         f'sour5:awg:trig:sour int{trigger.value}',
-        f'sour5:awg:init:cont on',
+        'sour5:awg:init:cont on',
     ]
 
 
@@ -306,7 +306,7 @@ def test_awg_trigger_once_on_internal(qdac):  # noqa
     # -----------------------------------------------------------------------
     assert qdac.get_recorded_scpi_commands() == [
         f'sour5:awg:trig:sour int{trigger.value}',
-        f'sour5:awg:init:cont off',
+        'sour5:awg:init:cont off',
     ]
 
 
@@ -320,7 +320,7 @@ def test_awg_trigger_on_external(qdac):  # noqa
     # -----------------------------------------------------------------------
     assert qdac.get_recorded_scpi_commands() == [
         f'sour5:awg:trig:sour ext{trigger}',
-        f'sour5:awg:init:cont on',
+        'sour5:awg:init:cont on',
     ]
 
 
@@ -334,5 +334,5 @@ def test_awg_trigger_once_on_external(qdac):  # noqa
     # -----------------------------------------------------------------------
     assert qdac.get_recorded_scpi_commands() == [
         f'sour5:awg:trig:sour ext{trigger}',
-        f'sour5:awg:init:cont off',
+        'sour5:awg:init:cont off',
     ]
