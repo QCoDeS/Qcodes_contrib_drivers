@@ -46,7 +46,7 @@ class Keithley_6430(VisaInstrument):
                            get_parser=float,
                            set_cmd='SENS:VOLT:PROT {}',
                            get_cmd='SENS:VOLT:PROT?',
-                           vals=Numbers(1e-12, 210)
+                           vals=Numbers(0.2e-3, 210),
                            )
         self.add_parameter('source_current_compliance_tripped',
                            get_cmd='SENS:CURR:PROT:TRIP?',

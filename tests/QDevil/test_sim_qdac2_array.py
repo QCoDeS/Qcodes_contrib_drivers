@@ -1,5 +1,5 @@
 import pytest
-from unittest.mock import MagicMock, call
+from unittest.mock import call
 from qcodes_contrib_drivers.drivers.QDevil.QDAC2 import QDac2
 from qcodes_contrib_drivers.drivers.QDevil.QDAC2_Array import QDac2_Array
 from .sim_qdac2_fixtures import qdac, qdac2  # noqa
@@ -96,7 +96,7 @@ def test_fails_on_non_unique_contact_names(qdac, qdac2):  # noqa
             listener: {'sensorA': 2, 'plungerB': 3}
         })
     # -----------------------------------------------------------------------
-    assert f'Contact name sensorA used multiple times' in repr(error)
+    assert 'Contact name sensorA used multiple times' in repr(error)
 
 
 def test_internal_connect_to_trigger_out(qdac, qdac2):  # noqa
@@ -176,7 +176,7 @@ def test_set_virtual_voltages_goes_to_correct_qdac(qdac, qdac2):  # noqa
 
 
 def test_sync_steady_state(qdac, qdac2, mocker):  # noqa
-    sleep_s = mocker.patch('qcodes_contrib_drivers.drivers.QDevil.QDAC2_Array.sleep_s') # Don't sleep
+    sleep_s = mocker.patch('qcodes_contrib_drivers.drivers.QDevil.QDAC2_Array.sleep_s')  # Don't sleep
     qdacs, controller, listener = two_qdacs(qdac, qdac2)
     contacts = {controller: {'A': 2, 'B': 1}, listener: {'C': 3}}
     arrangement = qdacs.arrange(contacts)
@@ -208,7 +208,7 @@ def test_sync_steady_state(qdac, qdac2, mocker):  # noqa
 
 
 def test_sync_leakage(qdac, qdac2, mocker):  # noqa
-    sleep_s = mocker.patch('qcodes_contrib_drivers.drivers.QDevil.QDAC2_Array.sleep_s') # Don't sleep
+    mocker.patch('qcodes_contrib_drivers.drivers.QDevil.QDAC2_Array.sleep_s')  # Don't sleep
     qdacs, controller, listener = two_qdacs(qdac, qdac2)
     contacts = {controller: {'A': 3}, listener: {'B': 1, 'C': 2}}
     arrangement = qdacs.arrange(contacts)
@@ -298,7 +298,7 @@ def test_frees_internal_triggers_on_exit(qdac, qdac2):  # noqa
     qdacs, controller, listener = two_qdacs(qdac, qdac2)
     contacts = {controller: {'A': 2, 'B': 1}, listener: {'C': 3}}
     # -----------------------------------------------------------------------
-    with qdacs.arrange(contacts, internal_triggers=['starter']) as arrangement:
+    with qdacs.arrange(contacts, internal_triggers=['starter']):
         pass
     # -----------------------------------------------------------------------
     assert qdac.n_triggers() == len(qdac._internal_triggers)

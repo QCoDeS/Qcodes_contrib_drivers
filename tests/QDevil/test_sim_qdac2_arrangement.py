@@ -46,7 +46,7 @@ def test_arrangement_set_virtual_voltage_effectuated_immediately(qdac):  # noqa
     ]
 
 
-def test_arrangement_context_releases_trigger(qdac):  # noqa
+def test_arrangement_releases_trigger(qdac):  # noqa
     before = len(qdac._internal_triggers)
     # -----------------------------------------------------------------------
     with qdac.arrange(contacts={}, output_triggers={'dmm': 4}):
@@ -54,6 +54,62 @@ def test_arrangement_context_releases_trigger(qdac):  # noqa
     # -----------------------------------------------------------------------
     after = len(qdac._internal_triggers)
     assert before == after
+
+
+def test_arrangement_cleanup_on_exit(qdac):  # noqa
+    qdac._set_up_internal_triggers()
+    # -----------------------------------------------------------------------
+    with qdac.arrange(contacts={'gate1': 1, 'gate2': 2},
+                      output_triggers={'dmm': 4, 'vna': 5},
+                      internal_triggers=('wave',), outer_trigger_channel=3
+                      ) as arrangement:
+        with arrangement.virtual_sweep2d(
+            inner_contact='gate1', inner_voltages=np.linspace(-0.2, 0.6, 5),
+            outer_contact='gate2', outer_voltages=np.linspace(-0.7, 0.15, 5),
+            inner_step_trigger='dmm', outer_step_trigger='vna'
+        ):
+            qdac.start_recording_scpi()
+    # -----------------------------------------------------------------------
+    assert qdac.get_recorded_scpi_commands() == [
+        'sour1:dc:mark:sst 0',
+        'sour1:dc:abor',
+        'sour1:dc:trig:sour imm',
+        'sour2:dc:abor',
+        'sour2:dc:trig:sour imm',
+        'outp:trig4:sour hold',
+        'outp:trig5:sour hold',
+        'sour3:sine:abor',
+        'sour3:sine:mark:pstart 0',
+        'sour3:sine:trig:sour imm'
+    ]
+
+
+def test_arrangement_cleanup_on_close(qdac):  # noqa
+    qdac._set_up_internal_triggers()
+    arrangement = qdac.arrange(
+        contacts={'gate1': 1, 'gate2': 2},
+        output_triggers={'dmm': 4, 'vna': 5},
+        internal_triggers=('wave',), outer_trigger_channel=3)
+    sweep = arrangement.virtual_sweep2d(
+        inner_contact='gate1', inner_voltages=np.linspace(-0.2, 0.6, 5),
+        outer_contact='gate2', outer_voltages=np.linspace(-0.7, 0.15, 5),
+        inner_step_trigger='dmm', outer_step_trigger='vna')
+    qdac.start_recording_scpi()
+    # -----------------------------------------------------------------------
+    sweep.close()
+    # -----------------------------------------------------------------------
+    assert qdac.get_recorded_scpi_commands() == [
+        'sour1:dc:mark:sst 0',
+        'sour1:dc:abor',
+        'sour1:dc:trig:sour imm',
+        'sour2:dc:abor',
+        'sour2:dc:trig:sour imm',
+        'outp:trig4:sour hold',
+        'outp:trig5:sour hold',
+        'sour3:sine:abor',
+        'sour3:sine:mark:pstart 0',
+        'sour3:sine:trig:sour imm'
+    ]
 
 
 def test_arrangement_set_virtual_voltage_affects_whole_arrangement(qdac):  # noqa

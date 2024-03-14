@@ -1,7 +1,7 @@
 [build-system]
 requires = [
     "setuptools >= 68.1.2",
-    "versioningit >= 2.0.1"
+    "versioningit >= 2.2.1"
 ]
 build-backend = 'setuptools.build_meta'
 
@@ -17,9 +17,10 @@ classifiers = [
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Topic :: Scientific/Engineering",]
 requires-python = ">=3.9"
-dependencies = [ "qcodes>=0.42.0", "versioningit>=2.0.1", "packaging", "pandas"]
+dependencies = [ "qcodes>=0.42.0", "versioningit>=2.2.1", "packaging", "pandas"]
 dynamic = [ "version",]
 
 [[project.maintainers]]
@@ -95,10 +96,10 @@ license-files = [
     "LICENSE_TEKTRONIX_AWG520_KEITHLEY_2700",
     "LICENSE",
 ]
-include-package-data = false
 
-[tool.setuptools.packages]
-find = {namespaces = false}
+[tool.setuptools.cmdclass]
+sdist = "versioningit.cmdclass.sdist"
+build_py = "versioningit.cmdclass.build_py"
 
 [tool.versioningit]
 default-version = "0.0"
@@ -113,5 +114,5 @@ method = "git"
 match = ["v*"]
 
 [tool.versioningit.onbuild]
-source-file = "qcodes_contrib_drivers/_version.py"
+source-file = "src/qcodes_contrib_drivers/_version.py"
 build-file = "qcodes_contrib_drivers/_version.py"

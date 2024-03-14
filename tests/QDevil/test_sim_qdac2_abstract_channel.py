@@ -8,7 +8,7 @@ def test_various_operations_have_common_functions(qdac):  # noqa
         qdac.ch02.sine_wave(),
         qdac.ch03.triangle_wave(),
         qdac.ch04.dc_sweep(start_V=-1, stop_V=1, points=11),
-        qdac.ch05.dc_list(voltages=(-1,0,1)),
+        qdac.ch05.dc_list(voltages=(-1, 0, 1)),
         qdac.ch05.measurement()
     ]
     # -----------------------------------------------------------------------
