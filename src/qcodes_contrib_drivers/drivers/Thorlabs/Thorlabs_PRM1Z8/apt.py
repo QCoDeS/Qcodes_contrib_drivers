@@ -1,8 +1,12 @@
+import warnings
+
 from qcodes import Instrument
-from .private.APT import Thorlabs_APT, ThorlabsHWType
+from qcodes_contrib_drivers.drivers.Thorlabs.private.APT import (
+    ThorlabsHWType, Thorlabs_APT
+)
 
 
-class Thorlabs_PRM1Z8(Instrument):
+class ThorlabsPRM1Z8(Instrument):
     """
     Instrument driver for the Thorlabs PRMZ1Z8 polarizer wheel.
 
@@ -51,3 +55,10 @@ class Thorlabs_PRM1Z8(Instrument):
     # set methods
     def _set_position(self, position):
         self.apt.mot_move_absolute_ex(self.serial_number, position, True)
+
+
+class Thorlabs_PRM1Z8(ThorlabsPRM1Z8):
+    def __init__(self, name: str, device_id: int, apt: Thorlabs_APT, **kwargs):
+        warnings.warn('This class name is deprecated. Please use the ThorlabsPRM1Z8 class instead',
+                      DeprecationWarning)
+        super().__init__(name, device_id, apt, **kwargs)

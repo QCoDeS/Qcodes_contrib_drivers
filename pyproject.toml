@@ -65,7 +65,8 @@ show_error_codes = true
 
 [[tool.mypy.overrides]]
 module = [
-    "qcodes_contrib_drivers.drivers.Spectrum.pyspcm"
+    "qcodes_contrib_drivers.drivers.Spectrum.pyspcm",
+    "qcodes_contrib_drivers.drivers.Thorlabs.Thorlabs_PM100D.tlpm",
     ]
 ignore_errors = true
 
@@ -84,7 +85,8 @@ module = [
     "spirack",
     "zhinst.*",
     "ruamel.*",
-    "msl.loadlib"
+    "msl.loadlib",
+    "TLPM"
 ]
 ignore_missing_imports = true
 
