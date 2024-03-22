@@ -266,3 +266,10 @@ class CryoSwitchControllerDriver(Instrument):
         in QCoDeS to work.
         """
         pass
+
+    def close(self):
+        """
+        Disconnect from the switch controller.
+        """
+        self._controller.labphox.disconnect()
+        super().close()
