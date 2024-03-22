@@ -58,3 +58,6 @@ plt.plot(data)
 
 # get an active contact (should return 0 when nothing is connected)
 switchcontroller.channels.A.active_contact()
+
+# close the switchcontroller instrument
+switchcontroller.close()
