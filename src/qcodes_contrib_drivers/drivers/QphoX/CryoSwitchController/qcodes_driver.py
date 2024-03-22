@@ -44,7 +44,7 @@ class CryoSwitchChannel(InstrumentChannel):
             contact (int): The contact to be connected.
 
         Returns:
-            trace: The current waveform after the connection.
+            np.ndarray: The current waveform after the connection.
         """
         trace = self.parent.connect(self._channel, contact)
         self._active_contact = contact
@@ -59,7 +59,7 @@ class CryoSwitchChannel(InstrumentChannel):
             contact (int): The contact to be disconnected.
 
         Returns:
-            trace: The current waveform after the disconnection.
+            np.ndarray: The current waveform after the disconnection.
         """
         trace = self.parent.disconnect(self._channel, contact)
         self._active_contact = 0
@@ -71,7 +71,7 @@ class CryoSwitchChannel(InstrumentChannel):
         Applies a disconnecting pulse to all contacts.
 
         Returns:
-            trace: The current waveform after all contacts are disconnected.
+            np.ndarray: The current waveform after all contacts are disconnected.
         """
         trace = self.parent.disconnect_all(self._channel)
         self._active_contact = 0
@@ -87,7 +87,7 @@ class CryoSwitchChannel(InstrumentChannel):
             contact (int): The contact to be connected.
 
         Returns:
-            trace: The current waveform after the smart connection.
+            np.ndarray: The current waveform after the smart connection.
         """
         trace = self.parent.smart_connect(self._channel, contact)
         self._active_contact = contact
@@ -212,12 +212,37 @@ class CryoSwitchControllerDriver(Instrument):
         return self._switch_model
 
     def get_switches_state(self, port: str = None):
+        """
+        Read and return the state of the contacts as recorded in the states.json
+
+        Args:
+            port (str|None): A port which states are to be returned. None will return
+                the state of all contacts. (default None)
+
+        Returns:
+            dict: dictionary listing a state of every contact.
+        """
         return self._controller.get_switches_state(port)
 
     def disconnect_all(self, port: str):
+        """
+        Applies a disconnecting current pulse to all contacts of the
+        specified port
+
+        Args:
+            port (str): A letter A-D indicating the port to be controlled.
+        """
         self._controller.disconnect_all(port)
 
     def smart_connect(self, port: str, contact: int):
+        """
+        Disconnects from all the connected contacts for a specified channel
+        and connects only to the indicated one.
+
+        Args:
+            port (str): A letter A-D indicating the port to be controlled.
+            contact (int): Number of the contact that is to be connected
+        """
         return self._controller.smart_connect(port, contact)
 
     def _enable_disable_chopping(self, enable: bool):
