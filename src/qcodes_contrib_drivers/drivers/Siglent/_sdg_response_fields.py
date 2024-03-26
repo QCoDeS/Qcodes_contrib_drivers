@@ -82,7 +82,7 @@ def extract_standalone_first_field_or_regular_field(
             response_items = iter(response[_result_prefix_len:].split(","))
             next(response_items)
             return find_first_by_key(
-                name,  # type: ignore
+                name,
                 group_by_two(response_items),
                 transform_found=then,
                 not_found=else_default,
