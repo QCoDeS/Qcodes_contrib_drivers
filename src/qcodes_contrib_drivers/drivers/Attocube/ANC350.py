@@ -1,4 +1,5 @@
-﻿from typing import Any, Callable, Dict, Optional, Union
+﻿import time
+from typing import Any, Callable, Dict, Optional, Union
 
 import qcodes.utils.validators as vals
 from qcodes.instrument.base import Instrument
@@ -46,6 +47,7 @@ class Anc350Axis(InstrumentChannel):
         self.add_parameter("position",
                            label="Position",
                            get_cmd=self._get_position,
+                           set_cmd=self._set_position,
                            unit="mm or m°")
 
         self.add_parameter("frequency",
@@ -238,14 +240,20 @@ class Anc350Axis(InstrumentChannel):
         return self._parent._lib.get_position(self._parent._device_handle, self._axis) * 1e3
 
     def _set_position(self, position: float) -> None:
-        """(EXPERIMENTAL FUNCTION)
+        """
         The axis moves to the given position with the target range that is set before.
 
         Args:
             position: The position the axis moves to
         """
-        self._set_target_position(position)
-        self._set_output(2)  # 2 = "auto"
+        self.target_position(position)
+        try:
+            self.enable_auto_move(relative=False)
+            time.sleep(0.1)
+            while (status := self.status.get())['moving'] and not status['target']:
+                pass
+        finally:
+            self.disable_auto_move()
 
     def _get_frequency(self) -> float:
         """
