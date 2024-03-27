@@ -6,14 +6,13 @@ import ctypes
 import os
 import pathlib
 import sys
-from typing import Any, Dict, Mapping
+from typing import Any, Dict, Mapping, cast
 
 from qcodes import DelegateParameter, Parameter, validators
 from qcodes.instrument import (ChannelList, Instrument, InstrumentBase,
                                InstrumentChannel)
-from typing_extensions import Literal
-
 from qcodes_contrib_drivers.drivers.Horiba.private.fhr_client import FHRClient
+from typing_extensions import Literal
 
 
 class SpeError(Exception):
@@ -285,7 +284,7 @@ class SlitChannel(PrecisionMotorChannel):
 class GratingChannel(PrecisionMotorChannel):
     """Handles the grating rotation motors of the device."""
 
-    def __init__(self, parent: InstrumentBase, name: str, cli, handle,
+    def __init__(self, parent: HoribaFHR, name: str, cli, handle,
                  motor: int, min_value: int = 0, max_value: int = sys.maxsize,
                  offset: int = 0, metadata: Mapping[Any, Any] | None = None,
                  label: str | None = None):
@@ -330,6 +329,9 @@ class GratingChannel(PrecisionMotorChannel):
 
     def _set_position(self, pos: int):
         # Override to keep track of currently active grating in parent instrument
+        if not isinstance(self.parent, HoribaFHR):
+            # mypy
+            raise RuntimeError
         super()._set_position(pos)
         self.parent._active_grating = self
 
@@ -530,7 +532,7 @@ class HoribaFHR(Instrument):
             raise ValueError('No grating has previously been moved. Please '
                              'do so before setting this parameter.')
         if isinstance(grating, (int, str)):
-            grating = self.gratings.get_channel_by_name(f'grating_{grating}')
+            grating = cast(GratingChannel, self.gratings.get_channel_by_name(f'grating_{grating}'))
         if grating is not active_grating:
             grating.position(active_grating.position())
 
