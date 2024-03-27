@@ -1,10 +1,11 @@
 import dataclasses
 import os
 import sys
+from abc import abstractmethod
 from collections.abc import Mapping, Sequence
 from functools import partial
 from itertools import chain, zip_longest
-from typing import Any
+from typing import Any, overload
 
 import numpy as np
 from qcodes import validators
@@ -16,10 +17,18 @@ _POSITION_SCALE = 10 ** 6
 
 
 @dataclasses.dataclass
-class MultiAxisPosition:
+class MultiAxisPosition(Sequence):
     axis_1: float = np.nan
     axis_2: float = np.nan
     axis_3: float = np.nan
+
+    def __getitem__(self, index: int) -> float:
+        if index in (0, 1, 2):
+            return getattr(self, f'axis_{index + 1}')
+        raise IndexError(f'Index {index} out of range')
+
+    def __len__(self) -> int:
+        return 3
 
     def _JSONEncoder(self) -> dict[str, Any]:
         return dataclasses.asdict(self)
