@@ -354,14 +354,18 @@ class oiDECS(VisaInstrument):
         self._param_setter("PUBLISH", f"{msg},{msg_group}")
 
     def _get_field_data(self):
-        """Function to get field vector"""
-        b_array = self.ask("get_MAG_VEC").split(',')
-        return float(b_array[0]), float(b_array[1]), float(b_array[2])
-
+        B_str = self.ask("get_MAG_VEC")
+        B_str_r = B_str.replace(')','')
+        B_str_r2 = B_str_r.replace('(','')
+        B_array = B_str_r2.split(',')
+        return float(B_array[0]), float(B_array[1]), float(B_array[2])
+    
     def _get_field_current_data(self):
-        """Function to get current vector"""
-        i_array = self.ask("get_MAG_CURR_VEC").split(',')
-        return float(i_array[0]), float(i_array[1]), float(i_array[2])
+        I_str = self.ask("get_MAG_CURR_VEC")
+        I_str_r = I_str.replace(')','')
+        I_str_r2 = I_str_r.replace('(','')
+        I_array = I_str_r2.split(',')
+        return float(I_array[0]), float(I_array[1]), float(I_array[2])
 
     def mixing_chamber_heater_off(self):
         """Function to turn off MC heater"""
