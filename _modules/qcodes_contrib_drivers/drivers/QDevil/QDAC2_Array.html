@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>qcodes_contrib_drivers.drivers.QDevil.QDAC2_Array &mdash; qcodes_contrib_drivers 0.22.0.dev63+main.g134f064 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../_static/documentation_options.js?v=159198be"></script>
+        <script src="../../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            qcodes_contrib_drivers
+          </a>
+              <div class="version">
+                0.22.0.dev63+main.g134f064
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples/index.html">Examples of how to use drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/generated/qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">qcodes_contrib_drivers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">qcodes_contrib_drivers.drivers.QDevil.QDAC2_Array</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for qcodes_contrib_drivers.drivers.QDevil.QDAC2_Array</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">.QDAC2</span> <span class="kn">import</span> <span class="n">QDac2</span><span class="p">,</span> <span class="n">QDac2Channel</span><span class="p">,</span> <span class="n">QDac2ExternalTrigger</span><span class="p">,</span> \
+    <span class="n">QDac2Trigger_Context</span><span class="p">,</span> <span class="n">Arrangement_Context</span><span class="p">,</span> <span class="n">ExternalInput</span><span class="p">,</span> \
+    <span class="n">comma_sequence_to_list_of_floats</span><span class="p">,</span> <span class="n">diff_matrix</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">FrozenSet</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">sleep</span> <span class="k">as</span> <span class="n">sleep_s</span>
+
+<span class="c1"># Version 0.1.1</span>
+<span class="c1">#</span>
+<span class="c1"># Guiding principles for this driver for multiple QDevil QDAC-IIs</span>
+<span class="c1"># ---------------------------------------------------------------</span>
+<span class="c1">#</span>
+<span class="c1"># 1. Use the underlying QDAC2.py driver as much as possible.</span>
+<span class="c1">#</span>
+
+
+<span class="c1">#</span>
+<span class="c1"># Future improvements</span>
+<span class="c1"># -------------------</span>
+<span class="c1">#</span>
+<span class="c1"># - An array arrangement should support corrections between contacts</span>
+<span class="c1">#   (which the indiviual arrangements on each instrument does).</span>
+
+
+<span class="k">def</span> <span class="nf">_check_for_reserved_outputs</span><span class="p">(</span><span class="n">triggers</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">trigger</span> <span class="ow">in</span> <span class="n">triggers</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">trigger</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;External output trigger </span><span class="si">{</span><span class="n">trigger</span><span class="si">}</span><span class="s1"> is reserved&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="Array_Arrangement_Context">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.QDevil.html#qcodes_contrib_drivers.drivers.QDevil.QDAC2_Array.Array_Arrangement_Context">[docs]</a>
+<span class="k">class</span> <span class="nc">Array_Arrangement_Context</span><span class="p">:</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qdacs</span><span class="p">:</span> <span class="s1">&#39;QDac2_Array&#39;</span><span class="p">,</span>
+                 <span class="n">contacts</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]],</span>
+                 <span class="n">output_triggers</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">internal_triggers</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_qdacs</span> <span class="o">=</span> <span class="n">qdacs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_arrangements</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Arrangement_Context</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_contacts</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">qdac</span> <span class="ow">in</span> <span class="n">qdacs</span><span class="o">.</span><span class="n">_qdacs</span><span class="p">:</span>
+            <span class="n">qdac_name</span> <span class="o">=</span> <span class="n">qdac</span><span class="o">.</span><span class="n">full_name</span>
+            <span class="n">qdac_contacts</span> <span class="o">=</span> <span class="n">contacts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">qdac_name</span><span class="p">,</span> <span class="nb">dict</span><span class="p">())</span>
+            <span class="n">qdac_outputs</span> <span class="o">=</span> <span class="n">output_triggers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">qdac_name</span><span class="p">,</span> <span class="nb">dict</span><span class="p">())</span> <span class="k">if</span> <span class="n">output_triggers</span> <span class="k">else</span> <span class="nb">dict</span><span class="p">()</span>
+            <span class="n">is_contoller</span> <span class="o">=</span> <span class="p">(</span><span class="n">qdac_name</span> <span class="o">==</span> <span class="n">qdacs</span><span class="o">.</span><span class="n">_controller_name</span><span class="p">)</span>
+            <span class="n">arrangement</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="n">is_contoller</span><span class="p">:</span>
+                <span class="n">_check_for_reserved_outputs</span><span class="p">(</span><span class="n">qdac_outputs</span><span class="p">)</span>
+                <span class="n">arrangement</span> <span class="o">=</span> \
+                    <span class="n">qdac</span><span class="o">.</span><span class="n">arrange</span><span class="p">(</span><span class="n">qdac_contacts</span><span class="p">,</span> <span class="n">qdac_outputs</span><span class="p">,</span> <span class="n">internal_triggers</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">arrangement</span> <span class="o">=</span> <span class="n">qdac</span><span class="o">.</span><span class="n">arrange</span><span class="p">(</span><span class="n">qdac_contacts</span><span class="p">,</span> <span class="n">qdac_outputs</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_arrangements</span><span class="p">[</span><span class="n">qdac_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">arrangement</span>
+            <span class="k">for</span> <span class="n">c_name</span> <span class="ow">in</span> <span class="n">qdac_contacts</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">c_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_contacts</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Contact name </span><span class="si">{</span><span class="n">c_name</span><span class="si">}</span><span class="s1"> used multiple times&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_contacts</span><span class="p">[</span><span class="n">c_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">qdac_name</span>
+
+    <span class="k">def</span> <span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">def</span> <span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_val</span><span class="p">,</span> <span class="n">exc_tb</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">arrangement</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_arrangements</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="n">arrangement</span><span class="o">.</span><span class="fm">__exit__</span><span class="p">(</span><span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_val</span><span class="p">,</span> <span class="n">exc_tb</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">contact_names</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns:</span>
+<span class="sd">           Sequence[str]: Channel names</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">name</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_contacts</span><span class="o">.</span><span class="n">keys</span><span class="p">()]</span>
+
+<div class="viewcode-block" id="Array_Arrangement_Context.channel">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.QDevil.html#qcodes_contrib_drivers.drivers.QDevil.QDAC2_Array.Array_Arrangement_Context.channel">[docs]</a>
+    <span class="k">def</span> <span class="nf">channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">contact</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">QDac2Channel</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            contact (str): Name</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">           QDac2Channel: Instrument channel</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">qdac</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_qdac_for</span><span class="p">(</span><span class="n">contact</span><span class="p">)</span>
+        <span class="n">arrangement</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_arrangements</span><span class="p">[</span><span class="n">qdac</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">arrangement</span><span class="o">.</span><span class="n">channel</span><span class="p">(</span><span class="n">contact</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Array_Arrangement_Context.qdac_names">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.QDevil.html#qcodes_contrib_drivers.drivers.QDevil.QDAC2_Array.Array_Arrangement_Context.qdac_names">[docs]</a>
+    <span class="k">def</span> <span class="nf">qdac_names</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">qdac</span><span class="o">.</span><span class="n">full_name</span> <span class="k">for</span> <span class="n">qdac</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qdacs</span><span class="o">.</span><span class="n">_qdacs</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="Array_Arrangement_Context.virtual_voltage">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.QDevil.html#qcodes_contrib_drivers.drivers.QDevil.QDAC2_Array.Array_Arrangement_Context.virtual_voltage">[docs]</a>
+    <span class="k">def</span> <span class="nf">virtual_voltage</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">contact</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            contact (str): Name of contact</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            float: Voltage before correction</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">qdac</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_qdac_for</span><span class="p">(</span><span class="n">contact</span><span class="p">)</span>
+        <span class="n">arrangement</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_arrangements</span><span class="p">[</span><span class="n">qdac</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">arrangement</span><span class="o">.</span><span class="n">virtual_voltage</span><span class="p">(</span><span class="n">contact</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Array_Arrangement_Context.set_virtual_voltages">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.QDevil.html#qcodes_contrib_drivers.drivers.QDevil.QDAC2_Array.Array_Arrangement_Context.set_virtual_voltages">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_virtual_voltages</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">contacts_to_voltages</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">qdac</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">qdac_names</span><span class="p">():</span>
+            <span class="n">qdac_voltages</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">contact</span><span class="p">,</span> <span class="n">voltage</span> <span class="ow">in</span> <span class="n">contacts_to_voltages</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_qdac_for</span><span class="p">(</span><span class="n">contact</span><span class="p">)</span> <span class="o">==</span> <span class="n">qdac</span><span class="p">:</span>
+                    <span class="n">qdac_voltages</span><span class="p">[</span><span class="n">contact</span><span class="p">]</span> <span class="o">=</span> <span class="n">voltage</span>
+            <span class="n">arrangement</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_arrangements</span><span class="p">[</span><span class="n">qdac</span><span class="p">]</span>
+            <span class="n">arrangement</span><span class="o">.</span><span class="n">set_virtual_voltages</span><span class="p">(</span><span class="n">qdac_voltages</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Array_Arrangement_Context.currents_A">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.QDevil.html#qcodes_contrib_drivers.drivers.QDevil.QDAC2_Array.Array_Arrangement_Context.currents_A">[docs]</a>
+    <span class="k">def</span> <span class="nf">currents_A</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nplc</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">current_range</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;low&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Measure currents on all contacts</span>
+
+<span class="sd">        The order is that of contacts()</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            nplc (int, optional): Number of powerline cycles to average over</span>
+<span class="sd">            current_range (str, optional): Current range (default low)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Setup current measurement on all instruments</span>
+        <span class="k">for</span> <span class="n">qdac</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">qdac_names</span><span class="p">():</span>
+            <span class="n">arrangement</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_arrangements</span><span class="p">[</span><span class="n">qdac</span><span class="p">]</span>
+            <span class="n">channels_suffix</span> <span class="o">=</span> <span class="n">arrangement</span><span class="o">.</span><span class="n">_all_channels_as_suffix</span><span class="p">()</span>
+            <span class="n">arrangement</span><span class="o">.</span><span class="n">_qdac</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;sens:rang </span><span class="si">{</span><span class="n">current_range</span><span class="si">}</span><span class="s1">,</span><span class="si">{</span><span class="n">channels_suffix</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">qdac</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">qdac_names</span><span class="p">():</span>
+            <span class="n">arrangement</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_arrangements</span><span class="p">[</span><span class="n">qdac</span><span class="p">]</span>
+            <span class="n">channels_suffix</span> <span class="o">=</span> <span class="n">arrangement</span><span class="o">.</span><span class="n">_all_channels_as_suffix</span><span class="p">()</span>
+            <span class="c1"># Wait for relays to finish switching by doing a query</span>
+            <span class="n">arrangement</span><span class="o">.</span><span class="n">_qdac</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;*stb?&#39;</span><span class="p">)</span>
+            <span class="n">arrangement</span><span class="o">.</span><span class="n">_qdac</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;sens:nplc </span><span class="si">{</span><span class="n">nplc</span><span class="si">}</span><span class="s1">,</span><span class="si">{</span><span class="n">channels_suffix</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="c1"># Wait for the current sensors to stabilize and then read</span>
+        <span class="n">slowest_line_freq_Hz</span> <span class="o">=</span> <span class="mi">50</span>
+        <span class="n">sleep_s</span><span class="p">((</span><span class="n">nplc</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">slowest_line_freq_Hz</span><span class="p">)</span>
+        <span class="n">values</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">qdac</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">qdac_names</span><span class="p">():</span>
+            <span class="n">arrangement</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_arrangements</span><span class="p">[</span><span class="n">qdac</span><span class="p">]</span>
+            <span class="n">channels_suffix</span> <span class="o">=</span> <span class="n">arrangement</span><span class="o">.</span><span class="n">_all_channels_as_suffix</span><span class="p">()</span>
+            <span class="n">currents</span> <span class="o">=</span> <span class="n">arrangement</span><span class="o">.</span><span class="n">_qdac</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;read? </span><span class="si">{</span><span class="n">channels_suffix</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">values</span> <span class="o">+=</span> <span class="n">comma_sequence_to_list_of_floats</span><span class="p">(</span><span class="n">currents</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">values</span></div>
+
+
+<div class="viewcode-block" id="Array_Arrangement_Context.leakage">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.QDevil.html#qcodes_contrib_drivers.drivers.QDevil.QDAC2_Array.Array_Arrangement_Context.leakage">[docs]</a>
+    <span class="k">def</span> <span class="nf">leakage</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">modulation_V</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">nplc</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Run a simple leakage test between the contacts</span>
+
+<span class="sd">        Each contact is changed in turn and the resulting change in current from</span>
+<span class="sd">        steady-state is recorded.  The resulting resistance matrix is calculated</span>
+<span class="sd">        as modulation_voltage divided by current_change.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            modulation_V (float): Virtual voltage added to each contact</span>
+<span class="sd">            nplc (int, Optional): Powerline cycles to wait for each measurement</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            ndarray: contact-to-contact resistance in Ohms</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">steady_state_A</span><span class="p">,</span> <span class="n">currents_matrix</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_leakage_currents</span><span class="p">(</span><span class="n">modulation_V</span><span class="p">,</span> <span class="n">nplc</span><span class="p">,</span> <span class="s1">&#39;low&#39;</span><span class="p">)</span>
+        <span class="k">with</span> <span class="n">np</span><span class="o">.</span><span class="n">errstate</span><span class="p">(</span><span class="n">divide</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">modulation_V</span> <span class="o">/</span> <span class="n">diff_matrix</span><span class="p">(</span><span class="n">steady_state_A</span><span class="p">,</span> <span class="n">currents_matrix</span><span class="p">))</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_leakage_currents</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">modulation_V</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">nplc</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                          <span class="n">current_range</span><span class="p">:</span> <span class="nb">str</span>
+                          <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]]]:</span>
+        <span class="n">steady_state_A</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">currents_A</span><span class="p">(</span><span class="n">nplc</span><span class="p">,</span> <span class="s1">&#39;low&#39;</span><span class="p">)</span>
+        <span class="n">currents_matrix</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">qdac</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">qdac_names</span><span class="p">():</span>
+            <span class="n">arrangement</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_arrangements</span><span class="p">[</span><span class="n">qdac</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">channel_nr</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">arrangement</span><span class="o">.</span><span class="n">channel_numbers</span><span class="p">):</span>
+                <span class="n">original_V</span> <span class="o">=</span> <span class="n">arrangement</span><span class="o">.</span><span class="n">_virtual_voltages</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+                <span class="n">arrangement</span><span class="o">.</span><span class="n">_effectuate_virtual_voltage</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">original_V</span> <span class="o">+</span> <span class="n">modulation_V</span><span class="p">)</span>
+                <span class="n">currents</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">currents_A</span><span class="p">(</span><span class="n">nplc</span><span class="p">,</span> <span class="n">current_range</span><span class="p">)</span>
+                <span class="n">arrangement</span><span class="o">.</span><span class="n">_effectuate_virtual_voltage</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">original_V</span><span class="p">)</span>
+                <span class="n">currents_matrix</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">currents</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">steady_state_A</span><span class="p">,</span> <span class="n">currents_matrix</span>
+
+    <span class="k">def</span> <span class="nf">_get_qdac_for</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">contact</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_contacts</span><span class="p">[</span><span class="n">contact</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;No contact named &quot;</span><span class="si">{</span><span class="n">contact</span><span class="si">}</span><span class="s1">&quot;&#39;</span><span class="p">)</span></div>
+
+
+
+
+<div class="viewcode-block" id="QDac2_Array">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.QDevil.html#qcodes_contrib_drivers.drivers.QDevil.QDAC2_Array.QDac2_Array">[docs]</a>
+<span class="k">class</span> <span class="nc">QDac2_Array</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A collection of interconnected QDAC-IIs</span>
+
+<span class="sd">    The instruments are required to be connected as described in section 5.5</span>
+<span class="sd">    &#39;Synchronization of multiple QDAC-II units&#39; in the manual.  The sync</span>
+<span class="sd">    cables must be left in place after sync, so that the clock is</span>
+<span class="sd">    continuously distributed, and the Controller can trigger all Listerners</span>
+<span class="sd">    by sending pulses from Ext Out 4 to all Ext In 3 simultaneously.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">controller</span><span class="p">:</span> <span class="n">QDac2</span><span class="p">,</span> <span class="n">listeners</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">QDac2</span><span class="p">]):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_controller</span> <span class="o">=</span> <span class="n">controller</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_qdacs</span> <span class="o">=</span> <span class="p">[</span><span class="n">controller</span><span class="p">,</span> <span class="o">*</span><span class="n">listeners</span><span class="p">]</span>  <span class="c1"># Order is important</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_unique_names</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">trigger_out</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">4</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">common_trigger_in</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ExternalInput</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">ExternalInput</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">controller</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Returns:</span>
+<span class="sd">               str: Name of Controller</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_controller_name</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">names</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FrozenSet</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Returns:</span>
+<span class="sd">               FrozenSet[str]: Names of all QDAC-IIs in the array</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qdac_names</span>
+
+<div class="viewcode-block" id="QDac2_Array.allocate_trigger">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.QDevil.html#qcodes_contrib_drivers.drivers.QDevil.QDAC2_Array.QDac2_Array.allocate_trigger">[docs]</a>
+    <span class="k">def</span> <span class="nf">allocate_trigger</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">QDac2Trigger_Context</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Allocate internal trigger on the Controller</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            QDac2Trigger_Context: context manager</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_controller</span><span class="o">.</span><span class="n">allocate_trigger</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="QDac2_Array.connect_external_trigger">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.QDevil.html#qcodes_contrib_drivers.drivers.QDevil.QDAC2_Array.QDac2_Array.connect_external_trigger">[docs]</a>
+    <span class="k">def</span> <span class="nf">connect_external_trigger</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">port</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">trigger</span><span class="p">:</span> <span class="n">QDac2Trigger_Context</span><span class="p">,</span>
+                                 <span class="n">width_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-6</span>
+                                 <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Route internal trigger to external trigger</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            port (int): External output trigger number</span>
+<span class="sd">            trigger (QDac2Trigger_Context): Internal trigger</span>
+<span class="sd">            width_s (float, optional): Output trigger width in seconds (default 1ms)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_controller</span><span class="o">.</span><span class="n">connect_external_trigger</span><span class="p">(</span><span class="n">port</span><span class="p">,</span> <span class="n">trigger</span><span class="p">,</span> <span class="n">width_s</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="QDac2_Array.trigger">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.QDevil.html#qcodes_contrib_drivers.drivers.QDevil.QDAC2_Array.QDac2_Array.trigger">[docs]</a>
+    <span class="k">def</span> <span class="nf">trigger</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">internal_trigger</span><span class="p">:</span> <span class="n">QDac2Trigger_Context</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Fire an internal trigger on the Controller</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            QDac2Trigger_Context: internal trigger</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_controller</span><span class="o">.</span><span class="n">trigger</span><span class="p">(</span><span class="n">internal_trigger</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="QDac2_Array.sync">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.QDevil.html#qcodes_contrib_drivers.drivers.QDevil.QDAC2_Array.QDac2_Array.sync">[docs]</a>
+    <span class="k">def</span> <span class="nf">sync</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Synchronizes the array of QDAC-IIs</span>
+
+<span class="sd">        The Listeners will stop using their own clock and start using the</span>
+<span class="sd">        Controller&#39;s clock.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_qdacs</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Need at least two instruments to sync&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_controller_write</span><span class="p">([</span><span class="s1">&#39;syst:cloc:send on&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_listeners_write</span><span class="p">([</span><span class="s1">&#39;syst:cloc:sour ext&#39;</span><span class="p">,</span> <span class="s1">&#39;syst:cloc:sync&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_controller_write</span><span class="p">([</span><span class="s1">&#39;syst:cloc:sync&#39;</span><span class="p">,</span> <span class="s1">&#39;outp:sync:sign&#39;</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="QDac2_Array.arrange">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.QDevil.html#qcodes_contrib_drivers.drivers.QDevil.QDAC2_Array.QDac2_Array.arrange">[docs]</a>
+    <span class="k">def</span> <span class="nf">arrange</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">contacts</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]],</span>
+                <span class="n">output_triggers</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="n">internal_triggers</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Array_Arrangement_Context</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;An arrangement of contacts across several QDAC-II instruments</span>
+
+<span class="sd">        The arrangement is a collection of QDac2.arrangement, one for each</span>
+<span class="sd">        instrument but with a dedicated controller.</span>
+
+<span class="sd">        See QDac2.arrangement() for further documentation.  Note that an</span>
+<span class="sd">        array arrangement does not (yet) support corrections between contacts</span>
+<span class="sd">        (which the indiviual arrangements on each instrument does).</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            contacts (Dict[str,Dict[str, int]]): Instrument name to contact-name/channel pairs</span>
+<span class="sd">            output_triggers (Dict[str,Dict[str, int]], optional): Instrument name to name/output-trigger pairs</span>
+<span class="sd">            internal_triggers (Sequence[str], optional): List of names of internal triggers to allocate on the controller</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Array_Arrangement_Context: context manager</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">Array_Arrangement_Context</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">contacts</span><span class="p">,</span> <span class="n">output_triggers</span><span class="p">,</span>
+                                         <span class="n">internal_triggers</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_controller_write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">commands</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">command</span> <span class="ow">in</span> <span class="n">commands</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_controller</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_listeners_write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">commands</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">listeners</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qdacs</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="k">for</span> <span class="n">listener</span> <span class="ow">in</span> <span class="n">listeners</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">command</span> <span class="ow">in</span> <span class="n">commands</span><span class="p">:</span>
+                <span class="n">listener</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_check_unique_names</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_controller_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_controller</span><span class="o">.</span><span class="n">full_name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_qdac_names</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">([</span><span class="n">qdac</span><span class="o">.</span><span class="n">full_name</span> <span class="k">for</span> <span class="n">qdac</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qdacs</span><span class="p">])</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_qdac_names</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_qdacs</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Instruments need to have unique names: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_qdac_names</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, QCoDeS Users.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

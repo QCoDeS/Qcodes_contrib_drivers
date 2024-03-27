@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>qcodes_contrib_drivers.drivers.QuTech package &mdash; qcodes_contrib_drivers 0.22.0.dev63+main.g134f064 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/documentation_options.js?v=159198be"></script>
+        <script src="../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="qcodes_contrib_drivers.drivers.RohdeSchwarz package" href="qcodes_contrib_drivers.drivers.RohdeSchwarz.html" />
+    <link rel="prev" title="qcodes_contrib_drivers.drivers.QDevil package" href="qcodes_contrib_drivers.drivers.QDevil.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            qcodes_contrib_drivers
+          </a>
+              <div class="version">
+                0.22.0.dev63+main.g134f064
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../examples/index.html">Examples of how to use drivers</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="qcodes_contrib_drivers.drivers.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Advantech.html">qcodes_contrib_drivers.drivers.Advantech package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Agilent.html">qcodes_contrib_drivers.drivers.Agilent package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.AimTTi.html">qcodes_contrib_drivers.drivers.AimTTi package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Ametek.html">qcodes_contrib_drivers.drivers.Ametek package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Andor.html">qcodes_contrib_drivers.drivers.Andor package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Attocube.html">qcodes_contrib_drivers.drivers.Attocube package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Aviosys.html">qcodes_contrib_drivers.drivers.Aviosys package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Bilt.html">qcodes_contrib_drivers.drivers.Bilt package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.BlueFors.html">qcodes_contrib_drivers.drivers.BlueFors package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.CopperMountain.html">qcodes_contrib_drivers.drivers.CopperMountain package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Cryocon.html">qcodes_contrib_drivers.drivers.Cryocon package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Cryogenic.html">qcodes_contrib_drivers.drivers.Cryogenic package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.DaylightSolutions.html">qcodes_contrib_drivers.drivers.DaylightSolutions package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.ERAInstruments.html">qcodes_contrib_drivers.drivers.ERAInstruments package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.GeneralMicrowave.html">qcodes_contrib_drivers.drivers.GeneralMicrowave package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Gentec.html">qcodes_contrib_drivers.drivers.Gentec package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Holzworth.html">qcodes_contrib_drivers.drivers.Holzworth package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Horiba.html">qcodes_contrib_drivers.drivers.Horiba package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.html">qcodes_contrib_drivers.drivers.Keysight package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Lakeshore.html">qcodes_contrib_drivers.drivers.Lakeshore package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.LighthousePhotonics.html">qcodes_contrib_drivers.drivers.LighthousePhotonics package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.M2.html">qcodes_contrib_drivers.drivers.M2 package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.MontanaInstruments.html">qcodes_contrib_drivers.drivers.MontanaInstruments package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.NationalInstruments.html">qcodes_contrib_drivers.drivers.NationalInstruments package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Newport.html">qcodes_contrib_drivers.drivers.Newport package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Oxford.html">qcodes_contrib_drivers.drivers.Oxford package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.QDevil.html">qcodes_contrib_drivers.drivers.QDevil package</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">qcodes_contrib_drivers.drivers.QuTech package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-qcodes_contrib_drivers.drivers.QuTech.D4">qcodes_contrib_drivers.drivers.QuTech.D4 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-qcodes_contrib_drivers.drivers.QuTech.D5a">qcodes_contrib_drivers.drivers.QuTech.D5a module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-qcodes_contrib_drivers.drivers.QuTech.F1d">qcodes_contrib_drivers.drivers.QuTech.F1d module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-qcodes_contrib_drivers.drivers.QuTech.IVVI">qcodes_contrib_drivers.drivers.QuTech.IVVI module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-qcodes_contrib_drivers.drivers.QuTech.M2j">qcodes_contrib_drivers.drivers.QuTech.M2j module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-qcodes_contrib_drivers.drivers.QuTech.S5i">qcodes_contrib_drivers.drivers.QuTech.S5i module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-qcodes_contrib_drivers.drivers.QuTech">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.RohdeSchwarz.html">qcodes_contrib_drivers.drivers.RohdeSchwarz package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Shamrock.html">qcodes_contrib_drivers.drivers.Shamrock package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.SignalCore.html">qcodes_contrib_drivers.drivers.SignalCore package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.SingleQuantum.html">qcodes_contrib_drivers.drivers.SingleQuantum package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Spectrum.html">qcodes_contrib_drivers.drivers.Spectrum package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Standa.html">qcodes_contrib_drivers.drivers.Standa package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.StanfordResearchSystems.html">qcodes_contrib_drivers.drivers.StanfordResearchSystems package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Tektronix.html">qcodes_contrib_drivers.drivers.Tektronix package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Thermotek.html">qcodes_contrib_drivers.drivers.Thermotek package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Thorlabs.html">qcodes_contrib_drivers.drivers.Thorlabs package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Valon.html">qcodes_contrib_drivers.drivers.Valon package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Vaunix.html">qcodes_contrib_drivers.drivers.Vaunix package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.ZurichInstruments.html">qcodes_contrib_drivers.drivers.ZurichInstruments package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.html#module-qcodes_contrib_drivers.drivers.CMTS5048">qcodes_contrib_drivers.drivers.CMTS5048 module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.html#module-qcodes_contrib_drivers.drivers">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">qcodes_contrib_drivers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a></li>
+      <li class="breadcrumb-item active">qcodes_contrib_drivers.drivers.QuTech package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/api/generated/qcodes_contrib_drivers.drivers.QuTech.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="qcodes-contrib-drivers-drivers-qutech-package">
+<h1>qcodes_contrib_drivers.drivers.QuTech package<a class="headerlink" href="#qcodes-contrib-drivers-drivers-qutech-package" title="Link to this heading">¶</a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">¶</a></h2>
+</section>
+<section id="module-qcodes_contrib_drivers.drivers.QuTech.D4">
+<span id="qcodes-contrib-drivers-drivers-qutech-d4-module"></span><h2>qcodes_contrib_drivers.drivers.QuTech.D4 module<a class="headerlink" href="#module-qcodes_contrib_drivers.drivers.QuTech.D4" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.QuTech.D4.D4">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.QuTech.D4.</span></span><span class="sig-name descname"><span class="pre">D4</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/QuTech/D4.html#D4"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.QuTech.D4.D4" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://microsoft.github.io/Qcodes/api/instrument/index.html#qcodes.instrument.Instrument" title="(in QCoDeS v0.45.0.dev442+main.gb11f8ac34)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Instrument</span></code></a></p>
+<p>Qcodes driver for the D4 ADC SPI-rack module. Requires installation
+of the ‘spirack’ package using pip.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – name of the instrument.</p></li>
+<li><p><strong>spi_rack</strong> (<em>SPI_rack</em>) – instance of the SPI_rack class as defined in
+the spirack package. This class manages communication with the
+individual modules.</p></li>
+<li><p><strong>module</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – module number as set on the hardware.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.QuTech.D4.D4.get_buffers_enabled">
+<span class="sig-name descname"><span class="pre">get_buffers_enabled</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/QuTech/D4.html#D4.get_buffers_enabled"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.QuTech.D4.D4.get_buffers_enabled" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.QuTech.D4.D4.get_filter_value">
+<span class="sig-name descname"><span class="pre">get_filter_value</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/QuTech/D4.html#D4.get_filter_value"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.QuTech.D4.D4.get_filter_value" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.QuTech.D4.D4.get_mode">
+<span class="sig-name descname"><span class="pre">get_mode</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/QuTech/D4.html#D4.get_mode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.QuTech.D4.D4.get_mode" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-qcodes_contrib_drivers.drivers.QuTech.D5a">
+<span id="qcodes-contrib-drivers-drivers-qutech-d5a-module"></span><h2>qcodes_contrib_drivers.drivers.QuTech.D5a module<a class="headerlink" href="#module-qcodes_contrib_drivers.drivers.QuTech.D5a" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.QuTech.D5a.D5a">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.QuTech.D5a.</span></span><span class="sig-name descname"><span class="pre">D5a</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/QuTech/D5a.html#D5a"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.QuTech.D5a.D5a" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://microsoft.github.io/Qcodes/api/instrument/index.html#qcodes.instrument.Instrument" title="(in QCoDeS v0.45.0.dev442+main.gb11f8ac34)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Instrument</span></code></a></p>
+<p>Qcodes driver for the D5a DAC SPI-rack module.</p>
+<p>functions:
+-   set_dacs_zero   set all DACs to zero voltage</p>
+<p>parameters:
+-   dacN:       get and set DAC voltage
+-   stepsizeN   get the minimum step size corresponding to the span
+-   spanN       get and set the DAC span: ‘4v uni’, ‘4v bi’, or ‘2.5v bi’</p>
+<p>where N is the DAC number from 1 up to 16</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.QuTech.D5a.D5a.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spi_rack</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inter_delay</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dac_step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reset_voltages</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mV</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">number_dacs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/QuTech/D5a.html#D5a.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.QuTech.D5a.D5a.__init__" title="Link to this definition">¶</a></dt>
+<dd><p>Create instrument for the D5a module.</p>
+<p>The D5a module works with volts as units. For backward compatibility
+there is the option to allow mV for the dacX parameters.</p>
+<p>The output span of the DAC module can be changed with the spanX
+command. Be carefull when executing this command with a sample
+connected as voltage jumps can occur.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – name of the instrument.</p></li>
+<li><p><strong>spi_rack</strong> (<em>SPI_rack</em>) – instance of the SPI_rack class as defined in
+the spirack package. This class manages communication with the
+individual modules.</p></li>
+<li><p><strong>module</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – module number as set on the hardware.</p></li>
+<li><p><strong>inter_delay</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a>) – time in seconds, passed to dac parameters of the object</p></li>
+<li><p><strong>dac_step</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a>) – max step size (V or mV), passed to dac parameters of the object</p></li>
+<li><p><strong>reset_voltages</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a>) – passed to D5a_module constructor</p></li>
+<li><p><strong>mV</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a>) – if True, then use mV as units in the dac parameters</p></li>
+<li><p><strong>number_dacs</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – number of DACs available. This is 8 for the D5mux</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.QuTech.D5a.D5a.set_dac_unit">
+<span class="sig-name descname"><span class="pre">set_dac_unit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">unit</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/QuTech/D5a.html#D5a.set_dac_unit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.QuTech.D5a.D5a.set_dac_unit" title="Link to this definition">¶</a></dt>
+<dd><p>Set the unit of dac parameters</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-qcodes_contrib_drivers.drivers.QuTech.F1d">
+<span id="qcodes-contrib-drivers-drivers-qutech-f1d-module"></span><h2>qcodes_contrib_drivers.drivers.QuTech.F1d module<a class="headerlink" href="#module-qcodes_contrib_drivers.drivers.QuTech.F1d" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.QuTech.F1d.F1d">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.QuTech.F1d.</span></span><span class="sig-name descname"><span class="pre">F1d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/QuTech/F1d.html#F1d"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.QuTech.F1d.F1d" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://microsoft.github.io/Qcodes/api/instrument/index.html#qcodes.instrument.Instrument" title="(in QCoDeS v0.45.0.dev442+main.gb11f8ac34)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Instrument</span></code></a></p>
+<p>Qcodes driver for the F1d IQ-Mixer SPI-rack module.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – name of the instrument.</p></li>
+<li><p><strong>spi_rack</strong> (<em>SPI_rack</em>) – instance of the SPI_rack class as defined in
+the spirack package. This class manages communication with the
+individual modules.</p></li>
+<li><p><strong>module</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – module number as set on the hardware.</p></li>
+</ul>
+</dd>
+</dl>
+<p>The <cite>enable_remote</cite> parameter sets the F1d module in remote mode. When settings are changed on the
+hardware front panel, then the remote mode is deactivated</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.QuTech.F1d.F1d.get_remote_settings">
+<span class="sig-name descname"><span class="pre">get_remote_settings</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/QuTech/F1d.html#F1d.get_remote_settings"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.QuTech.F1d.F1d.get_remote_settings" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-qcodes_contrib_drivers.drivers.QuTech.IVVI">
+<span id="qcodes-contrib-drivers-drivers-qutech-ivvi-module"></span><h2>qcodes_contrib_drivers.drivers.QuTech.IVVI module<a class="headerlink" href="#module-qcodes_contrib_drivers.drivers.QuTech.IVVI" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.QuTech.IVVI.IVVI">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.QuTech.IVVI.</span></span><span class="sig-name descname"><span class="pre">IVVI</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/QuTech/IVVI.html#IVVI"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.QuTech.IVVI.IVVI" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://microsoft.github.io/Qcodes/api/instrument/index.html#qcodes.instrument.VisaInstrument" title="(in QCoDeS v0.45.0.dev442+main.gb11f8ac34)"><code class="xref py py-class docutils literal notranslate"><span class="pre">VisaInstrument</span></code></a></p>
+<dl class="simple">
+<dt>Status: Alpha version, tested for basic get-set commands</dt><dd><dl class="simple">
+<dt>TODO:</dt><dd><ul class="simple">
+<li><p>Add adjustable range and rate protection per channel</p></li>
+<li><p>Add error handling for the specific error messages in the
+protocol</p></li>
+<li><p>Remove/fine-tune manual sleep statements</p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+</dl>
+<p>This is the python driver for the D5 module of the IVVI-rack
+see: <a class="reference external" href="http://qtwork.tudelft.nl/~schouten/ivvi/doc-d5/index-d5.htm">http://qtwork.tudelft.nl/~schouten/ivvi/doc-d5/index-d5.htm</a></p>
+<p>A descriptor for the data protocol can be found at
+<a class="reference external" href="http://qtwork.tudelft.nl/~schouten/ivvi/doc-d5/rs232linkformat.txt">http://qtwork.tudelft.nl/~schouten/ivvi/doc-d5/rs232linkformat.txt</a>
+A copy of this file can be found at the bottom of this file.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.QuTech.IVVI.IVVI.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">address</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">numdacs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dac_step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dac_delay</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">safe_version</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">polarity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['BIP',</span> <span class="pre">'BIP',</span> <span class="pre">'BIP',</span> <span class="pre">'BIP']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_locks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/QuTech/IVVI.html#IVVI.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.QuTech.IVVI.IVVI.__init__" title="Link to this definition">¶</a></dt>
+<dd><p>Initialzes the IVVI, and communicates with the wrapper</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – name of the instrument</p></li>
+<li><p><strong>address</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – ASRL address</p></li>
+<li><p><strong>reset</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a>) – resets to default values, default=false</p></li>
+<li><p><strong>numdacs</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – number of dacs, multiple of 4, default=16</p></li>
+<li><p><strong>polarity</strong> (<em>List</em><em>[</em><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>]</em>) – list of polarities of each set of 4 dacs
+choose from ‘BIP’, ‘POS’, ‘NEG’,
+default=[‘BIP’, ‘BIP’, ‘BIP’, ‘BIP’]</p></li>
+<li><p><strong>dac_step</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a>) – max step size for dac parameter</p></li>
+<li><p><strong>dac_delay</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a>) – delay (in seconds) for dac</p></li>
+<li><p><strong>safe_version</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a>) – if True then do not send version commands
+to the IVVI controller</p></li>
+<li><p><strong>use_locks</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a>) – if True then locks are used in the <cite>ask</cite>
+function of the driver. The IVVI driver is not
+thread safe, this locking mechanism makes it
+thread safe at the cost of making the call to ask
+blocking.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.QuTech.IVVI.IVVI.adjust_parameter_validator">
+<span class="sig-name descname"><span class="pre">adjust_parameter_validator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">param</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/QuTech/IVVI.html#IVVI.adjust_parameter_validator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.QuTech.IVVI.IVVI.adjust_parameter_validator" title="Link to this definition">¶</a></dt>
+<dd><p>Adjust the parameter validator range based on the dac resolution.</p>
+<p>The dac’s of the IVVI have a finite resolution. If the validator range
+min and max values are not values the dac’s can actually have, then it
+can occur that a set command results in the dac’s going to a value just
+outside the validator range. Adjusting the validators with this
+function prevents that.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>param</strong> (<em>Parameter</em>) – a dac of the IVVI instrument</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.QuTech.IVVI.IVVI.ask">
+<span class="sig-name descname"><span class="pre">ask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">raw</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/QuTech/IVVI.html#IVVI.ask"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.QuTech.IVVI.IVVI.ask" title="Link to this definition">¶</a></dt>
+<dd><p>Send &lt;message&gt; to the device and read answer.
+Raises an error if one occurred
+Returns a list of bytes</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.QuTech.IVVI.IVVI.get_all">
+<span class="sig-name descname"><span class="pre">get_all</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/QuTech/IVVI.html#IVVI.get_all"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.QuTech.IVVI.IVVI.get_all" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.QuTech.IVVI.IVVI.get_idn">
+<span class="sig-name descname"><span class="pre">get_idn</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/QuTech/IVVI.html#IVVI.get_idn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.QuTech.IVVI.IVVI.get_idn" title="Link to this definition">¶</a></dt>
+<dd><p>Overwrites the get_idn function using constants as the hardware
+does not have a proper *IDN function.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.QuTech.IVVI.IVVI.get_pol_dac">
+<span class="sig-name descname"><span class="pre">get_pol_dac</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/QuTech/IVVI.html#IVVI.get_pol_dac"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.QuTech.IVVI.IVVI.get_pol_dac" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the polarity of the dac channel specified</p>
+<dl class="simple">
+<dt>Input:</dt><dd><p>channel (int) : 1 based index of the dac</p>
+</dd>
+<dt>Output:</dt><dd><p>polarity (str) : ‘BIP’, ‘POS’ or ‘NEG’</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.QuTech.IVVI.IVVI.linspace">
+<span class="sig-name descname"><span class="pre">linspace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#float" title="(in Python v3.10)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">end</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#float" title="(in Python v3.10)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">samples</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">flexible</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#bool" title="(in Python v3.10)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bip</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#bool" title="(in Python v3.10)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/QuTech/IVVI.html#IVVI.linspace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.QuTech.IVVI.IVVI.linspace" title="Link to this definition">¶</a></dt>
+<dd><p>Creates array of voltages, with correct alignment to the DAC
+quantisation, in a similar manner to numpy.linspace.
+This guarantees an even spacing and no double sampling inside
+the requested range.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>start</strong> – the start of the voltage range, in millivolts</p></li>
+<li><p><strong>end</strong> – the end of the voltage range, in millivolts</p></li>
+<li><p><strong>samples</strong> – number of sample voltages</p></li>
+<li><p><strong>flexible</strong> – occasionally get a different number of samples if
+they can still fit inside the range.</p></li>
+<li><p><strong>bip</strong> – if the dac set to bi-polar (-2V to +2V) or
+not (-4 to -0, or 0 to +4),</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>list of voltages in millivolts suitable for the ivvi DAC.
+Voltages are inside [start:end]
+Voltages are evenly spaced
+Voltages align with the DAC quantisation.</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>normal usage:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">100</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="mi">8</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">[</span><span class="o">-</span><span class="mf">99.88555733577478</span><span class="p">,</span> <span class="o">..</span> <span class="mi">6</span> <span class="n">more</span> <span class="o">..</span>
+                        <span class="p">,</span> <span class="mf">99.64141298542764</span><span class="p">]</span>
+
+<span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">1000</span><span class="p">,</span> <span class="mi">2000</span><span class="p">)</span> <span class="o">-&gt;</span>
+    <span class="p">[</span><span class="o">-</span><span class="mf">976.4858472571908</span><span class="p">,</span> <span class="o">..</span> <span class="mi">1998</span> <span class="n">more</span> <span class="o">..</span><span class="p">,</span> <span class="mf">975.6923781185626</span> <span class="p">]</span>
+</pre></div>
+</div>
+<p>A flexable number of points:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">1000</span><span class="p">,</span> <span class="mi">2000</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span>
+    <span class="p">[</span><span class="o">-</span><span class="mf">999.9237048905165</span><span class="p">,</span> <span class="o">..</span> <span class="mi">2046</span> <span class="n">more</span> <span class="o">..</span><span class="p">,</span> <span class="mf">999.1302357518883</span><span class="p">]</span>
+
+<span class="mi">4</span> <span class="n">bits</span> <span class="ow">is</span> <span class="n">the</span> <span class="n">optimal</span> <span class="n">spacing</span><span class="p">,</span> <span class="n">so</span> <span class="n">this</span> <span class="n">gives</span> <span class="mi">2048</span> <span class="p">(</span><span class="o">=</span> <span class="mi">2</span><span class="o">^</span><span class="mi">11</span><span class="p">)</span>
+<span class="n">points</span> <span class="ow">in</span> <span class="n">a</span> <span class="mi">2</span> <span class="n">V</span> <span class="nb">range</span>
+</pre></div>
+</div>
+<p>Insufficient resolution:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">linspace</span><span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="mi">502</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="ne">ValueError</span><span class="p">:</span> <span class="n">Insufficient</span> <span class="n">resolution</span>
+    <span class="k">for</span> <span class="mi">100</span> <span class="n">samples</span> <span class="ow">in</span> <span class="n">the</span> <span class="nb">range</span> <span class="mi">500</span> <span class="n">to</span> <span class="mf">502.</span> <span class="n">Maximum</span> <span class="p">:</span><span class="mi">16</span>
+
+<span class="n">This</span> <span class="n">prevents</span> <span class="n">oversampling</span><span class="o">.</span> <span class="n">Use</span> <span class="n">flexable</span> <span class="o">=</span> <span class="kc">True</span> <span class="n">to</span> <span class="n">adapt</span> <span class="n">the</span> <span class="n">number</span>
+<span class="n">of</span> <span class="n">points</span><span class="o">.</span>
+</pre></div>
+</div>
+<p>Resolution limited sweep using the flexable option:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">linspace</span><span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="mi">502</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">[</span><span class="mf">500.0991836423285</span><span class="p">,</span> <span class="o">..</span> <span class="mi">14</span> <span class="n">more</span> <span class="o">..</span>
+                                 <span class="p">,</span> <span class="mf">501.9302662699321</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>A too narrow range:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span> <span class="c1"># -&gt; ValueError: No DAC values exist</span>
+                                  <span class="ow">in</span> <span class="n">the</span> <span class="nb">range</span> <span class="mi">0</span> <span class="p">:</span> <span class="mf">0.01</span>
+
+<span class="n">Even</span> <span class="n">using</span> <span class="n">the</span> <span class="n">flexable</span> <span class="n">option</span> <span class="n">can</span> <span class="ow">not</span> <span class="n">help</span> <span class="k">if</span> <span class="n">there</span> <span class="n">are</span> <span class="n">no</span>
+<span class="n">valid</span> <span class="n">values</span> <span class="ow">in</span> <span class="n">the</span> <span class="n">requested</span> <span class="nb">range</span><span class="o">.</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.QuTech.IVVI.IVVI.read">
+<span class="sig-name descname"><span class="pre">read</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message_len</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/QuTech/IVVI.html#IVVI.read"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.QuTech.IVVI.IVVI.read" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.QuTech.IVVI.IVVI.round_dac">
+<span class="sig-name descname"><span class="pre">round_dac</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dacname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/QuTech/IVVI.html#IVVI.round_dac"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.QuTech.IVVI.IVVI.round_dac" title="Link to this definition">¶</a></dt>
+<dd><p>Round a value to the interal precision of the instrument</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>value</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a>) – value to be rounded</p></li>
+<li><p><strong>dacname</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a><em> or </em><em>None</em>) – name or index of dac channel</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>rounded value</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#float" title="(in Python v3.10)">float</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.QuTech.IVVI.IVVI.set_dacs_zero">
+<span class="sig-name descname"><span class="pre">set_dacs_zero</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/QuTech/IVVI.html#IVVI.set_dacs_zero"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.QuTech.IVVI.IVVI.set_dacs_zero" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.QuTech.IVVI.IVVI.set_parameter_bounds">
+<span class="sig-name descname"><span class="pre">set_parameter_bounds</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/QuTech/IVVI.html#IVVI.set_parameter_bounds"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.QuTech.IVVI.IVVI.set_parameter_bounds" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.QuTech.IVVI.IVVI.set_pol_dacrack">
+<span class="sig-name descname"><span class="pre">set_pol_dacrack</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flag</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">get_all</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/QuTech/IVVI.html#IVVI.set_pol_dacrack"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.QuTech.IVVI.IVVI.set_pol_dacrack" title="Link to this definition">¶</a></dt>
+<dd><p>Changes the polarity of the specified set of dacs</p>
+<dl class="simple">
+<dt>Input:</dt><dd><p>flag (str) : ‘BIP’, ‘POS’ or ‘NEG’
+channel (int) : 0 based index of the rack
+get_all (bool): if True (default) perform a get_all</p>
+</dd>
+<dt>Output:</dt><dd><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.QuTech.IVVI.IVVI.write">
+<span class="sig-name descname"><span class="pre">write</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">raw</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/QuTech/IVVI.html#IVVI.write"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.QuTech.IVVI.IVVI.write" title="Link to this definition">¶</a></dt>
+<dd><p>Protocol specifies that a write consists of
+descriptor size, error_code, message</p>
+<p>returns message_len</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.QuTech.IVVI.IVVI.dac_quata">
+<span class="sig-name descname"><span class="pre">dac_quata</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.06103515625</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.QuTech.IVVI.IVVI.dac_quata" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.QuTech.IVVI.IVVI.full_range">
+<span class="sig-name descname"><span class="pre">full_range</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">4000.0</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.QuTech.IVVI.IVVI.full_range" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.QuTech.IVVI.IVVI.half_range">
+<span class="sig-name descname"><span class="pre">half_range</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2000.0</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.QuTech.IVVI.IVVI.half_range" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.QuTech.IVVI.IVVI.resolution">
+<span class="sig-name descname"><span class="pre">resolution</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">16</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.QuTech.IVVI.IVVI.resolution" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-qcodes_contrib_drivers.drivers.QuTech.M2j">
+<span id="qcodes-contrib-drivers-drivers-qutech-m2j-module"></span><h2>qcodes_contrib_drivers.drivers.QuTech.M2j module<a class="headerlink" href="#module-qcodes_contrib_drivers.drivers.QuTech.M2j" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.QuTech.M2j.M2j">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.QuTech.M2j.</span></span><span class="sig-name descname"><span class="pre">M2j</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/QuTech/M2j.html#M2j"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.QuTech.M2j.M2j" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://microsoft.github.io/Qcodes/api/instrument/index.html#qcodes.instrument.Instrument" title="(in QCoDeS v0.45.0.dev442+main.gb11f8ac34)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Instrument</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.QuTech.M2j.M2j.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">spi_rack</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">spirack.SPI_rack</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">module</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/QuTech/M2j.html#M2j.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.QuTech.M2j.M2j.__init__" title="Link to this definition">¶</a></dt>
+<dd><p>Qcodes driver for the M2j RF amplifier SPI-rack module.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> – name of the instrument.</p></li>
+<li><p><strong>spi_rack</strong> – instance of the SPI_rack class as defined in
+the spirack package. This class manages communication with the
+individual modules.</p></li>
+<li><p><strong>module</strong> – module number as set on the hardware.</p></li>
+</ul>
+</dd>
+</dl>
+<p>The gain can only be set on the device, but not read from the device.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-qcodes_contrib_drivers.drivers.QuTech.S5i">
+<span id="qcodes-contrib-drivers-drivers-qutech-s5i-module"></span><h2>qcodes_contrib_drivers.drivers.QuTech.S5i module<a class="headerlink" href="#module-qcodes_contrib_drivers.drivers.QuTech.S5i" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.QuTech.S5i.S5i">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.QuTech.S5i.</span></span><span class="sig-name descname"><span class="pre">S5i</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/QuTech/S5i.html#S5i"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.QuTech.S5i.S5i" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://microsoft.github.io/Qcodes/api/instrument/index.html#qcodes.instrument.Instrument" title="(in QCoDeS v0.45.0.dev442+main.gb11f8ac34)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Instrument</span></code></a></p>
+<p>Qcodes driver for the S5i RF generator SPI-rack module.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – name of the instrument.</p></li>
+<li><p><strong>spi_rack</strong> (<em>SPI_rack</em>) – instance of the SPI_rack class as defined in
+the spirack package. This class manages communication with the
+individual modules.</p></li>
+<li><p><strong>module</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – module number as set on the hardware.</p></li>
+<li><p><strong>frequency</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a>) – RF frequency at startup, default is 41 MHz.</p></li>
+<li><p><strong>enable_output</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a>) – Switch device output on or off, default is True.</p></li>
+<li><p><strong>output_level</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – RF output level in dBm, default is 0 dBm.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.QuTech.S5i.S5i.optimize_for_frequency">
+<span class="sig-name descname"><span class="pre">optimize_for_frequency</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/QuTech/S5i.html#S5i.optimize_for_frequency"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.QuTech.S5i.S5i.optimize_for_frequency" title="Link to this definition">¶</a></dt>
+<dd><p>This method finds the optimum stepsize for the set frequency.</p>
+<p>The stepsize affects the phase noise of the instrument. The smaller the
+stepsize, the greater is the phase noise. So this method sets the
+stepsize as large as possible for the current reference frequency.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-qcodes_contrib_drivers.drivers.QuTech">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-qcodes_contrib_drivers.drivers.QuTech" title="Link to this heading">¶</a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="qcodes_contrib_drivers.drivers.QDevil.html" class="btn btn-neutral float-left" title="qcodes_contrib_drivers.drivers.QDevil package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="qcodes_contrib_drivers.drivers.RohdeSchwarz.html" class="btn btn-neutral float-right" title="qcodes_contrib_drivers.drivers.RohdeSchwarz package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, QCoDeS Users.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

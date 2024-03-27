@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>qcodes_contrib_drivers.drivers.Andor.DU401 &mdash; qcodes_contrib_drivers 0.22.0.dev63+main.g134f064 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../_static/documentation_options.js?v=159198be"></script>
+        <script src="../../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            qcodes_contrib_drivers
+          </a>
+              <div class="version">
+                0.22.0.dev63+main.g134f064
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples/index.html">Examples of how to use drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/generated/qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">qcodes_contrib_drivers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">qcodes_contrib_drivers.drivers.Andor.DU401</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for qcodes_contrib_drivers.drivers.Andor.DU401</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Any</span>
+<span class="kn">from</span> <span class="nn">qcodes</span> <span class="kn">import</span> <span class="n">Instrument</span><span class="p">,</span> <span class="n">Parameter</span>
+<span class="kn">from</span> <span class="nn">qcodes.utils.validators</span> <span class="kn">import</span> <span class="n">Ints</span>
+<span class="kn">from</span> <span class="nn">qcodes.utils.helpers</span> <span class="kn">import</span> <span class="n">create_on_off_val_mapping</span>
+<span class="kn">import</span> <span class="nn">ctypes</span>
+
+
+<div class="viewcode-block" id="atmcd64d">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Andor.html#qcodes_contrib_drivers.drivers.Andor.DU401.atmcd64d">[docs]</a>
+<span class="k">class</span> <span class="nc">atmcd64d</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Wrapper class for the atmcd64.dll Andor library.</span>
+<span class="sd">    The class has been tested for an Andor iDus DU401 BU2.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        dll_path: Path to the atmcd64.dll file. If not set, a default path is used.</span>
+<span class="sd">        verbose: Flag for the verbose behaviour. If true, successful events are printed.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        verbose: Flag for the verbose behaviour.</span>
+<span class="sd">        dll: WinDLL object for atmcd64.dll.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># default dll path</span>
+    <span class="n">_dll_path</span> <span class="o">=</span> <span class="s1">&#39;C:</span><span class="se">\\</span><span class="s1">Program Files</span><span class="se">\\</span><span class="s1">Andor SDK</span><span class="se">\\</span><span class="s1">atmcd64d.dll&#39;</span>
+
+    <span class="c1"># success and error codes</span>
+    <span class="n">_success_codes</span> <span class="o">=</span> <span class="p">{</span><span class="mi">20002</span><span class="p">:</span> <span class="s1">&#39;DRV_SUCCESS&#39;</span><span class="p">,</span> <span class="mi">20035</span><span class="p">:</span> <span class="s1">&#39;DRV_TEMP_NOT_STABILIZED&#39;</span><span class="p">,</span> <span class="mi">20036</span><span class="p">:</span> <span class="s1">&#39;DRV_TEMPERATURE_STABILIZED&#39;</span><span class="p">,</span>
+                      <span class="mi">20037</span><span class="p">:</span> <span class="s1">&#39;DRV_TEMPERATURE_NOT_REACHED&#39;</span><span class="p">}</span>
+    <span class="n">_error_codes</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="mi">20001</span><span class="p">:</span> <span class="s1">&#39;DRV_ERROR_CODES&#39;</span><span class="p">,</span> <span class="mi">20003</span><span class="p">:</span> <span class="s1">&#39;DRV_VXDNOTINSTALLED&#39;</span><span class="p">,</span> <span class="mi">20004</span><span class="p">:</span> <span class="s1">&#39;DRV_ERROR_SCAN&#39;</span><span class="p">,</span> <span class="mi">20005</span><span class="p">:</span> <span class="s1">&#39;DRV_ERROR_CHECK_SUM&#39;</span><span class="p">,</span>
+        <span class="mi">20006</span><span class="p">:</span> <span class="s1">&#39;DRV_ERROR_FILELOAD&#39;</span><span class="p">,</span> <span class="mi">20007</span><span class="p">:</span> <span class="s1">&#39;DRV_UNKNOWN_FUNCTION&#39;</span><span class="p">,</span> <span class="mi">20008</span><span class="p">:</span> <span class="s1">&#39;DRV_ERROR_VXD_INIT&#39;</span><span class="p">,</span>
+        <span class="mi">20009</span><span class="p">:</span> <span class="s1">&#39;DRV_ERROR_ADDRESS&#39;</span><span class="p">,</span> <span class="mi">20010</span><span class="p">:</span> <span class="s1">&#39;DRV_ERROR_PAGELOCK&#39;</span><span class="p">,</span> <span class="mi">20011</span><span class="p">:</span> <span class="s1">&#39;DRV_ERROR_PAGE_UNLOCK&#39;</span><span class="p">,</span>
+        <span class="mi">20012</span><span class="p">:</span> <span class="s1">&#39;DRV_ERROR_BOARDTEST&#39;</span><span class="p">,</span> <span class="mi">20013</span><span class="p">:</span> <span class="s1">&#39;DRV_ERROR_ACK&#39;</span><span class="p">,</span> <span class="mi">20014</span><span class="p">:</span> <span class="s1">&#39;DRV_ERROR_UP_FIFO&#39;</span><span class="p">,</span> <span class="mi">20015</span><span class="p">:</span> <span class="s1">&#39;DRV_ERROR_PATTERN&#39;</span><span class="p">,</span>
+        <span class="mi">20017</span><span class="p">:</span> <span class="s1">&#39;DRV_ACQUISITION_ERRORS&#39;</span><span class="p">,</span> <span class="mi">20018</span><span class="p">:</span> <span class="s1">&#39;DRV_ACQ_BUFFER&#39;</span><span class="p">,</span> <span class="mi">20019</span><span class="p">:</span> <span class="s1">&#39;DRV_ACQ_DOWNFIFO_FULL&#39;</span><span class="p">,</span>
+        <span class="mi">20020</span><span class="p">:</span> <span class="s1">&#39;DRV_PROC_UNKNOWN_INSTRUCTION&#39;</span><span class="p">,</span> <span class="mi">20021</span><span class="p">:</span> <span class="s1">&#39;DRV_ILLEGAL_OP_CODE&#39;</span><span class="p">,</span> <span class="mi">20022</span><span class="p">:</span> <span class="s1">&#39;DRV_KINETIC_TIME_NOT_MET&#39;</span><span class="p">,</span>
+        <span class="mi">20023</span><span class="p">:</span> <span class="s1">&#39;DRV_ACCUM_TIME_NOT_MET&#39;</span><span class="p">,</span> <span class="mi">20024</span><span class="p">:</span> <span class="s1">&#39;DRV_NO_NEW_DATA&#39;</span><span class="p">,</span> <span class="mi">20026</span><span class="p">:</span> <span class="s1">&#39;DRV_SPOOLERROR&#39;</span><span class="p">,</span>
+        <span class="mi">20027</span><span class="p">:</span> <span class="s1">&#39;DRV_SPOOLSETUPERROR&#39;</span><span class="p">,</span> <span class="mi">20033</span><span class="p">:</span> <span class="s1">&#39;DRV_TEMPERATURE_CODES&#39;</span><span class="p">,</span> <span class="mi">20034</span><span class="p">:</span> <span class="s1">&#39;DRV_TEMPERATURE_OFF&#39;</span><span class="p">,</span>
+        <span class="mi">20038</span><span class="p">:</span> <span class="s1">&#39;DRV_TEMPERATURE_OUT_RANGE&#39;</span><span class="p">,</span> <span class="mi">20039</span><span class="p">:</span> <span class="s1">&#39;DRV_TEMPERATURE_NOT_SUPPORTED&#39;</span><span class="p">,</span> <span class="mi">20040</span><span class="p">:</span> <span class="s1">&#39;DRV_TEMPERATURE_DRIFT&#39;</span><span class="p">,</span>
+        <span class="mi">20049</span><span class="p">:</span> <span class="s1">&#39;DRV_GENERAL_ERRORS&#39;</span><span class="p">,</span> <span class="mi">20050</span><span class="p">:</span> <span class="s1">&#39;DRV_INVALID_AUX&#39;</span><span class="p">,</span> <span class="mi">20051</span><span class="p">:</span> <span class="s1">&#39;DRV_COF_NOTLOADED&#39;</span><span class="p">,</span> <span class="mi">20052</span><span class="p">:</span> <span class="s1">&#39;DRV_FPGAPROG&#39;</span><span class="p">,</span>
+        <span class="mi">20053</span><span class="p">:</span> <span class="s1">&#39;DRV_FLEXERROR&#39;</span><span class="p">,</span> <span class="mi">20054</span><span class="p">:</span> <span class="s1">&#39;DRV_GPIBERROR&#39;</span><span class="p">,</span> <span class="mi">20064</span><span class="p">:</span> <span class="s1">&#39;DRV_DATATYPE&#39;</span><span class="p">,</span> <span class="mi">20065</span><span class="p">:</span> <span class="s1">&#39;DRV_DRIVER_ERRORS&#39;</span><span class="p">,</span>
+        <span class="mi">20066</span><span class="p">:</span> <span class="s1">&#39;DRV_P1INVALID&#39;</span><span class="p">,</span> <span class="mi">20067</span><span class="p">:</span> <span class="s1">&#39;DRV_P2INVALID&#39;</span><span class="p">,</span> <span class="mi">20068</span><span class="p">:</span> <span class="s1">&#39;DRV_P3INVALID&#39;</span><span class="p">,</span> <span class="mi">20069</span><span class="p">:</span> <span class="s1">&#39;DRV_P4INVALID&#39;</span><span class="p">,</span>
+        <span class="mi">20070</span><span class="p">:</span> <span class="s1">&#39;DRV_INIERROR&#39;</span><span class="p">,</span> <span class="mi">20071</span><span class="p">:</span> <span class="s1">&#39;DRV_COFERROR&#39;</span><span class="p">,</span> <span class="mi">20072</span><span class="p">:</span> <span class="s1">&#39;DRV_ACQUIRING&#39;</span><span class="p">,</span> <span class="mi">20073</span><span class="p">:</span> <span class="s1">&#39;DRV_IDLE&#39;</span><span class="p">,</span>
+        <span class="mi">20074</span><span class="p">:</span> <span class="s1">&#39;DRV_TEMPCYCLE&#39;</span><span class="p">,</span> <span class="mi">20075</span><span class="p">:</span> <span class="s1">&#39;DRV_NOT_INITIALIZED&#39;</span><span class="p">,</span> <span class="mi">20076</span><span class="p">:</span> <span class="s1">&#39;DRV_P5INVALID&#39;</span><span class="p">,</span> <span class="mi">20077</span><span class="p">:</span> <span class="s1">&#39;DRV_P6INVALID&#39;</span><span class="p">,</span>
+        <span class="mi">20078</span><span class="p">:</span> <span class="s1">&#39;DRV_INVALID_MODE&#39;</span><span class="p">,</span> <span class="mi">20079</span><span class="p">:</span> <span class="s1">&#39;DRV_INVALID_FILTER&#39;</span><span class="p">,</span> <span class="mi">20080</span><span class="p">:</span> <span class="s1">&#39;DRV_I2CERRORS&#39;</span><span class="p">,</span>
+        <span class="mi">20081</span><span class="p">:</span> <span class="s1">&#39;DRV_DRV_I2CDEVNOTFOUND&#39;</span><span class="p">,</span> <span class="mi">20082</span><span class="p">:</span> <span class="s1">&#39;DRV_I2CTIMEOUT&#39;</span><span class="p">,</span> <span class="mi">20083</span><span class="p">:</span> <span class="s1">&#39;DRV_P7INVALID&#39;</span><span class="p">,</span> <span class="mi">20089</span><span class="p">:</span> <span class="s1">&#39;DRV_USBERROR&#39;</span><span class="p">,</span>
+        <span class="mi">20090</span><span class="p">:</span> <span class="s1">&#39;DRV_IOCERROR&#39;</span><span class="p">,</span> <span class="mi">20091</span><span class="p">:</span> <span class="s1">&#39;DRV_VRMVERSIONERROR&#39;</span><span class="p">,</span> <span class="mi">20093</span><span class="p">:</span> <span class="s1">&#39;DRV_USB_INTERRUPT_ENDPOINT_ERROR&#39;</span><span class="p">,</span>
+        <span class="mi">20094</span><span class="p">:</span> <span class="s1">&#39;DRV_RANDOM_TRACK_ERROR&#39;</span><span class="p">,</span> <span class="mi">20095</span><span class="p">:</span> <span class="s1">&#39;DRV_INVALID_TRIGGER_MODE&#39;</span><span class="p">,</span> <span class="mi">20096</span><span class="p">:</span> <span class="s1">&#39;DRV_LOAD_FIRMWARE_ERROR&#39;</span><span class="p">,</span>
+        <span class="mi">20097</span><span class="p">:</span> <span class="s1">&#39;DRV_DIVIDE_BY_ZERO_ERROR&#39;</span><span class="p">,</span> <span class="mi">20098</span><span class="p">:</span> <span class="s1">&#39;DRV_INVALID_RINGEXPOSURES&#39;</span><span class="p">,</span> <span class="mi">20990</span><span class="p">:</span> <span class="s1">&#39;DRV_ERROR_NOCAMERA&#39;</span><span class="p">,</span>
+        <span class="mi">20991</span><span class="p">:</span> <span class="s1">&#39;DRV_NOT_SUPPORTED&#39;</span><span class="p">,</span> <span class="mi">20992</span><span class="p">:</span> <span class="s1">&#39;DRV_NOT_AVAILABLE&#39;</span><span class="p">,</span> <span class="mi">20115</span><span class="p">:</span> <span class="s1">&#39;DRV_ERROR_MAP&#39;</span><span class="p">,</span> <span class="mi">20116</span><span class="p">:</span> <span class="s1">&#39;DRV_ERROR_UNMAP&#39;</span><span class="p">,</span>
+        <span class="mi">20117</span><span class="p">:</span> <span class="s1">&#39;DRV_ERROR_MDL&#39;</span><span class="p">,</span> <span class="mi">20118</span><span class="p">:</span> <span class="s1">&#39;DRV_ERROR_UNMDL&#39;</span><span class="p">,</span> <span class="mi">20119</span><span class="p">:</span> <span class="s1">&#39;DRV_ERROR_BUFFSIZE&#39;</span><span class="p">,</span> <span class="mi">20121</span><span class="p">:</span> <span class="s1">&#39;DRV_ERROR_NOHANDLE&#39;</span><span class="p">,</span>
+        <span class="mi">20130</span><span class="p">:</span> <span class="s1">&#39;DRV_GATING_NOT_AVAILABLE&#39;</span><span class="p">,</span> <span class="mi">20131</span><span class="p">:</span> <span class="s1">&#39;DRV_FPGA_VOLTAGE_ERROR&#39;</span><span class="p">,</span> <span class="mi">20099</span><span class="p">:</span> <span class="s1">&#39;DRV_BINNING_ERROR&#39;</span><span class="p">,</span>
+        <span class="mi">20100</span><span class="p">:</span> <span class="s1">&#39;DRV_INVALID_AMPLIFIER&#39;</span><span class="p">,</span> <span class="mi">20101</span><span class="p">:</span> <span class="s1">&#39;DRV_INVALID_COUNTCONVERT_MODE&#39;</span><span class="p">}</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dll_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span> <span class="o">!=</span> <span class="s1">&#39;win32&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">raise</span> <span class="ne">OSError</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\&quot;</span><span class="s2">atmcd64d</span><span class="se">\&quot;</span><span class="s2"> is only compatible with Microsoft Windows&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dll</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">windll</span><span class="o">.</span><span class="n">LoadLibrary</span><span class="p">(</span><span class="n">dll_path</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dll_path</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="n">verbose</span>
+
+<div class="viewcode-block" id="atmcd64d.error_check">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Andor.html#qcodes_contrib_drivers.drivers.Andor.DU401.atmcd64d.error_check">[docs]</a>
+    <span class="k">def</span> <span class="nf">error_check</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="n">function_name</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">code</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_success_codes</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;atmcd64d: [</span><span class="si">%s</span><span class="s2">]: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">function_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_success_codes</span><span class="p">[</span><span class="n">code</span><span class="p">]))</span>
+        <span class="k">elif</span> <span class="n">code</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_error_codes</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;atmcd64d: [</span><span class="si">%s</span><span class="s2">]: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">function_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_error_codes</span><span class="p">[</span><span class="n">code</span><span class="p">]))</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_error_codes</span><span class="p">[</span><span class="n">code</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;atmcd64d: [</span><span class="si">%s</span><span class="s2">]: Unknown code: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">function_name</span><span class="p">,</span> <span class="n">code</span><span class="p">))</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="atmcd64d.cooler_off">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Andor.html#qcodes_contrib_drivers.drivers.Andor.DU401.atmcd64d.cooler_off">[docs]</a>
+    <span class="k">def</span> <span class="nf">cooler_off</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">CoolerOFF</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_check</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="s1">&#39;CoolerOFF&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="atmcd64d.cooler_on">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Andor.html#qcodes_contrib_drivers.drivers.Andor.DU401.atmcd64d.cooler_on">[docs]</a>
+    <span class="k">def</span> <span class="nf">cooler_on</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">CoolerON</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_check</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="s1">&#39;CoolerON&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="atmcd64d.get_acquired_data">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Andor.html#qcodes_contrib_drivers.drivers.Andor.DU401.atmcd64d.get_acquired_data">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_acquired_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+        <span class="n">c_data_array</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span> <span class="o">*</span> <span class="n">size</span>
+        <span class="n">c_data</span> <span class="o">=</span> <span class="n">c_data_array</span><span class="p">()</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">GetAcquiredData</span><span class="p">(</span><span class="n">ctypes</span><span class="o">.</span><span class="n">pointer</span><span class="p">(</span><span class="n">c_data</span><span class="p">),</span> <span class="n">size</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_check</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="s1">&#39;GetAcquiredData&#39;</span><span class="p">)</span>
+        <span class="n">acquired_data</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">c_data</span><span class="p">)):</span>
+            <span class="n">acquired_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">c_data</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">acquired_data</span></div>
+
+
+<div class="viewcode-block" id="atmcd64d.get_acquisition_timings">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Andor.html#qcodes_contrib_drivers.drivers.Andor.DU401.atmcd64d.get_acquisition_timings">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_acquisition_timings</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+        <span class="n">c_exposure</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_float</span><span class="p">()</span>
+        <span class="n">c_accumulate</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_float</span><span class="p">()</span>
+        <span class="n">c_kinetic</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_float</span><span class="p">()</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">GetAcquisitionTimings</span><span class="p">(</span><span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">c_exposure</span><span class="p">),</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">c_accumulate</span><span class="p">),</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">c_kinetic</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_check</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="s1">&#39;GetAcquisitionTimings&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">c_exposure</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">c_accumulate</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">c_kinetic</span><span class="o">.</span><span class="n">value</span></div>
+
+
+<div class="viewcode-block" id="atmcd64d.get_camera_handle">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Andor.html#qcodes_contrib_drivers.drivers.Andor.DU401.atmcd64d.get_camera_handle">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_camera_handle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">camera_index</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="n">c_camera_handle</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_long</span><span class="p">()</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">GetCameraHandle</span><span class="p">(</span><span class="n">camera_index</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">c_camera_handle</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_check</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="s1">&#39;GetCameraHandle&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">c_camera_handle</span><span class="o">.</span><span class="n">value</span></div>
+
+
+<div class="viewcode-block" id="atmcd64d.get_camera_serial_number">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Andor.html#qcodes_contrib_drivers.drivers.Andor.DU401.atmcd64d.get_camera_serial_number">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_camera_serial_number</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="n">c_serial_number</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">()</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">GetCameraSerialNumber</span><span class="p">(</span><span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">c_serial_number</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_check</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="s1">&#39;GetCameraSerialNumber&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">c_serial_number</span><span class="o">.</span><span class="n">value</span></div>
+
+
+<div class="viewcode-block" id="atmcd64d.get_hardware_version">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Andor.html#qcodes_contrib_drivers.drivers.Andor.DU401.atmcd64d.get_hardware_version">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_hardware_version</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+        <span class="n">c_pcb</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">()</span>
+        <span class="n">c_decode</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">()</span>
+        <span class="n">c_dummy1</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">()</span>
+        <span class="n">c_dummy2</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">()</span>
+        <span class="n">c_firmware_version</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">()</span>
+        <span class="n">c_firmware_build</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">()</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">GetHardwareVersion</span><span class="p">(</span><span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">c_pcb</span><span class="p">),</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">c_decode</span><span class="p">),</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">c_dummy1</span><span class="p">),</span>
+                                           <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">c_dummy2</span><span class="p">),</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">c_firmware_version</span><span class="p">),</span>
+                                           <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">c_firmware_build</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_check</span><span class="p">(</span><span class="n">code</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">c_pcb</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">c_decode</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">c_dummy1</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">c_dummy2</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">c_firmware_version</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> \
+            <span class="n">c_firmware_build</span><span class="o">.</span><span class="n">value</span></div>
+
+
+<div class="viewcode-block" id="atmcd64d.get_head_model">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Andor.html#qcodes_contrib_drivers.drivers.Andor.DU401.atmcd64d.get_head_model">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_head_model</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">c_head_model</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">create_string_buffer</span><span class="p">(</span><span class="mi">128</span><span class="p">)</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">GetHeadModel</span><span class="p">(</span><span class="n">c_head_model</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_check</span><span class="p">(</span><span class="n">code</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">c_head_model</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;ascii&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="atmcd64d.get_detector">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Andor.html#qcodes_contrib_drivers.drivers.Andor.DU401.atmcd64d.get_detector">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_detector</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+        <span class="n">c_x_pixels</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">()</span>
+        <span class="n">c_y_pixels</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">()</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">GetDetector</span><span class="p">(</span><span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">c_x_pixels</span><span class="p">),</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">c_y_pixels</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_check</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="s1">&#39;GetDetector&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">c_x_pixels</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">c_y_pixels</span><span class="o">.</span><span class="n">value</span></div>
+
+
+<div class="viewcode-block" id="atmcd64d.get_filter_mode">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Andor.html#qcodes_contrib_drivers.drivers.Andor.DU401.atmcd64d.get_filter_mode">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_filter_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="n">c_mode</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">()</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">GetFilterMode</span><span class="p">(</span><span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">c_mode</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_check</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="s1">&#39;GetFilterMode&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">c_mode</span><span class="o">.</span><span class="n">value</span></div>
+
+
+<div class="viewcode-block" id="atmcd64d.get_status">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Andor.html#qcodes_contrib_drivers.drivers.Andor.DU401.atmcd64d.get_status">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_status</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="n">c_status</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">()</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">GetStatus</span><span class="p">(</span><span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">c_status</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_check</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="s1">&#39;GetStatus&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">c_status</span><span class="o">.</span><span class="n">value</span></div>
+
+
+<div class="viewcode-block" id="atmcd64d.get_temperature">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Andor.html#qcodes_contrib_drivers.drivers.Andor.DU401.atmcd64d.get_temperature">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_temperature</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="n">c_temperature</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">()</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">GetTemperature</span><span class="p">(</span><span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">c_temperature</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_check</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="s1">&#39;GetTemperature&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">c_temperature</span><span class="o">.</span><span class="n">value</span></div>
+
+
+<div class="viewcode-block" id="atmcd64d.get_temperature_range">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Andor.html#qcodes_contrib_drivers.drivers.Andor.DU401.atmcd64d.get_temperature_range">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_temperature_range</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+        <span class="n">c_min_temp</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">()</span>
+        <span class="n">c_max_temp</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">()</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">GetTemperatureRange</span><span class="p">(</span><span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">c_min_temp</span><span class="p">),</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">c_max_temp</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_check</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="s1">&#39;GetTemperatureRange&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">c_min_temp</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">c_max_temp</span><span class="o">.</span><span class="n">value</span></div>
+
+
+<div class="viewcode-block" id="atmcd64d.initialize">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Andor.html#qcodes_contrib_drivers.drivers.Andor.DU401.atmcd64d.initialize">[docs]</a>
+    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">directory</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">Initialize</span><span class="p">(</span><span class="n">directory</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_check</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="s1">&#39;Initialize&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="atmcd64d.is_cooler_on">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Andor.html#qcodes_contrib_drivers.drivers.Andor.DU401.atmcd64d.is_cooler_on">[docs]</a>
+    <span class="k">def</span> <span class="nf">is_cooler_on</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="n">c_cooler_status</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">()</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">IsCoolerOn</span><span class="p">(</span><span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">c_cooler_status</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_check</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="s1">&#39;IsCoolerOn&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">c_cooler_status</span><span class="o">.</span><span class="n">value</span></div>
+
+
+<div class="viewcode-block" id="atmcd64d.set_accumulation_cycle_time">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Andor.html#qcodes_contrib_drivers.drivers.Andor.DU401.atmcd64d.set_accumulation_cycle_time">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_accumulation_cycle_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cycle_time</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">c_cycle_time</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_float</span><span class="p">(</span><span class="n">cycle_time</span><span class="p">)</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">SetAccumulationCycleTime</span><span class="p">(</span><span class="n">c_cycle_time</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_check</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="s1">&#39;SetAccumulationCycleTime&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="atmcd64d.set_acquisition_mode">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Andor.html#qcodes_contrib_drivers.drivers.Andor.DU401.atmcd64d.set_acquisition_mode">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_acquisition_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">c_mode</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">(</span><span class="n">mode</span><span class="p">)</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">SetAcquisitionMode</span><span class="p">(</span><span class="n">c_mode</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_check</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="s1">&#39;SetAcquisitionMode&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="atmcd64d.set_current_camera">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Andor.html#qcodes_contrib_drivers.drivers.Andor.DU401.atmcd64d.set_current_camera">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_current_camera</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">camera_handle</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">c_camera_handle</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_long</span><span class="p">(</span><span class="n">camera_handle</span><span class="p">)</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">SetCurrentCamera</span><span class="p">(</span><span class="n">c_camera_handle</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_check</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="s1">&#39;SetCurrentCamera&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="atmcd64d.set_exposure_time">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Andor.html#qcodes_contrib_drivers.drivers.Andor.DU401.atmcd64d.set_exposure_time">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_exposure_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exposure_time</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">c_time</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_float</span><span class="p">(</span><span class="n">exposure_time</span><span class="p">)</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">SetExposureTime</span><span class="p">(</span><span class="n">c_time</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_check</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="s1">&#39;SetExposureTime&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="atmcd64d.set_filter_mode">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Andor.html#qcodes_contrib_drivers.drivers.Andor.DU401.atmcd64d.set_filter_mode">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_filter_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">c_mode</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">(</span><span class="n">mode</span><span class="p">)</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">SetFilterMode</span><span class="p">(</span><span class="n">c_mode</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_check</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="s1">&#39;SetFilterMode&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="atmcd64d.set_number_accumulations">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Andor.html#qcodes_contrib_drivers.drivers.Andor.DU401.atmcd64d.set_number_accumulations">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_number_accumulations</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">number</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">c_number</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">(</span><span class="n">number</span><span class="p">)</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">SetNumberAccumulations</span><span class="p">(</span><span class="n">c_number</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_check</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="s1">&#39;SetNumberAccumulations&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="atmcd64d.set_read_mode">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Andor.html#qcodes_contrib_drivers.drivers.Andor.DU401.atmcd64d.set_read_mode">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_read_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">SetReadMode</span><span class="p">(</span><span class="n">mode</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_check</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="s1">&#39;SetReadMode&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="atmcd64d.set_shutter">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Andor.html#qcodes_contrib_drivers.drivers.Andor.DU401.atmcd64d.set_shutter">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_shutter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">typ</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">closing_time</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">opening_time</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">c_typ</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">(</span><span class="n">typ</span><span class="p">)</span>
+        <span class="n">c_mode</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">(</span><span class="n">mode</span><span class="p">)</span>
+        <span class="n">c_closing_time</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">(</span><span class="n">closing_time</span><span class="p">)</span>
+        <span class="n">c_opening_time</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">(</span><span class="n">opening_time</span><span class="p">)</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">SetShutter</span><span class="p">(</span><span class="n">c_typ</span><span class="p">,</span> <span class="n">c_mode</span><span class="p">,</span> <span class="n">c_closing_time</span><span class="p">,</span> <span class="n">c_opening_time</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_check</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="s1">&#39;SetShutter&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="atmcd64d.set_temperature">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Andor.html#qcodes_contrib_drivers.drivers.Andor.DU401.atmcd64d.set_temperature">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_temperature</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">temperature</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">c_temperature</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">(</span><span class="n">temperature</span><span class="p">)</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">SetTemperature</span><span class="p">(</span><span class="n">c_temperature</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_check</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="s1">&#39;SetTemperature&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="atmcd64d.set_trigger_mode">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Andor.html#qcodes_contrib_drivers.drivers.Andor.DU401.atmcd64d.set_trigger_mode">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_trigger_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">c_mode</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">(</span><span class="n">mode</span><span class="p">)</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">SetTriggerMode</span><span class="p">(</span><span class="n">c_mode</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_check</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="s1">&#39;SetTriggerMode&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="atmcd64d.shut_down">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Andor.html#qcodes_contrib_drivers.drivers.Andor.DU401.atmcd64d.shut_down">[docs]</a>
+    <span class="k">def</span> <span class="nf">shut_down</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">ShutDown</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_check</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="s1">&#39;ShutDown&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="atmcd64d.start_acquisition">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Andor.html#qcodes_contrib_drivers.drivers.Andor.DU401.atmcd64d.start_acquisition">[docs]</a>
+    <span class="k">def</span> <span class="nf">start_acquisition</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">StartAcquisition</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_check</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="s1">&#39;StartAcquisition&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="atmcd64d.wait_for_acquisition">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Andor.html#qcodes_contrib_drivers.drivers.Andor.DU401.atmcd64d.wait_for_acquisition">[docs]</a>
+    <span class="k">def</span> <span class="nf">wait_for_acquisition</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">WaitForAcquisition</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_check</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="s1">&#39;WaitForAcquisition&#39;</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="Spectrum">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Andor.html#qcodes_contrib_drivers.drivers.Andor.DU401.Spectrum">[docs]</a>
+<span class="k">class</span> <span class="nc">Spectrum</span><span class="p">(</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parameter class for a spectrum taken with an Andor CCD.</span>
+<span class="sd">    The spectrum is saved in a list with the length being set by the number of pixels on the CCD.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        name: Parameter name.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">instrument</span><span class="p">:</span> <span class="s2">&quot;Andor_DU401&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">instrument</span><span class="o">=</span><span class="n">instrument</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ccd</span> <span class="o">=</span> <span class="n">instrument</span>
+
+<div class="viewcode-block" id="Spectrum.get_raw">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Andor.html#qcodes_contrib_drivers.drivers.Andor.DU401.Spectrum.get_raw">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_raw</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+        <span class="c1"># get acquisition mode</span>
+        <span class="n">acquisition_mode</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ccd</span><span class="o">.</span><span class="n">acquisition_mode</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+
+        <span class="c1"># start acquisition</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ccd</span><span class="o">.</span><span class="n">atmcd64d</span><span class="o">.</span><span class="n">start_acquisition</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">acquisition_mode</span> <span class="o">==</span> <span class="s1">&#39;single scan&#39;</span><span class="p">:</span>
+            <span class="c1"># wait for single acquisition</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ccd</span><span class="o">.</span><span class="n">atmcd64d</span><span class="o">.</span><span class="n">wait_for_acquisition</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">acquisition_mode</span> <span class="o">==</span> <span class="s1">&#39;accumulate&#39;</span><span class="p">:</span>
+            <span class="c1"># wait for accumulate acquisition</span>
+            <span class="n">number_accumulations</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ccd</span><span class="o">.</span><span class="n">number_accumulations</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">number_accumulations</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ccd</span><span class="o">.</span><span class="n">atmcd64d</span><span class="o">.</span><span class="n">wait_for_acquisition</span><span class="p">()</span>
+
+        <span class="c1"># get and return spectrum</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ccd</span><span class="o">.</span><span class="n">atmcd64d</span><span class="o">.</span><span class="n">get_acquired_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ccd</span><span class="o">.</span><span class="n">x_pixels</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Spectrum.set_raw">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Andor.html#qcodes_contrib_drivers.drivers.Andor.DU401.Spectrum.set_raw">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_raw</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="Andor_DU401">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Andor.html#qcodes_contrib_drivers.drivers.Andor.DU401.Andor_DU401">[docs]</a>
+<span class="k">class</span> <span class="nc">Andor_DU401</span><span class="p">(</span><span class="n">Instrument</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Instrument driver for the Andor DU401 BU2 CCD.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        name: Instrument name.</span>
+<span class="sd">        dll_path: Path to the atmcd64.dll file. If not set, a default path is used.</span>
+<span class="sd">        camera_id: ID for the desired CCD.</span>
+<span class="sd">        setup: Flag for the setup of the CCD. If true, some default settings will be sent to the CCD.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        serial_number: Serial number of the CCD.</span>
+<span class="sd">        head_model: Head model of the CCD.</span>
+<span class="sd">        firmware_version: Firmware version of the CCD.</span>
+<span class="sd">        firmware_build: Firmware build of the CCD.</span>
+<span class="sd">        x_pixels: Number of pixels on the x axis.</span>
+<span class="sd">        y_pixels: Number of pixels on the y axis.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># TODO (SvenBo90): implement further acquisition modes</span>
+    <span class="c1"># TODO (SvenBo90): implement further read modes</span>
+    <span class="c1"># TODO (SvenBo90): implement further trigger modes</span>
+    <span class="c1"># TODO (SvenBo90): add and delete parameters dynamically when switching acquisition mode or read mode</span>
+    <span class="c1"># TODO (SvenBo90): handle shutter closing and opening timings</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">dll_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">camera_id</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">setup</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="c1"># link to dll</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">atmcd64d</span> <span class="o">=</span> <span class="n">atmcd64d</span><span class="p">(</span><span class="n">dll_path</span><span class="o">=</span><span class="n">dll_path</span><span class="p">)</span>
+
+        <span class="c1"># initialization</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">atmcd64d</span><span class="o">.</span><span class="n">initialize</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">atmcd64d</span><span class="o">.</span><span class="n">set_current_camera</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">atmcd64d</span><span class="o">.</span><span class="n">get_camera_handle</span><span class="p">(</span><span class="n">camera_id</span><span class="p">))</span>
+
+        <span class="c1"># get camera information</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">serial_number</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">atmcd64d</span><span class="o">.</span><span class="n">get_camera_serial_number</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">head_model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">atmcd64d</span><span class="o">.</span><span class="n">get_head_model</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">firmware_version</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">atmcd64d</span><span class="o">.</span><span class="n">get_hardware_version</span><span class="p">()[</span><span class="mi">4</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">firmware_build</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">atmcd64d</span><span class="o">.</span><span class="n">get_hardware_version</span><span class="p">()[</span><span class="mi">5</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x_pixels</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_pixels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">atmcd64d</span><span class="o">.</span><span class="n">get_detector</span><span class="p">()</span>
+
+        <span class="c1"># add the instrument parameters</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;accumulation_cycle_time&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">atmcd64d</span><span class="o">.</span><span class="n">get_acquisition_timings</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">atmcd64d</span><span class="o">.</span><span class="n">set_accumulation_cycle_time</span><span class="p">,</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="k">lambda</span> <span class="n">ans</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">ans</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;s&#39;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;accumulation cycle time&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;acquisition_mode&#39;</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">atmcd64d</span><span class="o">.</span><span class="n">set_acquisition_mode</span><span class="p">,</span>
+                           <span class="n">val_mapping</span><span class="o">=</span><span class="p">{</span>
+                               <span class="s1">&#39;single scan&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                               <span class="s1">&#39;accumulate&#39;</span><span class="p">:</span> <span class="mi">2</span>
+                           <span class="p">},</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;acquisition mode&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;cooler&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">atmcd64d</span><span class="o">.</span><span class="n">is_cooler_on</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_cooler</span><span class="p">,</span>
+                           <span class="n">val_mapping</span><span class="o">=</span><span class="n">create_on_off_val_mapping</span><span class="p">(</span><span class="n">on_val</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">off_val</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;cooler&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;exposure_time&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">atmcd64d</span><span class="o">.</span><span class="n">get_acquisition_timings</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">atmcd64d</span><span class="o">.</span><span class="n">set_exposure_time</span><span class="p">,</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="k">lambda</span> <span class="n">ans</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">ans</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;s&#39;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;exposure time&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;filter_mode&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">atmcd64d</span><span class="o">.</span><span class="n">get_filter_mode</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">atmcd64d</span><span class="o">.</span><span class="n">set_filter_mode</span><span class="p">,</span>
+                           <span class="n">val_mapping</span><span class="o">=</span><span class="n">create_on_off_val_mapping</span><span class="p">(</span><span class="n">on_val</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">off_val</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;filter mode&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;number_accumulations&#39;</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">atmcd64d</span><span class="o">.</span><span class="n">set_number_accumulations</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;number accumulations&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;read_mode&#39;</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">atmcd64d</span><span class="o">.</span><span class="n">set_read_mode</span><span class="p">,</span>
+                           <span class="n">val_mapping</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;full vertical binning&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">})</span>
+
+        <span class="n">min_temperature</span><span class="p">,</span> <span class="n">max_temperature</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">atmcd64d</span><span class="o">.</span><span class="n">get_temperature_range</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;set_temperature&#39;</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">atmcd64d</span><span class="o">.</span><span class="n">set_temperature</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">Ints</span><span class="p">(</span><span class="n">min_value</span><span class="o">=</span><span class="n">min_temperature</span><span class="p">,</span>
+                                     <span class="n">max_value</span><span class="o">=</span><span class="n">max_temperature</span><span class="p">),</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="sa">u</span><span class="s2">&quot;</span><span class="se">\u00b0</span><span class="s2">&quot;</span><span class="o">+</span><span class="s1">&#39;C&#39;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;set temperature&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;shutter_mode&#39;</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_shutter_mode</span><span class="p">,</span>
+                           <span class="n">val_mapping</span><span class="o">=</span><span class="p">{</span>
+                               <span class="s1">&#39;fully auto&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                               <span class="s1">&#39;permanently open&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                               <span class="s1">&#39;permanently closed&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">},</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;shutter mode&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;spectrum&#39;</span><span class="p">,</span>
+                           <span class="n">parameter_class</span><span class="o">=</span><span class="n">Spectrum</span><span class="p">,</span>
+                           <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_pixels</span><span class="p">),</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;spectrum&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;temperature&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">atmcd64d</span><span class="o">.</span><span class="n">get_temperature</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="sa">u</span><span class="s2">&quot;</span><span class="se">\u00b0</span><span class="s2">&quot;</span><span class="o">+</span><span class="s1">&#39;C&#39;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;temperature&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;trigger_mode&#39;</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">atmcd64d</span><span class="o">.</span><span class="n">set_trigger_mode</span><span class="p">,</span>
+                           <span class="n">val_mapping</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;internal&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">})</span>
+
+        <span class="c1"># set up detector with default settings</span>
+        <span class="k">if</span> <span class="n">setup</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cooler</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_temperature</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="o">-</span><span class="mi">60</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">read_mode</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;full vertical binning&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">acquisition_mode</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;single scan&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">trigger_mode</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;internal&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">shutter_mode</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;fully auto&#39;</span><span class="p">)</span>
+
+        <span class="c1"># print connect message</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect_message</span><span class="p">(</span><span class="n">idn_param</span><span class="o">=</span><span class="s1">&#39;IDN&#39;</span><span class="p">)</span>
+
+    <span class="c1"># get methods</span>
+<div class="viewcode-block" id="Andor_DU401.get_idn">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Andor.html#qcodes_contrib_drivers.drivers.Andor.DU401.Andor_DU401.get_idn">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_idn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;vendor&#39;</span><span class="p">:</span> <span class="s1">&#39;Andor&#39;</span><span class="p">,</span> <span class="s1">&#39;model&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">head_model</span><span class="p">,</span>
+                <span class="s1">&#39;serial&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">serial_number</span><span class="p">),</span> <span class="s1">&#39;firmware&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">firmware_version</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;.&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">firmware_build</span><span class="p">)}</span></div>
+
+
+    <span class="c1"># set methods</span>
+    <span class="k">def</span> <span class="nf">_set_cooler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cooler_on</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">cooler_on</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">atmcd64d</span><span class="o">.</span><span class="n">cooler_on</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">cooler_on</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">atmcd64d</span><span class="o">.</span><span class="n">cooler_off</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_set_shutter_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shutter_mode</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">atmcd64d</span><span class="o">.</span><span class="n">set_shutter</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">shutter_mode</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">30</span><span class="p">)</span>
+
+    <span class="c1"># further methods</span>
+<div class="viewcode-block" id="Andor_DU401.close">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Andor.html#qcodes_contrib_drivers.drivers.Andor.DU401.Andor_DU401.close">[docs]</a>
+    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">atmcd64d</span><span class="o">.</span><span class="n">shut_down</span><span class="p">()</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, QCoDeS Users.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

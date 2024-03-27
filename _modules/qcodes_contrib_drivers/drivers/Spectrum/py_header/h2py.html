@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>qcodes_contrib_drivers.drivers.Spectrum.py_header.h2py &mdash; qcodes_contrib_drivers 0.22.0.dev63+main.g134f064 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../../_static/documentation_options.js?v=159198be"></script>
+        <script src="../../../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../../index.html" class="icon icon-home">
+            qcodes_contrib_drivers
+          </a>
+              <div class="version">
+                0.22.0.dev63+main.g134f064
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../examples/index.html">Examples of how to use drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../../index.html">qcodes_contrib_drivers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">qcodes_contrib_drivers.drivers.Spectrum.py_header.h2py</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for qcodes_contrib_drivers.drivers.Spectrum.py_header.h2py</h1><div class="highlight"><pre>
+<span></span><span class="ch">#! /usr/bin/env python</span>
+
+<span class="c1"># Read #define&#39;s and translate to Python code.</span>
+<span class="c1"># Handle #include statements.</span>
+<span class="c1"># Handle #define macros with one argument.</span>
+<span class="c1"># Anything that isn&#39;t recognized or doesn&#39;t translate into valid</span>
+<span class="c1"># Python is ignored.</span>
+
+<span class="c1"># Without filename arguments, acts as a filter.</span>
+<span class="c1"># If one or more filenames are given, output is written to corresponding</span>
+<span class="c1"># filenames in the local directory, translated to all uppercase, with</span>
+<span class="c1"># the extension replaced by &quot;.py&quot;.</span>
+
+<span class="c1"># By passing one or more options of the form &quot;-i regular_expression&quot;</span>
+<span class="c1"># you can specify additional strings to be ignored.  This is useful</span>
+<span class="c1"># e.g. to ignore casts to u_long: simply specify &quot;-i &#39;(u_long)&#39;&quot;.</span>
+
+<span class="c1"># XXX To do:</span>
+<span class="c1"># - turn trailing C comments into Python comments</span>
+<span class="c1"># - turn C Boolean operators &quot;&amp;&amp; || !&quot; into Python &quot;and or not&quot;</span>
+<span class="c1"># - what to do about #if(def)?</span>
+<span class="c1"># - what to do about macros with multiple parameters?</span>
+
+<span class="kn">import</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">re</span><span class="o">,</span> <span class="nn">getopt</span><span class="o">,</span> <span class="nn">os</span>
+
+<span class="n">p_define</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s1">&#39;^[</span><span class="se">\t</span><span class="s1"> ]*#[</span><span class="se">\t</span><span class="s1"> ]*define[</span><span class="se">\t</span><span class="s1"> ]+([a-zA-Z0-9_]+)[</span><span class="se">\t</span><span class="s1"> ]+&#39;</span><span class="p">)</span>
+
+<span class="n">p_macro</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
+  <span class="sa">r</span><span class="s1">&#39;^[\t ]*#[\t ]*define[\t ]+([a-zA-Z0-9_]+)\(([_a-zA-Z][_a-zA-Z0-9]*)\)[\t ]+&#39;</span><span class="p">)</span>
+
+<span class="n">p_include</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;^[\t ]*#[\t ]*include[\t ]+&lt;([a-zA-Z0-9_/\.]+)&#39;</span><span class="p">)</span>
+
+<span class="n">p_comment</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;/\*([^*]+|\*+[^/])*(\*+/)?&#39;</span><span class="p">)</span>
+<span class="n">p_cpp_comment</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s1">&#39;//.*&#39;</span><span class="p">)</span>
+
+<span class="n">ignores</span> <span class="o">=</span> <span class="p">[</span><span class="n">p_comment</span><span class="p">,</span> <span class="n">p_cpp_comment</span><span class="p">]</span>
+
+<span class="n">p_char</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;&#39;(</span><span class="se">\\</span><span class="s2">.[^</span><span class="se">\\</span><span class="s2">]*|[^</span><span class="se">\\</span><span class="s2">])&#39;&quot;</span><span class="p">)</span>
+
+<span class="n">p_hex</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;0x([0-9a-fA-F]+)L?&quot;</span><span class="p">)</span>
+
+<span class="n">filedict</span> <span class="o">=</span> <span class="p">{}</span> <span class="c1"># type: dict</span>
+<span class="n">importable</span> <span class="o">=</span> <span class="p">{}</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">searchdirs</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;include&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">)</span>
+<span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">searchdirs</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;INCLUDE&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span>  <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;beos&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">searchdirs</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;BEINCLUDES&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;atheos&quot;</span><span class="p">):</span>
+                <span class="n">searchdirs</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;C_INCLUDE_PATH&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">KeyError</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="n">searchdirs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;/usr/include&#39;</span><span class="p">]</span>
+
+<div class="viewcode-block" id="main">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Spectrum.py_header.html#qcodes_contrib_drivers.drivers.Spectrum.py_header.h2py.main">[docs]</a>
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="k">global</span> <span class="n">filedict</span>
+    <span class="n">opts</span><span class="p">,</span> <span class="n">args</span> <span class="o">=</span> <span class="n">getopt</span><span class="o">.</span><span class="n">getopt</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="s1">&#39;i:&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">o</span><span class="p">,</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">opts</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">o</span> <span class="o">==</span> <span class="s1">&#39;-i&#39;</span><span class="p">:</span>
+            <span class="n">ignores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">a</span><span class="p">))</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">args</span><span class="p">:</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;-&#39;</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">args</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">filename</span> <span class="o">==</span> <span class="s1">&#39;-&#39;</span><span class="p">:</span>
+<span class="c1">#            sys.stdout.write(&#39;# Generated by h2py from stdin\n&#39;)</span>
+            <span class="n">process</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stdin</span><span class="p">,</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">fp</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
+            <span class="n">outfile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="n">outfile</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span> <span class="n">outfile</span> <span class="o">=</span> <span class="n">outfile</span><span class="p">[:</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">modname</span> <span class="o">=</span> <span class="n">outfile</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+            <span class="n">outfile</span> <span class="o">=</span> <span class="n">modname</span> <span class="o">+</span> <span class="s1">&#39;.py&#39;</span>
+            <span class="n">outfp</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">outfile</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>
+<span class="c1">#            outfp.write(&#39;# Generated by h2py from %s\n&#39; % filename)</span>
+            <span class="n">filedict</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="nb">dir</span> <span class="ow">in</span> <span class="n">searchdirs</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">filename</span><span class="p">[:</span><span class="nb">len</span><span class="p">(</span><span class="nb">dir</span><span class="p">)]</span> <span class="o">==</span> <span class="nb">dir</span><span class="p">:</span>
+                    <span class="n">filedict</span><span class="p">[</span><span class="n">filename</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="nb">dir</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">:]]</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># no &#39;/&#39; trailing</span>
+                    <span class="n">importable</span><span class="p">[</span><span class="n">filename</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="nb">dir</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">:]]</span> <span class="o">=</span> <span class="n">modname</span>
+                    <span class="k">break</span>
+            <span class="n">process</span><span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="n">outfp</span><span class="p">)</span>
+            <span class="n">outfp</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="n">fp</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="pytify">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Spectrum.py_header.html#qcodes_contrib_drivers.drivers.Spectrum.py_header.h2py.pytify">[docs]</a>
+<span class="k">def</span> <span class="nf">pytify</span><span class="p">(</span><span class="n">body</span><span class="p">):</span>
+    <span class="c1"># replace ignored patterns by spaces</span>
+    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">ignores</span><span class="p">:</span>
+        <span class="n">body</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="n">body</span><span class="p">)</span>
+    <span class="c1"># replace char literals by ord(...)</span>
+    <span class="n">body</span> <span class="o">=</span> <span class="n">p_char</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;ord(</span><span class="se">\\</span><span class="s1">0)&#39;</span><span class="p">,</span> <span class="n">body</span><span class="p">)</span>
+    <span class="c1"># Compute negative hexadecimal constants</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">UMAX</span> <span class="o">=</span> <span class="mi">2</span><span class="o">*</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">maxint</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">while</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="n">p_hex</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">body</span><span class="p">,</span> <span class="n">start</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">m</span><span class="p">:</span> <span class="k">break</span>
+        <span class="n">s</span><span class="p">,</span><span class="n">e</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">span</span><span class="p">()</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="n">long</span><span class="p">(</span><span class="n">body</span><span class="p">[</span><span class="nb">slice</span><span class="p">(</span><span class="o">*</span><span class="n">m</span><span class="o">.</span><span class="n">span</span><span class="p">(</span><span class="mi">1</span><span class="p">))],</span> <span class="mi">16</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">val</span> <span class="o">&gt;</span> <span class="n">sys</span><span class="o">.</span><span class="n">maxint</span><span class="p">:</span>
+            <span class="n">val</span> <span class="o">-=</span> <span class="n">UMAX</span>
+            <span class="n">body</span> <span class="o">=</span> <span class="n">body</span><span class="p">[:</span><span class="n">s</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;(&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;)&quot;</span> <span class="o">+</span> <span class="n">body</span><span class="p">[</span><span class="n">e</span><span class="p">:]</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="n">s</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">body</span></div>
+
+
+<div class="viewcode-block" id="process">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Spectrum.py_header.html#qcodes_contrib_drivers.drivers.Spectrum.py_header.h2py.process">[docs]</a>
+<span class="k">def</span> <span class="nf">process</span><span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="n">outfp</span><span class="p">,</span> <span class="n">env</span> <span class="o">=</span> <span class="p">{}):</span>
+    <span class="n">lineno</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">while</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="n">fp</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">line</span><span class="p">:</span> <span class="k">break</span>
+        <span class="n">lineno</span> <span class="o">=</span> <span class="n">lineno</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="n">match</span> <span class="o">=</span> <span class="n">p_define</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">match</span><span class="p">:</span>
+            <span class="c1"># gobble up continuation lines</span>
+            <span class="k">while</span> <span class="n">line</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">:]</span> <span class="o">==</span> <span class="s1">&#39;</span><span class="se">\\\n</span><span class="s1">&#39;</span><span class="p">:</span>
+                <span class="n">nextline</span> <span class="o">=</span> <span class="n">fp</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">nextline</span><span class="p">:</span> <span class="k">break</span>
+                <span class="n">lineno</span> <span class="o">=</span> <span class="n">lineno</span> <span class="o">+</span> <span class="mi">1</span>
+                <span class="n">line</span> <span class="o">=</span> <span class="n">line</span> <span class="o">+</span> <span class="n">nextline</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">body</span> <span class="o">=</span> <span class="n">line</span><span class="p">[</span><span class="n">match</span><span class="o">.</span><span class="n">end</span><span class="p">():]</span>
+            <span class="n">body</span> <span class="o">=</span> <span class="n">pytify</span><span class="p">(</span><span class="n">body</span><span class="p">)</span>
+            <span class="c1">#UE: Python3 kommt mit den l am Ende der Konstanten nicht klar, daher entfernen</span>
+            <span class="n">body</span><span class="o">=</span><span class="n">body</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">body</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">:]</span> <span class="o">==</span> <span class="s1">&#39;l&#39;</span><span class="p">:</span>
+                <span class="n">body</span> <span class="o">=</span> <span class="n">body</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="c1">#/UE</span>
+            <span class="n">ok</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">stmt</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> = </span><span class="si">%s</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">body</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">exec</span><span class="p">(</span><span class="n">stmt</span><span class="p">,</span> <span class="n">env</span><span class="p">)</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;Skipping: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">stmt</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">outfp</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">stmt</span><span class="p">)</span>
+        <span class="n">match</span> <span class="o">=</span> <span class="n">p_macro</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">match</span><span class="p">:</span>
+            <span class="n">macro</span><span class="p">,</span> <span class="n">arg</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="n">body</span> <span class="o">=</span> <span class="n">line</span><span class="p">[</span><span class="n">match</span><span class="o">.</span><span class="n">end</span><span class="p">():]</span>
+            <span class="n">body</span> <span class="o">=</span> <span class="n">pytify</span><span class="p">(</span><span class="n">body</span><span class="p">)</span>
+            <span class="n">stmt</span> <span class="o">=</span> <span class="s1">&#39;def </span><span class="si">%s</span><span class="s1">(</span><span class="si">%s</span><span class="s1">): return </span><span class="si">%s</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">macro</span><span class="p">,</span> <span class="n">arg</span><span class="p">,</span> <span class="n">body</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">exec</span><span class="p">(</span><span class="n">stmt</span><span class="p">,</span> <span class="n">env</span><span class="p">)</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;Skipping: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">stmt</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">outfp</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">stmt</span><span class="p">)</span>
+        <span class="n">match</span> <span class="o">=</span> <span class="n">p_include</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">match</span><span class="p">:</span>
+            <span class="n">regs</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">regs</span>
+            <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">regs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="n">line</span><span class="p">[</span><span class="n">a</span><span class="p">:</span><span class="n">b</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">importable</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+                <span class="n">outfp</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;from </span><span class="si">%s</span><span class="s1"> import *</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">importable</span><span class="p">[</span><span class="n">filename</span><span class="p">])</span>
+            <span class="k">elif</span> <span class="ow">not</span> <span class="n">filedict</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+                <span class="n">filedict</span><span class="p">[</span><span class="n">filename</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="n">inclfp</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">for</span> <span class="nb">dir</span> <span class="ow">in</span> <span class="n">searchdirs</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">inclfp</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="nb">dir</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">filename</span><span class="p">)</span>
+                        <span class="k">break</span>
+                    <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+                        <span class="k">pass</span>
+                <span class="k">if</span> <span class="n">inclfp</span><span class="p">:</span>
+                    <span class="n">outfp</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+                            <span class="s1">&#39;</span><span class="se">\n</span><span class="s1"># Included from </span><span class="si">%s</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">filename</span><span class="p">)</span>
+                    <span class="n">process</span><span class="p">(</span><span class="n">inclfp</span><span class="p">,</span> <span class="n">outfp</span><span class="p">,</span> <span class="n">env</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;Warning - could not find file </span><span class="si">%s</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span>
+                                     <span class="n">filename</span><span class="p">)</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, QCoDeS Users.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

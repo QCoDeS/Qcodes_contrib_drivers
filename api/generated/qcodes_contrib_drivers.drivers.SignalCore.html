@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>qcodes_contrib_drivers.drivers.SignalCore package &mdash; qcodes_contrib_drivers 0.22.0.dev63+main.g134f064 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/documentation_options.js?v=159198be"></script>
+        <script src="../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="qcodes_contrib_drivers.drivers.SingleQuantum package" href="qcodes_contrib_drivers.drivers.SingleQuantum.html" />
+    <link rel="prev" title="qcodes_contrib_drivers.drivers.Shamrock package" href="qcodes_contrib_drivers.drivers.Shamrock.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            qcodes_contrib_drivers
+          </a>
+              <div class="version">
+                0.22.0.dev63+main.g134f064
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../examples/index.html">Examples of how to use drivers</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="qcodes_contrib_drivers.drivers.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Advantech.html">qcodes_contrib_drivers.drivers.Advantech package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Agilent.html">qcodes_contrib_drivers.drivers.Agilent package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.AimTTi.html">qcodes_contrib_drivers.drivers.AimTTi package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Ametek.html">qcodes_contrib_drivers.drivers.Ametek package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Andor.html">qcodes_contrib_drivers.drivers.Andor package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Attocube.html">qcodes_contrib_drivers.drivers.Attocube package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Aviosys.html">qcodes_contrib_drivers.drivers.Aviosys package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Bilt.html">qcodes_contrib_drivers.drivers.Bilt package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.BlueFors.html">qcodes_contrib_drivers.drivers.BlueFors package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.CopperMountain.html">qcodes_contrib_drivers.drivers.CopperMountain package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Cryocon.html">qcodes_contrib_drivers.drivers.Cryocon package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Cryogenic.html">qcodes_contrib_drivers.drivers.Cryogenic package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.DaylightSolutions.html">qcodes_contrib_drivers.drivers.DaylightSolutions package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.ERAInstruments.html">qcodes_contrib_drivers.drivers.ERAInstruments package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.GeneralMicrowave.html">qcodes_contrib_drivers.drivers.GeneralMicrowave package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Gentec.html">qcodes_contrib_drivers.drivers.Gentec package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Holzworth.html">qcodes_contrib_drivers.drivers.Holzworth package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Horiba.html">qcodes_contrib_drivers.drivers.Horiba package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.html">qcodes_contrib_drivers.drivers.Keysight package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Lakeshore.html">qcodes_contrib_drivers.drivers.Lakeshore package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.LighthousePhotonics.html">qcodes_contrib_drivers.drivers.LighthousePhotonics package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.M2.html">qcodes_contrib_drivers.drivers.M2 package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.MontanaInstruments.html">qcodes_contrib_drivers.drivers.MontanaInstruments package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.NationalInstruments.html">qcodes_contrib_drivers.drivers.NationalInstruments package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Newport.html">qcodes_contrib_drivers.drivers.Newport package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Oxford.html">qcodes_contrib_drivers.drivers.Oxford package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.QDevil.html">qcodes_contrib_drivers.drivers.QDevil package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.QuTech.html">qcodes_contrib_drivers.drivers.QuTech package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.RohdeSchwarz.html">qcodes_contrib_drivers.drivers.RohdeSchwarz package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Shamrock.html">qcodes_contrib_drivers.drivers.Shamrock package</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">qcodes_contrib_drivers.drivers.SignalCore package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-qcodes_contrib_drivers.drivers.SignalCore.SignalCore">qcodes_contrib_drivers.drivers.SignalCore.SignalCore module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-qcodes_contrib_drivers.drivers.SignalCore">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.SingleQuantum.html">qcodes_contrib_drivers.drivers.SingleQuantum package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Spectrum.html">qcodes_contrib_drivers.drivers.Spectrum package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Standa.html">qcodes_contrib_drivers.drivers.Standa package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.StanfordResearchSystems.html">qcodes_contrib_drivers.drivers.StanfordResearchSystems package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Tektronix.html">qcodes_contrib_drivers.drivers.Tektronix package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Thermotek.html">qcodes_contrib_drivers.drivers.Thermotek package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Thorlabs.html">qcodes_contrib_drivers.drivers.Thorlabs package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Valon.html">qcodes_contrib_drivers.drivers.Valon package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Vaunix.html">qcodes_contrib_drivers.drivers.Vaunix package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.ZurichInstruments.html">qcodes_contrib_drivers.drivers.ZurichInstruments package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.html#module-qcodes_contrib_drivers.drivers.CMTS5048">qcodes_contrib_drivers.drivers.CMTS5048 module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.html#module-qcodes_contrib_drivers.drivers">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">qcodes_contrib_drivers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a></li>
+      <li class="breadcrumb-item active">qcodes_contrib_drivers.drivers.SignalCore package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/api/generated/qcodes_contrib_drivers.drivers.SignalCore.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="qcodes-contrib-drivers-drivers-signalcore-package">
+<h1>qcodes_contrib_drivers.drivers.SignalCore package<a class="headerlink" href="#qcodes-contrib-drivers-drivers-signalcore-package" title="Link to this heading">¶</a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">¶</a></h2>
+</section>
+<section id="module-qcodes_contrib_drivers.drivers.SignalCore.SignalCore">
+<span id="qcodes-contrib-drivers-drivers-signalcore-signalcore-module"></span><h2>qcodes_contrib_drivers.drivers.SignalCore.SignalCore module<a class="headerlink" href="#module-qcodes_contrib_drivers.drivers.SignalCore.SignalCore" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.SignalCore.SignalCore.DeviceInfoT">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.SignalCore.SignalCore.</span></span><span class="sig-name descname"><span class="pre">DeviceInfoT</span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/SignalCore/SignalCore.html#DeviceInfoT"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.SignalCore.SignalCore.DeviceInfoT" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Structure</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.SignalCore.SignalCore.DeviceInfoT.device_interfaces">
+<span class="sig-name descname"><span class="pre">device_interfaces</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.SignalCore.SignalCore.DeviceInfoT.device_interfaces" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.SignalCore.SignalCore.DeviceInfoT.firmware_revision">
+<span class="sig-name descname"><span class="pre">firmware_revision</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.SignalCore.SignalCore.DeviceInfoT.firmware_revision" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.SignalCore.SignalCore.DeviceInfoT.hardware_revision">
+<span class="sig-name descname"><span class="pre">hardware_revision</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.SignalCore.SignalCore.DeviceInfoT.hardware_revision" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.SignalCore.SignalCore.DeviceInfoT.man_date">
+<span class="sig-name descname"><span class="pre">man_date</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.SignalCore.SignalCore.DeviceInfoT.man_date" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.SignalCore.SignalCore.DeviceInfoT.product_serial_number">
+<span class="sig-name descname"><span class="pre">product_serial_number</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.SignalCore.SignalCore.DeviceInfoT.product_serial_number" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.SignalCore.SignalCore.DeviceRFParamsT">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.SignalCore.SignalCore.</span></span><span class="sig-name descname"><span class="pre">DeviceRFParamsT</span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/SignalCore/SignalCore.html#DeviceRFParamsT"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.SignalCore.SignalCore.DeviceRFParamsT" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Structure</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.SignalCore.SignalCore.DeviceRFParamsT.atten_value">
+<span class="sig-name descname"><span class="pre">atten_value</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.SignalCore.SignalCore.DeviceRFParamsT.atten_value" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.SignalCore.SignalCore.DeviceRFParamsT.buffer_points">
+<span class="sig-name descname"><span class="pre">buffer_points</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.SignalCore.SignalCore.DeviceRFParamsT.buffer_points" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.SignalCore.SignalCore.DeviceRFParamsT.frequency">
+<span class="sig-name descname"><span class="pre">frequency</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.SignalCore.SignalCore.DeviceRFParamsT.frequency" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.SignalCore.SignalCore.DeviceRFParamsT.level_dac_value">
+<span class="sig-name descname"><span class="pre">level_dac_value</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.SignalCore.SignalCore.DeviceRFParamsT.level_dac_value" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.SignalCore.SignalCore.DeviceRFParamsT.power_level">
+<span class="sig-name descname"><span class="pre">power_level</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.SignalCore.SignalCore.DeviceRFParamsT.power_level" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.SignalCore.SignalCore.DeviceRFParamsT.rf_phase_offset">
+<span class="sig-name descname"><span class="pre">rf_phase_offset</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.SignalCore.SignalCore.DeviceRFParamsT.rf_phase_offset" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.SignalCore.SignalCore.DeviceRFParamsT.sweep_cycles">
+<span class="sig-name descname"><span class="pre">sweep_cycles</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.SignalCore.SignalCore.DeviceRFParamsT.sweep_cycles" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.SignalCore.SignalCore.DeviceRFParamsT.sweep_dwell_time">
+<span class="sig-name descname"><span class="pre">sweep_dwell_time</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.SignalCore.SignalCore.DeviceRFParamsT.sweep_dwell_time" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.SignalCore.SignalCore.DeviceRFParamsT.sweep_start_freq">
+<span class="sig-name descname"><span class="pre">sweep_start_freq</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.SignalCore.SignalCore.DeviceRFParamsT.sweep_start_freq" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.SignalCore.SignalCore.DeviceRFParamsT.sweep_step_freq">
+<span class="sig-name descname"><span class="pre">sweep_step_freq</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.SignalCore.SignalCore.DeviceRFParamsT.sweep_step_freq" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.SignalCore.SignalCore.DeviceRFParamsT.sweep_stop_freq">
+<span class="sig-name descname"><span class="pre">sweep_stop_freq</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.SignalCore.SignalCore.DeviceRFParamsT.sweep_stop_freq" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.SignalCore.SignalCore.DeviceStatusT">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.SignalCore.SignalCore.</span></span><span class="sig-name descname"><span class="pre">DeviceStatusT</span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/SignalCore/SignalCore.html#DeviceStatusT"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.SignalCore.SignalCore.DeviceStatusT" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Structure</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.SignalCore.SignalCore.DeviceStatusT.list_mode_t">
+<span class="sig-name descname"><span class="pre">list_mode_t</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.SignalCore.SignalCore.DeviceStatusT.list_mode_t" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.SignalCore.SignalCore.DeviceStatusT.operate_status_t">
+<span class="sig-name descname"><span class="pre">operate_status_t</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.SignalCore.SignalCore.DeviceStatusT.operate_status_t" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.SignalCore.SignalCore.DeviceStatusT.pll_status_t">
+<span class="sig-name descname"><span class="pre">pll_status_t</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.SignalCore.SignalCore.DeviceStatusT.pll_status_t" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.SignalCore.SignalCore.HWTriggerT">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.SignalCore.SignalCore.</span></span><span class="sig-name descname"><span class="pre">HWTriggerT</span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/SignalCore/SignalCore.html#HWTriggerT"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.SignalCore.SignalCore.HWTriggerT" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Structure</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.SignalCore.SignalCore.HWTriggerT.edge">
+<span class="sig-name descname"><span class="pre">edge</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.SignalCore.SignalCore.HWTriggerT.edge" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.SignalCore.SignalCore.HWTriggerT.pxi_enable">
+<span class="sig-name descname"><span class="pre">pxi_enable</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.SignalCore.SignalCore.HWTriggerT.pxi_enable" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.SignalCore.SignalCore.HWTriggerT.pxi_line">
+<span class="sig-name descname"><span class="pre">pxi_line</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.SignalCore.SignalCore.HWTriggerT.pxi_line" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.SignalCore.SignalCore.ListModeT">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.SignalCore.SignalCore.</span></span><span class="sig-name descname"><span class="pre">ListModeT</span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/SignalCore/SignalCore.html#ListModeT"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.SignalCore.SignalCore.ListModeT" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Structure</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.SignalCore.SignalCore.ListModeT.hw_trigger">
+<span class="sig-name descname"><span class="pre">hw_trigger</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.SignalCore.SignalCore.ListModeT.hw_trigger" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.SignalCore.SignalCore.ListModeT.return_to_start">
+<span class="sig-name descname"><span class="pre">return_to_start</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.SignalCore.SignalCore.ListModeT.return_to_start" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.SignalCore.SignalCore.ListModeT.step_on_hw_trig">
+<span class="sig-name descname"><span class="pre">step_on_hw_trig</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.SignalCore.SignalCore.ListModeT.step_on_hw_trig" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.SignalCore.SignalCore.ListModeT.sweep_dir">
+<span class="sig-name descname"><span class="pre">sweep_dir</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.SignalCore.SignalCore.ListModeT.sweep_dir" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.SignalCore.SignalCore.ListModeT.sweep_mode">
+<span class="sig-name descname"><span class="pre">sweep_mode</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.SignalCore.SignalCore.ListModeT.sweep_mode" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.SignalCore.SignalCore.ListModeT.tri_waveform">
+<span class="sig-name descname"><span class="pre">tri_waveform</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.SignalCore.SignalCore.ListModeT.tri_waveform" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.SignalCore.SignalCore.ListModeT.trig_out_enable">
+<span class="sig-name descname"><span class="pre">trig_out_enable</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.SignalCore.SignalCore.ListModeT.trig_out_enable" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.SignalCore.SignalCore.ListModeT.trig_out_on_cycle">
+<span class="sig-name descname"><span class="pre">trig_out_on_cycle</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.SignalCore.SignalCore.ListModeT.trig_out_on_cycle" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.SignalCore.SignalCore.ManDate">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.SignalCore.SignalCore.</span></span><span class="sig-name descname"><span class="pre">ManDate</span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/SignalCore/SignalCore.html#ManDate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.SignalCore.SignalCore.ManDate" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Structure</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.SignalCore.SignalCore.ManDate.day">
+<span class="sig-name descname"><span class="pre">day</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.SignalCore.SignalCore.ManDate.day" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.SignalCore.SignalCore.ManDate.hour">
+<span class="sig-name descname"><span class="pre">hour</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.SignalCore.SignalCore.ManDate.hour" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.SignalCore.SignalCore.ManDate.month">
+<span class="sig-name descname"><span class="pre">month</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.SignalCore.SignalCore.ManDate.month" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.SignalCore.SignalCore.ManDate.year">
+<span class="sig-name descname"><span class="pre">year</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.SignalCore.SignalCore.ManDate.year" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.SignalCore.SignalCore.OperateStatusT">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.SignalCore.SignalCore.</span></span><span class="sig-name descname"><span class="pre">OperateStatusT</span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/SignalCore/SignalCore.html#OperateStatusT"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.SignalCore.SignalCore.OperateStatusT" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Structure</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.SignalCore.SignalCore.OperateStatusT.auto_pwr_disable">
+<span class="sig-name descname"><span class="pre">auto_pwr_disable</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.SignalCore.SignalCore.OperateStatusT.auto_pwr_disable" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.SignalCore.SignalCore.OperateStatusT.device_access">
+<span class="sig-name descname"><span class="pre">device_access</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.SignalCore.SignalCore.OperateStatusT.device_access" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.SignalCore.SignalCore.OperateStatusT.device_standby">
+<span class="sig-name descname"><span class="pre">device_standby</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.SignalCore.SignalCore.OperateStatusT.device_standby" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.SignalCore.SignalCore.OperateStatusT.ext_ref_detect">
+<span class="sig-name descname"><span class="pre">ext_ref_detect</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.SignalCore.SignalCore.OperateStatusT.ext_ref_detect" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.SignalCore.SignalCore.OperateStatusT.ext_ref_lock_enable">
+<span class="sig-name descname"><span class="pre">ext_ref_lock_enable</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.SignalCore.SignalCore.OperateStatusT.ext_ref_lock_enable" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.SignalCore.SignalCore.OperateStatusT.harmonic_ss">
+<span class="sig-name descname"><span class="pre">harmonic_ss</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.SignalCore.SignalCore.OperateStatusT.harmonic_ss" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.SignalCore.SignalCore.OperateStatusT.list_mode_running">
+<span class="sig-name descname"><span class="pre">list_mode_running</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.SignalCore.SignalCore.OperateStatusT.list_mode_running" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.SignalCore.SignalCore.OperateStatusT.output_enable">
+<span class="sig-name descname"><span class="pre">output_enable</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.SignalCore.SignalCore.OperateStatusT.output_enable" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.SignalCore.SignalCore.OperateStatusT.over_temp">
+<span class="sig-name descname"><span class="pre">over_temp</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.SignalCore.SignalCore.OperateStatusT.over_temp" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.SignalCore.SignalCore.OperateStatusT.pci_clk_enable">
+<span class="sig-name descname"><span class="pre">pci_clk_enable</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.SignalCore.SignalCore.OperateStatusT.pci_clk_enable" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.SignalCore.SignalCore.OperateStatusT.ref_out_select">
+<span class="sig-name descname"><span class="pre">ref_out_select</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.SignalCore.SignalCore.OperateStatusT.ref_out_select" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.SignalCore.SignalCore.OperateStatusT.rf1_lock_mode">
+<span class="sig-name descname"><span class="pre">rf1_lock_mode</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.SignalCore.SignalCore.OperateStatusT.rf1_lock_mode" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.SignalCore.SignalCore.OperateStatusT.rf1_loop_gain">
+<span class="sig-name descname"><span class="pre">rf1_loop_gain</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.SignalCore.SignalCore.OperateStatusT.rf1_loop_gain" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.SignalCore.SignalCore.OperateStatusT.rf_mode">
+<span class="sig-name descname"><span class="pre">rf_mode</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.SignalCore.SignalCore.OperateStatusT.rf_mode" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.SignalCore.SignalCore.PLLStatusT">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.SignalCore.SignalCore.</span></span><span class="sig-name descname"><span class="pre">PLLStatusT</span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/SignalCore/SignalCore.html#PLLStatusT"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.SignalCore.SignalCore.PLLStatusT" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Structure</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.SignalCore.SignalCore.PLLStatusT.crs_aux_pll_ld">
+<span class="sig-name descname"><span class="pre">crs_aux_pll_ld</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.SignalCore.SignalCore.PLLStatusT.crs_aux_pll_ld" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.SignalCore.SignalCore.PLLStatusT.crs_pll_ld">
+<span class="sig-name descname"><span class="pre">crs_pll_ld</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.SignalCore.SignalCore.PLLStatusT.crs_pll_ld" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.SignalCore.SignalCore.PLLStatusT.crs_ref_pll_ld">
+<span class="sig-name descname"><span class="pre">crs_ref_pll_ld</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.SignalCore.SignalCore.PLLStatusT.crs_ref_pll_ld" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.SignalCore.SignalCore.PLLStatusT.fine_pll_ld">
+<span class="sig-name descname"><span class="pre">fine_pll_ld</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.SignalCore.SignalCore.PLLStatusT.fine_pll_ld" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.SignalCore.SignalCore.PLLStatusT.ref_100_pll_ld">
+<span class="sig-name descname"><span class="pre">ref_100_pll_ld</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.SignalCore.SignalCore.PLLStatusT.ref_100_pll_ld" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.SignalCore.SignalCore.PLLStatusT.ref_10_pll_ld">
+<span class="sig-name descname"><span class="pre">ref_10_pll_ld</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.SignalCore.SignalCore.PLLStatusT.ref_10_pll_ld" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.SignalCore.SignalCore.PLLStatusT.sum_pll_ld">
+<span class="sig-name descname"><span class="pre">sum_pll_ld</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.SignalCore.SignalCore.PLLStatusT.sum_pll_ld" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.SignalCore.SignalCore.SC5521A">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.SignalCore.SignalCore.</span></span><span class="sig-name descname"><span class="pre">SC5521A</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/SignalCore/SignalCore.html#SC5521A"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.SignalCore.SignalCore.SC5521A" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://microsoft.github.io/Qcodes/api/instrument/index.html#qcodes.instrument.Instrument" title="(in QCoDeS v0.45.0.dev442+main.gb11f8ac34)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Instrument</span></code></a></p>
+<p>QCoDeS python driver for the Signal Core SC5521A.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.SignalCore.SignalCore.SC5521A.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">dll_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'SignalCore\\SC5520A\\api\\c\\scipci\\x64\\sc5520a_uhfs.dll'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/SignalCore/SignalCore.html#SC5521A.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.SignalCore.SignalCore.SC5521A.__init__" title="Link to this definition">¶</a></dt>
+<dd><p>QCoDeS driver for the Signal Core SC5521A.
+This driver has been tested when only one SignalCore is connected to the
+computer.</p>
+<p>Args:
+name (str): Name of the instrument.
+dll_path (str): Path towards the instrument DLL.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.SignalCore.SignalCore.SC5521A.get_idn">
+<span class="sig-name descname"><span class="pre">get_idn</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Dict" title="(in Python v3.10)"><span class="pre">Dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/SignalCore/SignalCore.html#SC5521A.get_idn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.SignalCore.SignalCore.SC5521A.get_idn" title="Link to this definition">¶</a></dt>
+<dd><p>Parse a standard VISA <code class="docutils literal notranslate"><span class="pre">*IDN?</span></code> response into an ID dict.</p>
+<p>Even though this is the VISA standard, it applies to various other
+types as well, such as IPInstruments, so it is included here in the
+Instrument base class.</p>
+<p>Override this if your instrument does not support <code class="docutils literal notranslate"><span class="pre">*IDN?</span></code> or
+returns a nonstandard IDN string. This string is supposed to be a
+comma-separated list of vendor, model, serial, and firmware, but
+semicolon and colon are also common separators so we accept them here
+as well.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A dict containing vendor, model, serial, and firmware.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-qcodes_contrib_drivers.drivers.SignalCore">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-qcodes_contrib_drivers.drivers.SignalCore" title="Link to this heading">¶</a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="qcodes_contrib_drivers.drivers.Shamrock.html" class="btn btn-neutral float-left" title="qcodes_contrib_drivers.drivers.Shamrock package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="qcodes_contrib_drivers.drivers.SingleQuantum.html" class="btn btn-neutral float-right" title="qcodes_contrib_drivers.drivers.SingleQuantum package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, QCoDeS Users.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

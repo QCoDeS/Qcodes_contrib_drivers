@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>qcodes_contrib_drivers.drivers.DaylightSolutions.MIRcat &mdash; qcodes_contrib_drivers 0.22.0.dev63+main.g134f064 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../_static/documentation_options.js?v=159198be"></script>
+        <script src="../../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            qcodes_contrib_drivers
+          </a>
+              <div class="version">
+                0.22.0.dev63+main.g134f064
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples/index.html">Examples of how to use drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/generated/qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">qcodes_contrib_drivers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">qcodes_contrib_drivers.drivers.DaylightSolutions.MIRcat</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for qcodes_contrib_drivers.drivers.DaylightSolutions.MIRcat</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;QCoDeS-Driver for DRS Daylight Solutions Ultra-broadly tunable mid-IR</span>
+<span class="sd">external cavity CW/Pulsed MIRcat laser system:</span>
+<span class="sd">https://daylightsolutions.com/product/mircat/</span>
+
+<span class="sd">This driver relies on the MIRcatSDK. It requires a Windows system.</span>
+
+<span class="sd">Authors:</span>
+<span class="sd">    Julien Barrier, &lt;julien@julienbarrier.eu&gt;</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">ctypes</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Sequence</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+
+<span class="kn">from</span> <span class="nn">qcodes</span> <span class="kn">import</span> <span class="n">Instrument</span><span class="p">,</span> <span class="n">Parameter</span>
+<span class="kn">from</span> <span class="nn">qcodes</span> <span class="kn">import</span> <span class="n">validators</span> <span class="k">as</span> <span class="n">vals</span>
+
+<span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="DRSDaylightSolutions_MIRcat">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.DaylightSolutions.html#qcodes_contrib_drivers.drivers.DaylightSolutions.MIRcat.DRSDaylightSolutions_MIRcat">[docs]</a>
+<span class="k">class</span> <span class="nc">DRSDaylightSolutions_MIRcat</span><span class="p">(</span><span class="n">Instrument</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class to represent a DaylightSolutions MIRcat tunable mid-IR laser QCL</span>
+<span class="sd">    system.</span>
+
+<span class="sd">    status: beta-version</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        name: name for the instrument</span>
+<span class="sd">        dll_path: path to the MIRcatSDK driver dll library file. Defaults to None.</span>
+<span class="sd">        wavelength: sequence of 2-tuple for the wavelength boundaries of all chips.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">dll_path</span> <span class="o">=</span> <span class="s1">&#39;C:</span><span class="se">\\</span><span class="s1">MIRcat_laser</span><span class="se">\\</span><span class="s1">libs</span><span class="se">\\</span><span class="s1">x64</span><span class="se">\\</span><span class="s1">MIRcatSDK.dll&#39;</span>
+
+    <span class="n">_GET_STATUS</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="mi">0</span><span class="p">:</span> <span class="s1">&#39;unarmed&#39;</span><span class="p">,</span>
+        <span class="mi">1</span><span class="p">:</span> <span class="s1">&#39;armed and not emitting&#39;</span><span class="p">,</span>
+        <span class="mi">2</span><span class="p">:</span> <span class="s1">&#39;armed and emitting&#39;</span>
+    <span class="p">}</span>
+
+    <span class="n">_GET_ERROR</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="mi">1</span><span class="p">:</span> <span class="s1">&#39;Unsupported `commType` for communication and transport&#39;</span><span class="p">,</span>
+        <span class="mi">32</span><span class="p">:</span> <span class="s1">&#39;MIRcat controller initialisation failed *[System Error]*&#39;</span><span class="p">,</span>
+        <span class="mi">64</span><span class="p">:</span> <span class="s1">&#39;Arm/Disarm failure *[System Error]*&#39;</span><span class="p">,</span>
+        <span class="mi">65</span><span class="p">:</span> <span class="s1">&#39;Start/Tune failure *[System Error]*&#39;</span><span class="p">,</span>
+        <span class="mi">66</span><span class="p">:</span> <span class="s1">&#39;Interlocks/Keyswitch not set&#39;</span><span class="p">,</span>
+        <span class="mi">67</span><span class="p">:</span> <span class="s1">&#39;Stop scan failure *[System Error]*&#39;</span><span class="p">,</span>
+        <span class="mi">68</span><span class="p">:</span> <span class="s1">&#39;Pause scan failure *[System Error]*&#39;</span><span class="p">,</span>
+        <span class="mi">69</span><span class="p">:</span> <span class="s1">&#39;Resume scan failure *[System Error]*&#39;</span><span class="p">,</span>
+        <span class="mi">70</span><span class="p">:</span> <span class="s1">&#39;Manual step scan failure *[System Error]*&#39;</span><span class="p">,</span>
+        <span class="mi">71</span><span class="p">:</span> <span class="s1">&#39;Start sweep scan failure *[System Error]*&#39;</span><span class="p">,</span>
+        <span class="mi">72</span><span class="p">:</span> <span class="s1">&#39;Start step/measure scan failure *[System Error]*&#39;</span><span class="p">,</span>
+        <span class="mi">73</span><span class="p">:</span> <span class="s1">&#39;Index out of bounds&#39;</span><span class="p">,</span>
+        <span class="mi">74</span><span class="p">:</span> <span class="s1">&#39;Start multi-spectral scan failure *[System Error]*&#39;</span><span class="p">,</span>
+        <span class="mi">75</span><span class="p">:</span> <span class="s1">&#39;Too many elements&#39;</span><span class="p">,</span>
+        <span class="mi">76</span><span class="p">:</span> <span class="s1">&#39;Not enough elements&#39;</span><span class="p">,</span>
+        <span class="mi">77</span><span class="p">:</span> <span class="s1">&#39;Buffer too small for the character array&#39;</span><span class="p">,</span>
+        <span class="mi">78</span><span class="p">:</span> <span class="s1">&#39;Favourite name not recognised&#39;</span><span class="p">,</span>
+        <span class="mi">79</span><span class="p">:</span> <span class="s1">&#39;Favourite recall failure&#39;</span><span class="p">,</span>
+        <span class="mi">80</span><span class="p">:</span> <span class="s1">&#39;Wavelength out of the valid tuning range&#39;</span><span class="p">,</span>
+        <span class="mi">81</span><span class="p">:</span> <span class="s1">&#39;No scan in progress&#39;</span><span class="p">,</span>
+        <span class="mi">82</span><span class="p">:</span> <span class="s1">&#39;Failure to enable the laser emission *[System Error]*&#39;</span><span class="p">,</span>
+        <span class="mi">83</span><span class="p">:</span> <span class="s1">&#39;Emission already off&#39;</span><span class="p">,</span>
+        <span class="mi">84</span><span class="p">:</span> <span class="s1">&#39;Failure to disable the laser emission *[System Error]*&#39;</span><span class="p">,</span>
+        <span class="mi">85</span><span class="p">:</span> <span class="s1">&#39;Emission already on&#39;</span><span class="p">,</span>
+        <span class="mi">86</span><span class="p">:</span> <span class="s1">&#39;Specified pulse rate out of range&#39;</span><span class="p">,</span>
+        <span class="mi">87</span><span class="p">:</span> <span class="s1">&#39;Specified pulse width out of range&#39;</span><span class="p">,</span>
+        <span class="mi">88</span><span class="p">:</span> <span class="s1">&#39;Specified current out of range&#39;</span><span class="p">,</span>
+        <span class="mi">89</span><span class="p">:</span> <span class="s1">&#39;Fuuilure to save the QCL settings *[System Error]*&#39;</span><span class="p">,</span>
+        <span class="mi">90</span><span class="p">:</span> <span class="s1">&#39;Specified QCL out of range. Must be comprised between 1 and 4&#39;</span><span class="p">,</span>
+        <span class="mi">91</span><span class="p">:</span> <span class="s1">&#39;Laser already armed&#39;</span><span class="p">,</span>
+        <span class="mi">92</span><span class="p">:</span> <span class="s1">&#39;Laser already disarmed&#39;</span><span class="p">,</span>
+        <span class="mi">93</span><span class="p">:</span> <span class="s1">&#39;Laser not armed&#39;</span><span class="p">,</span>
+        <span class="mi">94</span><span class="p">:</span> <span class="s1">&#39;Laser not tuned&#39;</span><span class="p">,</span>
+        <span class="mi">95</span><span class="p">:</span> <span class="s1">&#39;System not operating at the set temperature *[System Error]*&#39;</span><span class="p">,</span>
+        <span class="mi">96</span><span class="p">:</span> <span class="s1">&#39;Specified QCL does not support CW&#39;</span><span class="p">,</span>
+        <span class="mi">97</span><span class="p">:</span> <span class="s1">&#39;Invalid laser mode&#39;</span><span class="p">,</span>
+        <span class="mi">98</span><span class="p">:</span> <span class="s1">&#39;Temperature out of range&#39;</span><span class="p">,</span>
+        <span class="mi">99</span><span class="p">:</span> <span class="s1">&#39;Failure to power off the laser *[System Error]*&#39;</span><span class="p">,</span>
+        <span class="mi">100</span><span class="p">:</span> <span class="s1">&#39;Communication error *[System Error]*&#39;</span><span class="p">,</span>
+        <span class="mi">101</span><span class="p">:</span> <span class="s1">&#39;MIRcat not initialised&#39;</span><span class="p">,</span>
+        <span class="mi">102</span><span class="p">:</span> <span class="s1">&#39;MIRcat already created&#39;</span><span class="p">,</span>
+        <span class="mi">103</span><span class="p">:</span> <span class="s1">&#39;Failure to start a sweep-advanced scan *[System Error]*&#39;</span><span class="p">,</span>
+        <span class="mi">104</span><span class="p">:</span> <span class="s1">&#39;Failure to inject a process trigger *[System Error]*&#39;</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                 <span class="n">dll_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        
+
+        <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span> <span class="o">!=</span> <span class="s1">&#39;win32&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_dll</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">raise</span> <span class="ne">OSError</span><span class="p">(</span><span class="s1">&#39;MIRcat only works on Windows&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_dll</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">cdll</span><span class="o">.</span><span class="n">LoadLibrary</span><span class="p">(</span><span class="n">dll_path</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">dll_path</span><span class="p">)</span>
+
+        <span class="c1"># Initialise MIRcatSDK &amp; connect</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;MIRcatSDK_Initialize&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_num_qcl</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint8</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;MIRcatSDK_GetNumInstalledQcls&#39;</span><span class="p">,</span>
+                      <span class="p">[</span><span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_qcl</span><span class="p">)])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_is_interlock_set</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_bool</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;MIRcatSDK_IsInterlockedStatusSet&#39;</span><span class="p">,</span>
+                      <span class="p">[</span><span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_is_interlock_set</span><span class="p">)])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_is_keyswitch_set</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_bool</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;MIRcatSDK_IsKeySwitchStatusSet&#39;</span><span class="p">,</span>
+                      <span class="p">[</span><span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_is_keyswitch_set</span><span class="p">)])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_limits_chip1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_limits</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_limits_chip2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_limits</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_limits_chip3</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_limits</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_limits_chip4</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_limits</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_range_chip1</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_ranges</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_range_chip2</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_ranges</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_range_chip3</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_ranges</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_range_chip4</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_ranges</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="s1">&#39;status&#39;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Status of the QCL&#39;</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_status</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_status</span><span class="p">,</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Ints</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">wavelength</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="s1">&#39;wavelength&#39;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;QCL wavelength&#39;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_wavelength</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_wavelength</span><span class="p">,</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_range_chip1</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_range_chip4</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;m&#39;</span><span class="p">,</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">wavenumber</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="s1">&#39;wavenumber&#39;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;QCL wavenumber&#39;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_wavenumber</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_wavenumber</span><span class="p">,</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">_range_chip4</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="mi">100</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">_range_chip1</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="mi">100</span><span class="p">),</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;cm&#39;</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\u207b\u00b9</span><span class="s1">&#39;</span><span class="p">,</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">chip</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="s1">&#39;chip&#39;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;chip currently in used&#39;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_chip</span><span class="p">,</span>
+            <span class="n">get_parser</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Ints</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">T1</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="s1">&#39;T1&#39;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Temperature of chip 1&#39;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_temperature</span><span class="p">,</span> <span class="n">chip</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(),</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\u00b0</span><span class="s1">&#39;</span><span class="o">+</span><span class="s1">&#39;C&#39;</span><span class="p">,</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">T2</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="s1">&#39;T2&#39;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Temperature of chip 2&#39;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_temperature</span><span class="p">,</span> <span class="n">chip</span><span class="o">=</span><span class="mi">2</span><span class="p">),</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(),</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\u00b0</span><span class="s1">&#39;</span><span class="o">+</span><span class="s1">&#39;C&#39;</span><span class="p">,</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">T3</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="s1">&#39;T3&#39;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Temperature of chip 3&#39;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_temperature</span><span class="p">,</span> <span class="n">chip</span><span class="o">=</span><span class="mi">3</span><span class="p">),</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(),</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\u00b0</span><span class="s1">&#39;</span><span class="o">+</span><span class="s1">&#39;C&#39;</span><span class="p">,</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">T4</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="s1">&#39;T4&#39;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Temperature of chip 4&#39;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_temperature</span><span class="p">,</span> <span class="n">chip</span><span class="o">=</span><span class="mi">4</span><span class="p">),</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(),</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\u00b0</span><span class="s1">&#39;</span><span class="o">+</span><span class="s1">&#39;C&#39;</span><span class="p">,</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">pulse_rate_1</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="s1">&#39;pulse_rate_1&#39;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Pulse rate for chip 1&#39;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_pulse_rate</span><span class="p">,</span> <span class="n">chip</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_pulse_rate</span><span class="p">,</span> <span class="n">chip</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(</span><span class="n">max_value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_limits_chip1</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;Hz&#39;</span><span class="p">,</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">pulse_rate_2</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="s1">&#39;pulse_rate_2&#39;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Pulse rate for chip 2&#39;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_pulse_rate</span><span class="p">,</span> <span class="n">chip</span><span class="o">=</span><span class="mi">2</span><span class="p">),</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_pulse_rate</span><span class="p">,</span> <span class="n">chip</span><span class="o">=</span><span class="mi">2</span><span class="p">),</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(</span><span class="n">max_value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_limits_chip2</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;Hz&#39;</span><span class="p">,</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">pulse_rate_3</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="s1">&#39;pulse_rate_3&#39;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Pulse rate for chip 3&#39;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_pulse_rate</span><span class="p">,</span> <span class="n">chip</span><span class="o">=</span><span class="mi">3</span><span class="p">),</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_pulse_rate</span><span class="p">,</span> <span class="n">chip</span><span class="o">=</span><span class="mi">3</span><span class="p">),</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(</span><span class="n">max_value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_limits_chip3</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;Hz&#39;</span><span class="p">,</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">pulse_rate_4</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="s1">&#39;pulse_rate_4&#39;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Pulse rate for chip 4&#39;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_pulse_rate</span><span class="p">,</span> <span class="n">chip</span><span class="o">=</span><span class="mi">4</span><span class="p">),</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_pulse_rate</span><span class="p">,</span> <span class="n">chip</span><span class="o">=</span><span class="mi">4</span><span class="p">),</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(</span><span class="n">max_value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_limits_chip4</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;Hz&#39;</span><span class="p">,</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">pulse_width_1</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="s1">&#39;pulse_width_1&#39;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Pulse width for chip 1&#39;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_pulse_width</span><span class="p">,</span> <span class="n">chip</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_pulse_width</span><span class="p">,</span> <span class="n">chip</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(</span><span class="n">max_value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_limits_chip1</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;s&#39;</span><span class="p">,</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">pulse_width_2</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="s1">&#39;pulse_width_2&#39;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Pulse width for chip 2&#39;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_pulse_width</span><span class="p">,</span> <span class="n">chip</span><span class="o">=</span><span class="mi">2</span><span class="p">),</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_pulse_width</span><span class="p">,</span> <span class="n">chip</span><span class="o">=</span><span class="mi">2</span><span class="p">),</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(</span><span class="n">max_value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_limits_chip2</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;s&#39;</span><span class="p">,</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">pulse_width_3</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="s1">&#39;pulse_width_3&#39;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Pulse width for chip 3&#39;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_pulse_width</span><span class="p">,</span> <span class="n">chip</span><span class="o">=</span><span class="mi">3</span><span class="p">),</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_pulse_width</span><span class="p">,</span> <span class="n">chip</span><span class="o">=</span><span class="mi">3</span><span class="p">),</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(</span><span class="n">max_value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_limits_chip3</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;s&#39;</span><span class="p">,</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">pulse_width_4</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="s1">&#39;pulse_width_4&#39;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Pulse width for chip 4&#39;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_pulse_width</span><span class="p">,</span> <span class="n">chip</span><span class="o">=</span><span class="mi">4</span><span class="p">),</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_pulse_width</span><span class="p">,</span> <span class="n">chip</span><span class="o">=</span><span class="mi">4</span><span class="p">),</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(</span><span class="n">max_value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_limits_chip4</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;s&#39;</span><span class="p">,</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">pulse_current_1</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="s1">&#39;pulse_current_1&#39;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Pulse current for chip 1&#39;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_pulse_current</span><span class="p">,</span> <span class="n">chip</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_pulse_current</span><span class="p">,</span> <span class="n">chip</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(</span><span class="n">max_value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_limits_chip1</span><span class="p">[</span><span class="mi">3</span><span class="p">]),</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;A&#39;</span><span class="p">,</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">pulse_current_2</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="s1">&#39;pulse_current_2&#39;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Pulse current for chip 2&#39;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_pulse_current</span><span class="p">,</span> <span class="n">chip</span><span class="o">=</span><span class="mi">2</span><span class="p">),</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_pulse_current</span><span class="p">,</span> <span class="n">chip</span><span class="o">=</span><span class="mi">2</span><span class="p">),</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(</span><span class="n">max_value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_limits_chip2</span><span class="p">[</span><span class="mi">3</span><span class="p">]),</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;A&#39;</span><span class="p">,</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pulse_current_3</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="s1">&#39;pulse_current_3&#39;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Pulse current for chip 3&#39;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_pulse_current</span><span class="p">,</span> <span class="n">chip</span><span class="o">=</span><span class="mi">3</span><span class="p">),</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_pulse_current</span><span class="p">,</span> <span class="n">chip</span><span class="o">=</span><span class="mi">3</span><span class="p">),</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(</span><span class="n">max_value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_limits_chip3</span><span class="p">[</span><span class="mi">3</span><span class="p">]),</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;A&#39;</span><span class="p">,</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pulse_current_4</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="s1">&#39;pulse_current_4&#39;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Pulse current for chip 4&#39;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_pulse_current</span><span class="p">,</span> <span class="n">chip</span><span class="o">=</span><span class="mi">4</span><span class="p">),</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_pulse_current</span><span class="p">,</span> <span class="n">chip</span><span class="o">=</span><span class="mi">4</span><span class="p">),</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(</span><span class="n">max_value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_limits_chip4</span><span class="p">[</span><span class="mi">3</span><span class="p">]),</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;A&#39;</span><span class="p">,</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span>
+        <span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect_message</span><span class="p">()</span>
+
+<div class="viewcode-block" id="DRSDaylightSolutions_MIRcat.get_pulse_parameters">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.DaylightSolutions.html#qcodes_contrib_drivers.drivers.DaylightSolutions.MIRcat.DRSDaylightSolutions_MIRcat.get_pulse_parameters">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_pulse_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chip</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get all pulse parameters for a given QCL chip.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            chip (int, optional). Defaults to =0 (active chip).</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            tuple: (pulse_rate (Hz), pulse_width (s), current (A))</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">tup</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_get_pulse_rate</span><span class="p">(</span><span class="n">chip</span><span class="p">),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_get_pulse_width</span><span class="p">(</span><span class="n">chip</span><span class="p">),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_get_pulse_current</span><span class="p">(</span><span class="n">chip</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">tup</span></div>
+
+
+<div class="viewcode-block" id="DRSDaylightSolutions_MIRcat.set_pulse_parameters">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.DaylightSolutions.html#qcodes_contrib_drivers.drivers.DaylightSolutions.MIRcat.DRSDaylightSolutions_MIRcat.set_pulse_parameters">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_pulse_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                             <span class="n">pulse_rate</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+                             <span class="n">pulse_width</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+                             <span class="n">current</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+                             <span class="n">chip</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set pulse parameters for the QCL.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            pulse_rate (float): pulse rate in Hz</span>
+<span class="sd">            pulse_width (float): pulse width in s</span>
+<span class="sd">            current (float): current in A</span>
+<span class="sd">            chip (int): QCL chip</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Set the following pulse parameters for QCL chip&#39;</span>
+                      <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">chip</span><span class="si">}</span><span class="s1">:</span><span class="se">\n</span><span class="s1">pulse rate: </span><span class="si">{</span><span class="n">pulse_rate</span><span class="si">}</span><span class="s1">, pulse width: &#39;</span>
+                      <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">pulse_width</span><span class="si">}</span><span class="s1">, current: </span><span class="si">{</span><span class="n">current</span><span class="si">}</span><span class="s1">.&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;MIRcatSDK_SetQCLParams&#39;</span><span class="p">,</span>
+                      <span class="p">[</span><span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint8</span><span class="p">(</span><span class="n">chip</span><span class="p">),</span>
+                       <span class="n">ctypes</span><span class="o">.</span><span class="n">c_float</span><span class="p">(</span><span class="n">pulse_rate</span><span class="p">),</span>
+                       <span class="n">ctypes</span><span class="o">.</span><span class="n">c_float</span><span class="p">(</span><span class="n">pulse_width</span><span class="o">*</span><span class="mf">1e9</span><span class="p">),</span>
+                       <span class="n">ctypes</span><span class="o">.</span><span class="n">c_float</span><span class="p">(</span><span class="n">current</span><span class="o">*</span><span class="mf">1e3</span><span class="p">)])</span></div>
+
+
+<div class="viewcode-block" id="DRSDaylightSolutions_MIRcat.get_limits">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.DaylightSolutions.html#qcodes_contrib_drivers.drivers.DaylightSolutions.MIRcat.DRSDaylightSolutions_MIRcat.get_limits">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_limits</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chip</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the limits for a given QCL chip.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            chip (int, optional). Defaults to =0 (active chip).</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            tuple: (pulse_rate_max (Hz), pulse_width_max (s), duty_cycle_max,</span>
+<span class="sd">            current_max(A))</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">chip</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">units</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint8</span><span class="p">()</span>
+            <span class="n">tuned_ww</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_float</span><span class="p">()</span>
+            <span class="n">_chip</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint8</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;MIRcatSDK_GetTuneWW&#39;</span><span class="p">,</span>
+                          <span class="p">[</span><span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">tuned_ww</span><span class="p">),</span>
+                           <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">units</span><span class="p">),</span>
+                           <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">_chip</span><span class="p">)])</span>
+            <span class="n">chip</span> <span class="o">=</span> <span class="n">_chip</span><span class="o">.</span><span class="n">value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Get limits for QCL chip </span><span class="si">{</span><span class="n">chip</span><span class="si">}</span><span class="s1">.&#39;</span><span class="p">)</span>
+        <span class="n">pulse_rate_max</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_float</span><span class="p">()</span>
+        <span class="n">pulse_width_max</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_float</span><span class="p">()</span>
+        <span class="n">duty_cycle_max</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint16</span><span class="p">()</span>
+        <span class="n">current_max</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_float</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;MIRcatSDK_GetQCLPulseLimits&#39;</span><span class="p">,</span>
+                      <span class="p">[</span><span class="n">chip</span><span class="p">,</span>
+                       <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">pulse_rate_max</span><span class="p">),</span>
+                       <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">pulse_width_max</span><span class="p">),</span>
+                       <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">duty_cycle_max</span><span class="p">)])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;MIRcatSDK_GetQCLMaxPulsedCurrent&#39;</span><span class="p">,</span>
+                      <span class="p">[</span><span class="n">chip</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">current_max</span><span class="p">)])</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">pulse_rate_max</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">pulse_width_max</span><span class="o">.</span><span class="n">value</span><span class="o">/</span><span class="mf">1e9</span><span class="p">,</span>
+                <span class="n">duty_cycle_max</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">current_max</span><span class="o">.</span><span class="n">value</span><span class="o">/</span><span class="mf">1e3</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DRSDaylightSolutions_MIRcat.arm">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.DaylightSolutions.html#qcodes_contrib_drivers.drivers.DaylightSolutions.MIRcat.DRSDaylightSolutions_MIRcat.arm">[docs]</a>
+    <span class="k">def</span> <span class="nf">arm</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Arm the MIRcat QCL system.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Arm the MIRcat QCL system.&#39;</span><span class="p">)</span>
+        <span class="n">at_temperature</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_bool</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">is_armed</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_bool</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;MIRcatSDK_IsLaserArmed&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">is_armed</span><span class="p">)])</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">is_armed</span><span class="o">.</span><span class="n">value</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;MIRcatSDK_ArmDisarmLaser&#39;</span><span class="p">)</span>
+
+        <span class="k">while</span> <span class="ow">not</span> <span class="n">is_armed</span><span class="o">.</span><span class="n">value</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;MIRcatSDK_IsLaserArmed&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">is_armed</span><span class="p">)])</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;MIRcatSDK_AreTECsAtSetTemperature&#39;</span><span class="p">,</span>
+                      <span class="p">[</span><span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">at_temperature</span><span class="p">)])</span>
+        <span class="n">tec_current</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint16</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">qcl_temp</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_float</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">num_qcl</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint8</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;MIRcatSDK_GetNumInstalledQcls&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">num_qcl</span><span class="p">)])</span>
+
+        <span class="k">while</span> <span class="ow">not</span> <span class="n">at_temperature</span><span class="o">.</span><span class="n">value</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">num_qcl</span><span class="o">.</span><span class="n">value</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;MIRcatSDK_GetQCLTemperature&#39;</span><span class="p">,</span>
+                              <span class="p">[</span><span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint8</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">),</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">qcl_temp</span><span class="p">)])</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;MIRcatSDK_GetTecCurrent&#39;</span><span class="p">,</span>
+                              <span class="p">[</span><span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint8</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">),</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">tec_current</span><span class="p">)])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;MIRcatSDK_AreTECsAtSetTemperature&#39;</span><span class="p">,</span>
+                          <span class="p">[</span><span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">at_temperature</span><span class="p">)])</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">.1</span><span class="p">)</span></div>
+
+            
+<div class="viewcode-block" id="DRSDaylightSolutions_MIRcat.disarm">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.DaylightSolutions.html#qcodes_contrib_drivers.drivers.DaylightSolutions.MIRcat.DRSDaylightSolutions_MIRcat.disarm">[docs]</a>
+    <span class="k">def</span> <span class="nf">disarm</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Disarm the MIRcat QCL system.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Disarm the MIRcat QCL system.&#39;</span><span class="p">)</span>
+        <span class="n">is_armed</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_bool</span><span class="p">()</span>
+        <span class="n">is_emitting</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_bool</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;MIRcatSDK_IsEmissionOn&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">is_emitting</span><span class="p">)])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;MIRcatSDK_IsLaserArmed&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">is_armed</span><span class="p">)])</span>
+        <span class="k">if</span> <span class="n">is_emitting</span><span class="o">.</span><span class="n">value</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;MIRcatSDK_TurnEmissionOff&#39;</span><span class="p">)</span>
+            <span class="k">while</span> <span class="n">is_emitting</span><span class="o">.</span><span class="n">value</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;MIRcatSDK_IsEmissionOn&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">is_emitting</span><span class="p">)])</span>
+                <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">is_armed</span><span class="o">.</span><span class="n">value</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;MIRcatSDK_DisarmLaser&#39;</span><span class="p">)</span>
+            <span class="k">while</span> <span class="n">is_armed</span><span class="o">.</span><span class="n">value</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;MIRcatSDK_IsLaserArmed&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">is_armed</span><span class="p">)])</span>
+                <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DRSDaylightSolutions_MIRcat.get_ranges">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.DaylightSolutions.html#qcodes_contrib_drivers.drivers.DaylightSolutions.MIRcat.DRSDaylightSolutions_MIRcat.get_ranges">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_ranges</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chip</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the acceptable range for a given QCL chip.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            chip (int, optional). Defaults to 0.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            tuple: (pf_min_range (m), pf_max_range (m))</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">chip</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">units</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint8</span><span class="p">()</span>
+            <span class="n">tuned_ww</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_float</span><span class="p">()</span>
+            <span class="n">_chip</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint8</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;MIRcatSDK_GetTuneWW&#39;</span><span class="p">,</span>
+                          <span class="p">[</span><span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">tuned_ww</span><span class="p">),</span>
+                           <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">units</span><span class="p">),</span>
+                           <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">_chip</span><span class="p">)])</span>
+            <span class="n">chip</span> <span class="o">=</span> <span class="n">_chip</span><span class="o">.</span><span class="n">value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Get range for QCL QCL chip </span><span class="si">{</span><span class="n">chip</span><span class="si">}</span><span class="s1">.&#39;</span><span class="p">)</span>
+        <span class="n">pf_min_range</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_float</span><span class="p">()</span>
+        <span class="n">pf_max_range</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_float</span><span class="p">()</span>
+        <span class="n">pb_units</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint8</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;MIRcatSDK_GetQclTuningRange&#39;</span><span class="p">,</span>
+                      <span class="p">[</span><span class="n">chip</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">pf_min_range</span><span class="p">),</span>
+                       <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">pf_max_range</span><span class="p">),</span>
+                       <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">pb_units</span><span class="p">)])</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">pf_min_range</span><span class="o">.</span><span class="n">value</span><span class="o">*</span><span class="mf">1e-6</span><span class="p">,</span> <span class="n">pf_max_range</span><span class="o">.</span><span class="n">value</span><span class="o">*</span><span class="mf">1e-6</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DRSDaylightSolutions_MIRcat.check_tune">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.DaylightSolutions.html#qcodes_contrib_drivers.drivers.DaylightSolutions.MIRcat.DRSDaylightSolutions_MIRcat.check_tune">[docs]</a>
+    <span class="k">def</span> <span class="nf">check_tune</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Check the QCL tune.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">isEnabledFor</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Check tune.&#39;</span><span class="p">)</span>
+        <span class="n">is_tuned</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_bool</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">tuned_ww</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_float</span><span class="p">()</span>
+        <span class="n">qcl</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint8</span><span class="p">()</span>
+        <span class="n">units</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint8</span><span class="p">()</span>
+        <span class="k">while</span> <span class="ow">not</span> <span class="n">is_tuned</span><span class="o">.</span><span class="n">value</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;MIRcatSDK_IsTuned&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">is_tuned</span><span class="p">)])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;MIRcatSDK_GetTuneWW&#39;</span><span class="p">,</span>
+                          <span class="p">[</span><span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">tuned_ww</span><span class="p">),</span>
+                           <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">units</span><span class="p">),</span>
+                           <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">qcl</span><span class="p">)])</span>
+        <span class="k">if</span> <span class="n">units</span> <span class="o">==</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_ubyte</span><span class="p">(</span><span class="mi">1</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">tuned_ww</span><span class="o">.</span><span class="n">value</span><span class="o">*</span><span class="mf">1e-6</span>
+        <span class="k">elif</span> <span class="n">units</span> <span class="o">==</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_ubyte</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
+            <span class="k">return</span> <span class="mf">1e2</span><span class="o">/</span><span class="n">tuned_ww</span><span class="o">.</span><span class="n">value</span>  <span class="c1"># convert from cm-1 to m</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span></div>
+
+
+<div class="viewcode-block" id="DRSDaylightSolutions_MIRcat.get_idn">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.DaylightSolutions.html#qcodes_contrib_drivers.drivers.DaylightSolutions.MIRcat.DRSDaylightSolutions_MIRcat.get_idn">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_idn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="n">idparts</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s1">&#39;DRS Daylight Solutions&#39;</span><span class="p">,</span> <span class="s1">&#39;MIRcat&#39;</span><span class="p">,</span>
+            <span class="kc">None</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_api_version</span><span class="p">()</span>
+        <span class="p">]</span>
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">((</span><span class="s1">&#39;vendor&#39;</span><span class="p">,</span> <span class="s1">&#39;model&#39;</span><span class="p">,</span> <span class="s1">&#39;serial&#39;</span><span class="p">,</span> <span class="s1">&#39;firmware&#39;</span><span class="p">),</span> <span class="n">idparts</span><span class="p">))</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">params</span><span class="p">:</span> <span class="n">Sequence</span> <span class="o">=</span> <span class="p">[])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dll</span><span class="o">.</span><span class="fm">__getattr__</span><span class="p">(</span><span class="n">func</span><span class="p">)(</span><span class="o">*</span><span class="n">params</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_error</span><span class="p">(</span><span class="n">ret</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_check_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ret</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ret</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_GET_ERROR</span><span class="p">[</span><span class="n">ret</span><span class="p">][</span><span class="o">-</span><span class="mi">16</span><span class="p">:]</span> <span class="o">==</span> <span class="s1">&#39;*[System Error]*&#39;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_GET_ERROR</span><span class="p">[</span><span class="n">ret</span><span class="p">][:</span><span class="o">-</span><span class="mi">16</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_GET_ERROR</span><span class="p">[</span><span class="n">ret</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">_get_api_version</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Get API version.&#39;</span><span class="p">)</span>
+        <span class="n">major</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint16</span><span class="p">()</span>
+        <span class="n">minor</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint16</span><span class="p">()</span>
+        <span class="n">patch</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint16</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;MIRcatSDK_GetAPIVersion&#39;</span><span class="p">,</span>
+                      <span class="p">[</span><span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">major</span><span class="p">),</span>
+                       <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">minor</span><span class="p">),</span>
+                       <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">patch</span><span class="p">)])</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">major</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s1">.</span><span class="si">{</span><span class="n">minor</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s1">.</span><span class="si">{</span><span class="n">patch</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s1">&#39;</span>
+
+    <span class="k">def</span> <span class="nf">_get_status</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Get status.&#39;</span><span class="p">)</span>
+        <span class="n">is_armed</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_bool</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">is_emitting</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_bool</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;MIRcatSDK_IsLaserArmed&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">is_armed</span><span class="p">)])</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.05</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;MIRcatSDK_IsEmissionOn&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">is_emitting</span><span class="p">)])</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">is_armed</span><span class="o">.</span><span class="n">value</span><span class="p">)</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="n">is_emitting</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_GET_STATUS</span><span class="p">[</span><span class="n">res</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">_set_status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            mode (int): see dictionary of allowed values _GET_SATUS</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">mode</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_GET_STATUS</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Set device remote status to&#39;</span> <span class="o">+</span>
+                          <span class="bp">self</span><span class="o">.</span><span class="n">_GET_STATUS</span><span class="p">[</span><span class="n">mode</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;.&#39;</span><span class="p">)</span>
+            <span class="n">is_armed</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_bool</span><span class="p">()</span>
+            <span class="n">is_emitting</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_bool</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;MIRcatSDK_IsLaserArmed&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">is_armed</span><span class="p">)])</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.05</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;MIRcatSDK_IsEmissionOn&#39;</span><span class="p">,</span>
+                          <span class="p">[</span><span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">is_emitting</span><span class="p">)])</span>
+            <span class="n">state</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">is_armed</span><span class="o">.</span><span class="n">value</span><span class="p">)</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="n">is_emitting</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">state</span> <span class="ow">and</span> <span class="n">mode</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">arm</span><span class="p">()</span>
+                <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">.05</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;MIRcatSDK_TurnEmissionOn&#39;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="ow">not</span> <span class="n">mode</span> <span class="ow">and</span> <span class="n">state</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">state</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;MIRcatSDK_TurnEmissionOff&#39;</span><span class="p">)</span>
+                    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">.05</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;MIRcatSDK_DisarmLaser&#39;</span><span class="p">)</span>
+                <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">.05</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">state</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;MIRcatSDK_TurnEmissionOn&#39;</span><span class="p">)</span>
+                <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">.05</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">state</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;MIRcatSDK_TurnEmissionOff&#39;</span><span class="p">)</span>
+                <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">.05</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Invalid mode inserted.&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_wavelength</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Get wavelength.&#39;</span><span class="p">)</span>
+        <span class="n">actual_ww</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_float</span><span class="p">()</span>
+        <span class="n">units</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint8</span><span class="p">()</span>
+        <span class="n">light_valid</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_bool</span><span class="p">()</span>
+        <span class="n">tuned_ww</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_float</span><span class="p">()</span>
+        <span class="n">qcl</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint8</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;MIRcatSDK_GetActualWW&#39;</span><span class="p">,</span>
+                      <span class="p">[</span><span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">actual_ww</span><span class="p">),</span>
+                       <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">units</span><span class="p">),</span>
+                       <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">light_valid</span><span class="p">)])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;MIRcatSDK_GetTuneWW&#39;</span><span class="p">,</span>
+                      <span class="p">[</span><span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">tuned_ww</span><span class="p">),</span>
+                       <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">units</span><span class="p">),</span>
+                       <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">qcl</span><span class="p">)])</span>
+        <span class="k">return</span> <span class="n">actual_ww</span><span class="o">.</span><span class="n">value</span><span class="o">/</span><span class="mf">1e6</span>
+
+    <span class="k">def</span> <span class="nf">_get_wavenumber</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Get wavenumber.&#39;</span><span class="p">)</span>
+        <span class="n">actual_ww</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_float</span><span class="p">()</span>
+        <span class="n">units</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint8</span><span class="p">()</span>
+        <span class="n">light_valid</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_bool</span><span class="p">()</span>
+        <span class="n">tuned_ww</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_float</span><span class="p">()</span>
+        <span class="n">qcl</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint8</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;MIRcatSDK_GetActualWW&#39;</span><span class="p">,</span>
+                      <span class="p">[</span><span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">actual_ww</span><span class="p">),</span>
+                       <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">units</span><span class="p">),</span>
+                       <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">light_valid</span><span class="p">)])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;MIRcatSDK_GetTuneWW&#39;</span><span class="p">,</span>
+                      <span class="p">[</span><span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">tuned_ww</span><span class="p">),</span>
+                       <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">units</span><span class="p">),</span>
+                       <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">qcl</span><span class="p">)])</span>
+        <span class="k">if</span> <span class="n">actual_ww</span><span class="o">.</span><span class="n">value</span> <span class="o">&lt;</span> <span class="mi">6</span><span class="p">:</span>
+            <span class="n">wavenum</span> <span class="o">=</span> <span class="mf">1e4</span><span class="o">/</span><span class="n">tuned_ww</span><span class="o">.</span><span class="n">value</span>  <span class="c1"># from um to cm-1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">wavenum</span> <span class="o">=</span> <span class="mf">1e4</span><span class="o">/</span><span class="n">actual_ww</span><span class="o">.</span><span class="n">value</span>
+        <span class="k">return</span> <span class="n">wavenum</span>
+
+    <span class="k">def</span> <span class="nf">_get_temperature</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chip</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Get temperature of QCL chip </span><span class="si">{</span><span class="n">chip</span><span class="si">}</span><span class="s1">.&#39;</span><span class="p">)</span>
+        <span class="n">temp</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_float</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;MIRcatSDK_GetQCLTemperature&#39;</span><span class="p">,</span>
+                      <span class="p">[</span><span class="n">chip</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">temp</span><span class="p">)])</span>
+        <span class="k">return</span> <span class="n">temp</span><span class="o">.</span><span class="n">value</span>
+    
+    <span class="k">def</span> <span class="nf">_get_pulse_rate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chip</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">chip</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">units</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint8</span><span class="p">()</span>
+            <span class="n">tuned_ww</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_float</span><span class="p">()</span>
+            <span class="n">_chip</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint8</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;MIRcatSDK_GetTuneWW&#39;</span><span class="p">,</span>
+                          <span class="p">[</span><span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">tuned_ww</span><span class="p">),</span>
+                           <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">units</span><span class="p">),</span>
+                           <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">_chip</span><span class="p">)])</span>
+            <span class="n">chip</span> <span class="o">=</span> <span class="n">_chip</span><span class="o">.</span><span class="n">value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Get pulse rate for QCL chip </span><span class="si">{</span><span class="n">chip</span><span class="si">}</span><span class="s1">.&#39;</span><span class="p">)</span>
+        <span class="n">pulse_rate</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_float</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;MIRcatSDK_GetQCLPulseRate&#39;</span><span class="p">,</span>
+                      <span class="p">[</span><span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint8</span><span class="p">(</span><span class="n">chip</span><span class="p">),</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">pulse_rate</span><span class="p">)])</span>
+        <span class="k">return</span> <span class="n">pulse_rate</span><span class="o">.</span><span class="n">value</span>
+
+    <span class="k">def</span> <span class="nf">_get_pulse_width</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chip</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">chip</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">units</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint8</span><span class="p">()</span>
+            <span class="n">tuned_ww</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_float</span><span class="p">()</span>
+            <span class="n">_chip</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint8</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;MIRcatSDK_GetTuneWW&#39;</span><span class="p">,</span>
+                          <span class="p">[</span><span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">tuned_ww</span><span class="p">),</span>
+                           <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">units</span><span class="p">),</span>
+                           <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">_chip</span><span class="p">)])</span>
+            <span class="n">chip</span> <span class="o">=</span> <span class="n">_chip</span><span class="o">.</span><span class="n">value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Get pulse width for QCL chip </span><span class="si">{</span><span class="n">chip</span><span class="si">}</span><span class="s1">.&#39;</span><span class="p">)</span>
+        <span class="n">pulse_width</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_float</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;MIRcatSDK_GetQCLPulseWidth&#39;</span><span class="p">,</span>
+                      <span class="p">[</span><span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint8</span><span class="p">(</span><span class="n">chip</span><span class="p">),</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">pulse_width</span><span class="p">)])</span>
+        <span class="k">return</span> <span class="n">pulse_width</span><span class="o">.</span><span class="n">value</span><span class="o">/</span><span class="mf">1e9</span>
+
+    <span class="k">def</span> <span class="nf">_get_pulse_current</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chip</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">chip</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">units</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint8</span><span class="p">()</span>
+            <span class="n">tuned_ww</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_float</span><span class="p">()</span>
+            <span class="n">_chip</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint8</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;MIRcatSDK_GetTuneWW&#39;</span><span class="p">,</span>
+                          <span class="p">[</span><span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">tuned_ww</span><span class="p">),</span>
+                           <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">units</span><span class="p">),</span>
+                           <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">_chip</span><span class="p">)])</span>
+            <span class="n">chip</span> <span class="o">=</span> <span class="n">_chip</span><span class="o">.</span><span class="n">value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Get pulse current for QCL chip </span><span class="si">{</span><span class="n">chip</span><span class="si">}</span><span class="s1">.&#39;</span><span class="p">)</span>
+        <span class="n">pulse_current</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_float</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;MIRcatSDK_GetQCLCurrent&#39;</span><span class="p">,</span>
+                      <span class="p">[</span><span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint8</span><span class="p">(</span><span class="n">chip</span><span class="p">),</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">pulse_current</span><span class="p">)])</span>
+        <span class="k">return</span> <span class="n">pulse_current</span><span class="o">.</span><span class="n">value</span><span class="o">/</span><span class="mf">1e3</span>
+
+    <span class="k">def</span> <span class="nf">_get_chip</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Check the active chip&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Get the active chip number.&#39;</span><span class="p">)</span>
+        <span class="n">actual_ww</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_float</span><span class="p">()</span>
+        <span class="n">units</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint8</span><span class="p">()</span>
+        <span class="n">light_valid</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_bool</span><span class="p">()</span>
+        <span class="n">tuned_ww</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_float</span><span class="p">()</span>
+        <span class="n">chip</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint8</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;MIRcatSDK_GetActualWW&#39;</span><span class="p">,</span>
+                      <span class="p">[</span><span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">actual_ww</span><span class="p">),</span>
+                       <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">units</span><span class="p">),</span>
+                       <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">light_valid</span><span class="p">)])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;MIRcatSDK_GetTuneWW&#39;</span><span class="p">,</span>
+                      <span class="p">[</span><span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">tuned_ww</span><span class="p">),</span>
+                       <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">units</span><span class="p">),</span>
+                       <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">chip</span><span class="p">)])</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">.05</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">chip</span><span class="o">.</span><span class="n">value</span>
+
+    <span class="k">def</span> <span class="nf">_set_pulse_rate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pulse_rate</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">chip</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">chip</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">units</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint8</span><span class="p">()</span>
+            <span class="n">tuned_ww</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_float</span><span class="p">()</span>
+            <span class="n">_chip</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint8</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;MIRcatSDK_GetTuneWW&#39;</span><span class="p">,</span>
+                          <span class="p">[</span><span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">tuned_ww</span><span class="p">),</span>
+                           <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">units</span><span class="p">),</span>
+                           <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">_chip</span><span class="p">)])</span>
+            <span class="n">chip</span> <span class="o">=</span> <span class="n">_chip</span><span class="o">.</span><span class="n">value</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Set pulse rate to </span><span class="si">{</span><span class="n">pulse_rate</span><span class="si">}</span><span class="s1"> on QCL chip </span><span class="si">{</span><span class="n">chip</span><span class="si">}</span><span class="s1">.&#39;</span><span class="p">)</span>
+        <span class="n">pulse_width</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_float</span><span class="p">()</span>
+        <span class="n">pulse_current</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_float</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;MIRcatSDK_GetQCLPulseWidth&#39;</span><span class="p">,</span>
+                      <span class="p">[</span><span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint8</span><span class="p">(</span><span class="n">chip</span><span class="p">),</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">pulse_width</span><span class="p">)])</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">.05</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;MIRcatSDK_GetQCLCurrent&#39;</span><span class="p">,</span>
+                      <span class="p">[</span><span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint8</span><span class="p">(</span><span class="n">chip</span><span class="p">),</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">pulse_current</span><span class="p">)])</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">.05</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;MIRcatSDK_SetQCLParams&#39;</span><span class="p">,</span>
+                      <span class="p">[</span><span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint8</span><span class="p">(</span><span class="n">chip</span><span class="p">),</span>
+                       <span class="n">ctypes</span><span class="o">.</span><span class="n">c_float</span><span class="p">(</span><span class="n">pulse_rate</span><span class="p">),</span>
+                       <span class="n">ctypes</span><span class="o">.</span><span class="n">c_float</span><span class="p">(</span><span class="n">pulse_width</span><span class="o">.</span><span class="n">value</span><span class="p">),</span>
+                       <span class="n">ctypes</span><span class="o">.</span><span class="n">c_float</span><span class="p">(</span><span class="n">pulse_current</span><span class="o">.</span><span class="n">value</span><span class="p">)])</span>
+
+    <span class="k">def</span> <span class="nf">_set_pulse_width</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pulse_width</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">chip</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">chip</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">units</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint8</span><span class="p">()</span>
+            <span class="n">tuned_ww</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_float</span><span class="p">()</span>
+            <span class="n">_chip</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint8</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;MIRcatSDK_GetTuneWW&#39;</span><span class="p">,</span>
+                          <span class="p">[</span><span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">tuned_ww</span><span class="p">),</span>
+                           <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">units</span><span class="p">),</span>
+                           <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">_chip</span><span class="p">)])</span>
+            <span class="n">chip</span> <span class="o">=</span> <span class="n">_chip</span><span class="o">.</span><span class="n">value</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Set pulse width to </span><span class="si">{</span><span class="n">pulse_width</span><span class="si">}</span><span class="s1"> on QCL chip </span><span class="si">{</span><span class="n">chip</span><span class="si">}</span><span class="s1">.&#39;</span><span class="p">)</span>
+        <span class="n">pulse_rate</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_float</span><span class="p">()</span>
+        <span class="n">pulse_current</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_float</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;MIRcatSDK_GetQCLPulseRate&#39;</span><span class="p">,</span>
+                      <span class="p">[</span><span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint8</span><span class="p">(</span><span class="n">chip</span><span class="p">),</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">pulse_rate</span><span class="p">)])</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">.05</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;MIRcatSDK_GetQCLCurrent&#39;</span><span class="p">,</span>
+                      <span class="p">[</span><span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint8</span><span class="p">(</span><span class="n">chip</span><span class="p">),</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">pulse_current</span><span class="p">)])</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">.05</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;MIRcatSDK_SetQCLParams&#39;</span><span class="p">,</span>
+                      <span class="p">[</span><span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint8</span><span class="p">(</span><span class="n">chip</span><span class="p">),</span>
+                       <span class="n">ctypes</span><span class="o">.</span><span class="n">c_float</span><span class="p">(</span><span class="n">pulse_rate</span><span class="o">.</span><span class="n">value</span><span class="p">),</span>
+                       <span class="n">ctypes</span><span class="o">.</span><span class="n">c_float</span><span class="p">(</span><span class="n">pulse_width</span><span class="o">*</span><span class="mf">1e9</span><span class="p">),</span>
+                       <span class="n">ctypes</span><span class="o">.</span><span class="n">c_float</span><span class="p">(</span><span class="n">pulse_current</span><span class="o">.</span><span class="n">value</span><span class="p">)])</span>
+
+    <span class="k">def</span> <span class="nf">_set_pulse_current</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pulse_current</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">chip</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">chip</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">units</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint8</span><span class="p">()</span>
+            <span class="n">tuned_ww</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_float</span><span class="p">()</span>
+            <span class="n">_chip</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint8</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;MIRcatSDK_GetTuneWW&#39;</span><span class="p">,</span>
+                          <span class="p">[</span><span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">tuned_ww</span><span class="p">),</span>
+                           <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">units</span><span class="p">),</span>
+                           <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">_chip</span><span class="p">)])</span>
+            <span class="n">chip</span> <span class="o">=</span> <span class="n">_chip</span><span class="o">.</span><span class="n">value</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Set pulse current to </span><span class="si">{</span><span class="n">pulse_current</span><span class="si">}</span><span class="s1"> on QCL chip &#39;</span>
+                      <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">chip</span><span class="si">}</span><span class="s1">.&#39;</span><span class="p">)</span>
+        <span class="n">pulse_rate</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_float</span><span class="p">()</span>
+        <span class="n">pulse_width</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_float</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;MIRcatSDK_GetQCLPulseRate&#39;</span><span class="p">,</span>
+                      <span class="p">[</span><span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint8</span><span class="p">(</span><span class="n">chip</span><span class="p">),</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">pulse_rate</span><span class="p">)])</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">.05</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;MIRcatSDK_GetQCLPulseWidth&#39;</span><span class="p">,</span>
+                      <span class="p">[</span><span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint8</span><span class="p">(</span><span class="n">chip</span><span class="p">),</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">pulse_width</span><span class="p">)])</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">.05</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;MIRcatSDK_SetQCLParams&#39;</span><span class="p">,</span>
+                      <span class="p">[</span><span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint8</span><span class="p">(</span><span class="n">chip</span><span class="p">),</span>
+                       <span class="n">ctypes</span><span class="o">.</span><span class="n">c_float</span><span class="p">(</span><span class="n">pulse_rate</span><span class="o">.</span><span class="n">value</span><span class="p">),</span>
+                       <span class="n">ctypes</span><span class="o">.</span><span class="n">c_float</span><span class="p">(</span><span class="n">pulse_width</span><span class="o">.</span><span class="n">value</span><span class="p">),</span>
+                       <span class="n">ctypes</span><span class="o">.</span><span class="n">c_float</span><span class="p">(</span><span class="n">pulse_current</span><span class="o">*</span><span class="mf">1e3</span><span class="p">)])</span>
+
+    <span class="k">def</span> <span class="nf">_set_wavelength</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wavelength</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">chip</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">wavelength</span> <span class="o">=</span> <span class="n">wavelength</span><span class="o">*</span><span class="mf">1e6</span>
+        <span class="k">if</span> <span class="n">chip</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">wavelength</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_range_chip1</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="n">chip</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_range_chip2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">wavelength</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_range_chip2</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="n">chip</span> <span class="o">=</span> <span class="mi">2</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_range_chip3</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">wavelength</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_range_chip3</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="n">chip</span> <span class="o">=</span> <span class="mi">3</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_range_chip4</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">wavelength</span><span class="p">:</span>
+                <span class="n">chip</span> <span class="o">=</span> <span class="mi">4</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;selected wavelength is not supported&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Set wavelength to </span><span class="si">{</span><span class="n">wavelength</span><span class="si">}</span><span class="s1"> on QCL chip </span><span class="si">{</span><span class="n">chip</span><span class="si">}</span><span class="s1">.&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;MIRcatSDK_TuneToWW&#39;</span><span class="p">,</span>
+                      <span class="p">[</span><span class="n">ctypes</span><span class="o">.</span><span class="n">c_float</span><span class="p">(</span><span class="n">wavelength</span><span class="p">),</span>
+                       <span class="n">ctypes</span><span class="o">.</span><span class="n">c_ubyte</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span>
+                       <span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint8</span><span class="p">(</span><span class="n">chip</span><span class="p">)])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_get_wavenumber</span><span class="p">()</span>
+        
+    <span class="k">def</span> <span class="nf">_set_wavenumber</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wavenumber</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">chip</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">chip</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">wavenumber</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">_range_chip4</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="mi">100</span><span class="p">:</span>
+                <span class="n">chip</span> <span class="o">=</span> <span class="mi">4</span>
+            <span class="k">elif</span> <span class="mi">1</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">_range_chip3</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="mi">100</span> <span class="o">&gt;</span> <span class="n">wavenumber</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">_range_chip3</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="mi">100</span><span class="p">:</span>
+                <span class="n">chip</span> <span class="o">=</span> <span class="mi">3</span>
+            <span class="k">elif</span> <span class="mi">1</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">_range_chip2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="mi">100</span> <span class="o">&gt;</span> <span class="n">wavenumber</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">_range_chip2</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="mi">100</span><span class="p">:</span>
+                <span class="n">chip</span> <span class="o">=</span> <span class="mi">2</span>
+            <span class="k">elif</span> <span class="mi">1</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">_range_chip1</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="mi">100</span> <span class="o">&gt;</span> <span class="n">wavenumber</span><span class="p">:</span>
+                <span class="n">chip</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;selected wavenumber </span><span class="si">{</span><span class="n">wavenumber</span><span class="si">}</span><span class="s1"> is not supported&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Set wavenumber to </span><span class="si">{</span><span class="n">wavenumber</span><span class="si">}</span><span class="s1"> on QCL chip </span><span class="si">{</span><span class="n">chip</span><span class="si">}</span><span class="s1">.&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;MIRcatSDK_TuneToWW&#39;</span><span class="p">,</span>
+                      <span class="p">[</span><span class="n">ctypes</span><span class="o">.</span><span class="n">c_float</span><span class="p">(</span><span class="n">wavenumber</span><span class="p">),</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_ubyte</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span>
+                       <span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint8</span><span class="p">(</span><span class="n">chip</span><span class="p">)])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_get_wavelength</span><span class="p">()</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, QCoDeS Users.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

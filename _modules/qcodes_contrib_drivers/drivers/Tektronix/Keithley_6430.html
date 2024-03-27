@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>qcodes_contrib_drivers.drivers.Tektronix.Keithley_6430 &mdash; qcodes_contrib_drivers 0.22.0.dev63+main.g134f064 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../_static/documentation_options.js?v=159198be"></script>
+        <script src="../../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            qcodes_contrib_drivers
+          </a>
+              <div class="version">
+                0.22.0.dev63+main.g134f064
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples/index.html">Examples of how to use drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/generated/qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">qcodes_contrib_drivers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">qcodes_contrib_drivers.drivers.Tektronix.Keithley_6430</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for qcodes_contrib_drivers.drivers.Tektronix.Keithley_6430</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Qcodes driver Keithley 6430 SMU</span>
+<span class="c1"># Based on QtLab legacy driver</span>
+<span class="c1"># https://github.com/qdev-dk/qtlab/blob/master/instrument_plugins/Keithley_6430.py</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span>
+
+<span class="kn">from</span> <span class="nn">qcodes.instrument.visa</span> <span class="kn">import</span> <span class="n">VisaInstrument</span>
+<span class="kn">from</span> <span class="nn">qcodes.utils.validators</span> <span class="kn">import</span> <span class="n">Ints</span><span class="p">,</span> <span class="n">Numbers</span><span class="p">,</span> <span class="n">Bool</span><span class="p">,</span> <span class="n">Strings</span><span class="p">,</span> <span class="n">Enum</span>
+<span class="kn">from</span> <span class="nn">qcodes.utils.helpers</span> <span class="kn">import</span> <span class="n">create_on_off_val_mapping</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+
+<span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="n">on_off_vals</span> <span class="o">=</span> <span class="n">create_on_off_val_mapping</span><span class="p">(</span><span class="n">on_val</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">off_val</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="Keithley_6430">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Tektronix.html#qcodes_contrib_drivers.drivers.Tektronix.Keithley_6430.Keithley_6430">[docs]</a>
+<span class="k">class</span> <span class="nc">Keithley_6430</span><span class="p">(</span><span class="n">VisaInstrument</span><span class="p">):</span>
+
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This is the Qcodes driver for the Keithley 6430 SMU.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        name: The name used internally by QCoDeS</span>
+<span class="sd">        address: Network address or alias of the instrument</span>
+<span class="sd">        terminator: Termination character in VISA communication</span>
+<span class="sd">        reset: resets to default values</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                 <span class="n">address</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                 <span class="n">terminator</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
+                 <span class="n">reset</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+                 <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">address</span><span class="p">,</span> <span class="n">terminator</span><span class="o">=</span><span class="n">terminator</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;source_current_compliance&#39;</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;A&#39;</span><span class="p">,</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="s1">&#39;SENS:CURR:PROT </span><span class="si">{}</span><span class="s1">&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;SENS:CURR:PROT?&#39;</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">Numbers</span><span class="p">(</span><span class="mf">1e-9</span><span class="p">,</span> <span class="mf">105e-3</span><span class="p">)</span>
+                           <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;source_voltage_compliance&#39;</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;V&#39;</span><span class="p">,</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="s1">&#39;SENS:VOLT:PROT </span><span class="si">{}</span><span class="s1">&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;SENS:VOLT:PROT?&#39;</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">Numbers</span><span class="p">(</span><span class="mf">0.2e-3</span><span class="p">,</span> <span class="mi">210</span><span class="p">),</span>
+                           <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;source_current_compliance_tripped&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;SENS:CURR:PROT:TRIP?&#39;</span><span class="p">,</span>
+                           <span class="n">val_mapping</span><span class="o">=</span><span class="n">on_off_vals</span><span class="p">,</span>
+                           <span class="n">docstring</span><span class="o">=</span><span class="s1">&#39;True if current has reached specified &#39;</span>
+                                     <span class="s1">&#39;compliance.&#39;</span><span class="p">,</span>
+                           <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;source_voltage_compliance_tripped&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;SENS:VOLT:PROT:TRIP?&#39;</span><span class="p">,</span>
+                           <span class="n">val_mapping</span><span class="o">=</span><span class="n">on_off_vals</span><span class="p">,</span>
+                           <span class="n">docstring</span><span class="o">=</span><span class="s1">&#39;True if voltage has reached specified &#39;</span>
+                                     <span class="s1">&#39;compliance.&#39;</span><span class="p">,</span>
+                           <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;source_current&#39;</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;A&#39;</span><span class="p">,</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Source current&#39;</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="s1">&#39;SOUR:CURR:LEV </span><span class="si">{}</span><span class="s1">&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;SOUR:CURR:LEV?&#39;</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">Numbers</span><span class="p">(</span><span class="o">-</span><span class="mf">105e-3</span><span class="p">,</span> <span class="mf">105e-3</span><span class="p">),</span>
+                           <span class="n">docstring</span><span class="o">=</span><span class="s1">&#39;When in current sourcing mode, tries to &#39;</span>
+                                     <span class="s1">&#39;set current to this level.&#39;</span><span class="p">,</span>
+                           <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;sense_current&#39;</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;A&#39;</span><span class="p">,</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Measured current&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_read_value</span><span class="p">,</span> <span class="s1">&#39;CURR:DC&#39;</span><span class="p">),</span>
+                           <span class="n">snapshot_get</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                           <span class="n">docstring</span><span class="o">=</span><span class="s1">&#39;Value of measured current, when in &#39;</span>
+                                     <span class="s1">&#39;current sensing mode.&#39;</span><span class="p">,</span>
+                           <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;sense_voltage&#39;</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;V&#39;</span><span class="p">,</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Measured voltage&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_read_value</span><span class="p">,</span> <span class="s1">&#39;VOLT:DC&#39;</span><span class="p">),</span>
+                           <span class="n">snapshot_get</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                           <span class="n">docstring</span><span class="o">=</span><span class="s1">&#39;Value of measured voltage, when in &#39;</span>
+                                     <span class="s1">&#39;voltage sensing mode.&#39;</span><span class="p">,</span>
+                           <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;sense_resistance&#39;</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;Ohm&#39;</span><span class="p">,</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Measured resistance&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_read_value</span><span class="p">,</span> <span class="s1">&#39;RES&#39;</span><span class="p">),</span>
+                           <span class="n">snapshot_get</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                           <span class="n">docstring</span><span class="o">=</span><span class="s1">&#39;Value of measured resistance, when in &#39;</span>
+                                     <span class="s1">&#39;resistance sensing mode.&#39;</span><span class="p">,</span>
+                           <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;source_current_range&#39;</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;A&#39;</span><span class="p">,</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="s1">&#39;SOUR:CURR:RANG </span><span class="si">{}</span><span class="s1">&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;SOUR:CURR:RANG?&#39;</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">Numbers</span><span class="p">(</span><span class="mf">1e-12</span><span class="p">,</span> <span class="mf">105e-3</span><span class="p">)</span>
+                           <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;source_voltage&#39;</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;V&#39;</span><span class="p">,</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Source voltage&#39;</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="s1">&#39;SOUR:VOLT:LEV </span><span class="si">{}</span><span class="s1">&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;SOUR:VOLT:LEV?&#39;</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">Numbers</span><span class="p">(</span><span class="o">-</span><span class="mi">210</span><span class="p">,</span> <span class="mi">210</span><span class="p">),</span>
+                           <span class="n">docstring</span><span class="o">=</span><span class="s1">&#39;When in voltage sourcing mode, tries to &#39;</span>
+                                     <span class="s1">&#39;set voltage to this level.&#39;</span><span class="p">,</span>
+                           <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;source_voltage_range&#39;</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;V&#39;</span><span class="p">,</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="s1">&#39;SOUR:VOLT:RANG </span><span class="si">{}</span><span class="s1">&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;SOUR:VOLT:RANG?&#39;</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">Numbers</span><span class="p">(</span><span class="mf">200e-3</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>
+                           <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;source_delay_auto&#39;</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="s1">&#39;:SOUR:DEL:AUTO </span><span class="si">{}</span><span class="s1">&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;:SOUR:DEL:AUTO?&#39;</span><span class="p">,</span>
+                           <span class="n">val_mapping</span><span class="o">=</span><span class="n">on_off_vals</span><span class="p">,</span>
+                           <span class="n">docstring</span><span class="o">=</span><span class="s2">&quot;Automatically set a delay period that &quot;</span>
+                                     <span class="s2">&quot;is appropriate for the present &quot;</span>
+                                     <span class="s2">&quot;source/measure setup configuration.&quot;</span><span class="p">,</span>
+                           <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;source_delay&#39;</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;s&#39;</span><span class="p">,</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="s1">&#39;:SOUR:DEL </span><span class="si">{}</span><span class="s1">&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;:SOUR:DEL?&#39;</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">Numbers</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">9999.998</span><span class="p">),</span>
+                           <span class="n">docstring</span><span class="o">=</span><span class="s2">&quot;Settling time after setting source &quot;</span>
+                                     <span class="s2">&quot;value.&quot;</span><span class="p">,</span>
+                           <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;output_enabled&#39;</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="s1">&#39;OUTP </span><span class="si">{}</span><span class="s1">&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;OUTP?&#39;</span><span class="p">,</span>
+                           <span class="n">val_mapping</span><span class="o">=</span><span class="n">on_off_vals</span><span class="p">,</span>
+                           <span class="n">docstring</span><span class="o">=</span><span class="s1">&#39;Turns the source on or off.&#39;</span><span class="p">,</span>
+                           <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;output_auto_off_enabled&#39;</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="s1">&#39;:SOUR:CLE:AUTO </span><span class="si">{}</span><span class="s1">&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;OUTP?&#39;</span><span class="p">,</span>
+                           <span class="n">val_mapping</span><span class="o">=</span><span class="n">on_off_vals</span><span class="p">,</span>
+                           <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;source_mode&#39;</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="s1">&#39;SOUR:FUNC </span><span class="si">{}</span><span class="s1">&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_source_mode</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">Enum</span><span class="p">(</span><span class="s1">&#39;VOLT&#39;</span><span class="p">,</span> <span class="s1">&#39;CURR&#39;</span><span class="p">),</span>
+                           <span class="n">docstring</span><span class="o">=</span><span class="s2">&quot;Either &#39;VOLT&#39; to source voltage, &quot;</span>
+                                     <span class="s2">&quot;or &#39;CURR&#39; for current.&quot;</span><span class="p">,</span>
+                           <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;sense_mode&#39;</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_sense_mode</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_sense_mode</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">Strings</span><span class="p">(),</span>
+                           <span class="n">docstring</span><span class="o">=</span><span class="s2">&quot;Sensing mode.&quot;</span>
+                                     <span class="s2">&quot;Set to &#39;VOLT:DC&#39;, &quot;</span>
+                                     <span class="s2">&quot;&#39;CURR:DC&#39;, or &#39;RES&#39;, or a combination &quot;</span>
+                                     <span class="s2">&quot;thereof by using comma.&quot;</span><span class="p">,</span>
+                           <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;sense_autorange&#39;</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_sense_autorange</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_sense_autorange</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">Bool</span><span class="p">(),</span>
+                           <span class="n">docstring</span><span class="o">=</span><span class="s2">&quot;If True, all ranges in all modes are&quot;</span>
+                                     <span class="s2">&quot; chosen automatically&quot;</span><span class="p">,</span>
+                           <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;sense_current_range&#39;</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;A&#39;</span><span class="p">,</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="s1">&#39;:SENS:CURR:RANG </span><span class="si">{}</span><span class="s1">&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;:SENS:CURR:RANG?&#39;</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">Numbers</span><span class="p">(</span><span class="mf">1e-12</span><span class="p">,</span> <span class="mf">1e-1</span><span class="p">),</span>
+                           <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;sense_voltage_range&#39;</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;V&#39;</span><span class="p">,</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="s1">&#39;:SENS:VOLT:RANG </span><span class="si">{}</span><span class="s1">&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;:SENS:VOLT:RANG?&#39;</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">Enum</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">),</span>
+                           <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;sense_resistance_range&#39;</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;Ohm&#39;</span><span class="p">,</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="s1">&#39;:SENS:RES:RANG </span><span class="si">{}</span><span class="s1">&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;:SENS:RES:RANG?&#39;</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">Numbers</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mf">2e13</span><span class="p">),</span>
+                           <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;sense_resistance_offset_comp_enabled&#39;</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="s1">&#39;:SENS:RES:OCOM </span><span class="si">{}</span><span class="s1">&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;:SENS:RES:OCOM?&#39;</span><span class="p">,</span>
+                           <span class="n">val_mapping</span><span class="o">=</span><span class="n">on_off_vals</span><span class="p">,</span>
+                           <span class="n">docstring</span><span class="o">=</span><span class="s2">&quot;Set offset compensation on/off for &quot;</span>
+                                     <span class="s2">&quot;resistance measurements.&quot;</span><span class="p">,</span>
+                           <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;trigger_source&#39;</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="s1">&#39;:TRIG:SOUR </span><span class="si">{}</span><span class="s1">&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;:TRIG:SOUR?&#39;</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">Enum</span><span class="p">(</span><span class="s1">&#39;IMM&#39;</span><span class="p">,</span> <span class="s1">&#39;TLIN&#39;</span><span class="p">),</span>
+                           <span class="n">docstring</span><span class="o">=</span><span class="s2">&quot;Specify trigger control source.&quot;</span>
+                                     <span class="s2">&quot;IMMediate or TLINk.&quot;</span><span class="p">,</span>
+                           <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;arm_source&#39;</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="s1">&#39;:ARM:SOUR </span><span class="si">{}</span><span class="s1">&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;:ARM:SOUR?&#39;</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">Enum</span><span class="p">(</span><span class="s1">&#39;IMM&#39;</span><span class="p">,</span> <span class="s1">&#39;TLIN&#39;</span><span class="p">,</span> <span class="s2">&quot;TIM&quot;</span><span class="p">,</span> <span class="s2">&quot;MAN&quot;</span><span class="p">,</span> <span class="s2">&quot;BUS&quot;</span><span class="p">,</span>
+                                     <span class="s2">&quot;NST&quot;</span><span class="p">,</span> <span class="s2">&quot;PST&quot;</span><span class="p">,</span> <span class="s2">&quot;BST&quot;</span><span class="p">),</span>
+                           <span class="n">docstring</span><span class="o">=</span><span class="s2">&quot;Specify arm control source.&quot;</span>
+                                     <span class="s2">&quot;IMMediate, or TLINk, TIMer, MANual,&quot;</span>
+                                     <span class="s2">&quot; BUS, NSTest, PSTest, or BSTest.&quot;</span><span class="p">,</span>
+                           <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;trigger_count&#39;</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="s1">&#39;:TRIG:COUN </span><span class="si">{}</span><span class="s1">&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;:TRIG:COUN?&#39;</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">Ints</span><span class="p">(),</span>
+                           <span class="n">docstring</span><span class="o">=</span><span class="s2">&quot;How many times to trigger.&quot;</span><span class="p">,</span>
+                           <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;arm_count&#39;</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="s1">&#39;:ARM:COUN </span><span class="si">{}</span><span class="s1">&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;:ARM:COUN?&#39;</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">Ints</span><span class="p">(),</span>
+                           <span class="n">docstring</span><span class="o">=</span><span class="s2">&quot;How many times to arm.&quot;</span><span class="p">,</span>
+                           <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;nplc&#39;</span><span class="p">,</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="s1">&#39;:NPLC </span><span class="si">{}</span><span class="s1">&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;:NPLC?&#39;</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">Numbers</span><span class="p">(</span><span class="mf">0.01</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span>
+                           <span class="n">docstring</span><span class="o">=</span><span class="s2">&quot;Set integration time to the specified&quot;</span>
+                                     <span class="s2">&quot;value in Number of Powerline Cycles.&quot;</span><span class="p">,</span>
+                           <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;digits&#39;</span><span class="p">,</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="s1">&#39;DISP:DIG  </span><span class="si">{}</span><span class="s1">&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;DISP:DIG?&#39;</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">Ints</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">7</span><span class="p">),</span>
+                           <span class="n">docstring</span><span class="o">=</span><span class="s2">&quot;Display resolution.&quot;</span><span class="p">,</span>
+                           <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;autozero&#39;</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="s1">&#39;SYST:AZER:STAT </span><span class="si">{}</span><span class="s1">&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;SYST:AZER:STAT?&#39;</span><span class="p">,</span>
+                           <span class="n">val_mapping</span><span class="o">=</span><span class="n">on_off_vals</span><span class="p">,</span>
+                           <span class="n">docstring</span><span class="o">=</span><span class="s2">&quot;Enable autozero.&quot;</span>
+                                     <span class="s2">&quot;Enabling maximizes accuracy, &quot;</span>
+                                     <span class="s2">&quot;disabling increases speed.&quot;</span><span class="p">,</span>
+                           <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;filter_auto&#39;</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="s1">&#39;AVER:AUTO </span><span class="si">{}</span><span class="s1">&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;AVER:AUTO?&#39;</span><span class="p">,</span>
+                           <span class="n">val_mapping</span><span class="o">=</span><span class="n">on_off_vals</span><span class="p">,</span>
+                           <span class="n">docstring</span><span class="o">=</span><span class="s2">&quot;Automatically choose filtering.&quot;</span><span class="p">,</span>
+                           <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;filter_repeat_enabled&#39;</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="s1">&#39;:AVER:REP:STAT </span><span class="si">{}</span><span class="s1">&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;AVER:AUTO?&#39;</span><span class="p">,</span>
+                           <span class="n">val_mapping</span><span class="o">=</span><span class="n">on_off_vals</span><span class="p">,</span>
+                           <span class="n">docstring</span><span class="o">=</span><span class="s2">&quot;Enable repeat filter.&quot;</span><span class="p">,</span>
+                           <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;filter_median_enabled&#39;</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="s1">&#39;:MED:STAT </span><span class="si">{}</span><span class="s1">&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;:MED:STAT?&#39;</span><span class="p">,</span>
+                           <span class="n">val_mapping</span><span class="o">=</span><span class="n">on_off_vals</span><span class="p">,</span>
+                           <span class="n">docstring</span><span class="o">=</span><span class="s2">&quot;Enable median filter.&quot;</span><span class="p">,</span>
+                           <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;filter_moving_enabled&#39;</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="s1">&#39;:AVER:STAT </span><span class="si">{}</span><span class="s1">&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;:AVER:STAT?&#39;</span><span class="p">,</span>
+                           <span class="n">val_mapping</span><span class="o">=</span><span class="n">on_off_vals</span><span class="p">,</span>
+                           <span class="n">docstring</span><span class="o">=</span><span class="s2">&quot;Enable moving average.&quot;</span><span class="p">,</span>
+                           <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;filter_repeat&#39;</span><span class="p">,</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="s1">&#39;:AVER:REP:COUN </span><span class="si">{}</span><span class="s1">&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;:AVER:REP:COUN?&#39;</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">Ints</span><span class="p">(),</span>
+                           <span class="n">docstring</span><span class="o">=</span><span class="s2">&quot;Number of readings that are acquired&quot;</span>
+                                     <span class="s2">&quot;and stored in the filter buffer.&quot;</span><span class="p">,</span>
+                           <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;filter_median&#39;</span><span class="p">,</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="s1">&#39;:MED:RANK </span><span class="si">{}</span><span class="s1">&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;:MED:RANK?&#39;</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">Ints</span><span class="p">(),</span>
+                           <span class="n">docstring</span><span class="o">=</span><span class="s2">&quot;Number of reading samples&quot;</span>
+                                     <span class="s2">&quot; for the median filter process.&quot;</span><span class="p">,</span>
+                           <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;filter_moving&#39;</span><span class="p">,</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="s1">&#39;:AVER:COUN </span><span class="si">{}</span><span class="s1">&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;:AVER:COUN?&#39;</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">Ints</span><span class="p">(),</span>
+                           <span class="n">docstring</span><span class="o">=</span><span class="s2">&quot;Number of reading samples&quot;</span>
+                                     <span class="s2">&quot; in the moving average filter.&quot;</span><span class="p">,</span>
+                           <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect_message</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">reset</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Keithley_6430.reset">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Tektronix.html#qcodes_contrib_drivers.drivers.Tektronix.Keithley_6430.Keithley_6430.reset">[docs]</a>
+    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Resets instrument to default values</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;*RST&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Keithley_6430.read">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Tektronix.html#qcodes_contrib_drivers.drivers.Tektronix.Keithley_6430.Keithley_6430.read">[docs]</a>
+    <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Arm, trigger, and readout. Note that the values may not be valid if</span>
+<span class="sd">        sense mode doesn&#39;t include them.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            tuple of (voltage (V), current (A), resistance (Ohm))</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_enabled</span><span class="p">()</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_auto_off_enabled</span><span class="p">()):</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span>
+                    <span class="s2">&quot;Either source must be turned on manually or &quot;</span>
+                    <span class="s2">&quot;``output_auto_off_enabled`` has to be enabled before &quot;</span>
+                    <span class="s2">&quot;measuring a sense parameter.&quot;</span>
+                    <span class="p">)</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s1">&#39;:READ?&#39;</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Read: </span><span class="si">{</span><span class="n">s</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+        <span class="n">v</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">r</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)][:</span><span class="mi">3</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">v</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">r</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_read_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">quantity</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Read voltage, current or resistance through the sensing module.</span>
+<span class="sd">        Issues a warning if reading a value that does not correspond to the</span>
+<span class="sd">        sensing mode.</span>
+<span class="sd">        Args:</span>
+<span class="sd">            quantity: either &quot;VOLT:DC&quot;, &quot;CURR:DC&quot; or &quot;RES&quot;</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Measured value of the requested quantity.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">mode_now</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sense_mode</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">quantity</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">mode_now</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">short_name</span><span class="si">}</span><span class="s2"> tried reading </span><span class="si">{</span><span class="n">quantity</span><span class="si">}</span><span class="s2">, but &quot;</span>
+                          <span class="sa">f</span><span class="s2">&quot;mode is set to </span><span class="si">{</span><span class="n">mode_now</span><span class="si">}</span><span class="s2">. Value might be out of &quot;</span>
+                          <span class="sa">f</span><span class="s2">&quot;date.&quot;</span><span class="p">)</span>
+        <span class="n">mapping</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;VOLT:DC&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;CURR:DC&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;RES&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">}</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">read</span><span class="p">()[</span><span class="n">mapping</span><span class="p">[</span><span class="n">quantity</span><span class="p">]]</span>
+
+<div class="viewcode-block" id="Keithley_6430.init">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Tektronix.html#qcodes_contrib_drivers.drivers.Tektronix.Keithley_6430.Keithley_6430.init">[docs]</a>
+    <span class="k">def</span> <span class="nf">init</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Go into the arm/trigger layers from the idle mode.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;:INIT&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Keithley_6430.set_trigger_immediate">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Tektronix.html#qcodes_contrib_drivers.drivers.Tektronix.Keithley_6430.Keithley_6430.set_trigger_immediate">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_trigger_immediate</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set trigger and arm modes to immediate.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">trigger_source</span><span class="p">(</span><span class="s1">&#39;IMM&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">arm_source</span><span class="p">(</span><span class="s1">&#39;IMM&#39;</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_set_sense_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the sense_mode to the specified value</span>
+<span class="sd">        Input:</span>
+<span class="sd">            mode: mode(s) to be set. Choose from self._sense_modes.</span>
+<span class="sd">            Use comma to separate multiple modes.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">modes</span> <span class="o">=</span> <span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">mode</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)]</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">([</span><span class="n">m</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;RES&quot;</span><span class="p">,</span> <span class="s2">&quot;CURR:DC&quot;</span><span class="p">,</span> <span class="s2">&quot;VOLT:DC&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">modes</span><span class="p">]):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;invalid sense_mode </span><span class="si">{</span><span class="n">modes</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+        <span class="n">modes_str</span> <span class="o">=</span> <span class="s1">&#39;&quot;&#39;</span> <span class="o">+</span> <span class="s1">&#39;&quot;,&quot;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">modes</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;&quot;&#39;</span>
+
+        <span class="n">string</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;:SENS:FUNC </span><span class="si">{</span><span class="n">modes_str</span><span class="si">}</span><span class="s1">&#39;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;:SENS:FUNC:OFF:ALL&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">string</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_sense_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Read the sense_mode from the device</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">string</span> <span class="o">=</span> <span class="s1">&#39;SENS:FUNC?&#39;</span>
+        <span class="n">ans</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="n">string</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;&quot;&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ans</span>
+
+    <span class="k">def</span> <span class="nf">_get_source_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Read the source_mode from the device</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">string</span> <span class="o">=</span> <span class="s1">&#39;SOUR:FUNC?&#39;</span>
+        <span class="n">ans</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="n">string</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;&quot;&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ans</span>
+
+    <span class="k">def</span> <span class="nf">_set_sense_autorange</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Switch sense_autorange on or off for all modes.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;SENS:CURR:RANG:AUTO </span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;SENS:VOLT:RANG:AUTO </span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;SENS:RES:RANG:AUTO </span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_sense_autorange</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get status of sense_autorange. Returns true iff true for all modes</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">reply0</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s1">&#39;SENS:CURR:RANG:AUTO?&#39;</span><span class="p">)))</span>
+        <span class="n">reply1</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s1">&#39;SENS:VOLT:RANG:AUTO?&#39;</span><span class="p">)))</span>
+        <span class="n">reply2</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s1">&#39;SENS:RES:RANG:AUTO?&#39;</span><span class="p">)))</span>
+        <span class="k">return</span> <span class="n">reply0</span> <span class="ow">and</span> <span class="n">reply1</span> <span class="ow">and</span> <span class="n">reply2</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, QCoDeS Users.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

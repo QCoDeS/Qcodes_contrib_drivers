@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>qcodes_contrib_drivers.drivers.StanfordResearchSystems package &mdash; qcodes_contrib_drivers 0.22.0.dev63+main.g134f064 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/documentation_options.js?v=159198be"></script>
+        <script src="../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="qcodes_contrib_drivers.drivers.Tektronix package" href="qcodes_contrib_drivers.drivers.Tektronix.html" />
+    <link rel="prev" title="qcodes_contrib_drivers.drivers.Standa package" href="qcodes_contrib_drivers.drivers.Standa.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            qcodes_contrib_drivers
+          </a>
+              <div class="version">
+                0.22.0.dev63+main.g134f064
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../examples/index.html">Examples of how to use drivers</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="qcodes_contrib_drivers.drivers.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Advantech.html">qcodes_contrib_drivers.drivers.Advantech package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Agilent.html">qcodes_contrib_drivers.drivers.Agilent package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.AimTTi.html">qcodes_contrib_drivers.drivers.AimTTi package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Ametek.html">qcodes_contrib_drivers.drivers.Ametek package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Andor.html">qcodes_contrib_drivers.drivers.Andor package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Attocube.html">qcodes_contrib_drivers.drivers.Attocube package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Aviosys.html">qcodes_contrib_drivers.drivers.Aviosys package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Bilt.html">qcodes_contrib_drivers.drivers.Bilt package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.BlueFors.html">qcodes_contrib_drivers.drivers.BlueFors package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.CopperMountain.html">qcodes_contrib_drivers.drivers.CopperMountain package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Cryocon.html">qcodes_contrib_drivers.drivers.Cryocon package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Cryogenic.html">qcodes_contrib_drivers.drivers.Cryogenic package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.DaylightSolutions.html">qcodes_contrib_drivers.drivers.DaylightSolutions package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.ERAInstruments.html">qcodes_contrib_drivers.drivers.ERAInstruments package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.GeneralMicrowave.html">qcodes_contrib_drivers.drivers.GeneralMicrowave package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Gentec.html">qcodes_contrib_drivers.drivers.Gentec package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Holzworth.html">qcodes_contrib_drivers.drivers.Holzworth package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Horiba.html">qcodes_contrib_drivers.drivers.Horiba package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.html">qcodes_contrib_drivers.drivers.Keysight package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Lakeshore.html">qcodes_contrib_drivers.drivers.Lakeshore package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.LighthousePhotonics.html">qcodes_contrib_drivers.drivers.LighthousePhotonics package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.M2.html">qcodes_contrib_drivers.drivers.M2 package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.MontanaInstruments.html">qcodes_contrib_drivers.drivers.MontanaInstruments package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.NationalInstruments.html">qcodes_contrib_drivers.drivers.NationalInstruments package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Newport.html">qcodes_contrib_drivers.drivers.Newport package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Oxford.html">qcodes_contrib_drivers.drivers.Oxford package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.QDevil.html">qcodes_contrib_drivers.drivers.QDevil package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.QuTech.html">qcodes_contrib_drivers.drivers.QuTech package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.RohdeSchwarz.html">qcodes_contrib_drivers.drivers.RohdeSchwarz package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Shamrock.html">qcodes_contrib_drivers.drivers.Shamrock package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.SignalCore.html">qcodes_contrib_drivers.drivers.SignalCore package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.SingleQuantum.html">qcodes_contrib_drivers.drivers.SingleQuantum package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Spectrum.html">qcodes_contrib_drivers.drivers.Spectrum package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Standa.html">qcodes_contrib_drivers.drivers.Standa package</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">qcodes_contrib_drivers.drivers.StanfordResearchSystems package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-qcodes_contrib_drivers.drivers.StanfordResearchSystems.CS580">qcodes_contrib_drivers.drivers.StanfordResearchSystems.CS580 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-qcodes_contrib_drivers.drivers.StanfordResearchSystems.DG645">qcodes_contrib_drivers.drivers.StanfordResearchSystems.DG645 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-qcodes_contrib_drivers.drivers.StanfordResearchSystems.SIM928">qcodes_contrib_drivers.drivers.StanfordResearchSystems.SIM928 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844">qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-qcodes_contrib_drivers.drivers.StanfordResearchSystems">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Tektronix.html">qcodes_contrib_drivers.drivers.Tektronix package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Thermotek.html">qcodes_contrib_drivers.drivers.Thermotek package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Thorlabs.html">qcodes_contrib_drivers.drivers.Thorlabs package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Valon.html">qcodes_contrib_drivers.drivers.Valon package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Vaunix.html">qcodes_contrib_drivers.drivers.Vaunix package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.ZurichInstruments.html">qcodes_contrib_drivers.drivers.ZurichInstruments package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.html#module-qcodes_contrib_drivers.drivers.CMTS5048">qcodes_contrib_drivers.drivers.CMTS5048 module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.html#module-qcodes_contrib_drivers.drivers">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">qcodes_contrib_drivers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a></li>
+      <li class="breadcrumb-item active">qcodes_contrib_drivers.drivers.StanfordResearchSystems package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/api/generated/qcodes_contrib_drivers.drivers.StanfordResearchSystems.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="qcodes-contrib-drivers-drivers-stanfordresearchsystems-package">
+<h1>qcodes_contrib_drivers.drivers.StanfordResearchSystems package<a class="headerlink" href="#qcodes-contrib-drivers-drivers-stanfordresearchsystems-package" title="Link to this heading">¶</a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">¶</a></h2>
+</section>
+<section id="module-qcodes_contrib_drivers.drivers.StanfordResearchSystems.CS580">
+<span id="qcodes-contrib-drivers-drivers-stanfordresearchsystems-cs580-module"></span><h2>qcodes_contrib_drivers.drivers.StanfordResearchSystems.CS580 module<a class="headerlink" href="#module-qcodes_contrib_drivers.drivers.StanfordResearchSystems.CS580" title="Link to this heading">¶</a></h2>
+<p>QCoDeS-Driver for Stanford Research Systems CS580 current source:
+<a class="reference external" href="https://www.thinksrs.com/products/cs580.html">https://www.thinksrs.com/products/cs580.html</a></p>
+<dl class="simple">
+<dt>Authors:</dt><dd><p>Julien Barrier, &lt;<a class="reference external" href="mailto:julien&#37;&#52;&#48;julienbarrier&#46;eu">julien<span>&#64;</span>julienbarrier<span>&#46;</span>eu</a>&gt;</p>
+</dd>
+</dl>
+<dl class="py class">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.StanfordResearchSystems.CS580.CS580">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.StanfordResearchSystems.CS580.</span></span><span class="sig-name descname"><span class="pre">CS580</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/StanfordResearchSystems/CS580.html#CS580"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.StanfordResearchSystems.CS580.CS580" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://microsoft.github.io/Qcodes/api/instrument/index.html#qcodes.instrument.VisaInstrument" title="(in QCoDeS v0.45.0.dev442+main.gb11f8ac34)"><code class="xref py py-class docutils literal notranslate"><span class="pre">VisaInstrument</span></code></a></p>
+<p>Class to represent an SRS CS580 current source</p>
+<p>status: beta-version</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – name for the instrument</p></li>
+<li><p><strong>address</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – Visa resource name to connect</p></li>
+<li><p><strong>terminator</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – Visa terminator</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.StanfordResearchSystems.CS580.CS580.get_idn">
+<span class="sig-name descname"><span class="pre">get_idn</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Dict" title="(in Python v3.10)"><span class="pre">Dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/StanfordResearchSystems/CS580.html#CS580.get_idn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.StanfordResearchSystems.CS580.CS580.get_idn" title="Link to this definition">¶</a></dt>
+<dd><p>Return the Instrument Identifier Message</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.StanfordResearchSystems.CS580.CS580.get_overload">
+<span class="sig-name descname"><span class="pre">get_overload</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/StanfordResearchSystems/CS580.html#CS580.get_overload"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.StanfordResearchSystems.CS580.CS580.get_overload" title="Link to this definition">¶</a></dt>
+<dd><p>Reads the current avlue of the signal overload status.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.StanfordResearchSystems.CS580.CS580.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/StanfordResearchSystems/CS580.html#CS580.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.StanfordResearchSystems.CS580.CS580.reset" title="Link to this definition">¶</a></dt>
+<dd><p>Reset the CS580 to its default configuration</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-qcodes_contrib_drivers.drivers.StanfordResearchSystems.DG645">
+<span id="qcodes-contrib-drivers-drivers-stanfordresearchsystems-dg645-module"></span><h2>qcodes_contrib_drivers.drivers.StanfordResearchSystems.DG645 module<a class="headerlink" href="#module-qcodes_contrib_drivers.drivers.StanfordResearchSystems.DG645" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.StanfordResearchSystems.DG645.DG645">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.StanfordResearchSystems.DG645.</span></span><span class="sig-name descname"><span class="pre">DG645</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/StanfordResearchSystems/DG645.html#DG645"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.StanfordResearchSystems.DG645.DG645" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://microsoft.github.io/Qcodes/api/instrument/index.html#qcodes.instrument.VisaInstrument" title="(in QCoDeS v0.45.0.dev442+main.gb11f8ac34)"><code class="xref py py-class docutils literal notranslate"><span class="pre">VisaInstrument</span></code></a></p>
+<p>Qcodes driver for SRS DG645 digital delay generator.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.StanfordResearchSystems.DG645.DG645.local">
+<span class="sig-name descname"><span class="pre">local</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/StanfordResearchSystems/DG645.html#DG645.local"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.StanfordResearchSystems.DG645.DG645.local" title="Link to this definition">¶</a></dt>
+<dd><p>Go to local.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.StanfordResearchSystems.DG645.DG645.remote">
+<span class="sig-name descname"><span class="pre">remote</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/StanfordResearchSystems/DG645.html#DG645.remote"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.StanfordResearchSystems.DG645.DG645.remote" title="Link to this definition">¶</a></dt>
+<dd><p>Go to remote.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.StanfordResearchSystems.DG645.DG645.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/StanfordResearchSystems/DG645.html#DG645.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.StanfordResearchSystems.DG645.DG645.reset" title="Link to this definition">¶</a></dt>
+<dd><p>Reset instrument.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.StanfordResearchSystems.DG645.DG645.save_settings">
+<span class="sig-name descname"><span class="pre">save_settings</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">location</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/StanfordResearchSystems/DG645.html#DG645.save_settings"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.StanfordResearchSystems.DG645.DG645.save_settings" title="Link to this definition">¶</a></dt>
+<dd><p>Save instrument settings to given location.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>location</strong> – Location to which to save the settings (in [1..9]).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.StanfordResearchSystems.DG645.DG645.self_calibrate">
+<span class="sig-name descname"><span class="pre">self_calibrate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/StanfordResearchSystems/DG645.html#DG645.self_calibrate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.StanfordResearchSystems.DG645.DG645.self_calibrate" title="Link to this definition">¶</a></dt>
+<dd><p>Run auto-calibration routine.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.StanfordResearchSystems.DG645.DG645.self_test">
+<span class="sig-name descname"><span class="pre">self_test</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/StanfordResearchSystems/DG645.html#DG645.self_test"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.StanfordResearchSystems.DG645.DG645.self_test" title="Link to this definition">¶</a></dt>
+<dd><p>Run self-test routine.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.StanfordResearchSystems.DG645.DG645.trigger">
+<span class="sig-name descname"><span class="pre">trigger</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/StanfordResearchSystems/DG645.html#DG645.trigger"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.StanfordResearchSystems.DG645.DG645.trigger" title="Link to this definition">¶</a></dt>
+<dd><p>Initiates a single trigger if instrument is in single shot mode.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.StanfordResearchSystems.DG645.DG645.wait">
+<span class="sig-name descname"><span class="pre">wait</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/StanfordResearchSystems/DG645.html#DG645.wait"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.StanfordResearchSystems.DG645.DG645.wait" title="Link to this definition">¶</a></dt>
+<dd><p>Wait for all prior commands to execute before continuing.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.StanfordResearchSystems.DG645.DG645.CHANNEL_MAPPING">
+<span class="sig-name descname"><span class="pre">CHANNEL_MAPPING</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'A':</span> <span class="pre">2,</span> <span class="pre">'B':</span> <span class="pre">3,</span> <span class="pre">'C':</span> <span class="pre">4,</span> <span class="pre">'D':</span> <span class="pre">5,</span> <span class="pre">'E':</span> <span class="pre">6,</span> <span class="pre">'F':</span> <span class="pre">7,</span> <span class="pre">'G':</span> <span class="pre">8,</span> <span class="pre">'H':</span> <span class="pre">9,</span> <span class="pre">'T0':</span> <span class="pre">0,</span> <span class="pre">'T1':</span> <span class="pre">1}</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.StanfordResearchSystems.DG645.DG645.CHANNEL_MAPPING" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.StanfordResearchSystems.DG645.DG645.DISPLAY_MAPPING">
+<span class="sig-name descname"><span class="pre">DISPLAY_MAPPING</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'advanced_trig_enable':</span> <span class="pre">4,</span> <span class="pre">'burst_T0_config':</span> <span class="pre">14,</span> <span class="pre">'burst_count':</span> <span class="pre">9,</span> <span class="pre">'burst_delay':</span> <span class="pre">8,</span> <span class="pre">'burst_mode':</span> <span class="pre">7,</span> <span class="pre">'burst_period':</span> <span class="pre">10,</span> <span class="pre">'channel_delay':</span> <span class="pre">11,</span> <span class="pre">'channel_output_levels':</span> <span class="pre">12,</span> <span class="pre">'channel_output_polarity':</span> <span class="pre">13,</span> <span class="pre">'prescale_config':</span> <span class="pre">6,</span> <span class="pre">'trig_holdoff':</span> <span class="pre">5,</span> <span class="pre">'trig_line':</span> <span class="pre">3,</span> <span class="pre">'trig_rate':</span> <span class="pre">0,</span> <span class="pre">'trig_single_shot':</span> <span class="pre">2,</span> <span class="pre">'trig_thresh':</span> <span class="pre">1}</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.StanfordResearchSystems.DG645.DG645.DISPLAY_MAPPING" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.StanfordResearchSystems.DG645.DG645.OUTPUT_MAPPING">
+<span class="sig-name descname"><span class="pre">OUTPUT_MAPPING</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'AB':</span> <span class="pre">1,</span> <span class="pre">'CD':</span> <span class="pre">2,</span> <span class="pre">'EF':</span> <span class="pre">3,</span> <span class="pre">'GH':</span> <span class="pre">4,</span> <span class="pre">'T0':</span> <span class="pre">0}</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.StanfordResearchSystems.DG645.DG645.OUTPUT_MAPPING" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.StanfordResearchSystems.DG645.DG645.POLARITY_MAPPING">
+<span class="sig-name descname"><span class="pre">POLARITY_MAPPING</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'+':</span> <span class="pre">1,</span> <span class="pre">'-':</span> <span class="pre">0}</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.StanfordResearchSystems.DG645.DG645.POLARITY_MAPPING" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.StanfordResearchSystems.DG645.DG645.PRESCALE_MAPPING">
+<span class="sig-name descname"><span class="pre">PRESCALE_MAPPING</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'AB':</span> <span class="pre">1,</span> <span class="pre">'CD':</span> <span class="pre">2,</span> <span class="pre">'EF':</span> <span class="pre">3,</span> <span class="pre">'GH':</span> <span class="pre">4,</span> <span class="pre">'trig':</span> <span class="pre">0}</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.StanfordResearchSystems.DG645.DG645.PRESCALE_MAPPING" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.StanfordResearchSystems.DG645.DG645.TRIGGER_MAPPING">
+<span class="sig-name descname"><span class="pre">TRIGGER_MAPPING</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'ext_falling':</span> <span class="pre">2,</span> <span class="pre">'ext_rising':</span> <span class="pre">1,</span> <span class="pre">'internal':</span> <span class="pre">0,</span> <span class="pre">'line':</span> <span class="pre">6,</span> <span class="pre">'single':</span> <span class="pre">5,</span> <span class="pre">'single_ext_falling':</span> <span class="pre">4,</span> <span class="pre">'single_ext_rising':</span> <span class="pre">3}</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.StanfordResearchSystems.DG645.DG645.TRIGGER_MAPPING" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-qcodes_contrib_drivers.drivers.StanfordResearchSystems.SIM928">
+<span id="qcodes-contrib-drivers-drivers-stanfordresearchsystems-sim928-module"></span><h2>qcodes_contrib_drivers.drivers.StanfordResearchSystems.SIM928 module<a class="headerlink" href="#module-qcodes_contrib_drivers.drivers.StanfordResearchSystems.SIM928" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.StanfordResearchSystems.SIM928.SIM928">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.StanfordResearchSystems.SIM928.</span></span><span class="sig-name descname"><span class="pre">SIM928</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/StanfordResearchSystems/SIM928.html#SIM928"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.StanfordResearchSystems.SIM928.SIM928" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://microsoft.github.io/Qcodes/api/instrument/index.html#qcodes.instrument.VisaInstrument" title="(in QCoDeS v0.45.0.dev442+main.gb11f8ac34)"><code class="xref py py-class docutils literal notranslate"><span class="pre">VisaInstrument</span></code></a></p>
+<p>A driver for Stanford Research Systems SIM 928 DC source modules installed
+in a SIM900 mainframe.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – An identifier for this instrument, particularly for
+attaching it to a <code class="docutils literal notranslate"><span class="pre">Station</span></code>.</p></li>
+<li><p><strong>address</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – The visa resource name to use to connect.</p></li>
+<li><p><strong>slot_names</strong> (<em>Dict</em><em>[</em><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a><em>]</em>) – An dictionary that optionally maps slot numbers
+to user-defined module names. Default <code class="docutils literal notranslate"><span class="pre">{}</span></code>.</p></li>
+<li><p><strong>timeout</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a>) – Seconds to allow for responses. Default <code class="docutils literal notranslate"><span class="pre">5</span></code>.</p></li>
+<li><p><strong>metadata</strong> (<em>Optional</em><em>[</em><em>Dict</em><em>]</em>) – Additional static metadata to add to this
+instrument’s JSON snapshot.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.StanfordResearchSystems.SIM928.SIM928.ask_module">
+<span class="sig-name descname"><span class="pre">ask_module</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmd</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/StanfordResearchSystems/SIM928.html#SIM928.ask_module"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.StanfordResearchSystems.SIM928.SIM928.ask_module" title="Link to this definition">¶</a></dt>
+<dd><p>Write a command string to a module and return a response.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>i</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – Slot number or module name (as in <code class="docutils literal notranslate"><span class="pre">slot_names</span></code>)
+of the module to ask from.</p></li>
+<li><p><strong>cmd</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – The VISA query string.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The response string from the module.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.StanfordResearchSystems.SIM928.SIM928.byte_to_bits">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">byte_to_bits</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/StanfordResearchSystems/SIM928.html#SIM928.byte_to_bits"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.StanfordResearchSystems.SIM928.SIM928.byte_to_bits" title="Link to this definition">¶</a></dt>
+<dd><p>Convert an integer to a list of bits</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – The number to convert.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A list of the lowest 8 bits of <code class="docutils literal notranslate"><span class="pre">x</span></code> where <code class="docutils literal notranslate"><span class="pre">True</span></code>
+represents 1 and <code class="docutils literal notranslate"><span class="pre">False</span></code> 0.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#list" title="(in Python v3.10)">list</a>[<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#bool" title="(in Python v3.10)">bool</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.StanfordResearchSystems.SIM928.SIM928.check_module_errors">
+<span class="sig-name descname"><span class="pre">check_module_errors</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">raiseexc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/StanfordResearchSystems/SIM928.html#SIM928.check_module_errors"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.StanfordResearchSystems.SIM928.SIM928.check_module_errors" title="Link to this definition">¶</a></dt>
+<dd><p>Check if any errors have occurred on module <code class="docutils literal notranslate"><span class="pre">i</span></code> and clear the status
+registers.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>i</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – Slot number or module name (as in <code class="docutils literal notranslate"><span class="pre">slot_names</span></code>)
+of the module to check the error of.</p></li>
+<li><p><strong>raiseexc</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a>) – If true, raises an exception if any errors have
+occurred. Default <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A list of strings with the error messages that have
+occurred.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#list" title="(in Python v3.10)">list</a>[<a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)">str</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.StanfordResearchSystems.SIM928.SIM928.find_modules">
+<span class="sig-name descname"><span class="pre">find_modules</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/StanfordResearchSystems/SIM928.html#SIM928.find_modules"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.StanfordResearchSystems.SIM928.SIM928.find_modules" title="Link to this definition">¶</a></dt>
+<dd><p>Query the SIM900 mainframe for which slots have a SIM928 module present.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><dl class="simple">
+<dt>A list of slot numbers where a SIM928 module is present (starting</dt><dd><p>from 1)</p>
+</dd>
+</dl>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.StanfordResearchSystems.SIM928.SIM928.get_module_idn">
+<span class="sig-name descname"><span class="pre">get_module_idn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/StanfordResearchSystems/SIM928.html#SIM928.get_module_idn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.StanfordResearchSystems.SIM928.SIM928.get_module_idn" title="Link to this definition">¶</a></dt>
+<dd><p>Get the vendor, model, serial number and firmware version of a module.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>i</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – Slot number or module name (as in <code class="docutils literal notranslate"><span class="pre">slot_names</span></code>)
+of the module whose id is returned.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A dict containing vendor, model, serial, and firmware.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.StanfordResearchSystems.SIM928.SIM928.get_module_status">
+<span class="sig-name descname"><span class="pre">get_module_status</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/StanfordResearchSystems/SIM928.html#SIM928.get_module_status"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.StanfordResearchSystems.SIM928.SIM928.get_module_status" title="Link to this definition">¶</a></dt>
+<dd><p>Gets and clears the status bytes corresponding to the registers ESR,
+CESR and OVSR of module <code class="docutils literal notranslate"><span class="pre">i</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>i</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – Slot number or module name (as in <code class="docutils literal notranslate"><span class="pre">slot_names</span></code>)
+of the module to get the status of.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The bytes corresponding to standard event,
+communication error and overload statuses of module <code class="docutils literal notranslate"><span class="pre">i</span></code></p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)">int</a>, <a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)">int</a>, <a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.StanfordResearchSystems.SIM928.SIM928.get_voltage">
+<span class="sig-name descname"><span class="pre">get_voltage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/StanfordResearchSystems/SIM928.html#SIM928.get_voltage"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.StanfordResearchSystems.SIM928.SIM928.get_voltage" title="Link to this definition">¶</a></dt>
+<dd><p>Get the output voltage of a module.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>i</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – Slot number or module name (as in <code class="docutils literal notranslate"><span class="pre">slot_names</span></code>)
+of the module to get the voltage of.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The current voltage of module <code class="docutils literal notranslate"><span class="pre">i</span></code> as a <code class="docutils literal notranslate"><span class="pre">float</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.StanfordResearchSystems.SIM928.SIM928.reset_module">
+<span class="sig-name descname"><span class="pre">reset_module</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/StanfordResearchSystems/SIM928.html#SIM928.reset_module"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.StanfordResearchSystems.SIM928.SIM928.reset_module" title="Link to this definition">¶</a></dt>
+<dd><p>Sends the SIM Reset signal to module i.</p>
+<p>Causes a break signal (MARK level) to be asserted for 100 milliseconds
+to module i. Upon receiving the break signal the modul will flush its
+internal input buffer, reset its command parser, and default to 9600
+baud communications.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>i</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – Slot number or module name (as in <code class="docutils literal notranslate"><span class="pre">slot_names</span></code>)
+of the module to reset.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.StanfordResearchSystems.SIM928.SIM928.set_smooth">
+<span class="sig-name descname"><span class="pre">set_smooth</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">voltagedict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">equitime</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/StanfordResearchSystems/SIM928.html#SIM928.set_smooth"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.StanfordResearchSystems.SIM928.SIM928.set_smooth" title="Link to this definition">¶</a></dt>
+<dd><p>Set the voltages as specified in <code class="docutils literal notranslate"><span class="pre">voltagedict`</span> <span class="pre">smoothly,</span>
+<span class="pre">by</span> <span class="pre">changing</span> <span class="pre">the</span> <span class="pre">output</span> <span class="pre">on</span> <span class="pre">each</span> <span class="pre">module</span> <span class="pre">at</span> <span class="pre">a</span> <span class="pre">rate</span>
+<span class="pre">``volt_#_step/smooth_timestep</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>voltagedict</strong> (<em>Dict</em><em>[</em><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a><em>]</em>) – A dictionary where keys are module slot
+numbers or names and values are the desired output voltages.</p></li>
+<li><p><strong>equitime</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a>) – If <code class="docutils literal notranslate"><span class="pre">True</span></code>, uses smaller step sizes for some of
+the modules so that all modules reach the desired value at the
+same time.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.StanfordResearchSystems.SIM928.SIM928.set_voltage">
+<span class="sig-name descname"><span class="pre">set_voltage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voltage</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/StanfordResearchSystems/SIM928.html#SIM928.set_voltage"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.StanfordResearchSystems.SIM928.SIM928.set_voltage" title="Link to this definition">¶</a></dt>
+<dd><p>Set the output voltage of a module.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>i</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – Slot number or module name (as in <code class="docutils literal notranslate"><span class="pre">slot_names</span></code>)
+of the module to set the voltage of.</p></li>
+<li><p><strong>voltage</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a>) – The value to set the voltage to.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.StanfordResearchSystems.SIM928.SIM928.write_module">
+<span class="sig-name descname"><span class="pre">write_module</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmd</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/StanfordResearchSystems/SIM928.html#SIM928.write_module"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.StanfordResearchSystems.SIM928.SIM928.write_module" title="Link to this definition">¶</a></dt>
+<dd><p>Write a command string to a module with NO response expected.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>i</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – Slot number or module name (as in <code class="docutils literal notranslate"><span class="pre">slot_names</span></code>)
+of the module to write to.</p></li>
+<li><p><strong>cmd</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – The VISA command string.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844">
+<span id="qcodes-contrib-drivers-drivers-stanfordresearchsystems-sr844-module"></span><h2>qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844 module<a class="headerlink" href="#module-qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844.ChannelTrace">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844.</span></span><span class="sig-name descname"><span class="pre">ChannelTrace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/StanfordResearchSystems/SR844.html#ChannelTrace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844.ChannelTrace" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://microsoft.github.io/Qcodes/api/parameters/index.html#qcodes.parameters.ParameterWithSetpoints" title="(in QCoDeS v0.45.0.dev442+main.gb11f8ac34)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ParameterWithSetpoints</span></code></a></p>
+<p>Parameter class for the two channel buffers</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844.ChannelTrace.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/StanfordResearchSystems/SR844.html#ChannelTrace.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844.ChannelTrace.__init__" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> – The name of the parameter</p></li>
+<li><p><strong>channel</strong> – The relevant channel (1 or 2). The name should
+match this.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844.ChannelTrace.get_buffer_length">
+<span class="sig-name descname"><span class="pre">get_buffer_length</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/StanfordResearchSystems/SR844.html#ChannelTrace.get_buffer_length"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844.ChannelTrace.get_buffer_length" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844.ChannelTrace.get_raw">
+<span class="sig-name descname"><span class="pre">get_raw</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/StanfordResearchSystems/SR844.html#ChannelTrace.get_raw"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844.ChannelTrace.get_raw" title="Link to this definition">¶</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">get_raw</span></code> is called to perform the actual data acquisition from the
+instrument. This method should either be overwritten to perform the
+desired operation or alternatively for <code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code> a
+suitable method is automatically generated if <code class="docutils literal notranslate"><span class="pre">get_cmd</span></code> is supplied
+to the parameter constructor. The method is automatically wrapped to
+provide a <code class="docutils literal notranslate"><span class="pre">get</span></code> method on the parameter instance.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844.ChannelTrace.parse_binary">
+<span class="sig-name descname"><span class="pre">parse_binary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rawdata</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#bytes" title="(in Python v3.10)"><span class="pre">bytes</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.26)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v1.26)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><span class="pre">_ScalarType_co</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/StanfordResearchSystems/SR844.html#ChannelTrace.parse_binary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844.ChannelTrace.parse_binary" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844.ChannelTrace.poll_raw_binary_data">
+<span class="sig-name descname"><span class="pre">poll_raw_binary_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">N</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/StanfordResearchSystems/SR844.html#ChannelTrace.poll_raw_binary_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844.ChannelTrace.poll_raw_binary_data" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844.ChannelTrace.update_unit">
+<span class="sig-name descname"><span class="pre">update_unit</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/StanfordResearchSystems/SR844.html#ChannelTrace.update_unit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844.ChannelTrace.update_unit" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844.GeneratedSetPoints">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844.</span></span><span class="sig-name descname"><span class="pre">GeneratedSetPoints</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sweep_array</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Iterable" title="(in Python v3.10)"><span class="pre">Iterable</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#float" title="(in Python v3.10)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">array([0.,</span> <span class="pre">0.11111111,</span> <span class="pre">0.22222222,</span> <span class="pre">0.33333333,</span> <span class="pre">0.44444444,</span> <span class="pre">0.55555556,</span> <span class="pre">0.66666667,</span> <span class="pre">0.77777778,</span> <span class="pre">0.88888889,</span> <span class="pre">1.])</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/StanfordResearchSystems/SR844.html#GeneratedSetPoints"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844.GeneratedSetPoints" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://microsoft.github.io/Qcodes/api/parameters/index.html#qcodes.parameters.Parameter" title="(in QCoDeS v0.45.0.dev442+main.gb11f8ac34)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code></a></p>
+<p>A parameter that generates a setpoint array from start, stop and num points
+parameters.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844.GeneratedSetPoints.get_raw">
+<span class="sig-name descname"><span class="pre">get_raw</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/StanfordResearchSystems/SR844.html#GeneratedSetPoints.get_raw"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844.GeneratedSetPoints.get_raw" title="Link to this definition">¶</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">get_raw</span></code> is called to perform the actual data acquisition from the
+instrument. This method should either be overwritten to perform the
+desired operation or alternatively for <code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code> a
+suitable method is automatically generated if <code class="docutils literal notranslate"><span class="pre">get_cmd</span></code> is supplied
+to the parameter constructor. The method is automatically wrapped to
+provide a <code class="docutils literal notranslate"><span class="pre">get</span></code> method on the parameter instance.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844.GeneratedSetPoints.set_raw">
+<span class="sig-name descname"><span class="pre">set_raw</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Iterable" title="(in Python v3.10)"><span class="pre">Iterable</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#float" title="(in Python v3.10)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/StanfordResearchSystems/SR844.html#GeneratedSetPoints.set_raw"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844.GeneratedSetPoints.set_raw" title="Link to this definition">¶</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">set_raw</span></code> is called to perform the actual setting of a parameter on
+the instrument. This method should either be overwritten to perform the
+desired operation or alternatively for <code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code> a
+suitable method is automatically generated if <code class="docutils literal notranslate"><span class="pre">set_cmd</span></code> is supplied
+to the parameter constructor. The method is automatically wrapped to
+provide a <code class="docutils literal notranslate"><span class="pre">set</span></code> method on the parameter instance.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844.GeneratedSetPoints.update_units_if_constant_sample_rate">
+<span class="sig-name descname"><span class="pre">update_units_if_constant_sample_rate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/StanfordResearchSystems/SR844.html#GeneratedSetPoints.update_units_if_constant_sample_rate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844.GeneratedSetPoints.update_units_if_constant_sample_rate" title="Link to this definition">¶</a></dt>
+<dd><p>If the buffer is filled at a constant sample rate,
+update the unit to “s” and label to “Time”;
+otherwise do nothing</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844.SR844">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844.</span></span><span class="sig-name descname"><span class="pre">SR844</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/StanfordResearchSystems/SR844.html#SR844"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844.SR844" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://microsoft.github.io/Qcodes/api/instrument/index.html#qcodes.instrument.VisaInstrument" title="(in QCoDeS v0.45.0.dev442+main.gb11f8ac34)"><code class="xref py py-class docutils literal notranslate"><span class="pre">VisaInstrument</span></code></a></p>
+<p>This is the qcodes driver for the Stanford Research Systems SR844
+Lock-in Amplifier</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844.SR844.decrement_sensitivity">
+<span class="sig-name descname"><span class="pre">decrement_sensitivity</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#bool" title="(in Python v3.10)"><span class="pre">bool</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/StanfordResearchSystems/SR844.html#SR844.decrement_sensitivity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844.SR844.decrement_sensitivity" title="Link to this definition">¶</a></dt>
+<dd><p>Decrement the sensitivity setting of the lock-in. This is equivalent
+to pushing the sensitivity down button on the front panel. This has no
+effect if the sensitivity is already at the minimum.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Whether or not the sensitivity was actually changed.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844.SR844.get_display_value">
+<span class="sig-name descname"><span class="pre">get_display_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">disp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/StanfordResearchSystems/SR844.html#SR844.get_display_value"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844.SR844.get_display_value" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844.SR844.increment_sensitivity">
+<span class="sig-name descname"><span class="pre">increment_sensitivity</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#bool" title="(in Python v3.10)"><span class="pre">bool</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/StanfordResearchSystems/SR844.html#SR844.increment_sensitivity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844.SR844.increment_sensitivity" title="Link to this definition">¶</a></dt>
+<dd><p>Increment the sensitivity setting of the lock-in. This is equivalent
+to pushing the sensitivity up button on the front panel. This has no
+effect if the sensitivity is already at the maximum.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Whether or not the sensitivity was actually changed.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844.SR844.set_sweep_parameters">
+<span class="sig-name descname"><span class="pre">set_sweep_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sweep_param</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://microsoft.github.io/Qcodes/api/parameters/index.html#qcodes.parameters.Parameter" title="(in QCoDeS v0.45.0.dev442+main.gb11f8ac34)"><span class="pre">Parameter</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#float" title="(in Python v3.10)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#float" title="(in Python v3.10)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_points</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/StanfordResearchSystems/SR844.html#SR844.set_sweep_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844.SR844.set_sweep_parameters" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844.SR844.snap">
+<span class="sig-name descname"><span class="pre">snap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">parameters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Tuple" title="(in Python v3.10)"><span class="pre">Tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#float" title="(in Python v3.10)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/StanfordResearchSystems/SR844.html#SR844.snap"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844.SR844.snap" title="Link to this definition">¶</a></dt>
+<dd><p>Get between 2 and 6 parameters at a single instant. This provides a
+coherent snapshot of measured signals. Pick up to 6 from: X, Y, R, θ,
+the aux inputs 1-2, frequency, or what is currently displayed on
+channels 1 and 2.</p>
+<p>Reading X and Y (or R and θ) gives a coherent snapshot of the signal.
+Snap is important when the time constant is very short, a time constant
+less than 100 ms.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>*parameters</strong> – From 2 to 6 strings of names of parameters for which
+the values are requested. including: ‘x’, ‘y’, ‘r’, ‘p’,
+‘phase’ or ‘θ’, ‘aux1’, ‘aux2’, ‘freq’,
+‘ch1’, and ‘ch2’.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A tuple of floating point values in the same order as requested.</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">lockin</span><span class="o">.</span><span class="n">snap</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">,</span><span class="s1">&#39;y&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">lockin</span><span class="o">.</span><span class="n">snap</span><span class="p">(</span><span class="s1">&#39;aux1&#39;</span><span class="p">,</span><span class="s1">&#39;aux2&#39;</span><span class="p">,</span><span class="s1">&#39;freq&#39;</span><span class="p">,</span><span class="s1">&#39;phase&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">aux1</span><span class="p">,</span><span class="n">aux2</span><span class="p">,</span><span class="n">freq</span><span class="p">,</span><span class="n">phase</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Volts for x, y, r, and aux 1-4
+Degrees for θ
+Hertz for freq
+Unknown for ch1 and ch2. It will depend on what was set.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>If X,Y,R and θ are all read, then the values of X,Y are recorded
+approximately 10 µs apart from R,θ. Thus, the values of X and Y
+may not yield the exact values of R and θ from a single snap.</p></li>
+<li><p>The values of the Aux Inputs may have an uncertainty of
+up to 32 µs.</p></li>
+<li><p>The frequency is computed only every other period or 40 ms,
+whichever is longer.</p></li>
+</ul>
+</div></blockquote>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844.SR844.update_ch_unit">
+<span class="sig-name descname"><span class="pre">update_ch_unit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/StanfordResearchSystems/SR844.html#SR844.update_ch_unit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844.SR844.update_ch_unit" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844.SR844.SNAP_PARAMETERS">
+<span class="sig-name descname"><span class="pre">SNAP_PARAMETERS</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'aux1':</span> <span class="pre">'6',</span> <span class="pre">'aux2':</span> <span class="pre">'7',</span> <span class="pre">'ch1':</span> <span class="pre">'9',</span> <span class="pre">'ch2':</span> <span class="pre">'10',</span> <span class="pre">'freq':</span> <span class="pre">'8',</span> <span class="pre">'p':</span> <span class="pre">'5',</span> <span class="pre">'phase':</span> <span class="pre">'5',</span> <span class="pre">'r_dbm':</span> <span class="pre">'4',</span> <span class="pre">'r_v':</span> <span class="pre">'3',</span> <span class="pre">'x':</span> <span class="pre">'1',</span> <span class="pre">'y':</span> <span class="pre">'2',</span> <span class="pre">'θ':</span> <span class="pre">'5'}</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844.SR844.SNAP_PARAMETERS" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844.SR844.sensitivity_value_map">
+<span class="sig-name descname"><span class="pre">sensitivity_value_map</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{1e-07:</span> <span class="pre">0,</span> <span class="pre">3e-07:</span> <span class="pre">1,</span> <span class="pre">1e-06:</span> <span class="pre">2,</span> <span class="pre">3e-06:</span> <span class="pre">3,</span> <span class="pre">1e-05:</span> <span class="pre">4,</span> <span class="pre">3e-05:</span> <span class="pre">5,</span> <span class="pre">0.0001:</span> <span class="pre">6,</span> <span class="pre">0.0003:</span> <span class="pre">7,</span> <span class="pre">0.001:</span> <span class="pre">8,</span> <span class="pre">0.003:</span> <span class="pre">9,</span> <span class="pre">0.01:</span> <span class="pre">10,</span> <span class="pre">0.03:</span> <span class="pre">11,</span> <span class="pre">0.1:</span> <span class="pre">12,</span> <span class="pre">0.3:</span> <span class="pre">13,</span> <span class="pre">1:</span> <span class="pre">14}</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844.SR844.sensitivity_value_map" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844.SR844.value_sensitivity_map">
+<span class="sig-name descname"><span class="pre">value_sensitivity_map</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{0:</span> <span class="pre">1e-07,</span> <span class="pre">1:</span> <span class="pre">3e-07,</span> <span class="pre">2:</span> <span class="pre">1e-06,</span> <span class="pre">3:</span> <span class="pre">3e-06,</span> <span class="pre">4:</span> <span class="pre">1e-05,</span> <span class="pre">5:</span> <span class="pre">3e-05,</span> <span class="pre">6:</span> <span class="pre">0.0001,</span> <span class="pre">7:</span> <span class="pre">0.0003,</span> <span class="pre">8:</span> <span class="pre">0.001,</span> <span class="pre">9:</span> <span class="pre">0.003,</span> <span class="pre">10:</span> <span class="pre">0.01,</span> <span class="pre">11:</span> <span class="pre">0.03,</span> <span class="pre">12:</span> <span class="pre">0.1,</span> <span class="pre">13:</span> <span class="pre">0.3,</span> <span class="pre">14:</span> <span class="pre">1}</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844.SR844.value_sensitivity_map" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-qcodes_contrib_drivers.drivers.StanfordResearchSystems">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-qcodes_contrib_drivers.drivers.StanfordResearchSystems" title="Link to this heading">¶</a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="qcodes_contrib_drivers.drivers.Standa.html" class="btn btn-neutral float-left" title="qcodes_contrib_drivers.drivers.Standa package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="qcodes_contrib_drivers.drivers.Tektronix.html" class="btn btn-neutral float-right" title="qcodes_contrib_drivers.drivers.Tektronix package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, QCoDeS Users.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

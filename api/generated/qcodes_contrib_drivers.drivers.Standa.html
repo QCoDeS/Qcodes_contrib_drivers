@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>qcodes_contrib_drivers.drivers.Standa package &mdash; qcodes_contrib_drivers 0.22.0.dev63+main.g134f064 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/documentation_options.js?v=159198be"></script>
+        <script src="../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="qcodes_contrib_drivers.drivers.StanfordResearchSystems package" href="qcodes_contrib_drivers.drivers.StanfordResearchSystems.html" />
+    <link rel="prev" title="qcodes_contrib_drivers.drivers.Spectrum.py_header package" href="qcodes_contrib_drivers.drivers.Spectrum.py_header.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            qcodes_contrib_drivers
+          </a>
+              <div class="version">
+                0.22.0.dev63+main.g134f064
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../examples/index.html">Examples of how to use drivers</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="qcodes_contrib_drivers.drivers.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Advantech.html">qcodes_contrib_drivers.drivers.Advantech package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Agilent.html">qcodes_contrib_drivers.drivers.Agilent package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.AimTTi.html">qcodes_contrib_drivers.drivers.AimTTi package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Ametek.html">qcodes_contrib_drivers.drivers.Ametek package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Andor.html">qcodes_contrib_drivers.drivers.Andor package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Attocube.html">qcodes_contrib_drivers.drivers.Attocube package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Aviosys.html">qcodes_contrib_drivers.drivers.Aviosys package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Bilt.html">qcodes_contrib_drivers.drivers.Bilt package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.BlueFors.html">qcodes_contrib_drivers.drivers.BlueFors package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.CopperMountain.html">qcodes_contrib_drivers.drivers.CopperMountain package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Cryocon.html">qcodes_contrib_drivers.drivers.Cryocon package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Cryogenic.html">qcodes_contrib_drivers.drivers.Cryogenic package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.DaylightSolutions.html">qcodes_contrib_drivers.drivers.DaylightSolutions package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.ERAInstruments.html">qcodes_contrib_drivers.drivers.ERAInstruments package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.GeneralMicrowave.html">qcodes_contrib_drivers.drivers.GeneralMicrowave package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Gentec.html">qcodes_contrib_drivers.drivers.Gentec package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Holzworth.html">qcodes_contrib_drivers.drivers.Holzworth package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Horiba.html">qcodes_contrib_drivers.drivers.Horiba package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.html">qcodes_contrib_drivers.drivers.Keysight package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Lakeshore.html">qcodes_contrib_drivers.drivers.Lakeshore package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.LighthousePhotonics.html">qcodes_contrib_drivers.drivers.LighthousePhotonics package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.M2.html">qcodes_contrib_drivers.drivers.M2 package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.MontanaInstruments.html">qcodes_contrib_drivers.drivers.MontanaInstruments package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.NationalInstruments.html">qcodes_contrib_drivers.drivers.NationalInstruments package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Newport.html">qcodes_contrib_drivers.drivers.Newport package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Oxford.html">qcodes_contrib_drivers.drivers.Oxford package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.QDevil.html">qcodes_contrib_drivers.drivers.QDevil package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.QuTech.html">qcodes_contrib_drivers.drivers.QuTech package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.RohdeSchwarz.html">qcodes_contrib_drivers.drivers.RohdeSchwarz package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Shamrock.html">qcodes_contrib_drivers.drivers.Shamrock package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.SignalCore.html">qcodes_contrib_drivers.drivers.SignalCore package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.SingleQuantum.html">qcodes_contrib_drivers.drivers.SingleQuantum package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Spectrum.html">qcodes_contrib_drivers.drivers.Spectrum package</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">qcodes_contrib_drivers.drivers.Standa package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168">qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-qcodes_contrib_drivers.drivers.Standa">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.StanfordResearchSystems.html">qcodes_contrib_drivers.drivers.StanfordResearchSystems package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Tektronix.html">qcodes_contrib_drivers.drivers.Tektronix package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Thermotek.html">qcodes_contrib_drivers.drivers.Thermotek package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Thorlabs.html">qcodes_contrib_drivers.drivers.Thorlabs package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Valon.html">qcodes_contrib_drivers.drivers.Valon package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Vaunix.html">qcodes_contrib_drivers.drivers.Vaunix package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.ZurichInstruments.html">qcodes_contrib_drivers.drivers.ZurichInstruments package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.html#module-qcodes_contrib_drivers.drivers.CMTS5048">qcodes_contrib_drivers.drivers.CMTS5048 module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.html#module-qcodes_contrib_drivers.drivers">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">qcodes_contrib_drivers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a></li>
+      <li class="breadcrumb-item active">qcodes_contrib_drivers.drivers.Standa package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/api/generated/qcodes_contrib_drivers.drivers.Standa.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="qcodes-contrib-drivers-drivers-standa-package">
+<h1>qcodes_contrib_drivers.drivers.Standa package<a class="headerlink" href="#qcodes-contrib-drivers-drivers-standa-package" title="Link to this heading">¶</a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">¶</a></h2>
+</section>
+<section id="module-qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168">
+<span id="qcodes-contrib-drivers-drivers-standa-standa-10mwa168-module"></span><h2>qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168 module<a class="headerlink" href="#module-qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.DeviceInformation">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.</span></span><span class="sig-name descname"><span class="pre">DeviceInformation</span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Standa/Standa_10MWA168.html#DeviceInformation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.DeviceInformation" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Structure</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.DeviceInformation.Major">
+<span class="sig-name descname"><span class="pre">Major</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.DeviceInformation.Major" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.DeviceInformation.Manufacturer">
+<span class="sig-name descname"><span class="pre">Manufacturer</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.DeviceInformation.Manufacturer" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.DeviceInformation.ManufacturerId">
+<span class="sig-name descname"><span class="pre">ManufacturerId</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.DeviceInformation.ManufacturerId" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.DeviceInformation.Minor">
+<span class="sig-name descname"><span class="pre">Minor</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.DeviceInformation.Minor" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.DeviceInformation.ProductDescription">
+<span class="sig-name descname"><span class="pre">ProductDescription</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.DeviceInformation.ProductDescription" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.DeviceInformation.Release">
+<span class="sig-name descname"><span class="pre">Release</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.DeviceInformation.Release" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.GetPosition">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.</span></span><span class="sig-name descname"><span class="pre">GetPosition</span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Standa/Standa_10MWA168.html#GetPosition"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.GetPosition" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Structure</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.GetPosition.EncPosition">
+<span class="sig-name descname"><span class="pre">EncPosition</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.GetPosition.EncPosition" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.GetPosition.Position">
+<span class="sig-name descname"><span class="pre">Position</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.GetPosition.Position" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.GetPosition.uPosition">
+<span class="sig-name descname"><span class="pre">uPosition</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.GetPosition.uPosition" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.Standa_10MWA168">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.</span></span><span class="sig-name descname"><span class="pre">Standa_10MWA168</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Standa/Standa_10MWA168.html#Standa_10MWA168"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.Standa_10MWA168" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://microsoft.github.io/Qcodes/api/instrument/index.html#qcodes.instrument.Instrument" title="(in QCoDeS v0.45.0.dev442+main.gb11f8ac34)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Instrument</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.Status">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.</span></span><span class="sig-name descname"><span class="pre">Status</span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Standa/Standa_10MWA168.html#Status"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.Status" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Structure</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.Status.CmdBufFreeSpace">
+<span class="sig-name descname"><span class="pre">CmdBufFreeSpace</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.Status.CmdBufFreeSpace" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.Status.CurPosition">
+<span class="sig-name descname"><span class="pre">CurPosition</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.Status.CurPosition" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.Status.CurSpeed">
+<span class="sig-name descname"><span class="pre">CurSpeed</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.Status.CurSpeed" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.Status.CurT">
+<span class="sig-name descname"><span class="pre">CurT</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.Status.CurT" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.Status.EncPosition">
+<span class="sig-name descname"><span class="pre">EncPosition</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.Status.EncPosition" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.Status.EncSts">
+<span class="sig-name descname"><span class="pre">EncSts</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.Status.EncSts" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.Status.Flags">
+<span class="sig-name descname"><span class="pre">Flags</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.Status.Flags" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.Status.GPIOFlags">
+<span class="sig-name descname"><span class="pre">GPIOFlags</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.Status.GPIOFlags" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.Status.Ipwr">
+<span class="sig-name descname"><span class="pre">Ipwr</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.Status.Ipwr" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.Status.Iusb">
+<span class="sig-name descname"><span class="pre">Iusb</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.Status.Iusb" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.Status.MoveSts">
+<span class="sig-name descname"><span class="pre">MoveSts</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.Status.MoveSts" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.Status.MvCmdSts">
+<span class="sig-name descname"><span class="pre">MvCmdSts</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.Status.MvCmdSts" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.Status.PWRSts">
+<span class="sig-name descname"><span class="pre">PWRSts</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.Status.PWRSts" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.Status.Upwr">
+<span class="sig-name descname"><span class="pre">Upwr</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.Status.Upwr" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.Status.Uusb">
+<span class="sig-name descname"><span class="pre">Uusb</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.Status.Uusb" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.Status.WindSts">
+<span class="sig-name descname"><span class="pre">WindSts</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.Status.WindSts" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.Status.uCurPosition">
+<span class="sig-name descname"><span class="pre">uCurPosition</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.Status.uCurPosition" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.Status.uCurSpeed">
+<span class="sig-name descname"><span class="pre">uCurSpeed</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.Status.uCurSpeed" title="Link to this definition">¶</a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.libximc">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.</span></span><span class="sig-name descname"><span class="pre">libximc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dll_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Standa/Standa_10MWA168.html#libximc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.libximc" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3.10/library/functions.html#object" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.libximc.command_move">
+<span class="sig-name descname"><span class="pre">command_move</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">device_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">position</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">u_position</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Standa/Standa_10MWA168.html#libximc.command_move"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.libximc.command_move" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.libximc.enumerate_devices">
+<span class="sig-name descname"><span class="pre">enumerate_devices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">probe_flags</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Standa/Standa_10MWA168.html#libximc.enumerate_devices"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.libximc.enumerate_devices" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.libximc.error_check">
+<span class="sig-name descname"><span class="pre">error_check</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">code</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">function_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Standa/Standa_10MWA168.html#libximc.error_check"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.libximc.error_check" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.libximc.get_device_name">
+<span class="sig-name descname"><span class="pre">get_device_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">device_enumeration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device_index</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Standa/Standa_10MWA168.html#libximc.get_device_name"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.libximc.get_device_name" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.libximc.get_position">
+<span class="sig-name descname"><span class="pre">get_position</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">device_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">get_position</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Standa/Standa_10MWA168.html#libximc.get_position"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.libximc.get_position" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.libximc.get_status">
+<span class="sig-name descname"><span class="pre">get_status</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">device_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Standa/Standa_10MWA168.html#libximc.get_status"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.libximc.get_status" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.libximc.open_device">
+<span class="sig-name descname"><span class="pre">open_device</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">device_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Standa/Standa_10MWA168.html#libximc.open_device"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.libximc.open_device" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-qcodes_contrib_drivers.drivers.Standa">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-qcodes_contrib_drivers.drivers.Standa" title="Link to this heading">¶</a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="qcodes_contrib_drivers.drivers.Spectrum.py_header.html" class="btn btn-neutral float-left" title="qcodes_contrib_drivers.drivers.Spectrum.py_header package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="qcodes_contrib_drivers.drivers.StanfordResearchSystems.html" class="btn btn-neutral float-right" title="qcodes_contrib_drivers.drivers.StanfordResearchSystems package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, QCoDeS Users.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

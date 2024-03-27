@@ -1,0 +1,372 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "id": "60b52c4b-0a77-469f-bb18-e9fdd7084acf",
+   "metadata": {
+    "tags": []
+   },
+   "source": [
+    "# Example with ERASynth\n",
+    "\n",
+    "For instrument details see https://erainstruments.com."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "id": "e5cbd05a-c684-4881-9c75-43b57b081a5e",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from qcodes import Instrument\n",
+    "from qcodes_contrib_drivers.drivers.ERAInstruments import (\n",
+    "    ERASynth, ERASynthPlus, ERASynthPlusPlus\n",
+    ")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "id": "cc61b2a9-a212-4cc2-8617-5297faebece0",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Requirement already satisfied: pyusb in c:\\users\\qblox\\.conda\\envs\\q38\\lib\\site-packages (1.2.1)\n",
+      "Requirement already satisfied: pyvisa in c:\\users\\qblox\\.conda\\envs\\q38\\lib\\site-packages (1.11.3)\n",
+      "Requirement already satisfied: pyvisa-py in c:\\users\\qblox\\.conda\\envs\\q38\\lib\\site-packages (0.5.2)\n",
+      "Requirement already satisfied: typing-extensions in c:\\users\\qblox\\.conda\\envs\\q38\\lib\\site-packages (from pyvisa) (3.10.0.2)\n",
+      "Note: you may need to restart the kernel to use updated packages.\n"
+     ]
+    }
+   ],
+   "source": [
+    "pip install pyusb pyvisa pyvisa-py"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "id": "f5c4c529-769f-4bdf-bddb-380519e05895",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "('ASRL3::INSTR',)\n"
+     ]
+    }
+   ],
+   "source": [
+    "# list communication ports\n",
+    "ERASynth.print_pyvisa_resources()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "id": "b2ea78ad-f510-42e4-b4eb-8d64327adb0e",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "(qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynth,\n",
+       " qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthPlus,\n",
+       " qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthPlusPlus)"
+      ]
+     },
+     "execution_count": 4,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "# Choose the right driver for you model\n",
+    "ERASynth, ERASynthPlus, ERASynthPlusPlus"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "id": "719bb1f6-2c5b-42b4-9914-39f487da1116",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Connected to: ERA Instruments ERASynth+ (serial:0165, firmware:v1.0.16) in 1.82s\n"
+     ]
+    }
+   ],
+   "source": [
+    "Instrument.close_all()\n",
+    "\n",
+    "# Instantiate the instrument\n",
+    "lo = ERASynthPlus(\"erasynth\", 'ASRL3::INSTR')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "e8635277-369d-4926-b3ca-78de26ddc612",
+   "metadata": {},
+   "source": [
+    "## Set a frequency and turn on"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "id": "65302045-5266-4b5c-82d2-c1e9d6a3c703",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "erasynth:\n",
+      "\tparameter                 value\n",
+      "--------------------------------------------------------------------------------\n",
+      "IDN                        :\t{'vendor': 'ERA Instruments', 'model': 'ERASynth...\n",
+      "current                    :\t1.47 (V)\n",
+      "debug_messages_en          :\tFalse \n",
+      "embedded_version           :\tv1.0.16 \n",
+      "frequency                  :\t4700000000 (Hz)\n",
+      "modulation_am_depth        :\t30 (%)\n",
+      "modulation_en              :\tTrue \n",
+      "modulation_fm_deviation    :\t1000 (Hz)\n",
+      "modulation_freq            :\t2000 (Hz)\n",
+      "modulation_pulse_period    :\t0.003 (s)\n",
+      "modulation_pulse_width     :\t0.002 (s)\n",
+      "modulation_signal_waveform :\tsine \n",
+      "modulation_source          :\tmicrophone \n",
+      "modulation_type            :\twideband_fm \n",
+      "pll_lmx1_status            :\tlocked \n",
+      "pll_lmx2_status            :\tlocked \n",
+      "pll_xtal_status            :\tlocked \n",
+      "power                      :\t10 (dBm)\n",
+      "ref_osc_source             :\tint \n",
+      "reference_tcxo_ocxo        :\tocxo \n",
+      "status                     :\tTrue \n",
+      "sweep_dwell                :\t0.001 (s)\n",
+      "sweep_en                   :\tFalse \n",
+      "sweep_start_frequency      :\t2000000000 (Hz)\n",
+      "sweep_step_frequency       :\t500000000 (Hz)\n",
+      "sweep_stop_frequency       :\t6000000000 (Hz)\n",
+      "sweep_trigger              :\texternal \n",
+      "synthesizer_mode           :\tlow_spurious \n",
+      "temperature                :\t26.1 (°C)\n",
+      "timeout                    :\t10 (s)\n",
+      "voltage                    :\t4.59 (V)\n",
+      "wifi_gateway_address       :\t222.222.222.222 \n",
+      "wifi_hotspot_password      :\t \n",
+      "wifi_hotspot_ssid          :\t \n",
+      "wifi_ip_address            :\t222.222.222.222 \n",
+      "wifi_mode                  :\t \n",
+      "wifi_rssi                  :\t \n",
+      "wifi_station_password      :\t \n",
+      "wifi_station_ssid          :\t \n",
+      "wifi_subnet_address        :\t222.222.222.222 \n"
+     ]
+    }
+   ],
+   "source": [
+    "lo.off()  # Turn off the output\n",
+    "# Configure the local oscillator\n",
+    "lo.ref_osc_source(\"int\")  # Use internal reference\n",
+    "lo.frequency(4.7e9)\n",
+    "lo.power(10)  # Set the amplitude to 10 dBm\n",
+    "lo.on()  # Turn on the output\n",
+    "\n",
+    "# print updated snapshot once to make sure the snapshot will be up-to-date\n",
+    "# takes a few seconds\n",
+    "lo.print_readable_snapshot(update=True)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "0006c399-c632-48c1-bdbb-614b32e9d8a2",
+   "metadata": {},
+   "source": [
+    "## Run a self test"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 11,
+   "id": "4564542f-effb-45c3-bfc9-375c3067713d",
+   "metadata": {
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "[53/53] Running...\n",
+      "Done!\n"
+     ]
+    }
+   ],
+   "source": [
+    "lo.run_self_test()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "28507aab-a0f6-486e-ab01-be600dcdc879",
+   "metadata": {},
+   "source": [
+    "## Sweep mode"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 12,
+   "id": "033141ae-c594-4c74-bda5-04635b6880b0",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "lo.sweep_trigger(\"external\") # external/freerun\n",
+    "# lo.sweep_dwell(100e-3) # used for freerun"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 13,
+   "id": "b4232658-2f53-4757-a9de-ee173d30bb6f",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "lo.sweep_start_frequency(1.2e9)\n",
+    "lo.sweep_stop_frequency(1.7e9)\n",
+    "lo.sweep_step_frequency(10e6)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 14,
+   "id": "daf65802-c30e-4622-a8c8-a31b19b95fea",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "lo.sweep_en(True)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "fa86cfb5-c97a-4dab-ab4f-dd467d63c6a6",
+   "metadata": {},
+   "source": [
+    "## Communication performance\n",
+    "\n",
+    "The driver confirms that certain parameters have been set correctly blocking the python kernel untill succeding. Some commands are going to take longer than a usual serial command."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 15,
+   "id": "548728aa-75b1-4aea-aade-dd3f41e1296a",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "20 ms ± 147 µs per loop (mean ± std. dev. of 7 runs, 10 loops each)\n"
+     ]
+    }
+   ],
+   "source": [
+    "%%timeit\n",
+    "    lo.status(True)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 16,
+   "id": "e7f42f9d-872f-4dfc-9821-be82d33b5fd7",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "8.09 ms ± 178 µs per loop (mean ± std. dev. of 7 runs, 100 loops each)\n"
+     ]
+    }
+   ],
+   "source": [
+    "%%timeit\n",
+    "    lo.frequency(3e9)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 17,
+   "id": "e1dc5f2a-7434-488f-8064-989cb00c9b0e",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "6.27 ms ± 210 µs per loop (mean ± std. dev. of 7 runs, 100 loops each)\n"
+     ]
+    }
+   ],
+   "source": [
+    "%%timeit\n",
+    "    lo.power(0.1)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 19,
+   "id": "ee78cd77-88cd-407e-a01e-f658e68051a5",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "143 ms ± 277 µs per loop (mean ± std. dev. of 7 runs, 10 loops each)\n"
+     ]
+    }
+   ],
+   "source": [
+    "%%timeit\n",
+    "    lo.sweep_start_frequency(1.2e9)"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3 (ipykernel)",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.8.12"
+  },
+  "nbsphinx": {
+   "execute": "never"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}

@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Qcodes example with Thorlabs MFF10x &mdash; qcodes_contrib_drivers 0.22.0.dev63+main.g134f064 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/documentation_options.js?v=159198be"></script>
+        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+        <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Qcodes example with Thorlabs PRM1Z8" href="Thorlabs_PRM1Z8.html" />
+    <link rel="prev" title="QCoDeS example with Thorlabs KLS1550 laser source" href="Thorlabs_KLS1550.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            qcodes_contrib_drivers
+          </a>
+              <div class="version">
+                0.22.0.dev63+main.g134f064
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Examples of how to use drivers</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Agilent_N9000A.html">Example with the Agilent N9000A</a></li>
+<li class="toctree-l2"><a class="reference internal" href="AimTTi_EL320P.html">Example notebook for AimTTi EL320P</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Andor_DU401.html">Qcodes example with Andor DU401 BU2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Attocube_ANC300.html">QCoDeS example with Attocube ANC300</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Aviosys_IP_Power_9258S.html">Qcodes example with Aviosys IP Power 9258S</a></li>
+<li class="toctree-l2"><a class="reference internal" href="BlueFors.html">Example with the BlueFors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CopperMountain_M5180.html">Example with CopperMountain Model M5180 vector network analyzer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CopperMountain_M5180.html#Setup-db-and-station-for-test-measurerment">Setup db and station for test measurerment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CopperMountain_M5180.html#Look-at-the-names-and-the-labels-of-the-Sxx-parameters">Look at the names and the labels of the Sxx parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ERASynth.html">Example with ERASynth</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Gentec_Maestro.html">QCoDeS Example with Gentec Maestro</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Holzworth_HS900.html">Example notebook for the Holzworth HS900B RF synthesizer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Horiba_FHR.html">Example for Horiba FHR</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ITest.html">Example with the iTest from Bilt</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Keithley_6430.html">Example notebook for Keithley 6430 SMU</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Keithley_6430.html#Measure-resistance-of-a-~100k\Omega-resistor">Measure resistance of a ~100k<span class="math notranslate nohighlight">\(\Omega\)</span> resistor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Keysight_M3202A.html">Keysight M3202A AWG</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Keysight_M3202A%20with%20digitizer.html">Keysight M3202A AWG example with digitizer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Lakeshore_311.html">Qcodes example with Lakeshore 311</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Lakeshore_625.html">Example with Lakeshore Model 625 Superconducting Magnet power supply</a></li>
+<li class="toctree-l2"><a class="reference internal" href="NationalInstruments_DAQ.html">National Instruments Multifunction DAQ example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="NationalInstruments_PXIe_2597.html">Qcodes example for National Instruments PXIe-2597 RF Switch</a></li>
+<li class="toctree-l2"><a class="reference internal" href="NationalInstruments_RFSG.html">Qcodes example with the NI RFSG signal generator driver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Newport_AG-UC8.html">QCoDeS Example with Newport AG-UC8 Piezo Motion Controller</a></li>
+<li class="toctree-l2"><a class="reference internal" href="OxfordTriton.html">Example of the oxford triton driver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Rohde_Schwarz_HMC8043.html">QCoDeS Example with R&amp;S HMC 8043 Power Supply</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Rohde_Schwarz_HMP4040.html">QCoDeS Example with R&amp;S HMP4040 Power Supply</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Rohde_Schwarz_SMW200A.html">QCoDeS example with Rohe&amp;Schwarz SMW200A</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SR844.html">Changing the Sensitivity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SR844.html#Preparing-for-reading-the-buffer-and-measurement">Preparing for reading the buffer and measurement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Shamrock_SR750.html">Qcodes example with Shamrock SR750</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SignalCore.html">Example with the microwave source SC5521A from Signal Core</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SignalCore.html#Device-connection">Device connection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SignalCore.html#Set-parameters">Set parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SignalRecovery_7270.html">Example of Signal Recovery 7270 driver usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SingleQuantum.html">Example for Single Quantum SNSPD</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Standa_10MWA168.html">Qcodes example with Standa 10MWA168</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Tektronix_AFG3000_series.html">Tektronix AFG3000 series arbitrary function generator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Tektronix_FCA3100.html">overview over all parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Tektronix_FCA3100.html#Usage-of-the-two-main-parameters">Usage of the two main parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Tektronix_Keithley_6500.html">QCoDeS Example with Tektronix Keithley Digital Multimeter DMM6500</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Thorlabs_K10CR1.html">Qcodes example with Thorlabs K10CR1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Thorlabs_KLS1550.html">QCoDeS example with Thorlabs KLS1550 laser source</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Qcodes example with Thorlabs MFF10x</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#Initialize-the-instrument">Initialize the instrument</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Read-the-current-position">Read the current position</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Change-the-position">Change the position</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Close-instrument">Close instrument</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Thorlabs_PRM1Z8.html">Qcodes example with Thorlabs PRM1Z8</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Valon_5015.html">QCoDeS example with Valon 5015</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Vaunix_LDA.html">Qcodes example for Vaunix LDA step attenuator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Vaunix_LDA.html#Model-with-many-channels">Model with many channels</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ZVL13.html">Rohde &amp; Schwarz ZVL13 Vector Network Analyzer example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ZVL13.html#Parameters-definition">Parameters definition</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ZurichInstruments_HF2LI.html">Zurich Instruments HF2LI example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="QDevil/index.html">QDevil drivers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HP/HP8594E.html">QCoDeS Example with HP8594E</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../api/generated/qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">qcodes_contrib_drivers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Examples of how to use drivers</a></li>
+      <li class="breadcrumb-item active">Qcodes example with Thorlabs MFF10x</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/examples/Thorlabs_MFF10x.ipynb.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="Qcodes-example-with-Thorlabs-MFF10x">
+<h1>Qcodes example with Thorlabs MFF10x<a class="headerlink" href="#Qcodes-example-with-Thorlabs-MFF10x" title="Link to this heading">¶</a></h1>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">qcodes_contrib_drivers.drivers.Thorlabs.APT</span> <span class="kn">import</span> <span class="n">Thorlabs_APT</span>
+<span class="kn">from</span> <span class="nn">qcodes_contrib_drivers.drivers.Thorlabs.MFF10x</span> <span class="kn">import</span> <span class="n">Thorlabs_MFF10x</span>
+</pre></div>
+</div>
+</div>
+<section id="Initialize-the-instrument">
+<h2>Initialize the instrument<a class="headerlink" href="#Initialize-the-instrument" title="Link to this heading">¶</a></h2>
+<p>First, we need to initialize the APT server. Then we can initialize the MFF10x mirror flipper.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">apt</span> <span class="o">=</span> <span class="n">Thorlabs_APT</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">thorlabs_mff10x</span> <span class="o">=</span> <span class="n">Thorlabs_MFF10x</span><span class="p">(</span><span class="s2">&quot;Thorlabs_MFF10x&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">apt</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Connected to: Thorlabs MFF002 (serial:37864181, firmware:SW Version 1.0.3) in 0.02s
+</pre></div></div>
+</div>
+</section>
+<section id="Read-the-current-position">
+<h2>Read the current position<a class="headerlink" href="#Read-the-current-position" title="Link to this heading">¶</a></h2>
+<p>We read the current position of the mirror flipper.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">thorlabs_mff10x</span><span class="o">.</span><span class="n">position</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+0
+</pre></div></div>
+</div>
+</section>
+<section id="Change-the-position">
+<h2>Change the position<a class="headerlink" href="#Change-the-position" title="Link to this heading">¶</a></h2>
+<p>We change the position of the flip mirror and repeat the position reading.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">thorlabs_mff10x</span><span class="o">.</span><span class="n">position</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">thorlabs_mff10x</span><span class="o">.</span><span class="n">position</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+1
+</pre></div></div>
+</div>
+</section>
+<section id="Close-instrument">
+<h2>Close instrument<a class="headerlink" href="#Close-instrument" title="Link to this heading">¶</a></h2>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">thorlabs_mff10x</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+<span class="n">apt</span><span class="o">.</span><span class="n">apt_clean_up</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Thorlabs_KLS1550.html" class="btn btn-neutral float-left" title="QCoDeS example with Thorlabs KLS1550 laser source" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Thorlabs_PRM1Z8.html" class="btn btn-neutral float-right" title="Qcodes example with Thorlabs PRM1Z8" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, QCoDeS Users.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

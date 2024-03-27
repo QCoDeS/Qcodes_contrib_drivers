@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>qcodes_contrib_drivers.drivers.Attocube.ANC350 &mdash; qcodes_contrib_drivers 0.22.0.dev63+main.g134f064 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../_static/documentation_options.js?v=159198be"></script>
+        <script src="../../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            qcodes_contrib_drivers
+          </a>
+              <div class="version">
+                0.22.0.dev63+main.g134f064
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples/index.html">Examples of how to use drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/generated/qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">qcodes_contrib_drivers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">qcodes_contrib_drivers.drivers.Attocube.ANC350</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for qcodes_contrib_drivers.drivers.Attocube.ANC350</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
+
+<span class="kn">import</span> <span class="nn">qcodes.utils.validators</span> <span class="k">as</span> <span class="nn">vals</span>
+<span class="kn">from</span> <span class="nn">qcodes.instrument.base</span> <span class="kn">import</span> <span class="n">Instrument</span>
+<span class="kn">from</span> <span class="nn">qcodes.instrument.channel</span> <span class="kn">import</span> <span class="n">InstrumentChannel</span><span class="p">,</span> <span class="n">ChannelList</span>
+
+<span class="kn">from</span> <span class="nn">.ANC350Lib</span> <span class="kn">import</span> <span class="n">ANC350LibActuatorType</span><span class="p">,</span> <span class="n">ANC350v3Lib</span><span class="p">,</span> <span class="n">ANC350v4Lib</span>
+
+
+<div class="viewcode-block" id="Anc350Axis">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.html#qcodes_contrib_drivers.drivers.Attocube.ANC350.Anc350Axis">[docs]</a>
+<span class="k">class</span> <span class="nc">Anc350Axis</span><span class="p">(</span><span class="n">InstrumentChannel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Representation of an axis of the ANC350</span>
+
+<span class="sd">    The Attocube ANC350 has 3 axis, one for every direction.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        parent: the Instrument that the channel is attached to</span>
+<span class="sd">        name: the name of the axis itself</span>
+<span class="sd">        axis: the index of the axis (0..2)</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        position: Get the current position on a single axis</span>
+<span class="sd">        frequency: Set the frequency of the output signal. Depending on positioner type and usage of other axes one can</span>
+<span class="sd">            adjust the frequency from 1Hz up to 5kHz (only on one axis at one time is a frequency above 2kHz allowed)</span>
+<span class="sd">        amplitude: Value for the drive voltage of the piezo drive. Bychanging this value, the step size of the</span>
+<span class="sd">            positioner can be varied. Value for the drive voltage of the piezo drive. Bychanging this value, the step</span>
+<span class="sd">            size of the positioner can be varied.</span>
+<span class="sd">        status:</span>
+<span class="sd">        voltage: Sets the DC level on the voltage output when no sawtooth based motion and no feedback loop</span>
+<span class="sd">            is active.</span>
+<span class="sd">        target_position: Sets the target position for automatic motion (start_auto_move). For linear type actuators the</span>
+<span class="sd">            position unit is m, for goniometers and rotators it is degree.</span>
+<span class="sd">        target_range: Defines the range around the target position where the target is considered to be reached.</span>
+<span class="sd">        actuator: Selects the actuator to be used for the axis from actuator presets.</span>
+<span class="sd">        actuator_name: Get the name of the currently selected actuator</span>
+<span class="sd">        capacitance: Performs a measurement of the capacitance of the piezo motor and returns the result. If no</span>
+<span class="sd">            motor is connected, the result will be 0.</span>
+<span class="sd">            The function doesn&#39;t return before the measurement is complete; this will take a few seconds of time.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">:</span> <span class="s2">&quot;ANC350&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">axis</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_axis</span> <span class="o">=</span> <span class="n">axis</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s2">&quot;position&quot;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Position&quot;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_position</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;mm or m°&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s2">&quot;frequency&quot;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Frequency&quot;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_frequency</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_frequency</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Ints</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">5000</span><span class="p">),</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;Hz&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s2">&quot;amplitude&quot;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Amplitude&quot;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_amplitude</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_amplitude</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">70</span><span class="p">),</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;V&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s2">&quot;status&quot;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Status&quot;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_status</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s2">&quot;target_position&quot;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Target Position&quot;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_target_position</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(),</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;mm or m°&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s2">&quot;target_range&quot;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Target Range&quot;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_target_range</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(),</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;mm or m°&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s2">&quot;actuator&quot;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Actuator&quot;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_actuator</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Ints</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s2">&quot;actuator_type&quot;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Actuator Type&quot;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_actuator_type</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s2">&quot;actuator_name&quot;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Actuator Name&quot;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_actuator_name</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s2">&quot;capacitance&quot;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Capacitance&quot;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_capacitance</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;nF&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_version_no</span> <span class="o">&gt;=</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="n">voltage_get</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_voltage</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">voltage_get</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s2">&quot;voltage&quot;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Voltage&quot;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="n">voltage_get</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_voltage</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">70</span><span class="p">),</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;V&quot;</span><span class="p">)</span>  <span class="c1"># Internal resolution: mV (0.001)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s2">&quot;output&quot;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Output&quot;</span><span class="p">,</span>
+                           <span class="n">val_mapping</span><span class="o">=</span><span class="p">{</span><span class="kc">False</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                                        <span class="kc">True</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                                        <span class="s2">&quot;off&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                                        <span class="s2">&quot;on&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                                        <span class="s2">&quot;auto&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">},</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_output</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_output</span><span class="p">)</span>
+
+        <span class="c1"># Set actual unit (either mm or m°) to positional parameters</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_position_unit</span><span class="p">()</span>
+
+    <span class="c1"># Version 3</span>
+    <span class="c1"># ---------</span>
+<div class="viewcode-block" id="Anc350Axis.single_step">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.html#qcodes_contrib_drivers.drivers.Attocube.ANC350.Anc350Axis.single_step">[docs]</a>
+    <span class="k">def</span> <span class="nf">single_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">backward</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Triggers a single step in desired direction.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            backward: Step direction forward (False) or backward (True). Beside True/False, you can</span>
+<span class="sd">                      set the direction to &quot;forward&quot;/&quot;backward&quot; or +1/-1 (default: forward or False)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">backward</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_map_direction_parameter</span><span class="p">(</span><span class="n">backward</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">start_single_step</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_device_handle</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_axis</span><span class="p">,</span> <span class="n">backward</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Anc350Axis.multiple_steps">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.html#qcodes_contrib_drivers.drivers.Attocube.ANC350.Anc350Axis.multiple_steps">[docs]</a>
+    <span class="k">def</span> <span class="nf">multiple_steps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">steps</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Performs multiple steps. The direction depends on the sign (+: forward, -: backward)</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            steps: Number of steps to move. The sign indicates the moving direction (+: forward,</span>
+<span class="sd">                   -: backward)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">backward</span> <span class="o">=</span> <span class="p">(</span><span class="n">steps</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span>
+        
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">steps</span><span class="p">)):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">single_step</span><span class="p">(</span><span class="n">backward</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Anc350Axis.start_continuous_move">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.html#qcodes_contrib_drivers.drivers.Attocube.ANC350.Anc350Axis.start_continuous_move">[docs]</a>
+    <span class="k">def</span> <span class="nf">start_continuous_move</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">backward</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Starts continuous motion in forward or backward direction.</span>
+<span class="sd">        Other kinds of motion are stopped.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            backward: Step direction forward (False) or backward (True). Beside True/False, you can</span>
+<span class="sd">                      set the direction to &quot;forward&quot;/&quot;backward&quot; or +1/-1 (default: forward or False)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">backward</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_map_direction_parameter</span><span class="p">(</span><span class="n">backward</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">start_continuous_move</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_device_handle</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_axis</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span>
+                                                <span class="n">backward</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Anc350Axis.stop_continuous_move">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.html#qcodes_contrib_drivers.drivers.Attocube.ANC350.Anc350Axis.stop_continuous_move">[docs]</a>
+    <span class="k">def</span> <span class="nf">stop_continuous_move</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Stops continuous motion in forward or backward direction.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">start_continuous_move</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_device_handle</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_axis</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span>
+                                                <span class="kc">False</span><span class="p">)</span></div>
+
+
+    <span class="n">_direction_mapping</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;forward&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="s2">&quot;backward&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="o">+</span><span class="mi">1</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="o">-</span><span class="mi">1</span><span class="p">:</span> <span class="kc">True</span>
+    <span class="p">}</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">_map_direction_parameter</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">backward</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">backward</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">backward</span> <span class="ow">in</span> <span class="p">[</span><span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="n">backward</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">backward</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_direction_mapping</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_direction_mapping</span><span class="p">[</span><span class="n">backward</span><span class="p">]</span>
+
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unexpected value for argument `backward`. Allowed values are: &quot;</span>
+                         <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span><span class="w"> </span><span class="kc">False</span><span class="p">,</span><span class="w"> </span><span class="kc">True</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="bp">cls</span><span class="o">.</span><span class="n">_direction_mapping</span><span class="o">.</span><span class="n">keys</span><span class="p">()]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">_relative_mapping</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;absolute&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="s2">&quot;relative&quot;</span><span class="p">:</span> <span class="kc">False</span>
+    <span class="p">}</span>
+
+<div class="viewcode-block" id="Anc350Axis.enable_auto_move">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.html#qcodes_contrib_drivers.drivers.Attocube.ANC350.Anc350Axis.enable_auto_move">[docs]</a>
+    <span class="k">def</span> <span class="nf">enable_auto_move</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">relative</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Enables automatic moving</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            relative: If the target position is to be interpreted absolute (False) or relative to</span>
+<span class="sd">                      the current position (True).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">relative</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_map_relative_parameter</span><span class="p">(</span><span class="n">relative</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">start_auto_move</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_device_handle</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_axis</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">relative</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Anc350Axis.disable_auto_move">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.html#qcodes_contrib_drivers.drivers.Attocube.ANC350.Anc350Axis.disable_auto_move">[docs]</a>
+    <span class="k">def</span> <span class="nf">disable_auto_move</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Disables automatic moving&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">start_auto_move</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_device_handle</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_axis</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span></div>
+
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">_map_relative_parameter</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">relative</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">str</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">relative</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">relative</span> <span class="ow">in</span> <span class="p">[</span><span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="n">relative</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">relative</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_relative_mapping</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_relative_mapping</span><span class="p">[</span><span class="n">relative</span><span class="p">]</span>
+        
+        <span class="n">allowed_values</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">_relative_mapping</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unexpected value for argument `relative`. Allowed values are: None, &quot;</span>
+                         <span class="sa">f</span><span class="s2">&quot;False, True, </span><span class="si">{</span><span class="n">allowed_values</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_position</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the current position of this axis</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Current position in millimeters [mm] (linear type actuators) or millidegrees [m°]</span>
+<span class="sd">            (goniometers and rotators)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Conversion from meters (degrees) to millimeters (millidegrees) because the wrapper works</span>
+        <span class="c1"># with meters (degrees)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">get_position</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_device_handle</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_axis</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1e3</span>
+
+    <span class="k">def</span> <span class="nf">_set_position</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;(EXPERIMENTAL FUNCTION)</span>
+<span class="sd">        The axis moves to the given position with the target range that is set before.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            position: The position the axis moves to</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_target_position</span><span class="p">(</span><span class="n">position</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_output</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>  <span class="c1"># 2 = &quot;auto&quot;</span>
+
+    <span class="k">def</span> <span class="nf">_get_frequency</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the frequency parameter of this axis.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Frequency in Hertz [Hz], internal resolution is 1 Hz</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">get_frequency</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_device_handle</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_axis</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_set_frequency</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frequency</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets the frequency parameter for this axis</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            frequency (float): Frequency in Hertz [Hz], internal resolution is 1 Hz</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">frequency</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">frequency</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">set_frequency</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_device_handle</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_axis</span><span class="p">,</span> <span class="n">frequency</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_amplitude</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the amplitude parameter of this axis.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Amplitude in Volts [V]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">get_amplitude</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_device_handle</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_axis</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_set_amplitude</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">amplitude</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets the amplitude parameter for an axis</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            amplitude: Amplitude in Volts [V] (internal resolution is 1mV)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">set_amplitude</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_device_handle</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_axis</span><span class="p">,</span> <span class="n">amplitude</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_status</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Reads status information about an axis</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A Dictionary containing the information about an axis:</span>
+<span class="sd">                connected: True, if the axis is connected to a sensor.</span>
+<span class="sd">                enabled: True, if the axis voltage output is enabled.</span>
+<span class="sd">                moving: True, if the axis is moving.</span>
+<span class="sd">                target: True, if the target is reached in automatic positioning.</span>
+<span class="sd">                eot_fwd: True, if end of travel detected in forward direction.</span>
+<span class="sd">                eot_bwd: True, if end of travel detected in backward direction.</span>
+<span class="sd">                error: True, if the axis&#39; sensor is in error state.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;connected&quot;</span><span class="p">,</span> <span class="s2">&quot;enabled&quot;</span><span class="p">,</span> <span class="s2">&quot;moving&quot;</span><span class="p">,</span> <span class="s2">&quot;target&quot;</span><span class="p">,</span> <span class="s2">&quot;eot_fwd&quot;</span><span class="p">,</span> <span class="s2">&quot;eot_bwf&quot;</span><span class="p">,</span> <span class="s2">&quot;error&quot;</span><span class="p">)</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">get_axis_status</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_device_handle</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_axis</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="n">status</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_set_voltage</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">voltage</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets the DC level on the voltage output when no sawtooth based motion and no feedback loop</span>
+<span class="sd">        is active.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            voltage: DC output voltage in Volts [V], internal resolution is 1 mV</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">set_dc_voltage</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_device_handle</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_axis</span><span class="p">,</span> <span class="n">voltage</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_set_target_position</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets the target position for automatic motion.</span>
+<span class="sd">        For linear type actuators the position unit is mm, for goniometers and rotators it is m°.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            target: Target position in millimeters [mm] or millidegrees [m°]. Internal resolution is</span>
+<span class="sd">                    1 nm or 1 µ°.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Conversion from meters (degrees) to millimeters (millidegrees) because the wrapper works</span>
+        <span class="c1"># with meters (degrees)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">set_target_position</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_device_handle</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_axis</span><span class="p">,</span>
+                                              <span class="n">target</span> <span class="o">*</span> <span class="mf">1e-3</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_set_target_range</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_range</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets the range around the target position where the target is considered to be reached.</span>
+<span class="sd">        For linear type actuators the position unit is mm, for goniometers and rotators it is m°.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">             target_range: Target range in millimeters [mm] or millidegrees [m°]. Internal</span>
+<span class="sd">                           resolution is 1 nm or 1 µ°.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Conversion from meters (degrees) to millimeters (millidegrees) because the wrapper works</span>
+        <span class="c1"># with meters (degrees)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">set_target_range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_device_handle</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_axis</span><span class="p">,</span>
+                                           <span class="n">target_range</span> <span class="o">*</span> <span class="mf">1e-3</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_set_actuator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">actuator</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Selects the actuator to be used for the axis from actuator presets. And changes the unit of the position</span>
+<span class="sd">        parameters if necessary.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            actuator: Actuator selection (0..255)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">old_actuator_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_actuator_type</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">select_actuator</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_device_handle</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_axis</span><span class="p">,</span> <span class="n">actuator</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_position_unit</span><span class="p">(</span><span class="n">old_actuator_type</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_update_position_unit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">old_actuator_type</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">ANC350LibActuatorType</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> \
+            <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Checks the current actuator type and sets the corresponding unit for position-parameters.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            old_actuator_type: Actuator type before changing it. This parameter is used to determine,</span>
+<span class="sd">                               if the actuator type has changed. If not, there is no need to update</span>
+<span class="sd">                               the unit. This parameter is optional. If it is None, the unit is</span>
+<span class="sd">                               always updated.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">actuator_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_actuator_type</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">actuator_type</span> <span class="o">!=</span> <span class="n">old_actuator_type</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">actuator_type</span> <span class="o">==</span> <span class="n">ANC350LibActuatorType</span><span class="o">.</span><span class="n">Linear</span><span class="p">:</span>
+                <span class="n">unit</span> <span class="o">=</span> <span class="s2">&quot;mm&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">unit</span> <span class="o">=</span> <span class="s2">&quot;m°&quot;</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">position</span><span class="o">.</span><span class="n">unit</span> <span class="o">=</span> <span class="n">unit</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">target_position</span><span class="o">.</span><span class="n">unit</span> <span class="o">=</span> <span class="n">unit</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">target_range</span><span class="o">.</span><span class="n">unit</span> <span class="o">=</span> <span class="n">unit</span>
+
+    <span class="k">def</span> <span class="nf">_get_actuator_type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ANC350LibActuatorType</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the type of the currently selected actuator</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Type of the actuator</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">get_actuator_type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_device_handle</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_axis</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_actuator_name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the name of the currently selected actuator</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Name of the actuator</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">get_actuator_name</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_device_handle</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_axis</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_capacitance</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the motor capacitance</span>
+<span class="sd">        Performs a measurement of the capacitance of the piezo motor and returns the result. If no</span>
+<span class="sd">        motor is connected, the result will be 0.</span>
+<span class="sd">        The function doesn&#39;t return before the measurement is complete; this will take a few seconds</span>
+<span class="sd">        of time.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Capacitance in Farad [nF]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># 1e9 as factor for the conversion from F to nF</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">measure_capacitance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_device_handle</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_axis</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1e9</span>
+
+    <span class="k">def</span> <span class="nf">_set_output</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">enable</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Enables or disables the voltage output of this axis.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            enable: Enable/disable voltage output:</span>
+<span class="sd">                    - 0: disable</span>
+<span class="sd">                    - 1: enable</span>
+<span class="sd">                    - 2: enable until end of travel is detected</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">auto_off</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="k">if</span> <span class="n">enable</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">enable</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">elif</span> <span class="n">enable</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">enable</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">enable</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>  <span class="c1"># enable, but automatically disable when end of travel is detected</span>
+                <span class="n">auto_off</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">enable</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;enable&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">set_axis_output</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_device_handle</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_axis</span><span class="p">,</span> <span class="n">enable</span><span class="p">,</span> <span class="n">auto_off</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_output</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Reads the voltage output status.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            1, if the axis voltage output is enabled. 0, if it is disabled.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="mi">1</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_status</span><span class="p">()[</span><span class="s2">&quot;enabled&quot;</span><span class="p">]</span> <span class="k">else</span> <span class="mi">0</span>
+
+    <span class="c1"># Version 4</span>
+    <span class="c1"># ---------</span>
+    <span class="k">def</span> <span class="nf">_get_voltage</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Reads back the current DC level (only supported by library with version 4)</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            DC output voltage in Volts [V]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">get_dc_voltage</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_device_handle</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_axis</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="ANC350">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.html#qcodes_contrib_drivers.drivers.Attocube.ANC350.ANC350">[docs]</a>
+<span class="k">class</span> <span class="nc">ANC350</span><span class="p">(</span><span class="n">Instrument</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Qcodes driver for the ANC350</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        name: the name of the instrument itself</span>
+<span class="sd">        library: library that fits to the version of the device and provides the appropriate dll</span>
+<span class="sd">                 wrappers</span>
+<span class="sd">        inst_no: Sequence number of the device to connect to (default: 0, the first device found)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">library</span><span class="p">:</span> <span class="n">ANC350v3Lib</span><span class="p">,</span> <span class="n">inst_no</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">library</span><span class="p">,</span> <span class="n">ANC350v4Lib</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_version_no</span> <span class="o">=</span> <span class="mi">4</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">library</span><span class="p">,</span> <span class="n">ANC350v3Lib</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_version_no</span> <span class="o">=</span> <span class="mi">3</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Only version 3 and 4 of ANC350&#39;s driver-DLL are currently &quot;</span>
+                                      <span class="s2">&quot;supported&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_lib</span> <span class="o">=</span> <span class="n">library</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_device_no</span> <span class="o">=</span> <span class="n">inst_no</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_device_handle</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">inst_no</span><span class="p">)</span>
+
+        <span class="n">axischannels</span> <span class="o">=</span> <span class="n">ChannelList</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;Anc350Axis&quot;</span><span class="p">,</span> <span class="n">Anc350Axis</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">nr</span><span class="p">,</span> <span class="n">axis</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">([</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">]):</span>
+            <span class="n">axis_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">axis</span><span class="si">}</span><span class="s2">_axis&quot;</span>
+            <span class="n">axischannel</span> <span class="o">=</span> <span class="n">Anc350Axis</span><span class="p">(</span><span class="n">parent</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">axis_name</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">nr</span><span class="p">)</span>
+            <span class="n">axischannels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">axischannel</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_submodule</span><span class="p">(</span><span class="n">axis_name</span><span class="p">,</span> <span class="n">axischannel</span><span class="p">)</span>
+        <span class="n">axischannels</span><span class="o">.</span><span class="n">lock</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_submodule</span><span class="p">(</span><span class="s2">&quot;axis_channels&quot;</span><span class="p">,</span> <span class="n">axischannels</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ANC350.close">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.html#qcodes_contrib_drivers.drivers.Attocube.ANC350.ANC350.close">[docs]</a>
+    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Closes the connection to the device. The device handle becomes invalid.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">disconnect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_device_handle</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="ANC350.save_params">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.html#qcodes_contrib_drivers.drivers.Attocube.ANC350.ANC350.save_params">[docs]</a>
+    <span class="k">def</span> <span class="nf">save_params</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Saves parameters to persistent flash memory in the device. They will be present as defaults</span>
+<span class="sd">        after the next power-on.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">save_params</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_device_handle</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ANC350.get_idn">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.html#qcodes_contrib_drivers.drivers.Attocube.ANC350.ANC350.get_idn">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_idn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns a dictionary with information about the device</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A dictionary containing vendor, model, serial number and firmware version</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">serial</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">get_device_info</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_device_no</span><span class="p">)[</span><span class="mi">2</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;vendor&quot;</span><span class="p">:</span> <span class="s2">&quot;Attocube&quot;</span><span class="p">,</span> <span class="s2">&quot;model&quot;</span><span class="p">:</span> <span class="s2">&quot;ANC350&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;serial&quot;</span><span class="p">:</span> <span class="n">serial</span><span class="p">,</span> <span class="s2">&quot;firmware&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_version_no</span><span class="p">)}</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, QCoDeS Users.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

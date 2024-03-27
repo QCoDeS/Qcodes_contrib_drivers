@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.interface &mdash; qcodes_contrib_drivers 0.22.0.dev63+main.g134f064 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../../_static/documentation_options.js?v=159198be"></script>
+        <script src="../../../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../../index.html" class="icon icon-home">
+            qcodes_contrib_drivers
+          </a>
+              <div class="version">
+                0.22.0.dev63+main.g134f064
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../examples/index.html">Examples of how to use drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../../index.html">qcodes_contrib_drivers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.interface</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.interface</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Collection of shared classes used by multiple versions of ANC350Lib</span>
+
+<span class="sd">Author:</span>
+<span class="sd">    Lukas Lankes, Forschungszentrum Jülich GmbH / ZEA-2, l.lankes@fz-juelich.de</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
+<span class="kn">from</span> <span class="nn">enum</span> <span class="kn">import</span> <span class="n">IntEnum</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;ANC350LibError&quot;</span><span class="p">,</span> <span class="s2">&quot;ANC350LibDeviceType&quot;</span><span class="p">,</span> <span class="s2">&quot;ANC350LibExternalTriggerMode&quot;</span><span class="p">,</span>
+           <span class="s2">&quot;ANC350LibTriggerPolarity&quot;</span><span class="p">,</span> <span class="s2">&quot;ANC350LibActuatorType&quot;</span><span class="p">,</span> <span class="s2">&quot;ANC350LibAmplitudeControlMode&quot;</span><span class="p">,</span>
+           <span class="s2">&quot;ANC350LibSignalEdge&quot;</span><span class="p">,</span> <span class="s2">&quot;ANC350LibTriggerInputMode&quot;</span><span class="p">,</span> <span class="s2">&quot;ANC350LibTriggerOutputMode&quot;</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="ANC350LibError">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.html#qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.interface.ANC350LibError">[docs]</a>
+<span class="k">class</span> <span class="nc">ANC350LibError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">,</span> <span class="n">ABC</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for exceptions occurring in ANC350v?Lib-classes</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        message: Error message</span>
+<span class="sd">        code: Error code from dll (or None)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">SUCCESS_CODES</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">WARNING_CODES</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+<div class="viewcode-block" id="ANC350LibError.__init__">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.html#qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.interface.ANC350LibError.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">code</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create instance of ``ANC350LibError``</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            message: Error message</span>
+<span class="sd">            code: Error code from dll</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">code</span> <span class="o">=</span> <span class="n">code</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">message</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_code_message</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="n">message</span><span class="p">)</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">message</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ANC350LibError.check_error">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.html#qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.interface.ANC350LibError.check_error">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">check_error</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">code</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">function</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Checks the error code and raises an exception, if necessary</span>
+
+<span class="sd">        If the error code is in ``SUCCESS_CODES``, no exception is raises. Same applies if the code</span>
+<span class="sd">        is contained in ``WARNING_CODES``. Then, a warning is generated. If neither of both is the</span>
+<span class="sd">        case, an exception is generated based on the error code.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            code: Occurred error code</span>
+<span class="sd">            function: Dll-function that returned the error code</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            If code is not in ``SUCCESS_CODES`` or ``WARNING_CODES``, an ANC350LibError is raised</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">code</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">SUCCESS_CODES</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">function</span><span class="p">:</span>
+                <span class="n">function</span> <span class="o">=</span> <span class="s2">&quot;In function &quot;</span> <span class="o">+</span> <span class="n">function</span>
+            <span class="k">if</span> <span class="n">code</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">WARNING_CODES</span><span class="p">:</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">_process_code_message</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="n">function</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="bp">cls</span><span class="p">(</span><span class="n">function</span><span class="p">,</span> <span class="n">code</span><span class="p">)</span></div>
+
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">_process_code_message</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">code</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">message</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Converts error code and message into a more detailed error message</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            code: Occurred error code</span>
+<span class="sd">            message: Error message</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Detailed error message</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">message_out</span> <span class="o">=</span> <span class="s2">&quot;Error in ANC350Lib&quot;</span>
+        <span class="k">if</span> <span class="n">code</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">message_out</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot; (</span><span class="si">{</span><span class="n">code</span><span class="si">}</span><span class="s2">): &quot;</span>
+            <span class="n">message_out</span> <span class="o">+=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_get_message_for_code</span><span class="p">(</span><span class="n">code</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">&quot;Unknown error&quot;</span>
+        <span class="k">if</span> <span class="n">message</span><span class="p">:</span>
+            <span class="n">message_out</span> <span class="o">+=</span> <span class="s2">&quot;: &quot;</span> <span class="o">+</span> <span class="n">message</span>
+
+        <span class="k">return</span> <span class="n">message_out</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">_get_message_for_code</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">code</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Override this function to convert return codes into error messages</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            code: Occurred error code</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Corresponding error message for code</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="ANC350LibDeviceType">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.html#qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.interface.ANC350LibDeviceType">[docs]</a>
+<span class="k">class</span> <span class="nc">ANC350LibDeviceType</span><span class="p">(</span><span class="n">IntEnum</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;An enumeration for possible values of the return value&#39;s first component in</span>
+<span class="sd">    ``ANC350v3Lib.get_device_info`` and ``ANC350v4Lib.get_device_info``&quot;&quot;&quot;</span>
+    <span class="n">Res</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># RES sensors</span>
+    <span class="n">Num</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1"># NUM sensors</span>
+    <span class="n">Fps</span> <span class="o">=</span> <span class="mi">2</span>  <span class="c1"># FPS sensors</span>
+    <span class="n">Nothing</span> <span class="o">=</span> <span class="mi">3</span>  <span class="c1"># No device / invalid</span></div>
+
+
+
+<div class="viewcode-block" id="ANC350LibExternalTriggerMode">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.html#qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.interface.ANC350LibExternalTriggerMode">[docs]</a>
+<span class="k">class</span> <span class="nc">ANC350LibExternalTriggerMode</span><span class="p">(</span><span class="n">IntEnum</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;An enumeration for possible values of parameter &quot;mode&quot; in</span>
+<span class="sd">    ``ANC350v3Lib.configure_ext_trigger`` and ``ANC350v4Lib.configure_ext_trigger``.&quot;&quot;&quot;</span>
+    <span class="n">Disable</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">Quadrature</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">Trigger</span> <span class="o">=</span> <span class="mi">2</span></div>
+
+
+
+<div class="viewcode-block" id="ANC350LibTriggerPolarity">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.html#qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.interface.ANC350LibTriggerPolarity">[docs]</a>
+<span class="k">class</span> <span class="nc">ANC350LibTriggerPolarity</span><span class="p">(</span><span class="n">IntEnum</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;An enumeration for possible values of parameter &quot;polarity&quot; in</span>
+<span class="sd">    ``ANC350v2Lib.set_trigger_polarity``, ``ANC350v3Lib.configure_rng_trigger_pol`` and</span>
+<span class="sd">    ``ANC350v4Lib.configure_rng_trigger_pol``.&quot;&quot;&quot;</span>
+    <span class="n">Low</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">High</span> <span class="o">=</span> <span class="mi">1</span></div>
+
+
+
+<div class="viewcode-block" id="ANC350LibActuatorType">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.html#qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.interface.ANC350LibActuatorType">[docs]</a>
+<span class="k">class</span> <span class="nc">ANC350LibActuatorType</span><span class="p">(</span><span class="n">IntEnum</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;An enumeration of possible return values ``ANC350v3Lib.get_actuator_type`` and</span>
+<span class="sd">    ``ANC350v4Lib.get_actuator_type``.&quot;&quot;&quot;</span>
+    <span class="n">Linear</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># Actuator is of linear type</span>
+    <span class="n">Goniometer</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1"># Actuator is of goniometer type</span>
+    <span class="n">Rotator</span> <span class="o">=</span> <span class="mi">2</span>  <span class="c1"># Actuator is of rotator type</span></div>
+
+
+
+<div class="viewcode-block" id="ANC350LibAmplitudeControlMode">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.html#qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.interface.ANC350LibAmplitudeControlMode">[docs]</a>
+<span class="k">class</span> <span class="nc">ANC350LibAmplitudeControlMode</span><span class="p">(</span><span class="n">IntEnum</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;An enumeration for possible values of parameter &quot;mode&quot; in</span>
+<span class="sd">    ``ANC350v2Lib.set_amplitude_control_mode``.&quot;&quot;&quot;</span>
+    <span class="n">Speed</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">Amplitude</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">StepSize</span> <span class="o">=</span> <span class="mi">2</span></div>
+
+
+
+<div class="viewcode-block" id="ANC350LibSignalEdge">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.html#qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.interface.ANC350LibSignalEdge">[docs]</a>
+<span class="k">class</span> <span class="nc">ANC350LibSignalEdge</span><span class="p">(</span><span class="n">IntEnum</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;An enumeration for possible values of parameter &quot;edge&quot; in</span>
+<span class="sd">    ``ANC350v2Lib.set_external_step_input_edge``.&quot;&quot;&quot;</span>
+    <span class="n">Rising</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">Falling</span> <span class="o">=</span> <span class="mi">1</span></div>
+
+
+
+<div class="viewcode-block" id="ANC350LibTriggerInputMode">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.html#qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.interface.ANC350LibTriggerInputMode">[docs]</a>
+<span class="k">class</span> <span class="nc">ANC350LibTriggerInputMode</span><span class="p">(</span><span class="n">IntEnum</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;An enumeration for possible values of parameter &quot;mode&quot; in</span>
+<span class="sd">    ``ANC350v2Lib.set_input_trigger_mode``.&quot;&quot;&quot;</span>
+    <span class="n">Disable</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># The inputs don’t trigger anything</span>
+    <span class="n">Quadratur</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1"># Three pairs of trigger in signals are used to accept AB-Signals for relative positioning</span>
+    <span class="n">Coarse</span> <span class="o">=</span> <span class="mi">2</span>  <span class="c1"># The trigger in signals are used to generate coarse steps</span></div>
+
+
+
+<div class="viewcode-block" id="ANC350LibTriggerOutputMode">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.html#qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.interface.ANC350LibTriggerOutputMode">[docs]</a>
+<span class="k">class</span> <span class="nc">ANC350LibTriggerOutputMode</span><span class="p">(</span><span class="n">IntEnum</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;An enumeration for possible values of parameter &quot;mode&quot; in</span>
+<span class="sd">    ``ANC350v2Lib.set_output_trigger_mode``.&quot;&quot;&quot;</span>
+    <span class="n">Disable</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># The inputs don’t trigger anything</span>
+    <span class="n">Position</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1"># The Trigger Outputs reacts to the defined position ranges with the selected polarity</span>
+    <span class="n">Quadratur</span> <span class="o">=</span> <span class="mi">2</span>  <span class="c1"># Three pairs of trigger out signals are used to signal relative movement as AB-signals</span>
+    <span class="n">IcHaus</span> <span class="o">=</span> <span class="mi">3</span>  <span class="c1"># The trigger out signals are used to output the internal position signal of num-sensors</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, QCoDeS Users.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

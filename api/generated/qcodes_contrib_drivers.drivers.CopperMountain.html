@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>qcodes_contrib_drivers.drivers.CopperMountain package &mdash; qcodes_contrib_drivers 0.22.0.dev63+main.g134f064 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/documentation_options.js?v=159198be"></script>
+        <script src="../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="qcodes_contrib_drivers.drivers.Cryocon package" href="qcodes_contrib_drivers.drivers.Cryocon.html" />
+    <link rel="prev" title="qcodes_contrib_drivers.drivers.BlueFors package" href="qcodes_contrib_drivers.drivers.BlueFors.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            qcodes_contrib_drivers
+          </a>
+              <div class="version">
+                0.22.0.dev63+main.g134f064
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../examples/index.html">Examples of how to use drivers</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="qcodes_contrib_drivers.drivers.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Advantech.html">qcodes_contrib_drivers.drivers.Advantech package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Agilent.html">qcodes_contrib_drivers.drivers.Agilent package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.AimTTi.html">qcodes_contrib_drivers.drivers.AimTTi package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Ametek.html">qcodes_contrib_drivers.drivers.Ametek package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Andor.html">qcodes_contrib_drivers.drivers.Andor package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Attocube.html">qcodes_contrib_drivers.drivers.Attocube package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Aviosys.html">qcodes_contrib_drivers.drivers.Aviosys package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Bilt.html">qcodes_contrib_drivers.drivers.Bilt package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.BlueFors.html">qcodes_contrib_drivers.drivers.BlueFors package</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">qcodes_contrib_drivers.drivers.CopperMountain package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-qcodes_contrib_drivers.drivers.CopperMountain.M5180">qcodes_contrib_drivers.drivers.CopperMountain.M5180 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-qcodes_contrib_drivers.drivers.CopperMountain.S5048">qcodes_contrib_drivers.drivers.CopperMountain.S5048 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-qcodes_contrib_drivers.drivers.CopperMountain">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Cryocon.html">qcodes_contrib_drivers.drivers.Cryocon package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Cryogenic.html">qcodes_contrib_drivers.drivers.Cryogenic package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.DaylightSolutions.html">qcodes_contrib_drivers.drivers.DaylightSolutions package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.ERAInstruments.html">qcodes_contrib_drivers.drivers.ERAInstruments package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.GeneralMicrowave.html">qcodes_contrib_drivers.drivers.GeneralMicrowave package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Gentec.html">qcodes_contrib_drivers.drivers.Gentec package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Holzworth.html">qcodes_contrib_drivers.drivers.Holzworth package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Horiba.html">qcodes_contrib_drivers.drivers.Horiba package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.html">qcodes_contrib_drivers.drivers.Keysight package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Lakeshore.html">qcodes_contrib_drivers.drivers.Lakeshore package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.LighthousePhotonics.html">qcodes_contrib_drivers.drivers.LighthousePhotonics package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.M2.html">qcodes_contrib_drivers.drivers.M2 package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.MontanaInstruments.html">qcodes_contrib_drivers.drivers.MontanaInstruments package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.NationalInstruments.html">qcodes_contrib_drivers.drivers.NationalInstruments package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Newport.html">qcodes_contrib_drivers.drivers.Newport package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Oxford.html">qcodes_contrib_drivers.drivers.Oxford package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.QDevil.html">qcodes_contrib_drivers.drivers.QDevil package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.QuTech.html">qcodes_contrib_drivers.drivers.QuTech package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.RohdeSchwarz.html">qcodes_contrib_drivers.drivers.RohdeSchwarz package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Shamrock.html">qcodes_contrib_drivers.drivers.Shamrock package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.SignalCore.html">qcodes_contrib_drivers.drivers.SignalCore package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.SingleQuantum.html">qcodes_contrib_drivers.drivers.SingleQuantum package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Spectrum.html">qcodes_contrib_drivers.drivers.Spectrum package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Standa.html">qcodes_contrib_drivers.drivers.Standa package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.StanfordResearchSystems.html">qcodes_contrib_drivers.drivers.StanfordResearchSystems package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Tektronix.html">qcodes_contrib_drivers.drivers.Tektronix package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Thermotek.html">qcodes_contrib_drivers.drivers.Thermotek package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Thorlabs.html">qcodes_contrib_drivers.drivers.Thorlabs package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Valon.html">qcodes_contrib_drivers.drivers.Valon package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Vaunix.html">qcodes_contrib_drivers.drivers.Vaunix package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.ZurichInstruments.html">qcodes_contrib_drivers.drivers.ZurichInstruments package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.html#module-qcodes_contrib_drivers.drivers.CMTS5048">qcodes_contrib_drivers.drivers.CMTS5048 module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.html#module-qcodes_contrib_drivers.drivers">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">qcodes_contrib_drivers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a></li>
+      <li class="breadcrumb-item active">qcodes_contrib_drivers.drivers.CopperMountain package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/api/generated/qcodes_contrib_drivers.drivers.CopperMountain.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="qcodes-contrib-drivers-drivers-coppermountain-package">
+<h1>qcodes_contrib_drivers.drivers.CopperMountain package<a class="headerlink" href="#qcodes-contrib-drivers-drivers-coppermountain-package" title="Link to this heading">¶</a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">¶</a></h2>
+</section>
+<section id="module-qcodes_contrib_drivers.drivers.CopperMountain.M5180">
+<span id="qcodes-contrib-drivers-drivers-coppermountain-m5180-module"></span><h2>qcodes_contrib_drivers.drivers.CopperMountain.M5180 module<a class="headerlink" href="#module-qcodes_contrib_drivers.drivers.CopperMountain.M5180" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.CopperMountain.M5180.FrequencySweepMagPhase">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.CopperMountain.M5180.</span></span><span class="sig-name descname"><span class="pre">FrequencySweepMagPhase</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#float" title="(in Python v3.10)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#float" title="(in Python v3.10)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">npts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">instrument</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#qcodes_contrib_drivers.drivers.CopperMountain.M5180.M5180" title="qcodes_contrib_drivers.drivers.CopperMountain.M5180.M5180"><span class="pre">M5180</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/CopperMountain/M5180.html#FrequencySweepMagPhase"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.CopperMountain.M5180.FrequencySweepMagPhase" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://microsoft.github.io/Qcodes/api/parameters/index.html#qcodes.parameters.MultiParameter" title="(in QCoDeS v0.45.0.dev442+main.gb11f8ac34)"><code class="xref py py-class docutils literal notranslate"><span class="pre">MultiParameter</span></code></a></p>
+<p>Sweep that returns magnitude and phase.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.CopperMountain.M5180.FrequencySweepMagPhase.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#float" title="(in Python v3.10)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#float" title="(in Python v3.10)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">npts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">instrument</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#qcodes_contrib_drivers.drivers.CopperMountain.M5180.M5180" title="qcodes_contrib_drivers.drivers.CopperMountain.M5180.M5180"><span class="pre">M5180</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/CopperMountain/M5180.html#FrequencySweepMagPhase.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.CopperMountain.M5180.FrequencySweepMagPhase.__init__" title="Link to this definition">¶</a></dt>
+<dd><p>Linear frequency sweep that returns magnitude and phase for a single
+trace.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – Name of the linear frequency sweep</p></li>
+<li><p><strong>start</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a>) – Start frequency of linear sweep</p></li>
+<li><p><strong>stop</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a>) – Stop frequency of linear sweep</p></li>
+<li><p><strong>npts</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – Number of points of linear sweep</p></li>
+<li><p><strong>instrument</strong> – Instrument to which sweep is bound to.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.CopperMountain.M5180.FrequencySweepMagPhase.get_raw">
+<span class="sig-name descname"><span class="pre">get_raw</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Tuple" title="(in Python v3.10)"><span class="pre">Tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/CopperMountain/M5180.html#FrequencySweepMagPhase.get_raw"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.CopperMountain.M5180.FrequencySweepMagPhase.get_raw" title="Link to this definition">¶</a></dt>
+<dd><p>Gets data from instrument</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>magnitude, phase</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Tuple[ParamRawDataType, …]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.CopperMountain.M5180.FrequencySweepMagPhase.set_sweep">
+<span class="sig-name descname"><span class="pre">set_sweep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#float" title="(in Python v3.10)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#float" title="(in Python v3.10)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">npts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/CopperMountain/M5180.html#FrequencySweepMagPhase.set_sweep"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.CopperMountain.M5180.FrequencySweepMagPhase.set_sweep" title="Link to this definition">¶</a></dt>
+<dd><p>Updates the setpoints and shapes based on start, stop and npts.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>start</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a>) – start frequency</p></li>
+<li><p><strong>stop</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a>) – stop frequency</p></li>
+<li><p><strong>npts</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – number of points</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.CopperMountain.M5180.M5180">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.CopperMountain.M5180.</span></span><span class="sig-name descname"><span class="pre">M5180</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/CopperMountain/M5180.html#M5180"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.CopperMountain.M5180.M5180" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://microsoft.github.io/Qcodes/api/instrument/index.html#qcodes.instrument.VisaInstrument" title="(in QCoDeS v0.45.0.dev442+main.gb11f8ac34)"><code class="xref py py-class docutils literal notranslate"><span class="pre">VisaInstrument</span></code></a></p>
+<p>This is the QCoDeS python driver for the VNA M5180 from Copper Mountain</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.CopperMountain.M5180.M5180.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">address</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">terminator</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'\n'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">100000</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/CopperMountain/M5180.html#M5180.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.CopperMountain.M5180.M5180.__init__" title="Link to this definition">¶</a></dt>
+<dd><p>QCoDeS driver for the VNA M5180 from Copper Mountain.
+This driver only uses one channel.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – Name of the instrument.</p></li>
+<li><p><strong>address</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – Address of the instrument.</p></li>
+<li><p><strong>terminator</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – Terminator character of
+the string reply. Optional, default <code class="docutils literal notranslate"><span class="pre">&quot;\n&quot;</span></code></p></li>
+<li><p><strong>timeout</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – VISA timeout is set purposely
+to a long time to allow long spectrum measurement.
+Optional, default 100000</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.CopperMountain.M5180.M5180.get_s">
+<span class="sig-name descname"><span class="pre">get_s</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Tuple" title="(in Python v3.10)"><span class="pre">Tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.26)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.26)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.26)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.26)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.26)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.26)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.26)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.26)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.26)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/CopperMountain/M5180.html#M5180.get_s"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.CopperMountain.M5180.M5180.get_s" title="Link to this definition">¶</a></dt>
+<dd><p>Return all S parameters as magnitude in dB and phase in rad.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>frequency [GHz],
+s11 magnitude [dB], s11 phase [rad],
+s12 magnitude [dB], s12 phase [rad],
+s21 magnitude [dB], s21 phase [rad],
+s22 magnitude [dB], s22 phase [rad]</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Tuple[np.ndarray]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.CopperMountain.M5180.M5180.reset_averages">
+<span class="sig-name descname"><span class="pre">reset_averages</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/CopperMountain/M5180.html#M5180.reset_averages"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.CopperMountain.M5180.M5180.reset_averages" title="Link to this definition">¶</a></dt>
+<dd><p>Resets average count to 0</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.CopperMountain.M5180.M5180.update_lin_traces">
+<span class="sig-name descname"><span class="pre">update_lin_traces</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/CopperMountain/M5180.html#M5180.update_lin_traces"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.CopperMountain.M5180.M5180.update_lin_traces" title="Link to this definition">¶</a></dt>
+<dd><p>Updates start, stop and npts of all trace parameters so that the
+setpoints and shape are updated for the sweep.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.CopperMountain.M5180.PointIQ">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.CopperMountain.M5180.</span></span><span class="sig-name descname"><span class="pre">PointIQ</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">instrument</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#qcodes_contrib_drivers.drivers.CopperMountain.M5180.M5180" title="qcodes_contrib_drivers.drivers.CopperMountain.M5180.M5180"><span class="pre">M5180</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/CopperMountain/M5180.html#PointIQ"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.CopperMountain.M5180.PointIQ" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://microsoft.github.io/Qcodes/api/parameters/index.html#qcodes.parameters.MultiParameter" title="(in QCoDeS v0.45.0.dev442+main.gb11f8ac34)"><code class="xref py py-class docutils literal notranslate"><span class="pre">MultiParameter</span></code></a></p>
+<p>Returns the average Sxx of a frequency sweep, in terms of I and Q.
+Work around for a CW mode where only one point is read.
+npts=2 and stop = start + 1 (in Hz) is required.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.CopperMountain.M5180.PointIQ.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">instrument</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#qcodes_contrib_drivers.drivers.CopperMountain.M5180.M5180" title="qcodes_contrib_drivers.drivers.CopperMountain.M5180.M5180"><span class="pre">M5180</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/CopperMountain/M5180.html#PointIQ.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.CopperMountain.M5180.PointIQ.__init__" title="Link to this definition">¶</a></dt>
+<dd><p>I and Q measurement of a single point at start
+frequency.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – Name of point measurement</p></li>
+<li><p><strong>instrument</strong> – Instrument to which parameter is bound to.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.CopperMountain.M5180.PointIQ.get_raw">
+<span class="sig-name descname"><span class="pre">get_raw</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Tuple" title="(in Python v3.10)"><span class="pre">Tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/CopperMountain/M5180.html#PointIQ.get_raw"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.CopperMountain.M5180.PointIQ.get_raw" title="Link to this definition">¶</a></dt>
+<dd><p>Gets data from instrument</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>I, Q</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Tuple[ParamRawDataType, …]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.CopperMountain.M5180.PointMagPhase">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.CopperMountain.M5180.</span></span><span class="sig-name descname"><span class="pre">PointMagPhase</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">instrument</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#qcodes_contrib_drivers.drivers.CopperMountain.M5180.M5180" title="qcodes_contrib_drivers.drivers.CopperMountain.M5180.M5180"><span class="pre">M5180</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/CopperMountain/M5180.html#PointMagPhase"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.CopperMountain.M5180.PointMagPhase" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://microsoft.github.io/Qcodes/api/parameters/index.html#qcodes.parameters.MultiParameter" title="(in QCoDeS v0.45.0.dev442+main.gb11f8ac34)"><code class="xref py py-class docutils literal notranslate"><span class="pre">MultiParameter</span></code></a></p>
+<p>Returns the average Sxx of a frequency sweep.
+Work around for a CW mode where only one point is read.
+npts=2 and stop = start + 1 (in Hz) is required.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.CopperMountain.M5180.PointMagPhase.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">instrument</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#qcodes_contrib_drivers.drivers.CopperMountain.M5180.M5180" title="qcodes_contrib_drivers.drivers.CopperMountain.M5180.M5180"><span class="pre">M5180</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/CopperMountain/M5180.html#PointMagPhase.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.CopperMountain.M5180.PointMagPhase.__init__" title="Link to this definition">¶</a></dt>
+<dd><p>Magnitude and phase measurement of a single point at start
+frequency.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – Name of point measurement</p></li>
+<li><p><strong>instrument</strong> – Instrument to which parameter is bound to.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.CopperMountain.M5180.PointMagPhase.get_raw">
+<span class="sig-name descname"><span class="pre">get_raw</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Tuple" title="(in Python v3.10)"><span class="pre">Tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/CopperMountain/M5180.html#PointMagPhase.get_raw"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.CopperMountain.M5180.PointMagPhase.get_raw" title="Link to this definition">¶</a></dt>
+<dd><p>Gets data from instrument</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>magnitude, phase</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Tuple[ParamRawDataType, …]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-qcodes_contrib_drivers.drivers.CopperMountain.S5048">
+<span id="qcodes-contrib-drivers-drivers-coppermountain-s5048-module"></span><h2>qcodes_contrib_drivers.drivers.CopperMountain.S5048 module<a class="headerlink" href="#module-qcodes_contrib_drivers.drivers.CopperMountain.S5048" title="Link to this heading">¶</a></h2>
+<dl class="py exception">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.CopperMountain.S5048.TraceNotReady">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.CopperMountain.S5048.</span></span><span class="sig-name descname"><span class="pre">TraceNotReady</span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/CopperMountain/S5048.html#TraceNotReady"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.CopperMountain.S5048.TraceNotReady" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3.10/library/exceptions.html#Exception" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.CopperMountain.S5048.CMTS5048">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.CopperMountain.S5048.</span></span><span class="sig-name descname"><span class="pre">CMTS5048</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/CopperMountain/S5048.html#CMTS5048"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.CopperMountain.S5048.CMTS5048" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://microsoft.github.io/Qcodes/api/instrument/index.html#qcodes.instrument.VisaInstrument" title="(in QCoDeS v0.45.0.dev442+main.gb11f8ac34)"><code class="xref py py-class docutils literal notranslate"><span class="pre">VisaInstrument</span></code></a></p>
+<p>This is the QCoDeS driver for the S5048 Network Analyzer</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.CopperMountain.S5048.CMTS5048.invalidate_trace">
+<span class="sig-name descname"><span class="pre">invalidate_trace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cmd</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#float" title="(in Python v3.10)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/CopperMountain/S5048.html#CMTS5048.invalidate_trace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.CopperMountain.S5048.CMTS5048.invalidate_trace" title="Link to this definition">¶</a></dt>
+<dd><p>Wrapper for set_cmds that make the trace not ready</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.CopperMountain.S5048.CMTS5048.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/CopperMountain/S5048.html#CMTS5048.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.CopperMountain.S5048.CMTS5048.reset" title="Link to this definition">¶</a></dt>
+<dd><p>Resets the instrument to factory default state</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.CopperMountain.S5048.CMTS5048.run_N_times">
+<span class="sig-name descname"><span class="pre">run_N_times</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">N</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/CopperMountain/S5048.html#CMTS5048.run_N_times"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.CopperMountain.S5048.CMTS5048.run_N_times" title="Link to this definition">¶</a></dt>
+<dd><p>Run N sweeps and then hold. We wait for a response before returning</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.CopperMountain.S5048.CMTS5048.run_continously">
+<span class="sig-name descname"><span class="pre">run_continously</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/CopperMountain/S5048.html#CMTS5048.run_continously"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.CopperMountain.S5048.CMTS5048.run_continously" title="Link to this definition">¶</a></dt>
+<dd><p>Set the instrument in run continously mode</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.CopperMountain.S5048.CMTS5048.startup">
+<span class="sig-name descname"><span class="pre">startup</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/CopperMountain/S5048.html#CMTS5048.startup"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.CopperMountain.S5048.CMTS5048.startup" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.CopperMountain.S5048.CMTS5048Trace">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.CopperMountain.S5048.</span></span><span class="sig-name descname"><span class="pre">CMTS5048Trace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instrument</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/CopperMountain/S5048.html#CMTS5048Trace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.CopperMountain.S5048.CMTS5048Trace" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://microsoft.github.io/Qcodes/api/parameters/index.html#qcodes.parameters.ArrayParameter" title="(in QCoDeS v0.45.0.dev442+main.gb11f8ac34)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ArrayParameter</span></code></a></p>
+<p>Class to hold a the trace from the S5048 network analyzer</p>
+<p>Although the trace can have two values per frequency, this
+class only returns the first value</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.CopperMountain.S5048.CMTS5048Trace.get_raw">
+<span class="sig-name descname"><span class="pre">get_raw</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/CopperMountain/S5048.html#CMTS5048Trace.get_raw"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.CopperMountain.S5048.CMTS5048Trace.get_raw" title="Link to this definition">¶</a></dt>
+<dd><p>Return the trace</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.CopperMountain.S5048.CMTS5048Trace.prepare_trace">
+<span class="sig-name descname"><span class="pre">prepare_trace</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/CopperMountain/S5048.html#CMTS5048Trace.prepare_trace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.CopperMountain.S5048.CMTS5048Trace.prepare_trace" title="Link to this definition">¶</a></dt>
+<dd><p>Update setpoints, units and labels</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.CopperMountain.S5048.CMTIntParser">
+<span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.CopperMountain.S5048.</span></span><span class="sig-name descname"><span class="pre">CMTIntParser</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/CopperMountain/S5048.html#CMTIntParser"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.CopperMountain.S5048.CMTIntParser" title="Link to this definition">¶</a></dt>
+<dd><p>Small custom parser for ints</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>value</strong> – the VISA return string using exponential notation</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-qcodes_contrib_drivers.drivers.CopperMountain">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-qcodes_contrib_drivers.drivers.CopperMountain" title="Link to this heading">¶</a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="qcodes_contrib_drivers.drivers.BlueFors.html" class="btn btn-neutral float-left" title="qcodes_contrib_drivers.drivers.BlueFors package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="qcodes_contrib_drivers.drivers.Cryocon.html" class="btn btn-neutral float-right" title="qcodes_contrib_drivers.drivers.Cryocon package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, QCoDeS Users.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

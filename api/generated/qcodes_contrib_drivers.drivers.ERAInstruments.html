@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>qcodes_contrib_drivers.drivers.ERAInstruments package &mdash; qcodes_contrib_drivers 0.22.0.dev63+main.g134f064 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/documentation_options.js?v=159198be"></script>
+        <script src="../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="qcodes_contrib_drivers.drivers.GeneralMicrowave package" href="qcodes_contrib_drivers.drivers.GeneralMicrowave.html" />
+    <link rel="prev" title="qcodes_contrib_drivers.drivers.DaylightSolutions package" href="qcodes_contrib_drivers.drivers.DaylightSolutions.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            qcodes_contrib_drivers
+          </a>
+              <div class="version">
+                0.22.0.dev63+main.g134f064
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../examples/index.html">Examples of how to use drivers</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="qcodes_contrib_drivers.drivers.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Advantech.html">qcodes_contrib_drivers.drivers.Advantech package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Agilent.html">qcodes_contrib_drivers.drivers.Agilent package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.AimTTi.html">qcodes_contrib_drivers.drivers.AimTTi package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Ametek.html">qcodes_contrib_drivers.drivers.Ametek package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Andor.html">qcodes_contrib_drivers.drivers.Andor package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Attocube.html">qcodes_contrib_drivers.drivers.Attocube package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Aviosys.html">qcodes_contrib_drivers.drivers.Aviosys package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Bilt.html">qcodes_contrib_drivers.drivers.Bilt package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.BlueFors.html">qcodes_contrib_drivers.drivers.BlueFors package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.CopperMountain.html">qcodes_contrib_drivers.drivers.CopperMountain package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Cryocon.html">qcodes_contrib_drivers.drivers.Cryocon package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Cryogenic.html">qcodes_contrib_drivers.drivers.Cryogenic package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.DaylightSolutions.html">qcodes_contrib_drivers.drivers.DaylightSolutions package</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">qcodes_contrib_drivers.drivers.ERAInstruments package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-qcodes_contrib_drivers.drivers.ERAInstruments.erasynth">qcodes_contrib_drivers.drivers.ERAInstruments.erasynth module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-qcodes_contrib_drivers.drivers.ERAInstruments">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.GeneralMicrowave.html">qcodes_contrib_drivers.drivers.GeneralMicrowave package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Gentec.html">qcodes_contrib_drivers.drivers.Gentec package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Holzworth.html">qcodes_contrib_drivers.drivers.Holzworth package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Horiba.html">qcodes_contrib_drivers.drivers.Horiba package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.html">qcodes_contrib_drivers.drivers.Keysight package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Lakeshore.html">qcodes_contrib_drivers.drivers.Lakeshore package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.LighthousePhotonics.html">qcodes_contrib_drivers.drivers.LighthousePhotonics package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.M2.html">qcodes_contrib_drivers.drivers.M2 package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.MontanaInstruments.html">qcodes_contrib_drivers.drivers.MontanaInstruments package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.NationalInstruments.html">qcodes_contrib_drivers.drivers.NationalInstruments package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Newport.html">qcodes_contrib_drivers.drivers.Newport package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Oxford.html">qcodes_contrib_drivers.drivers.Oxford package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.QDevil.html">qcodes_contrib_drivers.drivers.QDevil package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.QuTech.html">qcodes_contrib_drivers.drivers.QuTech package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.RohdeSchwarz.html">qcodes_contrib_drivers.drivers.RohdeSchwarz package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Shamrock.html">qcodes_contrib_drivers.drivers.Shamrock package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.SignalCore.html">qcodes_contrib_drivers.drivers.SignalCore package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.SingleQuantum.html">qcodes_contrib_drivers.drivers.SingleQuantum package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Spectrum.html">qcodes_contrib_drivers.drivers.Spectrum package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Standa.html">qcodes_contrib_drivers.drivers.Standa package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.StanfordResearchSystems.html">qcodes_contrib_drivers.drivers.StanfordResearchSystems package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Tektronix.html">qcodes_contrib_drivers.drivers.Tektronix package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Thermotek.html">qcodes_contrib_drivers.drivers.Thermotek package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Thorlabs.html">qcodes_contrib_drivers.drivers.Thorlabs package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Valon.html">qcodes_contrib_drivers.drivers.Valon package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Vaunix.html">qcodes_contrib_drivers.drivers.Vaunix package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.ZurichInstruments.html">qcodes_contrib_drivers.drivers.ZurichInstruments package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.html#module-qcodes_contrib_drivers.drivers.CMTS5048">qcodes_contrib_drivers.drivers.CMTS5048 module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.html#module-qcodes_contrib_drivers.drivers">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">qcodes_contrib_drivers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a></li>
+      <li class="breadcrumb-item active">qcodes_contrib_drivers.drivers.ERAInstruments package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/api/generated/qcodes_contrib_drivers.drivers.ERAInstruments.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="qcodes-contrib-drivers-drivers-erainstruments-package">
+<h1>qcodes_contrib_drivers.drivers.ERAInstruments package<a class="headerlink" href="#qcodes-contrib-drivers-drivers-erainstruments-package" title="Link to this heading">¶</a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">¶</a></h2>
+</section>
+<section id="module-qcodes_contrib_drivers.drivers.ERAInstruments.erasynth">
+<span id="qcodes-contrib-drivers-drivers-erainstruments-erasynth-module"></span><h2>qcodes_contrib_drivers.drivers.ERAInstruments.erasynth module<a class="headerlink" href="#module-qcodes_contrib_drivers.drivers.ERAInstruments.erasynth" title="Link to this heading">¶</a></h2>
+<p>Driver for the ERASynth/ERASynth+/ERASynth++ signal generators.</p>
+<p>Author: Victor Negîrneac, <a class="reference external" href="mailto:vnegirneac&#37;&#52;&#48;qblox&#46;com">vnegirneac<span>&#64;</span>qblox<span>&#46;</span>com</a></p>
+<p>For official instrument support visit:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://erainstruments.com">https://erainstruments.com</a></p></li>
+<li><p><a class="reference external" href="https://github.com/erainstruments/">https://github.com/erainstruments/</a></p></li>
+</ul>
+<p>This module provides the following drivers:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynth" title="qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynth"><code class="xref py py-class docutils literal notranslate"><span class="pre">qcodes_contrib_drivers.drivers.ERAInstruments.ERASynth</span></code></a>,</p></li>
+<li><p><a class="reference internal" href="#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthPlus" title="qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthPlus"><code class="xref py py-class docutils literal notranslate"><span class="pre">qcodes_contrib_drivers.drivers.ERAInstruments.ERASynthPlus</span></code></a>, and</p></li>
+<li><p><a class="reference internal" href="#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthPlusPlus" title="qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthPlusPlus"><code class="xref py py-class docutils literal notranslate"><span class="pre">qcodes_contrib_drivers.drivers.ERAInstruments.ERASynthPlusPlus</span></code></a>.</p></li>
+</ul>
+<dl class="py class">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynth">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.</span></span><span class="sig-name descname"><span class="pre">ERASynth</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/ERAInstruments/erasynth.html#ERASynth"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynth" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase" title="qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">ERASynthBase</span></code></a></p>
+<p>Driver for the ERASynth model instrument.</p>
+<p>For ERASynth+/ERASynth++ see <code class="xref py py-class docutils literal notranslate"><span class="pre">EraSynthPlus</span></code>/<code class="xref py py-class docutils literal notranslate"><span class="pre">EraSynthPlusPlus</span></code>
+classes.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynth.reference_tcxo_ocxo">
+<span class="sig-name descname"><span class="pre">reference_tcxo_ocxo</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Parameter(</span> <span class="pre">name=&quot;reference_tcxo_ocxo&quot;,</span> <span class="pre">instrument=self,</span> <span class="pre">val_mapping={&quot;tcxo&quot;:</span> <span class="pre">&quot;0&quot;,</span> <span class="pre">&quot;ocxo&quot;:</span> <span class="pre">&quot;1&quot;},</span> <span class="pre">get_cmd=f&quot;RA:{_CMD_TO_JSON_MAPPING['P5']}&quot;,</span> <span class="pre">)</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynth.reference_tcxo_ocxo" title="Link to this definition">¶</a></dt>
+<dd><p>NB not tested if this parameter is available for the ERASynth model (&lt;6GHz)!</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.</span></span><span class="sig-name descname"><span class="pre">ERASynthBase</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/ERAInstruments/erasynth.html#ERASynthBase"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://microsoft.github.io/Qcodes/api/instrument/index.html#qcodes.instrument.VisaInstrument" title="(in QCoDeS v0.45.0.dev442+main.gb11f8ac34)"><code class="xref py py-class docutils literal notranslate"><span class="pre">VisaInstrument</span></code></a></p>
+<p>A Base class for the ERASynth/ERASynth+/ERASynth++ instruments.</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">qcodes</span> <span class="kn">import</span> <span class="n">Instrument</span>
+<span class="kn">from</span> <span class="nn">qcodes_contrib_drivers.drivers.ERAInstruments</span> <span class="kn">import</span> <span class="n">ERASynthPlus</span>
+
+<span class="c1"># list communication ports</span>
+<span class="n">ERASynthPlus</span><span class="o">.</span><span class="n">print_pyvisa_resources</span><span class="p">()</span>
+
+<span class="c1"># Instantiate the instrument</span>
+<span class="n">lo</span> <span class="o">=</span> <span class="n">ERASynthPlus</span><span class="p">(</span><span class="s2">&quot;ERASynthPlus&quot;</span><span class="p">,</span> <span class="s1">&#39;ASRL/dev/cu.usbmodem14101::INSTR&#39;</span><span class="p">)</span>
+
+<span class="n">lo</span><span class="o">.</span><span class="n">off</span><span class="p">()</span>  <span class="c1"># Turn off the output</span>
+
+<span class="c1"># print updated snapshot once to make sure the snapshot will be up-to-date</span>
+<span class="c1"># takes a few seconds</span>
+<span class="n">lo</span><span class="o">.</span><span class="n">print_readable_snapshot</span><span class="p">(</span><span class="n">update</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># Configure the local oscillator</span>
+<span class="n">lo</span><span class="o">.</span><span class="n">ref_osc_source</span><span class="p">(</span><span class="s2">&quot;int&quot;</span><span class="p">)</span>  <span class="c1"># Use internal reference</span>
+<span class="n">lo</span><span class="o">.</span><span class="n">frequency</span><span class="p">(</span><span class="mf">4.7e9</span><span class="p">)</span>
+<span class="n">lo</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>  <span class="c1"># Set the amplitude to 10 dBm</span>
+<span class="n">lo</span><span class="o">.</span><span class="n">on</span><span class="p">()</span>  <span class="c1"># Turn on the output</span>
+</pre></div>
+</div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p>The raw serial commands can be found here:
+<a class="reference external" href="https://github.com/erainstruments/erasynth-docs/blob/master/erasynth-command-list.pdf">https://github.com/erainstruments/erasynth-docs/blob/master/erasynth-command-list.pdf</a></p>
+<p><code class="docutils literal notranslate"><span class="pre">self.visa_handle</span></code> can be used to interact directly with the serial pyvisa
+communication.</p>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">address</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/ERAInstruments/erasynth.html#ERASynthBase.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.__init__" title="Link to this definition">¶</a></dt>
+<dd><p>Create an instance of the instrument.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> – Instrument name.</p></li>
+<li><p><strong>address</strong> – Used to connect to the instrument.
+Run <a class="reference internal" href="#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.print_pyvisa_resources" title="qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.print_pyvisa_resources"><code class="xref py py-meth docutils literal notranslate"><span class="pre">ERASynthBase.print_pyvisa_resources()</span></code></a> to list available list.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.ask">
+<span class="sig-name descname"><span class="pre">ask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cmd</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/ERAInstruments/erasynth.html#ERASynthBase.ask"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.ask" title="Link to this definition">¶</a></dt>
+<dd><p>Writes a command to the communication channel of the instrument and return
+the response.</p>
+<p>Commands are prefixed with <cite>“&gt;”</cite> as required by the ERASynth.</p>
+<p>NB the read buffer is discarded before and after reading one line.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.ask_raw">
+<span class="sig-name descname"><span class="pre">ask_raw</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cmd</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/ERAInstruments/erasynth.html#ERASynthBase.ask_raw"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.ask_raw" title="Link to this definition">¶</a></dt>
+<dd><p>Detects special commands for which the <cite>get_configuration</cite> will be used.</p>
+<p>This makes it convenient to not implement individual getters for most commands.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.clear_read_buffer">
+<span class="sig-name descname"><span class="pre">clear_read_buffer</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/ERAInstruments/erasynth.html#ERASynthBase.clear_read_buffer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.clear_read_buffer" title="Link to this definition">¶</a></dt>
+<dd><p>Clears the read buffer. The instrument often sends information we do not care
+about in this driver. This function discards the entire read buffer by reading
+it.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.esp8266_upload_mode">
+<span class="sig-name descname"><span class="pre">esp8266_upload_mode</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/ERAInstruments/erasynth.html#ERASynthBase.esp8266_upload_mode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.esp8266_upload_mode" title="Link to this definition">¶</a></dt>
+<dd><p>Sets the ESP8266 module in upload mode.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.factory_reset">
+<span class="sig-name descname"><span class="pre">factory_reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/ERAInstruments/erasynth.html#ERASynthBase.factory_reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.factory_reset" title="Link to this definition">¶</a></dt>
+<dd><p>Does factory reset on the device.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.get_configuration">
+<span class="sig-name descname"><span class="pre">get_configuration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">par_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Dict" title="(in Python v3.10)"><span class="pre">Dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/ERAInstruments/erasynth.html#ERASynthBase.get_configuration"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.get_configuration" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the configuration JSON that contains all parameters.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.get_diagnostic_status">
+<span class="sig-name descname"><span class="pre">get_diagnostic_status</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">par_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Dict" title="(in Python v3.10)"><span class="pre">Dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/ERAInstruments/erasynth.html#ERASynthBase.get_diagnostic_status"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.get_diagnostic_status" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the diagnostic JSON.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.get_idn">
+<span class="sig-name descname"><span class="pre">get_idn</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Dict" title="(in Python v3.10)"><span class="pre">Dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/ERAInstruments/erasynth.html#ERASynthBase.get_idn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.get_idn" title="Link to this definition">¶</a></dt>
+<dd><p>Parse a standard VISA <code class="docutils literal notranslate"><span class="pre">*IDN?</span></code> response into an ID dict.</p>
+<p>Even though this is the VISA standard, it applies to various other
+types as well, such as IPInstruments, so it is included here in the
+Instrument base class.</p>
+<p>Override this if your instrument does not support <code class="docutils literal notranslate"><span class="pre">*IDN?</span></code> or
+returns a nonstandard IDN string. This string is supposed to be a
+comma-separated list of vendor, model, serial, and firmware, but
+semicolon and colon are also common separators so we accept them here
+as well.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A dict containing vendor, model, serial, and firmware.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.off">
+<span class="sig-name descname"><span class="pre">off</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/ERAInstruments/erasynth.html#ERASynthBase.off"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.off" title="Link to this definition">¶</a></dt>
+<dd><p>Turns OFF the RF output.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.on">
+<span class="sig-name descname"><span class="pre">on</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/ERAInstruments/erasynth.html#ERASynthBase.on"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.on" title="Link to this definition">¶</a></dt>
+<dd><p>Turns ON the RF output.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.preset">
+<span class="sig-name descname"><span class="pre">preset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/ERAInstruments/erasynth.html#ERASynthBase.preset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.preset" title="Link to this definition">¶</a></dt>
+<dd><p>Presets the device to known values.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>After the reset the output is set to power 0.0 dBm &#64; 1GHz!</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.print_pyvisa_resources">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">print_pyvisa_resources</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/ERAInstruments/erasynth.html#ERASynthBase.print_pyvisa_resources"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.print_pyvisa_resources" title="Link to this definition">¶</a></dt>
+<dd><p>Utility to list all.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.run_self_test">
+<span class="sig-name descname"><span class="pre">run_self_test</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/ERAInstruments/erasynth.html#ERASynthBase.run_self_test"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.run_self_test" title="Link to this definition">¶</a></dt>
+<dd><p>Sets all settable parameters to different values.</p>
+<p>NB serves as self test of the instrument because setting readable parameters
+is done by setting and confirming the value.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.wifi_off">
+<span class="sig-name descname"><span class="pre">wifi_off</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/ERAInstruments/erasynth.html#ERASynthBase.wifi_off"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.wifi_off" title="Link to this definition">¶</a></dt>
+<dd><p>Turn ESP8266 WiFi module off.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.wifi_on">
+<span class="sig-name descname"><span class="pre">wifi_on</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/ERAInstruments/erasynth.html#ERASynthBase.wifi_on"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.wifi_on" title="Link to this definition">¶</a></dt>
+<dd><p>Turn ESP8266 WiFi module on.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.write">
+<span class="sig-name descname"><span class="pre">write</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cmd</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/ERAInstruments/erasynth.html#ERASynthBase.write"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.write" title="Link to this definition">¶</a></dt>
+<dd><p>Writes a command to the communication channel of the instrument.</p>
+<p>Commands are prefixed with <cite>“&gt;”</cite> as required by the ERASynth.</p>
+<p>NB the read buffer is discarded before and after reading one line.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.write_raw">
+<span class="sig-name descname"><span class="pre">write_raw</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cmd</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/ERAInstruments/erasynth.html#ERASynthBase.write_raw"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.write_raw" title="Link to this definition">¶</a></dt>
+<dd><p>For some commands we confirm that the value has been set correctly.</p>
+<p>This is only possible for configurations that can be retrieved from the
+instrument.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.current">
+<span class="sig-name descname"><span class="pre">current</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Parameter(</span> <span class="pre">name=&quot;current&quot;,</span> <span class="pre">instrument=self,</span> <span class="pre">label=&quot;Current&quot;,</span> <span class="pre">unit=&quot;V&quot;,</span> <span class="pre">get_cmd=&quot;RD:current&quot;,</span> <span class="pre">)</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.current" title="Link to this definition">¶</a></dt>
+<dd><p>The current value drawn by the ERASynth.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.debug_messages_en">
+<span class="sig-name descname"><span class="pre">debug_messages_en</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Parameter(</span> <span class="pre">name=&quot;debug_messages_en&quot;,</span> <span class="pre">instrument=self,</span> <span class="pre">vals=validators.Strings(),</span> <span class="pre">initial_cache_value=None,</span> <span class="pre">val_mapping={True:</span> <span class="pre">&quot;1&quot;,</span> <span class="pre">False:</span> <span class="pre">&quot;0&quot;},</span> <span class="pre">set_cmd=&quot;PD{}&quot;,</span> <span class="pre">)</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.debug_messages_en" title="Link to this definition">¶</a></dt>
+<dd><p>Enables/disables debug printing on the serial port.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.embedded_version">
+<span class="sig-name descname"><span class="pre">embedded_version</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Parameter(</span> <span class="pre">name=&quot;embedded_version&quot;,</span> <span class="pre">instrument=self,</span> <span class="pre">label=&quot;Embedded</span> <span class="pre">version&quot;,</span> <span class="pre">get_cmd=&quot;RD:em&quot;,</span> <span class="pre">)</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.embedded_version" title="Link to this definition">¶</a></dt>
+<dd><p>The firmware version of the ERASynth.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.modulation_am_depth">
+<span class="sig-name descname"><span class="pre">modulation_am_depth</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Parameter(</span> <span class="pre">name=&quot;modulation_am_depth&quot;,</span> <span class="pre">instrument=self,</span> <span class="pre">label=&quot;AM</span> <span class="pre">depth&quot;,</span> <span class="pre">unit=&quot;%&quot;,</span> <span class="pre">vals=validators.Numbers(min_value=0,</span> <span class="pre">max_value=100),</span> <span class="pre">get_cmd=f&quot;RA:{_CMD_TO_JSON_MAPPING['M5']}&quot;,</span> <span class="pre">get_parser=int,</span> <span class="pre">set_cmd=&quot;M5{}&quot;,</span> <span class="pre">set_parser=lambda</span> <span class="pre">depth:</span> <span class="pre">str(int(depth)),</span> <span class="pre">)</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.modulation_am_depth" title="Link to this definition">¶</a></dt>
+<dd><p>AM modulation depth.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.modulation_en">
+<span class="sig-name descname"><span class="pre">modulation_en</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Parameter(</span> <span class="pre">name=&quot;modulation_en&quot;,</span> <span class="pre">instrument=self,</span> <span class="pre">val_mapping={False:</span> <span class="pre">&quot;0&quot;,</span> <span class="pre">True:</span> <span class="pre">&quot;1&quot;},</span> <span class="pre">get_cmd=f&quot;RA:{_CMD_TO_JSON_MAPPING['MS']}&quot;,</span> <span class="pre">set_cmd=&quot;MS{}&quot;,</span> <span class="pre">)</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.modulation_en" title="Link to this definition">¶</a></dt>
+<dd><p>Modulation on/off.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.modulation_fm_deviation">
+<span class="sig-name descname"><span class="pre">modulation_fm_deviation</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Parameter(</span> <span class="pre">name=&quot;modulation_fm_deviation&quot;,</span> <span class="pre">instrument=self,</span> <span class="pre">label=&quot;FM</span> <span class="pre">deviation&quot;,</span> <span class="pre">unit=&quot;Hz&quot;,</span> <span class="pre">vals=validators.Numbers(min_value=0,</span> <span class="pre">max_value=20e9),</span> <span class="pre">get_cmd=f&quot;RA:{_CMD_TO_JSON_MAPPING['M4']}&quot;,</span> <span class="pre">get_parser=int,</span> <span class="pre">set_cmd=&quot;M4{}&quot;,</span> <span class="pre">set_parser=lambda</span> <span class="pre">freq:</span> <span class="pre">str(int(freq)),</span> <span class="pre">)</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.modulation_fm_deviation" title="Link to this definition">¶</a></dt>
+<dd><p>FM modulation deviation.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.modulation_freq">
+<span class="sig-name descname"><span class="pre">modulation_freq</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Parameter(</span> <span class="pre">name=&quot;modulation_freq&quot;,</span> <span class="pre">instrument=self,</span> <span class="pre">label=&quot;Modulation</span> <span class="pre">frequency&quot;,</span> <span class="pre">unit=&quot;Hz&quot;,</span> <span class="pre">vals=validators.Numbers(min_value=0,</span> <span class="pre">max_value=20e9),</span> <span class="pre">get_cmd=f&quot;RA:{_CMD_TO_JSON_MAPPING['M3']}&quot;,</span> <span class="pre">get_parser=int,</span> <span class="pre">set_cmd=&quot;M3{}&quot;,</span> <span class="pre">set_parser=lambda</span> <span class="pre">freq:</span> <span class="pre">str(int(freq)),</span> <span class="pre">)</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.modulation_freq" title="Link to this definition">¶</a></dt>
+<dd><p>Internal modulation frequency in Hz.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.modulation_pulse_period">
+<span class="sig-name descname"><span class="pre">modulation_pulse_period</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Parameter(</span> <span class="pre">name=&quot;modulation_pulse_period&quot;,</span> <span class="pre">instrument=self,</span> <span class="pre">label=&quot;Pulse</span> <span class="pre">period&quot;,</span> <span class="pre">unit=&quot;s&quot;,</span> <span class="pre">vals=validators.Numbers(min_value=1e-6,</span> <span class="pre">max_value=10),</span> <span class="pre">get_cmd=f&quot;RA:{_CMD_TO_JSON_MAPPING['M6']}&quot;,</span> <span class="pre">get_parser=lambda</span> <span class="pre">val:</span> <span class="pre">int(val)</span> <span class="pre">*</span> <span class="pre">1e-6,</span> <span class="pre">set_cmd=&quot;M6{}&quot;,</span> <span class="pre">set_parser=lambda</span> <span class="pre">period:</span> <span class="pre">str(int(period</span> <span class="pre">*</span> <span class="pre">1e6)),</span> <span class="pre">)</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.modulation_pulse_period" title="Link to this definition">¶</a></dt>
+<dd><p>Pulse period in seconds.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.modulation_pulse_width">
+<span class="sig-name descname"><span class="pre">modulation_pulse_width</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Parameter(</span> <span class="pre">name=&quot;modulation_pulse_width&quot;,</span> <span class="pre">instrument=self,</span> <span class="pre">label=&quot;Pulse</span> <span class="pre">width&quot;,</span> <span class="pre">unit=&quot;s&quot;,</span> <span class="pre">vals=validators.Numbers(min_value=1e-6,</span> <span class="pre">max_value=10),</span> <span class="pre">get_cmd=f&quot;RA:{_CMD_TO_JSON_MAPPING['M7']}&quot;,</span> <span class="pre">get_parser=lambda</span> <span class="pre">val:</span> <span class="pre">int(val)</span> <span class="pre">*</span> <span class="pre">1e-6,</span> <span class="pre">set_cmd=&quot;M7{}&quot;,</span> <span class="pre">set_parser=lambda</span> <span class="pre">period:</span> <span class="pre">str(int(period</span> <span class="pre">*</span> <span class="pre">1e6)),</span> <span class="pre">)</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.modulation_pulse_width" title="Link to this definition">¶</a></dt>
+<dd><p>Pulse width in s.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.modulation_signal_waveform">
+<span class="sig-name descname"><span class="pre">modulation_signal_waveform</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Parameter(</span> <span class="pre">name=&quot;modulation_signal_waveform&quot;,</span> <span class="pre">instrument=self,</span> <span class="pre">val_mapping={&quot;sine&quot;:</span> <span class="pre">&quot;0&quot;,</span> <span class="pre">&quot;triangle&quot;:</span> <span class="pre">&quot;1&quot;,</span> <span class="pre">&quot;ramp&quot;:</span> <span class="pre">&quot;2&quot;,</span> <span class="pre">&quot;square&quot;:</span> <span class="pre">&quot;3&quot;},</span> <span class="pre">get_cmd=f&quot;RA:{_CMD_TO_JSON_MAPPING['M2']}&quot;,</span> <span class="pre">set_cmd=&quot;M2{}&quot;,</span> <span class="pre">)</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.modulation_signal_waveform" title="Link to this definition">¶</a></dt>
+<dd><p>Internal modulation waveform.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.modulation_source">
+<span class="sig-name descname"><span class="pre">modulation_source</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Parameter(</span> <span class="pre">name=&quot;modulation_source&quot;,</span> <span class="pre">instrument=self,</span> <span class="pre">val_mapping={&quot;internal&quot;:</span> <span class="pre">&quot;0&quot;,</span> <span class="pre">&quot;external&quot;:</span> <span class="pre">&quot;1&quot;,</span> <span class="pre">&quot;microphone&quot;:</span> <span class="pre">&quot;2&quot;},</span> <span class="pre">get_cmd=f&quot;RA:{_CMD_TO_JSON_MAPPING['M1']}&quot;,</span> <span class="pre">set_cmd=&quot;M1{}&quot;,</span> <span class="pre">)</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.modulation_source" title="Link to this definition">¶</a></dt>
+<dd><p>Modulation source.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.modulation_type">
+<span class="sig-name descname"><span class="pre">modulation_type</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Parameter(</span> <span class="pre">name=&quot;modulation_type&quot;,</span> <span class="pre">instrument=self,</span> <span class="pre">val_mapping={</span> <span class="pre">&quot;narrowband_fm&quot;:</span> <span class="pre">&quot;0&quot;,</span> <span class="pre">&quot;wideband_fm&quot;:</span> <span class="pre">&quot;1&quot;,</span> <span class="pre">&quot;am&quot;:</span> <span class="pre">&quot;2&quot;,</span> <span class="pre">&quot;pulse&quot;:</span> <span class="pre">&quot;3&quot;,</span> <span class="pre">},</span> <span class="pre">get_cmd=f&quot;RA:{_CMD_TO_JSON_MAPPING['M0']}&quot;,</span> <span class="pre">set_cmd=&quot;M0{}&quot;,</span> <span class="pre">)</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.modulation_type" title="Link to this definition">¶</a></dt>
+<dd><p>Modulation type.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.pll_lmx1_status">
+<span class="sig-name descname"><span class="pre">pll_lmx1_status</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Parameter(</span> <span class="pre">name=&quot;pll_lmx1_status&quot;,</span> <span class="pre">instrument=self,</span> <span class="pre">label=&quot;PLL</span> <span class="pre">LMX1</span> <span class="pre">status&quot;,</span> <span class="pre">val_mapping={&quot;locked&quot;:</span> <span class="pre">&quot;1&quot;,</span> <span class="pre">&quot;unlocked&quot;:</span> <span class="pre">&quot;0&quot;},</span> <span class="pre">get_cmd=&quot;RD:lock_lmx1&quot;,</span> <span class="pre">)</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.pll_lmx1_status" title="Link to this definition">¶</a></dt>
+<dd><p>PLL lock status of LMX1.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.pll_lmx2_status">
+<span class="sig-name descname"><span class="pre">pll_lmx2_status</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Parameter(</span> <span class="pre">name=&quot;pll_lmx2_status&quot;,</span> <span class="pre">instrument=self,</span> <span class="pre">label=&quot;PLL</span> <span class="pre">LMX2</span> <span class="pre">status&quot;,</span> <span class="pre">val_mapping={&quot;locked&quot;:</span> <span class="pre">&quot;1&quot;,</span> <span class="pre">&quot;unlocked&quot;:</span> <span class="pre">&quot;0&quot;},</span> <span class="pre">get_cmd=&quot;RD:lock_lmx2&quot;,</span> <span class="pre">)</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.pll_lmx2_status" title="Link to this definition">¶</a></dt>
+<dd><p>PLL lock status of LMX2.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.pll_xtal_status">
+<span class="sig-name descname"><span class="pre">pll_xtal_status</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Parameter(</span> <span class="pre">name=&quot;pll_xtal_status&quot;,</span> <span class="pre">instrument=self,</span> <span class="pre">label=&quot;PLL</span> <span class="pre">XTAL</span> <span class="pre">status&quot;,</span> <span class="pre">val_mapping={&quot;locked&quot;:</span> <span class="pre">&quot;1&quot;,</span> <span class="pre">&quot;unlocked&quot;:</span> <span class="pre">&quot;0&quot;},</span> <span class="pre">get_cmd=&quot;RD:lock_xtal&quot;,</span> <span class="pre">)</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.pll_xtal_status" title="Link to this definition">¶</a></dt>
+<dd><p>PLL lock status of XTAL.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.power">
+<span class="sig-name descname"><span class="pre">power</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Parameter(</span> <span class="pre">name=&quot;power&quot;,</span> <span class="pre">instrument=self,</span> <span class="pre">label=&quot;Power&quot;,</span> <span class="pre">unit=&quot;dBm&quot;,</span> <span class="pre">vals=validators.Numbers(min_value=-60.0,</span> <span class="pre">max_value=20.0),</span> <span class="pre">get_cmd=&quot;RA:amplitude&quot;,</span> <span class="pre">get_parser=float,</span> <span class="pre">set_parser=lambda</span> <span class="pre">power:</span> <span class="pre">f&quot;{power:.2f}&quot;,</span> <span class="pre">set_cmd=self._set_power,</span> <span class="pre">)</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.power" title="Link to this definition">¶</a></dt>
+<dd><p>Signal power in dBm of the ERASynth signal, ‘amplitude’ in EraSynth docs.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.ref_osc_source">
+<span class="sig-name descname"><span class="pre">ref_osc_source</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Parameter(</span> <span class="pre">name=&quot;ref_osc_source&quot;,</span> <span class="pre">instrument=self,</span> <span class="pre">val_mapping={&quot;int&quot;:</span> <span class="pre">&quot;0&quot;,</span> <span class="pre">&quot;ext&quot;:</span> <span class="pre">&quot;1&quot;},</span> <span class="pre">get_cmd=f&quot;RA:{_CMD_TO_JSON_MAPPING['P1']}&quot;,</span> <span class="pre">set_cmd=&quot;P1{}&quot;,</span> <span class="pre">)</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.ref_osc_source" title="Link to this definition">¶</a></dt>
+<dd><p>Set to external if a 10 MHz reference is connected to the REF input connector.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.status">
+<span class="sig-name descname"><span class="pre">status</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Parameter(</span> <span class="pre">name=&quot;status&quot;,</span> <span class="pre">instrument=self,</span> <span class="pre">val_mapping={False:</span> <span class="pre">&quot;0&quot;,</span> <span class="pre">True:</span> <span class="pre">&quot;1&quot;},</span> <span class="pre">get_cmd=&quot;RA:rfoutput&quot;,</span> <span class="pre">set_cmd=self._set_status,</span> <span class="pre">)</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.status" title="Link to this definition">¶</a></dt>
+<dd><p>Sets the output state (<cite>True</cite>/<cite>False</cite>).</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.sweep_dwell">
+<span class="sig-name descname"><span class="pre">sweep_dwell</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Parameter(</span> <span class="pre">name=&quot;sweep_dwell&quot;,</span> <span class="pre">instrument=self,</span> <span class="pre">label=&quot;Sweep</span> <span class="pre">dwell&quot;,</span> <span class="pre">unit=&quot;s&quot;,</span> <span class="pre">vals=validators.Numbers(min_value=1e-3,</span> <span class="pre">max_value=10),</span> <span class="pre">get_cmd=f&quot;RA:{_CMD_TO_JSON_MAPPING['S4']}&quot;,</span> <span class="pre">get_parser=lambda</span> <span class="pre">val:</span> <span class="pre">int(val)</span> <span class="pre">*</span> <span class="pre">1e-3,</span> <span class="pre">set_cmd=&quot;S4{}&quot;,</span> <span class="pre">set_parser=lambda</span> <span class="pre">period:</span> <span class="pre">str(int(period</span> <span class="pre">*</span> <span class="pre">1e3)),</span> <span class="pre">)</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.sweep_dwell" title="Link to this definition">¶</a></dt>
+<dd><p>Sweep dwell time in s. Requires sweep_trigger(‘freerun’).</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.sweep_en">
+<span class="sig-name descname"><span class="pre">sweep_en</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Parameter(</span> <span class="pre">name=&quot;sweep_en&quot;,</span> <span class="pre">instrument=self,</span> <span class="pre">val_mapping={False:</span> <span class="pre">&quot;0&quot;,</span> <span class="pre">True:</span> <span class="pre">&quot;1&quot;},</span> <span class="pre">get_cmd=f&quot;RA:{_CMD_TO_JSON_MAPPING['SS']}&quot;,</span> <span class="pre">set_cmd=&quot;SS{}&quot;,</span> <span class="pre">)</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.sweep_en" title="Link to this definition">¶</a></dt>
+<dd><p>Sweep on/off.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.sweep_trigger">
+<span class="sig-name descname"><span class="pre">sweep_trigger</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Parameter(</span> <span class="pre">name=&quot;sweep_trigger&quot;,</span> <span class="pre">instrument=self,</span> <span class="pre">val_mapping={&quot;freerun&quot;:</span> <span class="pre">&quot;0&quot;,</span> <span class="pre">&quot;external&quot;:</span> <span class="pre">&quot;1&quot;},</span> <span class="pre">get_cmd=f&quot;RA:{_CMD_TO_JSON_MAPPING['S0']}&quot;,</span> <span class="pre">set_cmd=&quot;S0{}&quot;,</span> <span class="pre">)</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.sweep_trigger" title="Link to this definition">¶</a></dt>
+<dd><p>Sweep trigger freerun/external.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.synthesizer_mode">
+<span class="sig-name descname"><span class="pre">synthesizer_mode</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Parameter(</span> <span class="pre">name=&quot;synthesizer_mode&quot;,</span> <span class="pre">instrument=self,</span> <span class="pre">val_mapping={&quot;low_spurious&quot;:</span> <span class="pre">&quot;0&quot;,</span> <span class="pre">&quot;low_phase_noise&quot;:</span> <span class="pre">&quot;1&quot;},</span> <span class="pre">get_cmd=f&quot;RA:{_CMD_TO_JSON_MAPPING['P9']}&quot;,</span> <span class="pre">set_cmd=&quot;P9{}&quot;,</span> <span class="pre">)</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.synthesizer_mode" title="Link to this definition">¶</a></dt>
+<dd><p>Synthesizer mode, low spurious/low phase noise.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.temperature">
+<span class="sig-name descname"><span class="pre">temperature</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Parameter(</span> <span class="pre">name=&quot;temperature&quot;,</span> <span class="pre">instrument=self,</span> <span class="pre">label=&quot;Temperature&quot;,</span> <span class="pre">unit=&quot;\u00B0C&quot;,</span> <span class="pre">get_cmd=&quot;RD:temperature&quot;,</span> <span class="pre">)</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.temperature" title="Link to this definition">¶</a></dt>
+<dd><p>Temperature of the device.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.voltage">
+<span class="sig-name descname"><span class="pre">voltage</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Parameter(</span> <span class="pre">name=&quot;voltage&quot;,</span> <span class="pre">instrument=self,</span> <span class="pre">label=&quot;Voltage&quot;,</span> <span class="pre">unit=&quot;V&quot;,</span> <span class="pre">get_cmd=&quot;RD:voltage&quot;,</span> <span class="pre">)</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.voltage" title="Link to this definition">¶</a></dt>
+<dd><p>The input voltage value from power input of the ERASynth.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.wifi_gateway_address">
+<span class="sig-name descname"><span class="pre">wifi_gateway_address</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Parameter(</span> <span class="pre">name=&quot;wifi_gateway_address&quot;,</span> <span class="pre">instrument=self,</span> <span class="pre">vals=validators.Strings(),</span> <span class="pre">get_cmd=f&quot;RA:{_CMD_TO_JSON_MAPPING['PEG']}&quot;,</span> <span class="pre">set_cmd=&quot;PEG{}&quot;,</span> <span class="pre">)</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.wifi_gateway_address" title="Link to this definition">¶</a></dt>
+<dd><p>Sets default gateway for WiFi module.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.wifi_hotspot_password">
+<span class="sig-name descname"><span class="pre">wifi_hotspot_password</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Parameter(</span> <span class="pre">name=&quot;wifi_hotspot_password&quot;,</span> <span class="pre">instrument=self,</span> <span class="pre">vals=validators.Strings(),</span> <span class="pre">get_cmd=f&quot;RA:{_CMD_TO_JSON_MAPPING['PEP1']}&quot;,</span> <span class="pre">set_cmd=&quot;PEP1{}&quot;,</span> <span class="pre">)</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.wifi_hotspot_password" title="Link to this definition">¶</a></dt>
+<dd><p>Sets hotspot password for WiFi module.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.wifi_hotspot_ssid">
+<span class="sig-name descname"><span class="pre">wifi_hotspot_ssid</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Parameter(</span> <span class="pre">name=&quot;wifi_hotspot_ssid&quot;,</span> <span class="pre">instrument=self,</span> <span class="pre">vals=validators.Strings(),</span> <span class="pre">get_cmd=f&quot;RA:{_CMD_TO_JSON_MAPPING['PES1']}&quot;,</span> <span class="pre">set_cmd=&quot;PES1{}&quot;,</span> <span class="pre">)</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.wifi_hotspot_ssid" title="Link to this definition">¶</a></dt>
+<dd><p>Sets hotspot SSID for WiFi module.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.wifi_ip_address">
+<span class="sig-name descname"><span class="pre">wifi_ip_address</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Parameter(</span> <span class="pre">name=&quot;wifi_ip_address&quot;,</span> <span class="pre">instrument=self,</span> <span class="pre">vals=validators.Strings(),</span> <span class="pre">get_cmd=f&quot;RA:{_CMD_TO_JSON_MAPPING['PEI']}&quot;,</span> <span class="pre">set_cmd=&quot;PEI{}&quot;,</span> <span class="pre">)</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.wifi_ip_address" title="Link to this definition">¶</a></dt>
+<dd><p>Sets IP address for WiFi module.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.wifi_mode">
+<span class="sig-name descname"><span class="pre">wifi_mode</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Parameter(</span> <span class="pre">name=&quot;wifi_mode&quot;,</span> <span class="pre">instrument=self,</span> <span class="pre">val_mapping={&quot;station&quot;:</span> <span class="pre">&quot;0&quot;,</span> <span class="pre">&quot;hotspot&quot;:</span> <span class="pre">&quot;1&quot;,</span> <span class="pre">&quot;&quot;:</span> <span class="pre">&quot;&quot;},</span> <span class="pre">get_cmd=f&quot;RA:{_CMD_TO_JSON_MAPPING['PEW']}&quot;,</span> <span class="pre">set_cmd=&quot;PEW{}&quot;,</span> <span class="pre">)</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.wifi_mode" title="Link to this definition">¶</a></dt>
+<dd><p>WiFi Mode, station/hotspot.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.wifi_rssi">
+<span class="sig-name descname"><span class="pre">wifi_rssi</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Parameter(</span> <span class="pre">name=&quot;wifi_rssi&quot;,</span> <span class="pre">instrument=self,</span> <span class="pre">label=&quot;WiFi</span> <span class="pre">RSSI&quot;,</span> <span class="pre">get_cmd=&quot;RD:rssi&quot;,</span> <span class="pre">)</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.wifi_rssi" title="Link to this definition">¶</a></dt>
+<dd><p>The Wifi received signal power.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.wifi_station_password">
+<span class="sig-name descname"><span class="pre">wifi_station_password</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Parameter(</span> <span class="pre">name=&quot;wifi_station_password&quot;,</span> <span class="pre">instrument=self,</span> <span class="pre">vals=validators.Strings(),</span> <span class="pre">get_cmd=f&quot;RA:{_CMD_TO_JSON_MAPPING['PEP0']}&quot;,</span> <span class="pre">set_cmd=&quot;PEP0{}&quot;,</span> <span class="pre">)</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.wifi_station_password" title="Link to this definition">¶</a></dt>
+<dd><p>Sets network password for WiFi module.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.wifi_station_ssid">
+<span class="sig-name descname"><span class="pre">wifi_station_ssid</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Parameter(</span> <span class="pre">name=&quot;wifi_station_ssid&quot;,</span> <span class="pre">instrument=self,</span> <span class="pre">vals=validators.Strings(),</span> <span class="pre">get_cmd=f&quot;RA:{_CMD_TO_JSON_MAPPING['PES0']}&quot;,</span> <span class="pre">set_cmd=&quot;PES0{}&quot;,</span> <span class="pre">)</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.wifi_station_ssid" title="Link to this definition">¶</a></dt>
+<dd><p>Sets network SSID for WiFi module.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.wifi_subnet_address">
+<span class="sig-name descname"><span class="pre">wifi_subnet_address</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Parameter(</span> <span class="pre">name=&quot;wifi_subnet_address&quot;,</span> <span class="pre">instrument=self,</span> <span class="pre">vals=validators.Strings(),</span> <span class="pre">get_cmd=f&quot;RA:{_CMD_TO_JSON_MAPPING['PEN']}&quot;,</span> <span class="pre">set_cmd=&quot;PEN{}&quot;,</span> <span class="pre">)</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.wifi_subnet_address" title="Link to this definition">¶</a></dt>
+<dd><p>Sets Subnet mask for WiFi module.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthPlus">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.</span></span><span class="sig-name descname"><span class="pre">ERASynthPlus</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/ERAInstruments/erasynth.html#ERASynthPlus"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthPlus" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase" title="qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">ERASynthBase</span></code></a></p>
+<p>Driver for the ERASynth+ model instrument.</p>
+<p>For ERASynth/ERASynth++ see <code class="xref py py-class docutils literal notranslate"><span class="pre">EraSynth</span></code>/<code class="xref py py-class docutils literal notranslate"><span class="pre">EraSynthPlusPlus</span></code> classes.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthPlus.reference_tcxo_ocxo">
+<span class="sig-name descname"><span class="pre">reference_tcxo_ocxo</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Parameter(</span> <span class="pre">name=&quot;reference_tcxo_ocxo&quot;,</span> <span class="pre">instrument=self,</span> <span class="pre">val_mapping={&quot;tcxo&quot;:</span> <span class="pre">&quot;0&quot;,</span> <span class="pre">&quot;ocxo&quot;:</span> <span class="pre">&quot;1&quot;},</span> <span class="pre">get_cmd=f&quot;RA:{_CMD_TO_JSON_MAPPING['P5']}&quot;,</span> <span class="pre">set_cmd=&quot;P5{}&quot;,</span> <span class="pre">)</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthPlus.reference_tcxo_ocxo" title="Link to this definition">¶</a></dt>
+<dd><p>Chooses reference type.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthPlusPlus">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.</span></span><span class="sig-name descname"><span class="pre">ERASynthPlusPlus</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/ERAInstruments/erasynth.html#ERASynthPlusPlus"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthPlusPlus" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase" title="qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">ERASynthBase</span></code></a></p>
+<p>Driver for the ERASynth++ model instrument.</p>
+<p>For ERASynth/ERASynth+ see <code class="xref py py-class docutils literal notranslate"><span class="pre">EraSynth</span></code>/<code class="xref py py-class docutils literal notranslate"><span class="pre">EraSynthPlus</span></code> classes.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthPlusPlus.reference_tcxo_ocxo">
+<span class="sig-name descname"><span class="pre">reference_tcxo_ocxo</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Parameter(</span> <span class="pre">name=&quot;reference_tcxo_ocxo&quot;,</span> <span class="pre">instrument=self,</span> <span class="pre">val_mapping={&quot;tcxo&quot;:</span> <span class="pre">&quot;0&quot;,</span> <span class="pre">&quot;ocxo&quot;:</span> <span class="pre">&quot;1&quot;},</span> <span class="pre">get_cmd=f&quot;RA:{_CMD_TO_JSON_MAPPING['P5']}&quot;,</span> <span class="pre">set_cmd=&quot;P5{}&quot;,</span> <span class="pre">)</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthPlusPlus.reference_tcxo_ocxo" title="Link to this definition">¶</a></dt>
+<dd><p>Chooses reference type.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-qcodes_contrib_drivers.drivers.ERAInstruments">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-qcodes_contrib_drivers.drivers.ERAInstruments" title="Link to this heading">¶</a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="qcodes_contrib_drivers.drivers.DaylightSolutions.html" class="btn btn-neutral float-left" title="qcodes_contrib_drivers.drivers.DaylightSolutions package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="qcodes_contrib_drivers.drivers.GeneralMicrowave.html" class="btn btn-neutral float-right" title="qcodes_contrib_drivers.drivers.GeneralMicrowave package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, QCoDeS Users.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

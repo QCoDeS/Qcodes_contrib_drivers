@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>qcodes_contrib_drivers.drivers.Thorlabs.private package &mdash; qcodes_contrib_drivers 0.22.0.dev63+main.g134f064 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/documentation_options.js?v=159198be"></script>
+        <script src="../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="qcodes_contrib_drivers.drivers.Valon package" href="qcodes_contrib_drivers.drivers.Valon.html" />
+    <link rel="prev" title="qcodes_contrib_drivers.drivers.Thorlabs package" href="qcodes_contrib_drivers.drivers.Thorlabs.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            qcodes_contrib_drivers
+          </a>
+              <div class="version">
+                0.22.0.dev63+main.g134f064
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../examples/index.html">Examples of how to use drivers</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="qcodes_contrib_drivers.drivers.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Advantech.html">qcodes_contrib_drivers.drivers.Advantech package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Agilent.html">qcodes_contrib_drivers.drivers.Agilent package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.AimTTi.html">qcodes_contrib_drivers.drivers.AimTTi package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Ametek.html">qcodes_contrib_drivers.drivers.Ametek package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Andor.html">qcodes_contrib_drivers.drivers.Andor package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Attocube.html">qcodes_contrib_drivers.drivers.Attocube package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Aviosys.html">qcodes_contrib_drivers.drivers.Aviosys package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Bilt.html">qcodes_contrib_drivers.drivers.Bilt package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.BlueFors.html">qcodes_contrib_drivers.drivers.BlueFors package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.CopperMountain.html">qcodes_contrib_drivers.drivers.CopperMountain package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Cryocon.html">qcodes_contrib_drivers.drivers.Cryocon package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Cryogenic.html">qcodes_contrib_drivers.drivers.Cryogenic package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.DaylightSolutions.html">qcodes_contrib_drivers.drivers.DaylightSolutions package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.ERAInstruments.html">qcodes_contrib_drivers.drivers.ERAInstruments package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.GeneralMicrowave.html">qcodes_contrib_drivers.drivers.GeneralMicrowave package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Gentec.html">qcodes_contrib_drivers.drivers.Gentec package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Holzworth.html">qcodes_contrib_drivers.drivers.Holzworth package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Horiba.html">qcodes_contrib_drivers.drivers.Horiba package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.html">qcodes_contrib_drivers.drivers.Keysight package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Lakeshore.html">qcodes_contrib_drivers.drivers.Lakeshore package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.LighthousePhotonics.html">qcodes_contrib_drivers.drivers.LighthousePhotonics package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.M2.html">qcodes_contrib_drivers.drivers.M2 package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.MontanaInstruments.html">qcodes_contrib_drivers.drivers.MontanaInstruments package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.NationalInstruments.html">qcodes_contrib_drivers.drivers.NationalInstruments package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Newport.html">qcodes_contrib_drivers.drivers.Newport package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Oxford.html">qcodes_contrib_drivers.drivers.Oxford package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.QDevil.html">qcodes_contrib_drivers.drivers.QDevil package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.QuTech.html">qcodes_contrib_drivers.drivers.QuTech package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.RohdeSchwarz.html">qcodes_contrib_drivers.drivers.RohdeSchwarz package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Shamrock.html">qcodes_contrib_drivers.drivers.Shamrock package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.SignalCore.html">qcodes_contrib_drivers.drivers.SignalCore package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.SingleQuantum.html">qcodes_contrib_drivers.drivers.SingleQuantum package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Spectrum.html">qcodes_contrib_drivers.drivers.Spectrum package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Standa.html">qcodes_contrib_drivers.drivers.Standa package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.StanfordResearchSystems.html">qcodes_contrib_drivers.drivers.StanfordResearchSystems package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Tektronix.html">qcodes_contrib_drivers.drivers.Tektronix package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Thermotek.html">qcodes_contrib_drivers.drivers.Thermotek package</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Thorlabs.html">qcodes_contrib_drivers.drivers.Thorlabs package</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Thorlabs.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Thorlabs.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Thorlabs.html#module-qcodes_contrib_drivers.drivers.Thorlabs.K10CR1">qcodes_contrib_drivers.drivers.Thorlabs.K10CR1 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Thorlabs.html#module-qcodes_contrib_drivers.drivers.Thorlabs.KDC101">qcodes_contrib_drivers.drivers.Thorlabs.KDC101 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Thorlabs.html#module-qcodes_contrib_drivers.drivers.Thorlabs.KLS1550">qcodes_contrib_drivers.drivers.Thorlabs.KLS1550 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Thorlabs.html#module-qcodes_contrib_drivers.drivers.Thorlabs.MFF10x">qcodes_contrib_drivers.drivers.Thorlabs.MFF10x module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Thorlabs.html#module-qcodes_contrib_drivers.drivers.Thorlabs.PM100D">qcodes_contrib_drivers.drivers.Thorlabs.PM100D module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Thorlabs.html#module-qcodes_contrib_drivers.drivers.Thorlabs.PRM1Z8">qcodes_contrib_drivers.drivers.Thorlabs.PRM1Z8 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Thorlabs.html#module-qcodes_contrib_drivers.drivers.Thorlabs.TDC001">qcodes_contrib_drivers.drivers.Thorlabs.TDC001 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Thorlabs.html#module-qcodes_contrib_drivers.drivers.Thorlabs">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Valon.html">qcodes_contrib_drivers.drivers.Valon package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Vaunix.html">qcodes_contrib_drivers.drivers.Vaunix package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.ZurichInstruments.html">qcodes_contrib_drivers.drivers.ZurichInstruments package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.html#module-qcodes_contrib_drivers.drivers.CMTS5048">qcodes_contrib_drivers.drivers.CMTS5048 module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.html#module-qcodes_contrib_drivers.drivers">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">qcodes_contrib_drivers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a></li>
+          <li class="breadcrumb-item"><a href="qcodes_contrib_drivers.drivers.Thorlabs.html">qcodes_contrib_drivers.drivers.Thorlabs package</a></li>
+      <li class="breadcrumb-item active">qcodes_contrib_drivers.drivers.Thorlabs.private package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/api/generated/qcodes_contrib_drivers.drivers.Thorlabs.private.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="qcodes-contrib-drivers-drivers-thorlabs-private-package">
+<h1>qcodes_contrib_drivers.drivers.Thorlabs.private package<a class="headerlink" href="#qcodes-contrib-drivers-drivers-thorlabs-private-package" title="Link to this heading">¶</a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">¶</a></h2>
+</section>
+<section id="module-qcodes_contrib_drivers.drivers.Thorlabs.private.APT">
+<span id="qcodes-contrib-drivers-drivers-thorlabs-private-apt-module"></span><h2>qcodes_contrib_drivers.drivers.Thorlabs.private.APT module<a class="headerlink" href="#module-qcodes_contrib_drivers.drivers.Thorlabs.private.APT" title="Link to this heading">¶</a></h2>
+<dl class="py exception">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Thorlabs.private.APT.ThorlabsException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.Thorlabs.private.APT.</span></span><span class="sig-name descname"><span class="pre">ThorlabsException</span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Thorlabs/private/APT.html#ThorlabsException"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Thorlabs.private.APT.ThorlabsException" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3.10/library/exceptions.html#Exception" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Thorlabs.private.APT.ThorlabsHWType">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.Thorlabs.private.APT.</span></span><span class="sig-name descname"><span class="pre">ThorlabsHWType</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Thorlabs/private/APT.html#ThorlabsHWType"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Thorlabs.private.APT.ThorlabsHWType" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3.10/library/enum.html#enum.Enum" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Enum</span></code></a></p>
+<p>An enumeration.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Thorlabs.private.APT.ThorlabsHWType.BBD10x">
+<span class="sig-name descname"><span class="pre">BBD10x</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">44</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Thorlabs.private.APT.ThorlabsHWType.BBD10x" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Thorlabs.private.APT.ThorlabsHWType.BDC101">
+<span class="sig-name descname"><span class="pre">BDC101</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">14</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Thorlabs.private.APT.ThorlabsHWType.BDC101" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Thorlabs.private.APT.ThorlabsHWType.BSC001">
+<span class="sig-name descname"><span class="pre">BSC001</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">11</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Thorlabs.private.APT.ThorlabsHWType.BSC001" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Thorlabs.private.APT.ThorlabsHWType.BSC002">
+<span class="sig-name descname"><span class="pre">BSC002</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">13</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Thorlabs.private.APT.ThorlabsHWType.BSC002" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Thorlabs.private.APT.ThorlabsHWType.BSC101">
+<span class="sig-name descname"><span class="pre">BSC101</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">12</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Thorlabs.private.APT.ThorlabsHWType.BSC101" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Thorlabs.private.APT.ThorlabsHWType.DCC001">
+<span class="sig-name descname"><span class="pre">DCC001</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">22</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Thorlabs.private.APT.ThorlabsHWType.DCC001" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Thorlabs.private.APT.ThorlabsHWType.K10CR1">
+<span class="sig-name descname"><span class="pre">K10CR1</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">50</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Thorlabs.private.APT.ThorlabsHWType.K10CR1" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Thorlabs.private.APT.ThorlabsHWType.KDC101">
+<span class="sig-name descname"><span class="pre">KDC101</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">63</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Thorlabs.private.APT.ThorlabsHWType.KDC101" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Thorlabs.private.APT.ThorlabsHWType.L490MZ">
+<span class="sig-name descname"><span class="pre">L490MZ</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">43</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Thorlabs.private.APT.ThorlabsHWType.L490MZ" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Thorlabs.private.APT.ThorlabsHWType.LTSxxx">
+<span class="sig-name descname"><span class="pre">LTSxxx</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">42</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Thorlabs.private.APT.ThorlabsHWType.LTSxxx" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Thorlabs.private.APT.ThorlabsHWType.MFF10x">
+<span class="sig-name descname"><span class="pre">MFF10x</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">48</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Thorlabs.private.APT.ThorlabsHWType.MFF10x" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Thorlabs.private.APT.ThorlabsHWType.MST601">
+<span class="sig-name descname"><span class="pre">MST601</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">26</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Thorlabs.private.APT.ThorlabsHWType.MST601" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Thorlabs.private.APT.ThorlabsHWType.ODC001">
+<span class="sig-name descname"><span class="pre">ODC001</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">24</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Thorlabs.private.APT.ThorlabsHWType.ODC001" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Thorlabs.private.APT.ThorlabsHWType.OST001">
+<span class="sig-name descname"><span class="pre">OST001</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">25</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Thorlabs.private.APT.ThorlabsHWType.OST001" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Thorlabs.private.APT.ThorlabsHWType.PRM1Z8">
+<span class="sig-name descname"><span class="pre">PRM1Z8</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">31</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Thorlabs.private.APT.ThorlabsHWType.PRM1Z8" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Thorlabs.private.APT.ThorlabsHWType.SCC001">
+<span class="sig-name descname"><span class="pre">SCC001</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">21</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Thorlabs.private.APT.ThorlabsHWType.SCC001" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Thorlabs.private.APT.ThorlabsHWType.TDC001">
+<span class="sig-name descname"><span class="pre">TDC001</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">31</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Thorlabs.private.APT.ThorlabsHWType.TDC001" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Thorlabs.private.APT.ThorlabsHWType.TST001">
+<span class="sig-name descname"><span class="pre">TST001</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">29</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Thorlabs.private.APT.ThorlabsHWType.TST001" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Thorlabs.private.APT.Thorlabs_APT">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.Thorlabs.private.APT.</span></span><span class="sig-name descname"><span class="pre">Thorlabs_APT</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dll_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#bool" title="(in Python v3.10)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event_dialog</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#bool" title="(in Python v3.10)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Thorlabs/private/APT.html#Thorlabs_APT"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Thorlabs.private.APT.Thorlabs_APT" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3.10/library/functions.html#object" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Wrapper class for the APT.dll Thorlabs APT Server library.
+The class has been tested for a Thorlabs MFF10x mirror flipper, a Thorlabs PRM1Z8 Polarizer
+Wheel and a Thorlabs K10CR1 rotator.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dll_path</strong> – Path to the APT.dll file. If not set, a default path is used.</p></li>
+<li><p><strong>verbose</strong> – Flag for the verbose behaviour. If true, successful events are printed.</p></li>
+<li><p><strong>event_dialog</strong> – Flag for the event dialog. If true, event dialog pops up for information.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Thorlabs.private.APT.Thorlabs_APT.verbose">
+<span class="sig-name descname"><span class="pre">verbose</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Thorlabs.private.APT.Thorlabs_APT.verbose" title="Link to this definition">¶</a></dt>
+<dd><p>Flag for the verbose behaviour.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Thorlabs.private.APT.Thorlabs_APT.dll">
+<span class="sig-name descname"><span class="pre">dll</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Thorlabs.private.APT.Thorlabs_APT.dll" title="Link to this definition">¶</a></dt>
+<dd><p>WinDLL object for APT.dll.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Thorlabs.private.APT.Thorlabs_APT.apt_clean_up">
+<span class="sig-name descname"><span class="pre">apt_clean_up</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Thorlabs/private/APT.html#Thorlabs_APT.apt_clean_up"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Thorlabs.private.APT.Thorlabs_APT.apt_clean_up" title="Link to this definition">¶</a></dt>
+<dd><p>Cleans up the resources of APT.dll</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Thorlabs.private.APT.Thorlabs_APT.apt_init">
+<span class="sig-name descname"><span class="pre">apt_init</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Thorlabs/private/APT.html#Thorlabs_APT.apt_init"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Thorlabs.private.APT.Thorlabs_APT.apt_init" title="Link to this definition">¶</a></dt>
+<dd><p>Initialization of APT.dll</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Thorlabs.private.APT.Thorlabs_APT.disable_hw_channel">
+<span class="sig-name descname"><span class="pre">disable_hw_channel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">serial_number</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Thorlabs/private/APT.html#Thorlabs_APT.disable_hw_channel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Thorlabs.private.APT.Thorlabs_APT.disable_hw_channel" title="Link to this definition">¶</a></dt>
+<dd><p>Disables the hardware channel (often the motor)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>serial_number</strong> – The device’s serial number for which this function is called.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Thorlabs.private.APT.Thorlabs_APT.enable_event_dlg">
+<span class="sig-name descname"><span class="pre">enable_event_dlg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">enable</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#bool" title="(in Python v3.10)"><span class="pre">bool</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Thorlabs/private/APT.html#Thorlabs_APT.enable_event_dlg"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Thorlabs.private.APT.Thorlabs_APT.enable_event_dlg" title="Link to this definition">¶</a></dt>
+<dd><p>Activates/deactivates the event dialog, which appears when an error occurs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>enable</strong> – True, to enable the event dialog. False, to disable it.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Thorlabs.private.APT.Thorlabs_APT.enable_hw_channel">
+<span class="sig-name descname"><span class="pre">enable_hw_channel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">serial_number</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Thorlabs/private/APT.html#Thorlabs_APT.enable_hw_channel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Thorlabs.private.APT.Thorlabs_APT.enable_hw_channel" title="Link to this definition">¶</a></dt>
+<dd><p>Enables the hardware channel (often the motor)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>serial_number</strong> – The device’s serial number for which this function is called.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Thorlabs.private.APT.Thorlabs_APT.error_check">
+<span class="sig-name descname"><span class="pre">error_check</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">code</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">function_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Thorlabs/private/APT.html#Thorlabs_APT.error_check"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Thorlabs.private.APT.Thorlabs_APT.error_check" title="Link to this definition">¶</a></dt>
+<dd><p>Analyzes a functions return code to check, if the function call to APT.dll was
+successful. If an error occurred, this function throws an ThorlabsException.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>code</strong> – The called function’s return code</p></li>
+<li><p><strong>function_name</strong> – Name of the called function</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Throws:</dt><dd><p>ThorlabsException: Thrown, if the return code indicates that an error has occurred.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Thorlabs.private.APT.Thorlabs_APT.get_hw_info">
+<span class="sig-name descname"><span class="pre">get_hw_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">serial_number</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Tuple" title="(in Python v3.10)"><span class="pre">Tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Thorlabs/private/APT.html#Thorlabs_APT.get_hw_info"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Thorlabs.private.APT.Thorlabs_APT.get_hw_info" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the device’s information.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>serial_number</strong> – The device’s serial number for which this function is called.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>device model name, firmware version, hardware notes.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Thorlabs.private.APT.Thorlabs_APT.get_hw_serial_num_ex">
+<span class="sig-name descname"><span class="pre">get_hw_serial_num_ex</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hw_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Thorlabs.private.APT.ThorlabsHWType" title="qcodes_contrib_drivers.drivers.Thorlabs.private.APT.ThorlabsHWType"><span class="pre">ThorlabsHWType</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Thorlabs/private/APT.html#Thorlabs_APT.get_hw_serial_num_ex"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Thorlabs.private.APT.Thorlabs_APT.get_hw_serial_num_ex" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the a device’s serial number by passing the model’s hardware type and the
+device id.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>hw_type</strong> – Hardware type (model code) to search for.</p></li>
+<li><p><strong>index</strong> – Device id</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The device’s serial number</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Thorlabs.private.APT.Thorlabs_APT.init_hw_device">
+<span class="sig-name descname"><span class="pre">init_hw_device</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">serial_number</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Thorlabs/private/APT.html#Thorlabs_APT.init_hw_device"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Thorlabs.private.APT.Thorlabs_APT.init_hw_device" title="Link to this definition">¶</a></dt>
+<dd><p>Initializes the device</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>serial_number</strong> – The device’s serial number for which this function is called.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Thorlabs.private.APT.Thorlabs_APT.list_available_devices">
+<span class="sig-name descname"><span class="pre">list_available_devices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hw_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Thorlabs.private.APT.ThorlabsHWType" title="qcodes_contrib_drivers.drivers.Thorlabs.private.APT.ThorlabsHWType"><span class="pre">ThorlabsHWType</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.List" title="(in Python v3.10)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Tuple" title="(in Python v3.10)"><span class="pre">Tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Thorlabs/private/APT.html#Thorlabs_APT.list_available_devices"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Thorlabs.private.APT.Thorlabs_APT.list_available_devices" title="Link to this definition">¶</a></dt>
+<dd><p>Lists all available Thorlabs devices, that can connect to the APT server.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>hw_type</strong> – If this parameter is passed, the function only searches for a certain device
+model. Otherwise (if the parameter is None), it searches for all Thorlabs
+devices.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A list of tuples. Each list-element is a tuple of 3 ints, containing the device’s
+hardware type, device id and serial number: [(hw type id, device id, serial), …]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Thorlabs.private.APT.Thorlabs_APT.mot_get_home_parameters">
+<span class="sig-name descname"><span class="pre">mot_get_home_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">serial_number</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Tuple" title="(in Python v3.10)"><span class="pre">Tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#float" title="(in Python v3.10)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#float" title="(in Python v3.10)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Thorlabs/private/APT.html#Thorlabs_APT.mot_get_home_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Thorlabs.private.APT.Thorlabs_APT.mot_get_home_parameters" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the motor’s parameters for moving home</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>serial_number</strong> – The device’s serial number for which this function is called.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>direction, home limit switch, velocity (deg/s), zero offset (deg)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Thorlabs.private.APT.Thorlabs_APT.mot_get_position">
+<span class="sig-name descname"><span class="pre">mot_get_position</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">serial_number</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#float" title="(in Python v3.10)"><span class="pre">float</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Thorlabs/private/APT.html#Thorlabs_APT.mot_get_position"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Thorlabs.private.APT.Thorlabs_APT.mot_get_position" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the current motor position</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>serial_number</strong> – The device’s serial number for which this function is called.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Motor position in degrees (0 to 360)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Thorlabs.private.APT.Thorlabs_APT.mot_get_status_bits">
+<span class="sig-name descname"><span class="pre">mot_get_status_bits</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">serial_number</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Thorlabs/private/APT.html#Thorlabs_APT.mot_get_status_bits"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Thorlabs.private.APT.Thorlabs_APT.mot_get_status_bits" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the motor’s status bits</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>serial_number</strong> – The device’s serial number for which this function is called.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Status bits of the motor</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Thorlabs.private.APT.Thorlabs_APT.mot_get_velocity_parameters">
+<span class="sig-name descname"><span class="pre">mot_get_velocity_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">serial_number</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Tuple" title="(in Python v3.10)"><span class="pre">Tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#float" title="(in Python v3.10)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#float" title="(in Python v3.10)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#float" title="(in Python v3.10)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Thorlabs/private/APT.html#Thorlabs_APT.mot_get_velocity_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Thorlabs.private.APT.Thorlabs_APT.mot_get_velocity_parameters" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the motor’s velocity parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>serial_number</strong> – The device’s serial number for which this function is called.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>minimum velocity (deg/s), acceleration (deg/s/s), maximum velocity (deg/s)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Thorlabs.private.APT.Thorlabs_APT.mot_move_absolute_ex">
+<span class="sig-name descname"><span class="pre">mot_move_absolute_ex</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">serial_number</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">absolute_position</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#float" title="(in Python v3.10)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">wait</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#bool" title="(in Python v3.10)"><span class="pre">bool</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Thorlabs/private/APT.html#Thorlabs_APT.mot_move_absolute_ex"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Thorlabs.private.APT.Thorlabs_APT.mot_move_absolute_ex" title="Link to this definition">¶</a></dt>
+<dd><p>Moves the motor to an absolute position</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>serial_number</strong> – The device’s serial number for which this function is called.</p></li>
+<li><p><strong>position</strong> – The position to move the motor to in degrees (0 to 360)</p></li>
+<li><p><strong>wait</strong> – True, to block until the motor reaches the target position. False, to do this
+asynchronously.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Thorlabs.private.APT.Thorlabs_APT.mot_move_home">
+<span class="sig-name descname"><span class="pre">mot_move_home</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">serial_number</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">wait</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#bool" title="(in Python v3.10)"><span class="pre">bool</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Thorlabs/private/APT.html#Thorlabs_APT.mot_move_home"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Thorlabs.private.APT.Thorlabs_APT.mot_move_home" title="Link to this definition">¶</a></dt>
+<dd><p>Moves the motor to zero and recalibrates it</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>serial_number</strong> – The device’s serial number for which this function is called.</p></li>
+<li><p><strong>wait</strong> – True, to block until the motor reaches the target position. False, to do this
+asynchronously.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Thorlabs.private.APT.Thorlabs_APT.mot_move_jog">
+<span class="sig-name descname"><span class="pre">mot_move_jog</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">serial_number</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">wait</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#bool" title="(in Python v3.10)"><span class="pre">bool</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Thorlabs/private/APT.html#Thorlabs_APT.mot_move_jog"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Thorlabs.private.APT.Thorlabs_APT.mot_move_jog" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the motor’s status bits</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>serial_number</strong> – The device’s serial number for which this function is called.</p></li>
+<li><p><strong>direction</strong> – Forward (1) or reverse (2)</p></li>
+<li><p><strong>wait</strong> – True, to block until the motor reaches the target position. False, to do this
+asynchronously.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Thorlabs.private.APT.Thorlabs_APT.mot_move_velocity">
+<span class="sig-name descname"><span class="pre">mot_move_velocity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">serial_number</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Thorlabs/private/APT.html#Thorlabs_APT.mot_move_velocity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Thorlabs.private.APT.Thorlabs_APT.mot_move_velocity" title="Link to this definition">¶</a></dt>
+<dd><p>Lets the motor rotate continuously in the specified direction.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>serial_number</strong> – The device’s serial number for which this function is called.</p></li>
+<li><p><strong>direction</strong> – Forward (1) or reverse (2)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Thorlabs.private.APT.Thorlabs_APT.mot_set_home_parameters">
+<span class="sig-name descname"><span class="pre">mot_set_home_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">serial_number</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">lim_switch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">velocity</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#float" title="(in Python v3.10)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">zero_offset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#float" title="(in Python v3.10)"><span class="pre">float</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Thorlabs/private/APT.html#Thorlabs_APT.mot_set_home_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Thorlabs.private.APT.Thorlabs_APT.mot_set_home_parameters" title="Link to this definition">¶</a></dt>
+<dd><p>Sets the motor’s parameters for moving home</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>serial_number</strong> – The device’s serial number for which this function is called.</p></li>
+<li><p><strong>direction</strong> – Moving direction (1 for forward, 2 for reverse)</p></li>
+<li><p><strong>lim_switch</strong> – Home limit switch (1 for reverse, 4 for forward)</p></li>
+<li><p><strong>velocity</strong> – Moving velocity in degrees/s</p></li>
+<li><p><strong>zero_offset</strong> – Offset of zero position in degrees</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>minimum velocity (deg/s), acceleration (deg/s/s), maximum velocity (deg/s)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Thorlabs.private.APT.Thorlabs_APT.mot_set_velocity_parameters">
+<span class="sig-name descname"><span class="pre">mot_set_velocity_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">serial_number</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_vel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#float" title="(in Python v3.10)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">accn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#float" title="(in Python v3.10)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_vel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#float" title="(in Python v3.10)"><span class="pre">float</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Thorlabs/private/APT.html#Thorlabs_APT.mot_set_velocity_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Thorlabs.private.APT.Thorlabs_APT.mot_set_velocity_parameters" title="Link to this definition">¶</a></dt>
+<dd><p>Sets the motor’s velocity parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>serial_number</strong> – The device’s serial number for which this function is called.</p></li>
+<li><p><strong>min_vel</strong> – Minimum veloctiy (starting velocity) in deg/s</p></li>
+<li><p><strong>accn</strong> – Acceleration in deg/s/s</p></li>
+<li><p><strong>max_vel</strong> – Maximum velocity (target velocity) in deg/s</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Thorlabs.private.APT.Thorlabs_APT.mot_stop_profiled">
+<span class="sig-name descname"><span class="pre">mot_stop_profiled</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">serial_number</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Thorlabs/private/APT.html#Thorlabs_APT.mot_stop_profiled"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Thorlabs.private.APT.Thorlabs_APT.mot_stop_profiled" title="Link to this definition">¶</a></dt>
+<dd><p>Stops the motor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>serial_number</strong> – The device’s serial number for which this function is called.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-qcodes_contrib_drivers.drivers.Thorlabs.private.CC">
+<span id="qcodes-contrib-drivers-drivers-thorlabs-private-cc-module"></span><h2>qcodes_contrib_drivers.drivers.Thorlabs.private.CC module<a class="headerlink" href="#module-qcodes_contrib_drivers.drivers.Thorlabs.private.CC" title="Link to this heading">¶</a></h2>
+<p>QCoDes- Base driver for Thorlab instruments using the CC commands</p>
+<dl class="simple">
+<dt>Authors:</dt><dd><p>Julien Barrier, &lt;<a class="reference external" href="mailto:julien&#37;&#52;&#48;julienbarrier&#46;eu">julien<span>&#64;</span>julienbarrier<span>&#46;</span>eu</a>&gt;</p>
+</dd>
+</dl>
+</section>
+<section id="module-qcodes_contrib_drivers.drivers.Thorlabs.private.LS">
+<span id="qcodes-contrib-drivers-drivers-thorlabs-private-ls-module"></span><h2>qcodes_contrib_drivers.drivers.Thorlabs.private.LS module<a class="headerlink" href="#module-qcodes_contrib_drivers.drivers.Thorlabs.private.LS" title="Link to this heading">¶</a></h2>
+<p>QCoDes- Base driver for Thorlab instruments using the LS commands</p>
+<dl class="simple">
+<dt>Authors:</dt><dd><p>iago-rst <a class="reference external" href="https://github.com/iago-rst">https://github.com/iago-rst</a>, 2023
+Julien Barrier &lt;<a class="reference external" href="mailto:julien&#37;&#52;&#48;julienbarrier&#46;eu">julien<span>&#64;</span>julienbarrier<span>&#46;</span>eu</a>&gt;, 2023</p>
+</dd>
+</dl>
+</section>
+<section id="module-qcodes_contrib_drivers.drivers.Thorlabs.private.kinesis">
+<span id="qcodes-contrib-drivers-drivers-thorlabs-private-kinesis-module"></span><h2>qcodes_contrib_drivers.drivers.Thorlabs.private.kinesis module<a class="headerlink" href="#module-qcodes_contrib_drivers.drivers.Thorlabs.private.kinesis" title="Link to this heading">¶</a></h2>
+<p>QCoDeS base drivers for Thorlabs Kinesis instruments</p>
+<dl class="simple">
+<dt>Authors:</dt><dd><p>Julien Barrier, &lt;<a class="reference external" href="mailto:julien&#37;&#52;&#48;julienbarrier&#46;eu">julien<span>&#64;</span>julienbarrier<span>&#46;</span>eu</a>&gt;</p>
+</dd>
+</dl>
+</section>
+<section id="module-qcodes_contrib_drivers.drivers.Thorlabs.private">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-qcodes_contrib_drivers.drivers.Thorlabs.private" title="Link to this heading">¶</a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="qcodes_contrib_drivers.drivers.Thorlabs.html" class="btn btn-neutral float-left" title="qcodes_contrib_drivers.drivers.Thorlabs package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="qcodes_contrib_drivers.drivers.Valon.html" class="btn btn-neutral float-right" title="qcodes_contrib_drivers.drivers.Valon package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, QCoDeS Users.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

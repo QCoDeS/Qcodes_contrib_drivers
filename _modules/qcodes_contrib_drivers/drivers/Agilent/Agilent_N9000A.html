@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>qcodes_contrib_drivers.drivers.Agilent.Agilent_N9000A &mdash; qcodes_contrib_drivers 0.22.0.dev63+main.g134f064 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../_static/documentation_options.js?v=159198be"></script>
+        <script src="../../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            qcodes_contrib_drivers
+          </a>
+              <div class="version">
+                0.22.0.dev63+main.g134f064
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples/index.html">Examples of how to use drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/generated/qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">qcodes_contrib_drivers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">qcodes_contrib_drivers.drivers.Agilent.Agilent_N9000A</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for qcodes_contrib_drivers.drivers.Agilent.Agilent_N9000A</h1><div class="highlight"><pre>
+<span></span><span class="c1"># This Python file uses the following encoding: utf-8</span>
+<span class="c1"># Etienne Dumur &lt;etienne.dumur@gmail.com&gt;, august 2020</span>
+
+
+<span class="kn">from</span> <span class="nn">qcodes</span> <span class="kn">import</span> <span class="n">VisaInstrument</span>
+<span class="kn">from</span> <span class="nn">qcodes.utils.validators</span> <span class="kn">import</span> <span class="n">Numbers</span>
+
+
+<div class="viewcode-block" id="Agilent_N9000A">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Agilent.html#qcodes_contrib_drivers.drivers.Agilent.Agilent_N9000A.Agilent_N9000A">[docs]</a>
+<span class="k">class</span> <span class="nc">Agilent_N9000A</span><span class="p">(</span><span class="n">VisaInstrument</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This is the QCoDeS python driver for the Agilent CXA N9000A power spectrum</span>
+<span class="sd">    analyzer.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+
+<div class="viewcode-block" id="Agilent_N9000A.__init__">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Agilent.html#qcodes_contrib_drivers.drivers.Agilent.Agilent_N9000A.Agilent_N9000A.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span>       <span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                       <span class="n">address</span>    <span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                       <span class="n">terminator</span> <span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
+                       <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        QCoDeS driver for the power spectrum analyzer Agilent N9000A.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            name (str): Name of the instrument.</span>
+<span class="sd">            address (str): Address of the instrument.</span>
+<span class="sd">            terminator (str, optional, by default ``&quot;\n&quot;``): Terminator character of</span>
+<span class="sd">                the string reply.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span>       <span class="o">=</span> <span class="n">name</span><span class="p">,</span>
+                         <span class="n">address</span>    <span class="o">=</span> <span class="n">address</span><span class="p">,</span>
+                         <span class="n">terminator</span> <span class="o">=</span> <span class="n">terminator</span><span class="p">,</span>
+                         <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_function</span><span class="p">(</span><span class="s1">&#39;reset&#39;</span><span class="p">,</span> <span class="n">call_cmd</span><span class="o">=</span><span class="s1">&#39;*RST&#39;</span><span class="p">)</span>
+
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">name</span>       <span class="o">=</span> <span class="s1">&#39;rf_center_frequency&#39;</span><span class="p">,</span>
+                           <span class="n">unit</span>       <span class="o">=</span> <span class="s1">&#39;GHz&#39;</span><span class="p">,</span>
+                           <span class="n">get_parser</span> <span class="o">=</span> <span class="nb">float</span><span class="p">,</span>
+                           <span class="n">set_cmd</span>    <span class="o">=</span> <span class="s1">&#39;:sense:frequency:rf:center </span><span class="si">{}</span><span class="s1"> GHz&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span>    <span class="o">=</span> <span class="s1">&#39;:sense:frequency:rf:center?&#39;</span><span class="p">,</span>
+                           <span class="n">docstring</span>  <span class="o">=</span> <span class="s1">&#39;The RF center frequency&#39;</span><span class="p">,</span>
+                           <span class="n">vals</span>       <span class="o">=</span> <span class="n">Numbers</span><span class="p">(</span><span class="mf">9e-6</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+                           <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">name</span>       <span class="o">=</span> <span class="s1">&#39;video_bandwidth&#39;</span><span class="p">,</span>
+                           <span class="n">unit</span>       <span class="o">=</span> <span class="s1">&#39;MHz&#39;</span><span class="p">,</span>
+                           <span class="n">get_parser</span> <span class="o">=</span> <span class="nb">float</span><span class="p">,</span>
+                           <span class="n">set_cmd</span>    <span class="o">=</span> <span class="s1">&#39;:sense:chpower:bandwidth:video </span><span class="si">{}</span><span class="s1"> MHz&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span>    <span class="o">=</span> <span class="s1">&#39;:sense:chpower:bandwidth:video?&#39;</span><span class="p">,</span>
+                           <span class="n">docstring</span>  <span class="o">=</span> <span class="s1">&#39;The analyzer post-detection filter (VBW)&#39;</span>
+                           <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">name</span>       <span class="o">=</span> <span class="s1">&#39;resolution_bandwidth&#39;</span><span class="p">,</span>
+                           <span class="n">unit</span>       <span class="o">=</span> <span class="s1">&#39;MHz&#39;</span><span class="p">,</span>
+                           <span class="n">get_parser</span> <span class="o">=</span> <span class="nb">float</span><span class="p">,</span>
+                           <span class="n">set_cmd</span>    <span class="o">=</span> <span class="s1">&#39;:sense:chpower:bandwidth:resolution </span><span class="si">{}</span><span class="s1"> MHz&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span>    <span class="o">=</span> <span class="s1">&#39;:sense:chpower:bandwidth:resolution?&#39;</span><span class="p">,</span>
+                           <span class="n">docstring</span>  <span class="o">=</span> <span class="s1">&#39;The resolution bandwidth&#39;</span>
+                           <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">name</span>       <span class="o">=</span> <span class="s1">&#39;power&#39;</span><span class="p">,</span>
+                           <span class="n">unit</span>       <span class="o">=</span> <span class="s1">&#39;dBm&#39;</span><span class="p">,</span>
+                           <span class="n">get_parser</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">val</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="s1">&#39;power&#39;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">power_parser</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">output</span><span class="p">),</span>
+                           <span class="n">get_cmd</span>    <span class="o">=</span> <span class="s1">&#39;:initiate:chpower; :fetch:chpower?&#39;</span><span class="p">,</span>
+                           <span class="n">docstring</span>  <span class="o">=</span> <span class="s1">&#39;Absolute power at the RF center frequency&#39;</span>
+                           <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">name</span>       <span class="o">=</span> <span class="s1">&#39;power_spectral_density&#39;</span><span class="p">,</span>
+                           <span class="n">unit</span>       <span class="o">=</span> <span class="s1">&#39;dBm/Hz&#39;</span><span class="p">,</span>
+                           <span class="n">get_parser</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">val</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="s1">&#39;psd&#39;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">power_parser</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">output</span><span class="p">),</span>
+                           <span class="n">get_cmd</span>    <span class="o">=</span> <span class="s1">&#39;:initiate:chpower; :fetch:chpower?&#39;</span><span class="p">,</span>
+                           <span class="n">docstring</span>  <span class="o">=</span> <span class="s1">&#39;Power Spectral Density at the RF center frequency&#39;</span>
+                           <span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect_message</span><span class="p">()</span></div>
+
+
+
+
+<div class="viewcode-block" id="Agilent_N9000A.power_parser">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Agilent.html#qcodes_contrib_drivers.drivers.Agilent.Agilent_N9000A.Agilent_N9000A.power_parser">[docs]</a>
+    <span class="k">def</span> <span class="nf">power_parser</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">output</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parse the reply from a strin containing &#39;power, psd&#39; to float depending</span>
+<span class="sd">        of the output.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            val (str): Reply of the power spectral analyzer.</span>
+<span class="sd">            output (str): Desired output format.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            power or power spectral density (float):</span>
+<span class="sd">                power in dBm.</span>
+<span class="sd">                power spectral density in dBm/Hz.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">power</span><span class="p">,</span> <span class="n">psd</span> <span class="o">=</span> <span class="n">val</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">output</span><span class="o">==</span><span class="s1">&#39;power&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">power</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">output</span><span class="o">==</span><span class="s1">&#39;psd&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">psd</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span> 
+            <span class="k">return</span> <span class="mf">0.</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, QCoDeS Users.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>qcodes_contrib_drivers.drivers.NationalInstruments.ni_dll_instrument &mdash; qcodes_contrib_drivers 0.22.0.dev63+main.g134f064 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../_static/documentation_options.js?v=159198be"></script>
+        <script src="../../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            qcodes_contrib_drivers
+          </a>
+              <div class="version">
+                0.22.0.dev63+main.g134f064
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples/index.html">Examples of how to use drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/generated/qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">qcodes_contrib_drivers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">qcodes_contrib_drivers.drivers.NationalInstruments.ni_dll_instrument</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for qcodes_contrib_drivers.drivers.NationalInstruments.ni_dll_instrument</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module contains a small class that mixes features that are common to all</span>
+<span class="sd">libraries in the ``NIDLLWrapper`` class with ``qcodes.Instrument``.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span>
+<span class="kn">from</span> <span class="nn">qcodes</span> <span class="kn">import</span> <span class="n">Instrument</span>
+<span class="kn">from</span> <span class="nn">.dll_wrapper</span> <span class="kn">import</span> <span class="n">NIDLLWrapper</span><span class="p">,</span> <span class="n">AttributeWrapper</span>
+<span class="kn">from</span> <span class="nn">.visa_types</span> <span class="kn">import</span> <span class="n">ViSession</span>
+
+
+<div class="viewcode-block" id="NIDLLInstrument">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.NationalInstruments.html#qcodes_contrib_drivers.drivers.NationalInstruments.ni_dll_instrument.NIDLLInstrument">[docs]</a>
+<span class="k">class</span> <span class="nc">NIDLLInstrument</span><span class="p">(</span><span class="n">Instrument</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Common base class for QCoDeS instruments based on NI DLL drivers, when an</span>
+<span class="sd">    official NI Python driver (such as ``nidaqmx`` or ``nifpga``) is not</span>
+<span class="sd">    available. It holds a refence to an NI DLL wrapper object, as well as an</span>
+<span class="sd">    instrument handle (``ViSession``). It handles calling the DLL methods and</span>
+<span class="sd">    has some common methods implemented, such as ``init``, ``close`` and</span>
+<span class="sd">    ``get_attribute``.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        name: Name for this instrument</span>
+<span class="sd">        resource: Identifier for this instrument in NI MAX.</span>
+<span class="sd">        dll_path: path to the library DLL.</span>
+<span class="sd">        lib_prefix: the prefix of the function names in the library (see</span>
+<span class="sd">            ``NIDLLWrapper``)</span>
+<span class="sd">        id_query: whether to perform an ID query on initialization</span>
+<span class="sd">        reset_device: whether to reset the device on initialization</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">resource</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">dll_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                 <span class="n">lib_prefix</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">id_query</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+                 <span class="n">reset_device</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">resource</span> <span class="o">=</span> <span class="n">resource</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">wrapper</span> <span class="o">=</span> <span class="n">NIDLLWrapper</span><span class="p">(</span><span class="n">dll_path</span><span class="o">=</span><span class="n">dll_path</span><span class="p">,</span> <span class="n">lib_prefix</span><span class="o">=</span><span class="n">lib_prefix</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_handle</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">init</span><span class="p">(</span><span class="n">id_query</span><span class="o">=</span><span class="n">id_query</span><span class="p">,</span>
+                                 <span class="n">reset_device</span><span class="o">=</span><span class="n">reset_device</span><span class="p">)</span>
+
+<div class="viewcode-block" id="NIDLLInstrument.init">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.NationalInstruments.html#qcodes_contrib_drivers.drivers.NationalInstruments.ni_dll_instrument.NIDLLInstrument.init">[docs]</a>
+    <span class="k">def</span> <span class="nf">init</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">id_query</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+             <span class="n">reset_device</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ViSession</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Call the wrapped init function from the library</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            id_query: whether to perform an ID query</span>
+<span class="sd">            reset_device: whether to reset the device</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            the ViSession handle of the initialized device</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">wrapper</span><span class="o">.</span><span class="n">init</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">resource</span><span class="p">,</span> <span class="n">id_query</span><span class="o">=</span><span class="n">id_query</span><span class="p">,</span>
+                                 <span class="n">reset_device</span><span class="o">=</span><span class="n">reset_device</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="NIDLLInstrument.reset">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.NationalInstruments.html#qcodes_contrib_drivers.drivers.NationalInstruments.ni_dll_instrument.NIDLLInstrument.reset">[docs]</a>
+    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wrapper</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_handle</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="NIDLLInstrument.get_attribute">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.NationalInstruments.html#qcodes_contrib_drivers.drivers.NationalInstruments.ni_dll_instrument.NIDLLInstrument.get_attribute">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_attribute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">:</span> <span class="n">AttributeWrapper</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">wrapper</span><span class="o">.</span><span class="n">get_attribute</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_handle</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="NIDLLInstrument.set_attribute">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.NationalInstruments.html#qcodes_contrib_drivers.drivers.NationalInstruments.ni_dll_instrument.NIDLLInstrument.set_attribute">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_attribute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">:</span> <span class="n">AttributeWrapper</span><span class="p">,</span> <span class="n">set_value</span><span class="p">:</span> <span class="n">Any</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wrapper</span><span class="o">.</span><span class="n">set_attribute</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_handle</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="n">set_value</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="NIDLLInstrument.close">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.NationalInstruments.html#qcodes_contrib_drivers.drivers.NationalInstruments.ni_dll_instrument.NIDLLInstrument.close">[docs]</a>
+    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;_handle&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">wrapper</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_handle</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, QCoDeS Users.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

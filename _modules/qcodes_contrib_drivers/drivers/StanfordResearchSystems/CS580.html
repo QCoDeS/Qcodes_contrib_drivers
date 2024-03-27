@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>qcodes_contrib_drivers.drivers.StanfordResearchSystems.CS580 &mdash; qcodes_contrib_drivers 0.22.0.dev63+main.g134f064 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../_static/documentation_options.js?v=159198be"></script>
+        <script src="../../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            qcodes_contrib_drivers
+          </a>
+              <div class="version">
+                0.22.0.dev63+main.g134f064
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples/index.html">Examples of how to use drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/generated/qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">qcodes_contrib_drivers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">qcodes_contrib_drivers.drivers.StanfordResearchSystems.CS580</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for qcodes_contrib_drivers.drivers.StanfordResearchSystems.CS580</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;QCoDeS-Driver for Stanford Research Systems CS580 current source:</span>
+<span class="sd">https://www.thinksrs.com/products/cs580.html</span>
+
+<span class="sd">Authors:</span>
+<span class="sd">    Julien Barrier, &lt;julien@julienbarrier.eu&gt;</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span>
+
+<span class="kn">from</span> <span class="nn">qcodes.instrument</span> <span class="kn">import</span> <span class="n">VisaInstrument</span>
+<span class="kn">from</span> <span class="nn">qcodes.parameters</span> <span class="kn">import</span> <span class="n">Parameter</span><span class="p">,</span> <span class="n">create_on_off_val_mapping</span>
+<span class="kn">from</span> <span class="nn">qcodes</span> <span class="kn">import</span> <span class="n">validators</span> <span class="k">as</span> <span class="n">vals</span>
+
+<span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="CS580">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.StanfordResearchSystems.html#qcodes_contrib_drivers.drivers.StanfordResearchSystems.CS580.CS580">[docs]</a>
+<span class="k">class</span> <span class="nc">CS580</span><span class="p">(</span><span class="n">VisaInstrument</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class to represent an SRS CS580 current source</span>
+
+<span class="sd">    status: beta-version</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        name (str): name for the instrument</span>
+<span class="sd">        address (str): Visa resource name to connect</span>
+<span class="sd">        terminator (str): Visa terminator</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_gains</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="mf">1e-9</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">10e-9</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">100e-9</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="mf">1e-6</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="mf">10e-6</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="mf">100e-6</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
+        <span class="mf">1e-3</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span> <span class="mf">10e-3</span><span class="p">:</span> <span class="mi">7</span><span class="p">,</span> <span class="mf">50e-3</span><span class="p">:</span> <span class="mi">8</span>
+    <span class="p">}</span>
+
+    <span class="n">_n_to_gains</span> <span class="o">=</span> <span class="p">{</span><span class="n">g</span><span class="p">:</span> <span class="n">k</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">_gains</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+
+    <span class="n">_overload_status</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="mi">0</span><span class="p">:</span> <span class="s1">&#39;None&#39;</span><span class="p">,</span>
+        <span class="mi">1</span><span class="p">:</span> <span class="s1">&#39;Compliance limit reached&#39;</span><span class="p">,</span>
+        <span class="mi">2</span><span class="p">:</span> <span class="s1">&#39;Analog input overload&#39;</span><span class="p">,</span>
+        <span class="mi">3</span><span class="p">:</span> <span class="s1">&#39;Compliance limit reached and analog input overload&#39;</span>
+    <span class="p">}</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+            <span class="n">address</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+            <span class="n">terminator</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\r\n</span><span class="s1">&#39;</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">address</span><span class="o">=</span><span class="n">address</span><span class="p">,</span> <span class="n">terminator</span><span class="o">=</span><span class="n">terminator</span><span class="p">,</span>
+                         <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">gain</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="s1">&#39;gain&#39;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Gain&#39;</span><span class="p">,</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;A/V&#39;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;GAIN?&#39;</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s1">&#39;GAIN </span><span class="si">{:d}</span><span class="s1">&#39;</span><span class="p">,</span>
+            <span class="n">get_parser</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_parse_get_gain</span><span class="p">,</span>
+            <span class="n">set_parser</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_parse_set_gain</span><span class="p">,</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">input</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="s1">&#39;input&#39;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Analog input&#39;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;INPT?&#39;</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s1">&#39;INPT</span><span class="si">{:d}</span><span class="s1">&#39;</span><span class="p">,</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Ints</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">speed</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="s1">&#39;speed&#39;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Speed&#39;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;RESP?&#39;</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s1">&#39;RESP</span><span class="si">{:d}</span><span class="s1">&#39;</span><span class="p">,</span>
+            <span class="n">val_mapping</span><span class="o">=</span><span class="p">{</span>
+                <span class="s1">&#39;fast&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="s1">&#39;slow&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Ints</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">shield</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="s1">&#39;shield&#39;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Inner shield&#39;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;SHLD?&#39;</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s1">&#39;SHLD</span><span class="si">{:d}</span><span class="s1">&#39;</span><span class="p">,</span>
+            <span class="n">val_mapping</span><span class="o">=</span><span class="p">{</span>
+                <span class="s1">&#39;guard&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="s1">&#39;return&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Ints</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">isolation</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="s1">&#39;isolation&#39;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Isolation&#39;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;ISOL?&#39;</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s1">&#39;ISOL</span><span class="si">{:d}</span><span class="s1">&#39;</span><span class="p">,</span>
+            <span class="n">val_mapping</span><span class="o">=</span><span class="p">{</span>
+                <span class="s1">&#39;ground&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="s1">&#39;float&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Ints</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">output</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="s1">&#39;output&#39;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Output&#39;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;SOUT?&#39;</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s1">&#39;SOUT</span><span class="si">{:d}</span><span class="s1">&#39;</span><span class="p">,</span>
+            <span class="n">val_mapping</span><span class="o">=</span><span class="n">create_on_off_val_mapping</span><span class="p">(</span><span class="n">on_val</span><span class="o">=</span><span class="s1">&#39;1&#39;</span><span class="p">,</span> <span class="n">off_val</span><span class="o">=</span><span class="s1">&#39;0&#39;</span><span class="p">),</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Ints</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">current</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="s1">&#39;current&#39;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;DC current&#39;</span><span class="p">,</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;A&#39;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;CURR?&#39;</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s1">&#39;CURR</span><span class="si">{:e}</span><span class="s1">&#39;</span><span class="p">,</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(</span><span class="o">-</span><span class="mf">100e-3</span><span class="p">,</span> <span class="mf">100e-3</span><span class="p">),</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">voltage</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;voltage&#39;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Compliance voltage&#39;</span><span class="p">,</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;V&#39;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;VOLT?&#39;</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s1">&#39;VOLT</span><span class="si">{:f}</span><span class="s1">&#39;</span><span class="p">,</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(</span><span class="n">min_value</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">max_value</span><span class="o">=</span><span class="mf">50.0</span><span class="p">),</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">alarm</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;alarm&#39;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Audible alarms&#39;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;ALRM?&#39;</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s1">&#39;ALRM</span><span class="si">{:d}</span><span class="s1">&#39;</span><span class="p">,</span>
+            <span class="n">val_mapping</span><span class="o">=</span><span class="n">create_on_off_val_mapping</span><span class="p">(</span><span class="n">on_val</span><span class="o">=</span><span class="s1">&#39;1&#39;</span><span class="p">,</span> <span class="n">off_val</span><span class="o">=</span><span class="s1">&#39;0&#39;</span><span class="p">),</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Ints</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect_message</span><span class="p">()</span>
+
+<div class="viewcode-block" id="CS580.get_idn">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.StanfordResearchSystems.html#qcodes_contrib_drivers.drivers.StanfordResearchSystems.CS580.CS580.get_idn">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_idn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Return the Instrument Identifier Message &quot;&quot;&quot;</span>
+        <span class="n">idstr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s1">&#39;*IDN?&#39;</span><span class="p">)</span>
+        <span class="n">idparts</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">idstr</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">,</span> <span class="mi">4</span><span class="p">)][</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">((</span><span class="s1">&#39;vendor&#39;</span><span class="p">,</span> <span class="s1">&#39;model, serial&#39;</span><span class="p">,</span> <span class="s1">&#39;firmware&#39;</span><span class="p">),</span> <span class="n">idparts</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="CS580.get_overload">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.StanfordResearchSystems.html#qcodes_contrib_drivers.drivers.StanfordResearchSystems.CS580.CS580.get_overload">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_overload</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Reads the current avlue of the signal overload status.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Get overload status&#39;</span><span class="p">)</span>
+        <span class="n">ovd_status</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s1">&#39;OVLD?&#39;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_overload_status</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">ovd_status</span><span class="p">)]</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ovd_status</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">ovd_status</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span></div>
+
+
+<div class="viewcode-block" id="CS580.reset">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.StanfordResearchSystems.html#qcodes_contrib_drivers.drivers.StanfordResearchSystems.CS580.CS580.reset">[docs]</a>
+    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Reset the CS580 to its default configuration&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Reset CS580 to its default configuration.&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;*RST&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_parse_get_gain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_n_to_gains</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">s</span><span class="p">)]</span>
+
+    <span class="k">def</span> <span class="nf">_parse_set_gain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gains</span><span class="p">[</span><span class="n">s</span><span class="p">]</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, QCoDeS Users.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

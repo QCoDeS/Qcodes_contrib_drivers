@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>qcodes_contrib_drivers.drivers.QuTech.D5a &mdash; qcodes_contrib_drivers 0.22.0.dev63+main.g134f064 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../_static/documentation_options.js?v=159198be"></script>
+        <script src="../../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            qcodes_contrib_drivers
+          </a>
+              <div class="version">
+                0.22.0.dev63+main.g134f064
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples/index.html">Examples of how to use drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/generated/qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">qcodes_contrib_drivers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">qcodes_contrib_drivers.drivers.QuTech.D5a</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for qcodes_contrib_drivers.drivers.QuTech.D5a</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">qcodes.instrument.base</span> <span class="kn">import</span> <span class="n">Instrument</span>
+<span class="kn">from</span> <span class="nn">qcodes.utils.validators</span> <span class="kn">import</span> <span class="n">Enum</span><span class="p">,</span> <span class="n">Numbers</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">spirack</span> <span class="kn">import</span> <span class="n">D5a_module</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">((</span><span class="s1">&#39;The D5a_module class could not be found. &#39;</span>
+                       <span class="s1">&#39;Try installing it using pip install spirack&#39;</span><span class="p">))</span>
+
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+
+
+<div class="viewcode-block" id="D5a">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.QuTech.html#qcodes_contrib_drivers.drivers.QuTech.D5a.D5a">[docs]</a>
+<span class="k">class</span> <span class="nc">D5a</span><span class="p">(</span><span class="n">Instrument</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Qcodes driver for the D5a DAC SPI-rack module.</span>
+
+<span class="sd">    functions:</span>
+<span class="sd">    -   set_dacs_zero   set all DACs to zero voltage</span>
+
+<span class="sd">    parameters:</span>
+<span class="sd">    -   dacN:       get and set DAC voltage</span>
+<span class="sd">    -   stepsizeN   get the minimum step size corresponding to the span</span>
+<span class="sd">    -   spanN       get and set the DAC span: &#39;4v uni&#39;, &#39;4v bi&#39;, or &#39;2.5v bi&#39;</span>
+
+<span class="sd">    where N is the DAC number from 1 up to 16</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="D5a.__init__">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.QuTech.html#qcodes_contrib_drivers.drivers.QuTech.D5a.D5a.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">spi_rack</span><span class="p">,</span> <span class="n">module</span><span class="p">,</span> <span class="n">inter_delay</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">dac_step</span><span class="o">=</span><span class="mf">10e-3</span><span class="p">,</span>
+                 <span class="n">reset_voltages</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">mV</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">number_dacs</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Create instrument for the D5a module.</span>
+
+<span class="sd">        The D5a module works with volts as units. For backward compatibility</span>
+<span class="sd">        there is the option to allow mV for the dacX parameters.</span>
+
+<span class="sd">        The output span of the DAC module can be changed with the spanX</span>
+<span class="sd">        command. Be carefull when executing this command with a sample</span>
+<span class="sd">        connected as voltage jumps can occur.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            name (str): name of the instrument.</span>
+
+<span class="sd">            spi_rack (SPI_rack): instance of the SPI_rack class as defined in</span>
+<span class="sd">                the spirack package. This class manages communication with the</span>
+<span class="sd">                individual modules.</span>
+
+<span class="sd">            module (int): module number as set on the hardware.</span>
+<span class="sd">            inter_delay (float): time in seconds, passed to dac parameters of the object</span>
+<span class="sd">            dac_step (float): max step size (V or mV), passed to dac parameters of the object</span>
+<span class="sd">            reset_voltages (bool): passed to D5a_module constructor</span>
+<span class="sd">            mV (bool): if True, then use mV as units in the dac parameters</span>
+<span class="sd">            number_dacs (int): number of DACs available. This is 8 for the D5mux</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">d5a</span> <span class="o">=</span> <span class="n">D5a_module</span><span class="p">(</span><span class="n">spi_rack</span><span class="p">,</span> <span class="n">module</span><span class="p">,</span> <span class="n">reset_voltages</span><span class="o">=</span><span class="n">reset_voltages</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_number_dacs</span> <span class="o">=</span> <span class="n">number_dacs</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_span_set_map</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;4v uni&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s1">&#39;4v bi&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+            <span class="s1">&#39;2v bi&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+        <span class="p">}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_span_get_map</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="p">:</span> <span class="n">k</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_span_set_map</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_function</span><span class="p">(</span><span class="s1">&#39;set_dacs_zero&#39;</span><span class="p">,</span> <span class="n">call_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_dacs_zero</span><span class="p">,</span>
+                          <span class="n">docstring</span><span class="o">=</span><span class="s1">&#39;Reset all dacs to zero voltage. No ramping is performed.&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">mV</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_gain</span> <span class="o">=</span> <span class="mf">1e3</span>
+            <span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;mV&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_gain</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;V&#39;</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_number_dacs</span><span class="p">):</span>
+            <span class="n">validator</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_validator</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;dac</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span>
+                               <span class="n">label</span><span class="o">=</span><span class="s1">&#39;DAC </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span>
+                               <span class="n">get_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_dac</span><span class="p">,</span> <span class="n">i</span><span class="p">),</span>
+                               <span class="n">set_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_dac</span><span class="p">,</span> <span class="n">i</span><span class="p">),</span>
+                               <span class="n">unit</span><span class="o">=</span><span class="n">unit</span><span class="p">,</span>
+                               <span class="n">vals</span><span class="o">=</span><span class="n">validator</span><span class="p">,</span>
+                               <span class="n">step</span><span class="o">=</span><span class="n">dac_step</span><span class="p">,</span>
+                               <span class="n">inter_delay</span><span class="o">=</span><span class="n">inter_delay</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;stepsize</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span>
+                               <span class="n">get_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">d5a</span><span class="o">.</span><span class="n">get_stepsize</span><span class="p">,</span> <span class="n">i</span><span class="p">),</span>
+                               <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;V&#39;</span><span class="p">,</span>
+                               <span class="n">docstring</span><span class="o">=</span><span class="s1">&#39;Returns the smallest voltage step of the DAC.&#39;</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;span</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span>
+                               <span class="n">get_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_span</span><span class="p">,</span> <span class="n">i</span><span class="p">),</span>
+                               <span class="n">set_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_span</span><span class="p">,</span> <span class="n">i</span><span class="p">),</span>
+                               <span class="n">vals</span><span class="o">=</span><span class="n">Enum</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_span_set_map</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span>
+                               <span class="n">docstring</span><span class="o">=</span><span class="s1">&#39;Change the output span of the DAC. This command also updates the validator.&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="D5a.set_dac_unit">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.QuTech.html#qcodes_contrib_drivers.drivers.QuTech.D5a.D5a.set_dac_unit">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_dac_unit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unit</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the unit of dac parameters&quot;&quot;&quot;</span>
+        <span class="n">allowed_values</span> <span class="o">=</span> <span class="n">Enum</span><span class="p">(</span><span class="s1">&#39;mV&#39;</span><span class="p">,</span> <span class="s1">&#39;V&#39;</span><span class="p">)</span>
+        <span class="n">allowed_values</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">unit</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_gain</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;V&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;mV&#39;</span><span class="p">:</span> <span class="mf">1e3</span><span class="p">}[</span><span class="n">unit</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_number_dacs</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;dac</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">],</span> <span class="s1">&#39;unit&#39;</span><span class="p">,</span> <span class="n">unit</span><span class="p">)</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;dac</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">],</span> <span class="s1">&#39;vals&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_validator</span><span class="p">(</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_set_dacs_zero</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_number_dacs</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_set_dac</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_set_dac</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dac</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">d5a</span><span class="o">.</span><span class="n">set_voltage</span><span class="p">(</span><span class="n">dac</span><span class="p">,</span> <span class="n">value</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gain</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_dac</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dac</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gain</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">d5a</span><span class="o">.</span><span class="n">voltages</span><span class="p">[</span><span class="n">dac</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">_get_span</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dac</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_span_get_map</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">d5a</span><span class="o">.</span><span class="n">span</span><span class="p">[</span><span class="n">dac</span><span class="p">]]</span>
+
+    <span class="k">def</span> <span class="nf">_set_span</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dac</span><span class="p">,</span> <span class="n">span_str</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">d5a</span><span class="o">.</span><span class="n">change_span_update</span><span class="p">(</span><span class="n">dac</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_span_set_map</span><span class="p">[</span><span class="n">span_str</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;dac</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">dac</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span><span class="o">.</span><span class="n">vals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_validator</span><span class="p">(</span><span class="n">dac</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_validator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dac</span><span class="p">):</span>
+        <span class="n">span</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">d5a</span><span class="o">.</span><span class="n">span</span><span class="p">[</span><span class="n">dac</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">span</span> <span class="o">==</span> <span class="n">D5a_module</span><span class="o">.</span><span class="n">range_2V_bi</span><span class="p">:</span>
+            <span class="n">validator</span> <span class="o">=</span> <span class="n">Numbers</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gain</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gain</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">span</span> <span class="o">==</span> <span class="n">D5a_module</span><span class="o">.</span><span class="n">range_4V_bi</span><span class="p">:</span>
+            <span class="n">validator</span> <span class="o">=</span> <span class="n">Numbers</span><span class="p">(</span><span class="o">-</span><span class="mi">4</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gain</span><span class="p">,</span> <span class="mi">4</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gain</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">span</span> <span class="o">==</span> <span class="n">D5a_module</span><span class="o">.</span><span class="n">range_4V_uni</span><span class="p">:</span>
+            <span class="n">validator</span> <span class="o">=</span> <span class="n">Numbers</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">4</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gain</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;The found DAC span of </span><span class="si">{}</span><span class="s1"> does not correspond to a known one&#39;</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="n">msg</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">span</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">validator</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, QCoDeS Users.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

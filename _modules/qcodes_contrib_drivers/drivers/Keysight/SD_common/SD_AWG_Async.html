@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG_Async &mdash; qcodes_contrib_drivers 0.22.0.dev63+main.g134f064 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../../_static/documentation_options.js?v=159198be"></script>
+        <script src="../../../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../../index.html" class="icon icon-home">
+            qcodes_contrib_drivers
+          </a>
+              <div class="version">
+                0.22.0.dev63+main.g134f064
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../examples/index.html">Examples of how to use drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../../index.html">qcodes_contrib_drivers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG_Async</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG_Async</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">import</span> <span class="nn">threading</span>
+<span class="kn">import</span> <span class="nn">queue</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">TypeVar</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">cast</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">wraps</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">.SD_Module</span> <span class="kn">import</span> <span class="n">keysightSD1</span><span class="p">,</span> <span class="n">result_parser</span>
+<span class="kn">from</span> <span class="nn">.SD_AWG</span> <span class="kn">import</span> <span class="n">SD_AWG</span>
+<span class="kn">from</span> <span class="nn">.memory_manager</span> <span class="kn">import</span> <span class="n">MemoryManager</span>
+
+
+<span class="n">F</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s1">&#39;F&#39;</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span>
+
+<div class="viewcode-block" id="switchable">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG_Async.switchable">[docs]</a>
+<span class="k">def</span> <span class="nf">switchable</span><span class="p">(</span><span class="n">switch</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">],</span> <span class="nb">bool</span><span class="p">],</span> <span class="n">enabled</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">F</span><span class="p">],</span> <span class="n">F</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This decorator enables or disables a method depending on the value of an object&#39;s method.</span>
+<span class="sd">    It throws an exception when the invoked method is disabled.</span>
+<span class="sd">    The wrapped method is enabled when `switch(self) == enabled`.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        switch: method indicating switch status.</span>
+<span class="sd">        enabled: value the switch status must have to enable the wrapped method.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">switchable_decorator</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+
+        <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">func_wrapper</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">switch</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">!=</span> <span class="n">enabled</span><span class="p">:</span>
+                <span class="n">switch_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s1">.</span><span class="si">{</span><span class="n">switch</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s1">()&#39;</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">func</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s1"> is not enabled when </span><span class="si">{</span><span class="n">switch_name</span><span class="si">}</span><span class="s1"> == </span><span class="si">{</span><span class="n">switch</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+
+        <span class="k">return</span> <span class="n">func_wrapper</span>
+
+    <span class="k">return</span> <span class="n">switchable_decorator</span></div>
+
+
+
+<div class="viewcode-block" id="Task">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG_Async.Task">[docs]</a>
+<span class="k">class</span> <span class="nc">Task</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Task to be executed asynchronously.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        f: function to execute</span>
+<span class="sd">        instance: object function `f` belongs to</span>
+<span class="sd">        args: argument list to pass to function</span>
+<span class="sd">        kwargs: keyword arguments to pass to function</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">verbose</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39; Enables verbose logging &#39;&#39;&#39;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f</span><span class="p">:</span><span class="n">F</span><span class="p">,</span> <span class="n">instance</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_event</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Event</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_f</span> <span class="o">=</span> <span class="n">f</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_instance</span> <span class="o">=</span> <span class="n">instance</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_args</span> <span class="o">=</span> <span class="n">args</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span> <span class="o">=</span> <span class="n">kwargs</span>
+
+<div class="viewcode-block" id="Task.run">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG_Async.Task.run">[docs]</a>
+    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Executes the function. The function result can be retrieved with property `result`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_instance</span><span class="o">.</span><span class="n">_start_time</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_instance</span><span class="o">.</span><span class="n">_start_time</span> <span class="o">=</span> <span class="n">start</span>
+
+        <span class="k">if</span> <span class="n">Task</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;[</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_instance</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">] &gt; </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_f</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_f</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_instance</span><span class="p">,</span> <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_args</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">Task</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+            <span class="n">total</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_instance</span><span class="o">.</span><span class="n">_start_time</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;[</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_instance</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">] &lt; </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_f</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s1"> (</span><span class="si">{</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span><span class="o">-</span><span class="n">start</span><span class="p">)</span><span class="o">*</span><span class="mi">1000</span><span class="si">:</span><span class="s1">5.2f</span><span class="si">}</span><span class="s1"> ms &#39;</span>
+                          <span class="sa">f</span><span class="s1">&#39;/ </span><span class="si">{</span><span class="n">total</span><span class="o">*</span><span class="mi">1000</span><span class="si">:</span><span class="s1">5.2f</span><span class="si">}</span><span class="s1"> ms)&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_event</span><span class="o">.</span><span class="n">set</span><span class="p">()</span></div>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">result</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the result of the executed function.</span>
+<span class="sd">        Waits till function has been executed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_event</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_result</span></div>
+
+
+
+<div class="viewcode-block" id="threaded">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG_Async.threaded">[docs]</a>
+<span class="k">def</span> <span class="nf">threaded</span><span class="p">(</span><span class="n">wait</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">F</span><span class="p">],</span> <span class="n">F</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Decoractor to execute the wrapped method in the background thread.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        wait: if True waits till the function has been executed.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">threaded_decorator</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+
+        <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">func_wrapper</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+            <span class="n">task</span> <span class="o">=</span> <span class="n">Task</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_task_queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">wait</span><span class="p">:</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">result</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_start_time</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">return</span> <span class="n">result</span>
+            <span class="k">return</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;async task&#39;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">func_wrapper</span>
+
+    <span class="k">return</span> <span class="n">threaded_decorator</span></div>
+
+
+
+<div class="viewcode-block" id="WaveformReference">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG_Async.WaveformReference">[docs]</a>
+<span class="k">class</span> <span class="nc">WaveformReference</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This is a reference to a waveform (being) uploaded to the AWG.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        wave_number: number refering to the wave in AWG memory</span>
+<span class="sd">        awg_name: name of the awg the waveform is uploaded to</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wave_number</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">awg_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_wave_number</span> <span class="o">=</span> <span class="n">wave_number</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_awg_name</span> <span class="o">=</span> <span class="n">awg_name</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">wave_number</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Number of the wave in AWG memory.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_wave_number</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">awg_name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Name of the AWG the waveform is uploaded to</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_awg_name</span>
+
+<div class="viewcode-block" id="WaveformReference.release">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG_Async.WaveformReference.release">[docs]</a>
+    <span class="k">def</span> <span class="nf">release</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Releases the AWG memory for reuse.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="WaveformReference.wait_uploaded">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG_Async.WaveformReference.wait_uploaded">[docs]</a>
+    <span class="k">def</span> <span class="nf">wait_uploaded</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Waits till waveform has been loaded.</span>
+<span class="sd">        Returns immediately if waveform is already uploaded.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="WaveformReference.is_uploaded">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG_Async.WaveformReference.is_uploaded">[docs]</a>
+    <span class="k">def</span> <span class="nf">is_uploaded</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns True if waveform has been loaded.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
+</div>
+
+
+
+<span class="k">class</span> <span class="nc">_WaveformReferenceInternal</span><span class="p">(</span><span class="n">WaveformReference</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Reference to waveform in AWG memory.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        allocated_slot: memory slot containing reference to address in AWG memory.</span>
+<span class="sd">        awg_name: name of the AWG</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">allocated_slot</span><span class="p">:</span> <span class="n">MemoryManager</span><span class="o">.</span><span class="n">AllocatedSlot</span><span class="p">,</span> <span class="n">awg_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">allocated_slot</span><span class="o">.</span><span class="n">number</span><span class="p">,</span> <span class="n">awg_name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_allocated_slot</span> <span class="o">=</span> <span class="n">allocated_slot</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_uploaded</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Event</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_upload_error</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_released</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_queued_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+
+
+    <span class="k">def</span> <span class="nf">release</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Releases the memory for reuse.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_released</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;Reference already released&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_released</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_try_release_slot</span><span class="p">()</span>
+
+
+    <span class="k">def</span> <span class="nf">wait_uploaded</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Waits till waveform is loaded.</span>
+<span class="sd">        Returns immediately if waveform is already uploaded.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_released</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;Reference already released&#39;</span><span class="p">)</span>
+
+        <span class="c1"># complete memory of AWG can be written in ~ 15 seconds</span>
+        <span class="n">ready</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_uploaded</span><span class="o">.</span><span class="n">wait</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="mf">30.0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ready</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Timeout loading wave&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_upload_error</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Error loading wave: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_upload_error</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">is_uploaded</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns True if waveform has been loaded.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_upload_error</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Error loading wave: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_upload_error</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_uploaded</span><span class="o">.</span><span class="n">is_set</span><span class="p">()</span>
+
+
+    <span class="k">def</span> <span class="nf">enqueued</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_queued_count</span> <span class="o">+=</span> <span class="mi">1</span>
+
+
+    <span class="k">def</span> <span class="nf">dequeued</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_queued_count</span> <span class="o">-=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_try_release_slot</span><span class="p">()</span>
+
+
+    <span class="k">def</span> <span class="nf">_try_release_slot</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_released</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_queued_count</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_allocated_slot</span><span class="o">.</span><span class="n">release</span><span class="p">()</span>
+
+
+    <span class="k">def</span> <span class="fm">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_released</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;WaveformReference was not released &#39;</span>
+                            <span class="sa">f</span><span class="s1">&#39;(</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">awg_name</span><span class="si">}</span><span class="s1">:</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">wave_number</span><span class="si">}</span><span class="s1">). Automatic &#39;</span>
+                            <span class="sa">f</span><span class="s1">&#39;release in destructor.&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">release</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="SD_AWG_Async">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG_Async.SD_AWG_Async">[docs]</a>
+<span class="k">class</span> <span class="nc">SD_AWG_Async</span><span class="p">(</span><span class="n">SD_AWG</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generic asynchronous driver with waveform memory management for Keysight SD AWG modules.</span>
+
+<span class="sd">    This driver is derived from SD_AWG and uses a thread to upload waveforms.</span>
+<span class="sd">    This class creates reusable memory slots of different sizes in AWG.</span>
+<span class="sd">    It assigns waveforms to the smallest available memory slot.</span>
+
+<span class="sd">    Only one instance of this class per AWG module is allowed.</span>
+<span class="sd">    By default the maximum size of a waveform is limited to 1e6 samples.</span>
+<span class="sd">    This limit can be increased up to 1e8 samples at the cost of a longer startup time of the threads.</span>
+
+<span class="sd">    The memory manager and asynchronous functionality can be disabled to restore the behavior of</span>
+<span class="sd">    the parent class. The instrument can then be used with old synchronous code.</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        awg1 = SW_AWG_Async(&#39;awg1&#39;, 0, 1, channels=4, triggers=8)</span>
+<span class="sd">        awg2 = SW_AWG_Async(&#39;awg2&#39;, 0, 2, channels=4, triggers=8)</span>
+<span class="sd">        awg3 = SW_AWG_Async(&#39;awg3&#39;, 0, 3, channels=4, triggers=8)</span>
+
+<span class="sd">        # the upload to the 3 modules will run concurrently (in background)</span>
+<span class="sd">        ref_1 = awg1.upload_waveform(wave1)</span>
+<span class="sd">        ref_2 = awg2.upload_waveform(wave2)</span>
+<span class="sd">        ref_3 = awg3.upload_waveform(wave3)</span>
+
+<span class="sd">        trigger_mode = keysightSD1.SD_TriggerModes.EXTTRIG</span>
+<span class="sd">        # method awg_queue_waveform blocks until reference waveform has been uploaded.</span>
+<span class="sd">        awg1.awg_queue_waveform(1, ref_1, trigger_mode, 0, 1, 0)</span>
+<span class="sd">        awg2.awg_queue_waveform(1, ref_2, trigger_mode, 0, 1, 0)</span>
+<span class="sd">        awg3.awg_queue_waveform(1, ref_3, trigger_mode, 0, 1, 0)</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        name (str): an identifier for this instrument, particularly for</span>
+<span class="sd">            attaching it to a Station.</span>
+<span class="sd">        chassis (int): identification of the chassis.</span>
+<span class="sd">        slot (int): slot of the module in the chassis.</span>
+<span class="sd">        channels (int): number of channels of the module.</span>
+<span class="sd">        triggers (int): number of triggers of the module.</span>
+<span class="sd">        legacy_channel_numbering (bool): indicates whether legacy channel number</span>
+<span class="sd">            should be used. (Legacy numbering starts with channel 0)</span>
+<span class="sd">        waveform_size_limit (int): maximum size of waveform that can be uploaded</span>
+<span class="sd">        asynchronous (bool): if False the memory manager and asynchronous functionality are disabled.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_modules</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="s1">&#39;SD_AWG_Async&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; All async modules by unique module id. &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">chassis</span><span class="p">,</span> <span class="n">slot</span><span class="p">,</span> <span class="n">channels</span><span class="p">,</span> <span class="n">triggers</span><span class="p">,</span> <span class="n">waveform_size_limit</span><span class="o">=</span><span class="mf">1e6</span><span class="p">,</span>
+                 <span class="n">asynchronous</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">chassis</span><span class="p">,</span> <span class="n">slot</span><span class="p">,</span> <span class="n">channels</span><span class="p">,</span> <span class="n">triggers</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_asynchronous</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_waveform_size_limit</span> <span class="o">=</span> <span class="n">waveform_size_limit</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_start_time</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="n">module_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_module_id</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">module_id</span> <span class="ow">in</span> <span class="n">SD_AWG_Async</span><span class="o">.</span><span class="n">_modules</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;AWG module </span><span class="si">{</span><span class="n">module_id</span><span class="si">}</span><span class="s1"> already exists&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">module_id</span> <span class="o">=</span> <span class="n">module_id</span>
+        <span class="n">SD_AWG_Async</span><span class="o">.</span><span class="n">_modules</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">module_id</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_asynchronous</span><span class="p">(</span><span class="n">asynchronous</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="SD_AWG_Async.asynchronous">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG_Async.SD_AWG_Async.asynchronous">[docs]</a>
+    <span class="k">def</span> <span class="nf">asynchronous</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39; Returns True if module is in asynchronous mode. &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_asynchronous</span></div>
+
+
+
+<div class="viewcode-block" id="SD_AWG_Async.set_asynchronous">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG_Async.SD_AWG_Async.set_asynchronous">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_asynchronous</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">asynchronous</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Enables asynchronous loading and memory manager if `asynchronous` is True.</span>
+<span class="sd">        Otherwise disables both.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            asynchronous: new asynchronous state.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">asynchronous</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_asynchronous</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_asynchronous</span> <span class="o">=</span> <span class="n">asynchronous</span>
+
+        <span class="k">if</span> <span class="n">asynchronous</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_start_asynchronous</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_stop_asynchronous</span><span class="p">()</span></div>
+
+
+    <span class="c1">#</span>
+    <span class="c1"># disable synchronous method of parent class, when wave memory is managed by this class.</span>
+    <span class="c1">#</span>
+<div class="viewcode-block" id="SD_AWG_Async.load_waveform">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG_Async.SD_AWG_Async.load_waveform">[docs]</a>
+    <span class="nd">@switchable</span><span class="p">(</span><span class="n">asynchronous</span><span class="p">,</span> <span class="n">enabled</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">load_waveform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">waveform_object</span><span class="p">:</span> <span class="n">keysightSD1</span><span class="o">.</span><span class="n">SD_Wave</span><span class="p">,</span> <span class="n">waveform_number</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                      <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Loads the specified waveform into the module onboard RAM.</span>
+<span class="sd">        Waveforms must be created first as an instance of the SD_Wave class.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            waveform_object: pointer to the waveform object</span>
+<span class="sd">            waveform_number: waveform number to identify the waveform in</span>
+<span class="sd">                subsequent related function calls.</span>
+<span class="sd">            verbose: boolean indicating verbose mode</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            available onboard RAM in waveform points, or negative numbers for</span>
+<span class="sd">                errors</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">load_waveform</span><span class="p">(</span><span class="n">waveform_object</span><span class="p">,</span> <span class="n">waveform_number</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SD_AWG_Async.load_waveform_int16">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG_Async.SD_AWG_Async.load_waveform_int16">[docs]</a>
+    <span class="nd">@switchable</span><span class="p">(</span><span class="n">asynchronous</span><span class="p">,</span> <span class="n">enabled</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">load_waveform_int16</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">waveform_type</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">data_raw</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
+                            <span class="n">waveform_number</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Loads the specified waveform into the module onboard RAM.</span>
+<span class="sd">        Waveforms must be created first as an instance of the SD_Wave class.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            waveform_type: waveform type</span>
+<span class="sd">            data_raw: array with waveform points</span>
+<span class="sd">            waveform_number: waveform number to identify the waveform</span>
+<span class="sd">                in subsequent related function calls.</span>
+<span class="sd">            verbose: boolean indicating verbose mode</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            available onboard RAM in waveform points, or negative numbers for</span>
+<span class="sd">                errors</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">load_waveform_int16</span><span class="p">(</span><span class="n">waveform_type</span><span class="p">,</span> <span class="n">data_raw</span><span class="p">,</span> <span class="n">waveform_number</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SD_AWG_Async.reload_waveform">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG_Async.SD_AWG_Async.reload_waveform">[docs]</a>
+    <span class="nd">@switchable</span><span class="p">(</span><span class="n">asynchronous</span><span class="p">,</span> <span class="n">enabled</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">reload_waveform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">waveform_object</span><span class="p">:</span> <span class="n">keysightSD1</span><span class="o">.</span><span class="n">SD_Wave</span><span class="p">,</span> <span class="n">waveform_number</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                        <span class="n">padding_mode</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Replaces a waveform located in the module onboard RAM.</span>
+<span class="sd">        The size of the new waveform must be smaller than or</span>
+<span class="sd">        equal to the existing waveform.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            waveform_object: pointer to the waveform object</span>
+<span class="sd">            waveform_number: waveform number to identify the waveform</span>
+<span class="sd">                in subsequent related function calls.</span>
+<span class="sd">            padding_mode:</span>
+<span class="sd">                0:  the waveform is loaded as it is, zeros are added at the</span>
+<span class="sd">                    end if the number of points is not a multiple of the number</span>
+<span class="sd">                    required by the AWG.</span>
+<span class="sd">                1:  the waveform is loaded n times (using DMA) until the total</span>
+<span class="sd">                    number of points is multiple of the number required by the</span>
+<span class="sd">                    AWG. (only works for waveforms with even number of points)</span>
+<span class="sd">            verbose: boolean indicating verbose mode</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            available onboard RAM in waveform points, or negative numbers for</span>
+<span class="sd">                errors</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">reload_waveform</span><span class="p">(</span><span class="n">waveform_object</span><span class="p">,</span> <span class="n">waveform_number</span><span class="p">,</span> <span class="n">padding_mode</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SD_AWG_Async.reload_waveform_int16">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG_Async.SD_AWG_Async.reload_waveform_int16">[docs]</a>
+    <span class="nd">@switchable</span><span class="p">(</span><span class="n">asynchronous</span><span class="p">,</span> <span class="n">enabled</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">reload_waveform_int16</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">waveform_type</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">data_raw</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
+                              <span class="n">waveform_number</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">padding_mode</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+                              <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Replaces a waveform located in the module onboard RAM.</span>
+<span class="sd">        The size of the new waveform must be smaller than or</span>
+<span class="sd">        equal to the existing waveform.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            waveform_type: waveform type</span>
+<span class="sd">            data_raw: array with waveform points</span>
+<span class="sd">            waveform_number: waveform number to identify the waveform</span>
+<span class="sd">                in subsequent related function calls.</span>
+<span class="sd">            padding_mode:</span>
+<span class="sd">                0:  the waveform is loaded as it is, zeros are added at the</span>
+<span class="sd">                    end if the number of points is not a multiple of the number</span>
+<span class="sd">                    required by the AWG.</span>
+<span class="sd">                1:  the waveform is loaded n times (using DMA) until the total</span>
+<span class="sd">                    number of points is multiple of the number required by the</span>
+<span class="sd">                    AWG. (only works for waveforms with even number of points)</span>
+<span class="sd">            verbose: boolean indicating verbose mode</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            available onboard RAM in waveform points, or negative numbers for</span>
+<span class="sd">                errors</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">reload_waveform_int16</span><span class="p">(</span><span class="n">waveform_type</span><span class="p">,</span> <span class="n">data_raw</span><span class="p">,</span> <span class="n">waveform_number</span><span class="p">,</span> <span class="n">padding_mode</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SD_AWG_Async.flush_waveform">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG_Async.SD_AWG_Async.flush_waveform">[docs]</a>
+    <span class="nd">@switchable</span><span class="p">(</span><span class="n">asynchronous</span><span class="p">,</span> <span class="n">enabled</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">flush_waveform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Deletes all waveforms from the module onboard RAM and flushes all the</span>
+<span class="sd">        AWG queues.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">flush_waveform</span><span class="p">(</span><span class="n">verbose</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SD_AWG_Async.awg_from_file">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG_Async.SD_AWG_Async.awg_from_file">[docs]</a>
+    <span class="nd">@switchable</span><span class="p">(</span><span class="n">asynchronous</span><span class="p">,</span> <span class="n">enabled</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">awg_from_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">awg_number</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">waveform_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                      <span class="n">trigger_mode</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">start_delay</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">cycles</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                      <span class="n">prescaler</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">padding_mode</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+                      <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Provides a one-step method to load, queue and start a single waveform</span>
+<span class="sd">        in one of the module AWGs.</span>
+
+<span class="sd">        Loads a waveform from file.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            awg_number: awg number where the waveform is queued</span>
+<span class="sd">            waveform_file: file containing the waveform points</span>
+<span class="sd">            trigger_mode: trigger method to launch the waveform</span>
+<span class="sd">                Auto                        :   0</span>
+<span class="sd">                Software/HVI                :   1</span>
+<span class="sd">                Software/HVI (per cycle)    :   5</span>
+<span class="sd">                External trigger            :   2</span>
+<span class="sd">                External trigger (per cycle):   6</span>
+<span class="sd">            start_delay: defines the delay between trigger and wf launch</span>
+<span class="sd">                given in multiples of 10ns.</span>
+<span class="sd">            cycles: number of times the waveform is repeated once launched</span>
+<span class="sd">                zero = infinite repeats</span>
+<span class="sd">            prescaler: waveform prescaler value, to reduce eff. sampling rate</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            available onboard RAM in waveform points, or negative numbers for</span>
+<span class="sd">                errors</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">awg_from_file</span><span class="p">(</span><span class="n">awg_number</span><span class="p">,</span> <span class="n">waveform_file</span><span class="p">,</span> <span class="n">trigger_mode</span><span class="p">,</span> <span class="n">start_delay</span><span class="p">,</span>
+                                     <span class="n">cycles</span><span class="p">,</span> <span class="n">prescaler</span><span class="p">,</span> <span class="n">padding_mode</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SD_AWG_Async.awg_from_array">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG_Async.SD_AWG_Async.awg_from_array">[docs]</a>
+    <span class="nd">@switchable</span><span class="p">(</span><span class="n">asynchronous</span><span class="p">,</span> <span class="n">enabled</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">awg_from_array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">awg_number</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">trigger_mode</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                       <span class="n">start_delay</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">cycles</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">prescaler</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                       <span class="n">waveform_type</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                       <span class="n">waveform_data_a</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">]],</span>
+                       <span class="n">waveform_data_b</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span>
+                           <span class="n">List</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                       <span class="n">padding_mode</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Provides a one-step method to load, queue and start a single waveform</span>
+<span class="sd">        in one of the module AWGs.</span>
+
+<span class="sd">        Loads a waveform from array.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            awg_number: awg number where the waveform is queued</span>
+<span class="sd">            trigger_mode: trigger method to launch the waveform</span>
+<span class="sd">                Auto                        :   0</span>
+<span class="sd">                Software/HVI                :   1</span>
+<span class="sd">                Software/HVI (per cycle)    :   5</span>
+<span class="sd">                External trigger            :   2</span>
+<span class="sd">                External trigger (per cycle):   6</span>
+<span class="sd">            start_delay: defines the delay between trigger and wf launch</span>
+<span class="sd">                given in multiples of 10ns.</span>
+<span class="sd">            cycles: number of times the waveform is repeated once launched</span>
+<span class="sd">                zero = infinite repeats</span>
+<span class="sd">            prescaler: waveform prescaler value, to reduce eff. sampling rate</span>
+<span class="sd">            waveform_type: waveform type</span>
+<span class="sd">            waveform_data_a: array with waveform points</span>
+<span class="sd">            waveform_data_b: array with waveform points, only for the waveforms</span>
+<span class="sd">                                        which have a second component</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            available onboard RAM in waveform points, or negative numbers for</span>
+<span class="sd">                errors</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">awg_from_array</span><span class="p">(</span><span class="n">awg_number</span><span class="p">,</span> <span class="n">trigger_mode</span><span class="p">,</span> <span class="n">start_delay</span><span class="p">,</span> <span class="n">cycles</span><span class="p">,</span> <span class="n">prescaler</span><span class="p">,</span>
+                                      <span class="n">waveform_type</span><span class="p">,</span> <span class="n">waveform_data_a</span><span class="p">,</span><span class="n">waveform_data_b</span><span class="p">,</span> <span class="n">padding_mode</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SD_AWG_Async.awg_flush">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG_Async.SD_AWG_Async.awg_flush">[docs]</a>
+    <span class="k">def</span> <span class="nf">awg_flush</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">awg_number</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Empties the queue of the selected AWG.</span>
+<span class="sd">        Waveforms are not removed from the onboard RAM.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">awg_flush</span><span class="p">(</span><span class="n">awg_number</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_asynchronous</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_release_waverefs_awg</span><span class="p">(</span><span class="n">awg_number</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SD_AWG_Async.uploader_ready">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG_Async.SD_AWG_Async.uploader_ready">[docs]</a>
+    <span class="nd">@threaded</span><span class="p">(</span><span class="n">wait</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">uploader_ready</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Waits until uploader thread is ready with tasks queued before this call. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+
+<div class="viewcode-block" id="SD_AWG_Async.awg_queue_waveform">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG_Async.SD_AWG_Async.awg_queue_waveform">[docs]</a>
+    <span class="k">def</span> <span class="nf">awg_queue_waveform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">awg_number</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                           <span class="n">waveform_ref</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">_WaveformReferenceInternal</span><span class="p">],</span>
+                           <span class="n">trigger_mode</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">start_delay</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">cycles</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                           <span class="n">prescaler</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Enqueus the waveform.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            awg_number: awg number (channel) where the waveform is queued</span>
+<span class="sd">            waveform_ref: reference to a waveform</span>
+<span class="sd">            trigger_mode: trigger method to launch the waveform</span>
+<span class="sd">                Auto                        :   0</span>
+<span class="sd">                Software/HVI                :   1</span>
+<span class="sd">                Software/HVI (per cycle)    :   5</span>
+<span class="sd">                External trigger            :   2</span>
+<span class="sd">                External trigger (per cycle):   6</span>
+<span class="sd">            start_delay: defines the delay between trigger and wf launch</span>
+<span class="sd">                given in multiples of 10ns.</span>
+<span class="sd">            cycles (int): number of times the waveform is repeated once launched</span>
+<span class="sd">                zero = infinite repeats</span>
+<span class="sd">            prescaler: waveform prescaler value, to reduce eff. sampling rate</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">asynchronous</span><span class="p">():</span>
+            <span class="n">waveform_ref</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="n">_WaveformReferenceInternal</span><span class="p">,</span> <span class="n">waveform_ref</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">waveform_ref</span><span class="o">.</span><span class="n">awg_name</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Waveform not uploaded to this AWG (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">). &#39;</span>
+                                <span class="sa">f</span><span class="s1">&#39;It is uploaded to </span><span class="si">{</span><span class="n">waveform_ref</span><span class="o">.</span><span class="n">awg_name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Enqueue </span><span class="si">{</span><span class="n">waveform_ref</span><span class="o">.</span><span class="n">wave_number</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">waveform_ref</span><span class="o">.</span><span class="n">is_uploaded</span><span class="p">():</span>
+                <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Waiting till wave </span><span class="si">{</span><span class="n">waveform_ref</span><span class="o">.</span><span class="n">wave_number</span><span class="si">}</span><span class="s1"> is uploaded&#39;</span><span class="p">)</span>
+                <span class="n">waveform_ref</span><span class="o">.</span><span class="n">wait_uploaded</span><span class="p">()</span>
+                <span class="n">duration</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Waited </span><span class="si">{</span><span class="n">duration</span><span class="o">*</span><span class="mi">1000</span><span class="si">:</span><span class="s1">5.1f</span><span class="si">}</span><span class="s1"> ms for upload of wave </span><span class="si">{</span><span class="n">waveform_ref</span><span class="o">.</span><span class="n">wave_number</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+            <span class="n">waveform_ref</span><span class="o">.</span><span class="n">enqueued</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_enqueued_waverefs</span><span class="p">[</span><span class="n">awg_number</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">waveform_ref</span><span class="p">)</span>
+            <span class="n">wave_number</span> <span class="o">=</span> <span class="n">waveform_ref</span><span class="o">.</span><span class="n">wave_number</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">wave_number</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">waveform_ref</span><span class="p">)</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">awg_queue_waveform</span><span class="p">(</span><span class="n">awg_number</span><span class="p">,</span> <span class="n">wave_number</span><span class="p">,</span> <span class="n">trigger_mode</span><span class="p">,</span> <span class="n">start_delay</span><span class="p">,</span> <span class="n">cycles</span><span class="p">,</span> <span class="n">prescaler</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="SD_AWG_Async.set_waveform_limit">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG_Async.SD_AWG_Async.set_waveform_limit">[docs]</a>
+    <span class="nd">@switchable</span><span class="p">(</span><span class="n">asynchronous</span><span class="p">,</span> <span class="n">enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">set_waveform_limit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">requested_waveform_size_limit</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Increases the maximum size of waveforms that can be uploaded.</span>
+
+<span class="sd">        Additional memory will be reserved in the AWG.</span>
+<span class="sd">        Limit can not be reduced, because reservation cannot be undone.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            requested_waveform_size_limit: maximum size of waveform that can be uploaded</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_memory_manager</span><span class="o">.</span><span class="n">set_waveform_limit</span><span class="p">(</span><span class="n">requested_waveform_size_limit</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_awg_memory</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="SD_AWG_Async.upload_waveform">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG_Async.SD_AWG_Async.upload_waveform">[docs]</a>
+    <span class="nd">@switchable</span><span class="p">(</span><span class="n">asynchronous</span><span class="p">,</span> <span class="n">enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">upload_waveform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wave</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span>
+                        <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_WaveformReferenceInternal</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Upload the wave using the uploader thread for this AWG.</span>
+<span class="sd">        Args:</span>
+<span class="sd">            wave: wave data to upload.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            reference to the wave</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">wave</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2000</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">wave</span><span class="p">)</span><span class="si">}</span><span class="s1"> is less than 2000 samples required for proper functioning of AWG&#39;</span><span class="p">)</span>
+
+        <span class="n">allocated_slot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_memory_manager</span><span class="o">.</span><span class="n">allocate</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">wave</span><span class="p">))</span>
+        <span class="n">ref</span> <span class="o">=</span> <span class="n">_WaveformReferenceInternal</span><span class="p">(</span><span class="n">allocated_slot</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;upload: </span><span class="si">{</span><span class="n">ref</span><span class="o">.</span><span class="n">wave_number</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_upload</span><span class="p">(</span><span class="n">wave</span><span class="p">,</span> <span class="n">ref</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ref</span></div>
+
+
+
+<div class="viewcode-block" id="SD_AWG_Async.close">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG_Async.SD_AWG_Async.close">[docs]</a>
+    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Closes the module and stops background thread.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;stopping (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">module_id</span><span class="si">}</span><span class="s1">)&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">asynchronous</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_stop_asynchronous</span><span class="p">()</span>
+
+        <span class="k">del</span> <span class="n">SD_AWG_Async</span><span class="o">.</span><span class="n">_modules</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">module_id</span><span class="p">]</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+
+    <span class="k">def</span> <span class="nf">_get_module_id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generates a unique name for this module.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">module_name</span><span class="si">}</span><span class="s1">:</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">chassis_number</span><span class="p">()</span><span class="si">}</span><span class="s1">-</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">slot_number</span><span class="p">()</span><span class="si">}</span><span class="s1">&#39;</span>
+
+
+    <span class="k">def</span> <span class="nf">_start_asynchronous</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Starts the asynchronous upload thread and memory manager.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">flush_waveform</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_memory_manager</span><span class="p">:</span> <span class="n">MemoryManager</span> <span class="o">=</span> <span class="n">MemoryManager</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_waveform_size_limit</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_enqueued_waverefs</span><span class="p">:</span><span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">_WaveformReferenceInternal</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_enqueued_waverefs</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_task_queue</span><span class="p">:</span> <span class="n">queue</span><span class="o">.</span><span class="n">Queue</span> <span class="o">=</span> <span class="n">queue</span><span class="o">.</span><span class="n">Queue</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_awg_memory</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_thread</span><span class="p">:</span> <span class="n">threading</span><span class="o">.</span><span class="n">Thread</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_run</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;uploader-</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">module_id</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_thread</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+
+    <span class="k">def</span> <span class="nf">_stop_asynchronous</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Stops the asynchronous upload thread and memory manager.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_task_queue</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_task_queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="s1">&#39;STOP&#39;</span><span class="p">)</span>
+
+        <span class="c1"># wait at most 15 seconds. Should be more enough for normal scenarios</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_thread</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="mi">15</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_thread</span><span class="o">.</span><span class="n">is_alive</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;AWG upload thread </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">module_id</span><span class="si">}</span><span class="s1"> stop failed. Thread still running.&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_release_waverefs</span><span class="p">()</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_memory_manager</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_task_queue</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_thread</span>
+
+
+    <span class="k">def</span> <span class="nf">_release_waverefs</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_release_waverefs_awg</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">_release_waverefs_awg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">awg_number</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">waveref</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_enqueued_waverefs</span><span class="p">[</span><span class="n">awg_number</span><span class="p">]:</span>
+            <span class="n">waveref</span><span class="o">.</span><span class="n">dequeued</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_enqueued_waverefs</span><span class="p">[</span><span class="n">awg_number</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+
+    <span class="nd">@threaded</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">_init_awg_memory</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize memory on the AWG by uploading waveforms with all zeros.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">new_slots</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_memory_manager</span><span class="o">.</span><span class="n">get_uninitialized_slots</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_slots</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Reserving awg memory for </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">new_slots</span><span class="p">)</span><span class="si">}</span><span class="s1"> slots&#39;</span><span class="p">)</span>
+
+        <span class="n">zeros</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">wave</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">total_size</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">total_duration</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">for</span> <span class="n">slot</span> <span class="ow">in</span> <span class="n">new_slots</span><span class="p">:</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">zeros</span><span class="p">)</span> <span class="o">!=</span> <span class="n">slot</span><span class="o">.</span><span class="n">size</span> <span class="ow">or</span> <span class="n">wave</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">zeros</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">slot</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span>
+                <span class="n">wave</span> <span class="o">=</span> <span class="n">keysightSD1</span><span class="o">.</span><span class="n">SD_Wave</span><span class="p">()</span>
+                <span class="n">result_parser</span><span class="p">(</span><span class="n">wave</span><span class="o">.</span><span class="n">newFromArrayDouble</span><span class="p">(</span><span class="n">keysightSD1</span><span class="o">.</span><span class="n">SD_WaveformTypes</span><span class="o">.</span><span class="n">WAVE_ANALOG</span><span class="p">,</span> <span class="n">zeros</span><span class="p">))</span>
+            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">load_waveform</span><span class="p">(</span><span class="n">wave</span><span class="p">,</span> <span class="n">slot</span><span class="o">.</span><span class="n">number</span><span class="p">)</span>
+            <span class="n">duration</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span>
+            <span class="c1"># self.log.debug(f&#39;uploaded {slot.size} in  {duration*1000:5.2f} ms ({slot.size/duration/1e6:5.2f} MSa/s)&#39;)</span>
+            <span class="n">total_duration</span> <span class="o">+=</span> <span class="n">duration</span>
+            <span class="n">total_size</span> <span class="o">+=</span> <span class="n">slot</span><span class="o">.</span><span class="n">size</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Awg memory reserved: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">new_slots</span><span class="p">)</span><span class="si">}</span><span class="s1"> slots, </span><span class="si">{</span><span class="n">total_size</span><span class="o">/</span><span class="mf">1e6</span><span class="si">}</span><span class="s1"> MSa in &#39;</span>
+                      <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">total_duration</span><span class="o">*</span><span class="mi">1000</span><span class="si">:</span><span class="s1">5.2f</span><span class="si">}</span><span class="s1"> ms (</span><span class="si">{</span><span class="n">total_size</span><span class="o">/</span><span class="n">total_duration</span><span class="o">/</span><span class="mf">1e6</span><span class="si">:</span><span class="s1">5.2f</span><span class="si">}</span><span class="s1"> MSa/s)&#39;</span><span class="p">)</span>
+
+    <span class="nd">@threaded</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">_upload</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                <span class="n">wave_data</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
+                <span class="n">wave_ref</span><span class="p">:</span> <span class="n">_WaveformReferenceInternal</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># self.log.debug(f&#39;Uploading {wave_ref.wave_number}&#39;)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+
+            <span class="n">wave</span> <span class="o">=</span> <span class="n">keysightSD1</span><span class="o">.</span><span class="n">SD_Wave</span><span class="p">()</span>
+            <span class="n">result_parser</span><span class="p">(</span><span class="n">wave</span><span class="o">.</span><span class="n">newFromArrayDouble</span><span class="p">(</span><span class="n">keysightSD1</span><span class="o">.</span><span class="n">SD_WaveformTypes</span><span class="o">.</span><span class="n">WAVE_ANALOG</span><span class="p">,</span> <span class="n">wave_data</span><span class="p">))</span>
+            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">reload_waveform</span><span class="p">(</span><span class="n">wave</span><span class="p">,</span> <span class="n">wave_ref</span><span class="o">.</span><span class="n">wave_number</span><span class="p">)</span>
+
+            <span class="n">duration</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span>
+            <span class="n">speed</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">wave_data</span><span class="p">)</span><span class="o">/</span><span class="n">duration</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Uploaded </span><span class="si">{</span><span class="n">wave_ref</span><span class="o">.</span><span class="n">wave_number</span><span class="si">}</span><span class="s1"> in </span><span class="si">{</span><span class="n">duration</span><span class="o">*</span><span class="mi">1000</span><span class="si">:</span><span class="s1">5.2f</span><span class="si">}</span><span class="s1"> ms (</span><span class="si">{</span><span class="n">speed</span><span class="o">/</span><span class="mf">1e6</span><span class="si">:</span><span class="s1">5.2f</span><span class="si">}</span><span class="s1"> MSa/s)&#39;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s1">:</span><span class="si">{</span><span class="n">ex</span><span class="si">}</span><span class="s1">&#39;</span>
+            <span class="n">min_value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">wave_data</span><span class="p">)</span>
+            <span class="n">max_value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">wave_data</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">min_value</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mf">1.0</span> <span class="ow">or</span> <span class="n">max_value</span> <span class="o">&gt;</span> <span class="mf">1.0</span><span class="p">:</span>
+                <span class="n">msg</span> <span class="o">+=</span> <span class="s1">&#39;: Voltage out of range&#39;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Failure load waveform </span><span class="si">{</span><span class="n">wave_ref</span><span class="o">.</span><span class="n">wave_number</span><span class="si">}</span><span class="s1">: </span><span class="si">{</span><span class="n">msg</span><span class="si">}</span><span class="s1">&#39;</span> <span class="p">)</span>
+            <span class="n">wave_ref</span><span class="o">.</span><span class="n">_upload_error</span> <span class="o">=</span> <span class="n">msg</span>
+
+        <span class="c1"># signal upload done, either successful or with error</span>
+        <span class="n">wave_ref</span><span class="o">.</span><span class="n">_uploaded</span><span class="o">.</span><span class="n">set</span><span class="p">()</span>
+
+
+    <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Uploader ready&#39;</span><span class="p">)</span>
+
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">task</span><span class="p">:</span> <span class="n">Task</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_task_queue</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">task</span> <span class="o">==</span> <span class="s1">&#39;STOP&#39;</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">task</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;Task thread error&#39;</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">del</span> <span class="n">task</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Uploader terminated&#39;</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, QCoDeS Users.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>qcodes_contrib_drivers.drivers.Horiba.Horiba_FHR &mdash; qcodes_contrib_drivers 0.22.0.dev63+main.g134f064 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../_static/documentation_options.js?v=159198be"></script>
+        <script src="../../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            qcodes_contrib_drivers
+          </a>
+              <div class="version">
+                0.22.0.dev63+main.g134f064
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples/index.html">Examples of how to use drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/generated/qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">qcodes_contrib_drivers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">qcodes_contrib_drivers.drivers.Horiba.Horiba_FHR</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for qcodes_contrib_drivers.drivers.Horiba.Horiba_FHR</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span> <span class="nn">abc</span>
+<span class="kn">import</span> <span class="nn">configparser</span>
+<span class="kn">import</span> <span class="nn">ctypes</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">pathlib</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span>
+
+<span class="kn">from</span> <span class="nn">qcodes</span> <span class="kn">import</span> <span class="n">validators</span>
+<span class="kn">from</span> <span class="nn">qcodes.instrument</span> <span class="kn">import</span> <span class="p">(</span><span class="n">Instrument</span><span class="p">,</span> <span class="n">InstrumentBase</span><span class="p">,</span> <span class="n">InstrumentChannel</span><span class="p">,</span>
+                               <span class="n">ChannelList</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">typing_extensions</span> <span class="kn">import</span> <span class="n">Literal</span>
+
+<span class="kn">from</span> <span class="nn">qcodes_contrib_drivers.drivers.Horiba.private.fhr_client</span> <span class="kn">import</span> <span class="n">FHRClient</span>
+
+
+<div class="viewcode-block" id="SpeError">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Horiba.html#qcodes_contrib_drivers.drivers.Horiba.Horiba_FHR.SpeError">[docs]</a>
+<span class="k">class</span> <span class="nc">SpeError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Error raised by the dll.&quot;&quot;&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="Dispatcher">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Horiba.html#qcodes_contrib_drivers.drivers.Horiba.Horiba_FHR.Dispatcher">[docs]</a>
+<span class="k">class</span> <span class="nc">Dispatcher</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Implements the interface to the motors.&quot;&quot;&quot;</span>
+    <span class="n">_ERROR_CODES</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="s1">&#39;NoErr&#39;</span><span class="p">,</span>
+                    <span class="mi">1</span><span class="p">:</span> <span class="s1">&#39;errInvalidDispatcherName&#39;</span><span class="p">,</span>
+                    <span class="mi">2</span><span class="p">:</span> <span class="s1">&#39;errInvalidFunctionName&#39;</span><span class="p">,</span>
+                    <span class="mi">3</span><span class="p">:</span> <span class="s1">&#39;errInvalidParameter&#39;</span><span class="p">,</span>
+                    <span class="mi">4</span><span class="p">:</span> <span class="s1">&#39;errConnectionError&#39;</span><span class="p">,</span>
+                    <span class="mi">5</span><span class="p">:</span> <span class="s1">&#39;errConnectionTimeout&#39;</span><span class="p">,</span>
+                    <span class="mi">6</span><span class="p">:</span> <span class="s1">&#39;errWrongResult&#39;</span><span class="p">,</span>
+                    <span class="mi">7</span><span class="p">:</span> <span class="s1">&#39;errAbort&#39;</span><span class="p">,</span>
+                    <span class="mh">0xFFFFFFFF</span><span class="p">:</span> <span class="s1">&#39;errForce32bit&#39;</span><span class="p">}</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cli</span><span class="p">,</span> <span class="n">handle</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cli</span> <span class="o">=</span> <span class="n">cli</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">handle</span> <span class="o">=</span> <span class="n">handle</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
+
+<div class="viewcode-block" id="Dispatcher.error_check">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Horiba.html#qcodes_contrib_drivers.drivers.Horiba.Horiba_FHR.Dispatcher.error_check">[docs]</a>
+    <span class="k">def</span> <span class="nf">error_check</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">code</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">code</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">SpeError</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ERROR_CODES</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">code</span><span class="p">))</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="PortChannel">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Horiba.html#qcodes_contrib_drivers.drivers.Horiba.Horiba_FHR.PortChannel">[docs]</a>
+<span class="k">class</span> <span class="nc">PortChannel</span><span class="p">(</span><span class="n">Dispatcher</span><span class="p">,</span> <span class="n">InstrumentChannel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Manages instrument communication.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">:</span> <span class="n">InstrumentBase</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">cli</span><span class="p">,</span> <span class="n">handle</span><span class="p">,</span>
+                 <span class="n">port</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="n">Dispatcher</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cli</span><span class="p">,</span> <span class="n">handle</span><span class="p">)</span>
+        <span class="n">InstrumentChannel</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">port</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">(</span><span class="n">port</span><span class="p">)</span>
+
+<div class="viewcode-block" id="PortChannel.open">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Horiba.html#qcodes_contrib_drivers.drivers.Horiba.Horiba_FHR.PortChannel.open">[docs]</a>
+    <span class="k">def</span> <span class="nf">open</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Open serial port.&quot;&quot;&quot;</span>
+        <span class="n">code</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cli</span><span class="o">.</span><span class="n">SpeCommand</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">handle</span><span class="p">,</span> <span class="s1">&#39;Port&#39;</span><span class="p">,</span> <span class="s1">&#39;Open&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">port</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_check</span><span class="p">(</span><span class="n">code</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="PortChannel.close">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Horiba.html#qcodes_contrib_drivers.drivers.Horiba.Horiba_FHR.PortChannel.close">[docs]</a>
+    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Close serial port.&quot;&quot;&quot;</span>
+        <span class="n">code</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cli</span><span class="o">.</span><span class="n">SpeCommand</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">handle</span><span class="p">,</span> <span class="s1">&#39;Port&#39;</span><span class="p">,</span> <span class="s1">&#39;Close&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_check</span><span class="p">(</span><span class="n">code</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="PortChannel.is_open">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Horiba.html#qcodes_contrib_drivers.drivers.Horiba.Horiba_FHR.PortChannel.is_open">[docs]</a>
+    <span class="k">def</span> <span class="nf">is_open</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Check if the port is open.&quot;&quot;&quot;</span>
+        <span class="n">code</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cli</span><span class="o">.</span><span class="n">SpeCommand</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">handle</span><span class="p">,</span> <span class="s1">&#39;Port&#39;</span><span class="p">,</span> <span class="s1">&#39;IsOpen&#39;</span><span class="p">,</span>
+                                          <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_check</span><span class="p">(</span><span class="n">code</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="PortChannel.set_baud_rate">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Horiba.html#qcodes_contrib_drivers.drivers.Horiba.Horiba_FHR.PortChannel.set_baud_rate">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_baud_rate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">baud_rate</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">115200</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set port baud rate for opened pot. Should be the default.&quot;&quot;&quot;</span>
+        <span class="n">code</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cli</span><span class="o">.</span><span class="n">SpeCommand</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">handle</span><span class="p">,</span> <span class="s1">&#39;Port&#39;</span><span class="p">,</span> <span class="s1">&#39;SetBaudRate&#39;</span><span class="p">,</span>
+                                      <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">(</span><span class="n">baud_rate</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_check</span><span class="p">(</span><span class="n">code</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="PortChannel.set_timeout">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Horiba.html#qcodes_contrib_drivers.drivers.Horiba.Horiba_FHR.PortChannel.set_timeout">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_timeout</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">90000</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set timeout in milliseconds.&quot;&quot;&quot;</span>
+        <span class="n">code</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cli</span><span class="o">.</span><span class="n">SpeCommand</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">handle</span><span class="p">,</span> <span class="s1">&#39;Port&#39;</span><span class="p">,</span> <span class="s1">&#39;SetTimeout&#39;</span><span class="p">,</span>
+                                      <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">(</span><span class="n">timeout</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_check</span><span class="p">(</span><span class="n">code</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="MotorChannel">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Horiba.html#qcodes_contrib_drivers.drivers.Horiba.Horiba_FHR.MotorChannel">[docs]</a>
+<span class="k">class</span> <span class="nc">MotorChannel</span><span class="p">(</span><span class="n">Dispatcher</span><span class="p">,</span> <span class="n">InstrumentChannel</span><span class="p">,</span> <span class="n">metaclass</span><span class="o">=</span><span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;ABC for the various motors of the device.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">:</span> <span class="n">InstrumentBase</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">cli</span><span class="p">,</span> <span class="n">handle</span><span class="p">,</span>
+                 <span class="n">motor</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">metadata</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">label</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="n">Dispatcher</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cli</span><span class="p">,</span> <span class="n">handle</span><span class="p">)</span>
+        <span class="n">InstrumentChannel</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="n">metadata</span><span class="p">,</span>
+                                   <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">motor</span> <span class="o">=</span> <span class="n">motor</span>
+
+<div class="viewcode-block" id="MotorChannel.type">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Horiba.html#qcodes_contrib_drivers.drivers.Horiba.Horiba_FHR.MotorChannel.type">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">type</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="o">.</span><span class="n">removesuffix</span><span class="p">(</span><span class="s1">&#39;Channel&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="MotorChannel.set_id">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Horiba.html#qcodes_contrib_drivers.drivers.Horiba.Horiba_FHR.MotorChannel.set_id">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set motor ID.</span>
+
+<span class="sd">        This is the `Addr` address in LabSpec6.&quot;&quot;&quot;</span>
+        <span class="n">code</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cli</span><span class="o">.</span><span class="n">SpeCommand</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">handle</span><span class="p">,</span>
+                                      <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="p">()</span><span class="si">}{</span><span class="bp">self</span><span class="o">.</span><span class="n">motor</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;SetID&#39;</span><span class="p">,</span>
+                                      <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_check</span><span class="p">(</span><span class="n">code</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="MotorChannel.get_id">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Horiba.html#qcodes_contrib_drivers.drivers.Horiba.Horiba_FHR.MotorChannel.get_id">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get motor ID.&quot;&quot;&quot;</span>
+        <span class="n">code</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cli</span><span class="o">.</span><span class="n">SpeCommand</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">handle</span><span class="p">,</span>
+                                          <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="p">()</span><span class="si">}{</span><span class="bp">self</span><span class="o">.</span><span class="n">motor</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+                                          <span class="s1">&#39;GetID&#39;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_check</span><span class="p">(</span><span class="n">code</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">value</span></div>
+
+
+<div class="viewcode-block" id="MotorChannel.stop">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Horiba.html#qcodes_contrib_drivers.drivers.Horiba.Horiba_FHR.MotorChannel.stop">[docs]</a>
+    <span class="k">def</span> <span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">raise_exception</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Stop motor.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        raise_exception : bool, default: False</span>
+<span class="sd">            Raise an &#39;errAbort&#39; exception upon successful stop.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">code</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cli</span><span class="o">.</span><span class="n">SpeCommand</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">handle</span><span class="p">,</span>
+                                      <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="p">()</span><span class="si">}{</span><span class="bp">self</span><span class="o">.</span><span class="n">motor</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;Stop&#39;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">error_check</span><span class="p">(</span><span class="n">code</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">SpeError</span> <span class="k">as</span> <span class="n">se</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">raise_exception</span> <span class="ow">or</span> <span class="nb">str</span><span class="p">(</span><span class="n">se</span><span class="p">)</span> <span class="o">!=</span> <span class="s1">&#39;errAbort&#39;</span><span class="p">:</span>
+                <span class="k">raise</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_set_position</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pos</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set motor position. It return final motor position after</span>
+<span class="sd">        movement.</span>
+
+<span class="sd">        For grating motor the position unit depends on &#39;Step&#39; value in</span>
+<span class="sd">        SpeSetup structure. If &#39;Step&#39; = 1 the motor position is raw</span>
+<span class="sd">        motor steps. Otherwise it is the position in picometers.</span>
+
+<span class="sd">        For slit motors the position in motor steps is the &#39;Position&#39;</span>
+<span class="sd">        value multiplied by &#39;Step&#39; value from SpeSetup.</span>
+
+<span class="sd">        For DC motors, the position is binary.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">code</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cli</span><span class="o">.</span><span class="n">SpeCommand</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">handle</span><span class="p">,</span>
+                                      <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="p">()</span><span class="si">}{</span><span class="bp">self</span><span class="o">.</span><span class="n">motor</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+                                      <span class="s1">&#39;SetPosition&#39;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">(</span><span class="n">pos</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_check</span><span class="p">(</span><span class="n">code</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="PrecisionMotorChannel">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Horiba.html#qcodes_contrib_drivers.drivers.Horiba.Horiba_FHR.PrecisionMotorChannel">[docs]</a>
+<span class="k">class</span> <span class="nc">PrecisionMotorChannel</span><span class="p">(</span><span class="n">MotorChannel</span><span class="p">,</span> <span class="n">metaclass</span><span class="o">=</span><span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;ABC for the precision motors of the device.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">:</span> <span class="n">InstrumentBase</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">cli</span><span class="p">,</span> <span class="n">handle</span><span class="p">,</span>
+                 <span class="n">motor</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">min_value</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">max_value</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">maxsize</span><span class="p">,</span>
+                 <span class="n">offset</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">metadata</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">label</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">cli</span><span class="p">,</span> <span class="n">handle</span><span class="p">,</span> <span class="n">motor</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span> <span class="n">label</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_step</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_offset</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">offset</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;position&#39;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s1"> position&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_position</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_position</span><span class="p">,</span>
+                           <span class="n">set_parser</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">validators</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(</span><span class="n">min_value</span><span class="p">,</span> <span class="n">max_value</span><span class="p">),</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">unit</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
+    <span class="k">def</span> <span class="nf">unit</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+<div class="viewcode-block" id="PrecisionMotorChannel.init">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Horiba.html#qcodes_contrib_drivers.drivers.Horiba.Horiba_FHR.PrecisionMotorChannel.init">[docs]</a>
+    <span class="k">def</span> <span class="nf">init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize motor with offset position (optical zero order</span>
+<span class="sd">        position in motor steps).&quot;&quot;&quot;</span>
+        <span class="n">code</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cli</span><span class="o">.</span><span class="n">SpeCommand</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">handle</span><span class="p">,</span>
+                                      <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="p">()</span><span class="si">}{</span><span class="bp">self</span><span class="o">.</span><span class="n">motor</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;Init&#39;</span><span class="p">,</span>
+                                      <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_offset</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_check</span><span class="p">(</span><span class="n">code</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="PrecisionMotorChannel.set_setup">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Horiba.html#qcodes_contrib_drivers.drivers.Horiba.Horiba_FHR.PrecisionMotorChannel.set_setup">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                  <span class="n">min_speed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">50</span><span class="p">,</span>
+                  <span class="n">max_speed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">600</span><span class="p">,</span>
+                  <span class="n">ramp</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">650</span><span class="p">,</span>
+                  <span class="n">backlash</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">500</span><span class="p">,</span>
+                  <span class="n">step</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
+                  <span class="n">reverse</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Write motor setup data.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        min_speed : int</span>
+<span class="sd">            Minimal speed</span>
+<span class="sd">        max_speed : int</span>
+<span class="sd">            Maximal speed</span>
+<span class="sd">        ramp : int</span>
+<span class="sd">            Acceleration</span>
+<span class="sd">        backlash : int</span>
+<span class="sd">            Backlash (~+-500..2000)</span>
+<span class="sd">        step : int</span>
+<span class="sd">            Operation mode:</span>
+<span class="sd">                - 1: position in motor steps</span>
+<span class="sd">                - 0, 2, 3 ...: position in picometers</span>
+<span class="sd">        reverse : bool</span>
+<span class="sd">            Rotation direction:</span>
+<span class="sd">                - 0: direct</span>
+<span class="sd">                - 1: inverse</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">code</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cli</span><span class="o">.</span><span class="n">SpeCommandSetup</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">handle</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="p">()</span><span class="si">}{</span><span class="bp">self</span><span class="o">.</span><span class="n">motor</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+            <span class="n">fields</span><span class="o">=</span><span class="p">(</span><span class="n">min_speed</span><span class="p">,</span> <span class="n">max_speed</span><span class="p">,</span> <span class="n">ramp</span><span class="p">,</span> <span class="n">backlash</span><span class="p">,</span> <span class="n">step</span><span class="p">,</span> <span class="n">reverse</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_check</span><span class="p">(</span><span class="n">code</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_step</span> <span class="o">=</span> <span class="n">step</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">position</span><span class="o">.</span><span class="n">unit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_get_position</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get current position. The result depends on &#39;Step&#39; value</span>
+<span class="sd">        similar to &quot;SetPosition&quot; parameter value.&quot;&quot;&quot;</span>
+        <span class="n">code</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cli</span><span class="o">.</span><span class="n">SpeCommand</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">handle</span><span class="p">,</span>
+                                          <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="p">()</span><span class="si">}{</span><span class="bp">self</span><span class="o">.</span><span class="n">motor</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+                                          <span class="s1">&#39;GetPosition&#39;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_check</span><span class="p">(</span><span class="n">code</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">value</span></div>
+
+
+
+<div class="viewcode-block" id="DCChannel">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Horiba.html#qcodes_contrib_drivers.drivers.Horiba.Horiba_FHR.DCChannel">[docs]</a>
+<span class="k">class</span> <span class="nc">DCChannel</span><span class="p">(</span><span class="n">MotorChannel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Handles DC motors (with binary positions).&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">:</span> <span class="n">InstrumentBase</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">cli</span><span class="p">,</span> <span class="n">handle</span><span class="p">,</span>
+                 <span class="n">motor</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                 <span class="n">val_mapping</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Literal</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">metadata</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">label</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="n">label</span> <span class="o">=</span> <span class="n">label</span> <span class="ow">or</span> <span class="sa">f</span><span class="s1">&#39;DC </span><span class="si">{</span><span class="n">motor</span><span class="si">}</span><span class="s1">&#39;</span>
+        <span class="n">MotorChannel</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">cli</span><span class="p">,</span> <span class="n">handle</span><span class="p">,</span> <span class="n">motor</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
+                              <span class="n">label</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;position&#39;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s1"> position&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                           <span class="n">set_parser</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_position</span><span class="p">,</span>
+                           <span class="n">val_mapping</span><span class="o">=</span><span class="n">val_mapping</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="SlitChannel">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Horiba.html#qcodes_contrib_drivers.drivers.Horiba.Horiba_FHR.SlitChannel">[docs]</a>
+<span class="k">class</span> <span class="nc">SlitChannel</span><span class="p">(</span><span class="n">PrecisionMotorChannel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Handles the linear slit motors of the device.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">:</span> <span class="n">InstrumentBase</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">cli</span><span class="p">,</span> <span class="n">handle</span><span class="p">,</span>
+                 <span class="n">motor</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">min_value</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">max_value</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">maxsize</span><span class="p">,</span>
+                 <span class="n">offset</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">metadata</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">label</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="n">label</span> <span class="o">=</span> <span class="n">label</span> <span class="ow">or</span> <span class="sa">f</span><span class="s1">&#39;Slit </span><span class="si">{</span><span class="n">motor</span><span class="si">}</span><span class="s1">&#39;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">cli</span><span class="p">,</span> <span class="n">handle</span><span class="p">,</span> <span class="n">motor</span><span class="p">,</span> <span class="n">min_value</span> <span class="o">+</span> <span class="n">offset</span><span class="p">,</span>
+                         <span class="n">max_value</span> <span class="o">+</span> <span class="n">offset</span><span class="p">,</span> <span class="n">offset</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span> <span class="n">label</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_offset</span> <span class="o">=</span> <span class="n">offset</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;width&#39;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s1"> width&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_width</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_width</span><span class="p">,</span>
+                           <span class="n">set_parser</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">unit</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">validators</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(</span><span class="n">min_value</span><span class="p">,</span> <span class="n">max_value</span><span class="p">),</span>
+                           <span class="n">docstring</span><span class="o">=</span><span class="s2">&quot;Actual slit opening width&quot;</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">unit</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="c1"># From the manual:</span>
+        <span class="c1">#   For slit motors the position in motor steps is the</span>
+        <span class="c1">#   &#39;Position&#39; value multiplied by &#39;Step&#39; value from SpeSetup.</span>
+        <span class="c1"># What I take from this is that it always returns microns.</span>
+        <span class="k">return</span> <span class="s1">&#39;μm&#39;</span>
+
+    <span class="k">def</span> <span class="nf">_get_width</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">position</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_offset</span>
+
+    <span class="k">def</span> <span class="nf">_set_width</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">width</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">position</span><span class="p">(</span><span class="n">width</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_offset</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="GratingChannel">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Horiba.html#qcodes_contrib_drivers.drivers.Horiba.Horiba_FHR.GratingChannel">[docs]</a>
+<span class="k">class</span> <span class="nc">GratingChannel</span><span class="p">(</span><span class="n">PrecisionMotorChannel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Handles the grating rotation motors of the device.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">:</span> <span class="n">InstrumentBase</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">cli</span><span class="p">,</span> <span class="n">handle</span><span class="p">,</span>
+                 <span class="n">motor</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">min_value</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">max_value</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">maxsize</span><span class="p">,</span>
+                 <span class="n">offset</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">metadata</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">label</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="n">label</span> <span class="o">=</span> <span class="n">label</span> <span class="ow">or</span> <span class="sa">f</span><span class="s1">&#39;Grating </span><span class="si">{</span><span class="n">motor</span><span class="si">}</span><span class="s1">&#39;</span>
+        <span class="c1"># Cannot use super() since parent also defines the position parameter</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">cli</span><span class="p">,</span> <span class="n">handle</span><span class="p">,</span> <span class="n">motor</span><span class="p">,</span> <span class="n">min_value</span><span class="p">,</span>
+                         <span class="n">max_value</span><span class="p">,</span> <span class="n">offset</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span> <span class="n">label</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;shift&#39;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Zero order shift&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_shift</span><span class="p">,</span>
+                           <span class="n">set_parser</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">unit</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">unit</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s1">&#39;motor steps&#39;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_step</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="s1">&#39;pm&#39;</span>
+
+<div class="viewcode-block" id="GratingChannel.set_ini_params">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Horiba.html#qcodes_contrib_drivers.drivers.Horiba.Horiba_FHR.GratingChannel.set_ini_params">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_ini_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                       <span class="n">phase</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span>
+                       <span class="n">min_speed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">50</span><span class="p">,</span>
+                       <span class="n">max_speed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">600</span><span class="p">,</span>
+                       <span class="n">ramp</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">600</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Motor initialization parameters.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        phase : {1, 2, 3}</span>
+<span class="sd">            Initialization phase.</span>
+<span class="sd">        min_speed : int</span>
+<span class="sd">            Minimal speed</span>
+<span class="sd">        max_speed : int</span>
+<span class="sd">            Maximal speed</span>
+<span class="sd">        ramp : int</span>
+<span class="sd">            Acceleration</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">code</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cli</span><span class="o">.</span><span class="n">SpeCommandIniParams</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">handle</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="p">()</span><span class="si">}{</span><span class="bp">self</span><span class="o">.</span><span class="n">motor</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+            <span class="n">fields</span><span class="o">=</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">min_speed</span><span class="p">,</span> <span class="n">max_speed</span><span class="p">,</span> <span class="n">ramp</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_check</span><span class="p">(</span><span class="n">code</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_set_shift</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shift</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set zero order shift.&quot;&quot;&quot;</span>
+        <span class="n">code</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cli</span><span class="o">.</span><span class="n">SpeCommand</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">handle</span><span class="p">,</span>
+                                      <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="p">()</span><span class="si">}{</span><span class="bp">self</span><span class="o">.</span><span class="n">motor</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+                                      <span class="s1">&#39;SetShift&#39;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">(</span><span class="n">shift</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_check</span><span class="p">(</span><span class="n">code</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="HoribaFHR">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Horiba.html#qcodes_contrib_drivers.drivers.Horiba.Horiba_FHR.HoribaFHR">[docs]</a>
+<span class="k">class</span> <span class="nc">HoribaFHR</span><span class="p">(</span><span class="n">Instrument</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Horiba FHR driver for a 32-bit dll.</span>
+
+<span class="sd">    This driver uses ``msl.loadlib`` to communicate with the 32-bit dll</span>
+<span class="sd">    through a 32-bit server from a 64-bit client.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        dll_dir (path_like):</span>
+<span class="sd">            Directory to search for SpeControl.dll</span>
+<span class="sd">        config_file (path_like):</span>
+<span class="sd">            Configuration file (see below)</span>
+<span class="sd">        dc_val_mappings (dict):</span>
+<span class="sd">            val_mappings for the DC motors (mirrors). Should be a dict</span>
+<span class="sd">            of mappings with integer keys corresponding to the mirror</span>
+<span class="sd">            id. For example, for an instrument with only one mirror</span>
+<span class="sd">            &quot;Mirror2&quot;, ``{2: {&#39;front&#39;: 0, &#39;side&#39;: 1}}``.</span>
+
+<span class="sd">    Notes:</span>
+<span class="sd">        The configuration file should be an ``ini``-like file with</span>
+<span class="sd">        sections</span>
+
+<span class="sd">         - ``[Firmware]``</span>
+<span class="sd">         - ``[Port]``</span>
+<span class="sd">         - ``[Spectrometer]``</span>
+<span class="sd">         - ``[Grating1]`` etc.</span>
+<span class="sd">         - ``[Slit1]`` etc.</span>
+<span class="sd">         - ``[Mirror1]`` etc.</span>
+
+<span class="sd">    Examples:</span>
+<span class="sd">        See ``docs/examples`` for an example notebook.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+            <span class="n">dll_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span> <span class="o">|</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">,</span>
+            <span class="n">config_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span> <span class="o">|</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">,</span>
+            <span class="n">dc_val_mappings</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Literal</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="p">{},</span>
+            <span class="n">metadata</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">label</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">cli</span> <span class="o">=</span> <span class="n">FHRClient</span><span class="p">(</span><span class="n">dll_dir</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">handle</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cli</span><span class="o">.</span><span class="n">CreateSpe</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">configparser</span><span class="o">.</span><span class="n">ConfigParser</span><span class="p">(</span><span class="n">comment_prefixes</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;==&#39;</span><span class="p">,))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">config_file</span><span class="p">)</span>
+
+        <span class="n">additional_metadata</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;Focal length&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;Spectrometer&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">getint</span><span class="p">(</span><span class="s1">&#39;Focal&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;Coefficient of angle&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;Spectrometer&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">getfloat</span><span class="p">(</span>
+                <span class="s1">&#39;CoefficientOfAngle&#39;</span>
+            <span class="p">),</span>
+            <span class="s1">&#39;Number of gratings&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;Spectrometer&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">getint</span><span class="p">(</span>
+                <span class="s1">&#39;GratingNumber&#39;</span>
+            <span class="p">),</span>
+            <span class="s1">&#39;Number of slits&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;Spectrometer&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">getint</span><span class="p">(</span>
+                <span class="s1">&#39;SlitNumber&#39;</span>
+            <span class="p">)</span>
+        <span class="p">}</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">additional_metadata</span> <span class="o">|</span> <span class="nb">dict</span><span class="p">(</span><span class="n">metadata</span> <span class="ow">or</span> <span class="p">{}),</span> <span class="n">label</span><span class="p">)</span>
+
+        <span class="n">gratings</span> <span class="o">=</span> <span class="n">ChannelList</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;gratings&#39;</span><span class="p">,</span> <span class="n">GratingChannel</span><span class="p">)</span>
+        <span class="n">slits</span> <span class="o">=</span> <span class="n">ChannelList</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;slits&#39;</span><span class="p">,</span> <span class="n">SlitChannel</span><span class="p">)</span>
+        <span class="n">mirrors</span> <span class="o">=</span> <span class="n">ChannelList</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;mirrors&#39;</span><span class="p">,</span> <span class="n">DCChannel</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">section</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;Port&#39;</span><span class="p">:</span>
+                <span class="c1"># This relies on Port being the first section because otherwise</span>
+                <span class="c1"># communication with the device will fail.</span>
+                <span class="n">port</span> <span class="o">=</span> <span class="n">PortChannel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;port&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cli</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">handle</span><span class="p">,</span>
+                                   <span class="n">section</span><span class="o">.</span><span class="n">getint</span><span class="p">(</span><span class="s1">&#39;ComPort&#39;</span><span class="p">))</span>
+                <span class="n">port</span><span class="o">.</span><span class="n">open</span><span class="p">()</span>
+                <span class="n">port</span><span class="o">.</span><span class="n">set_baud_rate</span><span class="p">(</span><span class="n">section</span><span class="o">.</span><span class="n">getint</span><span class="p">(</span><span class="s1">&#39;Baudrate&#39;</span><span class="p">))</span>
+                <span class="n">port</span><span class="o">.</span><span class="n">set_timeout</span><span class="p">(</span><span class="n">section</span><span class="o">.</span><span class="n">getint</span><span class="p">(</span><span class="s1">&#39;Timeout&#39;</span><span class="p">))</span>
+                <span class="n">port</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">section</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;Grating&#39;</span><span class="p">):</span>
+                <span class="c1"># Grating1, Grating2, etc</span>
+                <span class="n">grating</span> <span class="o">=</span> <span class="n">GratingChannel</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="p">,</span>
+                    <span class="c1"># Cannot use section[&#39;Name&#39;] b/c of invalid identifier</span>
+                    <span class="c1"># chars.</span>
+                    <span class="sa">f</span><span class="s2">&quot;grating_</span><span class="si">{</span><span class="n">section</span><span class="p">[</span><span class="s1">&#39;Value&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">cli</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">handle</span><span class="p">,</span>
+                    <span class="n">motor</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">name</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span>
+                    <span class="c1"># TODO: this assumes MotorStepUnit to be != 1</span>
+                    <span class="n">min_value</span><span class="o">=</span><span class="n">section</span><span class="o">.</span><span class="n">getint</span><span class="p">(</span><span class="s1">&#39;MinNm&#39;</span><span class="p">)</span><span class="o">*</span><span class="mi">1000</span><span class="p">,</span>  <span class="c1"># pm</span>
+                    <span class="n">max_value</span><span class="o">=</span><span class="n">section</span><span class="o">.</span><span class="n">getint</span><span class="p">(</span><span class="s1">&#39;MaxNm&#39;</span><span class="p">)</span><span class="o">*</span><span class="mi">1000</span><span class="p">,</span>
+                    <span class="n">offset</span><span class="o">=</span><span class="n">section</span><span class="o">.</span><span class="n">getint</span><span class="p">(</span><span class="s1">&#39;Offset&#39;</span><span class="p">),</span>  <span class="c1"># motor steps</span>
+                    <span class="n">metadata</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;Coefficient of linearity&#39;</span><span class="p">:</span> <span class="n">section</span><span class="o">.</span><span class="n">getfloat</span><span class="p">(</span>
+                        <span class="s1">&#39;CoefficientOfLinearity&#39;</span>
+                    <span class="p">)}</span>
+                <span class="p">)</span>
+                <span class="n">grating</span><span class="o">.</span><span class="n">set_id</span><span class="p">(</span><span class="n">section</span><span class="o">.</span><span class="n">getint</span><span class="p">(</span><span class="s1">&#39;AddrAxe&#39;</span><span class="p">))</span>
+                <span class="n">grating</span><span class="o">.</span><span class="n">set_setup</span><span class="p">(</span>
+                    <span class="c1"># For whatever reason these parameters are in the</span>
+                    <span class="c1"># Spectrometer section...</span>
+                    <span class="n">min_speed</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;Spectrometer&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">getint</span><span class="p">(</span><span class="s1">&#39;SpeedMin&#39;</span><span class="p">),</span>
+                    <span class="n">max_speed</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;Spectrometer&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">getint</span><span class="p">(</span><span class="s1">&#39;SpeedMax&#39;</span><span class="p">),</span>
+                    <span class="n">ramp</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;Spectrometer&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">getint</span><span class="p">(</span><span class="s1">&#39;Acceleration&#39;</span><span class="p">),</span>
+                    <span class="n">backlash</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;Spectrometer&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">getint</span><span class="p">(</span><span class="s1">&#39;Backlash&#39;</span><span class="p">),</span>
+                    <span class="n">step</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;Spectrometer&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">getint</span><span class="p">(</span><span class="s1">&#39;MotorStepUnit&#39;</span><span class="p">),</span>
+                    <span class="n">reverse</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;Spectrometer&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span><span class="s1">&#39;Reverse&#39;</span><span class="p">)</span>
+                <span class="p">)</span>
+                <span class="c1"># Hardcoded since it is not present in my ini file.</span>
+                <span class="c1"># Taken from &#39;SDK FHR Express -additional informations-.pdf&#39;</span>
+                <span class="n">grating</span><span class="o">.</span><span class="n">set_ini_params</span><span class="p">(</span><span class="n">phase</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">min_speed</span><span class="o">=</span><span class="mi">2000</span><span class="p">,</span>
+                                       <span class="n">max_speed</span><span class="o">=</span><span class="mi">100000</span><span class="p">,</span> <span class="n">ramp</span><span class="o">=</span><span class="mi">400</span><span class="p">)</span>
+                <span class="n">grating</span><span class="o">.</span><span class="n">set_ini_params</span><span class="p">(</span><span class="n">phase</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">min_speed</span><span class="o">=</span><span class="mi">2000</span><span class="p">,</span>
+                                       <span class="n">max_speed</span><span class="o">=</span><span class="mi">100000</span><span class="p">,</span> <span class="n">ramp</span><span class="o">=</span><span class="mi">400</span><span class="p">)</span>
+                <span class="n">grating</span><span class="o">.</span><span class="n">set_ini_params</span><span class="p">(</span><span class="n">phase</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">min_speed</span><span class="o">=</span><span class="mi">2000</span><span class="p">,</span>
+                                       <span class="n">max_speed</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span> <span class="n">ramp</span><span class="o">=</span><span class="mi">400</span><span class="p">)</span>
+                <span class="n">grating</span><span class="o">.</span><span class="n">shift</span><span class="p">(</span><span class="n">section</span><span class="o">.</span><span class="n">getint</span><span class="p">(</span><span class="s1">&#39;Shift&#39;</span><span class="p">))</span>
+                <span class="n">grating</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">section</span><span class="p">)</span>
+                <span class="n">gratings</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">grating</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;Slit&#39;</span><span class="p">):</span>
+                <span class="c1"># Slit1, Slit2, etc</span>
+                <span class="n">slit</span> <span class="o">=</span> <span class="n">SlitChannel</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="p">,</span>
+                    <span class="n">section</span><span class="p">[</span><span class="s1">&#39;Name&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">),</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">cli</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">handle</span><span class="p">,</span>
+                    <span class="n">motor</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">name</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span>
+                    <span class="c1"># min_value and max_value are used for the slit width,</span>
+                    <span class="c1"># not absolute position.</span>
+                    <span class="n">min_value</span><span class="o">=</span><span class="n">section</span><span class="o">.</span><span class="n">getint</span><span class="p">(</span><span class="s1">&#39;Minum&#39;</span><span class="p">),</span>
+                    <span class="n">max_value</span><span class="o">=</span><span class="n">section</span><span class="o">.</span><span class="n">getint</span><span class="p">(</span><span class="s1">&#39;Maxum&#39;</span><span class="p">),</span>
+                    <span class="n">offset</span><span class="o">=</span><span class="n">section</span><span class="o">.</span><span class="n">getint</span><span class="p">(</span><span class="s1">&#39;Offset&#39;</span><span class="p">),</span>
+                    <span class="n">metadata</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;Coefficient of linearity&#39;</span><span class="p">:</span> <span class="n">section</span><span class="o">.</span><span class="n">getfloat</span><span class="p">(</span>
+                        <span class="s1">&#39;CoefficientOfLinearity&#39;</span>
+                    <span class="p">)}</span>
+                <span class="p">)</span>
+                <span class="n">slit</span><span class="o">.</span><span class="n">set_id</span><span class="p">(</span><span class="n">section</span><span class="o">.</span><span class="n">getint</span><span class="p">(</span><span class="s1">&#39;AddrAxe&#39;</span><span class="p">))</span>
+                <span class="n">slit</span><span class="o">.</span><span class="n">set_setup</span><span class="p">(</span><span class="n">min_speed</span><span class="o">=</span><span class="n">section</span><span class="o">.</span><span class="n">getint</span><span class="p">(</span><span class="s1">&#39;SpeedMin&#39;</span><span class="p">),</span>
+                               <span class="n">max_speed</span><span class="o">=</span><span class="n">section</span><span class="o">.</span><span class="n">getint</span><span class="p">(</span><span class="s1">&#39;SpeedMax&#39;</span><span class="p">),</span>
+                               <span class="n">ramp</span><span class="o">=</span><span class="n">section</span><span class="o">.</span><span class="n">getint</span><span class="p">(</span><span class="s1">&#39;Acceleration&#39;</span><span class="p">),</span>
+                               <span class="n">backlash</span><span class="o">=</span><span class="n">section</span><span class="o">.</span><span class="n">getint</span><span class="p">(</span><span class="s1">&#39;Backlash&#39;</span><span class="p">),</span>
+                               <span class="n">step</span><span class="o">=</span><span class="n">section</span><span class="o">.</span><span class="n">getint</span><span class="p">(</span><span class="s1">&#39;MotorStepUnit&#39;</span><span class="p">),</span>
+                               <span class="n">reverse</span><span class="o">=</span><span class="n">section</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span><span class="s1">&#39;Reverse&#39;</span><span class="p">))</span>
+                <span class="n">slit</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">section</span><span class="p">)</span>
+                <span class="n">slits</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">slit</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;Mirror&#39;</span><span class="p">):</span>
+                <span class="c1"># Mirror1, Mirror2, etc</span>
+                <span class="n">mirror</span> <span class="o">=</span> <span class="n">DCChannel</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="p">,</span>
+                    <span class="n">section</span><span class="p">[</span><span class="s1">&#39;Name&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">),</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">cli</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">handle</span><span class="p">,</span>
+                    <span class="n">motor</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">name</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span>
+                    <span class="n">val_mapping</span><span class="o">=</span><span class="n">dc_val_mappings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">name</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])),</span>
+                    <span class="n">metadata</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;Delay (ms)&#39;</span><span class="p">:</span> <span class="n">section</span><span class="o">.</span><span class="n">getint</span><span class="p">(</span><span class="s1">&#39;Delayms&#39;</span><span class="p">),</span>
+                              <span class="s1">&#39;Duty cycle (%)&#39;</span><span class="p">:</span> <span class="n">section</span><span class="o">.</span><span class="n">getint</span><span class="p">(</span><span class="s1">&#39;DutyCycle%&#39;</span><span class="p">)}</span>
+                <span class="p">)</span>
+                <span class="n">mirror</span><span class="o">.</span><span class="n">set_id</span><span class="p">(</span><span class="n">section</span><span class="o">.</span><span class="n">getint</span><span class="p">(</span><span class="s1">&#39;AddrAxe&#39;</span><span class="p">))</span>
+                <span class="n">mirror</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">section</span><span class="p">)</span>
+                <span class="n">mirrors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mirror</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_submodule</span><span class="p">(</span><span class="s1">&#39;port&#39;</span><span class="p">,</span> <span class="n">port</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_submodule</span><span class="p">(</span><span class="s1">&#39;mirrors&#39;</span><span class="p">,</span> <span class="n">mirrors</span><span class="o">.</span><span class="n">to_channel_tuple</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_submodule</span><span class="p">(</span><span class="s1">&#39;slits&#39;</span><span class="p">,</span> <span class="n">slits</span><span class="o">.</span><span class="n">to_channel_tuple</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_submodule</span><span class="p">(</span><span class="s1">&#39;gratings&#39;</span><span class="p">,</span> <span class="n">gratings</span><span class="o">.</span><span class="n">to_channel_tuple</span><span class="p">())</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect_message</span><span class="p">()</span>
+
+<div class="viewcode-block" id="HoribaFHR.get_idn">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Horiba.html#qcodes_contrib_drivers.drivers.Horiba.Horiba_FHR.HoribaFHR.get_idn">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_idn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;serial&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;Firmware&#39;</span><span class="p">][</span><span class="s1">&#39;SerialNumber&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;firmware&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;Firmware&#39;</span><span class="p">][</span><span class="s1">&#39;VersionNumber&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;model&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;FHR</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;Spectrometer&#39;</span><span class="p">][</span><span class="s1">&#39;Focal&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="s1">&#39;vendor&#39;</span><span class="p">:</span> <span class="s1">&#39;Horiba&#39;</span><span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="HoribaFHR.disconnect">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Horiba.html#qcodes_contrib_drivers.drivers.Horiba.Horiba_FHR.HoribaFHR.disconnect">[docs]</a>
+    <span class="k">def</span> <span class="nf">disconnect</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">port</span><span class="o">.</span><span class="n">is_open</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">port</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="HoribaFHR.close">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Horiba.html#qcodes_contrib_drivers.drivers.Horiba.Horiba_FHR.HoribaFHR.close">[docs]</a>
+    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">disconnect</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cli</span><span class="o">.</span><span class="n">DeleteSpe</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">handle</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, QCoDeS Users.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
