@@ -228,7 +228,7 @@ class MultiTrackSettingsParameter(MultiParameter):
             raise RuntimeError("No instrument attached to Parameter.")
 
         bottom, gap = self.instrument.atmcd64d.set_multi_track(*val)
-        self.cache.set(self.MultiTrackSettings(val + (bottom, gap)))
+        self.cache.set(self.MultiTrackSettings(*(tuple(val) + (bottom, gap))))
 
 
 class RandomTrackSettingsParameter(MultiParameter):
