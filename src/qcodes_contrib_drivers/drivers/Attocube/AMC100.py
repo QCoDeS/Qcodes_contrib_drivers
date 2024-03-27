@@ -1,11 +1,12 @@
+import dataclasses
 import os
 import sys
-from collections import namedtuple
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from functools import partial
-from itertools import zip_longest
+from itertools import chain, zip_longest
 from typing import Any
 
+import numpy as np
 from qcodes import validators
 from qcodes.instrument import InstrumentChannel, Instrument, ChannelTuple
 from qcodes.parameters import (Parameter, MultiParameter, create_on_off_val_mapping,
@@ -14,8 +15,17 @@ from qcodes.parameters import (Parameter, MultiParameter, create_on_off_val_mapp
 _POSITION_SCALE = 10 ** 6
 
 
+@dataclasses.dataclass
+class MultiAxisPosition:
+    axis_1: float = np.nan
+    axis_2: float = np.nan
+    axis_3: float = np.nan
+
+    def _JSONEncoder(self) -> dict[str, Any]:
+        return dataclasses.asdict(self)
+
+
 class MultiAxisPositionParameter(MultiParameter):
-    MultiAxisPosition = namedtuple('MultiAxisPosition', ('axis_1', 'axis_2', 'axis_3'))
 
     def get_raw(self) -> ParamRawDataType:
         if self.instrument is None:
@@ -28,18 +38,30 @@ class MultiAxisPositionParameter(MultiParameter):
         else:
             self._update_cache(x, y, z)
 
-        return self.MultiAxisPosition(x / _POSITION_SCALE,
-                                      y / _POSITION_SCALE,
-                                      z / _POSITION_SCALE)
+        return MultiAxisPosition(x / _POSITION_SCALE,
+                                 y / _POSITION_SCALE,
+                                 z / _POSITION_SCALE)
 
     def set_raw(self, value: ParamRawDataType) -> None:
         if self.instrument is None:
             raise RuntimeError("No instrument attached to Parameter.")
 
+        value_dict = dict.fromkeys(['axis_1', 'axis_2', 'axis_3'], np.nan)
+        if isinstance(value, MultiAxisPosition):
+            value_dict.update(dataclasses.asdict(value))
+        elif isinstance(value, Mapping):
+            value_dict.update(value)
+        elif len(value) <= 3:
+            value_dict.update({f'axis_{i}': val for i, val in enumerate(value)})
+        else:
+            raise ValueError('Too many values, expected at most 3')
+
+        # tuples of boolean indicating whether axis is set and position
+        vals = [(setit := not np.isnan(value_dict[key]),
+                 value_dict[key] * _POSITION_SCALE if setit else 0.0)
+                for key in ('axis_1', 'axis_2', 'axis_3')]
         try:
-            *_, x, y, z = self.instrument.device.control.MultiAxisPositioning(
-                True, True, True, *(val * _POSITION_SCALE for val in value)
-            )
+            *_, x, y, z = self.instrument.device.control.MultiAxisPositioning(*chain(*zip(*vals)))
         except self.instrument.exception_type as err:
             raise NotImplementedError from err
         else:
