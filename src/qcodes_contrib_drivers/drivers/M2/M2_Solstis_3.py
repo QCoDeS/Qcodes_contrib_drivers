@@ -40,6 +40,7 @@ class M2Solstis3(IPInstrument):
                            set_cmd=self._set_wave_m,
                            label='Wavelength locked',
                            unit='nm',
+                           set_parser=float,
                            vals=Numbers(min_value=700, max_value=1000),
                            docstring='wavelength locked')
 
@@ -48,6 +49,7 @@ class M2Solstis3(IPInstrument):
                            set_cmd=self._move_wave_t,
                            label='Wavelength table',
                            unit='nm',
+                           set_parser=float,
                            vals=Numbers(min_value=700, max_value=1000),
                            docstring='wavelength not locked')
 
