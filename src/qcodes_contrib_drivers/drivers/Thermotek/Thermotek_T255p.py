@@ -11,11 +11,8 @@ _SOC = '.'
 """Start Of Command."""
 _SOR = '#'
 """Start Of Response."""
-_COMMAND_TIMEOUT = 3
+_COMMAND_TIMEOUT = 0.5
 """The required timeout between commands."""
-_WATCHDOG_TIMEOUT = 5
-"""The timeout after which another serial watchdog command needs to be
-sent to establish communication."""
 _ERROR_CODES = {'\x30': 'No Error',
                 '\x31': 'Checksum Error',
                 '\x32': 'Bad Command',
@@ -56,24 +53,14 @@ def _command_timeout(fun: Callable[[Any, Any], _T]) -> Callable[[Any, Any], _T]:
 
     @wraps(fun)
     def wrapped(self, cmd: str) -> _T:
-        target = self._command_timestamp + _COMMAND_TIMEOUT
-        while (now := time.time()) < target:
-            time.sleep(0.1)
+        target = self._response_timestamp + _COMMAND_TIMEOUT
+        if (delay := target - (now := time.time())) > 0:
+            time.sleep(delay)
+
         self._command_timestamp = now
-        return fun(self, cmd)
-
-    return wrapped
-
-
-def _watchdog_timeout(fun: Callable[[Any, Any], _T]) -> Callable[[Any, Any], _T]:
-    """Ensures communication is established using watchdog signal."""
-
-    @wraps(fun)
-    def wrapped(self, cmd: str) -> _T:
-        elapsed_time = time.time() - self._command_timestamp
-        if not cmd.startswith('.U') and elapsed_time > _WATCHDOG_TIMEOUT:
-            self._watchdog()
-        return fun(self, cmd)
+        result = fun(self, cmd)
+        self._response_timestamp = time.time()
+        return result
 
     return wrapped
 
@@ -89,6 +76,7 @@ class ThermotekT255p(VisaInstrument):
                          pyvisa_sim_file=pyvisa_sim_file, **kwargs)
 
         self._command_timestamp: float = 0
+        self._response_timestamp: float = 0
 
         self.enabled = Parameter(
             'enabled',
@@ -147,7 +135,6 @@ class ThermotekT255p(VisaInstrument):
         self.connect_message()
 
     @_encode_cmd
-    @_watchdog_timeout
     @_command_timeout
     def write(self, cmd: str) -> None:
         super().write(cmd)
@@ -156,7 +143,6 @@ class ThermotekT255p(VisaInstrument):
         self.visa_handle.read()
 
     @_encode_cmd
-    @_watchdog_timeout
     @_command_timeout
     def ask(self, cmd: str) -> str:
         # A command has the following structure:
