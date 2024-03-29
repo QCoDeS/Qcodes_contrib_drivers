@@ -15,8 +15,13 @@ from qcodes.parameters import (Parameter, MultiParameter, create_on_off_val_mapp
 _POSITION_SCALE = 10 ** 6
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(frozen=True)
 class MultiAxisPosition(Sequence[float]):
+    """A tuple-like representation of (a subset of) axis positions.
+
+    Use this class to set any number of positions simultaneously using
+    :attr:`AttocubeAMC100.multi_axis_position`.
+    """
     axis_1: float = np.nan
     axis_2: float = np.nan
     axis_3: float = np.nan
@@ -34,10 +39,22 @@ class MultiAxisPosition(Sequence[float]):
         return 3
 
     def _JSONEncoder(self) -> dict[str, Any]:
-        return dataclasses.asdict(self)
+        return dataclasses.astuple(self)
 
 
 class MultiAxisPositionParameter(MultiParameter):
+    """A parameter that simulatenously sets multiple axis positions.
+
+    Always returns all three axes, but accepts a variable number for
+    setting. The following are allowed for the single value argument:
+
+     - an instance of :class:`MultiAxisPosition`
+     - a mapping with possible keys ``axis_1``, ``axis_2``, ``axis_3``
+       and float values
+     - a sequence of floats which will be interpreted as
+       `(axis_1, axis_2, ...)`
+
+    """
 
     def get_raw(self) -> ParamRawDataType:
         if self.instrument is None:
@@ -178,6 +195,7 @@ class AMC100Axis(InstrumentChannel):
 
 
 class AttocubeAMC100(Instrument):
+    """Driver for the AMC100 position controller."""
     # Tested with fw 1.3.23
 
     def __init__(self, name: str, api_dir: os.PathLike, address: str | None = None,
