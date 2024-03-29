@@ -828,7 +828,7 @@ class AndorIDus4xx(Instrument):
         self.add_parameter('spurious_noise_filter_threshold',
                            get_cmd=self.atmcd64d.filter_get_threshold,
                            set_cmd=self.atmcd64d.filter_set_threshold,
-                           vals=validators.Ints(0, 65535),
+                           vals=validators.Numbers(0, 65535),
                            label='Spurious noise threshold',
                            docstring=dedent(self.atmcd64d.filter_set_threshold.__doc__))
 
