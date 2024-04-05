@@ -5,18 +5,24 @@ from pyvisa.constants import Parity, StopBits
 from pyvisa.resources.serial import SerialInstrument
 from pyvisa.resources.tcpip import TCPIPSocket
 from qcodes.instrument.visa import VisaInstrument
-from qcodes.parameters import ParameterBase
-from qcodes.parameters.val_mapping import create_on_off_val_mapping
+from qcodes.parameters import ParameterBase, create_on_off_val_mapping
 
 
 class SR570(VisaInstrument):
     """
     QCoDeS driver for the Stanford Research Systems SR570 Low-Noise Current Preamplifier.
 
-    This is a real driver and it will talk to your instrument.
+    This is a real driver and it will talk to your instrument (as opposed to SR560 from QCoDeS).
 
-    It can't listen to it so make sure that you either set parameters before reading them.
-    (Resetting the device will update the parameters with their reset value.)
+    It *can't listen to it*, so make sure that you either reset or set parameters before reading them.
+
+    (Resetting the device will update the parameters' value with their reset value as per documentation.)
+
+    The device can also be accessed via TCP/IP if exposed via something like:
+
+    .. code-block:: console
+
+        socat /dev/ttyUSB0,echo=0,b9600,cstopb=1,parenb=0,raw tcp-listen:20570,reuseaddr,nodelay
 
     """
 
@@ -24,10 +30,6 @@ class SR570(VisaInstrument):
         super().__init__(name, address, **kwargs)
         if isinstance(self.visa_handle, TCPIPSocket):
             # allow connection to remote serial device over TCP/IP address
-            # for instance by:
-            # ```
-            # socat /dev/ttyUSB0,echo=0,b9600,cstopb=1,parenb=0,raw tcp-listen:20570,reuseaddr,nodelay
-            # ```
             self.visa_handle.write_termination = "\r\n"
             self.visa_handle.read_termination = ""  # but there's no read
         else:
