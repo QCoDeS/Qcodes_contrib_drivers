@@ -3,7 +3,7 @@ import os
 import sys
 from collections.abc import Mapping, Sequence
 from functools import partial
-from itertools import chain, zip_longest
+from itertools import compress, zip_longest
 from typing import Any, overload
 
 import numpy as np
@@ -81,7 +81,7 @@ class MultiAxisPositionParameter(MultiParameter):
         elif isinstance(value, Mapping):
             value_dict.update(value)
         elif len(value) <= 3:
-            value_dict.update({f'axis_{i}': val for i, val in enumerate(value)})
+            value_dict.update({f'axis_{i}': val for i, val in enumerate(value, start=1)})
         else:
             raise ValueError('Too many values, expected at most 3')
 
@@ -89,16 +89,35 @@ class MultiAxisPositionParameter(MultiParameter):
         vals = [(setit := not np.isnan(value_dict[key]),
                  value_dict[key] * _POSITION_SCALE if setit else 0.0)
                 for key in ('axis_1', 'axis_2', 'axis_3')]
+        sets, targets = zip(*vals)
+        axes_to_move = list(compress(range(3), sets))
         try:
-            *_, x, y, z = self.instrument.device.control.MultiAxisPositioning(*chain(*zip(*vals)))
+            # Set target positions
+            self.instrument.device.control.MultiAxisPositioning(*sets, *targets)
+            # Start moving
+            for axis in axes_to_move:
+                self.instrument.device.control.setControlMove(axis, True)
+            # Wait for target reached
+            while not all(self.instrument.device.status.getStatusTargetRange(axis)
+                          for axis in axes_to_move):
+                pass
+            # Stop moving
+            for axis in axes_to_move:
+                self.instrument.device.control.setControlMove(axis, False)
         except self.instrument.exception_type as err:
             raise NotImplementedError from err
         else:
-            self._update_cache(x, y, z)
+            # Cache target position on axis channels
+            self._update_cache(**value_dict)
 
-    def _update_cache(self, x, y, z):
-        for pos, ax in zip([x, y, z], self.instrument.axis_channels):
-            ax.position.cache.set(pos)
+    def _update_cache(self, axis_1: float = np.nan, axis_2: float = np.nan,
+                      axis_3: float = np.nan):
+        if not np.isnan(axis_1):
+            self.instrument.axis_1.position.cache.set(axis_1)
+        if not np.isnan(axis_2):
+            self.instrument.axis_2.position.cache.set(axis_2)
+        if not np.isnan(axis_3):
+            self.instrument.axis_3.position.cache.set(axis_3)
 
 
 class AMC100Axis(InstrumentChannel):
