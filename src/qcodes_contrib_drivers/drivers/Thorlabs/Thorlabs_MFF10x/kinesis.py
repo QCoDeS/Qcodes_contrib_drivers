@@ -3,7 +3,8 @@ from __future__ import annotations
 import pathlib
 from typing import Any, Literal, Mapping
 
-from qcodes import Parameter
+from qcodes.parameters import Parameter
+from qcodes.validators import validators as vals
 from qcodes_contrib_drivers.drivers.Thorlabs.private.kinesis import enums
 from qcodes_contrib_drivers.drivers.Thorlabs.private.kinesis.core import (
     KinesisInstrument
@@ -63,6 +64,7 @@ class ThorlabsMFF10x(KinesisInstrument, prefix='FF',
             'transit_time',
             get_cmd=self._kinesis.get_transit_time,
             set_cmd=self._kinesis.set_transit_time,
+            vals=vals.Ints(300, 2800),
             set_parser=int,
             unit='ms',
             label='Transit time',
