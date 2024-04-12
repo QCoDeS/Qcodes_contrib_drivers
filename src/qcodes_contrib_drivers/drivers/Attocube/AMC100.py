@@ -126,29 +126,30 @@ class AMC100Axis(InstrumentChannel):
                  **kwargs: Any) -> None:
         super().__init__(parent, name, label=label, **kwargs)
 
+        self._axis = axis - 1
         self.actor_type = Parameter(
             'actor_type',
-            get_cmd=partial(self.parent.device.control.getActorType, axis-1),
+            get_cmd=partial(self.parent.device.control.getActorType, self._axis),
             val_mapping={'linear': 0, 'rotator': 1, 'goniometer': 2},
             label='Actor type',
             instrument=self
         )
         self.open_loop_status = Parameter(
             'open_loop_status',
-            get_cmd=partial(self.parent.device.status.getOlStatus, axis-1),
+            get_cmd=partial(self.parent.device.status.getOlStatus, self._axis),
             val_mapping={'NUM': 0, 'OL': 1, 'None': 2, 'RES': 3},
             label='Feedback status',
             instrument=self
         )
         self.reference_position_valid = Parameter(
             'reference_position_valid',
-            get_cmd=partial(self.parent.device.status.getStatusReference, axis-1),
+            get_cmd=partial(self.parent.device.status.getStatusReference, self._axis),
             label='Refrence position valid',
             instrument=self
         )
         self.reference_position = Parameter(
             'reference_position',
-            get_cmd=partial(self._get_reference_position, axis-1),
+            get_cmd=self._get_reference_position,
             scale=_POSITION_SCALE,
             label=f"Reference Position {f'axis {axis}' if label is None else label}",
             unit='mm' if self.actor_type() == 'linear' else '°',
@@ -156,8 +157,8 @@ class AMC100Axis(InstrumentChannel):
         )
         self.position = Parameter(
             'position',
-            get_cmd=partial(self.parent.device.move.getPosition, axis-1),
-            set_cmd=partial(self._move_to_target_position, axis-1),
+            get_cmd=partial(self.parent.device.move.getPosition, self._axis),
+            set_cmd=self._move_to_target_position,
             set_parser=int,
             scale=10**6,
             label=f"Position {f'axis {axis}' if label is None else label}",
@@ -166,8 +167,8 @@ class AMC100Axis(InstrumentChannel):
         )
         self.frequency = Parameter(
             'frequency',
-            get_cmd=partial(self.parent.device.control.getControlFrequency, axis-1),
-            set_cmd=partial(self.parent.device.control.setControlFrequency, axis-1),
+            get_cmd=partial(self.parent.device.control.getControlFrequency, self._axis),
+            set_cmd=partial(self.parent.device.control.setControlFrequency, self._axis),
             set_parser=int,
             scale=1e3,
             # Validator is not int because it's run before the parsers,
@@ -179,8 +180,8 @@ class AMC100Axis(InstrumentChannel):
         )
         self.amplitude = Parameter(
             'amplitude',
-            get_cmd=partial(self.parent.device.control.getControlAmplitude, axis-1),
-            set_cmd=partial(self.parent.device.control.setControlAmplitude, axis-1),
+            get_cmd=partial(self.parent.device.control.getControlAmplitude, self._axis),
+            set_cmd=partial(self.parent.device.control.setControlAmplitude, self._axis),
             set_parser=int,
             scale=1e3,
             # Validator is not int because it's run before the parsers,
@@ -192,25 +193,25 @@ class AMC100Axis(InstrumentChannel):
         )
         self.output = Parameter(
             'output',
-            get_cmd=partial(self.parent.device.control.getControlOutput, axis-1),
-            set_cmd=partial(self.parent.device.control.setControlOutput, axis-1),
+            get_cmd=partial(self.parent.device.control.getControlOutput, self._axis),
+            set_cmd=partial(self.parent.device.control.setControlOutput, self._axis),
             val_mapping=create_on_off_val_mapping(),
             label=f"Output {f'axis {axis}' if label is None else label}",
             instrument=self
         )
 
-    def _get_reference_position(self, axis: int) -> int:
+    def _get_reference_position(self) -> int:
         if not self.reference_position_valid():
-            self.parent.device.control.searchReferencePosition(axis)
-        return self.parent.device.control.getReferencePosition(axis)
+            self.parent.device.control.searchReferencePosition(self._axis)
+        return self.parent.device.control.getReferencePosition(self._axis)
 
-    def _move_to_target_position(self, axis: int, position: int):
-        self.parent.device.move.setControlTargetPosition(axis, position)
-        self.parent.device.control.setControlMove(axis, True)
-        while not self.parent.device.status.getStatusTargetRange(axis):
+    def _move_to_target_position(self, position: int):
+        self.parent.device.move.setControlTargetPosition(self._axis, position)
+        self.parent.device.control.setControlMove(self._axis, True)
+        while not self.parent.device.status.getStatusTargetRange(self._axis):
             # Update qcodes cache
             self.position.get()
-        self.parent.device.control.setControlMove(axis, False)
+        self.parent.device.control.setControlMove(self._axis, False)
 
 
 class AttocubeAMC100(Instrument):
