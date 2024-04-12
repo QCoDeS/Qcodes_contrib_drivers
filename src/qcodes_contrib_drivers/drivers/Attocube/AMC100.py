@@ -213,6 +213,25 @@ class AMC100Axis(InstrumentChannel):
             self.position.get()
         self.parent.device.control.setControlMove(self._axis, False)
 
+    def move_to_reference_position(self):
+        """This function starts an approach to the reference position.
+
+        A running motion command is aborted; closed loop moving is
+        switched on. Requires a valid reference position.
+        """
+        self.parent.device.move.moveReference(self._axis)
+
+    def single_step(self, backward: bool):
+        """This function triggers one step on the selected axis in
+        desired direction.
+
+        Parameters
+        ----------
+        backward : Selects the desired direction. False triggers a
+            forward step, true a backward step.
+        """
+        self.parent.device.move.setSingleStep(self._axis, backward)
+
 
 class AttocubeAMC100(Instrument):
     """Driver for the AMC100 position controller."""
