@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import dataclasses
 import os
 import sys
@@ -39,7 +41,7 @@ class MultiAxisPosition(Sequence[float]):
         return 3
 
     def _JSONEncoder(self) -> dict[str, Any]:
-        return dataclasses.astuple(self)
+        return dataclasses.asdict(self)
 
 
 class MultiAxisPositionParameter(MultiParameter):
@@ -112,6 +114,10 @@ class MultiAxisPositionParameter(MultiParameter):
 
     def _update_cache(self, axis_1: float = np.nan, axis_2: float = np.nan,
                       axis_3: float = np.nan):
+        if self.instrument is None:
+            # mypy :)
+            raise RuntimeError("No instrument attached to Parameter.")
+
         if not np.isnan(axis_1):
             self.instrument.axis_1.position.cache.set(axis_1)
         if not np.isnan(axis_2):
