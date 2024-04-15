@@ -36,6 +36,8 @@ TODO (thangleiter, 23/11/11):
       comes. This might lead to a reboot of the computer being required.
 
 """
+from __future__ import annotations
+
 import itertools
 import operator
 import textwrap

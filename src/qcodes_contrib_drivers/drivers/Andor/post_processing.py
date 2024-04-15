@@ -3,6 +3,8 @@
 Functions are implemented as classes so that parameters are persistent
 when snapshotted.
 """
+from __future__ import annotations
+
 import dataclasses
 import enum
 from typing import Any, Protocol, runtime_checkable
