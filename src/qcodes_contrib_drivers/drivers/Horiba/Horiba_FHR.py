@@ -514,6 +514,7 @@ class HoribaFHR(Instrument):
             'active_grating',
             get_cmd=lambda: getattr(self, '_active_grating', None),
             set_cmd=self._set_active_grating,
+            set_parser=self._parse_grating,
             label='Active grating',
             instrument=self
         )
@@ -527,14 +528,17 @@ class HoribaFHR(Instrument):
 
         self.connect_message()
 
-    def _set_active_grating(self, grating: str | int | GratingChannel):
+    def _set_active_grating(self, grating: GratingChannel):
         if (active_grating := self.active_grating.get()) is None:
             raise ValueError('No grating has previously been moved. Please '
                              'do so before setting this parameter.')
-        if isinstance(grating, (int, str)):
-            grating = cast(GratingChannel, self.gratings.get_channel_by_name(f'grating_{grating}'))
         if grating is not active_grating:
             grating.position(active_grating.position())
+
+    def _parse_grating(self, grating: str | int | GratingChannel) -> GratingChannel:
+        if isinstance(grating, (int, str)):
+            grating = cast(GratingChannel, self.gratings.get_channel_by_name(f'grating_{grating}'))
+        return grating
 
     def get_idn(self) -> Dict[str, str | None]:
         return {'serial': self.config['Firmware']['SerialNumber'],
