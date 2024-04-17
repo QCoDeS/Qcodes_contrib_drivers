@@ -6,7 +6,7 @@ from qcodes.instrument import ChannelList, InstrumentChannel, IPInstrument
 
 class MiniCircuitsModule(InstrumentChannel):
     """
-    Placeholder for individual module class.
+    The `MiniCircuitsModule` class is a parent class for all the MiniCircuits modules. It provides the basic functionality for the modules.
     """
     def __init__(self, parent: IPInstrument, name: str, module_address: int):
         super().__init__(parent, name)
@@ -29,7 +29,7 @@ class MiniCircuitsModule(InstrumentChannel):
 
 class SPDTModule(MiniCircuitsModule):
     """
-    SPDT switch module class.
+    The `SPDTModule` class represents a single-pole double-throw (SPDT) switch module. It provides the functionality to get and set the state of the SPDT switch.
     """
     def __init__(self, parent: IPInstrument, name: str, module_address: int):
         super().__init__(parent, name, module_address)
@@ -45,7 +45,7 @@ class SPDTModule(MiniCircuitsModule):
 
 class SP4TModule(MiniCircuitsModule):
     """
-    SP4T switch module class.
+    The `SP4TModule` class represents a single-pole four-throw (SP4T) switch module. It provides the functionality to get and set the state of the SP4T switch.
     """
     def __init__(self, parent: IPInstrument, name: str, module_address: int):
         super().__init__(parent, name, module_address)
@@ -61,7 +61,7 @@ class SP4TModule(MiniCircuitsModule):
 
 class SP6TModule(MiniCircuitsModule):
     """
-    SP6T switch module class.
+    The `SP6TModule` class represents a single-pole six-throw (SP6T) switch module. It provides the functionality to get and set the state of the SP6T switch.
     """
     def __init__(self, parent: IPInstrument, name: str, module_address: int):
         super().__init__(parent, name, module_address)
@@ -77,7 +77,7 @@ class SP6TModule(MiniCircuitsModule):
 
 class SP8TModule(MiniCircuitsModule):
     """
-    SP8T switch module class.
+    The `SP8TModule` class represents a single-pole eight-throw (SP8T) switch module. It provides the functionality to get and set the state of the SP8T switch.
     """
     def __init__(self, parent: IPInstrument, name: str, module_address: int):
         super().__init__(parent, name, module_address)
@@ -93,7 +93,7 @@ class SP8TModule(MiniCircuitsModule):
 
 class DualSPDTModule(MiniCircuitsModule):
     """
-    Dual SPDT switch module class.
+    The `DualSPDTModule` class represents a dual single-pole double-throw (SPDT) switch module. It provides the functionality to get and set the state of both SPDT switches.
     """
     def __init__(self, parent: IPInstrument, name: str, module_address: int):
         super().__init__(parent, name, module_address)
@@ -110,7 +110,7 @@ class DualSPDTModule(MiniCircuitsModule):
 
 class MTSModule(MiniCircuitsModule):
     """
-    MTS switch module class.
+    The `MTSModule` class represents a multi-throw switch (MTS) module. It provides the functionality to get and set the state of the MTS switch.
     """
     def __init__(self, parent: IPInstrument, name: str, module_address: int):
         super().__init__(parent, name, module_address)
@@ -126,7 +126,7 @@ class MTSModule(MiniCircuitsModule):
 
 class DualMTSModule(MiniCircuitsModule):
     """
-    Dual MTS switch module class.
+    The `DualMTSModule` class represents a dual multi-throw switch (MTS) module. It provides the functionality to get and set the state of both MTS switches.
     """
     def __init__(self, parent: IPInstrument, name: str, module_address: int):
         super().__init__(parent, name, module_address)
@@ -143,7 +143,7 @@ class DualMTSModule(MiniCircuitsModule):
 
 class AmplifierModule(MiniCircuitsModule):
     """
-    Amplifier module class.
+    The `AmplifierModule` class represents an amplifier module. It provides the functionality to get and set the state of the amplifier.
     """
     def __init__(self, parent: IPInstrument, name: str, module_address: int):
         super().__init__(parent, name, module_address)
@@ -159,12 +159,48 @@ class AmplifierModule(MiniCircuitsModule):
 
 class MiniCircuitsModularSystem(IPInstrument):
     """
-    Driver for MiniCircuits modular system connected via ethernet.
+    The `MiniCircuitsModularSystem` class represents a MiniCircuits modular system connected via ethernet. It provides the functionality to initialize the modules based on the configuration received from the instrument.
 
     Args:
         name: the name of the instrument
         address: ip address ie "10.0.0.1"
         port: port to connect to default Telnet:23
+
+    Example:
+        # Import the required module
+        from qcodes.instrument_drivers.MiniCircuitsModularSystem import MiniCircuitsModularSystem
+
+        # Initialize the MiniCircuitsModularSystem
+        mini_circuits = MiniCircuitsModularSystem('MiniCircuits', '10.0.0.1', 23)
+
+        # Access the SP6T module
+        sp6t_module = mini_circuits.module_1  # assuming the SP6T module is the first module
+
+        # Set the state of the SP6T module
+        sp6t_module.state(3)  # set the state to 3
+
+        # Get the state of the SP6T module
+        print(sp6t_module.state())  # prints the current state of the SP6T module
+
+        # Access the DualMTSModule
+        dual_mts_module = mini_circuits.module_2  # assuming the DualMTSModule is the second module
+
+        # Set the state of the DualMTSModule
+        dual_mts_module.state_A(1)  # set the state of switch A to 1
+        dual_mts_module.state_B(2)  # set the state of switch B to 2
+
+        # Get the state of the DualMTSModule
+        print(dual_mts_module.state_A())  # prints the current state of switch A
+        print(dual_mts_module.state_B())  # prints the current state of switch B
+
+        # Access the AmplifierModule
+        amplifier_module = mini_circuits.module_3  # assuming the AmplifierModule is the third module
+
+        # Set the state of the AmplifierModule
+        amplifier_module.state(1)  # turn on the amplifier
+
+        # Get the state of the AmplifierModule
+        print(amplifier_module.state())  # prints the current state of the amplifier
     """
 
     def __init__(self, name: str, address: str, port: int = 23):
