@@ -1277,9 +1277,9 @@ class AndorIDus4xx(Instrument):
         # bar does not show for negative totals, but ok
         with tqdm(
                 initial=(initial := self.temperature.get()),
-                total=(setpoint - initial),
+                total=initial - setpoint,
                 desc=f'{self.name} cooling down from {initial}{self.temperature.unit} '
-                     f'to {setpoint}{self.temperature.unit}. Delta',
+                     f'to {setpoint}{self.temperature.unit}. |Delta|',
                 unit=self.temperature.unit,
                 disable=not show_progress
         ) as pbar:
@@ -1287,7 +1287,7 @@ class AndorIDus4xx(Instrument):
                 # For lack of a better method:
                 # https://github.com/tqdm/tqdm/issues/1264
                 pbar.postfix = f'status={status}'
-                pbar.n = self.temperature.get() - initial
+                pbar.n = initial - self.temperature.get()
                 pbar.refresh()
                 time.sleep(1)
             pbar.postfix = status
@@ -1309,8 +1309,8 @@ class AndorIDus4xx(Instrument):
 
         # bar does not show for negative totals, but ok
         with tqdm(
-                initial=(initial := self.temperature.get()),
-                total=target - initial,
+                initial=0,
+                total=target - (initial := self.temperature.get()),
                 desc=f'{self.name} warming up from {initial}{self.temperature.unit} '
                      f'to {target}{self.temperature.unit}. Delta',
                 unit=self.temperature.unit,
@@ -1319,7 +1319,7 @@ class AndorIDus4xx(Instrument):
             while (temp := self.temperature.get()) < target:
                 # For lack of a better method:
                 # https://github.com/tqdm/tqdm/issues/1264
-                pbar.n = temp - target
+                pbar.n = temp - initial
                 pbar.refresh()
                 time.sleep(1)
             pbar.n = pbar.total
