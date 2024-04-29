@@ -167,7 +167,7 @@ class LighthousePhotonicsSproutG(VisaInstrument):
             self.enabled(True)
         with tqdm(
                 total=self.output_setpoint(),
-                desc=f'{self.name} ramping up',
+                desc=f'{self.label} ramping up',
                 unit=self.output_power.unit,
                 disable=not show_progress
         ) as pbar:

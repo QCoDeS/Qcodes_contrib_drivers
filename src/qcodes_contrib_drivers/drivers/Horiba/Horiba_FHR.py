@@ -437,6 +437,7 @@ class HoribaFHR(Instrument):
                     min_value=section.getint('MinNm')*1000,  # pm
                     max_value=section.getint('MaxNm')*1000,
                     offset=section.getint('Offset'),  # motor steps
+                    label=section['Name'],
                     metadata={'Coefficient of linearity': section.getfloat(
                         'CoefficientOfLinearity'
                     )}
@@ -476,6 +477,7 @@ class HoribaFHR(Instrument):
                     min_value=section.getint('Minum'),
                     max_value=section.getint('Maxum'),
                     offset=section.getint('Offset'),
+                    label=section['Name'],
                     metadata={'Coefficient of linearity': section.getfloat(
                         'CoefficientOfLinearity'
                     )}
@@ -498,6 +500,7 @@ class HoribaFHR(Instrument):
                     self.handle,
                     motor=int(name[-1]),
                     val_mapping=dc_val_mappings.get(int(name[-1])),
+                    label=section['Name'],
                     metadata={'Delay (ms)': section.getint('Delayms'),
                               'Duty cycle (%)': section.getint('DutyCycle%')}
                 )
