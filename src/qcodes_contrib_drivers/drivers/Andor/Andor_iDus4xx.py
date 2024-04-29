@@ -1278,7 +1278,7 @@ class AndorIDus4xx(Instrument):
         with tqdm(
                 initial=(initial := self.temperature.get()),
                 total=initial - setpoint,
-                desc=f'{self.name} cooling down from {initial}{self.temperature.unit} '
+                desc=f'{self.label} cooling down from {initial}{self.temperature.unit} '
                      f'to {setpoint}{self.temperature.unit}. |Delta|',
                 unit=self.temperature.unit,
                 disable=not show_progress
