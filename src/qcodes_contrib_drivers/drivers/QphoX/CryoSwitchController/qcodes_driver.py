@@ -151,7 +151,7 @@ class CryoSwitchControllerDriver(Instrument):
         self.add_parameter(
             'output_voltage',
             set_cmd=self._controller.set_output_voltage,
-            vals=Numbers(0, 25)
+            vals=Numbers(5, 30)
         )
 
         self.add_parameter(
