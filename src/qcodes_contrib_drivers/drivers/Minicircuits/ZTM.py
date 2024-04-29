@@ -216,6 +216,8 @@ class MiniCircuitsModularSystem(IPInstrument):
         print(config)
         module_codes = [int(code) for code in config.split(";")]
 
+        module: MiniCircuitsModule  # Declare module variable as MiniCircuitsModule type
+
         for i, module_code in enumerate(module_codes):
             if module_code == 1:
                 module = SPDTModule(self, f"module_{i+1}", i+1)
