@@ -89,6 +89,7 @@ class FrequencySweepMagPhase(MultiParameter):
         self.instrument.write('CALC1:PAR:COUN 1') # 1 trace
         self.instrument.write('CALC1:PAR1:DEF {}'.format(self.name))
         self.instrument.trigger_source('bus') # set the trigger to bus
+        self.instrument.write('SENS1:SWE:TYPE LIN') # set the sweep type to linear
         self.instrument.write('TRIG:SEQ:SING') # Trigger a single sweep
         self.instrument.ask('*OPC?') # Wait for measurement to complete
 
@@ -102,6 +103,86 @@ class FrequencySweepMagPhase(MultiParameter):
         sxx = sxx[0::2] + 1j*sxx[1::2]
 
         return self.instrument._db(sxx), np.unwrap(np.angle(sxx))
+
+
+class FrequencySegmentSweepMagPhase(MultiParameter):
+    """
+    Frequency Sweep that returns magnitude and phase.
+    The Frequency array, power, if_bandwith are taken from the VNA segments table.
+    """
+
+    def __init__(self,
+        name: str,
+        f: str,
+        instrument: "M5180",
+        **kwargs: Any,
+        ) -> None:
+        """
+        Linear frequency sweep that returns magnitude and phase for a single
+        trace.
+
+        Args:
+            name (str): Name of the linear frequency sweep
+            instrument: Instrument to which sweep is bound to.
+        """
+        super().__init__(
+            name,
+            instrument=instrument,
+            names=(
+                f"{instrument.short_name}_{name}_magnitude",
+                f"{instrument.short_name}_{name}_phase"),
+            labels=(
+                f"{instrument.short_name} {name} magnitude",
+                f"{instrument.short_name} {name} phase",
+            ),
+            units=("dB", "rad"),
+            setpoint_units=(("Hz",), ("Hz",)),
+            setpoint_labels=(
+                (f"{instrument.short_name} frequency",),
+                (f"{instrument.short_name} frequency",),
+            ),
+            setpoint_names=(
+                (f"{instrument.short_name}_frequency",),
+                (f"{instrument.short_name}_frequency",),
+            ),
+            shapes=((len([float(i) for i in instrument.ask("SENS1:FREQ:DATA?").split(',')]),), (len([float(i) for i in instrument.ask("SENS1:FREQ:DATA?").split(',')]),),),
+            **kwargs,
+        )
+        self.set_sweep()
+
+    def set_sweep(self) -> None:
+        """Updates the setpoints and shapes based on the freq array
+        """
+        f = self.instrument.ask("SENS1:FREQ:DATA?")
+        self.setpoints = (([float(i) for i in f.split(',')],), ([float(i) for i in f.split(',')],))
+        self.shapes = ((len([float(i) for i in f.split(',')]),), (len([float(i) for i in f.split(',')]),))
+
+    def get_raw(self) -> Tuple[ParamRawDataType, ParamRawDataType]:
+        """Gets data from instrument
+
+        Returns:
+            Tuple[ParamRawDataType, ...]: magnitude, phase
+        """
+        assert isinstance(self.instrument, M5180)
+        self.instrument.write('CALC1:PAR:COUN 1') # 1 trace
+        self.instrument.write('CALC1:PAR1:DEF {}'.format(self.name))
+        self.instrument.trigger_source('bus') # set the trigger to bus
+        self.instrument.write('SENS1:SWE:TYPE SEGMent') # set the sweep type
+        self.instrument.write('TRIG:SEQ:SING') # Trigger a single sweep
+        self.instrument.ask('*OPC?') # Wait for measurement to complete
+
+        # get data from instrument
+        self.instrument.write('CALC1:TRAC1:FORM SMITH')  # ensure correct format
+        sxx_raw = self.instrument.ask("CALC1:TRAC1:DATA:FDAT?")
+        self.instrument.write('CALC1:TRAC1:FORM MLOG')
+
+        # Get data as numpy array
+        sxx = np.fromstring(sxx_raw, dtype=float, sep=',')
+        sxx = sxx[0::2] + 1j*sxx[1::2]
+
+        return self.instrument._db(sxx), np.unwrap(np.angle(sxx))
+
+
 
 
 class PointMagPhase(MultiParameter):
@@ -159,6 +240,7 @@ class PointMagPhase(MultiParameter):
         self.instrument.write('CALC1:PAR:COUN 1') # 1 trace
         self.instrument.write('CALC1:PAR1:DEF {}'.format(self.name[-3:]))
         self.instrument.trigger_source('bus') # set the trigger to bus
+        self.instrument.write('SENS1:SWE:TYPE LIN') # set the sweep type
         self.instrument.write('TRIG:SEQ:SING') # Trigger a single sweep
         self.instrument.ask('*OPC?') # Wait for measurement to complete
 
@@ -232,6 +314,7 @@ class PointIQ(MultiParameter):
         self.instrument.write('CALC1:PAR:COUN 1') # 1 trace
         self.instrument.write('CALC1:PAR1:DEF {}'.format(self.name[-3:]))
         self.instrument.trigger_source('bus') # set the trigger to bus
+        self.instrument.write('SENS1:SWE:TYPE LIN') # set the sweep type
         self.instrument.write('TRIG:SEQ:SING') # Trigger a single sweep
         self.instrument.ask('*OPC?') # Wait for measurement to complete
 
@@ -433,6 +516,13 @@ class M5180(VisaInstrument):
                            set_cmd='FORM:DATA {}',
                            vals = Enum('ascii', 'real', 'real32'))
 
+        self.add_parameter(name='freq_seg',
+                           label='Frequency Segments',
+                           get_parser=str,
+                           get_cmd='SENS1:FREQ:DATA?',
+                           set_cmd=self._set_freq_seg,
+                           unit='Hz')
+
         self.add_parameter(name='s11',
                            start=self.start(),
                            stop=self.stop(),
@@ -456,6 +546,22 @@ class M5180(VisaInstrument):
                            stop=self.stop(),
                            npts=self.npts(),
                            parameter_class=FrequencySweepMagPhase)
+
+        self.add_parameter(name='s11_seg',
+                           f=self.ask("SENS1:FREQ:DATA?"),
+                           parameter_class=FrequencySegmentSweepMagPhase)
+
+        self.add_parameter(name='s12_seg',
+                           f=self.ask("SENS1:FREQ:DATA?"),
+                           parameter_class=FrequencySegmentSweepMagPhase)
+
+        self.add_parameter(name='s21_seg',
+                           f=self.ask("SENS1:FREQ:DATA?"),
+                           parameter_class=FrequencySegmentSweepMagPhase)
+
+        self.add_parameter(name='s22_seg',
+                           f=self.ask("SENS1:FREQ:DATA?"),
+                           parameter_class=FrequencySegmentSweepMagPhase)
 
         self.add_parameter(name='point_s11',
                            parameter_class=PointMagPhase)
@@ -593,6 +699,16 @@ class M5180(VisaInstrument):
         """
         self.write('TRIG:SOUR '+trigger.upper())
 
+    def _set_freq_seg(self, seg_table: str) -> None:
+        """Sets segment table and updates segmented trace parameters.
+
+        Args: 
+            seg_stable (str): Segmented table to be set.
+            
+        """
+        self.write(format(seg_table))
+        self.update_lin_traces()
+
     def get_s(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray,
                              np.ndarray, np.ndarray, np.ndarray, np.ndarray,
                              np.ndarray]:
@@ -654,6 +770,11 @@ class M5180(VisaInstrument):
             if isinstance(parameter, (FrequencySweepMagPhase)):
                 try:
                     parameter.set_sweep(start, stop, npts)
+                except AttributeError:
+                    pass
+            elif isinstance(parameter, (FrequencySegmentSweepMagPhase)):
+                try:
+                    parameter.set_sweep()
                 except AttributeError:
                     pass
 
