@@ -15,7 +15,7 @@ from qcodes.parameters import ParamRawDataType, Parameter, ParameterBase
 from qcodes.validators import validators as vals
 
 try:
-    from typing import Self
+    from typing import Self  # type: ignore[attr-defined]
 except ImportError:
     from typing_extensions import Self
 
@@ -26,29 +26,27 @@ except (KeyError, ImportError):
     tt = None
 
 
-def cached_api_object(func: Callable = None, *, required_parameters: Collection[str] = None):
-    if func is None:
-        # Return a decorator with the specified requirements
-        return lambda f: cached_api_object(f, required_parameters=required_parameters)
+def cached_api_object(__func: Callable[..., Any] | None = None,
+                      *, required_parameters: Collection[str] | None = None):
 
     class CachedProperty:
         """A custom descriptor for a cached API object with exception
         handling, invalidation capability, and initialization checks."""
 
-        def __init__(self, func: Callable):
+        def __init__(self, func: Callable[..., Any]):
             self.func = func
             self.required_parameters = [] if required_parameters is None else required_parameters
             self.cache_name = f"__{func.__name__}_cached"
 
-        def __get__(self, obj, objtype=None):
-            if obj is None:
+        def __get__(self, instance, owner=None):
+            if instance is None:
                 return self
 
             # Assert the required parameters have been initialized by checking
             # that they pass the validator
             not_initialized = set()
             for param_name in self.required_parameters:
-                param: ParameterBase = getattr(obj, param_name)
+                param: ParameterBase = getattr(instance, param_name)
                 try:
                     param.vals.validate(param.cache.get())
                 except AttributeError:
@@ -59,23 +57,26 @@ def cached_api_object(func: Callable = None, *, required_parameters: Collection[
                     not_initialized.add(param_name)
             if any(not_initialized):
                 raise RuntimeError('The following parameters need to be initialized first: '
-                                   + ','.join(not_initialized))
+                                   + ', '.join(not_initialized))
 
-            if hasattr(obj, self.cache_name):
-                value = getattr(obj, self.cache_name)
+            if hasattr(instance, self.cache_name):
+                value = getattr(instance, self.cache_name)
             else:
-                value = self.func(obj)
-                setattr(obj, self.cache_name, value)
+                value = self.func(instance)
+                setattr(instance, self.cache_name, value)
             return value
 
-        def __set__(self, obj, value):
+        def __set__(self, instance, value):
             raise AttributeError('api property cannot be set directly.')
 
-        def __delete__(self, obj):
-            if hasattr(obj, self.cache_name):
-                delattr(obj, self.cache_name)
+        def __delete__(self, instance):
+            if hasattr(instance, self.cache_name):
+                delattr(instance, self.cache_name)
 
-    return CachedProperty(func)
+    if __func is not None:
+        return CachedProperty(__func)
+    else:
+        return CachedProperty
 
 
 class TypeValidator(vals.Validator[type]):

@@ -84,7 +84,8 @@ module = [
     "spirack",
     "zhinst.*",
     "ruamel.*",
-    "msl.loadlib"
+    "msl.loadlib",
+    "TimeTagger"
 ]
 ignore_missing_imports = true
 
