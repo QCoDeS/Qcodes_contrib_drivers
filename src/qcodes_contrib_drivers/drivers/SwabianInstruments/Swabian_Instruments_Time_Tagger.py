@@ -440,7 +440,7 @@ class TimeTagger(TimeTaggerInstrumentBase, Instrument):
     def close(self) -> None:
         try:
             tt.freeTimeTagger(self.api)
-        except RuntimeError:
+        except AttributeError:
             # API not initialized
             pass
         super().close()
