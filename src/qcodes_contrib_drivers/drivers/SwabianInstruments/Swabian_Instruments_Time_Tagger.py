@@ -361,7 +361,8 @@ class HistogramLogBinsMeasurement(TimeTaggerMeasurement):
             label='Time bin edges',
             unit='ps',
             get_cmd=lambda: self.api.getBinEdges(),
-            vals=vals.Arrays(shape=(self.n_bins.get_latest + 1,), valid_types=(np.int64,))
+            vals=vals.Arrays(shape=(lambda: self.n_bins.get_latest() + 1,),
+                             valid_types=(np.int64,))
         )
 
         self.time_bins = DelegateParameter(
