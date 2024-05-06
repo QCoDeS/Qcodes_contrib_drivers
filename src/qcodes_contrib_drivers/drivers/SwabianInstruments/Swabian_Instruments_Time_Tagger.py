@@ -35,7 +35,7 @@ class CombinerVirtualChannel(TimeTaggerVirtualChannel):
 
     @cached_api_object(required_parameters={'channels'})  # type: ignore[misc]
     def api(self) -> tt.Combiner:
-        return tt.Combiner(self.api_tagger, self.channels())
+        return tt.Combiner(self.api_tagger, self.channels.get())
 
 
 class CoincidenceVirtualChannel(TimeTaggerVirtualChannel):
@@ -74,7 +74,7 @@ class CoincidenceVirtualChannel(TimeTaggerVirtualChannel):
 
     @cached_api_object(required_parameters={'channels'})  # type: ignore[misc]
     def api(self) -> tt.Coincidence:
-        return tt.Coincidence(self.api_tagger, self.channels())
+        return tt.Coincidence(self.api_tagger, self.channels.get())
 
 
 class CorrelationMeasurement(TimeTaggerMeasurement):
@@ -146,9 +146,9 @@ class CorrelationMeasurement(TimeTaggerMeasurement):
     @cached_api_object(required_parameters={'channels', 'binwidth', 'n_bins'})  # type: ignore[misc]
     def api(self) -> tt.Correlation:
         return tt.Correlation(self.api_tagger,
-                              *self.channels(),
-                              binwidth=self.binwidth(),
-                              n_bins=self.n_bins())
+                              *self.channels.get(),
+                              binwidth=self.binwidth.get(),
+                              n_bins=self.n_bins.get())
 
 
 class CountRateMeasurement(TimeTaggerMeasurement):
@@ -198,7 +198,7 @@ class CountRateMeasurement(TimeTaggerMeasurement):
 
     @cached_api_object(required_parameters={'channels'})
     def api(self):
-        return tt.Countrate(self.api_tagger, self.channels())
+        return tt.Countrate(self.api_tagger, self.channels.get())
 
 
 class CounterMeasurement(TimeTaggerMeasurement):
@@ -297,9 +297,9 @@ class CounterMeasurement(TimeTaggerMeasurement):
     @cached_api_object(required_parameters={'channels', 'binwidth', 'n_values'})  # type: ignore[misc]
     def api(self) -> tt.Counter:
         return tt.Counter(self.api_tagger,
-                          self.channels(),
-                          binwidth=self.binwidth(),
-                          n_values=self.n_values())
+                          self.channels.get(),
+                          binwidth=self.binwidth.get(),
+                          n_values=self.n_values.get())
 
 
 class HistogramLogBinsMeasurement(TimeTaggerMeasurement):
@@ -416,9 +416,11 @@ class HistogramLogBinsMeasurement(TimeTaggerMeasurement):
         'click_channel', 'start_channel', 'exp_start', 'exp_stop', 'n_bin_edges'
     })  # type: ignore[misc]
     def api(self) -> tt.HistogramLogBins:
-        return tt.HistogramLogBins(self.api_tagger, self.click_channel(), self.start_channel(),
-                                   self.exp_start(), self.exp_stop(), self.n_bin_edges(),
-                                   click_gate=self.click_gate(), start_gate=self.start_gate())
+        return tt.HistogramLogBins(self.api_tagger, self.click_channel.get(),
+                                   self.start_channel.get(), self.exp_start.get(),
+                                   self.exp_stop.get(), self.n_bin_edges.get(),
+                                   click_gate=self.click_gate.get(),
+                                   start_gate=self.start_gate.get())
 
 
 class TimeTagger(TimeTaggerInstrumentBase, Instrument):
