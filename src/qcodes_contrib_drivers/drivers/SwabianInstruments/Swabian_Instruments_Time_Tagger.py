@@ -330,13 +330,14 @@ class HistogramLogBinsMeasurement(TimeTaggerMeasurement):
             set_parser=float
         )
 
-        self.n_bins = ParameterWithSetSideEffect(
-            'n_bins',
+        # There is a bug in the API (v.2.17.0); the n_bins parameter is actually the number of
+        # bin edges
+        self.n_bin_edges = ParameterWithSetSideEffect(
+            'n_bin_edges',
             set_side_effect=self._invalidate_api,
             instrument=self,
-            label='Number of bins',
+            label='Number of bin edges',
             vals=vals.Numbers(),
-            set_parser=int
         )
 
         self.click_gate = ParameterWithSetSideEffect(
@@ -355,14 +356,19 @@ class HistogramLogBinsMeasurement(TimeTaggerMeasurement):
             vals=vals.MultiType(vals.Enum(None), TypeValidator(tt.ChannelGate))
         )
 
+        def n_bin_edges():
+            return self.n_bin_edges.get_latest()
+
+        def n_bins():
+            return n_bin_edges() - 1
+
         self.time_bin_edges = Parameter(
             'time_bin_edges',
             instrument=self,
             label='Time bin edges',
             unit='ps',
             get_cmd=lambda: self.api.getBinEdges(),
-            vals=vals.Arrays(shape=(lambda: self.n_bins.get_latest() + 1,),
-                             valid_types=(np.int64,))
+            vals=vals.Arrays(shape=(n_bin_edges,), valid_types=(np.int64,))
         )
 
         self.time_bins = DelegateParameter(
@@ -370,14 +376,14 @@ class HistogramLogBinsMeasurement(TimeTaggerMeasurement):
             source=self.time_bin_edges,
             label='Time bins',
             get_parser=lambda val: val[:-1] + np.diff(val) / 2,
-            vals=vals.Arrays(shape=(self.n_bins.get_latest,), valid_types=(np.int64,)),
+            vals=vals.Arrays(shape=(n_bins,), valid_types=(np.int64,)),
             bind_to_instrument=True
         )
 
         self.counts = ParameterWithSetpoints(
             'counts',
             get_cmd=lambda: self.api.getDataObject().getCounts(),
-            vals=vals.Arrays(shape=(self.n_bins.get_latest,), valid_types=(np.int32,)),
+            vals=vals.Arrays(shape=(n_bins,), valid_types=(np.uint64,)),
             setpoints=(self.time_bins,),
             instrument=self,
             label='Counts',
@@ -387,7 +393,7 @@ class HistogramLogBinsMeasurement(TimeTaggerMeasurement):
         self.g2 = ParameterWithSetpoints(
             'g2',
             get_cmd=lambda: self.api.getDataObject().getG2(),
-            vals=vals.Arrays(shape=(self.n_bins.get_latest,), valid_types=(np.float_,)),
+            vals=vals.Arrays(shape=(n_bins,), valid_types=(np.float_,)),
             setpoints=(self.time_bins,),
             instrument=self,
             label=r'$g^{(2)}(\tau)$',
@@ -395,11 +401,11 @@ class HistogramLogBinsMeasurement(TimeTaggerMeasurement):
         )
 
     @cached_api_object(required_parameters={
-        'click_channel', 'start_channel', 'exp_start', 'exp_stop', 'n_bins'
+        'click_channel', 'start_channel', 'exp_start', 'exp_stop', 'n_bin_edges'
     })  # type: ignore[misc]
     def api(self) -> tt.HistogramLogBins:
         return tt.HistogramLogBins(self.api_tagger, self.click_channel(), self.start_channel(),
-                                   self.exp_start(), self.exp_stop(), self.n_bins(),
+                                   self.exp_start(), self.exp_stop(), self.n_bin_edges(),
                                    click_gate=self.click_gate(), start_gate=self.start_gate())
 
 
