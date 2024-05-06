@@ -157,6 +157,9 @@ class CountRateMeasurement(TimeTaggerMeasurement):
                  api_tagger: tt.TimeTaggerBase | None = None, **kwargs: Any):
         super().__init__(parent, name, api_tagger, **kwargs)
 
+        def number_of_channels():
+            return len(self.channels.get_latest())
+
         self.channels = ParameterWithSetSideEffect(
             'channels',
             set_side_effect=self._invalidate_api,
@@ -165,21 +168,29 @@ class CountRateMeasurement(TimeTaggerMeasurement):
             vals=vals.Sequence(vals.Ints())
         )
 
-        self.data = Parameter(
+        # See CounterMeasurement for explanation
+        self.__channels_proxy = DelegateParameter(
+            '__channels_proxy',
+            source=self.channels,
+            vals=ArrayLikeValidator(shape=(number_of_channels,), valid_types=(int,)),
+            bind_to_instrument=False
+        )
+
+        self.data = ParameterWithSetpoints(
             'data',
             get_cmd=lambda: self.api.getData(),
-            vals=vals.Arrays(shape=(lambda: len(self.channels.get_latest()),),
-                             valid_types=(np.float_,)),
+            vals=vals.Arrays(shape=(number_of_channels,), valid_types=(np.float_,)),
+            setpoints=(self.__channels_proxy,),
             instrument=self,
             label='Data',
             max_val_age=0.0
         )
 
-        self.counts_total = Parameter(
+        self.counts_total = ParameterWithSetpoints(
             'counts_total',
             get_cmd=lambda: self.api.getCountsTotal(),
-            vals=vals.Arrays(shape=(lambda: len(self.channels.get_latest()),),
-                             valid_types=(np.int32,)),
+            vals=vals.Arrays(shape=(number_of_channels,), valid_types=(np.int32,)),
+            setpoints=(self.__channels_proxy,),
             instrument=self,
             label='Total counts',
             max_val_age=0.0
