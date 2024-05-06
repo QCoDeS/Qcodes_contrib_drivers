@@ -16,6 +16,7 @@ from .private.time_tagger import (tt, TypeValidator, ParameterWithSetSideEffect,
                                   cached_api_object, ArrayLikeValidator, TimeTaggerModule)
 
 _T = TypeVar('_T', bound=ParamRawDataType)
+_TimeTaggerModuleT = TypeVar('_TimeTaggerModuleT', bound=type[TimeTaggerModule])
 
 
 class CombinerVirtualChannel(TimeTaggerVirtualChannel):
@@ -457,10 +458,10 @@ class TimeTagger(TimeTaggerInstrumentBase, Instrument):
                 'serial': self.api.getSerial(),
                 'firmware': self.api.getFirmwareVersion()}
 
-    def _add_channel_list(self, cls: type[TimeTaggerModule]):
+    def _add_channel_list(self, cls: _TimeTaggerModuleT):
 
         def fun(name: str | None = None,
-                api_tagger: tt.TimeTaggerBase | None = None, **kwargs: Any):
+                api_tagger: tt.TimeTaggerBase | None = None, **kwargs: Any) -> _TimeTaggerModuleT:
             if name is None:
                 name = f'{functionality}_{len(channellist) + 1}'
 
