@@ -445,6 +445,20 @@ class TimeTagger(TimeTaggerInstrumentBase, Instrument):
         """The TimeTagger API object."""
         return self._api
 
+    def remove_all_measurements(self):
+        for cls in filter(lambda x: isinstance(x, TimeTaggerMeasurement),
+                          TimeTaggerModule.implementations()):
+            lst = getattr(self, _parse_time_tagger_module(cls)[1])
+            for i in range(len(lst)):
+                lst.pop()
+
+    def remove_all_virtual_channels(self):
+        for cls in filter(lambda x: isinstance(x, TimeTaggerVirtualChannel),
+                          TimeTaggerModule.implementations()):
+            lst = getattr(self, _parse_time_tagger_module(cls)[1])
+            for i in range(len(lst)):
+                lst.pop()
+
     def set_trigger_level(self, channel: int, level: float):
         return self.api.setTriggerLevel(channel, level)
 
@@ -482,17 +496,7 @@ class TimeTagger(TimeTaggerInstrumentBase, Instrument):
             channellist.append(channel)
             return channel
 
-        if issubclass(cls, TimeTaggerMeasurement):
-            type_camel = 'Measurement'
-        elif issubclass(cls, TimeTaggerVirtualChannel):
-            type_camel = 'VirtualChannel'
-        else:
-            raise ValueError(f'{cls} not a subclass of TimeTaggerMeasurement or '
-                             'TimeTaggerVirtualChannel.')
-
-        functionality = _camel_to_snake(cls.__qualname__[:-len(type_camel)])
-        type_snake = _camel_to_snake(type_camel)
-        listname = f'{functionality}_{type_snake}s'
+        functionality, listname, type_snake = _parse_time_tagger_module(cls)
         channellist = ChannelList(parent=self, name=listname, chan_type=cls)
         self.add_submodule(listname, channellist)
 
@@ -525,3 +529,18 @@ class TimeTagger(TimeTaggerInstrumentBase, Instrument):
 def _camel_to_snake(name):
     s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
     return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
+
+
+def _parse_time_tagger_module(cls: _TimeTaggerModuleT) -> tuple[str, str, str]:
+    if issubclass(cls, TimeTaggerMeasurement):
+        type_camel = 'Measurement'
+    elif issubclass(cls, TimeTaggerVirtualChannel):
+        type_camel = 'VirtualChannel'
+    else:
+        raise ValueError(f'{cls} not a subclass of TimeTaggerMeasurement or '
+                         'TimeTaggerVirtualChannel.')
+
+    functionality = _camel_to_snake(cls.__qualname__[:-len(type_camel)])
+    type_snake = _camel_to_snake(type_camel)
+    listname = f'{functionality}_{type_snake}s'
+    return functionality, listname, type_snake
