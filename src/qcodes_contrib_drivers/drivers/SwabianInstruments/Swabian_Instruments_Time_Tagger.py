@@ -376,7 +376,7 @@ class HistogramLogBinsMeasurement(TimeTaggerMeasurement):
             'time_bins',
             source=self.time_bin_edges,
             label='Time bins',
-            get_parser=lambda val: val[:-1] + np.diff(val) / 2,
+            get_parser=lambda val: val[:-1] + np.diff(val) // 2,
             vals=vals.Arrays(shape=(n_bins,), valid_types=(np.int64,)),
             bind_to_instrument=True
         )
