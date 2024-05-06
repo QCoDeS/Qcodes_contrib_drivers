@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import abc
+import inspect
 import os
 import sys
 import warnings
@@ -197,12 +198,18 @@ class TimeTaggerModule(InstrumentChannel, metaclass=abc.ABCMeta):
         self._api_tagger = self.parent.api if api_tagger is None else api_tagger
 
     def __init_subclass__(cls):
-        # TODO: This totally kills %autoreload.
-        if not (cls.__name__.endswith('Measurement') or cls.__name__.endswith('VirtualChannel')):
+        if not (
+                cls.__qualname__.endswith('Measurement')
+                or cls.__qualname__.endswith('VirtualChannel')
+        ):
             raise RuntimeError('TimeTaggerModule should only be used as base class for '
                                '*Measurement or *VirtualChannel subclasses.')
-        if not getattr(cls, '__abstractmethod__', False):
-            # Not an abstract class, add it to implementations
+        if not inspect.isabstract(cls):
+            for impl in filter(lambda impl: impl.__qualname__ == cls.__qualname__,
+                               list(TimeTaggerModule.__implementations)):
+                # Handle %autoreload (reloaded class will not have the same hash and hence
+                # lead to a duplicate entry)
+                TimeTaggerModule.__implementations.remove(impl)
             TimeTaggerModule.__implementations.add(cls)
 
     @property
