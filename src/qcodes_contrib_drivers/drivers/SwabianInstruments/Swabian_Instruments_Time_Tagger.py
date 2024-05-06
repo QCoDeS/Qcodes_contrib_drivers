@@ -465,7 +465,9 @@ class TimeTagger(TimeTaggerInstrumentBase, Instrument):
             if name is None:
                 name = f'{functionality}_{len(channellist) + 1}'
 
-            channellist.append(cls(self, name, api_tagger, **kwargs))
+            channel = cls(self, name, api_tagger, **kwargs)
+            channellist.append(channel)
+            return channel
 
         if issubclass(cls, TimeTaggerMeasurement):
             type_camel = 'Measurement'
@@ -495,6 +497,11 @@ class TimeTagger(TimeTaggerInstrumentBase, Instrument):
                 :meth:`TimeTagger.SynchronizedMeasurements.getTagger`
             **kwargs :
                 Passed along to the :class:`InstrumentChannel` constructor.
+
+            Returns
+            -------
+            {functionality}_{type_snake} :
+                The newly added {cls.__qualname__} object.
             """
         )
         setattr(self, f"add_{listname.rstrip('s')}", fun)
