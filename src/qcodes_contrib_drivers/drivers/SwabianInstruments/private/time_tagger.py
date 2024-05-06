@@ -37,7 +37,7 @@ def cached_api_object(__func: Callable[..., Any] | None = None,
         def __init__(self, func: Callable[..., Any]):
             self.func = func
             self.required_parameters = [] if required_parameters is None else required_parameters
-            self.cache_name = f"__{func.__name__}_cached"
+            self.cache_name = f"__{func.__qualname__}_cached"
 
         def __get__(self, instance, owner=None):
             if instance is None:
@@ -172,7 +172,7 @@ class TimeTaggerInstrumentBase(InstrumentBase, metaclass=abc.ABCMeta):
 
     def snapshot_base(self, update: bool | None = False,
                       params_to_skip_update: Sequence[str] | None = None) -> dict[Any, Any]:
-        key = f'{self.__class__.__name__} API configuration'
+        key = f'{self.__class__.__qualname__} API configuration'
         try:
             config = {key: self.get_configuration()}
         except RuntimeError:
@@ -263,16 +263,16 @@ class TimeTaggerVirtualChannel(TimeTaggerInstrumentBase, TimeTaggerModule, metac
         try:
             return self.api.getChannel()
         except AttributeError as err:
-            raise AttributeError(f"The {self.__class__.__name__} API doesn't provide a "
-                                 f"getChannel() method. Try {self.__class__.__name__}."
+            raise AttributeError(f"The {self.__class__.__qualname__} API doesn't provide a "
+                                 f"getChannel() method. Try {self.__class__.__qualname__}."
                                  "get_channels().") from err
 
     def get_channels(self) -> list[int]:
         try:
             return self.api.getChannels()
         except AttributeError as err:
-            raise AttributeError(f"The {self.__class__.__name__} API doesn't provide a "
-                                 f"getChannels() method. Try {self.__class__.__name__}."
+            raise AttributeError(f"The {self.__class__.__qualname__} API doesn't provide a "
+                                 f"getChannels() method. Try {self.__class__.__qualname__}."
                                  "get_channel().") from err
 
 
