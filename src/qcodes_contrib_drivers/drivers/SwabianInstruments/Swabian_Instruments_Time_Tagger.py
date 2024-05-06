@@ -477,20 +477,21 @@ class TimeTagger(TimeTaggerInstrumentBase, Instrument):
             raise ValueError(f'{cls} not a subclass of TimeTaggerMeasurement or '
                              'TimeTaggerVirtualChannel.')
 
-        functionality = _camel_to_snake(cls.__name__[:-len(type_camel)])
+        functionality = _camel_to_snake(cls.__qualname__[:-len(type_camel)])
         type_snake = _camel_to_snake(type_camel)
         listname = f'{functionality}_{type_snake}s'
         channellist = ChannelList(parent=self, name=listname, chan_type=cls)
         self.add_submodule(listname, channellist)
 
         fun.__doc__ = textwrap.dedent(
-            f"""Add a new {cls.__name__} to the list {listname}.
+            f"""Add a new :class:`{cls.__qualname__}` to the
+            :class:`ChannelList` :attr:`{listname}`.
 
             Parameters
             ----------
             name :
                 A name for the {type_snake.replace('_', ' ')} type.
-                Defaults to {functionality}_[number].
+                Defaults to ``{functionality}_[number]``.
             api_tagger :
                 The :mod:`TimeTagger` tagger object to use. Defaults to the
                 physical one, but can also be the proxy returned by
@@ -504,7 +505,8 @@ class TimeTagger(TimeTaggerInstrumentBase, Instrument):
                 The newly added {cls.__qualname__} object.
             """
         )
-        setattr(self, f"add_{listname.rstrip('s')}", fun)
+        fun.__name__ = f"add_{listname.rstrip('s')}"
+        setattr(self, fun.__name__, fun)
 
 
 def _camel_to_snake(name):
