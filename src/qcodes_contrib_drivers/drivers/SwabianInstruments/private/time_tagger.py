@@ -4,10 +4,11 @@ import abc
 import inspect
 import os
 import sys
+import textwrap
 import warnings
 from collections.abc import Callable, Sequence, Collection
 from pathlib import Path
-from typing import Any
+from typing import Any, TypeVar
 
 import numpy as np
 import numpy.typing as npt
@@ -16,9 +17,9 @@ from qcodes.parameters import ParamRawDataType, Parameter, ParameterBase
 from qcodes.validators import validators as vals
 
 try:
-    from typing import Self  # type: ignore[attr-defined]
+    from typing import ParamSpec, Self  # type: ignore[attr-defined]
 except ImportError:
-    from typing_extensions import Self
+    from typing_extensions import ParamSpec, Self
 
 try:
     sys.path.append(str(Path(os.environ['TIMETAGGER_INSTALL_PATH'], 'driver', 'python')))
@@ -26,13 +27,36 @@ try:
 except (KeyError, ImportError):
     tt = None
 
+_P = ParamSpec('_P')
+_T = TypeVar('_T')
+_F = TypeVar('_F', bound=Callable[..., Any])
+
+
+def _snake_to_camel(name: str) -> str:
+    humps = name.split('_')
+    return humps[0] + ''.join(hump.title() for hump in humps[1:])
+
+
+def refer_to_api_doc(api_obj: str) -> Callable[[_F], _F]:
+    """Decorator factory to link a method to its TT API documentation."""
+
+    def decorator(func: Callable[_P, _T]) -> Callable[_P, _T]:
+        api_name = '.'.join([api_obj, _snake_to_camel(func.__name__)])
+        func.__doc__ = textwrap.dedent(
+            f"""Forwards API method :meth:`TimeTagger:{api_name}`. See 
+            documentation there."""
+        )
+        return func
+
+    return decorator
+
 
 def cached_api_object(__func: Callable[..., Any] | None = None,
                       *, required_parameters: Collection[str] | None = None):
+    """A custom descriptor for a cached API object with exception
+    handling, invalidation capability, and initialization checks."""
 
     class CachedProperty:
-        """A custom descriptor for a cached API object with exception
-        handling, invalidation capability, and initialization checks."""
 
         def __init__(self, func: Callable[..., Any]):
             self.func = func
@@ -75,12 +99,15 @@ def cached_api_object(__func: Callable[..., Any] | None = None,
                 delattr(instance, self.cache_name)
 
     if __func is not None:
-        return CachedProperty(__func)
+        cached_property = CachedProperty(__func)
+        cached_property.__doc__ = __func.__doc__
+        return cached_property
     else:
         return CachedProperty
 
 
 class TypeValidator(vals.Validator[type]):
+    """A validator for specific types."""
 
     def __init__(self, cls: type):
         self._valid_values = (cls,)
@@ -141,29 +168,39 @@ class ParameterWithSetSideEffect(Parameter):
 
 
 class MeasurementControlMixin(metaclass=abc.ABCMeta):
+    """Mixin class forwarding common methods from the TimeTagger API."""
 
     @property
     @abc.abstractmethod
     def api(self):
         pass
 
+    @refer_to_api_doc('IteratorBase')
     def clear(self):
         return self.api.clear()
 
+    @refer_to_api_doc('IteratorBase')
     def start(self):
         return self.api.start()
 
+    @refer_to_api_doc('IteratorBase')
     def start_for(self, duration: int, clear: bool = True):
         return self.api.startFor(duration, clear)
 
+    @refer_to_api_doc('IteratorBase')
     def stop(self):
         return self.api.stop()
 
+    @refer_to_api_doc('IteratorBase')
     def is_running(self) -> bool:
         return self.api.isRunning()
 
 
 class TimeTaggerInstrumentBase(InstrumentBase, metaclass=abc.ABCMeta):
+    """Base class for TimeTagger instruments and channels.
+
+    Overrides :meth:`snapshot_base` to add the API configuration.
+    """
 
     @property
     @abc.abstractmethod
@@ -183,6 +220,7 @@ class TimeTaggerInstrumentBase(InstrumentBase, metaclass=abc.ABCMeta):
             config = {}
         return config | super().snapshot_base(update, params_to_skip_update)
 
+    @refer_to_api_doc('TimeTaggerBase')
     def get_configuration(self) -> dict[str, Any]:
         # TODO: The TimeTaggerBase call includes descriptions of measurements associated with it,
         #  so recursing into its submodules (measurements) will duplicate information. Include?
@@ -190,10 +228,26 @@ class TimeTaggerInstrumentBase(InstrumentBase, metaclass=abc.ABCMeta):
 
 
 class TimeTaggerModule(InstrumentChannel, metaclass=abc.ABCMeta):
+    """An InstrumentChannel implementing TimeTagger Measurements and
+    Virtual Channels."""
     __implementations: set[type[Self]] = set()
 
     def __init__(self, parent: InstrumentBase, name: str,
                  api_tagger: tt.TimeTaggerBase | None = None, **kwargs: Any):
+        """Initialize a TimeTaggerModule.
+
+        Parameters
+        ----------
+        parent :
+            The parent instrument.
+        name :
+            The channel name.
+        api_tagger :
+            The TimeTagger API object of the device to use. Can be a
+            virtual time tagger gotten from
+            :meth:`TimeTaggerSynchronizedMeasurements.get_tagger`.
+        """
+
         super().__init__(parent, name, **kwargs)
         self._api_tagger = self.parent.api if api_tagger is None else api_tagger
 
@@ -215,14 +269,19 @@ class TimeTaggerModule(InstrumentChannel, metaclass=abc.ABCMeta):
     @property
     @abc.abstractmethod
     def api(self):
+        """The :class:`TimeTagger:TimeTagger.Measurement` API object
+        underlying this module."""
         pass
 
     @property
     def api_tagger(self) -> tt.TimeTaggerBase:
+        """The :class:`TimeTagger:TimeTagger.TimeTaggerBase` API object
+        underlying this module."""
         return self._api_tagger
 
     @classmethod
     def implementations(cls) -> frozenset[type[Self]]:
+        """All registered implementations of this class."""
         return frozenset(TimeTaggerModule.__implementations)
 
     def _invalidate_api(self, *_):
@@ -235,6 +294,8 @@ class TimeTaggerModule(InstrumentChannel, metaclass=abc.ABCMeta):
 
 class TimeTaggerMeasurement(MeasurementControlMixin, TimeTaggerInstrumentBase, TimeTaggerModule,
                             metaclass=abc.ABCMeta):
+    """Instrument channel representing a TimeTagger API Measurement."""
+
     def __init__(self, parent: InstrumentBase, name: str,
                  api_tagger: tt.TimeTaggerBase | None = None, **kwargs: Any):
         super().__init__(parent, name, api_tagger, **kwargs)
@@ -249,16 +310,20 @@ class TimeTaggerMeasurement(MeasurementControlMixin, TimeTaggerInstrumentBase, T
             max_val_age=0.0
         )
 
+    @refer_to_api_doc('IteratorBase')
     def wait_until_finished(self, timeout: int = -1):
         return self.api.waitUntilFinished(timeout)
 
+    @refer_to_api_doc('IteratorBase')
     def get_capture_duration(self) -> int:
         return self.api.getCaptureDuration()
 
 
 class TimeTaggerVirtualChannel(TimeTaggerInstrumentBase, TimeTaggerModule, metaclass=abc.ABCMeta):
+    """Instrument channel representing a TimeTagger API Virtual Channel."""
 
     # The API docs aren't clear on which VirtualChannel classes provide which getChannel(s) method
+    @refer_to_api_doc('VirtualChannel')
     def get_channel(self) -> int:
         try:
             return self.api.getChannel()
@@ -267,6 +332,7 @@ class TimeTaggerVirtualChannel(TimeTaggerInstrumentBase, TimeTaggerModule, metac
                                  f"getChannel() method. Try {self.__class__.__qualname__}."
                                  "get_channels().") from err
 
+    @refer_to_api_doc('VirtualChannel')
     def get_channels(self) -> list[int]:
         try:
             return self.api.getChannels()
@@ -277,6 +343,9 @@ class TimeTaggerVirtualChannel(TimeTaggerInstrumentBase, TimeTaggerModule, metac
 
 
 class TimeTaggerSynchronizedMeasurements(MeasurementControlMixin, InstrumentModule):
+    """Instrument module representing a TimeTagger API
+    :class:`TimeTagger:SynchronizedMeasurements` object."""
+
     def __init__(self, parent: InstrumentBase, name: str, **kwargs: Any) -> None:
         super().__init__(parent, name, **kwargs)
         self._api = tt.SynchronizedMeasurements(parent.api)
@@ -291,8 +360,10 @@ class TimeTaggerSynchronizedMeasurements(MeasurementControlMixin, InstrumentModu
         """A proxy TimeTagger API object for synchronized measurements."""
         return self._api_tagger
 
+    @refer_to_api_doc('SynchronizedMeasurements')
     def register_measurement(self, measurement: TimeTaggerMeasurement):
         return self.api.registerMeasurement(measurement.api)
 
+    @refer_to_api_doc('SynchronizedMeasurements')
     def unregister_measurement(self, measurement: TimeTaggerMeasurement):
         return self.api.unregisterMeasurement(measurement.api)
