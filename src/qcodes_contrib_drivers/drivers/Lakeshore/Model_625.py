@@ -1,6 +1,6 @@
 import logging
 import time
-from typing import Union, Tuple
+from typing import Union, Tuple, Optional
 
 
 from qcodes import VisaInstrument
@@ -15,25 +15,34 @@ class Lakeshore625(VisaInstrument):
 
     Args:
         name (str): a name for the instrument
-        coil_constant (float): Coil contant of magnet, in untis of T/A
-        field_ramp_rate (float): Magnetic field ramp rate, in units of T/min
+        coil_constant (float | None): Coil contant of magnet, in untis of T/A 
+        - if passed `None`, value already set in instrument will be read and used
+        field_ramp_rate (float | None): Magnetic field ramp rate, in units of T/min
+        - if passed `None`, value already set in instrument will be read and used
         address (str): VISA address of the device
+        persistent_switch_heater_enabled (bool | None) = False:
+        - enable or disable support for the persistent switch heater. If set to `None`, nothing is changed
+        ramp_segments_enabled (bool | None) = False:
+        - enable or disable ramp segments. If set to `None`, nothing is changed.
     """
 
-    def __init__(self, name: str, coil_constant: float,  field_ramp_rate: float, address: str,
-                 reset: bool=False, terminator:str='', **kwargs) -> None:
+    def __init__(self, name: str, coil_constant: Optional[float],  field_ramp_rate: Optional[float], address: str,
+                 reset: bool=False, terminator:str='', *, persistent_switch_heater_enabled: Optional[bool] = False,
+                 ramp_segments_enabled: Optional[bool] = False, **kwargs) -> None:
 
         super().__init__(name, address, terminator=terminator, **kwargs)
     
         # Add reset function
         self.add_function('reset', call_cmd='*RST')
         if reset:
+            if coil_constant is None or field_ramp_rate is None:
+                raise TypeError("reset is not allowed unless 'coil_constant' and 'field_ramp_rate' specified")
             self.reset()
 
         # Add power supply parameters
         self.add_parameter(name='current_limit',
                            unit="A",
-                           set_cmd=self._set_curent_limit,
+                           set_cmd=self._set_current_limit,
                            get_cmd=self._get_current_limit,
                            get_parser=float,
                            vals=Numbers(0, 60.1),
@@ -164,22 +173,67 @@ class Lakeshore625(VisaInstrument):
                            docstring="Field ramp rate (T/min)"
                            )
 
+        self.add_parameter(name='persistent_switch_heater_state',
+                           val_mapping={'off': 0, 'on': 1, 'warming': 2, 'cooling': 3, 99: 99},
+                           set_cmd='PSH {}',
+                           get_cmd='PSH?',
+                           docstring="""
+                                The state of the persistent switch heater: off, on, warming, cooling.
+                                It should only be set to 'on' or 'off'
+                                User should wait until state gets to desired.
+                           """)
+
+        self.add_parameter(name="persistent_switch_heater_last_turn_off_current",
+                           get_cmd="PSHIS?",
+                           get_parser=float,
+                           docstring="""
+                               Specifies the output current of the power supply when the persistent switch heater was
+                               turned off last. The PSH will not be allowed to turn on unless this current is equal to the
+                               present output current or the heater is turned on using the PSH 99 command. If 99.9999
+                               is returned, then the output current when the PSH was turned off last is unknown.
+                           """)
+
    
         # Add clear function
         self.add_function('clear', call_cmd='*CLS')
         
-        # disable persistent switch heater by default
-        self.persistent_switch_heater('disabled')
-        
-        # disable ramp segments by default
-        self.ramp_segments('disabled')
-        
+        # disable persistent switch heater if parameters calls for it (the default)
+        if persistent_switch_heater_enabled is not None:
+            if persistent_switch_heater_enabled is True:
+                self.persistent_switch_heater('enabled')
+            elif persistent_switch_heater_enabled is False:
+                self.persistent_switch_heater('disabled')
+            else:
+                raise TypeError('persistent_switch_heater_enabled: expected True, False or None, got {}'
+                                 .format(repr(persistent_switch_heater_enabled)))
+        else:
+            self.persistent_switch_heater.get()
+
+        # disable ramp segments if parameter calls for it (the default)
+        if ramp_segments_enabled is not None:
+            if ramp_segments_enabled is True:
+                self.ramp_segments('enabled')
+            elif ramp_segments_enabled is False:
+                self.ramp_segments('disabled')
+            else:
+                raise TypeError('ramp_segments_enabled: expected True, False or None, got {}'
+                                 .format(repr(persistent_switch_heater_enabled)))
+        else:
+            self.ramp_segments.get()
+
         # set coil constant unit to T/A by default
         self.coil_constant_unit('T/A')
 
         # assign init parameters
-        self.coil_constant(coil_constant)
-        self.field_ramp_rate(field_ramp_rate)
+        if coil_constant is not None:
+            self.coil_constant(coil_constant)
+        else:
+            self.coil_constant.get()
+
+        if field_ramp_rate is not None:
+            self.field_ramp_rate(field_ramp_rate)
+        else:
+            self.field_ramp_rate.get()
 
         # print connect message
         self.connect_message()
@@ -348,6 +402,23 @@ class Lakeshore625(VisaInstrument):
         return coil_constant_unit
 
 
+    def _get_coil_constant_in_tesla_per_ampere(self):
+        """
+        Gets the coil constant in T/A, independent of the actual unit setting
+
+        Returns
+        -------
+            coil constant (T/A)
+            None if unit has an unexpected value
+        """
+        coil_constant_unit, coil_constant = self._get_field_setup()
+        if coil_constant_unit == '0':
+            return coil_constant
+        elif coil_constant_unit == '1':
+            KILOGAUSS_PER_TESLA = 10
+            return coil_constant * KILOGAUSS_PER_TESLA
+
+
     def _get_field_ramp_rate(self) -> float:
         """
         Gets the field ramp rate in units of T/min
@@ -356,8 +427,9 @@ class Lakeshore625(VisaInstrument):
         -------
             field_ramp_rate (T/min)
         """
-        coil_constant_unit, coil_constant = self._get_field_setup() # in T/A by default
+        coil_constant = self._get_coil_constant_in_tesla_per_ampere()
         current_ramp_rate = self.current_ramp_rate()    # in A/s
+
         field_ramp_rate = current_ramp_rate * coil_constant * 60 # in T/min
         return field_ramp_rate
 
@@ -413,7 +485,7 @@ class Lakeshore625(VisaInstrument):
 
 
     # set functions for parameters
-    def _set_curent_limit(self, current_limit_setpoint: float) -> None:
+    def _set_current_limit(self, current_limit_setpoint: float) -> None:
         """
         Sets maximum allowed output current
         """
@@ -472,9 +544,22 @@ class Lakeshore625(VisaInstrument):
     def _set_coil_constant_unit(self, coil_constant_unit_setpoint: str) -> None:
         """
         Specifies the units of the magnetic field constant: 0 = T/A, 1 = kG/A
+
+        Changing unit will scale the current value to represent the same physical quantity.
         """
         coil_constant_unit, coil_constant = self._get_field_setup()
-        self.write_raw('FLDS {}, {}'.format(coil_constant_unit_setpoint, coil_constant))
+
+        KILOGAUSS_PER_TESLA = 10
+        coil_constant_setpoint = {
+            (0, 0): lambda tesla_per_amp: tesla_per_amp,
+            (0, 1): lambda tesla_per_amp: tesla_per_amp * KILOGAUSS_PER_TESLA, 
+            (1, 0): lambda kilogauss_per_amp: kilogauss_per_amp / KILOGAUSS_PER_TESLA,
+            (1, 1): lambda kilogauss_per_amp: kilogauss_per_amp,
+        } [
+            (int(coil_constant_unit), int(coil_constant_unit_setpoint))
+        ] (coil_constant)
+
+        self.write_raw('FLDS {}, {}'.format(coil_constant_unit_setpoint, coil_constant_setpoint))
 
 
     def _update_coil_constant(self, coil_constant_setpoint: float) -> None:
@@ -494,7 +579,7 @@ class Lakeshore625(VisaInstrument):
         """
         Sets the field ramp rate in units of T/min by setting the corresponding current_ramp_rate
         """
-        coil_constant_unit, coil_constant = self._get_field_setup() # in T/A by default
+        coil_constant = self._get_coil_constant_in_tesla_per_ampere()
         current_ramp_rate_setpoint = field_ramp_rate_setpoint / coil_constant / 60   # current_ramp_rate is in A/s
         self.current_ramp_rate(current_ramp_rate_setpoint)
 
