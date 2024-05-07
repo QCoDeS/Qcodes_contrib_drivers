@@ -3,6 +3,14 @@ from typing import Optional
 from qcodes import Instrument
 import socket, nanonis_tramea_specs
 import numpy as np
+"""
+IMPORTANT
+
+Before using the Driver, you must have our python package installed, because many of functions in this driver are merely
+wrapper functions of functions from said package. How to install:
+
+pip install nanonis-tramea-specs
+"""
 
 
 class NanonisTramea(Instrument):
