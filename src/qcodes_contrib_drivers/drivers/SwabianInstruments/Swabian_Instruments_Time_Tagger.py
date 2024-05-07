@@ -1,3 +1,51 @@
+"""QCoDeS driver for the Swabian Instruments Time Tagger series.
+
+Since the Swabian Instruments Python driver is already excellent, this
+driver is mostly concerned with wrapping its object-oriented API into
+QCoDeS Instruments and Parameters. It is organized as follows:
+
+ - The actual device driver is :class:`TimeTagger`.
+ - Measurements and Virtual Channels are implemented as
+   :class:`InstrumentChannel`s, which should dynamically be added and
+   removed from the :class:`TimeTagger` instrument's corresponding
+   :class:`ChannelList`as needed. These channels own :class:`Parameter`s
+   which may be required to be initialized to instantiate the API object
+   of the TimeTagger library that actually controls the measurement.
+ - If properly initialized, each QCoDeS instrument or channel has a
+   cached :meth:`api` property that gives access to the TimeTagger API
+   object. The cache is automatically invalidated if a Paramaeter is
+   changed that was used to instantiate the object (e.g., the binwidth).
+ - :class:`TimeTaggerVirtualChannel` and :class:`TimeTaggerMeasurement`
+   inherit from the abstract :class:`TimeTaggerModule`, and subclasses
+   are automatically registered. This is used to generate convenience
+   methods in the :class:`TimeTagger` instrument to add a new
+   measurement or virtual channel to its corresponding channel list.
+ - Measurements inherit common functionality from
+   :class:`TimeTagger.IteratorBase` (formatted in snake_case).
+ - The :class:`TimeTagger` instrument has a submodule
+   ``synchronized_measurements`` that wraps the API
+   SynchronizedMeasurements and allows for syncing multiple measurements
+   using the same tagger.
+
+**Implementing new Measurement or VirtualChannel classes**
+
+As corresponding channel lists are automatically added to the main
+instrument driver, to implement new measurements or virtual channels
+from the TimeTagger API one simply needs to inherit from
+:class:`TimeTaggerMeasurement` or :class:`TimeTaggerVirtualChannel`,
+respectively. The subclasses should have a :meth:`api` method decorated
+with :func:`~.private.time_tagger.cached_api_object`, which takes care
+of asserting all required parameters are initialized as well as
+invalidating the object if parameters changed. For the former, required
+parameters should be passed as argument to the decorator. For the
+latter, required parameters should be instances of
+:class:`.private.time_tagger.ParameterWithSetSideEffect`, with the side
+effect argument `set_side_effect=self._invalidate_api`. Note that, if
+parameter classes other than :class:`Parameter` are required, one could
+dynamically modify them to include set side effects. For now and for
+legibility, only this class is provided.
+
+"""
 from __future__ import annotations
 
 import re
