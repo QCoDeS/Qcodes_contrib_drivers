@@ -390,13 +390,11 @@ class HistogramLogBinsMeasurement(TimeTaggerMeasurement):
             set_parser=float
         )
 
-        # There is a bug in the API (v.2.17.0); the n_bins parameter is actually the number of
-        # bin edges
-        self.n_bin_edges = ParameterWithSetSideEffect(
-            'n_bin_edges',
+        self.n_bins = ParameterWithSetSideEffect(
+            'n_bins',
             set_side_effect=self._invalidate_api,
             instrument=self,
-            label='Number of bin edges',
+            label='Number of bins',
             vals=vals.Numbers(),
         )
 
@@ -416,11 +414,11 @@ class HistogramLogBinsMeasurement(TimeTaggerMeasurement):
             vals=vals.MultiType(vals.Enum(None), TypeValidator(tt.ChannelGate))
         )
 
-        def n_bin_edges():
-            return self.n_bin_edges.get_latest()
-
         def n_bins():
-            return n_bin_edges() - 1
+            return self.n_bins.get_latest()
+
+        def n_bin_edges():
+            return n_bins() - 1
 
         self.time_bin_edges = Parameter(
             'time_bin_edges',
@@ -461,12 +459,12 @@ class HistogramLogBinsMeasurement(TimeTaggerMeasurement):
         )
 
     @cached_api_object(required_parameters={
-        'click_channel', 'start_channel', 'exp_start', 'exp_stop', 'n_bin_edges'
+        'click_channel', 'start_channel', 'exp_start', 'exp_stop', 'n_bins'
     })  # type: ignore[misc]
     def api(self) -> tt.HistogramLogBins:
         return tt.HistogramLogBins(self.api_tagger, self.click_channel.get(),
                                    self.start_channel.get(), self.exp_start.get(),
-                                   self.exp_stop.get(), self.n_bin_edges.get(),
+                                   self.exp_stop.get(), self.n_bins.get(),
                                    click_gate=self.click_gate.get(),
                                    start_gate=self.start_gate.get())
 
