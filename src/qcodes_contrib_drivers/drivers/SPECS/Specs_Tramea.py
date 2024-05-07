@@ -907,13 +907,6 @@ class NanonisTramea(Instrument):
     def UserOut_ValSet50(self, Output_value: np.float32):
         self.n.UserOut_ValSet(50, Output_value)
 
-
-    ###############################################################################
-    ###############################################################################
-    ###############################################################################
-
-
-
     def ThreeDSwp_SwpAcqChsSet(self, channelIndexes: np.array(int)):
         return self.n.ThreeDSwp_AcqChsSet(channelIndexes)[2]
 
