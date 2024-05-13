@@ -43,7 +43,7 @@ def refer_to_api_doc(api_obj: str) -> Callable[[_F], _F]:
     def decorator(func: Callable[_P, _T]) -> Callable[_P, _T]:
         api_name = '.'.join([api_obj, _snake_to_camel(func.__name__)])
         func.__doc__ = textwrap.dedent(
-            f"""Forwards API method :meth:`TimeTagger:{api_name}`. See 
+            f"""Forwards API method :meth:`TimeTagger:{api_name}`. See
             documentation there."""
         )
         return func
