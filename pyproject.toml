@@ -84,7 +84,8 @@ module = [
     "spirack",
     "zhinst.*",
     "ruamel.*",
-    "msl.loadlib"
+    "msl.loadlib",
+    "nanonis-tramea-specs"
 ]
 ignore_missing_imports = true
 

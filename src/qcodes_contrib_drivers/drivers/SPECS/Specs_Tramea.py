@@ -907,7 +907,7 @@ class NanonisTramea(Instrument):
     def UserOut_ValSet50(self, Output_value: np.float32):
         self.n.UserOut_ValSet(50, Output_value)
 
-    def ThreeDSwp_SwpAcqChsSet(self, channelIndexes: np.array(int)):
+    def ThreeDSwp_SwpAcqChsSet(self, channelIndexes: np.ndarray[np.integer]):
         return self.n.ThreeDSwp_AcqChsSet(channelIndexes)[2]
 
     def ThreeDSwp_SwpAcqChsGet(self):
@@ -917,7 +917,7 @@ class NanonisTramea(Instrument):
         return self.n.ThreeDSwp_SaveOptionsGet()[2]
 
     def ThreeDSwp_SwpSaveOptionsSet(self, seriesName: str, createDateandTimeFolder: np.int32, comment: str,
-                                    moduleNamesSize: np.int32, moduleNames: np.array(str)):
+                                    moduleNamesSize: np.int32, moduleNames: np.ndarray[str]):
         return self.n.ThreeDSwp_SaveOptionsSet(seriesName, createDateandTimeFolder, comment, moduleNamesSize, moduleNames)[2]
 
     def ThreeDSwpStart(self):
