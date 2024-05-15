@@ -343,9 +343,18 @@ class CounterMeasurement(TimeTaggerMeasurement):
             vals=vals.Arrays(shape=(self.n_values.get_latest,), valid_types=(np.int64,))
         )
 
+        self.rolling = Parameter(
+            'rolling',
+            instrument=self,
+            label='Rolling buffer',
+            get_cmd=None,
+            initial_value=True,
+            vals=vals.Bool()
+        )
+
         self.data = ParameterWithSetpoints(
             'data',
-            get_cmd=lambda: self.api.getData(),
+            get_cmd=lambda: self.api.getData(self.rolling()),
             vals=vals.Arrays(shape=(number_of_channels, self.n_values.get_latest),
                              valid_types=(np.int32,)),
             setpoints=(self.__channels_proxy, self.time_bins),
@@ -357,7 +366,7 @@ class CounterMeasurement(TimeTaggerMeasurement):
 
         self.data_normalized = ParameterWithSetpoints(
             'data_normalized',
-            get_cmd=lambda: self.api.getDataNormalized(),
+            get_cmd=lambda: self.api.getDataNormalized(self.rolling()),
             vals=vals.Arrays(shape=(number_of_channels, self.n_values.get_latest),
                              valid_types=(np.float_,)),
             setpoints=(self.__channels_proxy, self.time_bins,),
