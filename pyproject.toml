@@ -20,7 +20,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Topic :: Scientific/Engineering",]
 requires-python = ">=3.9"
-dependencies = [ "qcodes>=0.42.0", "versioningit>=2.2.1", "packaging", "pandas"]
+dependencies = [ "qcodes>=0.42.0", "versioningit>=2.2.1", "packaging", "pandas", "cffi"]
 dynamic = [ "version",]
 
 [[project.maintainers]]
