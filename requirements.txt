@@ -1,4 +1,4 @@
-mypy>=1.1.1,<1.10.0
+mypy>=1.1.1,<1.11.0
 ipython~=8.18.1; python_version < "3.10"
-ipython~=8.23.0; python_version >= "3.10"
-pytest>=7.4.4,<8.2.0
+ipython~=8.24.0; python_version >= "3.10"
+pytest>=7.4.4,<8.3.0
