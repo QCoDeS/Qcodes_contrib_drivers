@@ -573,6 +573,14 @@ class TimeTagger(TimeTaggerInstrumentBase, Instrument):
     def get_input_delay(self, channel: int) -> int:
         return self.api.getInputDelay(channel)
 
+    @refer_to_api_doc('TimeTagger')
+    def set_test_signal(self, channels: list[int], state: bool):
+        return self.api.setTestSignal(channels, state)
+
+    @refer_to_api_doc('TimeTagger')
+    def get_test_signal(self, channel: int) -> bool:
+        return self.api.getTestSignal(channel)
+
     def close(self) -> None:
         try:
             tt.freeTimeTagger(self.api)
