@@ -1,8 +1,8 @@
 """QCoDeS driver for the Swabian Instruments Time Tagger series.
 
-Since the `Swabian Instruments Python driver`_ is already excellent, this
-driver is mostly concerned with wrapping its object-oriented API into
-QCoDeS Instruments and Parameters. It is organized as follows:
+Since the `Swabian Instruments Python driver`_ is already excellent,
+this driver is mostly concerned with wrapping its object-oriented API
+into QCoDeS Instruments and Parameters. It is organized as follows:
 
  * The actual device driver is :class:`TimeTagger`, which wraps the API
    :class:`TimeTagger:TimeTagger` object.
@@ -347,7 +347,7 @@ class CounterMeasurement(TimeTaggerMeasurement):
             'rolling',
             instrument=self,
             label='Rolling buffer',
-            get_cmd=None,
+            set_cmd=None,
             initial_value=True,
             vals=vals.Bool()
         )
