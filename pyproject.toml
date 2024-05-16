@@ -85,7 +85,7 @@ module = [
     "zhinst.*",
     "ruamel.*",
     "msl.loadlib",
-    "nanonis-tramea-specs"
+    "nanonis_tramea_specs"
 ]
 ignore_missing_imports = true
 
