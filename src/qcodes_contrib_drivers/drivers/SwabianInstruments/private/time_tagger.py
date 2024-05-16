@@ -195,6 +195,10 @@ class MeasurementControlMixin(metaclass=abc.ABCMeta):
     def is_running(self) -> bool:
         return self.api.isRunning()
 
+    @refer_to_api_doc('IteratorBase')
+    def wait_until_finished(self, timeout: int = -1):
+        return self.api.waitUntilFinished(timeout)
+
 
 class TimeTaggerInstrumentBase(InstrumentBase, metaclass=abc.ABCMeta):
     """Base class for TimeTagger instruments and channels.
@@ -309,10 +313,6 @@ class TimeTaggerMeasurement(MeasurementControlMixin, TimeTaggerInstrumentBase, T
             set_cmd=False,
             max_val_age=0.0
         )
-
-    @refer_to_api_doc('IteratorBase')
-    def wait_until_finished(self, timeout: int = -1):
-        return self.api.waitUntilFinished(timeout)
 
     @refer_to_api_doc('IteratorBase')
     def get_capture_duration(self) -> int:
