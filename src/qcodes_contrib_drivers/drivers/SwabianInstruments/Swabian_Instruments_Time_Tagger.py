@@ -240,7 +240,7 @@ class CountRateMeasurement(TimeTaggerMeasurement):
 
         # See CounterMeasurement for explanation
         self.__channels_proxy = DelegateParameter(
-            '__channels_proxy',
+            f'__{self.full_name}_channels_proxy',
             source=self.channels,
             vals=ArrayLikeValidator(shape=(number_of_channels,), valid_types=(int,)),
             bind_to_instrument=False
@@ -295,7 +295,8 @@ class CounterMeasurement(TimeTaggerMeasurement):
         # ParameterWithSetpoints. Hence, we create a private dummy DelegateParameter to solve
         # the chicken-egg problem of validating on the length of the channels parameter.
         self.__channels_proxy = DelegateParameter(
-            '__channels_proxy',
+            # DANGER: needs unique name
+            f'__{self.full_name}_channels_proxy',
             source=self.channels,
             vals=ArrayLikeValidator(shape=(number_of_channels,),
                                     # tt.CHANNEL_UNUSED is a constant that evaluates to an integer
@@ -368,8 +369,8 @@ class CounterMeasurement(TimeTaggerMeasurement):
             'data_normalized',
             get_cmd=lambda: self.api.getDataNormalized(self.rolling()),
             vals=vals.Arrays(shape=(number_of_channels, self.n_values.get_latest),
-                             valid_types=(np.float_,)),
             setpoints=(self.__channels_proxy, self.time_bins,),
+                             valid_types=(np.float64,)),
             instrument=self,
             label='Normalized data',
             unit='Hz',
