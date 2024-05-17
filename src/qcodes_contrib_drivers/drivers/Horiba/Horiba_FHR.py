@@ -398,7 +398,7 @@ class HoribaFHR(Instrument):
             )
         }
 
-        super().__init__(name, additional_metadata | dict(metadata or {}), label)
+        super().__init__(name, metadata=additional_metadata | dict(metadata or {}), label=label)
 
         gratings = ChannelList(self, 'gratings', GratingChannel)
         slits = ChannelList(self, 'slits', SlitChannel)
