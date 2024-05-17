@@ -601,11 +601,14 @@ class TimeTagger(TimeTaggerInstrumentBase, Instrument):
         registered implementations of TimeTaggerModule."""
 
         def fun(name: str | None = None,
-                api_tagger: tt.TimeTaggerBase | None = None, **kwargs: Any) -> TimeTaggerModule:
+                api_tagger: tt.TimeTaggerBase | None = None, label: str | None = None,
+                **kwargs: Any) -> TimeTaggerModule:
             if name is None:
                 name = f'{functionality}_{len(channellist) + 1}'
+            if label is None:
+                label = name.replace('_', ' ').capitalize()
 
-            channel = cls(self, name, api_tagger, **kwargs)
+            channel = cls(self, name, api_tagger, label=label, **kwargs)
             channellist.append(channel)
             return channel
 
