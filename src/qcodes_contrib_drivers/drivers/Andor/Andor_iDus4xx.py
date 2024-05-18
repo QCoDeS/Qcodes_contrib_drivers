@@ -2,6 +2,7 @@
 
 Tested with a Andor iDus 416. A typical workflow would look something
 like this::
+
     ccd = AndorIDus4xx('ccd')
     ccd.acquisition_mode('kinetics')
     ccd.read_mode('random track')
@@ -27,13 +28,14 @@ like this::
     data.shape  # (2000,)
 
 TODO (thangleiter, 23/11/11):
-    - Live monitor using 'run till abort' mode and async event queue
-    - Triggering
-    - Handle shutter modes
-    - It might be smarter not to use :meth:`AndorIDus4xx.wait_for_acquisition`
-      in :class:`CCDData` since it will lock the dll away forever if there are
-      incorrect acquisition settings or it's waiting for a trigger that never
-      comes. This might lead to a reboot of the computer being required.
+
+ - Live monitor using 'run till abort' mode and async event queue
+ - Triggering
+ - Handle shutter modes
+ - It might be smarter not to use :meth:`AndorIDus4xx.wait_for_acquisition`
+   in :class:`CCDData` since it will lock the dll away forever if there are
+   incorrect acquisition settings or it's waiting for a trigger that never
+   comes. This might lead to a reboot of the computer being required.
 
 """
 from __future__ import annotations
