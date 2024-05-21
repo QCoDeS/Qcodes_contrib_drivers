@@ -151,19 +151,19 @@ class CryoSwitchControllerDriver(Instrument):
         self.add_parameter(
             'output_voltage',
             set_cmd=self._controller.set_output_voltage,
-            vals=Numbers(5, 30)
+            vals=Numbers(5, 28)
         )
 
         self.add_parameter(
             'pulse_duration',
             set_cmd=self._controller.set_pulse_duration_ms,
-            vals=Numbers(0, 1000)
+            vals=Numbers(1, 100)
         )
 
         self.add_parameter(
             'OCP_value',
             set_cmd=self._controller.set_OCP_mA,
-            vals=Numbers(0, 1000)
+            vals=Numbers(1, 150)
         )
 
         self.add_parameter(
@@ -176,7 +176,7 @@ class CryoSwitchControllerDriver(Instrument):
             'switch_model',
             set_cmd=self._select_switch_model,
             get_cmd=self._get_switch_model,
-            vals=Enum('R583423141', 'R573423600','CRYO','RT')
+            vals=Enum('R583423141', 'R573423600', 'CRYO', 'RT')
         )
 
         self.add_parameter(
