@@ -5,11 +5,15 @@ from typing import Any, Union
 import time
 import subprocess
 import platform
-
-from sys import path
+import numpy as np
 
 from qcodes.instrument import VisaInstrument
 from qcodes.parameters import MultiParameter
+
+from qcodes_contrib_drivers.drivers.OxfordInstruments.Proteox._decsvisa.src.decs_visa_tools.decs_visa_settings import PORT
+from qcodes_contrib_drivers.drivers.OxfordInstruments.Proteox._decsvisa.src.decs_visa_tools.decs_visa_settings import HOST
+from qcodes_contrib_drivers.drivers.OxfordInstruments.Proteox._decsvisa.src.decs_visa_tools.decs_visa_settings import SHUTDOWN
+from qcodes_contrib_drivers.drivers.OxfordInstruments.Proteox._decsvisa.src.decs_visa_tools.decs_visa_settings import WRITE_DELIM
 
 '''
 
@@ -22,15 +26,7 @@ from qcodes.parameters import MultiParameter
 #############################################
 
 # supply the file path from your working directory to the decs_visa.py file
-decs_visa_path = "../../src/qcodes_contrib_drivers/drivers/OxfordInstruments/decsvisa/src/decs_visa.py"
-
-# Append the file path from your working directory to the OxfordInstruments/decsvisa/src/ directory
-path.append("../../src/qcodes_contrib_drivers/drivers/OxfordInstruments/decsvisa/src/")
-# this allows you to retrieve the following 4 parameters below, required to establish a connection to decs_visa.py
-from decs_visa_tools.decs_visa_settings import PORT
-from decs_visa_tools.decs_visa_settings import HOST
-from decs_visa_tools.decs_visa_settings import SHUTDOWN
-from decs_visa_tools.decs_visa_settings import WRITE_DELIM
+decs_visa_path = "../../src/qcodes_contrib_drivers/drivers/OxfordInstruments/_decsvisa/src/decs_visa.py"
 
 #############################################
 #    System configuration settings     #
@@ -230,6 +226,15 @@ class oiDECS(VisaInstrument):
         )
 
         self.add_parameter(
+            "Mixing_Chamber_Temperature_Target",
+            unit="K",
+            label=name,
+            get_cmd="get_MC_T_SP",
+            set_cmd=partial(self._param_setter, "set_MC_T"),
+            get_parser=float
+        )
+
+        self.add_parameter(
             "Mixing_Chamber_Heater_Power",
             unit="W",
             label=name,
@@ -375,38 +380,38 @@ class oiDECS(VisaInstrument):
         """Function to turn off still heater"""
         self._param_setter('set_STILL_H_OFF', 0)
 
-    def set_magnet_target(self, coord, x, y, z, sweep_mode, sweep_rate):
+    def set_magnet_target(self, coord, x, y, z, sweep_mode, sweep_rate, persist_on_completion):
         """Function to set field vector target"""
         match sweep_mode:
             case 'RATE':
-                param = [coord, x, y, z, 20, sweep_rate]
+                param = [coord, x, y, z, 20, sweep_rate, persist_on_completion]
                 self._param_setter('set_MAG_TARGET', param)
             case 'TIME':
-                param = [coord, x, y, z, 10, sweep_rate]
+                param = [coord, x, y, z, 10, sweep_rate, persist_on_completion]
                 self._param_setter('set_MAG_TARGET', param)
             case 'ASAP':
-                param = [coord, x, y, z, 0, sweep_rate]
+                param = [coord, x, y, z, 0, sweep_rate, persist_on_completion]
                 self._param_setter('set_MAG_TARGET', param)
             case _:
                 print('Incorrect inputs.')
-                print('[x,y,z,mode,rate]')
+                print('[x,y,z,mode,rate,persist_on_completion]')
 
 
-    def set_output_current_target(self, x, y, z, sweep_mode, sweep_rate):
+    def set_output_current_target(self, x, y, z, sweep_mode, sweep_rate, persist_on_completion):
         """Function to set current vector target"""
         match sweep_mode:
             case 'RATE':
-                param = [x, y, z, 20, sweep_rate]
+                param = [x, y, z, 20, sweep_rate, persist_on_completion]
                 self._param_setter('set_CURR_TARGET', param)
             case 'TIME':
-                param = [x, y, z, 10, sweep_rate]
+                param = [x, y, z, 10, sweep_rate, persist_on_completion]
                 self._param_setter('set_CURR_TARGET', param)
             case 'ASAP':
-                param = [x, y, z, 0, sweep_rate]
+                param = [x, y, z, 0, sweep_rate, persist_on_completion]
                 self._param_setter('set_CURR_TARGET', param)
             case _:
                 print('Incorrect inputs.')
-                print('[x,y,z,mode,rate]')
+                print('[x,y,z,mode,rate,persist_on_completion]')
 
     def set_magnet_state(self, state):
         """Function to set VRM state target"""
@@ -504,6 +509,49 @@ class oiDECS(VisaInstrument):
             status = self.Magnet_State()
             time.sleep(1)
         print(f'Status: {self.Magnet_State()}.')
+
+    def wait_until_temperature_stable_std_control(self, stable_mean, stable_std, time_between_readings):
+        """
+        Mixing chamber temperature control utility function
+
+        Takes a moving average of 30 temperature readings and finds the mean and the std of the last 30 readings,
+        until the difference between the mean and target value is below 'stable_mean' and the standard deviation is below 'stable_std'.
+
+        Args:
+            stable_mean: float - difference between the mean and target value to be achieved by the last 30 temperature readings
+            stable_std: float - standard deviation to be achieved by the last 30 temperature readings
+            time_between_readings: float - time between taking temperature readings
+        
+        """
+        target_temp = self.Mixing_Chamber_Temperature_Target()
+
+        print(f'Waiting for temperature to stablilise at {target_temp} K.')
+        
+        #take 30 temperature readings 
+        t1 = time.time()
+        t_array = np.zeros(30)
+        for n in range(0,30):
+            time.sleep(time_between_readings)
+            temp = self.Mixing_Chamber_Temperature()
+            t_array[n] = float(temp)
+            
+        stab = False
+        while stab is False:
+            time.sleep(time_between_readings)
+            temp = self.Mixing_Chamber_Temperature()
+            t_array = np.append(t_array, float(temp))
+
+            t_array = t_array[1:]
+            s = np.std(t_array)
+            m = np.abs(np.mean(t_array) - target_temp)
+            
+            if (s < stable_std) and (m < stable_mean):
+                stab = True
+                
+        t2 = time.time()
+        tt = t2-t1
+        print(f'Temperature = {t_array[-1]} K')
+        print(f'Temperature stable after {int(tt)} seconds. (Mean-Target = {m} K, StdDev = {s} K)')
 
     def ask(self, cmd: str) -> str:
         """
