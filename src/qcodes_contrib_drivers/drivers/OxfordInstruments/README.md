@@ -80,7 +80,6 @@ Once connected, the driver can be used in the same way as any other `QCoDeS` dri
 
 Note: If running with oi.DECS firmware =< 0.5.1, ingore the error "Error parsing response: Length of data record inconsistent with record type" when setting the magnet target. You will recieve this error because the data sent back from oi.DECS won't be handled correctly for firmware versions =< 0.5.1. The magnet target should still have been set.
 
-![firmware_error](../../../../docs/examples/OI_images/firmware_error.PNG)
 
 #### Troubleshooting
 
