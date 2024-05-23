@@ -9,7 +9,7 @@ It is possible to implement the WAMP messaging protocol directly from `QCoDeS`, 
 
 An alternative approach is to make `oi.DECS` *'look like'* a standard `VISA` instrument. To accomplish this, a simple socket server can be inserted between `QCoDeS` and `oi.DECS`. A pair of python `queue.Queue` queues are provided for inter-process communication between the socket server and the WAMP API. This simple TCP socket server is provided by the `DECS<->VISA` python application. 
 
-![DECS<->VISA img](../../../docs/examples/OI_images/DECS_VISA.jpg)
+![DECS<->VISA img](../../../../docs/examples/OI_images/DECS_VISA.jpg)
 
 ## To connect to your system control software ('oi.DECS') using QCoDeS
 
@@ -66,7 +66,7 @@ An alternative approach is to make `oi.DECS` *'look like'* a standard `VISA` ins
 
 4.  Ensure that `oi.DECS` is in remote mode, and that there is no current controlling session.
 
-    ![Remote mode](../../../docs/examples/OI_images/remote_mode.png)
+    ![Remote mode](../../../../docs/examples/OI_images/remote_mode.png)
     
     **NB** - You will need to be logged in as `Admin_Controller` to change from ‘local’ to ‘remote’ modes.
 
@@ -80,7 +80,7 @@ Once connected, the driver can be used in the same way as any other `QCoDeS` dri
 
 Note: If running with oi.DECS firmware =< 0.5.1, ingore the error "Error parsing response: Length of data record inconsistent with record type" when setting the magnet target. You will recieve this error because the data sent back from oi.DECS won't be handled correctly for firmware versions =< 0.5.1. The magnet target should still have been set.
 
-![firmware_error](../../../docs/examples/OI_images/firmware_error.PNG)
+![firmware_error](../../../../docs/examples/OI_images/firmware_error.PNG)
 
 #### Troubleshooting
 
