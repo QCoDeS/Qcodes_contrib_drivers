@@ -16,10 +16,14 @@ from qcodes.instrument import InstrumentBase, InstrumentChannel, InstrumentModul
 from qcodes.parameters import ParamRawDataType, Parameter, ParameterBase
 from qcodes.validators import validators as vals
 
-try:
-    from typing import ParamSpec, Self  # type: ignore[attr-defined]
-except ImportError:
-    from typing_extensions import ParamSpec, Self
+if sys.version_info >= (3, 10):
+    from typing import ParamSpec
+else:
+    from typing_extensions import ParamSpec
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
 
 try:
     sys.path.append(str(Path(os.environ['TIMETAGGER_INSTALL_PATH'], 'driver', 'python')))
@@ -234,7 +238,7 @@ class TimeTaggerInstrumentBase(InstrumentBase, metaclass=abc.ABCMeta):
 class TimeTaggerModule(InstrumentChannel, metaclass=abc.ABCMeta):
     """An InstrumentChannel implementing TimeTagger Measurements and
     Virtual Channels."""
-    __implementations: set[type[Self]] = set()
+    __implementations: set[type[TimeTaggerModule]] = set()
 
     def __init__(self, parent: InstrumentBase, name: str,
                  api_tagger: tt.TimeTaggerBase | None = None, **kwargs: Any):
@@ -284,9 +288,9 @@ class TimeTaggerModule(InstrumentChannel, metaclass=abc.ABCMeta):
         return self._api_tagger
 
     @classmethod
-    def implementations(cls) -> frozenset[type[Self]]:
+    def implementations(cls: type[TimeTaggerModule]) -> frozenset[type[TimeTaggerModule]]:
         """All registered implementations of this class."""
-        return frozenset(TimeTaggerModule.__implementations)
+        return frozenset(cls.__implementations)
 
     def _invalidate_api(self, *_):
         try:
