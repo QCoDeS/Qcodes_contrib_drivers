@@ -1,4 +1,5 @@
-"""oi.DECS driver for Proteox dilution refrigerator systems"""
+"""  oi.DECS driver for Proteox dilution refrigerator systems  """
+""" Developed and maintained by Oxford Instruments NanoScience """
 
 from functools import partial
 from typing import Any, Union
