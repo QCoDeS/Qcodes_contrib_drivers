@@ -194,4 +194,5 @@ class Valon5015(VisaInstrument):
         self._flush()
 
     def _flush(self):
-        self.visa_handle.flush(vi_const.VI_READ_BUF | vi_const.VI_READ_BUF_DISCARD)
+        self.visa_handle.flush(vi_const.VI_READ_BUF)
+        # self.visa_handle.flush(vi_const.VI_READ_BUF | vi_const.VI_READ_BUF_DISCARD)
