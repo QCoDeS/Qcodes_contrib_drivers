@@ -189,11 +189,11 @@ class Trace(ParameterWithSetpoints):
                 f"transfer_type must be bytes or ASCII you have used {self.transfer_type} "
             )
 
-    def transfer_ascii(self) -> npt.NDArray[np.float_]:
+    def transfer_ascii(self) -> npt.NDArray[np.float64]:
         data = self.hp8594e.ask("TS;TDF P;TRA?;")
         return np.array([float(x) for x in data.split(",")])
 
-    def transfer_bytes(self) -> npt.NDArray[np.float_]:
+    def transfer_bytes(self) -> npt.NDArray[np.float64]:
         self.hp8594e.write("TDF B")
         self.hp8594e.write("MDS B")
         self.hp8594e.write("TS;TRA?")
