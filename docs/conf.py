@@ -102,6 +102,7 @@ intersphinx_mapping = {
         None,
     ),
     "qcodes": ("https://microsoft.github.io/Qcodes/", None),
+    "TimeTagger": ("https://www.swabianinstruments.com/static/documentation/TimeTagger/", None),
 }
 
 
