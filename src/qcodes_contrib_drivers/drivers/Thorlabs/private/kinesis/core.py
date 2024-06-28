@@ -920,7 +920,7 @@ class KinesisInstrument(Instrument):
 
         self._initialized: bool = False
 
-        super().__init__(name, metadata, label)
+        super().__init__(name, metadata=metadata, label=label)
 
         self.add_parameter('polling_duration',
                            get_cmd=self._kinesis.get_polling_duration,

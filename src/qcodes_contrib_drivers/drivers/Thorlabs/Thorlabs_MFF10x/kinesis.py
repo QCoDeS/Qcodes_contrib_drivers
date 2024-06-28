@@ -48,8 +48,9 @@ class ThorlabsMFF10x(KinesisInstrument, prefix='FF',
                  position_mapping: Mapping[str, Literal[1, 2]] | None = None,
                  metadata: Mapping[Any, Any] | None = None,
                  label: str | None = None):
-        super().__init__(name, dll_dir, serial, simulation, polling, home,
-                         metadata, label)
+        super().__init__(name, dll_dir=dll_dir, serial=serial,
+                         simulation=simulation, polling=polling, home=home,
+                         metadata=metadata, label=label)
 
         self.position = Parameter(
             'position',

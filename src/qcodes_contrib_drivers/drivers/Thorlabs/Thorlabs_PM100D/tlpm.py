@@ -72,7 +72,7 @@ class ThorlabsPM100D(Instrument):
         self.tlpm.open(address.encode() or self._search_for_device(), True,
                        reset)
 
-        super().__init__(name, metadata, label)
+        super().__init__(name, metadata=metadata, label=label)
 
         self.add_parameter('power',
                            get_cmd=self._get_power,
