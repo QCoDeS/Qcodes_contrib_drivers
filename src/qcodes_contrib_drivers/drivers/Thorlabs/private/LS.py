@@ -40,9 +40,9 @@ class _Thorlabs_LS(_Thorlabs_Kinesis):
                  home: bool = False,
                  **kwargs):
         self._dll_path = dll_path
-        super().__init__(name, serial_number,
-                         self._dll_path, dll_dir, simulation,
-                         **kwargs)
+        super().__init__(name, serial_number=serial_number,
+                         dll_path=self._dll_path, dll_dir=dll_dir,
+                         simulation=simulation, **kwargs)
 
         if self._dll.TLI_BuildDeviceList() == 0:
             self._open_laser()

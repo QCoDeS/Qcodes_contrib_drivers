@@ -32,10 +32,11 @@ class Dispatcher:
                     7: 'errAbort',
                     0xFFFFFFFF: 'errForce32bit'}
 
+    config: Mapping[str, str]
+
     def __init__(self, cli, handle):
         self.cli = cli
         self.handle = handle
-        self.config: dict[str, str]
 
     def error_check(self, code: int):
         if code != 0:

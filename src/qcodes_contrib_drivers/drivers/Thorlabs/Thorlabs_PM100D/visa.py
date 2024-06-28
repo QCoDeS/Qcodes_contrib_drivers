@@ -187,3 +187,7 @@ class Thorlab_PM100D(VisaInstrument):
         sleep(5)
         self.ask('STAT:OPER?')  # clear register
         sleep(.2)
+
+
+class ThorlabsPM100D(Thorlab_PM100D):
+    pass
