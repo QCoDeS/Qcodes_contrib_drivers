@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>qcodes_contrib_drivers.drivers.StanfordResearchSystems.SIM928 &mdash; qcodes_contrib_drivers 0.23.0.dev14+main.g6d96817 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../_static/documentation_options.js?v=7415f6af"></script>
+        <script src="../../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            qcodes_contrib_drivers
+          </a>
+              <div class="version">
+                0.23.0.dev14+main.g6d96817
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples/index.html">Examples of how to use drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/generated/qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">qcodes_contrib_drivers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">qcodes_contrib_drivers.drivers.StanfordResearchSystems.SIM928</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for qcodes_contrib_drivers.drivers.StanfordResearchSystems.SIM928</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">time</span>
+
+<span class="kn">from</span> <span class="nn">qcodes.instrument.visa</span> <span class="kn">import</span> <span class="n">VisaInstrument</span>
+<span class="kn">from</span> <span class="nn">qcodes.utils</span> <span class="kn">import</span> <span class="n">validators</span> <span class="k">as</span> <span class="n">vals</span>
+
+<span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<div class="viewcode-block" id="SIM928">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.StanfordResearchSystems.html#qcodes_contrib_drivers.drivers.StanfordResearchSystems.SIM928.SIM928">[docs]</a>
+<span class="k">class</span> <span class="nc">SIM928</span><span class="p">(</span><span class="n">VisaInstrument</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A driver for Stanford Research Systems SIM 928 DC source modules installed</span>
+<span class="sd">    in a SIM900 mainframe.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        name (str): An identifier for this instrument, particularly for</span>
+<span class="sd">            attaching it to a ``Station``.</span>
+<span class="sd">        address (str): The visa resource name to use to connect.</span>
+<span class="sd">        slot_names (Dict[int]): An dictionary that optionally maps slot numbers</span>
+<span class="sd">            to user-defined module names. Default ``{}``.</span>
+<span class="sd">        timeout (int, float): Seconds to allow for responses. Default ``5``.</span>
+<span class="sd">        metadata (Optional[Dict]): Additional static metadata to add to this</span>
+<span class="sd">            instrument&#39;s JSON snapshot.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">address</span><span class="p">,</span> <span class="n">slot_names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">address</span><span class="o">=</span><span class="n">address</span><span class="p">,</span> <span class="n">terminator</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">slot_names</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">slot_names</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">slot_names</span> <span class="o">=</span> <span class="n">slot_names</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">module_nr</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">slot_names</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">slot_names</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">module_nr</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Duplicate names in slot_names&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">module_nr</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">slot_names</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="o">=</span> <span class="n">i</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;*DCL&#39;</span><span class="p">)</span>  <span class="c1"># device clear</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;FLSH&#39;</span><span class="p">)</span>  <span class="c1"># flush port buffers</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;SRST&#39;</span><span class="p">)</span>  <span class="c1"># SIM reset (causes 100 ms delay)</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">modules</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">find_modules</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">modules</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write_module</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="s1">&#39;TERM LF&#39;</span><span class="p">)</span>
+            <span class="n">module_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">slot_names</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;IDN_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">module_name</span><span class="p">),</span>
+                               <span class="n">label</span><span class="o">=</span><span class="s2">&quot;IDN of module </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">module_name</span><span class="p">),</span>
+                               <span class="n">get_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_module_idn</span><span class="p">,</span> <span class="n">i</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;volt_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">module_name</span><span class="p">),</span> <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;V&#39;</span><span class="p">,</span>
+                               <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Output voltage of module &quot;</span>
+                                     <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">module_name</span><span class="p">),</span>
+                               <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(</span><span class="o">-</span><span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">),</span>
+                               <span class="n">get_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_voltage</span><span class="p">,</span> <span class="n">i</span><span class="p">),</span>
+                               <span class="n">set_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_voltage</span><span class="p">,</span> <span class="n">i</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;volt_</span><span class="si">{}</span><span class="s1">_step&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">module_name</span><span class="p">),</span> <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;V&#39;</span><span class="p">,</span>
+                               <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Step size when changing the voltage &quot;</span>
+                                     <span class="s2">&quot;smoothly on module &quot;</span>
+                                     <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">module_name</span><span class="p">),</span>
+                               <span class="n">get_cmd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">set_cmd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                               <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">20</span><span class="p">),</span> <span class="n">initial_value</span><span class="o">=</span><span class="mf">0.005</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;smooth_timestep&#39;</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;s&#39;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Delay between sending the write commands&quot;</span>
+                                 <span class="s2">&quot;when changing the voltage smoothly&quot;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">set_cmd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">initial_value</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">connect_message</span><span class="p">()</span>
+
+<div class="viewcode-block" id="SIM928.get_module_idn">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.StanfordResearchSystems.html#qcodes_contrib_drivers.drivers.StanfordResearchSystems.SIM928.SIM928.get_module_idn">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_module_idn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the vendor, model, serial number and firmware version of a module.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            i (int, str): Slot number or module name (as in ``slot_names``)</span>
+<span class="sd">                of the module whose id is returned.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A dict containing vendor, model, serial, and firmware.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">module_nr</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">idstr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask_module</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="s1">&#39;*IDN?&#39;</span><span class="p">)</span>
+        <span class="n">idparts</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">idstr</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">,</span> <span class="mi">3</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">idparts</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="n">idparts</span> <span class="o">+=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="mi">4</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">idparts</span><span class="p">))</span>
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">((</span><span class="s1">&#39;vendor&#39;</span><span class="p">,</span> <span class="s1">&#39;model&#39;</span><span class="p">,</span> <span class="s1">&#39;serial&#39;</span><span class="p">,</span> <span class="s1">&#39;firmware&#39;</span><span class="p">),</span> <span class="n">idparts</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="SIM928.find_modules">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.StanfordResearchSystems.html#qcodes_contrib_drivers.drivers.StanfordResearchSystems.SIM928.SIM928.find_modules">[docs]</a>
+    <span class="k">def</span> <span class="nf">find_modules</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Query the SIM900 mainframe for which slots have a SIM928 module present.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">             A list of slot numbers where a SIM928 module is present (starting</span>
+<span class="sd">                 from 1)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">CTCR</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s1">&#39;CTCR?&#39;</span><span class="p">)</span>
+        <span class="n">CTCR</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">CTCR</span><span class="p">)</span> <span class="o">&gt;&gt;</span> <span class="mi">1</span>
+        <span class="n">modules</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">CTCR</span> <span class="o">&amp;</span> <span class="mi">1</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_module_idn</span><span class="p">(</span><span class="n">i</span><span class="p">)[</span><span class="s1">&#39;model&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;SIM928&#39;</span><span class="p">:</span>
+                <span class="n">modules</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+            <span class="n">CTCR</span> <span class="o">&gt;&gt;=</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="n">modules</span></div>
+
+
+<div class="viewcode-block" id="SIM928.ask_module">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.StanfordResearchSystems.html#qcodes_contrib_drivers.drivers.StanfordResearchSystems.SIM928.SIM928.ask_module">[docs]</a>
+    <span class="k">def</span> <span class="nf">ask_module</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">cmd</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Write a command string to a module and return a response.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            i (int, str): Slot number or module name (as in ``slot_names``)</span>
+<span class="sd">                of the module to ask from.</span>
+<span class="sd">            cmd (str): The VISA query string.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            The response string from the module.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">module_nr</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;SNDT </span><span class="si">{}</span><span class="s1">,&quot;</span><span class="si">{}</span><span class="s1">&quot;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">cmd</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">100e-3</span><span class="p">)</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;GETN? </span><span class="si">{}</span><span class="s1">,128&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="c1"># first read consumes the terminator of the message from the submodule,</span>
+        <span class="c1"># so we have a terminator from the message to us still in the input</span>
+        <span class="c1"># buffer.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">visa_handle</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">msg</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;#3&#39;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Unexpected format of answer: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">msg</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">msg</span><span class="p">[</span><span class="mi">5</span><span class="p">:]</span></div>
+
+
+<div class="viewcode-block" id="SIM928.write_module">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.StanfordResearchSystems.html#qcodes_contrib_drivers.drivers.StanfordResearchSystems.SIM928.SIM928.write_module">[docs]</a>
+    <span class="k">def</span> <span class="nf">write_module</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">cmd</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Write a command string to a module with NO response expected.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            i (int, str): Slot number or module name (as in ``slot_names``)</span>
+<span class="sd">                of the module to write to.</span>
+<span class="sd">            cmd (str): The VISA command string.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">module_nr</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;SNDT </span><span class="si">{}</span><span class="s1">,&quot;</span><span class="si">{}</span><span class="s1">&quot;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">cmd</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="SIM928.set_voltage">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.StanfordResearchSystems.html#qcodes_contrib_drivers.drivers.StanfordResearchSystems.SIM928.SIM928.set_voltage">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_voltage</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">voltage</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the output voltage of a module.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            i (int, str): Slot number or module name (as in ``slot_names``)</span>
+<span class="sd">                of the module to set the voltage of.</span>
+<span class="sd">            voltage (float): The value to set the voltage to.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">i</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">module_nr</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">slot_names</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;volt_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">)]</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">voltage</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_set_voltage</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">voltage</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the output voltage of a module.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            i (int): Slot number of the module to set the voltage of.</span>
+<span class="sd">            voltage (float): The value to set the voltage to.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write_module</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="s1">&#39;VOLT </span><span class="si">{:.3f}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">voltage</span><span class="p">))</span>
+
+<div class="viewcode-block" id="SIM928.get_voltage">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.StanfordResearchSystems.html#qcodes_contrib_drivers.drivers.StanfordResearchSystems.SIM928.SIM928.get_voltage">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_voltage</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the output voltage of a module.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">           i (int, str): Slot number or module name (as in ``slot_names``)</span>
+<span class="sd">               of the module to get the voltage of.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            The current voltage of module ``i`` as a ``float``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">module_nr</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ask_module</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="s1">&#39;VOLT?&#39;</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="SIM928.set_smooth">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.StanfordResearchSystems.html#qcodes_contrib_drivers.drivers.StanfordResearchSystems.SIM928.SIM928.set_smooth">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_smooth</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">voltagedict</span><span class="p">,</span> <span class="n">equitime</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the voltages as specified in ``voltagedict` smoothly,</span>
+<span class="sd">        by changing the output on each module at a rate</span>
+<span class="sd">        ``volt_#_step/smooth_timestep``.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            voltagedict (Dict[float]): A dictionary where keys are module slot</span>
+<span class="sd">                numbers or names and values are the desired output voltages.</span>
+<span class="sd">            equitime (bool): If ``True``, uses smaller step sizes for some of</span>
+<span class="sd">                the modules so that all modules reach the desired value at the</span>
+<span class="sd">                same time.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># convert voltagedict to contain module names only and validate inputs</span>
+        <span class="n">vdict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">voltagedict</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">module_nr</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">modules</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s1">&#39;There is no module named </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
+                <span class="n">name</span> <span class="o">=</span> <span class="n">i</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">modules</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s1">&#39;There is no module in slot </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
+                <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">slot_names</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+            <span class="n">vdict</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">voltagedict</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;volt_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">)]</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">vdict</span><span class="p">[</span><span class="n">name</span><span class="p">])</span>
+
+        <span class="n">intermediate</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">equitime</span><span class="p">:</span>
+            <span class="n">maxsteps</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">deltav</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">vdict</span><span class="p">:</span>
+                <span class="n">deltav</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">vdict</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;volt_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
+                <span class="n">stepsize</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;volt_</span><span class="si">{}</span><span class="s1">_step&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
+                <span class="n">steps</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">deltav</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">/</span><span class="n">stepsize</span><span class="p">)))</span>
+                <span class="k">if</span> <span class="n">steps</span> <span class="o">&gt;</span> <span class="n">maxsteps</span><span class="p">:</span>
+                    <span class="n">maxsteps</span> <span class="o">=</span> <span class="n">steps</span>
+            <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">maxsteps</span><span class="p">):</span>
+                <span class="n">intermediate</span><span class="o">.</span><span class="n">append</span><span class="p">({})</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">vdict</span><span class="p">:</span>
+                    <span class="n">intermediate</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">vdict</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> \
+                                          <span class="n">deltav</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="n">maxsteps</span><span class="o">-</span><span class="n">s</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">/</span><span class="n">maxsteps</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">done</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">prevvals</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">vdict</span><span class="p">:</span>
+                <span class="n">prevvals</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;volt_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
+            <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">done</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">vdict</span><span class="p">):</span>
+                <span class="n">intermediate</span><span class="o">.</span><span class="n">append</span><span class="p">({})</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">vdict</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">done</span><span class="p">:</span>
+                        <span class="k">continue</span>
+                    <span class="n">stepsize</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;volt_</span><span class="si">{}</span><span class="s1">_step&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
+                    <span class="n">deltav</span> <span class="o">=</span> <span class="n">vdict</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-</span><span class="n">prevvals</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">deltav</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">stepsize</span><span class="p">:</span>
+                        <span class="n">intermediate</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">vdict</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                        <span class="n">done</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                    <span class="k">elif</span> <span class="n">deltav</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="n">intermediate</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">prevvals</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">stepsize</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">intermediate</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">prevvals</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">stepsize</span>
+                    <span class="n">prevvals</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">intermediate</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">voltages</span> <span class="ow">in</span> <span class="n">intermediate</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">voltages</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">set_voltage</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">voltages</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">smooth_timestep</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="SIM928.get_module_status">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.StanfordResearchSystems.html#qcodes_contrib_drivers.drivers.StanfordResearchSystems.SIM928.SIM928.get_module_status">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_module_status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Gets and clears the status bytes corresponding to the registers ESR,</span>
+<span class="sd">        CESR and OVSR of module ``i``.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            i (int, str): Slot number or module name (as in ``slot_names``)</span>
+<span class="sd">                of the module to get the status of.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            int, int, int: The bytes corresponding to standard event,</span>
+<span class="sd">            communication error and overload statuses of module ``i``</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">stdevent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask_module</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="s1">&#39;*ESR?&#39;</span><span class="p">)</span>
+        <span class="n">commerr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask_module</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="s1">&#39;CESR?&#39;</span><span class="p">)</span>
+        <span class="n">overload</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask_module</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="s1">&#39;OVSR?&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">stdevent</span><span class="p">,</span> <span class="n">commerr</span><span class="p">,</span> <span class="n">overload</span></div>
+
+
+<div class="viewcode-block" id="SIM928.reset_module">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.StanfordResearchSystems.html#qcodes_contrib_drivers.drivers.StanfordResearchSystems.SIM928.SIM928.reset_module">[docs]</a>
+    <span class="k">def</span> <span class="nf">reset_module</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sends the SIM Reset signal to module i.</span>
+
+<span class="sd">        Causes a break signal (MARK level) to be asserted for 100 milliseconds</span>
+<span class="sd">        to module i. Upon receiving the break signal the modul will flush its</span>
+<span class="sd">        internal input buffer, reset its command parser, and default to 9600</span>
+<span class="sd">        baud communications.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            i (int, str): Slot number or module name (as in ``slot_names``)</span>
+<span class="sd">                of the module to reset.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">module_nr</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;SRST </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="SIM928.check_module_errors">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.StanfordResearchSystems.html#qcodes_contrib_drivers.drivers.StanfordResearchSystems.SIM928.SIM928.check_module_errors">[docs]</a>
+    <span class="k">def</span> <span class="nf">check_module_errors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">raiseexc</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Check if any errors have occurred on module ``i`` and clear the status</span>
+<span class="sd">        registers.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            i (int, str): Slot number or module name (as in ``slot_names``)</span>
+<span class="sd">                of the module to check the error of.</span>
+<span class="sd">            raiseexc (bool): If true, raises an exception if any errors have</span>
+<span class="sd">                occurred. Default ``True``.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            list[str]: A list of strings with the error messages that have</span>
+<span class="sd">            occurred.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">stdevent</span><span class="p">,</span> <span class="n">commerr</span><span class="p">,</span> <span class="n">overload</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_module_status</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="n">OPC</span><span class="p">,</span> <span class="n">INP</span><span class="p">,</span> <span class="n">QYE</span><span class="p">,</span> <span class="n">DDE</span><span class="p">,</span> <span class="n">EXE</span><span class="p">,</span> <span class="n">CME</span><span class="p">,</span> <span class="n">URQ</span><span class="p">,</span> <span class="n">PON</span> \
+            <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">byte_to_bits</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">stdevent</span><span class="p">))</span>
+        <span class="n">PARITY</span><span class="p">,</span> <span class="n">FRAME</span><span class="p">,</span> <span class="n">NOISE</span><span class="p">,</span> <span class="n">HWOVRN</span><span class="p">,</span> <span class="n">OVR</span><span class="p">,</span> <span class="n">RTSH</span><span class="p">,</span> <span class="n">CTSH</span><span class="p">,</span> <span class="n">DCAS</span> \
+            <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">byte_to_bits</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">commerr</span><span class="p">))</span>
+        <span class="n">Overload</span><span class="p">,</span> <span class="n">Overvoltage</span><span class="p">,</span> <span class="n">BatSwitch</span><span class="p">,</span> <span class="n">BatFault</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> \
+            <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">byte_to_bits</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">overload</span><span class="p">))</span>
+
+        <span class="n">errors</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">warnings</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">INP</span><span class="p">:</span>
+            <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;Input Buffer Error.&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">QYE</span><span class="p">:</span>
+            <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;Query Error.&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">DDE</span><span class="p">:</span>
+            <span class="n">code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask_module</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="s1">&#39;LDDE?&#39;</span><span class="p">)</span>
+            <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;Device Dependant Error: </span><span class="si">{}</span><span class="s1">.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">code</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">EXE</span><span class="p">:</span>
+            <span class="n">code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask_module</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="s1">&#39;LEXE?&#39;</span><span class="p">)</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="s1">&#39;No error&#39;</span><span class="p">,</span>
+                   <span class="mi">1</span><span class="p">:</span> <span class="s1">&#39;Illegal value&#39;</span><span class="p">,</span>
+                   <span class="mi">2</span><span class="p">:</span> <span class="s1">&#39;Wrong token&#39;</span><span class="p">,</span>
+                   <span class="mi">3</span><span class="p">:</span> <span class="s1">&#39;Invalid bit&#39;</span><span class="p">}</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">code</span><span class="p">),</span> <span class="s1">&#39;Unknown&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">code</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">3</span> <span class="ow">or</span> <span class="nb">int</span><span class="p">(</span><span class="n">code</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;Execution Error: </span><span class="si">{}</span><span class="s1"> (</span><span class="si">{}</span><span class="s1">).&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">code</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;Execution Error: </span><span class="si">{}</span><span class="s1"> (</span><span class="si">{}</span><span class="s1">).&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">code</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">CME</span><span class="p">:</span>
+            <span class="n">code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask_module</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="s1">&#39;LCME?&#39;</span><span class="p">)</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="s1">&#39;No error&#39;</span><span class="p">,</span>
+                   <span class="mi">1</span><span class="p">:</span> <span class="s1">&#39;Illegal command&#39;</span><span class="p">,</span>
+                   <span class="mi">2</span><span class="p">:</span> <span class="s1">&#39;Undefined command&#39;</span><span class="p">,</span>
+                   <span class="mi">3</span><span class="p">:</span> <span class="s1">&#39;Illegal query&#39;</span><span class="p">,</span>
+                   <span class="mi">4</span><span class="p">:</span> <span class="s1">&#39;Illegal set&#39;</span><span class="p">,</span>
+                   <span class="mi">5</span><span class="p">:</span> <span class="s1">&#39;Missing parameter(s)&#39;</span><span class="p">,</span>
+                   <span class="mi">6</span><span class="p">:</span> <span class="s1">&#39;Extra parameter(s)&#39;</span><span class="p">,</span>
+                   <span class="mi">7</span><span class="p">:</span> <span class="s1">&#39;Null parameter(s)&#39;</span><span class="p">,</span>
+                   <span class="mi">8</span><span class="p">:</span> <span class="s1">&#39;Parameter buffer overflow&#39;</span><span class="p">,</span>
+                   <span class="mi">9</span><span class="p">:</span> <span class="s1">&#39;Bad floating-point&#39;</span><span class="p">,</span>
+                   <span class="mi">10</span><span class="p">:</span> <span class="s1">&#39;Bad integer&#39;</span><span class="p">,</span>
+                   <span class="mi">11</span><span class="p">:</span> <span class="s1">&#39;Bad integer token&#39;</span><span class="p">,</span>
+                   <span class="mi">12</span><span class="p">:</span> <span class="s1">&#39;Bad token value&#39;</span><span class="p">,</span>
+                   <span class="mi">13</span><span class="p">:</span> <span class="s1">&#39;Bad hex block&#39;</span><span class="p">,</span>
+                   <span class="mi">14</span><span class="p">:</span> <span class="s1">&#39;Unknown token&#39;</span><span class="p">}</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">code</span><span class="p">),</span> <span class="s1">&#39;Unknown&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">code</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">14</span> <span class="ow">or</span> <span class="nb">int</span><span class="p">(</span><span class="n">code</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;Command Error: </span><span class="si">{}</span><span class="s1"> (</span><span class="si">{}</span><span class="s1">).&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">code</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;Command Error: </span><span class="si">{}</span><span class="s1"> (</span><span class="si">{}</span><span class="s1">).&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">code</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">PARITY</span><span class="p">:</span>
+            <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;Parity Error.&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">FRAME</span><span class="p">:</span>
+            <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;Framing Error.&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">NOISE</span><span class="p">:</span>
+            <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;Noise Error.&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">HWOVRN</span><span class="p">:</span>
+            <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;Hardware Overrun.&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">OVR</span><span class="p">:</span>
+            <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;Input Buffer Overrun.&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">RTSH</span><span class="p">:</span>
+            <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;Undefined Error (RTSH).&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">CTSH</span><span class="p">:</span>
+            <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;Undefined Error (CTSH).&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">Overload</span><span class="p">:</span>
+            <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;Current Overload.&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">Overvoltage</span><span class="p">:</span>
+            <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;Voltage Overload.&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">BatFault</span><span class="p">:</span>
+            <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;Battery Fault.&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">raiseexc</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">errors</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">errors</span> <span class="o">+</span> <span class="n">warnings</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">errors</span> <span class="o">+</span> <span class="n">warnings</span></div>
+
+
+<div class="viewcode-block" id="SIM928.byte_to_bits">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.StanfordResearchSystems.html#qcodes_contrib_drivers.drivers.StanfordResearchSystems.SIM928.SIM928.byte_to_bits">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">byte_to_bits</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Convert an integer to a list of bits</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x (int): The number to convert.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            list[bool]: A list of the lowest 8 bits of ``x`` where ``True``</span>
+<span class="sd">            represents 1 and ``False`` 0.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">bits</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">8</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">x</span> <span class="o">&amp;</span> <span class="mi">1</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">bits</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">bits</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">x</span> <span class="o">&gt;&gt;=</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="n">bits</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, QCoDeS Users.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

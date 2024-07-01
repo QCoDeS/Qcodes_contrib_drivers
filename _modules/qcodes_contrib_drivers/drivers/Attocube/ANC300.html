@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>qcodes_contrib_drivers.drivers.Attocube.ANC300 &mdash; qcodes_contrib_drivers 0.23.0.dev14+main.g6d96817 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../_static/documentation_options.js?v=7415f6af"></script>
+        <script src="../../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            qcodes_contrib_drivers
+          </a>
+              <div class="version">
+                0.23.0.dev14+main.g6d96817
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples/index.html">Examples of how to use drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/generated/qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">qcodes_contrib_drivers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">qcodes_contrib_drivers.drivers.Attocube.ANC300</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for qcodes_contrib_drivers.drivers.Attocube.ANC300</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;QCoDeS- Driver for the Attocube ANC300 controller.</span>
+
+<span class="sd">This driver can be used with a simulation class (ANC300sim.py) to generate</span>
+<span class="sd">reasonable answers to all requests. The only thing is to change two times</span>
+<span class="sd">the comments as shown below (real mode/simulation mode).</span>
+
+<span class="sd">Attention - the device has not feedback from the motor. That means, the current position is</span>
+<span class="sd">not known. The driver can send a move command and the controller behaves like there is a motor</span>
+<span class="sd">connected to it, even if there is no motor available.</span>
+
+<span class="sd">Author:</span>
+<span class="sd">    Michael Wagener, FZJ / ZEA-2, m.wagener@fz-juelich.de</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">pyvisa</span>
+
+<span class="c1"># real mode:</span>
+<span class="kn">from</span> <span class="nn">qcodes.instrument</span> <span class="kn">import</span> <span class="n">VisaInstrument</span>
+<span class="c1"># simulation mode:</span>
+<span class="c1">#from qcodes_contrib_drivers.drivers.Attocube.ANC300sim import MockVisa</span>
+
+<span class="c1">## do not forget to change the main class accordingly:</span>
+<span class="c1">## real  -&gt; class ANC300(VisaInstrument):</span>
+<span class="c1">## simul -&gt; class ANC300(MockVisa):</span>
+
+<span class="kn">from</span> <span class="nn">qcodes.instrument</span> <span class="kn">import</span> <span class="n">InstrumentChannel</span><span class="p">,</span> <span class="n">ChannelList</span>
+<span class="kn">from</span> <span class="nn">qcodes</span> <span class="kn">import</span> <span class="n">validators</span> <span class="k">as</span> <span class="n">vals</span>
+
+
+<span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+
+<div class="viewcode-block" id="Anc300Axis">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.html#qcodes_contrib_drivers.drivers.Attocube.ANC300.Anc300Axis">[docs]</a>
+<span class="k">class</span> <span class="nc">Anc300Axis</span><span class="p">(</span><span class="n">InstrumentChannel</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Anc300Axis.__init__">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.html#qcodes_contrib_drivers.drivers.Attocube.ANC300.Anc300Axis.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">:</span> <span class="s1">&#39;ANC300&#39;</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">axis</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">sn</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates a new Anc300Axis class instance.</span>
+
+<span class="sd">        The Attocube ANC300 piezo controller has up to 7 axis. Each of them are controlled</span>
+<span class="sd">        by the same class.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            parent: the internal QCoDeS name of the instrument this axis belongs to</span>
+<span class="sd">            name: the internal QCoDeS name of the axis itself</span>
+<span class="sd">            axis: the Index of the axis (1..7)</span>
+<span class="sd">            sn: serial number of the axis controller to change some features</span>
+
+<span class="sd">        Attributes:</span>
+<span class="sd">            frequency: Set the frequency of the output signal. The maximum is restricted by the</span>
+<span class="sd">                combination of output voltage and Capacitance of the piezo actuators.</span>
+<span class="sd">            amplitude: Set the maximum level of the output signal.</span>
+<span class="sd">            voltage: (Readonly) Reads the current stepping voltage.</span>
+<span class="sd">            offset: Add a constant voltage to the output signal. Attention: the output level is</span>
+<span class="sd">                only from 0 to 150 V.</span>
+<span class="sd">            filter: Set the filter frequency of the internal low pass filter.</span>
+<span class="sd">                For the ANM150 this attribute is not present.</span>
+<span class="sd">                For the ANM200 and ANM300 this attribute has different allowed values.</span>
+<span class="sd">            mode: Setting to a certain mode typically switches other functionalities off.</span>
+<span class="sd">                &#39;gnd&#39;: Setting to this mode diables all outputs and connects them to chassis mass.</span>
+<span class="sd">                &#39;inp&#39;: (Not for ANM150) In this mode, AC-IN and DC-IN can be enabled using the</span>
+<span class="sd">                specific attributes. Setting to inp mode disables stepping and offset modes.</span>
+<span class="sd">                &#39;cap&#39;: Setting to cap mode starts a capacitance measurement. The axis returns to</span>
+<span class="sd">                gnd mode afterwards. It is not needed to switch to gnd mode before.</span>
+<span class="sd">                &#39;stp&#39;: This enables stepping mode. AC-IN and DC-IN functionalities are not modified,</span>
+<span class="sd">                while an offset function would be turned off.</span>
+<span class="sd">                &#39;off&#39;: This enables offset mode. AC-IN and DC-IN functionalities are not modified,</span>
+<span class="sd">                while any stepping would be turned off.</span>
+<span class="sd">                &#39;stp+&#39;: This enables additive offset + stepping mode. Stepping waveforms are added</span>
+<span class="sd">                to an offset. AC-IN and DC-IN functionalities are not modified.</span>
+<span class="sd">                &#39;stp-&#39;: This enables subtractive offset + stepping mode. Stepping waveforms are</span>
+<span class="sd">                subtracted from an offset. AC-IN and DC-IN functionalities, are not modified.</span>
+<span class="sd">            ac: When switching on the AC-IN feature, a voltage of up to 10 VAC can be added to the</span>
+<span class="sd">                output (gain 1, no amplification) using the AC-IN BNC on the frontplate of the module.</span>
+<span class="sd">            dc: When switching on the DC-IN feature, a voltage in the range -10 .. +10 V can be</span>
+<span class="sd">                added to the output. The gain is 15.</span>
+<span class="sd">            move: Start the movement with the given steps. For moving out use positive numbers and</span>
+<span class="sd">                to move in use negative numbers.</span>
+<span class="sd">            start: Start a continous movement in the given direction.</span>
+<span class="sd">            triggerUp: Set/get input trigger up number on axis</span>
+<span class="sd">            triggerDown: Set/get input trigger down number on axis</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_axisnr</span> <span class="o">=</span> <span class="n">axis</span>
+        <span class="k">if</span> <span class="n">sn</span> <span class="o">!=</span> <span class="s1">&#39;ANM200&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;frequency&#39;</span><span class="p">,</span>
+                               <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Set/get the stepping frequency&#39;</span><span class="p">,</span>
+                               <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;getf </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">axis</span><span class="p">),</span>
+                               <span class="n">set_cmd</span><span class="o">=</span><span class="s1">&#39;setf </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">axis</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39; </span><span class="si">{}</span><span class="s1">&#39;</span><span class="p">,</span>
+                               <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Ints</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">10000</span><span class="p">),</span>
+                               <span class="n">get_parser</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+                               <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;Hz&#39;</span><span class="p">,</span>
+                               <span class="n">docstring</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">                               Set the frequency of the output signal. The maximum is restricted by</span>
+<span class="s2">                               the combination of output voltage and Capacitance of the piezo actuators.</span>
+<span class="s2">                               &quot;&quot;&quot;</span>
+                               <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;amplitude&#39;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Set/get the stepping amplitude&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;getv </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">axis</span><span class="p">),</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="s1">&#39;setv </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">axis</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39; </span><span class="si">{}</span><span class="s1">&#39;</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">150.0</span><span class="p">),</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;V&#39;</span><span class="p">,</span>
+                           <span class="n">docstring</span><span class="o">=</span><span class="s2">&quot;Set the maximum level of the output signal.&quot;</span>
+                           <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;voltage&#39;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Set/get the stepping voltage&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;geto </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">axis</span><span class="p">),</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;V&#39;</span><span class="p">,</span>
+                           <span class="n">docstring</span><span class="o">=</span><span class="s2">&quot;Reads the current stepping voltage.&quot;</span>
+                           <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;offset&#39;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Set/get the offset voltage&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;geta </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">axis</span><span class="p">),</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="s1">&#39;seta </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">axis</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39; </span><span class="si">{}</span><span class="s1">&#39;</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">150.0</span><span class="p">),</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;V&#39;</span><span class="p">,</span>
+                           <span class="n">docstring</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">                           Add a constant voltage to the output signal.</span>
+<span class="s2">                           Attention: the output level is only from 0 to 150 V.</span>
+<span class="s2">                           &quot;&quot;&quot;</span>
+                           <span class="p">)</span>
+        <span class="k">if</span> <span class="n">sn</span> <span class="o">==</span> <span class="s1">&#39;ANM200&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;filter&#39;</span><span class="p">,</span>
+                               <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Set/get filter setting&#39;</span><span class="p">,</span>
+                               <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;getfil </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">axis</span><span class="p">),</span>
+                               <span class="n">set_cmd</span><span class="o">=</span><span class="s1">&#39;setfil </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">axis</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39; </span><span class="si">{}</span><span class="s1">&#39;</span><span class="p">,</span>
+                               <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Enum</span><span class="p">(</span><span class="s1">&#39;1.6&#39;</span><span class="p">,</span> <span class="s1">&#39;16&#39;</span><span class="p">,</span> <span class="s1">&#39;160&#39;</span><span class="p">,</span> <span class="s1">&#39;1600&#39;</span><span class="p">),</span>
+                               <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;Hz&#39;</span><span class="p">,</span>
+                               <span class="n">docstring</span><span class="o">=</span><span class="s2">&quot;Set the filter frequency of the internal low pass filter.&quot;</span>
+                               <span class="p">)</span>
+        <span class="k">if</span> <span class="n">sn</span> <span class="o">==</span> <span class="s1">&#39;ANM300&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;filter&#39;</span><span class="p">,</span>
+                               <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Set/get filter setting&#39;</span><span class="p">,</span>
+                               <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;getfil </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">axis</span><span class="p">),</span>
+                               <span class="n">set_cmd</span><span class="o">=</span><span class="s1">&#39;setfil </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">axis</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39; </span><span class="si">{}</span><span class="s1">&#39;</span><span class="p">,</span>
+                               <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Enum</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">,</span> <span class="s1">&#39;16&#39;</span><span class="p">,</span> <span class="s1">&#39;160&#39;</span><span class="p">),</span>
+                               <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;Hz&#39;</span><span class="p">,</span>
+                               <span class="n">docstring</span><span class="o">=</span><span class="s2">&quot;Set the filter frequency of the internal low pass filter.&quot;</span>
+                               <span class="p">)</span>
+        <span class="k">if</span> <span class="n">sn</span> <span class="o">==</span> <span class="s1">&#39;ANM150&#39;</span><span class="p">:</span>
+            <span class="n">mode_vals</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;gnd&#39;</span><span class="p">,</span> <span class="s1">&#39;cap&#39;</span><span class="p">,</span> <span class="s1">&#39;stp&#39;</span><span class="p">,</span> <span class="s1">&#39;off&#39;</span><span class="p">,</span> <span class="s1">&#39;stp+&#39;</span><span class="p">,</span> <span class="s1">&#39;stp-&#39;</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">sn</span> <span class="o">==</span> <span class="s1">&#39;ANM200&#39;</span><span class="p">:</span>
+            <span class="n">mode_vals</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;gnd&#39;</span><span class="p">,</span> <span class="s1">&#39;cap&#39;</span><span class="p">,</span> <span class="s1">&#39;stp&#39;</span><span class="p">,</span> <span class="s1">&#39;off&#39;</span><span class="p">,</span> <span class="s1">&#39;stp+&#39;</span><span class="p">,</span> <span class="s1">&#39;stp-&#39;</span><span class="p">,</span> <span class="s1">&#39;inp&#39;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span> <span class="c1"># ANM300</span>
+            <span class="n">mode_vals</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;gnd&#39;</span><span class="p">,</span> <span class="s1">&#39;cap&#39;</span><span class="p">,</span> <span class="s1">&#39;stp&#39;</span><span class="p">,</span> <span class="s1">&#39;off&#39;</span><span class="p">,</span> <span class="s1">&#39;stp+&#39;</span><span class="p">,</span> <span class="s1">&#39;stp-&#39;</span><span class="p">,</span> <span class="s1">&#39;inp&#39;</span><span class="p">]</span>
+        <span class="n">mode_docs</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">                    &#39;gnd&#39;: Setting to this mode diables all outputs and connects them to chassis mass.</span>
+<span class="s2">                    &#39;cap&#39;: Setting to cap mode starts a capacitance measurement. The axis returns to</span>
+<span class="s2">                           gnd mode afterwards. It is not needed to switch to gnd mode before.</span>
+<span class="s2">                    &#39;stp&#39;: This enables stepping mode. AC-IN and DC-IN functionalities are not</span>
+<span class="s2">                           modified, while an offset function would be turned off.</span>
+<span class="s2">                    &#39;off&#39;: This enables offset mode. AC-IN and DC-IN functionalities are not</span>
+<span class="s2">                           modified, while any stepping would be turned off.</span>
+<span class="s2">                    &#39;stp+&#39;: This enables additive offset + stepping mode. Stepping waveforms are</span>
+<span class="s2">                            added to an offset. AC-IN and DC-IN functionalities are not modified.</span>
+<span class="s2">                    &#39;stp-&#39;: This enables subtractive offset + stepping mode. Stepping waveforms are</span>
+<span class="s2">                            subtracted from an offset. AC-IN and DC-IN functionalities, are not modified.</span>
+<span class="s2">                    &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="s1">&#39;inp&#39;</span> <span class="ow">in</span> <span class="n">mode_vals</span><span class="p">:</span>
+            <span class="n">mode_docs</span> <span class="o">+=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">                         &#39;inp&#39;: In this mode, AC-IN and DC-IN can be enabled using the specific</span>
+<span class="s2">                         attributes. Setting to inp mode disables stepping and offset modes.</span>
+<span class="s2">                         &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;mode&#39;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Set/get mode&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;getm </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">axis</span><span class="p">),</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="s1">&#39;setm </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">axis</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39; </span><span class="si">{}</span><span class="s1">&#39;</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Enum</span><span class="p">(</span><span class="o">*</span><span class="n">mode_vals</span><span class="p">),</span>
+                           <span class="n">docstring</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">                           Setting to a certain mode typically switches other functionalities off.</span>
+<span class="s2">                           Especially, there are the following modes:</span>
+<span class="s2">                           &quot;&quot;&quot;</span> <span class="o">+</span> <span class="n">mode_docs</span>
+                           <span class="p">)</span>
+        <span class="k">if</span> <span class="n">sn</span> <span class="o">!=</span> <span class="s1">&#39;ANM150&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;ac&#39;</span><span class="p">,</span>
+                               <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Set/get status of AC-IN input&#39;</span><span class="p">,</span>
+                               <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;getaci </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">axis</span><span class="p">),</span>
+                               <span class="n">set_cmd</span><span class="o">=</span><span class="s1">&#39;setaci </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">axis</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39; </span><span class="si">{}</span><span class="s1">&#39;</span><span class="p">,</span>
+                               <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Enum</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">,</span> <span class="s1">&#39;on&#39;</span><span class="p">),</span>
+                               <span class="n">docstring</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">                               When switching on the AC-IN feature, a voltage of up to 10 VAC</span>
+<span class="s2">                               can be added to the output (gain 1, no amplification) using</span>
+<span class="s2">                               the AC-IN BNC on the frontplate of the module.</span>
+<span class="s2">                               &quot;&quot;&quot;</span>
+                               <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;dc&#39;</span><span class="p">,</span>
+                               <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Set/get status of DC-IN input&#39;</span><span class="p">,</span>
+                               <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;getdci </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">axis</span><span class="p">),</span>
+                               <span class="n">set_cmd</span><span class="o">=</span><span class="s1">&#39;setdci </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">axis</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39; </span><span class="si">{}</span><span class="s1">&#39;</span><span class="p">,</span>
+                               <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Enum</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">,</span> <span class="s1">&#39;on&#39;</span><span class="p">),</span>
+                               <span class="n">docstring</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">                               When switching on the DC-IN feature, a voltage in the range</span>
+<span class="s2">                               -10 .. +10 V can be added to the output. The gain is 15.</span>
+<span class="s2">                               &quot;&quot;&quot;</span>
+                               <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;move&#39;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Move steps&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_domove</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Ints</span><span class="p">(),</span>
+                           <span class="n">docstring</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">                           Start the movement with the given steps. For moving out</span>
+<span class="s2">                           use positive numbers and to move in use negative numbers.</span>
+<span class="s2">                           &quot;&quot;&quot;</span>
+                           <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;start&#39;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Move continously&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_contmove</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Enum</span><span class="p">(</span><span class="s1">&#39;up&#39;</span><span class="p">,</span> <span class="s1">&#39;down&#39;</span><span class="p">),</span>
+                           <span class="n">docstring</span><span class="o">=</span><span class="s2">&quot;Start a continous movement in the given direction.&quot;</span>
+                           <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;triggerUp&#39;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Set/get input trigger up number on axis&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;gettu </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">axis</span><span class="p">),</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="s1">&#39;settu </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">axis</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39; </span><span class="si">{}</span><span class="s1">&#39;</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Enum</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">,</span> <span class="s1">&#39;1&#39;</span><span class="p">,</span> <span class="s1">&#39;2&#39;</span><span class="p">,</span> <span class="s1">&#39;3&#39;</span><span class="p">,</span> <span class="s1">&#39;4&#39;</span><span class="p">,</span> <span class="s1">&#39;5&#39;</span><span class="p">,</span> <span class="s1">&#39;6&#39;</span><span class="p">,</span> <span class="s1">&#39;7&#39;</span><span class="p">),</span>
+                           <span class="n">docstring</span><span class="o">=</span><span class="s2">&quot;Set/get input trigger up number on axis&quot;</span>
+                           <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;triggerDown&#39;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Set/get input trigger down numbers on axis&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;gettd </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">axis</span><span class="p">),</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="s1">&#39;settd </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">axis</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39; </span><span class="si">{}</span><span class="s1">&#39;</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Enum</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">,</span> <span class="s1">&#39;1&#39;</span><span class="p">,</span> <span class="s1">&#39;2&#39;</span><span class="p">,</span> <span class="s1">&#39;3&#39;</span><span class="p">,</span> <span class="s1">&#39;4&#39;</span><span class="p">,</span> <span class="s1">&#39;5&#39;</span><span class="p">,</span> <span class="s1">&#39;6&#39;</span><span class="p">,</span> <span class="s1">&#39;7&#39;</span><span class="p">),</span>
+                           <span class="n">docstring</span><span class="o">=</span><span class="s2">&quot;Set/get input trigger down number on axis&quot;</span>
+                           <span class="p">)</span></div>
+
+
+
+    <span class="k">def</span> <span class="nf">_domove</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Internal helper function to start the movement. This will not wait until the move is</span>
+<span class="sd">        finished. So multiple axis can be started one after the other.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            value: the amount of steps to move, the sign denotes the direction</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: if the value is zero</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;stepd </span><span class="si">{}</span><span class="s1"> </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_axisnr</span><span class="p">,</span> <span class="o">-</span><span class="n">value</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="n">value</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;stepu </span><span class="si">{}</span><span class="s1"> </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_axisnr</span><span class="p">,</span> <span class="n">value</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;zero is an invalid move parameter&quot;</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">_contmove</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">direc</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Internal helper function to start the continous movement. This will not wait until the move</span>
+<span class="sd">        is finished. So multiple axis can be started one after the other.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            direc: the direction &#39;up&#39; or &#39;down&#39;</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: if the given direction is invalid</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">direc</span> <span class="o">==</span> <span class="s1">&#39;up&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;stepu </span><span class="si">{}</span><span class="s1"> c&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_axisnr</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="n">direc</span> <span class="o">==</span> <span class="s1">&#39;down&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;stepd </span><span class="si">{}</span><span class="s1"> c&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_axisnr</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;no &#39;up&#39; or &#39;donw&#39; given&quot;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="Anc300Axis.waitMove">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.html#qcodes_contrib_drivers.drivers.Attocube.ANC300.Anc300Axis.waitMove">[docs]</a>
+    <span class="k">def</span> <span class="nf">waitMove</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wait</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Global function to wait until the movement is finished.</span>
+
+<span class="sd">        The commandinterface has the function &#39;stepw n&#39; to wait until the axis stops moving. The</span>
+<span class="sd">        controller sends the &#39;OK&#39; after the axis stops, so the communication is hanging. In the</span>
+<span class="sd">        former version with the pyserial interface, it will work fine. But the visa library</span>
+<span class="sd">        throws an error if the communication timed out. After this, the read function didn&#39;t</span>
+<span class="sd">        get the needed &#39;OK&#39;. To avoid this, this routine asks the current output voltage. This</span>
+<span class="sd">        voltage will be zero if the axis has stopped.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            wait: time to wait between the checks</span>
+<span class="sd">            timeout: number of seconds to generate a RuntimeError if not finished moving</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            None. This function will block, until the motion of this axis has been stopped.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">volt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s1">&#39;geto </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_axisnr</span><span class="p">))</span>
+            <span class="k">if</span> <span class="nb">float</span><span class="p">(</span><span class="n">volt</span><span class="p">)</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">:</span>
+                <span class="k">return</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">wait</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">timeout</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span> <span class="o">&gt;=</span> <span class="n">timeout</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;waitMove timed out&#39;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Anc300Axis.stopMove">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.html#qcodes_contrib_drivers.drivers.Attocube.ANC300.Anc300Axis.stopMove">[docs]</a>
+    <span class="k">def</span> <span class="nf">stopMove</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Global function to stop the movement.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;stop </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_axisnr</span><span class="p">))</span></div>
+</div>
+
+
+
+
+<div class="viewcode-block" id="Anc300TriggerOut">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.html#qcodes_contrib_drivers.drivers.Attocube.ANC300.Anc300TriggerOut">[docs]</a>
+<span class="k">class</span> <span class="nc">Anc300TriggerOut</span><span class="p">(</span><span class="n">InstrumentChannel</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Anc300TriggerOut.__init__">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.html#qcodes_contrib_drivers.drivers.Attocube.ANC300.Anc300TriggerOut.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">:</span> <span class="s1">&#39;ANC300&#39;</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">num</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The Attocube ANC300 piezo controller has three trigger outputs.</span>
+
+<span class="sd">        This function cannot be tested because this function belongs to a specific controller</span>
+<span class="sd">        feature code. This code was not available during the tests.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            parent: the internal QCoDeS name of the instrument this output belongs to</span>
+<span class="sd">            name: the internal QCoDeS name of the output itself</span>
+<span class="sd">            num: the Index of the trigger output</span>
+
+<span class="sd">        Attributes:</span>
+<span class="sd">            state: Set / get the state of the output</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;state&#39;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Set/get trigger output level&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;getto </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">num</span><span class="p">),</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="s1">&#39;setto </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">num</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39; </span><span class="si">{}</span><span class="s1">&#39;</span><span class="p">,</span>
+                           <span class="n">val_mapping</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;off&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;on&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Enum</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">,</span> <span class="s1">&#39;on&#39;</span><span class="p">),</span>
+                           <span class="n">docstring</span><span class="o">=</span><span class="s2">&quot;Sets the trigger output signal&quot;</span>
+                           <span class="p">)</span></div>
+</div>
+
+
+
+
+<div class="viewcode-block" id="ANC300">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.html#qcodes_contrib_drivers.drivers.Attocube.ANC300.ANC300">[docs]</a>
+<span class="k">class</span> <span class="nc">ANC300</span><span class="p">(</span><span class="n">VisaInstrument</span><span class="p">):</span>
+<span class="c1">#class ANC300(MockVisa):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This is the qcodes driver for the Attocube ANC300.</span>
+
+<span class="sd">    Be careful to correct the parameters if not useing the USB port.</span>
+
+<span class="sd">    Status:</span>
+<span class="sd">        coding: finished</span>
+<span class="sd">        communication tests: done</span>
+<span class="sd">        usage in experiment: not yet</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">address</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">address</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\r\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="c1"># configure the port</span>
+        <span class="k">if</span> <span class="s1">&#39;ASRL&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">address</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">visa_handle</span><span class="o">.</span><span class="n">baud_rate</span> <span class="o">=</span> <span class="mi">38400</span> <span class="c1"># USB has no baud rate parameter</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">visa_handle</span><span class="o">.</span><span class="n">stop_bits</span> <span class="o">=</span> <span class="n">pyvisa</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">StopBits</span><span class="o">.</span><span class="n">one</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">visa_handle</span><span class="o">.</span><span class="n">parity</span> <span class="o">=</span> <span class="n">pyvisa</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">Parity</span><span class="o">.</span><span class="n">none</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">visa_handle</span><span class="o">.</span><span class="n">read_termination</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\r\n</span><span class="s1">&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;IDN&#39;</span><span class="p">)</span> <span class="c1"># Get rid of this parameter</span>
+
+        <span class="c1"># for security check the ID from the device</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">idn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s2">&quot;ver&quot;</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Main version:&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">idn</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">idn</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;attocube ANC300&quot;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Invalid device ID found: &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">idn</span><span class="p">))</span>
+
+        <span class="c1"># Now request all serial numbers of the axis modules. The first 6 chars are the id</span>
+        <span class="c1"># of the module type. This will be used to enable special parameters.</span>
+        <span class="c1"># Instantiate the axis channels only for available axis</span>
+        <span class="n">axischannels</span> <span class="o">=</span> <span class="n">ChannelList</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;Anc300Channels&quot;</span><span class="p">,</span> <span class="n">Anc300Axis</span><span class="p">,</span>
+                                   <span class="n">snapshotable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">ax</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">7</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">tmp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s1">&#39;getser </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ax</span><span class="p">))</span>
+                <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;axis</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ax</span><span class="p">)</span>
+                <span class="n">axischan</span> <span class="o">=</span> <span class="n">Anc300Axis</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">tmp</span><span class="p">[:</span><span class="mi">6</span><span class="p">])</span>
+                <span class="n">axischannels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">axischan</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">add_submodule</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">axischan</span><span class="p">)</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="k">pass</span>
+        <span class="n">axischannels</span><span class="o">.</span><span class="n">lock</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_submodule</span><span class="p">(</span><span class="s1">&#39;axis_channels&#39;</span><span class="p">,</span> <span class="n">axischannels</span><span class="p">)</span>
+
+        <span class="c1"># instantiate the trigger channels even if they could not be tested</span>
+        <span class="n">triggerchannels</span> <span class="o">=</span> <span class="n">ChannelList</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;Anc300Trigger&quot;</span><span class="p">,</span> <span class="n">Anc300TriggerOut</span><span class="p">,</span>
+                                      <span class="n">snapshotable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">ax</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]:</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;trigger</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ax</span><span class="p">)</span>
+            <span class="n">trigchan</span> <span class="o">=</span> <span class="n">Anc300TriggerOut</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">ax</span><span class="p">)</span>
+            <span class="n">triggerchannels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">trigchan</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_submodule</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">trigchan</span><span class="p">)</span>
+        <span class="n">triggerchannels</span><span class="o">.</span><span class="n">lock</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_submodule</span><span class="p">(</span><span class="s1">&#39;trigger_channels&#39;</span><span class="p">,</span> <span class="n">triggerchannels</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="ANC300.write_raw">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.html#qcodes_contrib_drivers.drivers.Attocube.ANC300.ANC300.write_raw">[docs]</a>
+    <span class="k">def</span> <span class="nf">write_raw</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmd</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Write cmd and wait until the &#39;OK&#39; or &#39;ERROR&#39; comes back from the device.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            cmd: Command to write to controller.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            RuntimeError: if Error-Message from the device is read.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">ask_raw</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span> <span class="c1"># send the command to the device and read the echo/status</span>
+        <span class="k">if</span> <span class="n">status</span> <span class="o">==</span> <span class="n">cmd</span><span class="p">:</span>
+            <span class="c1"># now the device sends an echo</span>
+            <span class="n">status</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">visa_handle</span><span class="o">.</span><span class="n">read</span><span class="p">()</span> <span class="c1"># read the status line again</span>
+        <span class="k">if</span> <span class="n">status</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;OK&#39;</span><span class="p">):</span>
+            <span class="k">return</span>
+        <span class="k">if</span> <span class="n">status</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;ERROR&#39;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="n">status</span><span class="p">)</span>
+        <span class="c1"># the line before the &#39;ERROR&#39; a message will be send from the device</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">status</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">visa_handle</span><span class="o">.</span><span class="n">read</span><span class="p">()</span> <span class="c1"># read the last status line</span>
+        <span class="k">if</span> <span class="n">status</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;ERROR&#39;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+        <span class="k">return</span></div>
+
+
+
+<div class="viewcode-block" id="ANC300.ask_raw">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.html#qcodes_contrib_drivers.drivers.Attocube.ANC300.ANC300.ask_raw">[docs]</a>
+    <span class="k">def</span> <span class="nf">ask_raw</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmd</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Query instrument with cmd and return response.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            cmd: Command to write to controller.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Response of Attocube controller to the query.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            RuntimeError: if Error-Message from the device is read.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">ask_raw</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span> <span class="c1"># send the command to the device and read the echo/status</span>
+        <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;&gt; &#39;</span><span class="p">):</span> <span class="c1"># sometimes the response starts with &#39;&gt; &#39;. I don&#39;t know why.</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="n">response</span><span class="p">[</span><span class="mi">2</span><span class="p">:]</span>
+        <span class="k">if</span> <span class="n">response</span> <span class="o">==</span> <span class="n">cmd</span><span class="p">:</span>
+            <span class="c1"># now the device has send an echo</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">visa_handle</span><span class="o">.</span><span class="n">read</span><span class="p">()</span> <span class="c1"># read the response line again</span>
+            <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;&gt; &#39;</span><span class="p">):</span>
+                <span class="n">response</span> <span class="o">=</span> <span class="n">response</span><span class="p">[</span><span class="mi">2</span><span class="p">:]</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">visa_handle</span><span class="o">.</span><span class="n">read</span><span class="p">()</span> <span class="c1"># read the status line</span>
+        <span class="k">if</span> <span class="n">status</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;OK&#39;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="s1">&#39;=&#39;</span> <span class="ow">in</span> <span class="n">response</span><span class="p">:</span>
+                <span class="c1"># &quot;frequency = 220 Hz&quot; -&gt; filter the 220</span>
+                <span class="n">tmp</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">tmp</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span> <span class="c1"># a single value</span>
+            <span class="k">return</span> <span class="n">response</span> <span class="c1"># the complete string</span>
+        <span class="k">if</span> <span class="n">status</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;ERROR&#39;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+        <span class="c1"># the &#39;ver&#39; command answers with two lines...</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">response</span> <span class="o">+</span> <span class="s2">&quot; - &quot;</span> <span class="o">+</span> <span class="n">status</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">visa_handle</span><span class="o">.</span><span class="n">read</span><span class="p">()</span> <span class="c1"># read the second status line</span>
+        <span class="k">if</span> <span class="n">status</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;ERROR&#39;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">response</span></div>
+
+
+
+<div class="viewcode-block" id="ANC300.stopall">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.html#qcodes_contrib_drivers.drivers.Attocube.ANC300.ANC300.stopall">[docs]</a>
+    <span class="k">def</span> <span class="nf">stopall</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Routine to stop all axis, regardless if the axis is available</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Stop all axis.&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">7</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;stop </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">a</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="ANC300.close">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.html#qcodes_contrib_drivers.drivers.Attocube.ANC300.ANC300.close">[docs]</a>
+    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Override of the base class&#39; close function</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Close the device.&quot;</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="ANC300.version">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.html#qcodes_contrib_drivers.drivers.Attocube.ANC300.ANC300.version">[docs]</a>
+    <span class="k">def</span> <span class="nf">version</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Read all possible version informations.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Dict with all version informations</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">retval</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="n">retval</span><span class="p">[</span><span class="s1">&#39;Version&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s1">&#39;ver&#39;</span><span class="p">)</span>
+        <span class="n">retval</span><span class="p">[</span><span class="s1">&#39;ContrSN&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s1">&#39;getcser&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">7</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">retval</span><span class="p">[</span><span class="s1">&#39;SN</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s1">&#39;getser </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="c1"># if the axis module is not installed ...</span>
+                <span class="n">retval</span><span class="p">[</span><span class="s1">&#39;SN</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)]</span> <span class="o">=</span> <span class="s1">&#39;EMPTY&#39;</span>
+        <span class="k">return</span> <span class="n">retval</span></div>
+
+
+
+<div class="viewcode-block" id="ANC300.getall">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.html#qcodes_contrib_drivers.drivers.Attocube.ANC300.ANC300.getall">[docs]</a>
+    <span class="k">def</span> <span class="nf">getall</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">submod</span><span class="o">=</span><span class="s2">&quot;*&quot;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Read all parameters and retun them to the caller. This will scan all</span>
+<span class="sd">        submodules with all parameters, so in this function no changes are</span>
+<span class="sd">        necessary for new modules or parameters.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            submod: (optional) returns only the parameters for this submodule</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            dict with all parameters, the key is the modulename and the parametername</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">retval</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">submod</span> <span class="o">==</span> <span class="s2">&quot;*&quot;</span><span class="p">:</span>
+            <span class="c1"># ID and options only if all modules are returned</span>
+            <span class="n">retval</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="p">())</span>
+
+        <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">submodules</span><span class="p">:</span>
+            <span class="n">mod</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">submodules</span><span class="p">[</span><span class="n">m</span><span class="p">]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="n">ChannelList</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">submod</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;*&quot;</span><span class="p">,</span> <span class="n">m</span><span class="p">)):</span>
+                <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">mod</span><span class="o">.</span><span class="n">parameters</span><span class="p">:</span>
+                    <span class="n">par</span> <span class="o">=</span> <span class="n">mod</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="n">p</span><span class="p">]</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">par</span><span class="o">.</span><span class="n">unit</span><span class="p">:</span>
+                            <span class="n">val</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">par</span><span class="p">())</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="n">par</span><span class="o">.</span><span class="n">unit</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">val</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">par</span><span class="p">())</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                    <span class="k">except</span><span class="p">:</span>
+                        <span class="n">val</span> <span class="o">=</span> <span class="s2">&quot;** not readable **&quot;</span>
+                    <span class="n">retval</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">m</span> <span class="o">+</span> <span class="s2">&quot;.&quot;</span> <span class="o">+</span> <span class="n">p</span><span class="p">:</span> <span class="n">val</span><span class="p">})</span>
+
+        <span class="k">return</span> <span class="n">retval</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, QCoDeS Users.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

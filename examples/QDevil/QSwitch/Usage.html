@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QSwitch usage &mdash; qcodes_contrib_drivers 0.23.0.dev14+main.g6d96817 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/nbsphinx-code-cells.css" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/documentation_options.js?v=7415f6af"></script>
+        <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+        <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="QCoDeS Example with HP8594E" href="../../HP/HP8594E.html" />
+    <link rel="prev" title="QSwitch debugging" href="Debugging.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            qcodes_contrib_drivers
+          </a>
+              <div class="version">
+                0.23.0.dev14+main.g6d96817
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../../index.html">Examples of how to use drivers</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../../Agilent_N9000A.html">Example with the Agilent N9000A</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../AimTTi_EL320P.html">Example notebook for AimTTi EL320P</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../Andor_DU401.html">Qcodes example with Andor DU401 BU2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../Attocube_ANC300.html">QCoDeS example with Attocube ANC300</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../Aviosys_IP_Power_9258S.html">Qcodes example with Aviosys IP Power 9258S</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../BlueFors.html">Example with the BlueFors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../CopperMountain_M5180.html">Example with CopperMountain Model M5180 vector network analyzer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../CopperMountain_M5180.html#Setup-db-and-station-for-test-measurerment">Setup db and station for test measurerment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../CopperMountain_M5180.html#Look-at-the-names-and-the-labels-of-the-Sxx-parameters">Look at the names and the labels of the Sxx parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../ERASynth.html">Example with ERASynth</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../Gentec_Maestro.html">QCoDeS Example with Gentec Maestro</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../Holzworth_HS900.html">Example notebook for the Holzworth HS900B RF synthesizer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../Horiba_FHR.html">Example for Horiba FHR</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../ITest.html">Example with the iTest from Bilt</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../Keithley_6430.html">Example notebook for Keithley 6430 SMU</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../Keithley_6430.html#Measure-resistance-of-a-~100k\Omega-resistor">Measure resistance of a ~100k<span class="math notranslate nohighlight">\(\Omega\)</span> resistor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../Keysight_M3202A.html">Keysight M3202A AWG</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../Keysight_M3202A%20with%20digitizer.html">Keysight M3202A AWG example with digitizer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../Lakeshore_311.html">Qcodes example with Lakeshore 311</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../Lakeshore_625.html">Example with Lakeshore Model 625 Superconducting Magnet power supply</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../NationalInstruments_DAQ.html">National Instruments Multifunction DAQ example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../NationalInstruments_PXIe_2597.html">Qcodes example for National Instruments PXIe-2597 RF Switch</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../NationalInstruments_RFSG.html">Qcodes example with the NI RFSG signal generator driver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../Newport_AG-UC8.html">QCoDeS Example with Newport AG-UC8 Piezo Motion Controller</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../OxfordTriton.html">Example of the oxford triton driver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../Rohde_Schwarz_HMC8043.html">QCoDeS Example with R&amp;S HMC 8043 Power Supply</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../Rohde_Schwarz_HMP4040.html">QCoDeS Example with R&amp;S HMP4040 Power Supply</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../Rohde_Schwarz_SMW200A.html">QCoDeS example with Rohe&amp;Schwarz SMW200A</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../SR844.html">Changing the Sensitivity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../SR844.html#Preparing-for-reading-the-buffer-and-measurement">Preparing for reading the buffer and measurement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../Shamrock_SR750.html">Qcodes example with Shamrock SR750</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../SignalCore.html">Example with the microwave source SC5521A from Signal Core</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../SignalCore.html#Device-connection">Device connection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../SignalCore.html#Set-parameters">Set parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../SignalRecovery_7270.html">Example of Signal Recovery 7270 driver usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../SingleQuantum.html">Example for Single Quantum SNSPD</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../Standa_10MWA168.html">Qcodes example with Standa 10MWA168</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../Tektronix_AFG3000_series.html">Tektronix AFG3000 series arbitrary function generator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../Tektronix_FCA3100.html">overview over all parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../Tektronix_FCA3100.html#Usage-of-the-two-main-parameters">Usage of the two main parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../Tektronix_Keithley_6500.html">QCoDeS Example with Tektronix Keithley Digital Multimeter DMM6500</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../Thorlabs_K10CR1.html">Qcodes example with Thorlabs K10CR1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../Thorlabs_KLS1550.html">QCoDeS example with Thorlabs KLS1550 laser source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../Thorlabs_MFF10x.html">Qcodes example with Thorlabs MFF10x</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../Thorlabs_PRM1Z8.html">Qcodes example with Thorlabs PRM1Z8</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../Valon_5015.html">QCoDeS example with Valon 5015</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../Vaunix_LDA.html">Qcodes example for Vaunix LDA step attenuator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../Vaunix_LDA.html#Model-with-many-channels">Model with many channels</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../ZVL13.html">Rohde &amp; Schwarz ZVL13 Vector Network Analyzer example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../ZVL13.html#Parameters-definition">Parameters definition</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../ZurichInstruments_HF2LI.html">Zurich Instruments HF2LI example</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../index.html">QDevil drivers</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../QDAC1/index.html">QCoDeS examples of how to use QDAC-I</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../QDAC2/index.html">QCoDeS examples of how to use QDAC-II</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="index.html">QCoDeS examples of how to use QSwitch</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="Debugging.html">QSwitch debugging</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">QSwitch usage</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../HP/HP8594E.html">QCoDeS Example with HP8594E</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/generated/qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">qcodes_contrib_drivers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Examples of how to use drivers</a></li>
+          <li class="breadcrumb-item"><a href="../index.html">QDevil drivers</a></li>
+          <li class="breadcrumb-item"><a href="index.html">QCoDeS examples of how to use QSwitch</a></li>
+      <li class="breadcrumb-item active">QSwitch usage</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../_sources/examples/QDevil/QSwitch/Usage.ipynb.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="QSwitch-usage">
+<h1>QSwitch usage<a class="headerlink" href="#QSwitch-usage" title="Link to this heading">¶</a></h1>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pprint</span>
+<span class="n">pp</span> <span class="o">=</span> <span class="n">pprint</span><span class="o">.</span><span class="n">PrettyPrinter</span><span class="p">()</span>
+<span class="kn">import</span> <span class="nn">qcodes</span>
+<span class="kn">from</span> <span class="nn">qcodes_contrib_drivers.drivers.QDevil</span> <span class="kn">import</span> <span class="n">QSwitch</span>
+</pre></div>
+</div>
+</div>
+<p>Connect via USB:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">qswitch_addr</span> <span class="o">=</span> <span class="s1">&#39;/dev/cu.usbmodem14101&#39;</span>
+<span class="n">qswitch</span> <span class="o">=</span> <span class="n">QSwitch</span><span class="o">.</span><span class="n">QSwitch</span><span class="p">(</span><span class="s1">&#39;switch&#39;</span><span class="p">,</span> <span class="n">visalib</span><span class="o">=</span><span class="s1">&#39;@py&#39;</span><span class="p">,</span> <span class="n">address</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;ASRL</span><span class="si">{</span><span class="n">qswitch_addr</span><span class="si">}</span><span class="s1">::INSTR&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Connected to: Quantum Machines QSwitch (serial:2, firmware:0.178) in 0.05s
+</pre></div></div>
+</div>
+<p>Or connect via Ethernet:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">qswitch_addr</span> <span class="o">=</span> <span class="s1">&#39;192.168.8.21&#39;</span>
+<span class="n">qswitch</span> <span class="o">=</span> <span class="n">QSwitch</span><span class="o">.</span><span class="n">QSwitch</span><span class="p">(</span><span class="s1">&#39;switch&#39;</span><span class="p">,</span> <span class="n">visalib</span><span class="o">=</span><span class="s1">&#39;@py&#39;</span><span class="p">,</span> <span class="n">address</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;TCPIP::</span><span class="si">{</span><span class="n">qswitch_addr</span><span class="si">}</span><span class="s1">::5025::SOCKET&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Connected to: Quantum Machines QSwitch (serial:2, firmware:0.178) in 0.12s
+</pre></div></div>
+</div>
+<p>When the QSwitch is reset, all lines are grounded:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">qswitch</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+<span class="n">qswitch</span><span class="o">.</span><span class="n">state</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&#39;(@1!0:24!0)&#39;
+</pre></div></div>
+</div>
+<p>Or in expanded form:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">QSwitch</span><span class="o">.</span><span class="n">expand_channel_list</span><span class="p">(</span><span class="n">qswitch</span><span class="o">.</span><span class="n">state</span><span class="p">())</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&#39;(@1!0,2!0,3!0,4!0,5!0,6!0,7!0,8!0,9!0,10!0,11!0,12!0,13!0,14!0,15!0,16!0,17!0,18!0,19!0,20!0,21!0,22!0,23!0,24!0)&#39;
+</pre></div></div>
+</div>
+<p>Or expressed as a Python array:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">qswitch</span><span class="o">.</span><span class="n">closed_relays</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+[(1, 0),
+ (2, 0),
+ (3, 0),
+ (4, 0),
+ (5, 0),
+ (6, 0),
+ (7, 0),
+ (8, 0),
+ (9, 0),
+ (10, 0),
+ (11, 0),
+ (12, 0),
+ (13, 0),
+ (14, 0),
+ (15, 0),
+ (16, 0),
+ (17, 0),
+ (18, 0),
+ (19, 0),
+ (20, 0),
+ (21, 0),
+ (22, 0),
+ (23, 0),
+ (24, 0)]
+</pre></div></div>
+</div>
+<p>Beep and blink on SCPI command errors:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">qswitch</span><span class="o">.</span><span class="n">error_indicator</span><span class="p">(</span><span class="s1">&#39;on&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<section id="Manipulation-by-numbers">
+<h2>Manipulation by numbers<a class="headerlink" href="#Manipulation-by-numbers" title="Link to this heading">¶</a></h2>
+<p>Connect and unground line 23:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">qswitch</span><span class="o">.</span><span class="n">close_relay</span><span class="p">(</span><span class="mi">23</span><span class="p">,</span> <span class="mi">9</span><span class="p">)</span>
+<span class="n">qswitch</span><span class="o">.</span><span class="n">open_relay</span><span class="p">(</span><span class="mi">23</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="n">qswitch</span><span class="o">.</span><span class="n">state</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&#39;(@1!0:22!0,24!0,23!9)&#39;
+</pre></div></div>
+</div>
+<p>Tap off line 23 to BNC 2:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">qswitch</span><span class="o">.</span><span class="n">close_relay</span><span class="p">(</span><span class="mi">23</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">qswitch</span><span class="o">.</span><span class="n">state</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&#39;(@1!0:22!0,24!0,23!9,23!2)&#39;
+</pre></div></div>
+</div>
+<p>Multiple relays at once:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">qswitch</span><span class="o">.</span><span class="n">open_relays</span><span class="p">([(</span><span class="mi">22</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">24</span><span class="p">,</span> <span class="mi">0</span><span class="p">)])</span>
+<span class="n">qswitch</span><span class="o">.</span><span class="n">state</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&#39;(@1!0:21!0,23!9,23!2)&#39;
+</pre></div></div>
+</div>
+</section>
+<section id="Arrangements">
+<h2>Arrangements<a class="headerlink" href="#Arrangements" title="Link to this heading">¶</a></h2>
+<p>At a higher level of abstraction, lines and break-out BNCs can be given names.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">qswitch</span><span class="o">.</span><span class="n">arrange</span><span class="p">(</span>
+    <span class="n">breakouts</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;DMM&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;VNA&#39;</span><span class="p">:</span> <span class="mi">7</span><span class="p">},</span>  <span class="c1"># BNC 2 connected to DMM &amp; BNC 7 to VNA</span>
+    <span class="n">lines</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;plunger&#39;</span><span class="p">:</span> <span class="mi">23</span><span class="p">,</span> <span class="s1">&#39;sensor&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">})</span>  <span class="c1"># Give names to lines 23 &amp; 5</span>
+</pre></div>
+</div>
+</div>
+<p>There are specialised functions for manipulating relays by name:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">qswitch</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s1">&#39;plunger&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>which is equivalent to</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">qswitch</span><span class="o">.</span><span class="n">close_relay</span><span class="p">(</span><span class="mi">23</span><span class="p">,</span> <span class="mi">9</span><span class="p">)</span>
+<span class="n">qswitch</span><span class="o">.</span><span class="n">open_relay</span><span class="p">(</span><span class="mi">23</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>that is, connect the device-under-test to input line 23, and then unground it.</p>
+<p>For the BNC breakout:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">qswitch</span><span class="o">.</span><span class="n">breakout</span><span class="p">(</span><span class="s1">&#39;sensor&#39;</span><span class="p">,</span> <span class="s1">&#39;DMM&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>which is equivalent to</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">qswitch</span><span class="o">.</span><span class="n">close_relay</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">qswitch</span><span class="o">.</span><span class="n">open_relay</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>that is, connect the device-under-test line 5 to BNC 2, and then unground it.</p>
+<p>For convenience, the default name of a line or BNC is just its number, so eg.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">qswitch</span><span class="o">.</span><span class="n">breakout</span><span class="p">(</span><span class="s1">&#39;24&#39;</span><span class="p">,</span> <span class="s1">&#39;1&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>is equivalent to</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">qswitch</span><span class="o">.</span><span class="n">close_relay</span><span class="p">(</span><span class="mi">24</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">qswitch</span><span class="o">.</span><span class="n">open_relay</span><span class="p">(</span><span class="mi">24</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>Moreover, any breakouts are also disconnected when grounding:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">qswitch</span><span class="o">.</span><span class="n">ground</span><span class="p">(</span><span class="s1">&#39;sensor&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>will be equivalent to</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">qswitch</span><span class="o">.</span><span class="n">close_relay</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="n">qswitch</span><span class="o">.</span><span class="n">open_relays</span><span class="p">([(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">9</span><span class="p">)])</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="Monitors">
+<h2>Monitors<a class="headerlink" href="#Monitors" title="Link to this heading">¶</a></h2>
+<p>There is a pseudo parameter dedicated to monitoring:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">qswitch</span><span class="o">.</span><span class="n">overview</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+{&#39;1&#39;: [&#39;grounded&#39;],
+ &#39;2&#39;: [&#39;grounded&#39;],
+ &#39;3&#39;: [&#39;grounded&#39;],
+ &#39;4&#39;: [&#39;grounded&#39;],
+ &#39;sensor&#39;: [&#39;grounded&#39;],
+ &#39;6&#39;: [&#39;grounded&#39;],
+ &#39;7&#39;: [&#39;grounded&#39;],
+ &#39;8&#39;: [&#39;grounded&#39;],
+ &#39;9&#39;: [&#39;grounded&#39;],
+ &#39;10&#39;: [&#39;grounded&#39;],
+ &#39;11&#39;: [&#39;grounded&#39;],
+ &#39;12&#39;: [&#39;grounded&#39;],
+ &#39;13&#39;: [&#39;grounded&#39;],
+ &#39;14&#39;: [&#39;grounded&#39;],
+ &#39;15&#39;: [&#39;grounded&#39;],
+ &#39;16&#39;: [&#39;grounded&#39;],
+ &#39;17&#39;: [&#39;grounded&#39;],
+ &#39;18&#39;: [&#39;grounded&#39;],
+ &#39;19&#39;: [&#39;grounded&#39;],
+ &#39;20&#39;: [&#39;grounded&#39;],
+ &#39;21&#39;: [&#39;grounded&#39;],
+ &#39;plunger&#39;: [&#39;connected&#39;, &#39;breakout DMM&#39;],
+ &#39;24&#39;: [&#39;breakout 1&#39;]}
+</pre></div></div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">monitor</span> <span class="o">=</span> <span class="n">qcodes</span><span class="o">.</span><span class="n">Monitor</span><span class="p">(</span><span class="n">qswitch</span><span class="o">.</span><span class="n">overview</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="Autosave">
+<h2>Autosave<a class="headerlink" href="#Autosave" title="Link to this heading">¶</a></h2>
+<p>When turning on autosave, the state will be restored over restart.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">qswitch</span><span class="o">.</span><span class="n">auto_save</span><span class="p">(</span><span class="s1">&#39;on&#39;</span><span class="p">)</span>
+<span class="n">qswitch</span><span class="o">.</span><span class="n">auto_save</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>The QSwitch only supports a single Ethernet connection at a time, so you can explicitly tell Python to let go of the connection:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">qswitch</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Debugging.html" class="btn btn-neutral float-left" title="QSwitch debugging" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../../HP/HP8594E.html" class="btn btn-neutral float-right" title="QCoDeS Example with HP8594E" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, QCoDeS Users.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

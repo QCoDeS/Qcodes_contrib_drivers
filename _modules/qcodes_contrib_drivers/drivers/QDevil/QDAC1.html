@@ -1,0 +1,1320 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>qcodes_contrib_drivers.drivers.QDevil.QDAC1 &mdash; qcodes_contrib_drivers 0.23.0.dev14+main.g6d96817 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../_static/documentation_options.js?v=7415f6af"></script>
+        <script src="../../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            qcodes_contrib_drivers
+          </a>
+              <div class="version">
+                0.23.0.dev14+main.g6d96817
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples/index.html">Examples of how to use drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/generated/qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">qcodes_contrib_drivers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">qcodes_contrib_drivers.drivers.QDevil.QDAC1</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for qcodes_contrib_drivers.drivers.QDevil.QDAC1</h1><div class="highlight"><pre>
+<span></span><span class="c1"># QCoDeS driver for the QDevil QDAC using channels</span>
+<span class="c1"># Adapted by QDevil from the qdev QDac driver in qcodes</span>
+<span class="c1"># Version 2.2 QDevil 2023-02-20</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
+<span class="kn">from</span> <span class="nn">enum</span> <span class="kn">import</span> <span class="n">Enum</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
+
+<span class="kn">import</span> <span class="nn">pyvisa</span>
+<span class="kn">import</span> <span class="nn">pyvisa.constants</span>
+<span class="kn">from</span> <span class="nn">pyvisa.resources.serial</span> <span class="kn">import</span> <span class="n">SerialInstrument</span>
+
+<span class="kn">from</span> <span class="nn">qcodes</span> <span class="kn">import</span> <span class="n">validators</span> <span class="k">as</span> <span class="n">vals</span>
+<span class="kn">from</span> <span class="nn">qcodes.instrument</span> <span class="kn">import</span> <span class="n">ChannelList</span><span class="p">,</span> <span class="n">InstrumentChannel</span><span class="p">,</span> <span class="n">VisaInstrument</span>
+<span class="kn">from</span> <span class="nn">qcodes.parameters</span> <span class="kn">import</span> <span class="n">MultiChannelInstrumentParameter</span><span class="p">,</span> <span class="n">ParamRawDataType</span>
+
+<span class="n">LOG</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<span class="n">_ModeTuple</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;_ModeTuple&#39;</span><span class="p">,</span> <span class="s1">&#39;v i&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="Mode">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.QDevil.html#qcodes_contrib_drivers.drivers.QDevil.QDAC1.Mode">[docs]</a>
+<span class="k">class</span> <span class="nc">Mode</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Enum type use as the mode parameter for channels</span>
+<span class="sd">    defining the combined voltage and current range.</span>
+
+<span class="sd">    get_label() returns a text representation of the mode.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">vhigh_ihigh</span> <span class="o">=</span> <span class="n">_ModeTuple</span><span class="p">(</span><span class="n">v</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">i</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">vhigh_ilow</span> <span class="o">=</span> <span class="n">_ModeTuple</span><span class="p">(</span><span class="n">v</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">vlow_ilow</span> <span class="o">=</span> <span class="n">_ModeTuple</span><span class="p">(</span><span class="n">v</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Mode.get_label">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.QDevil.html#qcodes_contrib_drivers.drivers.QDevil.QDAC1.Mode.get_label">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_label</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">_MODE_LABELS</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;vhigh_ihigh&quot;</span><span class="p">:</span> <span class="s2">&quot;V range high / I range high&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;vhigh_ilow&quot;</span><span class="p">:</span> <span class="s2">&quot;V range high / I range low&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;vlow_ilow&quot;</span><span class="p">:</span> <span class="s2">&quot;V range low / I range low&quot;</span><span class="p">}</span>
+        <span class="k">return</span> <span class="n">_MODE_LABELS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">]</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="Waveform">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.QDevil.html#qcodes_contrib_drivers.drivers.QDevil.QDAC1.Waveform">[docs]</a>
+<span class="k">class</span> <span class="nc">Waveform</span><span class="p">:</span>
+    <span class="c1"># Enum-like class defining the built-in waveform types</span>
+    <span class="n">sine</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">square</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="n">triangle</span> <span class="o">=</span> <span class="mi">3</span>
+    <span class="n">staircase</span> <span class="o">=</span> <span class="mi">4</span>
+    <span class="n">all_waveforms</span> <span class="o">=</span> <span class="p">[</span><span class="n">sine</span><span class="p">,</span> <span class="n">square</span><span class="p">,</span> <span class="n">triangle</span><span class="p">,</span> <span class="n">staircase</span><span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="Generator">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.QDevil.html#qcodes_contrib_drivers.drivers.QDevil.QDAC1.Generator">[docs]</a>
+<span class="k">class</span> <span class="nc">Generator</span><span class="p">:</span>
+    <span class="c1">#  Class used in the internal book keeping of generators</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">generator_number</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fg</span> <span class="o">=</span> <span class="n">generator_number</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">t_end</span> <span class="o">=</span> <span class="mf">9.9e9</span></div>
+
+
+
+<div class="viewcode-block" id="QDacChannel">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.QDevil.html#qcodes_contrib_drivers.drivers.QDevil.QDAC1.QDacChannel">[docs]</a>
+<span class="k">class</span> <span class="nc">QDacChannel</span><span class="p">(</span><span class="n">InstrumentChannel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A single output channel of the QDac.</span>
+
+<span class="sd">    Exposes chan.v, chan.i, chan.mode, chan.slope,</span>
+<span class="sd">    chan.sync, chan.sync_delay, chan.sync_duration.\n</span>
+<span class="sd">    NB: Set v to zero before changing mode if the</span>
+<span class="sd">    mode_force lfag is False (default).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="QDacChannel.__init__">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.QDevil.html#qcodes_contrib_drivers.drivers.QDevil.QDAC1.QDacChannel.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">:</span> <span class="s2">&quot;QDac&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">channum</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            parent: The instrument to which the channel belongs.</span>
+<span class="sd">            name: The name of the channel</span>
+<span class="sd">            channum: The number of the channel (1-24 or 1-48)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+
+        <span class="c1"># Add the parameters</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;v&#39;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;Channel </span><span class="si">{</span><span class="n">channum</span><span class="si">}</span><span class="s1"> voltage&#39;</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;V&#39;</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_set_voltage</span><span class="p">,</span> <span class="n">channum</span><span class="p">),</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_get_voltage</span><span class="p">,</span> <span class="n">channum</span><span class="p">),</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+                           <span class="c1"># Initial range. Updated on init and during</span>
+                           <span class="c1"># operation:</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(</span><span class="o">-</span><span class="mf">9.99</span><span class="p">,</span> <span class="mf">9.99</span><span class="p">)</span>
+                           <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;mode&#39;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;Channel </span><span class="si">{</span><span class="n">channum</span><span class="si">}</span><span class="s1"> mode.&#39;</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_set_mode</span><span class="p">,</span> <span class="n">channum</span><span class="p">),</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Enum</span><span class="p">(</span><span class="o">*</span><span class="nb">list</span><span class="p">(</span><span class="n">Mode</span><span class="p">))</span>
+                           <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;i&#39;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;Channel </span><span class="si">{</span><span class="n">channum</span><span class="si">}</span><span class="s1"> current&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;get </span><span class="si">{</span><span class="n">channum</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;A&#39;</span><span class="p">,</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_current_parser</span>
+                           <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;slope&#39;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;Channel </span><span class="si">{</span><span class="n">channum</span><span class="si">}</span><span class="s1"> slope&#39;</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;V/s&#39;</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_setslope</span><span class="p">,</span> <span class="n">channum</span><span class="p">),</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_getslope</span><span class="p">,</span> <span class="n">channum</span><span class="p">),</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">MultiType</span><span class="p">(</span><span class="n">vals</span><span class="o">.</span><span class="n">Enum</span><span class="p">(</span><span class="s1">&#39;Inf&#39;</span><span class="p">),</span>
+                                               <span class="n">vals</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(</span><span class="mf">1e-3</span><span class="p">,</span> <span class="mi">10000</span><span class="p">))</span>
+                           <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;sync&#39;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;Channel </span><span class="si">{</span><span class="n">channum</span><span class="si">}</span><span class="s1"> sync output&#39;</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_setsync</span><span class="p">,</span> <span class="n">channum</span><span class="p">),</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_getsync</span><span class="p">,</span> <span class="n">channum</span><span class="p">),</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Ints</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>  <span class="c1"># Updated at qdac init</span>
+                           <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;sync_delay&#39;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;Channel </span><span class="si">{</span><span class="n">channum</span><span class="si">}</span><span class="s1"> sync pulse delay&#39;</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;s&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">set_cmd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10000</span><span class="p">),</span>
+                           <span class="n">initial_value</span><span class="o">=</span><span class="mi">0</span>
+                           <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+                        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;sync_duration&#39;</span><span class="p">,</span>
+                        <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;Channel </span><span class="si">{</span><span class="n">channum</span><span class="si">}</span><span class="s1"> sync pulse duration&#39;</span><span class="p">,</span>
+                        <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;s&#39;</span><span class="p">,</span>
+                        <span class="n">get_cmd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">set_cmd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                        <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(</span><span class="mf">0.001</span><span class="p">,</span> <span class="mi">10000</span><span class="p">),</span>
+                        <span class="n">initial_value</span><span class="o">=</span><span class="mf">0.01</span>
+                        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="QDacChannel.snapshot_base">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.QDevil.html#qcodes_contrib_drivers.drivers.QDevil.QDAC1.QDacChannel.snapshot_base">[docs]</a>
+    <span class="k">def</span> <span class="nf">snapshot_base</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">update</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="n">params_to_skip_update</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="n">update_currents</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_update_currents</span> <span class="ow">and</span> <span class="n">update</span>
+        <span class="k">if</span> <span class="n">update</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_get_status_performed</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_update_cache</span><span class="p">(</span><span class="n">update_currents</span><span class="o">=</span><span class="n">update_currents</span><span class="p">)</span>
+        <span class="c1"># call update_cache rather than getting the status individually for</span>
+        <span class="c1"># each parameter. This is only done if _get_status_performed is False</span>
+        <span class="c1"># this is used to signal that the parent has already called it and</span>
+        <span class="c1"># no need to repeat.</span>
+        <span class="k">if</span> <span class="n">params_to_skip_update</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">params_to_skip_update</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;v&#39;</span><span class="p">,</span> <span class="s1">&#39;i&#39;</span><span class="p">,</span> <span class="s1">&#39;mode&#39;</span><span class="p">)</span>
+        <span class="n">snap</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">snapshot_base</span><span class="p">(</span>
+                            <span class="n">update</span><span class="o">=</span><span class="n">update</span><span class="p">,</span>
+                            <span class="n">params_to_skip_update</span><span class="o">=</span><span class="n">params_to_skip_update</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">snap</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="QDacMultiChannelParameter">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.QDevil.html#qcodes_contrib_drivers.drivers.QDevil.QDAC1.QDacMultiChannelParameter">[docs]</a>
+<span class="k">class</span> <span class="nc">QDacMultiChannelParameter</span><span class="p">(</span><span class="n">MultiChannelInstrumentParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The class to be returned by __getattr__ of the ChannelList. Here customised</span>
+<span class="sd">    for fast multi-readout of voltages.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channels</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">InstrumentChannel</span><span class="p">],</span>
+                 <span class="n">param_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                 <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+                 <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">channels</span><span class="p">,</span> <span class="n">param_name</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<div class="viewcode-block" id="QDacMultiChannelParameter.get_raw">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.QDevil.html#qcodes_contrib_drivers.drivers.QDevil.QDAC1.QDacMultiChannelParameter.get_raw">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_raw</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">ParamRawDataType</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return a tuple containing the data from each of the channels in the</span>
+<span class="sd">        list.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># For voltages, we can do something slightly faster than the naive</span>
+        <span class="c1"># approach by asking the instrument for a channel overview.</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_param_name</span> <span class="o">==</span> <span class="s1">&#39;v&#39;</span><span class="p">:</span>
+            <span class="n">qdac</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_channels</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">_parent</span>
+            <span class="n">qdac</span><span class="o">.</span><span class="n">_update_cache</span><span class="p">(</span><span class="n">update_currents</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">chan</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_param_name</span><span class="p">]</span><span class="o">.</span><span class="n">cache</span><span class="p">()</span>
+                           <span class="k">for</span> <span class="n">chan</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_channels</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">chan</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_param_name</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+                           <span class="k">for</span> <span class="n">chan</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_channels</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">output</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="QDac">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.QDevil.html#qcodes_contrib_drivers.drivers.QDevil.QDAC1.QDac">[docs]</a>
+<span class="k">class</span> <span class="nc">QDac</span><span class="p">(</span><span class="n">VisaInstrument</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Channelised driver for the QDevil QDAC voltage source.</span>
+
+<span class="sd">    Exposes channels, temperature sensors and calibration output,</span>
+<span class="sd">    and &#39;ramp_voltages&#39; + &#39;ramp_voltages_2d&#39; for multi channel ramping.</span>
+
+<span class="sd">    In addition a &#39;mode_force&#39; flag (default False) is exposed.</span>
+<span class="sd">    &#39;mode_force&#39; (=True) is used to enable voltage range switching, via</span>
+<span class="sd">    the channel &#39;mode&#39; parameter, even at non-zero output voltages.</span>
+
+<span class="sd">    Tested with Firmware Version: 1.07</span>
+
+<span class="sd">    The driver assumes that the instrument is ALWAYS in verbose mode OFF</span>
+<span class="sd">    and sets this as part of the initialization, so please do not change this.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># set nonzero value (seconds) to accept older status when reading settings</span>
+    <span class="n">max_status_age</span> <span class="o">=</span> <span class="mi">1</span>
+
+<div class="viewcode-block" id="QDac.__init__">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.QDevil.html#qcodes_contrib_drivers.drivers.QDevil.QDAC1.QDac.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                 <span class="n">address</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                 <span class="n">update_currents</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+                 <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Instantiates the instrument.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            name: The instrument name used by qcodes</span>
+<span class="sd">            address: The VISA name of the resource</span>
+<span class="sd">            update_currents: Whether to query all channels for their</span>
+<span class="sd">                current sensor value on startup, which takes about 0.5 sec</span>
+<span class="sd">                per channel. Default: False.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            QDac object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">address</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">handle</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">visa_handle</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_get_status_performed</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">handle</span><span class="p">,</span> <span class="n">SerialInstrument</span><span class="p">)</span>
+        <span class="c1"># Communication setup + firmware check</span>
+        <span class="n">handle</span><span class="o">.</span><span class="n">baud_rate</span> <span class="o">=</span> <span class="mi">460800</span>
+        <span class="n">handle</span><span class="o">.</span><span class="n">parity</span> <span class="o">=</span> <span class="n">pyvisa</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">Parity</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">handle</span><span class="o">.</span><span class="n">data_bits</span> <span class="o">=</span> <span class="mi">8</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_terminator</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">handle</span><span class="o">.</span><span class="n">write_termination</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_write_response</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">firmware_version</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_firmware_version</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">firmware_version</span> <span class="o">&lt;</span> <span class="mf">1.07</span><span class="p">:</span>
+            <span class="n">LOG</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Firmware version: </span><span class="si">{</span><span class="n">firmware_version</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;&#39;&#39;</span>
+<span class="s1">                No QDevil QDAC detected or the firmware version is obsolete.</span>
+<span class="s1">                This driver only supports version 1.07 or newer. Please</span>
+<span class="s1">                contact info@qdevil.com for a firmware update.</span>
+<span class="s1">                &#39;&#39;&#39;</span><span class="p">)</span>
+
+        <span class="c1"># Initialse basic information and internal book keeping</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_chans</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_number_of_channels</span><span class="p">()</span>
+        <span class="n">num_boards</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_chans</span><span class="o">/</span><span class="mi">8</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_output_n_lines</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_chans</span> <span class="o">+</span> <span class="mi">2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_chan_range</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_chans</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">channel_validator</span> <span class="o">=</span> <span class="n">vals</span><span class="o">.</span><span class="n">Ints</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_chans</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_reset_bookkeeping</span><span class="p">()</span>
+
+        <span class="c1"># Add channels (and channel parameters)</span>
+        <span class="n">channels</span> <span class="o">=</span> <span class="n">ChannelList</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;Channels&quot;</span><span class="p">,</span> <span class="n">QDacChannel</span><span class="p">,</span>
+                               <span class="n">snapshotable</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                               <span class="n">multichan_paramclass</span><span class="o">=</span><span class="n">QDacMultiChannelParameter</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_chan_range</span><span class="p">:</span>
+            <span class="n">channel</span> <span class="o">=</span> <span class="n">QDacChannel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;chan</span><span class="si">{</span><span class="n">i</span><span class="si">:</span><span class="s1">02</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+            <span class="n">channels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_submodule</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ch</span><span class="si">{</span><span class="n">i</span><span class="si">:</span><span class="s2">02</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">channel</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_submodule</span><span class="p">(</span><span class="s2">&quot;channels&quot;</span><span class="p">,</span> <span class="n">channels</span><span class="o">.</span><span class="n">to_channel_tuple</span><span class="p">())</span>
+
+        <span class="c1"># Updatechannel  sync port validator according to number of boards</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_num_syns</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">num_boards</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">chan</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_chan_range</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">[</span><span class="n">chan</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">sync</span><span class="o">.</span><span class="n">vals</span> <span class="o">=</span> <span class="n">vals</span><span class="o">.</span><span class="n">Ints</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_syns</span><span class="p">)</span>
+
+        <span class="c1"># Add non-channel parameters</span>
+        <span class="k">for</span> <span class="n">board</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_boards</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">sensor</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+                <span class="n">label</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;Board </span><span class="si">{</span><span class="n">board</span><span class="si">}</span><span class="s1">, Temperature </span><span class="si">{</span><span class="n">sensor</span><span class="si">}</span><span class="s1">&#39;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;temp</span><span class="si">{</span><span class="n">board</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">sensor</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+                                   <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span>
+                                   <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;C&#39;</span><span class="p">,</span>
+                                   <span class="n">get_cmd</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;tem </span><span class="si">{</span><span class="n">board</span><span class="si">}</span><span class="s1"> </span><span class="si">{</span><span class="n">sensor</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+                                   <span class="n">get_parser</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_verbose</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;cal&#39;</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="s1">&#39;cal </span><span class="si">{}</span><span class="s1">&#39;</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Ints</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_chans</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;mode_force&#39;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Mode force&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">set_cmd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Bool</span><span class="p">(),</span>
+                           <span class="n">initial_value</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="c1"># Due to a firmware bug in 1.07 voltage ranges are always reported</span>
+        <span class="c1"># vebosely. So for future compatibility we set verbose True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;ver 1&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_voltage_ranges</span><span class="p">()</span>
+        <span class="c1"># The driver require verbose mode off except for the above command</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;ver 0&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_verbose</span> <span class="o">=</span> <span class="kc">False</span>  <span class="c1"># Just so that the code can check the state</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect_message</span><span class="p">()</span>
+        <span class="n">LOG</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[*] Querying all channels for voltages and currents...&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_cache</span><span class="p">(</span><span class="n">update_currents</span><span class="o">=</span><span class="n">update_currents</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_currents</span> <span class="o">=</span> <span class="n">update_currents</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_load_state</span><span class="p">()</span>
+        <span class="n">LOG</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[+] Done&#39;</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_reset_bookkeeping</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Resets all internal variables used for ramping and</span>
+<span class="sd">        synchronization outputs.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Assigned slopes. Entries will eventually be {chan: slope}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_slopes</span><span class="p">:</span>  <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="c1"># Function generators and triggers (used in ramping)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fgs</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">9</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_assigned_fgs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Generator</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># {chan: fg}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_trigs</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_assigned_triggers</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># {fg: trigger}</span>
+        <span class="c1"># Sync channels</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_syncoutputs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># {chan: syncoutput}</span>
+
+    <span class="k">def</span> <span class="nf">_load_state</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Used as part of initiaisation. DON&#39;T use _load_state() separately.\n</span>
+<span class="sd">        Updates internal book keeping of running function generators.</span>
+<span class="sd">        used triggers and active sync outputs.\n</span>
+<span class="sd">        Slopes can not be read/updated as it is not possible to</span>
+<span class="sd">        say if a generator is running because a slope has been assigned</span>
+<span class="sd">        or because it is being ramped direcly (by e.g. ramp_voltages_2d()).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Assumes that all variables and virtual</span>
+        <span class="c1"># parameters have been initialised (and read)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;ver 0&#39;</span><span class="p">)</span>  <span class="c1"># Just to be on the safe side</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_reset_bookkeeping</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">ch_idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_chans</span><span class="p">):</span>
+            <span class="n">chan</span> <span class="o">=</span> <span class="n">ch_idx</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="c1"># Check if the channels are being ramped</span>
+            <span class="c1"># It is not possible to find out if it has a slope assigned</span>
+            <span class="c1"># as it may be ramped explicitely by the user</span>
+            <span class="c1"># We assume that generators are running, but we cannot know</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;wav </span><span class="si">{</span><span class="n">chan</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">fg_str</span><span class="p">,</span> <span class="n">amplitude_str</span><span class="p">,</span> <span class="n">offset_str</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write_response</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+            <span class="n">amplitude</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">amplitude_str</span><span class="p">)</span>
+            <span class="n">offset</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">offset_str</span><span class="p">)</span>
+            <span class="n">fg</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">fg_str</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">fg</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">9</span><span class="p">):</span>
+                <span class="n">voltage</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">[</span><span class="n">ch_idx</span><span class="p">]</span><span class="o">.</span><span class="n">v</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+                <span class="n">time_now</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;fun </span><span class="si">{</span><span class="n">fg</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write_response</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+                <span class="n">waveform</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">response</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="c1"># Probably this driver is involved if a stair case is assigned</span>
+                <span class="k">if</span> <span class="n">waveform</span> <span class="o">==</span> <span class="n">Waveform</span><span class="o">.</span><span class="n">staircase</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">response</span><span class="p">)</span> <span class="o">==</span> <span class="mi">6</span><span class="p">:</span>
+                        <span class="n">step_length_ms</span><span class="p">,</span> <span class="n">no_steps</span><span class="p">,</span> <span class="n">rep</span><span class="p">,</span> <span class="n">rep_remain_str</span><span class="p">,</span> <span class="n">trigger</span> \
+                            <span class="o">=</span> <span class="n">response</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">6</span><span class="p">]</span>
+                        <span class="n">rep_remain</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">rep_remain_str</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">step_length_ms</span><span class="p">,</span> <span class="n">no_steps</span><span class="p">,</span> <span class="n">rep</span><span class="p">,</span> <span class="n">trigger</span> <span class="o">=</span> <span class="n">response</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">5</span><span class="p">]</span>
+                        <span class="n">rep_remain</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">rep</span><span class="p">)</span>
+                    <span class="n">ramp_time</span> <span class="o">=</span> <span class="mf">0.001</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">step_length_ms</span><span class="p">)</span> <span class="o">*</span> <span class="nb">int</span><span class="p">(</span><span class="n">no_steps</span><span class="p">)</span>
+                    <span class="n">ramp_remain</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="n">amplitude</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">):</span>
+                        <span class="n">ramp_remain</span> <span class="o">=</span> <span class="p">(</span><span class="n">amplitude</span><span class="o">+</span><span class="n">offset</span><span class="o">-</span><span class="n">voltage</span><span class="p">)</span><span class="o">/</span><span class="n">amplitude</span>
+                    <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">rep</span><span class="p">)</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                        <span class="n">time_end</span> <span class="o">=</span> <span class="n">time_now</span> <span class="o">+</span> <span class="mi">315360000</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">time_end</span> <span class="o">=</span> <span class="p">(</span><span class="n">ramp_remain</span> <span class="o">+</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">rep_remain</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span> \
+                                   <span class="o">*</span> <span class="n">ramp_time</span> <span class="o">+</span> <span class="n">time_now</span> <span class="o">+</span> <span class="mf">0.001</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">waveform</span> <span class="o">==</span> <span class="n">Waveform</span><span class="o">.</span><span class="n">sine</span><span class="p">:</span>
+                        <span class="n">period_ms</span><span class="p">,</span> <span class="n">rep</span><span class="p">,</span> <span class="n">rep_remain_str</span><span class="p">,</span> <span class="n">trigger</span> <span class="o">=</span> <span class="n">response</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">5</span><span class="p">]</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">period_ms</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">rep</span><span class="p">,</span> <span class="n">rep_remain_str</span><span class="p">,</span> <span class="n">trigger</span> <span class="o">=</span> <span class="n">response</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">6</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">rep</span><span class="p">)</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                        <span class="n">time_end</span> <span class="o">=</span> <span class="n">time_now</span> <span class="o">+</span> <span class="mi">315360000</span>  <span class="c1"># 10 years from now</span>
+                    <span class="k">else</span><span class="p">:</span>  <span class="c1"># +1 is just a safe guard</span>
+                        <span class="n">time_end</span> <span class="o">=</span> <span class="n">time_now</span> <span class="o">+</span> <span class="mf">0.001</span> \
+                                   <span class="o">*</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">rep_remain_str</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">period_ms</span><span class="p">)</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">_assigned_fgs</span><span class="p">[</span><span class="n">chan</span><span class="p">]</span> <span class="o">=</span> <span class="n">Generator</span><span class="p">(</span><span class="n">fg</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_assigned_fgs</span><span class="p">[</span><span class="n">chan</span><span class="p">]</span><span class="o">.</span><span class="n">t_end</span> <span class="o">=</span> <span class="n">time_end</span>
+                <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">trigger</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_assigned_triggers</span><span class="p">[</span><span class="n">fg</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">trigger</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">syn</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_syns</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;syn </span><span class="si">{</span><span class="n">syn</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                    <span class="n">syn_fg</span><span class="p">,</span> <span class="n">delay_ms</span><span class="p">,</span> <span class="n">duration_ms</span> <span class="o">=</span> \
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_write_response</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">syn_fg</span><span class="p">)</span> <span class="o">==</span> <span class="n">fg</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">[</span><span class="n">ch_idx</span><span class="p">]</span><span class="o">.</span><span class="n">sync</span><span class="o">.</span><span class="n">cache</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">syn</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">[</span><span class="n">ch_idx</span><span class="p">]</span><span class="o">.</span><span class="n">sync_delay</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">delay_ms</span><span class="p">)</span><span class="o">/</span><span class="mi">1000</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">[</span><span class="n">ch_idx</span><span class="p">]</span><span class="o">.</span><span class="n">sync_duration</span><span class="p">(</span>
+                            <span class="nb">float</span><span class="p">(</span><span class="n">duration_ms</span><span class="p">)</span><span class="o">/</span><span class="mi">1000</span><span class="p">)</span>
+
+<div class="viewcode-block" id="QDac.reset">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.QDevil.html#qcodes_contrib_drivers.drivers.QDevil.QDAC1.QDac.reset">[docs]</a>
+    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">update_currents</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Resets the instrument setting all channels to zero output voltage</span>
+<span class="sd">        and all parameters to their default values, including removing any</span>
+<span class="sd">        assigned sync putputs, function generators, triggers etc.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># In case the QDAC has been switched off/on</span>
+        <span class="c1"># clear the io buffer and set verbose False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">device_clear</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;ver 0&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">cal</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="c1"># Resetting all slopes first will cause v.set() disconnect generators</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">num_chans</span><span class="p">]</span><span class="o">.</span><span class="n">slope</span><span class="p">(</span><span class="s1">&#39;Inf&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">num_chans</span><span class="p">]</span><span class="o">.</span><span class="n">v</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">num_chans</span><span class="p">]</span><span class="o">.</span><span class="n">mode</span><span class="p">(</span><span class="n">Mode</span><span class="o">.</span><span class="n">vhigh_ihigh</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">num_chans</span><span class="p">]</span><span class="o">.</span><span class="n">sync</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">num_chans</span><span class="p">]</span><span class="o">.</span><span class="n">sync_delay</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">num_chans</span><span class="p">]</span><span class="o">.</span><span class="n">sync_duration</span><span class="p">(</span><span class="mf">0.01</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">update_currents</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">num_chans</span><span class="p">]</span><span class="o">.</span><span class="n">i</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mode_force</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_reset_bookkeeping</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="QDac.snapshot_base">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.QDevil.html#qcodes_contrib_drivers.drivers.QDevil.QDAC1.QDac.snapshot_base">[docs]</a>
+    <span class="k">def</span> <span class="nf">snapshot_base</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">update</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="n">params_to_skip_update</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="n">update_currents</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_update_currents</span> <span class="ow">and</span> <span class="n">update</span> <span class="ow">is</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="n">update</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_update_cache</span><span class="p">(</span><span class="n">update_currents</span><span class="o">=</span><span class="n">update_currents</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_get_status_performed</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="c1"># call _update_cache rather than getting the status individually for</span>
+        <span class="c1"># each parameter. We set _get_status_performed to True</span>
+        <span class="c1"># to indicate that each update channel does not need to call this</span>
+        <span class="c1"># function as opposed to when snapshot is called on an individual</span>
+        <span class="c1"># channel</span>
+        <span class="n">snap</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">snapshot_base</span><span class="p">(</span>
+                                <span class="n">update</span><span class="o">=</span><span class="n">update</span><span class="p">,</span>
+                                <span class="n">params_to_skip_update</span><span class="o">=</span><span class="n">params_to_skip_update</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_get_status_performed</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="n">snap</span></div>
+
+
+    <span class="c1">#########################</span>
+    <span class="c1"># Channel gets/sets</span>
+    <span class="c1">#########################</span>
+
+    <span class="k">def</span> <span class="nf">_get_voltage</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chan</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Clear the output from the instrument and ask for the current voltage</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            chan (int): The 1-indexed channel number</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clear_read_queue</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;set </span><span class="si">{</span><span class="n">chan</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write_response</span>
+
+    <span class="k">def</span> <span class="nf">_set_voltage</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chan</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">v_set</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        set_cmd for the chXX_v parameter</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            chan: The 1-indexed channel number</span>
+<span class="sd">            v_set: The target voltage</span>
+
+<span class="sd">        If a finite slope has been assigned, a function generator will</span>
+<span class="sd">        ramp the voltage.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">slope</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_slopes</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">chan</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">slope</span><span class="p">:</span>
+            <span class="c1"># Should not be necessary to wav here.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;wav </span><span class="si">{ch}</span><span class="s1"> 0 0 0;set </span><span class="si">{ch}</span><span class="s1"> </span><span class="si">{voltage:.6f}</span><span class="s1">&#39;</span>
+                       <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ch</span><span class="o">=</span><span class="n">chan</span><span class="p">,</span> <span class="n">voltage</span><span class="o">=</span><span class="n">v_set</span><span class="p">))</span>
+            <span class="k">return</span>
+        <span class="c1"># We need .get and not cache/get_latest in case a ramp</span>
+        <span class="c1"># was interrupted</span>
+        <span class="n">v_start</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">[</span><span class="n">chan</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">v</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="n">v_span</span> <span class="o">=</span> <span class="n">v_set</span> <span class="o">-</span> <span class="n">v_start</span>
+        <span class="n">v_amplitude</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">v_span</span><span class="p">)</span>
+        <span class="n">s_duration</span> <span class="o">=</span> <span class="n">v_amplitude</span> <span class="o">/</span> <span class="n">slope</span>
+        <span class="n">LOG</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Slope: </span><span class="si">{</span><span class="n">slope</span><span class="si">}</span><span class="s1">, time: </span><span class="si">{</span><span class="n">s_duration</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">v_amplitude</span> <span class="o">&lt;=</span> <span class="mi">10</span><span class="p">:</span>
+            <span class="c1"># SYNCing happens inside ramp_voltages</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ramp_voltages</span><span class="p">([</span><span class="n">chan</span><span class="p">],</span> <span class="p">[</span><span class="n">v_start</span><span class="p">],</span> <span class="p">[</span><span class="n">v_set</span><span class="p">],</span> <span class="n">s_duration</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="c1"># Divide sweep into two parts</span>
+        <span class="n">v_half_span</span> <span class="o">=</span> <span class="n">v_span</span> <span class="o">/</span> <span class="mi">2</span>
+        <span class="n">s_half_duration</span> <span class="o">=</span> <span class="n">s_duration</span> <span class="o">/</span> <span class="mi">2</span>
+        <span class="n">v_half_way</span> <span class="o">=</span> <span class="n">v_start</span> <span class="o">+</span> <span class="n">v_half_span</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ramp_voltages</span><span class="p">([</span><span class="n">chan</span><span class="p">],</span> <span class="p">[</span><span class="n">v_start</span><span class="p">],</span> <span class="p">[</span><span class="n">v_half_way</span><span class="p">],</span> <span class="n">s_half_duration</span><span class="p">)</span>
+        <span class="n">LOG</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Trying to ramp more than 10 volts. &#39;</span>
+            <span class="s1">&#39;Waiting for first ramp to finish&#39;</span><span class="p">)</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">s_half_duration</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ramp_voltages</span><span class="p">([</span><span class="n">chan</span><span class="p">],</span> <span class="p">[</span><span class="n">v_half_way</span><span class="p">],</span> <span class="p">[</span><span class="n">v_set</span><span class="p">],</span> <span class="n">s_half_duration</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_set_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chan</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">new_mode</span><span class="p">:</span> <span class="n">Mode</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        set_cmd for the QDAC&#39;s mode (combined voltage and current sense range).</span>
+<span class="sd">        It is not possible to switch from voltage range without setting the</span>
+<span class="sd">        the voltage to zero first or set the global mode_force parameter True.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">def</span> <span class="nf">_clipto</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">min_</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">max_</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+            <span class="n">errmsg</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;Voltage is outside the bounds of the new voltage range&quot;</span>
+                      <span class="s2">&quot; and is therefore clipped.&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">value</span> <span class="o">&gt;</span> <span class="n">max_</span><span class="p">:</span>
+                <span class="n">LOG</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">errmsg</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">max_</span>
+            <span class="k">elif</span> <span class="n">value</span> <span class="o">&lt;</span> <span class="n">min_</span><span class="p">:</span>
+                <span class="n">LOG</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">errmsg</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">min_</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">value</span>
+
+        <span class="c1"># It is not possible ot say if the channel is connected to</span>
+        <span class="c1"># a generator, so we need to ask.</span>
+        <span class="k">def</span> <span class="nf">wav_or_set_msg</span><span class="p">(</span><span class="n">chan</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">new_voltage</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;wav </span><span class="si">{</span><span class="n">chan</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">fw_str</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write_response</span>
+            <span class="n">gen</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">fw_str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">gen</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="c1"># The amplitude must be set to zero to avoid potential overflow</span>
+                <span class="c1"># Assuming that voltage range is not changed during a ramp</span>
+                <span class="k">return</span> <span class="s1">&#39;wav </span><span class="si">{}</span><span class="s1"> </span><span class="si">{}</span><span class="s1"> </span><span class="si">{:.6f}</span><span class="s1"> </span><span class="si">{:.6f}</span><span class="s1">&#39;</span>\
+                        <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">chan</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">gen</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="n">new_voltage</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;set </span><span class="si">{</span><span class="n">chan</span><span class="si">}</span><span class="s1"> </span><span class="si">{</span><span class="n">new_voltage</span><span class="si">:</span><span class="s1">.6f</span><span class="si">}</span><span class="s1">&#39;</span>
+
+        <span class="n">old_mode</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">[</span><span class="n">chan</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">mode</span><span class="o">.</span><span class="n">cache</span><span class="p">()</span>
+        <span class="n">new_vrange</span> <span class="o">=</span> <span class="n">new_mode</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">v</span>
+        <span class="n">old_vrange</span> <span class="o">=</span> <span class="n">old_mode</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">v</span>
+        <span class="n">new_irange</span> <span class="o">=</span> <span class="n">new_mode</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">i</span>
+        <span class="n">old_irange</span> <span class="o">=</span> <span class="n">old_mode</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">i</span>
+        <span class="n">message</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">max_zero_voltage</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="mf">20e-6</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span> <span class="mf">3e-6</span><span class="p">}</span>
+        <span class="n">NON_ZERO_VOLTAGE_MSG</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="s1">&#39;Please set the voltage to zero before changing the voltage&#39;</span>
+                <span class="s1">&#39; range in order to avoid jumps or spikes.&#39;</span>
+                <span class="s1">&#39; Or set mode_force=True to allow voltage range change for&#39;</span>
+                <span class="s1">&#39; non-zero voltages.&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">old_mode</span> <span class="o">==</span> <span class="n">new_mode</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="c1"># If the voltage range is going to change we have to take care of</span>
+        <span class="c1"># setting the voltage after the switch, and therefore read it first</span>
+        <span class="c1"># We also need to make sure than only one of the voltage/current</span>
+        <span class="c1"># relays is on at a time (otherwise the firmware will enforce it).</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="n">new_irange</span> <span class="o">!=</span> <span class="n">old_irange</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">new_vrange</span> <span class="o">==</span> <span class="n">old_vrange</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="c1"># Only the current sensor relay has to switch:</span>
+            <span class="n">message</span> <span class="o">+=</span> <span class="sa">f</span><span class="s1">&#39;cur </span><span class="si">{</span><span class="n">chan</span><span class="si">}</span><span class="s1"> </span><span class="si">{</span><span class="n">new_irange</span><span class="si">}</span><span class="s1">&#39;</span>
+        <span class="c1"># The voltage relay (also) has to switch:</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Current sensor relay on-&gt;off before voltage relay off-&gt;on:</span>
+            <span class="k">if</span> <span class="n">new_irange</span> <span class="o">&lt;</span> <span class="n">old_irange</span> <span class="ow">and</span> <span class="n">new_vrange</span> <span class="o">&gt;</span> <span class="n">old_vrange</span><span class="p">:</span>
+                <span class="n">message</span> <span class="o">+=</span> <span class="sa">f</span><span class="s1">&#39;cur </span><span class="si">{</span><span class="n">chan</span><span class="si">}</span><span class="s1"> </span><span class="si">{</span><span class="n">new_irange</span><span class="si">}</span><span class="s1">;&#39;</span>
+            <span class="n">old_voltage</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">[</span><span class="n">chan</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">v</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+            <span class="c1"># Check if voltage is non-zero and mode_force is off</span>
+            <span class="k">if</span> <span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">mode_force</span><span class="p">()</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">)</span> <span class="ow">and</span>
+                    <span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">old_voltage</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">max_zero_voltage</span><span class="p">[</span><span class="n">old_vrange</span><span class="p">])):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">NON_ZERO_VOLTAGE_MSG</span><span class="p">)</span>
+            <span class="n">new_voltage</span> <span class="o">=</span> <span class="n">_clipto</span><span class="p">(</span>
+                    <span class="n">old_voltage</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">vranges</span><span class="p">[</span><span class="n">chan</span><span class="p">][</span><span class="n">new_vrange</span><span class="p">][</span><span class="s1">&#39;Min&#39;</span><span class="p">],</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">vranges</span><span class="p">[</span><span class="n">chan</span><span class="p">][</span><span class="n">new_vrange</span><span class="p">][</span><span class="s1">&#39;Max&#39;</span><span class="p">])</span>
+            <span class="n">message</span> <span class="o">+=</span> <span class="sa">f</span><span class="s1">&#39;vol </span><span class="si">{</span><span class="n">chan</span><span class="si">}</span><span class="s1"> </span><span class="si">{</span><span class="n">new_vrange</span><span class="si">}</span><span class="s1">;&#39;</span>
+            <span class="n">message</span> <span class="o">+=</span> <span class="n">wav_or_set_msg</span><span class="p">(</span><span class="n">chan</span><span class="p">,</span> <span class="n">new_voltage</span><span class="p">)</span>
+            <span class="c1"># Current sensor relay off-&gt;on after voltage relay on-&gt;off:</span>
+            <span class="k">if</span> <span class="n">new_irange</span> <span class="o">&gt;</span> <span class="n">old_irange</span> <span class="ow">and</span> <span class="n">new_vrange</span> <span class="o">&lt;</span> <span class="n">old_vrange</span><span class="p">:</span>
+                <span class="n">message</span> <span class="o">+=</span> <span class="sa">f</span><span class="s1">&#39;;cur </span><span class="si">{</span><span class="n">chan</span><span class="si">}</span><span class="s1"> </span><span class="si">{</span><span class="n">new_irange</span><span class="si">}</span><span class="s1">&#39;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">[</span><span class="n">chan</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">v</span><span class="o">.</span><span class="n">vals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_v_vals</span><span class="p">(</span><span class="n">chan</span><span class="p">,</span> <span class="n">new_vrange</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">[</span><span class="n">chan</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">v</span><span class="o">.</span><span class="n">cache</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">new_voltage</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_v_vals</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chan</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">vrange_int</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">vals</span><span class="o">.</span><span class="n">Numbers</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the validator for the specified voltage range.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">vals</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vranges</span><span class="p">[</span><span class="n">chan</span><span class="p">][</span><span class="n">vrange_int</span><span class="p">][</span><span class="s1">&#39;Min&#39;</span><span class="p">],</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">vranges</span><span class="p">[</span><span class="n">chan</span><span class="p">][</span><span class="n">vrange_int</span><span class="p">][</span><span class="s1">&#39;Max&#39;</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">_update_v_validators</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Command for setting all &#39;v&#39; limits (&#39;vals&#39;) of all channels to the</span>
+<span class="sd">        actual calibrated output limits for the range each individual channel</span>
+<span class="sd">        is currently in.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">chan</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_chans</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+            <span class="n">vrange</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">[</span><span class="n">chan</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">mode</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">v</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">[</span><span class="n">chan</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">v</span><span class="o">.</span><span class="n">vals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_v_vals</span><span class="p">(</span><span class="n">chan</span><span class="p">,</span> <span class="n">vrange</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_num_verbose</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Turns a return value from the QDac into a number.</span>
+<span class="sd">        If the QDac is in verbose mode, this involves stripping off the</span>
+<span class="sd">        value descriptor.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_verbose</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;: &#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_current_parser</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parser for chXX_i parameter (converts from uA to A)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="mf">1e-6</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_verbose</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_update_cache</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">update_currents</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Function to query the instrument and get the status of all channels.</span>
+<span class="sd">        Takes a while to finish.</span>
+
+<span class="sd">        The `status` call generates 27 or 51 lines of output. Send the command</span>
+<span class="sd">        and read the first one, which is the software version line</span>
+<span class="sd">        the full output looks like:</span>
+<span class="sd">        Software Version: 1.07\r\n</span>
+<span class="sd">        Channel\tOut V\t\tVoltage range\tCurrent range\n</span>
+<span class="sd">        \n</span>
+<span class="sd">        8\t  0.000000\t\tX 1\t\tpA\n</span>
+<span class="sd">        7\t  0.000000\t\tX 1\t\tpA\n</span>
+<span class="sd">        ... (all 24/48 channels like this)</span>
+<span class="sd">        (no termination afterward besides the \n ending the last channel)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">irange_trans</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;hi cur&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;lo cur&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
+        <span class="n">vrange_trans</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;X 1&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;X 0.1&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
+
+        <span class="c1"># Status call, check the</span>
+        <span class="n">version_line</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s1">&#39;status&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">version_line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;Software Version: &#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">version</span> <span class="o">=</span> <span class="n">version_line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;: &#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_wait_and_clear</span><span class="p">()</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;unrecognized version line: &#39;</span> <span class="o">+</span> <span class="n">version_line</span><span class="p">)</span>
+
+        <span class="c1"># Check header line</span>
+        <span class="n">header_line</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="n">headers</span> <span class="o">=</span> <span class="n">header_line</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\r\n</span><span class="s1">&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">expected_headers</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;channel&#39;</span><span class="p">,</span> <span class="s1">&#39;out v&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;voltage range&#39;</span><span class="p">,</span>
+                            <span class="s1">&#39;current range&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">headers</span> <span class="o">!=</span> <span class="n">expected_headers</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;unrecognized header line: &#39;</span> <span class="o">+</span> <span class="n">header_line</span><span class="p">)</span>
+
+        <span class="n">chans_left</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_chan_range</span><span class="p">)</span>
+        <span class="k">while</span> <span class="n">chans_left</span><span class="p">:</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">line</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">chanstr</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">vrange</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">irange</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">chan</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">chanstr</span><span class="p">)</span>
+            <span class="n">vrange_int</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">vrange_trans</span><span class="p">[</span><span class="n">vrange</span><span class="o">.</span><span class="n">strip</span><span class="p">()])</span>
+            <span class="n">irange_int</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">irange_trans</span><span class="p">[</span><span class="n">irange</span><span class="o">.</span><span class="n">strip</span><span class="p">()])</span>
+            <span class="n">mode</span> <span class="o">=</span> <span class="n">Mode</span><span class="p">((</span><span class="n">vrange_int</span><span class="p">,</span> <span class="n">irange_int</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">[</span><span class="n">chan</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">mode</span><span class="o">.</span><span class="n">cache</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">mode</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">[</span><span class="n">chan</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">v</span><span class="o">.</span><span class="n">cache</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">v</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">[</span><span class="n">chan</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">v</span><span class="o">.</span><span class="n">vals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_v_vals</span><span class="p">(</span><span class="n">chan</span><span class="p">,</span> <span class="n">vrange_int</span><span class="p">)</span>
+            <span class="n">chans_left</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">chan</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">update_currents</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">chan</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_chan_range</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">[</span><span class="n">chan</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">i</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_setsync</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chan</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">sync</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        set_cmd for the chXX_sync parameter.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            chan: The channel number (1-48 or 1-24)</span>
+<span class="sd">            sync: The associated sync output (1-3 on 24 ch units</span>
+<span class="sd">            or 1-5 on 48 ch units). 0 means &#39;unassign&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">chan</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_chans</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s1">&#39;Channel number must be 1-</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">num_chans</span><span class="si">}</span><span class="s1">.&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">sync</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">oldsync</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">[</span><span class="n">chan</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">sync</span><span class="o">.</span><span class="n">cache</span><span class="p">()</span>
+            <span class="c1"># try to remove the sync from internal bookkeeping</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_syncoutputs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">chan</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="c1"># free the previously assigned sync</span>
+            <span class="k">if</span> <span class="n">oldsync</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;syn </span><span class="si">{</span><span class="n">oldsync</span><span class="si">}</span><span class="s1"> 0 0 0&#39;</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="c1"># Make sure to clear hardware an _syncoutpus appropriately</span>
+        <span class="k">if</span> <span class="n">chan</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_syncoutputs</span><span class="p">:</span>
+            <span class="c1"># Changing SYNC port for a channel</span>
+            <span class="n">oldsync</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">[</span><span class="n">chan</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">sync</span><span class="o">.</span><span class="n">cache</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">sync</span> <span class="o">!=</span> <span class="n">oldsync</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;syn </span><span class="si">{</span><span class="n">oldsync</span><span class="si">}</span><span class="s1"> 0 0 0&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">sync</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_syncoutputs</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="c1"># Assigning an already used SYNC port to a different channel</span>
+            <span class="n">oldchan</span> <span class="o">=</span> <span class="p">[</span><span class="n">ch</span> <span class="k">for</span> <span class="n">ch</span><span class="p">,</span> <span class="n">sy</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_syncoutputs</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+                       <span class="k">if</span> <span class="n">sy</span> <span class="o">==</span> <span class="n">sync</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_syncoutputs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">oldchan</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;syn </span><span class="si">{</span><span class="n">sync</span><span class="si">}</span><span class="s1"> 0 0 0&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_syncoutputs</span><span class="p">[</span><span class="n">chan</span><span class="p">]</span> <span class="o">=</span> <span class="n">sync</span>
+        <span class="k">return</span>
+
+    <span class="k">def</span> <span class="nf">_getsync</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chan</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        get_cmd of the chXX_sync parameter</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_syncoutputs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">chan</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+<div class="viewcode-block" id="QDac.print_syncs">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.QDevil.html#qcodes_contrib_drivers.drivers.QDevil.QDAC1.QDac.print_syncs">[docs]</a>
+    <span class="k">def</span> <span class="nf">print_syncs</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Print assigned SYNC ports, sorted by channel number</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">chan</span><span class="p">,</span> <span class="n">sync</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_syncoutputs</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Channel </span><span class="si">{</span><span class="n">chan</span><span class="si">}</span><span class="s1">, SYNC: </span><span class="si">{</span><span class="n">sync</span><span class="si">}</span><span class="s1"> (V/s)&#39;</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_setslope</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chan</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">slope</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        set_cmd for the chXX_slope parameter, the maximum slope of a channel.</span>
+<span class="sd">        With a finite slope the channel will be ramped using a generator.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            chan: The channel number (1-24 or 1-48)</span>
+<span class="sd">            slope: The slope in V/s.</span>
+<span class="sd">            Write &#39;Inf&#39; to release the channelas slope channel and to release</span>
+<span class="sd">            the associated function generator. The output rise time will now</span>
+<span class="sd">            only depend on the analog electronics.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">chan</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_chans</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s1">&#39;Channel number must be 1-</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">num_chans</span><span class="si">}</span><span class="s1">.&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">slope</span> <span class="o">==</span> <span class="s1">&#39;Inf&#39;</span><span class="p">:</span>
+            <span class="c1"># Set the channel in DC mode</span>
+            <span class="n">v_set</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">[</span><span class="n">chan</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">v</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;set </span><span class="si">{ch}</span><span class="s1"> </span><span class="si">{voltage:.6f}</span><span class="s1">;wav </span><span class="si">{ch}</span><span class="s1"> 0 0 0&#39;</span>
+                       <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ch</span><span class="o">=</span><span class="n">chan</span><span class="p">,</span> <span class="n">voltage</span><span class="o">=</span><span class="n">v_set</span><span class="p">))</span>
+
+            <span class="c1"># Now release the function generator and fg trigger (if possible)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">fg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_assigned_fgs</span><span class="p">[</span><span class="n">chan</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_assigned_fgs</span><span class="p">[</span><span class="n">chan</span><span class="p">]</span><span class="o">.</span><span class="n">t_end</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_assigned_triggers</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">fg</span><span class="o">.</span><span class="n">fg</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="k">pass</span>
+
+            <span class="c1"># Remove a sync output, if one was assigned</span>
+            <span class="k">if</span> <span class="n">chan</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_syncoutputs</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">[</span><span class="n">chan</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">sync</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="c1"># Now clear the assigned slope</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_slopes</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">chan</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_slopes</span><span class="p">[</span><span class="n">chan</span><span class="p">]</span> <span class="o">=</span> <span class="n">slope</span>
+
+    <span class="k">def</span> <span class="nf">_getslope</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chan</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        get_cmd of the chXX_slope parameter</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_slopes</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">chan</span><span class="p">,</span> <span class="s1">&#39;Inf&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="QDac.print_slopes">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.QDevil.html#qcodes_contrib_drivers.drivers.QDevil.QDAC1.QDac.print_slopes">[docs]</a>
+    <span class="k">def</span> <span class="nf">print_slopes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Print the finite slopes assigned to channels, sorted by channel number</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">chan</span><span class="p">,</span> <span class="n">slope</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_slopes</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Channel </span><span class="si">{</span><span class="n">chan</span><span class="si">}</span><span class="s1">, slope: </span><span class="si">{</span><span class="n">slope</span><span class="si">}</span><span class="s1"> (V/s)&#39;</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_get_minmax_outputvoltage</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">vrange_int</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns a dictionary of the calibrated Min and Max output</span>
+<span class="sd">        voltages of &#39;channel&#39; for the voltage given range (0,1) given by</span>
+<span class="sd">        &#39;vrange_int&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># For firmware 1.07 verbose mode and nn verbose mode give verbose</span>
+        <span class="c1"># result, So this is designed for verbose mode</span>
+        <span class="k">if</span> <span class="n">channel</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_chans</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s1">&#39;Channel number must be 1-</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">num_chans</span><span class="si">}</span><span class="s1">.&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">vrange_int</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Range must be 0 or 1.&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;rang </span><span class="si">{</span><span class="n">channel</span><span class="si">}</span><span class="s1"> </span><span class="si">{</span><span class="n">vrange_int</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">fw_str</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write_response</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;Min&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">fw_str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;MIN:&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;MAX&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()),</span>
+                <span class="s1">&#39;Max&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">fw_str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;MAX:&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">())}</span>
+
+    <span class="k">def</span> <span class="nf">_update_voltage_ranges</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Get all calibrated min/max output values, requires verbose on</span>
+        <span class="c1"># in firmware version 1.07</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;ver 1&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vranges</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">chan</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_chan_range</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">vranges</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+                <span class="p">{</span><span class="n">chan</span><span class="p">:</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_minmax_outputvoltage</span><span class="p">(</span><span class="n">chan</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+                        <span class="mi">1</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_minmax_outputvoltage</span><span class="p">(</span><span class="n">chan</span><span class="p">,</span> <span class="mi">1</span><span class="p">)}})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;ver 0&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="QDac.write">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.QDevil.html#qcodes_contrib_drivers.drivers.QDevil.QDAC1.QDac.write">[docs]</a>
+    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmd</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        QDac always returns something even from set commands, even when</span>
+<span class="sd">        verbose mode is off, so we&#39;ll override write to take this out</span>
+<span class="sd">        if you want to use this response, we put it in self._write_response</span>
+<span class="sd">        (but only for the very last write call)</span>
+
+<span class="sd">        In this method we expect to read one termination char per command. As</span>
+<span class="sd">        commands are concatenated by `;` we count the number of concatenated</span>
+<span class="sd">        commands as count(&#39;;&#39;) + 1 e.g. &#39;wav 1 1 1 0;fun 2 1 100 1 1&#39; is two</span>
+<span class="sd">        commands. Note that only the response of the last command will be</span>
+<span class="sd">        available in `_write_response`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">LOG</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Writing to instrument </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">cmd</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">visa_handle</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">cmd</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_write_response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">visa_handle</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write_response</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;Error: &#39;</span><span class="p">):</span>
+                <span class="n">LOG</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_write_response</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="QDac.read">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.QDevil.html#qcodes_contrib_drivers.drivers.QDevil.QDAC1.QDac.read">[docs]</a>
+    <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">visa_handle</span><span class="o">.</span><span class="n">read</span><span class="p">()</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_wait_and_clear</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delay</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">delay</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">visa_handle</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+
+<div class="viewcode-block" id="QDac.clear_read_queue">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.QDevil.html#qcodes_contrib_drivers.drivers.QDevil.QDAC1.QDac.clear_read_queue">[docs]</a>
+    <span class="k">def</span> <span class="nf">clear_read_queue</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Flush the VISA message queue of the instrument</span>
+
+<span class="sd">        Waits 1 ms between each read.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Sequence[str]: Messages lingering in queue</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">lingering</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">timeout</span><span class="o">.</span><span class="n">set_to</span><span class="p">(</span><span class="mf">0.001</span><span class="p">):</span>
+            <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">message</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">visa_handle</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+                <span class="k">except</span> <span class="n">pyvisa</span><span class="o">.</span><span class="n">VisaIOError</span><span class="p">:</span>
+                    <span class="k">break</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">lingering</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">lingering</span></div>
+
+
+<div class="viewcode-block" id="QDac.connect_message">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.QDevil.html#qcodes_contrib_drivers.drivers.QDevil.QDAC1.QDac.connect_message">[docs]</a>
+    <span class="k">def</span> <span class="nf">connect_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                        <span class="n">idn_param</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;IDN&#39;</span><span class="p">,</span>
+                        <span class="n">begin_time</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Override of the standard Instrument class connect_message.</span>
+<span class="sd">        Usually, the response to `*IDN?` is printed. Here, the</span>
+<span class="sd">        software version is printed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">visa_handle</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;version&#39;</span><span class="p">)</span>
+        <span class="n">LOG</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Connected to QDAC on </span><span class="si">{}</span><span class="s1">, </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">_address</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">visa_handle</span><span class="o">.</span><span class="n">read</span><span class="p">()))</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_get_firmware_version</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Check if the &quot;version&quot; command reponds. If so we probably have a QDevil</span>
+<span class="sd">        QDAC, and the version number is returned. Otherwise 0.0 is returned.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;version&#39;</span><span class="p">)</span>
+        <span class="n">fw_str</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write_response</span>
+        <span class="k">if</span> <span class="p">((</span><span class="ow">not</span> <span class="p">(</span><span class="s2">&quot;Unrecognized command&quot;</span> <span class="ow">in</span> <span class="n">fw_str</span><span class="p">))</span>
+                <span class="ow">and</span> <span class="p">(</span><span class="s2">&quot;Software Version: &quot;</span> <span class="ow">in</span> <span class="n">fw_str</span><span class="p">)):</span>
+            <span class="n">fw_version</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_write_response</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;Software Version: &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">fw_version</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">return</span> <span class="n">fw_version</span>
+
+    <span class="k">def</span> <span class="nf">_get_number_of_channels</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the number of channels for the instrument</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;boardNum&#39;</span><span class="p">)</span>
+        <span class="n">fw_str</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write_response</span>
+        <span class="k">return</span> <span class="mi">8</span><span class="o">*</span><span class="nb">int</span><span class="p">(</span><span class="n">fw_str</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">&quot;numberOfBoards:&quot;</span><span class="p">))</span>
+
+<div class="viewcode-block" id="QDac.print_overview">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.QDevil.html#qcodes_contrib_drivers.drivers.QDevil.QDAC1.QDac.print_overview">[docs]</a>
+    <span class="k">def</span> <span class="nf">print_overview</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">update_currents</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span>  <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Pretty-prints the status of the QDac</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_cache</span><span class="p">(</span><span class="n">update_currents</span><span class="o">=</span><span class="n">update_currents</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_chans</span><span class="p">):</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Channel </span><span class="si">{</span><span class="n">ii</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2"> </span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;    Voltage: </span><span class="si">{}</span><span class="s2"> (</span><span class="si">{}</span><span class="s2">).</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span><span class="o">.</span><span class="n">v</span><span class="o">.</span><span class="n">cache</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span><span class="o">.</span><span class="n">v</span><span class="o">.</span><span class="n">unit</span>
+            <span class="p">)</span>
+            <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;    Current: </span><span class="si">{}</span><span class="s2"> (</span><span class="si">{}</span><span class="s2">).</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span><span class="o">.</span><span class="n">i</span><span class="o">.</span><span class="n">cache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">get_if_invalid</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span><span class="o">.</span><span class="n">i</span><span class="o">.</span><span class="n">unit</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">line</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;    Mode: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span><span class="o">.</span><span class="n">mode</span><span class="o">.</span><span class="n">cache</span><span class="p">()</span><span class="o">.</span><span class="n">get_label</span><span class="p">()</span><span class="si">}</span><span class="s2">.</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;    Slope: </span><span class="si">{}</span><span class="s2"> (</span><span class="si">{}</span><span class="s2">).</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span><span class="o">.</span><span class="n">slope</span><span class="o">.</span><span class="n">cache</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span><span class="o">.</span><span class="n">slope</span><span class="o">.</span><span class="n">unit</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span><span class="o">.</span><span class="n">sync</span><span class="o">.</span><span class="n">cache</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">line</span> <span class="o">+=</span> <span class="s1">&#39;    Sync Out: </span><span class="si">{}</span><span class="s1">, Delay: </span><span class="si">{}</span><span class="s1"> (</span><span class="si">{}</span><span class="s1">), &#39;</span>\
+                        <span class="s1">&#39;Duration: </span><span class="si">{}</span><span class="s1"> (</span><span class="si">{}</span><span class="s1">).</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span><span class="o">.</span><span class="n">sync</span><span class="o">.</span><span class="n">cache</span><span class="p">(),</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span><span class="o">.</span><span class="n">sync_delay</span><span class="o">.</span><span class="n">cache</span><span class="p">(),</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span><span class="o">.</span><span class="n">sync_delay</span><span class="o">.</span><span class="n">unit</span><span class="p">,</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span><span class="o">.</span><span class="n">sync_duration</span><span class="o">.</span><span class="n">cache</span><span class="p">(),</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span><span class="o">.</span><span class="n">sync_duration</span><span class="o">.</span><span class="n">unit</span><span class="p">,</span>
+                        <span class="p">)</span>
+
+            <span class="nb">print</span><span class="p">(</span><span class="n">line</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_get_functiongenerator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chan</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Function for getting a free generator (of 8 available) for a channel.</span>
+<span class="sd">        Used as helper function for ramp_voltages, but may also be used if the</span>
+<span class="sd">        user wants to use a function generator for something else.</span>
+<span class="sd">        If there are no free generators this function will wait for up to</span>
+<span class="sd">        fgs_timeout for one to be ready.</span>
+
+<span class="sd">        To mark a function generator as available for others set</span>
+<span class="sd">        self._assigned_fgs[chan].t_end = 0</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            chan: (1..24/48) the channel for which a function generator is</span>
+<span class="sd">                  requested.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">fgs_timeout</span> <span class="o">=</span> <span class="mi">2</span>  <span class="c1"># Max time to wait for next available generator</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_assigned_fgs</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">8</span><span class="p">:</span>
+            <span class="n">fg</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fgs</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span>
+                        <span class="p">{</span><span class="n">g</span><span class="o">.</span><span class="n">fg</span> <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_assigned_fgs</span><span class="o">.</span><span class="n">values</span><span class="p">()}))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_assigned_fgs</span><span class="p">[</span><span class="n">chan</span><span class="p">]</span> <span class="o">=</span> <span class="n">Generator</span><span class="p">(</span><span class="n">fg</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># If no available fgs, see if one is soon to be ready</span>
+            <span class="c1"># Nte, this does not handle if teh user has assigned the</span>
+            <span class="c1"># same fg to multiple channels cheating the driver</span>
+            <span class="n">time_now</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="n">available_fgs_chans</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">fgs_t_end_ok</span> <span class="o">=</span> <span class="p">[</span><span class="n">g</span><span class="o">.</span><span class="n">t_end</span> <span class="k">for</span> <span class="n">chan</span><span class="p">,</span> <span class="n">g</span>
+                            <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_assigned_fgs</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+                            <span class="k">if</span> <span class="n">g</span><span class="o">.</span><span class="n">t_end</span> <span class="o">&lt;</span> <span class="n">time_now</span><span class="o">+</span><span class="n">fgs_timeout</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fgs_t_end_ok</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">first_ready_t</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">fgs_t_end_ok</span><span class="p">)</span>
+                <span class="n">available_fgs_chans</span> <span class="o">=</span> <span class="p">[</span><span class="n">chan</span> <span class="k">for</span> <span class="n">chan</span><span class="p">,</span> <span class="n">g</span>
+                                       <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_assigned_fgs</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+                                       <span class="k">if</span> <span class="n">g</span><span class="o">.</span><span class="n">t_end</span> <span class="o">==</span> <span class="n">first_ready_t</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">first_ready_t</span> <span class="o">&gt;</span> <span class="n">time_now</span><span class="p">:</span>
+                    <span class="n">LOG</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;&#39;&#39;</span>
+<span class="s1">                    Trying to ramp more channels than there are generators.</span><span class="se">\n</span>
+<span class="s1">                    Waiting for ramp generator to be released&#39;&#39;&#39;</span><span class="p">)</span>
+                    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">first_ready_t</span> <span class="o">-</span> <span class="n">time_now</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">available_fgs_chans</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">oldchan</span> <span class="o">=</span> <span class="n">available_fgs_chans</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">fg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_assigned_fgs</span><span class="p">[</span><span class="n">oldchan</span><span class="p">]</span><span class="o">.</span><span class="n">fg</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_assigned_fgs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">oldchan</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_assigned_fgs</span><span class="p">[</span><span class="n">chan</span><span class="p">]</span> <span class="o">=</span> <span class="n">Generator</span><span class="p">(</span><span class="n">fg</span><span class="p">)</span>
+                <span class="c1"># Set the old channel in DC mode</span>
+                <span class="n">v_set</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">[</span><span class="n">oldchan</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">v</span><span class="o">.</span><span class="n">cache</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;set </span><span class="si">{ch}</span><span class="s1"> </span><span class="si">{voltage:.6f}</span><span class="s1">;wav </span><span class="si">{ch}</span><span class="s1"> 0 0 0&#39;</span>
+                           <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ch</span><span class="o">=</span><span class="n">oldchan</span><span class="p">,</span> <span class="n">voltage</span><span class="o">=</span><span class="n">v_set</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;&#39;&#39;</span>
+<span class="s1">                Trying to ramp more channels than there are generators</span>
+<span class="s1">                available. Please insert delays allowing channels to finish</span>
+<span class="s1">                ramping before trying to ramp other channels, or reduce the</span>
+<span class="s1">                number of ramped channels. Or increase fgs_timeout.&#39;&#39;&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">fg</span>
+
+<div class="viewcode-block" id="QDac.ramp_voltages">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.QDevil.html#qcodes_contrib_drivers.drivers.QDevil.QDAC1.QDac.ramp_voltages">[docs]</a>
+    <span class="k">def</span> <span class="nf">ramp_voltages</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">channellist</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
+            <span class="n">v_startlist</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
+            <span class="n">v_endlist</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
+            <span class="n">ramptime</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Function for smoothly ramping one channel or more channels</span>
+<span class="sd">        simultaneously (max. 8). This is a shallow interface to</span>
+<span class="sd">        ramp_voltages_2d. Function generators and triggers are</span>
+<span class="sd">        are assigned automatically.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            channellist:    List (int) of channels to be ramped (1 indexed)\n</span>
+<span class="sd">            v_startlist:    List (int) of voltages to ramp from.</span>
+<span class="sd">                            MAY BE EMPTY. But if provided, time is saved by</span>
+<span class="sd">                            NOT reading the present values from the instrument.</span>
+
+<span class="sd">            v_endlist:      List (int) of voltages to ramp to.\n</span>
+<span class="sd">            ramptime:       Total ramp time in seconds (min. 0.002). Has</span>
+<span class="sd">                            to be an integer number of 0.001 secs).\n</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Estimated time of the excecution of the 2D scan.</span>
+
+<span class="sd">        NOTE: This function returns as the ramps are started. So you need</span>
+<span class="sd">        to wait for &#39;ramptime&#39; until measuring....</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">ramptime</span> <span class="o">&lt;</span> <span class="mf">0.002</span><span class="p">:</span>
+            <span class="n">LOG</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Ramp time too short: </span><span class="si">{:.3f}</span><span class="s1"> s. Ramp time set to 2 ms.&#39;</span>
+                        <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ramptime</span><span class="p">))</span>
+            <span class="n">ramptime</span> <span class="o">=</span> <span class="mf">0.002</span>
+        <span class="n">steps</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">ramptime</span><span class="o">*</span><span class="mi">1000</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ramp_voltages_2d</span><span class="p">(</span>
+                            <span class="n">slow_chans</span><span class="o">=</span><span class="p">[],</span> <span class="n">slow_vstart</span><span class="o">=</span><span class="p">[],</span> <span class="n">slow_vend</span><span class="o">=</span><span class="p">[],</span>
+                            <span class="n">fast_chans</span><span class="o">=</span><span class="n">channellist</span><span class="p">,</span> <span class="n">fast_vstart</span><span class="o">=</span><span class="n">v_startlist</span><span class="p">,</span>
+                            <span class="n">fast_vend</span><span class="o">=</span><span class="n">v_endlist</span><span class="p">,</span> <span class="n">step_length</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span>
+                            <span class="n">slow_steps</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">fast_steps</span><span class="o">=</span><span class="n">steps</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="QDac.ramp_voltages_2d">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.QDevil.html#qcodes_contrib_drivers.drivers.QDevil.QDAC1.QDac.ramp_voltages_2d">[docs]</a>
+    <span class="k">def</span> <span class="nf">ramp_voltages_2d</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">slow_chans</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
+            <span class="n">slow_vstart</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
+            <span class="n">slow_vend</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
+            <span class="n">fast_chans</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
+            <span class="n">fast_vstart</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
+            <span class="n">fast_vend</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
+            <span class="n">step_length</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+            <span class="n">slow_steps</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+            <span class="n">fast_steps</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Function for smoothly ramping two channel groups simultaneously with</span>
+<span class="sd">        one slow (x) and one fast (y) group. used by &#39;ramp_voltages&#39; where x is</span>
+<span class="sd">        empty. Function generators and triggers are assigned automatically.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            slow_chans:   List of channels to be ramped (1 indexed) in</span>
+<span class="sd">                          the slow-group\n</span>
+<span class="sd">            slow_vstart:  List of voltages to ramp from in the</span>
+<span class="sd">                          slow-group.</span>
+<span class="sd">                          MAY BE EMPTY. But if provided, time is saved by NOT</span>
+<span class="sd">                          reading the present values from the instrument.\n</span>
+<span class="sd">            slow_vend:    list of voltages to ramp to in the slow-group.</span>
+
+<span class="sd">            fast_chans:   List of channels to be ramped (1 indexed) in</span>
+<span class="sd">                          the fast-group.\n</span>
+<span class="sd">            fast_vstart:  List of voltages to ramp from in the</span>
+<span class="sd">                          fast-group.</span>
+<span class="sd">                          MAY BE EMPTY. But if provided, time is saved by NOT</span>
+<span class="sd">                          reading the present values from the instrument.\n</span>
+<span class="sd">            fast_vend:    list of voltages to ramp to in the fast-group.</span>
+
+<span class="sd">            step_length:  Time spent at each step in seconds</span>
+<span class="sd">                          (min. 0.001) multiple of 1 ms.\n</span>
+<span class="sd">            slow_steps:   number of steps in the slow direction.\n</span>
+<span class="sd">            fast_steps:   number of steps in the fast direction.\n</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Estimated time of the excecution of the 2D scan.\n</span>
+<span class="sd">        NOTE: This function returns as the ramps are started.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">channellist</span> <span class="o">=</span> <span class="p">[</span><span class="o">*</span><span class="n">slow_chans</span><span class="p">,</span> <span class="o">*</span><span class="n">fast_chans</span><span class="p">]</span>
+        <span class="n">v_endlist</span> <span class="o">=</span> <span class="p">[</span><span class="o">*</span><span class="n">slow_vend</span><span class="p">,</span> <span class="o">*</span><span class="n">fast_vend</span><span class="p">]</span>
+        <span class="n">v_startlist</span> <span class="o">=</span> <span class="p">[</span><span class="o">*</span><span class="n">slow_vstart</span><span class="p">,</span> <span class="o">*</span><span class="n">fast_vstart</span><span class="p">]</span>
+        <span class="n">step_length_ms</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">step_length</span><span class="o">*</span><span class="mi">1000</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">step_length</span> <span class="o">&lt;</span> <span class="mf">0.001</span><span class="p">:</span>
+            <span class="n">LOG</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;step_length too short: </span><span class="si">{:.3f}</span><span class="s1"> s. </span><span class="se">\n</span><span class="s1">step_length set to&#39;</span>
+                        <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">step_length_ms</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; minimum (1ms).&#39;</span><span class="p">)</span>
+            <span class="n">step_length_ms</span> <span class="o">=</span> <span class="mi">1</span>
+
+        <span class="k">if</span> <span class="nb">any</span><span class="p">([</span><span class="n">ch</span> <span class="ow">in</span> <span class="n">fast_chans</span> <span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="n">slow_chans</span><span class="p">]):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s1">&#39;Channel cannot be in both slow_chans and fast_chans!&#39;</span><span class="p">)</span>
+
+        <span class="n">no_channels</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">channellist</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">no_channels</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">v_endlist</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s1">&#39;Number of channels and number of voltages inconsistent!&#39;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">chan</span> <span class="ow">in</span> <span class="n">channellist</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">chan</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_chans</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s1">&#39;Channel number must be 1-</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">num_chans</span><span class="si">}</span><span class="s1">.&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">chan</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_assigned_fgs</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_get_functiongenerator</span><span class="p">(</span><span class="n">chan</span><span class="p">)</span>
+
+        <span class="c1"># Voltage validation</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">no_channels</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">[</span><span class="n">channellist</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">v</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">v_endlist</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">v_startlist</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">no_channels</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">[</span><span class="n">channellist</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">v</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">v_startlist</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+
+        <span class="c1"># Get start voltages if not provided</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">slow_vstart</span><span class="p">:</span>
+            <span class="n">slow_vstart</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">[</span><span class="n">ch</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">v</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="n">slow_chans</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">fast_vstart</span><span class="p">:</span>
+            <span class="n">fast_vstart</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">[</span><span class="n">ch</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">v</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="n">fast_chans</span><span class="p">]</span>
+
+        <span class="n">v_startlist</span> <span class="o">=</span> <span class="p">[</span><span class="o">*</span><span class="n">slow_vstart</span><span class="p">,</span> <span class="o">*</span><span class="n">fast_vstart</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">no_channels</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">v_startlist</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s1">&#39;Number of start voltages do not match number of channels!&#39;</span><span class="p">)</span>
+
+        <span class="c1"># Find trigger not aleady uses (avoid starting other</span>
+        <span class="c1"># channels/function generators)</span>
+        <span class="k">if</span> <span class="n">no_channels</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">trigger</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">trigger</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_trigs</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span>
+                                    <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_assigned_triggers</span><span class="o">.</span><span class="n">values</span><span class="p">()))))</span>
+
+        <span class="c1"># Make sure any sync outputs are configured</span>
+        <span class="k">for</span> <span class="n">chan</span> <span class="ow">in</span> <span class="n">channellist</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">chan</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_syncoutputs</span><span class="p">:</span>
+                <span class="n">sync</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_syncoutputs</span><span class="p">[</span><span class="n">chan</span><span class="p">]</span>
+                <span class="n">sync_duration</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span>
+                                <span class="mi">1000</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">[</span><span class="n">chan</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">sync_duration</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+                <span class="n">sync_delay</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mi">1000</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">[</span><span class="n">chan</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">sync_delay</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;syn </span><span class="si">{}</span><span class="s1"> </span><span class="si">{}</span><span class="s1"> </span><span class="si">{}</span><span class="s1"> </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                                            <span class="n">sync</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_assigned_fgs</span><span class="p">[</span><span class="n">chan</span><span class="p">]</span><span class="o">.</span><span class="n">fg</span><span class="p">,</span>
+                                            <span class="n">sync_delay</span><span class="p">,</span> <span class="n">sync_duration</span><span class="p">))</span>
+
+        <span class="c1"># Now program the channel amplitudes and function generators</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">no_channels</span><span class="p">):</span>
+            <span class="n">amplitude</span> <span class="o">=</span> <span class="n">v_endlist</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-</span><span class="n">v_startlist</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="c1"># TODO: if amplitute is too large, then split into two parts.</span>
+            <span class="c1"># if abs(amplitude) &gt; 10: ...</span>
+            <span class="n">ch</span> <span class="o">=</span> <span class="n">channellist</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">fg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_assigned_fgs</span><span class="p">[</span><span class="n">ch</span><span class="p">]</span><span class="o">.</span><span class="n">fg</span>
+            <span class="k">if</span> <span class="n">trigger</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>  <span class="c1"># Trigger 0 is not a trigger</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_assigned_triggers</span><span class="p">[</span><span class="n">fg</span><span class="p">]</span> <span class="o">=</span> <span class="n">trigger</span>
+            <span class="n">msg</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;wav </span><span class="si">{</span><span class="n">ch</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">fg</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">amplitude</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">v_startlist</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="c1"># using staircase = function 4</span>
+            <span class="n">nsteps</span> <span class="o">=</span> <span class="n">slow_steps</span> <span class="k">if</span> <span class="n">ch</span> <span class="ow">in</span> <span class="n">slow_chans</span> <span class="k">else</span> <span class="n">fast_steps</span>
+            <span class="n">repetitions</span> <span class="o">=</span> <span class="n">slow_steps</span> <span class="k">if</span> <span class="n">ch</span> <span class="ow">in</span> <span class="n">fast_chans</span> <span class="k">else</span> <span class="mi">1</span>
+
+            <span class="n">delay</span> <span class="o">=</span> <span class="n">step_length_ms</span> \
+                <span class="k">if</span> <span class="n">ch</span> <span class="ow">in</span> <span class="n">fast_chans</span> <span class="k">else</span> <span class="n">fast_steps</span><span class="o">*</span><span class="n">step_length_ms</span>
+            <span class="n">msg</span> <span class="o">+=</span> <span class="s1">&#39;;fun </span><span class="si">{}</span><span class="s1"> </span><span class="si">{}</span><span class="s1"> </span><span class="si">{}</span><span class="s1"> </span><span class="si">{}</span><span class="s1"> </span><span class="si">{}</span><span class="s1"> </span><span class="si">{}</span><span class="s1">;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                        <span class="n">fg</span><span class="p">,</span> <span class="n">Waveform</span><span class="o">.</span><span class="n">staircase</span><span class="p">,</span> <span class="n">delay</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">nsteps</span><span class="p">),</span>
+                        <span class="n">repetitions</span><span class="p">,</span> <span class="n">trigger</span><span class="p">)</span>
+            <span class="c1"># Update latest values to ramp end values</span>
+            <span class="c1"># (actually not necessary when called from _set_voltage)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">[</span><span class="n">ch</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">v</span><span class="o">.</span><span class="n">cache</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">v_endlist</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">msg</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>  <span class="c1"># last semicolon is stripped</span>
+
+        <span class="c1"># Fire trigger to start generators simultaneously, saving communication</span>
+        <span class="c1"># time by not using triggers for single channel ramping</span>
+        <span class="k">if</span> <span class="n">trigger</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;trig </span><span class="si">{</span><span class="n">trigger</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+        <span class="c1"># Update fgs dict so that we know when the ramp is supposed to end</span>
+        <span class="n">time_ramp</span> <span class="o">=</span> <span class="n">slow_steps</span> <span class="o">*</span> <span class="n">fast_steps</span> <span class="o">*</span> <span class="n">step_length_ms</span> <span class="o">/</span> <span class="mi">1000</span>
+        <span class="n">time_end</span> <span class="o">=</span> <span class="n">time_ramp</span> <span class="o">+</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">chan</span> <span class="ow">in</span> <span class="n">channellist</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_assigned_fgs</span><span class="p">[</span><span class="n">chan</span><span class="p">]</span><span class="o">.</span><span class="n">t_end</span> <span class="o">=</span> <span class="n">time_end</span>
+        <span class="k">return</span> <span class="n">time_ramp</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, QCoDeS Users.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

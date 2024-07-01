@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168 &mdash; qcodes_contrib_drivers 0.23.0.dev14+main.g6d96817 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../_static/documentation_options.js?v=7415f6af"></script>
+        <script src="../../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            qcodes_contrib_drivers
+          </a>
+              <div class="version">
+                0.23.0.dev14+main.g6d96817
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples/index.html">Examples of how to use drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/generated/qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">qcodes_contrib_drivers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">qcodes</span> <span class="kn">import</span> <span class="n">Instrument</span>
+<span class="kn">import</span> <span class="nn">ctypes</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">time</span>
+
+
+<div class="viewcode-block" id="DeviceInformation">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Standa.html#qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.DeviceInformation">[docs]</a>
+<span class="k">class</span> <span class="nc">DeviceInformation</span><span class="p">(</span><span class="n">ctypes</span><span class="o">.</span><span class="n">Structure</span><span class="p">):</span>
+    <span class="n">_fields_</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="s2">&quot;Manufacturer&quot;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_char</span> <span class="o">*</span> <span class="mi">5</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;ManufacturerId&quot;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_char</span> <span class="o">*</span> <span class="mi">3</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;ProductDescription&quot;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_char</span> <span class="o">*</span> <span class="mi">9</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;Major&quot;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;Minor&quot;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;Release&quot;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint</span><span class="p">),</span>
+    <span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="GetPosition">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Standa.html#qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.GetPosition">[docs]</a>
+<span class="k">class</span> <span class="nc">GetPosition</span><span class="p">(</span><span class="n">ctypes</span><span class="o">.</span><span class="n">Structure</span><span class="p">):</span>
+    <span class="n">_fields_</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="s2">&quot;Position&quot;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;uPosition&quot;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;EncPosition&quot;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_longlong</span><span class="p">),</span>
+    <span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="Status">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Standa.html#qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.Status">[docs]</a>
+<span class="k">class</span> <span class="nc">Status</span><span class="p">(</span><span class="n">ctypes</span><span class="o">.</span><span class="n">Structure</span><span class="p">):</span>
+    <span class="n">_fields_</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="s2">&quot;MoveSts&quot;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;MvCmdSts&quot;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;PWRSts&quot;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;EncSts&quot;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;WindSts&quot;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;CurPosition&quot;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;uCurPosition&quot;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;EncPosition&quot;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_longlong</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;CurSpeed&quot;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;uCurSpeed&quot;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;Ipwr&quot;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;Upwr&quot;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;Iusb&quot;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;Uusb&quot;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;CurT&quot;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;Flags&quot;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;GPIOFlags&quot;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;CmdBufFreeSpace&quot;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint</span><span class="p">),</span>
+    <span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="libximc">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Standa.html#qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.libximc">[docs]</a>
+<span class="k">class</span> <span class="nc">libximc</span><span class="p">:</span>
+    <span class="c1"># TODO: use error check, implement wait for stop function from dll</span>
+
+    <span class="c1"># default dll path</span>
+    <span class="n">_dll_path</span> <span class="o">=</span> <span class="s1">&#39;C:</span><span class="se">\\</span><span class="s1">Program Files</span><span class="se">\\</span><span class="s1">XILab</span><span class="se">\\</span><span class="s1">libximc.dll&#39;</span>
+
+    <span class="c1"># success and error codes</span>
+    <span class="n">_success_codes</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="s1">&#39;Ok&#39;</span><span class="p">}</span>
+    <span class="n">_error_codes</span> <span class="o">=</span> <span class="p">{</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span> <span class="s1">&#39;Error&#39;</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">:</span> <span class="s1">&#39;NotImplemented&#39;</span><span class="p">,</span> <span class="o">-</span><span class="mi">3</span><span class="p">:</span> <span class="s1">&#39;ValueError&#39;</span><span class="p">,</span> <span class="o">-</span><span class="mi">4</span><span class="p">:</span> <span class="s1">&#39;NoDevice&#39;</span><span class="p">}</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dll_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="c1"># save attributes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="n">verbose</span>
+
+        <span class="c1"># connect to the dll</span>
+        <span class="n">current_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dll_path</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dll</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">windll</span><span class="o">.</span><span class="n">LoadLibrary</span><span class="p">(</span><span class="n">dll_path</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dll_path</span><span class="p">)</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">current_path</span><span class="p">)</span>
+
+        <span class="c1"># set resource type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">enumerate_devices</span><span class="o">.</span><span class="n">restype</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">POINTER</span><span class="p">(</span><span class="n">DeviceInformation</span><span class="p">)</span>
+
+<div class="viewcode-block" id="libximc.error_check">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Standa.html#qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.libximc.error_check">[docs]</a>
+    <span class="k">def</span> <span class="nf">error_check</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="n">function_name</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">code</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_success_codes</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;libximc: [</span><span class="si">%s</span><span class="s2">]: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">function_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_success_codes</span><span class="p">[</span><span class="n">code</span><span class="p">]))</span>
+        <span class="k">elif</span> <span class="n">code</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_error_codes</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;libximc: [</span><span class="si">%s</span><span class="s2">]: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">function_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_error_codes</span><span class="p">[</span><span class="n">code</span><span class="p">]))</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_error_codes</span><span class="p">[</span><span class="n">code</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;libximc: [</span><span class="si">%s</span><span class="s2">]: Unknown code: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">function_name</span><span class="p">,</span> <span class="n">code</span><span class="p">))</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="libximc.command_move">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Standa.html#qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.libximc.command_move">[docs]</a>
+    <span class="k">def</span> <span class="nf">command_move</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">device_id</span><span class="p">,</span> <span class="n">position</span><span class="p">,</span> <span class="n">u_position</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">command_move</span><span class="p">(</span><span class="n">device_id</span><span class="p">,</span> <span class="n">position</span><span class="p">,</span> <span class="n">u_position</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="libximc.enumerate_devices">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Standa.html#qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.libximc.enumerate_devices">[docs]</a>
+    <span class="k">def</span> <span class="nf">enumerate_devices</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">probe_flags</span><span class="p">):</span>
+        <span class="n">enumeration</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">enumerate_devices</span><span class="p">(</span><span class="n">probe_flags</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">enumeration</span></div>
+
+
+<div class="viewcode-block" id="libximc.get_device_name">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Standa.html#qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.libximc.get_device_name">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_device_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">device_enumeration</span><span class="p">,</span> <span class="n">device_index</span><span class="p">):</span>
+        <span class="n">device_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">get_device_name</span><span class="p">(</span><span class="n">device_enumeration</span><span class="p">,</span> <span class="n">device_index</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">device_name</span></div>
+
+
+<div class="viewcode-block" id="libximc.get_position">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Standa.html#qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.libximc.get_position">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_position</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">device_id</span><span class="p">,</span> <span class="n">get_position</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">get_position</span><span class="p">(</span><span class="n">device_id</span><span class="p">,</span> <span class="n">get_position</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="libximc.get_status">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Standa.html#qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.libximc.get_status">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">device_id</span><span class="p">,</span> <span class="n">status</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">get_status</span><span class="p">(</span><span class="n">device_id</span><span class="p">,</span> <span class="n">status</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="libximc.open_device">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Standa.html#qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.libximc.open_device">[docs]</a>
+    <span class="k">def</span> <span class="nf">open_device</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">device_name</span><span class="p">):</span>
+        <span class="n">device_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">open_device</span><span class="p">(</span><span class="n">device_name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">device_id</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="Standa_10MWA168">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Standa.html#qcodes_contrib_drivers.drivers.Standa.Standa_10MWA168.Standa_10MWA168">[docs]</a>
+<span class="k">class</span> <span class="nc">Standa_10MWA168</span><span class="p">(</span><span class="n">Instrument</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">serial_number</span><span class="p">,</span> <span class="n">dll_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="c1"># link to dll</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">libximc</span> <span class="o">=</span> <span class="n">libximc</span><span class="p">(</span><span class="n">dll_path</span><span class="o">=</span><span class="n">dll_path</span><span class="p">)</span>
+
+        <span class="c1"># instrument constants</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filter_wheel_1</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">6</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filter_wheel_2</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">offset_wheel_1</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">offset_wheel_2</span> <span class="o">=</span> <span class="mf">62.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">revolution</span> <span class="o">=</span> <span class="mf">200.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">distance</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">revolution</span> <span class="o">/</span> <span class="mf">8.</span>
+
+        <span class="c1"># initialization</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">serial_number</span> <span class="o">=</span> <span class="n">serial_number</span>
+        <span class="n">device_enumeration</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">libximc</span><span class="o">.</span><span class="n">enumerate_devices</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">enumeration_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">libximc</span><span class="o">.</span><span class="n">get_device_name</span><span class="p">(</span><span class="n">device_enumeration</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">device_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">libximc</span><span class="o">.</span><span class="n">open_device</span><span class="p">(</span><span class="n">enumeration_name</span><span class="p">)</span>
+
+        <span class="c1"># Time to wait (in seconds) between setting up wheel 1 and 2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_transmittance_sleep_time</span> <span class="o">=</span> <span class="mf">10.0</span>
+
+        <span class="c1"># add parameters</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;transmittance&#39;</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_transmittance</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Transmittance&#39;</span><span class="p">,</span>
+                           <span class="n">val_mapping</span><span class="o">=</span><span class="p">{</span>
+                               <span class="mi">1</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">9.0e-1</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="mf">8.0e-1</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="mf">7.2e-1</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="mf">4.0e-1</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="mf">3.0e-1</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span> <span class="mf">2.7e-1</span><span class="p">:</span> <span class="mi">7</span><span class="p">,</span>
+                               <span class="mf">1.5e-1</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span> <span class="mf">1.0e-1</span><span class="p">:</span> <span class="mi">9</span><span class="p">,</span> <span class="mf">8.0e-2</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span> <span class="mf">3.0e-2</span><span class="p">:</span> <span class="mi">11</span><span class="p">,</span> <span class="mf">2.7e-2</span><span class="p">:</span> <span class="mi">12</span><span class="p">,</span> <span class="mf">1.5e-2</span><span class="p">:</span> <span class="mi">13</span><span class="p">,</span> <span class="mf">1.0e-2</span><span class="p">:</span> <span class="mi">14</span><span class="p">,</span>
+                               <span class="mf">3.0e-3</span><span class="p">:</span> <span class="mi">15</span><span class="p">,</span> <span class="mf">2.7e-3</span><span class="p">:</span> <span class="mi">16</span><span class="p">,</span> <span class="mf">1.5e-3</span><span class="p">:</span> <span class="mi">17</span><span class="p">,</span> <span class="mf">1.0e-3</span><span class="p">:</span> <span class="mi">18</span><span class="p">,</span> <span class="mf">8.0e-4</span><span class="p">:</span> <span class="mi">19</span><span class="p">,</span> <span class="mf">3.0e-4</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span> <span class="mf">2.7e-4</span><span class="p">:</span> <span class="mi">21</span><span class="p">,</span>
+                               <span class="mf">1.5e-4</span><span class="p">:</span> <span class="mi">22</span><span class="p">,</span> <span class="mf">1.0e-4</span><span class="p">:</span> <span class="mi">23</span><span class="p">,</span> <span class="mf">8.0e-5</span><span class="p">:</span> <span class="mi">24</span><span class="p">,</span> <span class="mf">3.0e-5</span><span class="p">:</span> <span class="mi">25</span><span class="p">,</span> <span class="mf">1.5e-5</span><span class="p">:</span> <span class="mi">26</span><span class="p">,</span> <span class="mf">3.0e-6</span><span class="p">:</span> <span class="mi">27</span><span class="p">,</span> <span class="mf">3.0e-7</span><span class="p">:</span> <span class="mi">28</span><span class="p">,</span>
+                               <span class="mf">3.0e-8</span><span class="p">:</span> <span class="mi">29</span><span class="p">,</span> <span class="mf">3.0e-9</span><span class="p">:</span> <span class="mi">30</span><span class="p">})</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;position&#39;</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_position</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_position</span><span class="p">,</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Position&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;status&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_status</span><span class="p">,</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;status&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect_message</span><span class="p">()</span>
+
+    <span class="c1"># get methods</span>
+    <span class="k">def</span> <span class="nf">_get_position</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">position</span> <span class="o">=</span> <span class="n">GetPosition</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">libximc</span><span class="o">.</span><span class="n">get_position</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device_id</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">position</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">position</span><span class="o">.</span><span class="n">Position</span>
+
+    <span class="k">def</span> <span class="nf">_get_status</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="n">Status</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">libximc</span><span class="o">.</span><span class="n">get_status</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device_id</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">status</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">status</span><span class="o">.</span><span class="n">MoveSts</span>
+
+    <span class="c1"># set methods</span>
+    <span class="k">def</span> <span class="nf">_set_position</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">libximc</span><span class="o">.</span><span class="n">command_move</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device_id</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">position</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_set_transmittance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">transmittance_id</span><span class="p">):</span>
+        <span class="c1"># get filter to set</span>
+        <span class="n">filter_wheel_1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter_wheel_1</span><span class="p">[</span><span class="n">transmittance_id</span><span class="p">]</span>
+        <span class="n">filter_wheel_2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter_wheel_2</span><span class="p">[</span><span class="n">transmittance_id</span><span class="p">]</span>
+
+        <span class="c1"># get current position</span>
+        <span class="n">current_position</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">position</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+
+        <span class="c1"># determine new positions</span>
+        <span class="n">position_wheel_2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">offset_wheel_2</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">distance</span> <span class="o">*</span> <span class="n">filter_wheel_2</span> <span class="o">+</span> \
+                           <span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">current_position</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">revolution</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">revolution</span>
+        <span class="n">position_wheel_1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">offset_wheel_1</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">distance</span> <span class="o">*</span> <span class="n">filter_wheel_1</span> <span class="o">+</span> \
+                           <span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">current_position</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">revolution</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">revolution</span>
+
+        <span class="k">if</span> <span class="n">position_wheel_1</span> <span class="o">&gt;</span> <span class="n">position_wheel_2</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;new&#39;</span><span class="p">,</span> <span class="n">position_wheel_1</span><span class="p">,</span> <span class="n">position_wheel_2</span><span class="p">)</span>
+            <span class="n">position_wheel_1</span> <span class="o">-=</span> <span class="bp">self</span><span class="o">.</span><span class="n">revolution</span>
+
+        <span class="c1"># set position of the second wheel</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">position</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">position_wheel_2</span><span class="p">))</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sleep_time</span> <span class="o">/</span> <span class="mf">10.0</span><span class="p">)</span>  <span class="c1"># default: 1 s</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">100</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">break</span>
+
+        <span class="c1"># wait another time</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sleep_time</span><span class="p">)</span>  <span class="c1"># default: 10 s</span>
+
+        <span class="c1"># set position of the first wheel</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">position</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">position_wheel_1</span><span class="p">))</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sleep_time</span> <span class="o">/</span> <span class="mf">10.0</span><span class="p">)</span>  <span class="c1"># default: 1 s</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">100</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">break</span>
+
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sleep_time</span> <span class="o">/</span> <span class="mf">100.0</span><span class="p">)</span>  <span class="c1"># default: 0.1 s</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, QCoDeS Users.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

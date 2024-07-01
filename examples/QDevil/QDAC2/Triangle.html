@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QDAC-II triangle waves &mdash; qcodes_contrib_drivers 0.23.0.dev14+main.g6d96817 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/nbsphinx-code-cells.css" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/documentation_options.js?v=7415f6af"></script>
+        <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+        <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="QDAC-II virtual gates" href="VirtualGates.html" />
+    <link rel="prev" title="Synchronise multiple QDAC-IIs" href="SyncMultipleQDACs.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            qcodes_contrib_drivers
+          </a>
+              <div class="version">
+                0.23.0.dev14+main.g6d96817
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../../index.html">Examples of how to use drivers</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../../Agilent_N9000A.html">Example with the Agilent N9000A</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../AimTTi_EL320P.html">Example notebook for AimTTi EL320P</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../Andor_DU401.html">Qcodes example with Andor DU401 BU2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../Attocube_ANC300.html">QCoDeS example with Attocube ANC300</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../Aviosys_IP_Power_9258S.html">Qcodes example with Aviosys IP Power 9258S</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../BlueFors.html">Example with the BlueFors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../CopperMountain_M5180.html">Example with CopperMountain Model M5180 vector network analyzer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../CopperMountain_M5180.html#Setup-db-and-station-for-test-measurerment">Setup db and station for test measurerment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../CopperMountain_M5180.html#Look-at-the-names-and-the-labels-of-the-Sxx-parameters">Look at the names and the labels of the Sxx parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../ERASynth.html">Example with ERASynth</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../Gentec_Maestro.html">QCoDeS Example with Gentec Maestro</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../Holzworth_HS900.html">Example notebook for the Holzworth HS900B RF synthesizer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../Horiba_FHR.html">Example for Horiba FHR</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../ITest.html">Example with the iTest from Bilt</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../Keithley_6430.html">Example notebook for Keithley 6430 SMU</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../Keithley_6430.html#Measure-resistance-of-a-~100k\Omega-resistor">Measure resistance of a ~100k<span class="math notranslate nohighlight">\(\Omega\)</span> resistor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../Keysight_M3202A.html">Keysight M3202A AWG</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../Keysight_M3202A%20with%20digitizer.html">Keysight M3202A AWG example with digitizer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../Lakeshore_311.html">Qcodes example with Lakeshore 311</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../Lakeshore_625.html">Example with Lakeshore Model 625 Superconducting Magnet power supply</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../NationalInstruments_DAQ.html">National Instruments Multifunction DAQ example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../NationalInstruments_PXIe_2597.html">Qcodes example for National Instruments PXIe-2597 RF Switch</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../NationalInstruments_RFSG.html">Qcodes example with the NI RFSG signal generator driver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../Newport_AG-UC8.html">QCoDeS Example with Newport AG-UC8 Piezo Motion Controller</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../OxfordTriton.html">Example of the oxford triton driver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../Rohde_Schwarz_HMC8043.html">QCoDeS Example with R&amp;S HMC 8043 Power Supply</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../Rohde_Schwarz_HMP4040.html">QCoDeS Example with R&amp;S HMP4040 Power Supply</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../Rohde_Schwarz_SMW200A.html">QCoDeS example with Rohe&amp;Schwarz SMW200A</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../SR844.html">Changing the Sensitivity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../SR844.html#Preparing-for-reading-the-buffer-and-measurement">Preparing for reading the buffer and measurement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../Shamrock_SR750.html">Qcodes example with Shamrock SR750</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../SignalCore.html">Example with the microwave source SC5521A from Signal Core</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../SignalCore.html#Device-connection">Device connection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../SignalCore.html#Set-parameters">Set parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../SignalRecovery_7270.html">Example of Signal Recovery 7270 driver usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../SingleQuantum.html">Example for Single Quantum SNSPD</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../Standa_10MWA168.html">Qcodes example with Standa 10MWA168</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../Tektronix_AFG3000_series.html">Tektronix AFG3000 series arbitrary function generator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../Tektronix_FCA3100.html">overview over all parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../Tektronix_FCA3100.html#Usage-of-the-two-main-parameters">Usage of the two main parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../Tektronix_Keithley_6500.html">QCoDeS Example with Tektronix Keithley Digital Multimeter DMM6500</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../Thorlabs_K10CR1.html">Qcodes example with Thorlabs K10CR1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../Thorlabs_KLS1550.html">QCoDeS example with Thorlabs KLS1550 laser source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../Thorlabs_MFF10x.html">Qcodes example with Thorlabs MFF10x</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../Thorlabs_PRM1Z8.html">Qcodes example with Thorlabs PRM1Z8</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../Valon_5015.html">QCoDeS example with Valon 5015</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../Vaunix_LDA.html">Qcodes example for Vaunix LDA step attenuator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../Vaunix_LDA.html#Model-with-many-channels">Model with many channels</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../ZVL13.html">Rohde &amp; Schwarz ZVL13 Vector Network Analyzer example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../ZVL13.html#Parameters-definition">Parameters definition</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../ZurichInstruments_HF2LI.html">Zurich Instruments HF2LI example</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../index.html">QDevil drivers</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../QDAC1/index.html">QCoDeS examples of how to use QDAC-I</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="index.html">QCoDeS examples of how to use QDAC-II</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="AWG.html">QDAC-II arbitrary-waveform generator</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Chaining.html">QDAC-II trigger chaining</a></li>
+<li class="toctree-l4"><a class="reference internal" href="DC_Constant.html">QDAC-II constant voltage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Debugging.html">QDAC-II debugging</a></li>
+<li class="toctree-l4"><a class="reference internal" href="GateLeakage.html">Gate Leakage Test</a></li>
+<li class="toctree-l4"><a class="reference internal" href="GateLeakageMultipleQDACs.html">Gate Leakage using multiple QDAC-IIs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="List.html">QDAC-II voltage lists</a></li>
+<li class="toctree-l4"><a class="reference internal" href="MultiGenerator.html">QDAC-II multiple generators per channel</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyvisaAwg.html">PyVisa direct use of QDAC-II</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Scan.html">QDAC-II 1D &amp; 2D scan</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Scan2DDiode.html">QDAC-II 2D diode scan</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Sine.html">QDAC-II sine waves</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Square.html">QDAC-II square waves</a></li>
+<li class="toctree-l4"><a class="reference internal" href="Sweep.html">QDAC-II voltage sweep</a></li>
+<li class="toctree-l4"><a class="reference internal" href="SyncMultipleQDACs.html">Synchronise multiple QDAC-IIs</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">QDAC-II triangle waves</a></li>
+<li class="toctree-l4"><a class="reference internal" href="VirtualGates.html">QDAC-II virtual gates</a></li>
+<li class="toctree-l4"><a class="reference internal" href="do2dScan.html">QDAC-II 2D diode scan</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../QSwitch/index.html">QCoDeS examples of how to use QSwitch</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../HP/HP8594E.html">QCoDeS Example with HP8594E</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/generated/qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">qcodes_contrib_drivers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Examples of how to use drivers</a></li>
+          <li class="breadcrumb-item"><a href="../index.html">QDevil drivers</a></li>
+          <li class="breadcrumb-item"><a href="index.html">QCoDeS examples of how to use QDAC-II</a></li>
+      <li class="breadcrumb-item active">QDAC-II triangle waves</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../_sources/examples/QDevil/QDAC2/Triangle.ipynb.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="QDAC-II-triangle-waves">
+<h1>QDAC-II triangle waves<a class="headerlink" href="#QDAC-II-triangle-waves" title="Link to this heading">¶</a></h1>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">sleep</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">from</span> <span class="nn">IPython.display</span> <span class="kn">import</span> <span class="n">Image</span><span class="p">,</span> <span class="n">display</span>
+<span class="kn">from</span> <span class="nn">qcodes_contrib_drivers.drivers.QDevil</span> <span class="kn">import</span> <span class="n">QDAC2</span>
+<span class="n">qdac_addr</span> <span class="o">=</span> <span class="s1">&#39;192.168.8.17&#39;</span>
+<span class="n">qdac</span> <span class="o">=</span> <span class="n">QDAC2</span><span class="o">.</span><span class="n">QDac2</span><span class="p">(</span><span class="s1">&#39;QDAC&#39;</span><span class="p">,</span> <span class="n">visalib</span><span class="o">=</span><span class="s1">&#39;@py&#39;</span><span class="p">,</span> <span class="n">address</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;TCPIP::</span><span class="si">{</span><span class="n">qdac_addr</span><span class="si">}</span><span class="s1">::5025::SOCKET&#39;</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">qcodes.instrument_drivers.rigol</span> <span class="kn">import</span> <span class="n">RigolDS1074Z</span>
+<span class="n">rigol_addr</span> <span class="o">=</span> <span class="s1">&#39;192.168.8.199&#39;</span>
+<span class="n">scope</span> <span class="o">=</span> <span class="n">RigolDS1074Z</span><span class="p">(</span><span class="s1">&#39;rigol&#39;</span><span class="p">,</span> <span class="n">visalib</span><span class="o">=</span><span class="s1">&#39;@py&#39;</span><span class="p">,</span> <span class="n">address</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;TCPIP::</span><span class="si">{</span><span class="n">rigol_addr</span><span class="si">}</span><span class="s1">::INSTR&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Connected to: QDevil QDAC-II (serial:3, firmware:10-1.4) in 0.22s
+Connected to: RIGOL TECHNOLOGIES DS1104Z (serial:DS1ZA171812151, firmware:00.04.03) in 0.09s
+</pre></div></div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">scope</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;*rst&#39;</span><span class="p">)</span>
+<span class="n">qdac</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">capture</span><span class="p">():</span>
+    <span class="n">scope</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;stop&#39;</span><span class="p">)</span>
+    <span class="n">scope</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;:disp:data?&quot;</span><span class="p">)</span>
+    <span class="n">bmpdata</span> <span class="o">=</span> <span class="n">scope</span><span class="o">.</span><span class="n">visa_handle</span><span class="o">.</span><span class="n">read_raw</span><span class="p">()[</span><span class="mi">2</span><span class="o">+</span><span class="mi">9</span><span class="p">:]</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">Image</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">bmpdata</span><span class="p">)</span>
+    <span class="n">display</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Connect scope ch 3 to qdac ch 3</span>
+<span class="n">scope</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;chan1:disp off&#39;</span><span class="p">)</span>
+<span class="n">scope</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;chan3:disp on&#39;</span><span class="p">)</span>
+<span class="n">scope</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;chan3:bwl on&#39;</span><span class="p">)</span>
+<span class="n">scope</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;chan3:prob 1&#39;</span><span class="p">)</span>
+<span class="n">scope</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;chan3:scal 0.05&#39;</span><span class="p">)</span>
+<span class="n">scope</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;chan3:offs 0.0&#39;</span><span class="p">)</span>
+<span class="n">scope</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;trig:edge:sour chan3&#39;</span><span class="p">)</span>
+<span class="n">scope</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;trig:edge:level 0.05&#39;</span><span class="p">)</span>
+<span class="n">scope</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;tim:scal 2e-4&#39;</span><span class="p">)</span>
+<span class="n">scope</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;tim:offs 0&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">triangle</span> <span class="o">=</span> <span class="n">qdac</span><span class="o">.</span><span class="n">ch03</span><span class="o">.</span><span class="n">triangle_wave</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">scope</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;run&#39;</span><span class="p">)</span>
+<span class="n">triangle</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">capture</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../../_images/examples_QDevil_QDAC2_Triangle_7_0.png" src="../../../_images/examples_QDevil_QDAC2_Triangle_7_0.png" />
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">scope</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;chan1:disp off&#39;</span><span class="p">)</span>
+<span class="n">scope</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;chan3:disp on&#39;</span><span class="p">)</span>
+<span class="n">scope</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;chan3:bwl on&#39;</span><span class="p">)</span>
+<span class="n">scope</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;chan3:prob 1&#39;</span><span class="p">)</span>
+<span class="n">scope</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;chan3:scal 0.5&#39;</span><span class="p">)</span>
+<span class="n">scope</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;chan3:offs 0.0&#39;</span><span class="p">)</span>
+<span class="n">scope</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;trig:edge:sour chan3&#39;</span><span class="p">)</span>
+<span class="n">scope</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;trig:edge:level 0.2&#39;</span><span class="p">)</span>
+<span class="n">scope</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;tim:scal 100e-6&#39;</span><span class="p">)</span>
+<span class="n">scope</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;tim:offs 0&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">triangle</span> <span class="o">=</span> <span class="n">qdac</span><span class="o">.</span><span class="n">ch03</span><span class="o">.</span><span class="n">triangle_wave</span><span class="p">(</span>
+    <span class="n">period_s</span><span class="o">=</span><span class="mf">200e-6</span><span class="p">,</span>
+    <span class="n">span_V</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">offset_V</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="n">duty_cycle_percent</span><span class="o">=</span><span class="mi">75</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">scope</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;run&#39;</span><span class="p">)</span>
+<span class="n">triangle</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">capture</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../../_images/examples_QDevil_QDAC2_Triangle_11_0.png" src="../../../_images/examples_QDevil_QDAC2_Triangle_11_0.png" />
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">scope</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;run&#39;</span><span class="p">)</span>
+<span class="n">triangle</span><span class="o">.</span><span class="n">abort</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">triangle</span> <span class="o">=</span> <span class="n">qdac</span><span class="o">.</span><span class="n">ch03</span><span class="o">.</span><span class="n">triangle_wave</span><span class="p">(</span>
+    <span class="n">period_s</span><span class="o">=</span><span class="mf">200e-6</span><span class="p">,</span>
+    <span class="n">span_V</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">duty_cycle_percent</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+    <span class="n">repetitions</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+    <span class="n">slew_V_s</span><span class="o">=</span><span class="mi">50000</span>
+<span class="p">)</span>
+<span class="n">qdac</span><span class="o">.</span><span class="n">errors</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&#39;0, &#34;No error&#34;&#39;
+</pre></div></div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">scope</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;tim:offs 400e-6&#39;</span><span class="p">)</span>
+<span class="n">scope</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;sing&#39;</span><span class="p">)</span>
+<span class="n">sleep</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">triangle</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">capture</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../../_images/examples_QDevil_QDAC2_Triangle_15_0.png" src="../../../_images/examples_QDevil_QDAC2_Triangle_15_0.png" />
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Connect osc ch 4 to qdac out trigger 4</span>
+<span class="n">trigger</span> <span class="o">=</span> <span class="n">triangle</span><span class="o">.</span><span class="n">period_start_marker</span><span class="p">()</span>
+<span class="n">qdac</span><span class="o">.</span><span class="n">ext4</span><span class="o">.</span><span class="n">width_s</span><span class="p">(</span><span class="mf">2e-5</span><span class="p">)</span>
+<span class="n">qdac</span><span class="o">.</span><span class="n">ext4</span><span class="o">.</span><span class="n">source_from_trigger</span><span class="p">(</span><span class="n">trigger</span><span class="p">)</span>
+<span class="n">scope</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;chan4:disp on&#39;</span><span class="p">)</span>
+<span class="n">scope</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;chan4:bwl on&#39;</span><span class="p">)</span>
+<span class="n">scope</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;chan4:prob 1&#39;</span><span class="p">)</span>
+<span class="n">scope</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;chan4:scal 1&#39;</span><span class="p">)</span>
+<span class="n">scope</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;chan4:offs -2&#39;</span><span class="p">)</span>
+<span class="n">qdac</span><span class="o">.</span><span class="n">errors</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&#39;0, &#34;No error&#34;&#39;
+</pre></div></div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">scope</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;sing&#39;</span><span class="p">)</span>
+<span class="n">sleep</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">triangle</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">capture</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../../_images/examples_QDevil_QDAC2_Triangle_18_0.png" src="../../../_images/examples_QDevil_QDAC2_Triangle_18_0.png" />
+</div>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="SyncMultipleQDACs.html" class="btn btn-neutral float-left" title="Synchronise multiple QDAC-IIs" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="VirtualGates.html" class="btn btn-neutral float-right" title="QDAC-II virtual gates" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, QCoDeS Users.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

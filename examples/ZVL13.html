@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rohde &amp; Schwarz ZVL13 Vector Network Analyzer example &mdash; qcodes_contrib_drivers 0.23.0.dev14+main.g6d96817 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/documentation_options.js?v=7415f6af"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+        <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Zurich Instruments HF2LI example" href="ZurichInstruments_HF2LI.html" />
+    <link rel="prev" title="Qcodes example for Vaunix LDA step attenuator" href="Vaunix_LDA.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            qcodes_contrib_drivers
+          </a>
+              <div class="version">
+                0.23.0.dev14+main.g6d96817
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Examples of how to use drivers</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Agilent_N9000A.html">Example with the Agilent N9000A</a></li>
+<li class="toctree-l2"><a class="reference internal" href="AimTTi_EL320P.html">Example notebook for AimTTi EL320P</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Andor_DU401.html">Qcodes example with Andor DU401 BU2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Attocube_ANC300.html">QCoDeS example with Attocube ANC300</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Aviosys_IP_Power_9258S.html">Qcodes example with Aviosys IP Power 9258S</a></li>
+<li class="toctree-l2"><a class="reference internal" href="BlueFors.html">Example with the BlueFors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CopperMountain_M5180.html">Example with CopperMountain Model M5180 vector network analyzer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CopperMountain_M5180.html#Setup-db-and-station-for-test-measurerment">Setup db and station for test measurerment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CopperMountain_M5180.html#Look-at-the-names-and-the-labels-of-the-Sxx-parameters">Look at the names and the labels of the Sxx parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ERASynth.html">Example with ERASynth</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Gentec_Maestro.html">QCoDeS Example with Gentec Maestro</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Holzworth_HS900.html">Example notebook for the Holzworth HS900B RF synthesizer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Horiba_FHR.html">Example for Horiba FHR</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ITest.html">Example with the iTest from Bilt</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Keithley_6430.html">Example notebook for Keithley 6430 SMU</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Keithley_6430.html#Measure-resistance-of-a-~100k\Omega-resistor">Measure resistance of a ~100k<span class="math notranslate nohighlight">\(\Omega\)</span> resistor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Keysight_M3202A.html">Keysight M3202A AWG</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Keysight_M3202A%20with%20digitizer.html">Keysight M3202A AWG example with digitizer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Lakeshore_311.html">Qcodes example with Lakeshore 311</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Lakeshore_625.html">Example with Lakeshore Model 625 Superconducting Magnet power supply</a></li>
+<li class="toctree-l2"><a class="reference internal" href="NationalInstruments_DAQ.html">National Instruments Multifunction DAQ example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="NationalInstruments_PXIe_2597.html">Qcodes example for National Instruments PXIe-2597 RF Switch</a></li>
+<li class="toctree-l2"><a class="reference internal" href="NationalInstruments_RFSG.html">Qcodes example with the NI RFSG signal generator driver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Newport_AG-UC8.html">QCoDeS Example with Newport AG-UC8 Piezo Motion Controller</a></li>
+<li class="toctree-l2"><a class="reference internal" href="OxfordTriton.html">Example of the oxford triton driver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Rohde_Schwarz_HMC8043.html">QCoDeS Example with R&amp;S HMC 8043 Power Supply</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Rohde_Schwarz_HMP4040.html">QCoDeS Example with R&amp;S HMP4040 Power Supply</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Rohde_Schwarz_SMW200A.html">QCoDeS example with Rohe&amp;Schwarz SMW200A</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SR844.html">Changing the Sensitivity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SR844.html#Preparing-for-reading-the-buffer-and-measurement">Preparing for reading the buffer and measurement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Shamrock_SR750.html">Qcodes example with Shamrock SR750</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SignalCore.html">Example with the microwave source SC5521A from Signal Core</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SignalCore.html#Device-connection">Device connection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SignalCore.html#Set-parameters">Set parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SignalRecovery_7270.html">Example of Signal Recovery 7270 driver usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SingleQuantum.html">Example for Single Quantum SNSPD</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Standa_10MWA168.html">Qcodes example with Standa 10MWA168</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Tektronix_AFG3000_series.html">Tektronix AFG3000 series arbitrary function generator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Tektronix_FCA3100.html">overview over all parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Tektronix_FCA3100.html#Usage-of-the-two-main-parameters">Usage of the two main parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Tektronix_Keithley_6500.html">QCoDeS Example with Tektronix Keithley Digital Multimeter DMM6500</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Thorlabs_K10CR1.html">Qcodes example with Thorlabs K10CR1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Thorlabs_KLS1550.html">QCoDeS example with Thorlabs KLS1550 laser source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Thorlabs_MFF10x.html">Qcodes example with Thorlabs MFF10x</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Thorlabs_PRM1Z8.html">Qcodes example with Thorlabs PRM1Z8</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Valon_5015.html">QCoDeS example with Valon 5015</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Vaunix_LDA.html">Qcodes example for Vaunix LDA step attenuator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Vaunix_LDA.html#Model-with-many-channels">Model with many channels</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Rohde &amp; Schwarz ZVL13 Vector Network Analyzer example</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#Instrument-and-station-initialization">Instrument and station initialization</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#Parameters-definition">Parameters definition</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#Trace-acquisition-in-Network-Analyzer-Mode">Trace acquisition in Network Analyzer Mode</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Plot">Plot</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#Trace-acquisition-in-Spectrum-Analyzer-Mode">Trace acquisition in Spectrum Analyzer Mode</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id1">Plot</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="ZurichInstruments_HF2LI.html">Zurich Instruments HF2LI example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="QDevil/index.html">QDevil drivers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HP/HP8594E.html">QCoDeS Example with HP8594E</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../api/generated/qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">qcodes_contrib_drivers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Examples of how to use drivers</a></li>
+      <li class="breadcrumb-item active">Rohde &amp; Schwarz ZVL13 Vector Network Analyzer example</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/examples/ZVL13.ipynb.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="Rohde-&amp;-Schwarz-ZVL13-Vector-Network-Analyzer-example">
+<h1>Rohde &amp; Schwarz ZVL13 Vector Network Analyzer example<a class="headerlink" href="#Rohde-&-Schwarz-ZVL13-Vector-Network-Analyzer-example" title="Link to this heading">¶</a></h1>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">qcodes</span> <span class="k">as</span> <span class="nn">qc</span>
+<span class="kn">from</span> <span class="nn">qcodes.logger.logger</span> <span class="kn">import</span> <span class="n">start_all_logging</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="o">%</span><span class="k">matplotlib</span> notebook
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">date</span><span class="p">,</span><span class="n">datetime</span>
+<span class="kn">import</span> <span class="nn">pyvisa</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">from</span> <span class="nn">qcodes_contrib_drivers.drivers.RohdeSchwarz.ZVL13</span> <span class="kn">import</span> <span class="n">ZVL13</span>
+</pre></div>
+</div>
+</div>
+<section id="Instrument-and-station-initialization">
+<h2>Instrument and station initialization<a class="headerlink" href="#Instrument-and-station-initialization" title="Link to this heading">¶</a></h2>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">start_all_logging</span><span class="p">()</span>
+
+
+<span class="c1">#Instruments</span>
+<span class="n">VNA</span> <span class="o">=</span> <span class="n">ZVL13</span><span class="p">(</span><span class="s1">&#39;ZVL&#39;</span><span class="p">,</span> <span class="s1">&#39;TCPIP0::vnarstafuri.fisica.unina.it::inst0::INSTR&#39;</span><span class="p">)</span>
+
+
+<span class="c1">#Station inizialization</span>
+<span class="n">station</span> <span class="o">=</span> <span class="n">qc</span><span class="o">.</span><span class="n">Station</span><span class="p">()</span>
+<span class="n">station</span><span class="o">.</span><span class="n">add_component</span><span class="p">(</span><span class="n">VNA</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</section>
+</section>
+<section id="Parameters-definition">
+<h1>Parameters definition<a class="headerlink" href="#Parameters-definition" title="Link to this heading">¶</a></h1>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1">#########################</span>
+<span class="c1">##Parameters definition##</span>
+<span class="c1">#########################</span>
+
+<span class="n">parameter_snap</span><span class="o">=</span><span class="p">{}</span>
+
+<span class="n">S_parameter</span> <span class="o">=</span> <span class="s1">&#39;S11&#39;</span>
+<span class="n">meas_format</span> <span class="o">=</span> <span class="s1">&#39;dbm&#39;</span>
+<span class="n">start_freq</span> <span class="o">=</span> <span class="mi">4</span>
+<span class="n">end_freq</span> <span class="o">=</span> <span class="mi">8</span>
+<span class="c1">#center_freq = 5</span>
+<span class="c1">#span_freq = 1</span>
+<span class="n">VNA_power</span> <span class="o">=</span> <span class="o">-</span><span class="mi">20</span>
+<span class="n">IF_bandwidth</span> <span class="o">=</span> <span class="mi">1000</span>
+<span class="n">Averages</span> <span class="o">=</span> <span class="mi">4</span>
+<span class="n">points_VNA</span> <span class="o">=</span> <span class="mi">101</span> <span class="c1">#Max:4001</span>
+
+
+
+<span class="n">VNA</span><span class="o">.</span><span class="n">npts</span><span class="p">(</span><span class="n">points_VNA</span><span class="p">)</span>
+<span class="n">VNA</span><span class="o">.</span><span class="n">S_parameter</span><span class="p">(</span><span class="n">S_parameter</span><span class="p">)</span>
+<span class="n">VNA</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">meas_format</span><span class="p">)</span>
+<span class="n">VNA</span><span class="o">.</span><span class="n">bandwidth</span><span class="p">(</span><span class="n">IF_bandwidth</span><span class="p">)</span>
+<span class="n">VNA</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">VNA_power</span><span class="p">)</span>
+<span class="n">VNA</span><span class="o">.</span><span class="n">avg</span><span class="p">(</span><span class="n">Averages</span><span class="p">)</span>
+<span class="n">VNA</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="n">start_freq</span><span class="o">*</span><span class="mf">1e9</span><span class="p">)</span>
+<span class="n">VNA</span><span class="o">.</span><span class="n">stop</span><span class="p">(</span><span class="n">end_freq</span><span class="o">*</span><span class="mf">1e9</span><span class="p">)</span>
+<span class="c1">#VNA.center(center_freq*1e9)</span>
+<span class="c1">#VNA.span(span_freq*1e9)</span>
+<br/></pre></div>
+</div>
+</div>
+<section id="Trace-acquisition-in-Network-Analyzer-Mode">
+<h2>Trace acquisition in Network Analyzer Mode<a class="headerlink" href="#Trace-acquisition-in-Network-Analyzer-Mode" title="Link to this heading">¶</a></h2>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1">#########################</span>
+<span class="c1">#######Mode setting######</span>
+<span class="c1">#########################</span>
+
+<span class="n">Mode</span> <span class="o">=</span> <span class="n">VNA</span><span class="o">.</span><span class="n">mode</span><span class="p">()</span>
+
+<span class="k">if</span> <span class="n">Mode</span> <span class="o">==</span> <span class="s1">&#39;SAN&#39;</span><span class="p">:</span>
+    <span class="n">VNA</span><span class="o">.</span><span class="n">mode</span><span class="p">(</span><span class="s1">&#39;nwa&#39;</span><span class="p">)</span>
+
+<span class="c1">#########################</span>
+<span class="c1">##Parameters definition##</span>
+<span class="c1">#########################</span>
+
+<span class="n">S_parameter</span> <span class="o">=</span> <span class="s1">&#39;S11&#39;</span>
+<span class="n">meas_format</span> <span class="o">=</span> <span class="s1">&#39;dbm&#39;</span>
+<span class="n">start_freq</span> <span class="o">=</span> <span class="mi">4</span> <span class="c1">#GHz</span>
+<span class="n">end_freq</span> <span class="o">=</span> <span class="mi">8</span> <span class="c1">#GHz</span>
+<span class="c1">#center_freq = 5 #GHz</span>
+<span class="c1">#span_freq = 1 #GHz</span>
+<span class="n">VNA_power</span> <span class="o">=</span> <span class="o">-</span><span class="mi">20</span> <span class="c1">#dBm</span>
+<span class="n">IF_bandwidth</span> <span class="o">=</span> <span class="mi">1000</span> <span class="c1">#Hz</span>
+<span class="n">Averages</span> <span class="o">=</span> <span class="mi">4</span>
+<span class="n">points_VNA</span> <span class="o">=</span> <span class="mi">101</span> <span class="c1">#Max:4001</span>
+
+
+<span class="c1">#Parameters setting in the VNA</span>
+<span class="n">VNA</span><span class="o">.</span><span class="n">calibration</span><span class="p">()</span> <span class="c1">#Switches on the most recent calibration in the VNA</span>
+<span class="n">VNA</span><span class="o">.</span><span class="n">S_parameter</span><span class="p">(</span><span class="n">S_parameter</span><span class="p">)</span>
+<span class="n">VNA</span><span class="o">.</span><span class="n">npts</span><span class="p">(</span><span class="n">points_VNA</span><span class="p">)</span>
+<span class="n">VNA</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">meas_format</span><span class="p">)</span>
+<span class="n">VNA</span><span class="o">.</span><span class="n">bandwidth</span><span class="p">(</span><span class="n">IF_bandwidth</span><span class="p">)</span>
+<span class="n">VNA</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">VNA_power</span><span class="p">)</span>
+<span class="n">VNA</span><span class="o">.</span><span class="n">avg</span><span class="p">(</span><span class="n">Averages</span><span class="p">)</span>
+<span class="n">VNA</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="n">start_freq</span><span class="o">*</span><span class="mf">1e9</span><span class="p">)</span>
+<span class="n">VNA</span><span class="o">.</span><span class="n">stop</span><span class="p">(</span><span class="n">end_freq</span><span class="o">*</span><span class="mf">1e9</span><span class="p">)</span>
+<span class="c1">#VNA.center(center_freq*1e9)</span>
+<span class="c1">#VNA.span(span_freq*1e9)</span>
+
+<span class="c1">#VNA Timeout setting</span>
+<span class="n">original_timeout</span> <span class="o">=</span> <span class="n">VNA</span><span class="o">.</span><span class="n">timeout</span><span class="p">()</span>
+<span class="n">new_timeout</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="n">VNA</span><span class="o">.</span><span class="n">timeout</span><span class="p">(</span><span class="n">new_timeout</span><span class="p">)</span>
+
+<span class="c1">#############################</span>
+<span class="c1">##Experiment initialization##</span>
+<span class="c1">#############################</span>
+
+<span class="c1">#Experiment definition</span>
+<span class="n">exp_name</span> <span class="o">=</span> <span class="s1">&#39;exp_name&#39;</span>
+<span class="n">sample</span> <span class="o">=</span> <span class="s1">&#39;sample&#39;</span>
+<span class="n">exp</span><span class="o">=</span><span class="n">qc</span><span class="o">.</span><span class="n">load_or_create_experiment</span><span class="p">(</span><span class="n">experiment_name</span><span class="o">=</span><span class="n">exp_name</span><span class="p">,</span>
+                          <span class="n">sample_name</span><span class="o">=</span><span class="n">sample</span><span class="p">)</span>
+
+
+
+<span class="c1">#Parameters registration</span>
+<span class="n">meas</span> <span class="o">=</span> <span class="n">qc</span><span class="o">.</span><span class="n">Measurement</span><span class="p">(</span><span class="n">exp</span><span class="o">=</span><span class="n">exp</span><span class="p">,</span> <span class="n">station</span><span class="o">=</span><span class="n">station</span><span class="p">)</span>
+<span class="n">meas</span><span class="o">.</span><span class="n">register_parameter</span><span class="p">(</span><span class="n">VNA</span><span class="o">.</span><span class="n">trace</span><span class="p">)</span>
+<span class="n">meas</span><span class="o">.</span><span class="n">register_parameter</span><span class="p">(</span><span class="n">VNA</span><span class="o">.</span><span class="n">S_trace</span><span class="p">)</span>
+
+<span class="c1">#Start measurement</span>
+<span class="n">VNA</span><span class="o">.</span><span class="n">rf_power</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="c1">#Switches on the power</span>
+<span class="n">VNA</span><span class="o">.</span><span class="n">cont_meas_on</span><span class="p">()</span> <span class="c1">#Switches on the sweep</span>
+<span class="n">VNA</span><span class="o">.</span><span class="n">electrical_delay_auto</span><span class="p">()</span> <span class="c1">#Removes the electrical delay automatically</span>
+
+
+<span class="k">with</span> <span class="n">meas</span><span class="o">.</span><span class="n">run</span><span class="p">()</span> <span class="k">as</span> <span class="n">datasaver</span><span class="p">:</span>
+    <span class="n">VNA</span><span class="o">.</span><span class="n">autoscale</span><span class="p">()</span> <span class="c1">#Autoscale the trace on the VNA display</span>
+    <span class="n">get_v</span> <span class="o">=</span> <span class="n">VNA</span><span class="o">.</span><span class="n">trace</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="c1">#Get the trace displayed on the VNA</span>
+    <span class="n">get_v2</span> <span class="o">=</span> <span class="n">VNA</span><span class="o">.</span><span class="n">S_trace</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="c1">#Get the complex form of the scattering parameter under test</span>
+    <span class="n">datasaver</span><span class="o">.</span><span class="n">add_result</span><span class="p">((</span><span class="n">VNA</span><span class="o">.</span><span class="n">trace</span><span class="p">,</span> <span class="n">get_v</span><span class="p">))</span>
+    <span class="n">datasaver</span><span class="o">.</span><span class="n">add_result</span><span class="p">((</span><span class="n">VNA</span><span class="o">.</span><span class="n">S_trace</span><span class="p">,</span> <span class="n">get_v2</span><span class="p">))</span>
+
+
+<span class="c1">#Shutdown devices</span>
+<span class="n">VNA</span><span class="o">.</span><span class="n">rf_power</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">VNA</span><span class="o">.</span><span class="n">cont_meas_off</span><span class="p">()</span>
+
+<span class="c1">###############</span>
+<span class="c1">##Data saving##</span>
+<span class="c1">###############</span>
+
+<span class="n">captured_run_id</span><span class="o">=</span><span class="n">datasaver</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">run_id</span>
+<span class="n">dataset</span> <span class="o">=</span> <span class="n">qc</span><span class="o">.</span><span class="n">load_by_run_spec</span><span class="p">(</span><span class="n">captured_run_id</span><span class="o">=</span><span class="n">captured_run_id</span><span class="p">)</span>
+<span class="n">freq</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">get_parameter_data</span><span class="p">(</span><span class="s1">&#39;ZVL_ZVL_frequency&#39;</span><span class="p">)[</span><span class="s1">&#39;ZVL_ZVL_frequency&#39;</span><span class="p">][</span><span class="s1">&#39;ZVL_ZVL_frequency&#39;</span><span class="p">]</span>
+<span class="n">save_trace</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">get_parameter_data</span><span class="p">(</span><span class="s1">&#39;ZVL_trace&#39;</span><span class="p">)[</span><span class="s1">&#39;ZVL_trace&#39;</span><span class="p">][</span><span class="s1">&#39;ZVL_trace&#39;</span><span class="p">]</span>
+<span class="n">S_trace</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">get_parameter_data</span><span class="p">(</span><span class="s1">&#39;ZVL_S_trace&#39;</span><span class="p">)[</span><span class="s1">&#39;ZVL_S_trace&#39;</span><span class="p">][</span><span class="s1">&#39;ZVL_S_trace&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<section id="Plot">
+<h3>Plot<a class="headerlink" href="#Plot" title="Link to this heading">¶</a></h3>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">14</span><span class="o">*</span><span class="mf">0.8</span><span class="p">,</span> <span class="mi">10</span><span class="o">*</span><span class="mf">0.8</span><span class="p">),</span> <span class="n">dpi</span><span class="o">=</span> <span class="mi">80</span><span class="p">)</span> <span class="c1">#facecolor=&#39;w&#39;, edgecolor=&#39;k&#39;</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">freq</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="mf">1e-9</span><span class="p">,</span><span class="n">save_trace</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;axes&#39;</span><span class="p">,</span> <span class="n">labelsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>    <span class="c1"># fontsize of the x and y labels</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;xtick&#39;</span><span class="p">,</span> <span class="n">labelsize</span><span class="o">=</span><span class="mi">12</span><span class="o">*</span><span class="mf">1.2</span><span class="p">)</span>    <span class="c1"># fontsize of the tick labels</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;ytick&#39;</span><span class="p">,</span> <span class="n">labelsize</span><span class="o">=</span><span class="mi">12</span><span class="o">*</span><span class="mf">1.2</span><span class="p">)</span>
+
+<span class="n">x_label</span><span class="o">=</span><span class="s1">&#39;&#39;</span>
+<span class="n">y_label</span><span class="o">=</span><span class="s1">&#39;&#39;</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="n">x_label</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">25</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="n">y_label</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">25</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="n">plot_title</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">18</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xticks</span><span class="p">(</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">yticks</span><span class="p">(</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</section>
+</section>
+<section id="Trace-acquisition-in-Spectrum-Analyzer-Mode">
+<h2>Trace acquisition in Spectrum Analyzer Mode<a class="headerlink" href="#Trace-acquisition-in-Spectrum-Analyzer-Mode" title="Link to this heading">¶</a></h2>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># #######Mode setting######</span>
+<span class="c1">#########################</span>
+
+<span class="n">Mode</span> <span class="o">=</span> <span class="n">VNA</span><span class="o">.</span><span class="n">mode</span><span class="p">()</span>
+
+<span class="k">if</span> <span class="n">Mode</span> <span class="o">==</span> <span class="s1">&#39;NWA&#39;</span><span class="p">:</span>
+    <span class="n">VNA</span><span class="o">.</span><span class="n">mode</span><span class="p">(</span><span class="s1">&#39;sa&#39;</span><span class="p">)</span>
+
+<span class="c1">#########################</span>
+<span class="c1">##Parameters definition##</span>
+<span class="c1">#########################</span>
+
+
+<span class="n">start_freq</span> <span class="o">=</span> <span class="mi">4</span> <span class="c1">#GHz</span>
+<span class="n">end_freq</span> <span class="o">=</span> <span class="mi">8</span> <span class="c1">#GHz</span>
+<span class="c1">#center_freq = 5 #GHz</span>
+<span class="c1">#span_freq = 1 #GHz</span>
+<span class="n">Averages</span> <span class="o">=</span> <span class="mi">4</span>
+<span class="n">points_VNA</span> <span class="o">=</span> <span class="mi">101</span> <span class="c1">#Max:4001</span>
+
+
+<span class="c1">#Parameters setting in the VNA</span>
+<span class="n">VNA</span><span class="o">.</span><span class="n">calibration</span><span class="p">()</span> <span class="c1">#Switches on the most recent calibration in the VNA</span>
+<span class="n">VNA</span><span class="o">.</span><span class="n">S_parameter</span><span class="p">(</span><span class="n">S_parameter</span><span class="p">)</span>
+<span class="n">VNA</span><span class="o">.</span><span class="n">npts</span><span class="p">(</span><span class="n">points_VNA</span><span class="p">)</span>
+<span class="n">VNA</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">meas_format</span><span class="p">)</span>
+<span class="n">VNA</span><span class="o">.</span><span class="n">bandwidth</span><span class="p">(</span><span class="n">IF_bandwidth</span><span class="p">)</span>
+<span class="n">VNA</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">VNA_power</span><span class="p">)</span>
+<span class="n">VNA</span><span class="o">.</span><span class="n">avg</span><span class="p">(</span><span class="n">Averages</span><span class="p">)</span>
+<span class="n">VNA</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="n">start_freq</span><span class="o">*</span><span class="mf">1e9</span><span class="p">)</span>
+<span class="n">VNA</span><span class="o">.</span><span class="n">stop</span><span class="p">(</span><span class="n">end_freq</span><span class="o">*</span><span class="mf">1e9</span><span class="p">)</span>
+<span class="c1">#VNA.center(center_freq*1e9)</span>
+<span class="c1">#VNA.span(span_freq*1e9)</span>
+
+<span class="c1">#VNA Timeout setting</span>
+<span class="n">original_timeout</span> <span class="o">=</span> <span class="n">VNA</span><span class="o">.</span><span class="n">timeout</span><span class="p">()</span>
+<span class="n">new_timeout</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="n">VNA</span><span class="o">.</span><span class="n">timeout</span><span class="p">(</span><span class="n">new_timeout</span><span class="p">)</span>
+
+<span class="c1">#############################</span>
+<span class="c1">##Experiment initialization##</span>
+<span class="c1">#############################</span>
+
+<span class="c1">#Experiment definition</span>
+<span class="n">exp_name</span> <span class="o">=</span> <span class="s1">&#39;exp_name&#39;</span>
+<span class="n">sample</span> <span class="o">=</span> <span class="s1">&#39;sample&#39;</span>
+<span class="n">exp</span><span class="o">=</span><span class="n">qc</span><span class="o">.</span><span class="n">load_or_create_experiment</span><span class="p">(</span><span class="n">experiment_name</span><span class="o">=</span><span class="n">exp_name</span><span class="p">,</span>
+                          <span class="n">sample_name</span><span class="o">=</span><span class="n">sample</span><span class="p">)</span>
+
+
+
+<span class="c1">#Parameters registration</span>
+<span class="n">meas</span> <span class="o">=</span> <span class="n">qc</span><span class="o">.</span><span class="n">Measurement</span><span class="p">(</span><span class="n">exp</span><span class="o">=</span><span class="n">exp</span><span class="p">,</span> <span class="n">station</span><span class="o">=</span><span class="n">station</span><span class="p">)</span>
+<span class="n">meas</span><span class="o">.</span><span class="n">register_parameter</span><span class="p">(</span><span class="n">VNA</span><span class="o">.</span><span class="n">spectrum</span><span class="p">)</span>
+
+<span class="c1">#Start measurement</span>
+<span class="n">VNA</span><span class="o">.</span><span class="n">cont_meas_on</span><span class="p">()</span> <span class="c1">#Switches on the sweep</span>
+
+
+<span class="k">with</span> <span class="n">meas</span><span class="o">.</span><span class="n">run</span><span class="p">()</span> <span class="k">as</span> <span class="n">datasaver</span><span class="p">:</span>
+    <span class="n">VNA</span><span class="o">.</span><span class="n">autoscale</span><span class="p">()</span> <span class="c1">#Autoscale the trace on the VNA display</span>
+    <span class="n">get_v</span> <span class="o">=</span> <span class="n">VNA</span><span class="o">.</span><span class="n">spectrum</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="c1">#Get the spectrum seen by Port 2</span>
+    <span class="n">datasaver</span><span class="o">.</span><span class="n">add_result</span><span class="p">((</span><span class="n">VNA</span><span class="o">.</span><span class="n">spectrum</span><span class="p">,</span> <span class="n">get_v</span><span class="p">))</span>
+
+
+<span class="c1">#Shutdown devices</span>
+<span class="n">VNA</span><span class="o">.</span><span class="n">cont_meas_off</span><span class="p">()</span>
+
+<span class="c1">###############</span>
+<span class="c1">##Data saving##</span>
+<span class="c1">###############</span>
+
+<span class="n">captured_run_id</span><span class="o">=</span><span class="n">datasaver</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">run_id</span>
+<span class="n">dataset</span> <span class="o">=</span> <span class="n">qc</span><span class="o">.</span><span class="n">load_by_run_spec</span><span class="p">(</span><span class="n">captured_run_id</span><span class="o">=</span><span class="n">captured_run_id</span><span class="p">)</span>
+<span class="n">freq</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">get_parameter_data</span><span class="p">(</span><span class="s1">&#39;ZVL_ZVL_frequency&#39;</span><span class="p">)[</span><span class="s1">&#39;ZVL_ZVL_frequency&#39;</span><span class="p">][</span><span class="s1">&#39;ZVL_ZVL_frequency&#39;</span><span class="p">]</span>
+<span class="n">save_trace</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">get_parameter_data</span><span class="p">(</span><span class="s1">&#39;ZVL_trace&#39;</span><span class="p">)[</span><span class="s1">&#39;ZVL_trace&#39;</span><span class="p">][</span><span class="s1">&#39;ZVL_trace&#39;</span><span class="p">]</span>
+<span class="n">S_trace</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">get_parameter_data</span><span class="p">(</span><span class="s1">&#39;ZVL_S_trace&#39;</span><span class="p">)[</span><span class="s1">&#39;ZVL_S_trace&#39;</span><span class="p">][</span><span class="s1">&#39;ZVL_S_trace&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<section id="id1">
+<h3>Plot<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h3>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">14</span><span class="o">*</span><span class="mf">0.8</span><span class="p">,</span> <span class="mi">10</span><span class="o">*</span><span class="mf">0.8</span><span class="p">),</span> <span class="n">dpi</span><span class="o">=</span> <span class="mi">80</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">freq</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="mf">1e-9</span><span class="p">,</span><span class="n">spectrum</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;axes&#39;</span><span class="p">,</span> <span class="n">labelsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;xtick&#39;</span><span class="p">,</span> <span class="n">labelsize</span><span class="o">=</span><span class="mi">12</span><span class="o">*</span><span class="mf">1.2</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;ytick&#39;</span><span class="p">,</span> <span class="n">labelsize</span><span class="o">=</span><span class="mi">12</span><span class="o">*</span><span class="mf">1.2</span><span class="p">)</span>
+
+<span class="n">x_label</span><span class="o">=</span><span class="s1">&#39;&#39;</span>
+<span class="n">y_label</span><span class="o">=</span><span class="s1">&#39;&#39;</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="n">x_label</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">25</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="n">y_label</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">25</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="n">plot_title</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">18</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xticks</span><span class="p">(</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">yticks</span><span class="p">(</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Vaunix_LDA.html" class="btn btn-neutral float-left" title="Qcodes example for Vaunix LDA step attenuator" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="ZurichInstruments_HF2LI.html" class="btn btn-neutral float-right" title="Zurich Instruments HF2LI example" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, QCoDeS Users.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

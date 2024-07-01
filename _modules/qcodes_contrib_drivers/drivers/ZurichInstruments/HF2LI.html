@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>qcodes_contrib_drivers.drivers.ZurichInstruments.HF2LI &mdash; qcodes_contrib_drivers 0.23.0.dev14+main.g6d96817 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../_static/documentation_options.js?v=7415f6af"></script>
+        <script src="../../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            qcodes_contrib_drivers
+          </a>
+              <div class="version">
+                0.23.0.dev14+main.g6d96817
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples/index.html">Examples of how to use drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/generated/qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">qcodes_contrib_drivers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">qcodes_contrib_drivers.drivers.ZurichInstruments.HF2LI</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for qcodes_contrib_drivers.drivers.ZurichInstruments.HF2LI</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="kn">import</span> <span class="nn">zhinst.utils</span>
+<span class="kn">import</span> <span class="nn">qcodes</span> <span class="k">as</span> <span class="nn">qc</span>
+<span class="kn">from</span> <span class="nn">qcodes.instrument.base</span> <span class="kn">import</span> <span class="n">Instrument</span>
+<span class="kn">import</span> <span class="nn">qcodes.utils.validators</span> <span class="k">as</span> <span class="nn">vals</span>
+
+<div class="viewcode-block" id="HF2LI">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.ZurichInstruments.html#qcodes_contrib_drivers.drivers.ZurichInstruments.HF2LI.HF2LI">[docs]</a>
+<span class="k">class</span> <span class="nc">HF2LI</span><span class="p">(</span><span class="n">Instrument</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Qcodes driver for Zurich Instruments HF2LI lockin amplifier.</span>
+
+<span class="sd">    This driver is meant to emulate a single-channel lockin amplifier,</span>
+<span class="sd">    so one instance has a single demodulator, a single sigout channel,</span>
+<span class="sd">    and multiple auxout channels (for X, Y, R, Theta, or an arbitrary manual value).</span>
+<span class="sd">    Multiple instances can be run simultaneously as independent lockin amplifiers.</span>
+
+<span class="sd">    This instrument has a great deal of additional functionality that is</span>
+<span class="sd">    not currently supported by this driver.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        name: Name of instrument.</span>
+<span class="sd">        device: Device name, e.g. &quot;dev204&quot;, used to create zhinst API session.</span>
+<span class="sd">        demod: Index of the demodulator to use.</span>
+<span class="sd">        sigout: Index of the sigout channel to use as excitation source.</span>
+<span class="sd">        auxouts: Dict of the form {output: index},</span>
+<span class="sd">            where output is a key of HF2LI.OUTPUT_MAPPING, for example {&quot;X&quot;: 0, &quot;Y&quot;: 3}</span>
+<span class="sd">            to use the instrument as a lockin amplifier in X-Y mode with auxout channels 0 and 3.</span>
+<span class="sd">        num_sigout_mixer_channels: Number of mixer channels to enable on the sigouts. Default: 1.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">OUTPUT_MAPPING</span> <span class="o">=</span> <span class="p">{</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span> <span class="s1">&#39;manual&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span> <span class="s1">&#39;X&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span> <span class="s1">&#39;R&#39;</span><span class="p">,</span> <span class="mi">3</span><span class="p">:</span> <span class="s1">&#39;Theta&#39;</span><span class="p">}</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">device</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">demod</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">sigout</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">auxouts</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="n">num_sigout_mixer_channels</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">instr</span> <span class="o">=</span> <span class="n">zhinst</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">create_api_session</span><span class="p">(</span><span class="n">device</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">required_devtype</span><span class="o">=</span><span class="s1">&#39;HF2LI&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">daq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dev_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">props</span> <span class="o">=</span> <span class="n">instr</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">demod</span> <span class="o">=</span> <span class="n">demod</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sigout</span> <span class="o">=</span> <span class="n">sigout</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">auxouts</span> <span class="o">=</span> <span class="n">auxouts</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Successfully connected to </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">.&#39;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">auxouts</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+                <span class="n">name</span><span class="o">=</span><span class="n">ch</span><span class="p">,</span>
+                <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;Scaled </span><span class="si">{</span><span class="n">ch</span><span class="si">}</span><span class="s1"> output value&#39;</span><span class="p">,</span>
+                <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;V&#39;</span><span class="p">,</span>
+                <span class="n">get_cmd</span><span class="o">=</span><span class="k">lambda</span> <span class="n">channel</span><span class="o">=</span><span class="n">ch</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_output_value</span><span class="p">(</span><span class="n">channel</span><span class="p">),</span>
+                <span class="n">get_parser</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+                <span class="n">docstring</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;Scaled and demodulated </span><span class="si">{</span><span class="n">ch</span><span class="si">}</span><span class="s1"> value.&#39;</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+                <span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;gain_</span><span class="si">{</span><span class="n">ch</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+                <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">ch</span><span class="si">}</span><span class="s1"> output gain&#39;</span><span class="p">,</span>
+                <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;V/Vrms&#39;</span><span class="p">,</span>
+                <span class="n">get_cmd</span><span class="o">=</span><span class="k">lambda</span> <span class="n">channel</span><span class="o">=</span><span class="n">ch</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_gain</span><span class="p">(</span><span class="n">channel</span><span class="p">),</span>
+                <span class="n">get_parser</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+                <span class="n">set_cmd</span><span class="o">=</span><span class="k">lambda</span> <span class="n">gain</span><span class="p">,</span> <span class="n">channel</span><span class="o">=</span><span class="n">ch</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set_gain</span><span class="p">(</span><span class="n">gain</span><span class="p">,</span> <span class="n">channel</span><span class="p">),</span>
+                <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(),</span>
+                <span class="n">docstring</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;Gain factor for </span><span class="si">{</span><span class="n">ch</span><span class="si">}</span><span class="s1">.&#39;</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+                <span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;offset_</span><span class="si">{</span><span class="n">ch</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+                <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">ch</span><span class="si">}</span><span class="s1"> output offset&#39;</span><span class="p">,</span>
+                <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;V&#39;</span><span class="p">,</span>
+                <span class="n">get_cmd</span><span class="o">=</span><span class="k">lambda</span> <span class="n">channel</span><span class="o">=</span><span class="n">ch</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_offset</span><span class="p">(</span><span class="n">channel</span><span class="p">),</span>
+                <span class="n">get_parser</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+                <span class="n">set_cmd</span><span class="o">=</span><span class="k">lambda</span> <span class="n">offset</span><span class="p">,</span> <span class="n">channel</span><span class="o">=</span><span class="n">ch</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set_offset</span><span class="p">(</span><span class="n">offset</span><span class="p">,</span> <span class="n">channel</span><span class="p">),</span>
+                <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(</span><span class="o">-</span><span class="mi">2560</span><span class="p">,</span> <span class="mi">2560</span><span class="p">),</span>
+                <span class="n">docstring</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;Manual offset for </span><span class="si">{</span><span class="n">ch</span><span class="si">}</span><span class="s1">, applied after scaling.&#39;</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+                <span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;output_</span><span class="si">{</span><span class="n">ch</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+                <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">ch</span><span class="si">}</span><span class="s1"> outptut select&#39;</span><span class="p">,</span>
+                <span class="n">get_cmd</span><span class="o">=</span><span class="k">lambda</span> <span class="n">channel</span><span class="o">=</span><span class="n">ch</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_output_select</span><span class="p">(</span><span class="n">channel</span><span class="p">),</span>
+                <span class="n">get_parser</span><span class="o">=</span><span class="nb">str</span>
+            <span class="p">)</span>
+            <span class="c1"># Making output select only gettable, since we are</span>
+            <span class="c1"># explicitly mapping auxouts to X, Y, R, Theta, etc.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_set_output_select</span><span class="p">(</span><span class="n">ch</span><span class="p">)</span>
+            
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;phase&#39;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Phase&#39;</span><span class="p">,</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;deg&#39;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_phase</span><span class="p">,</span>
+            <span class="n">get_parser</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_phase</span><span class="p">,</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(</span><span class="o">-</span><span class="mi">180</span><span class="p">,</span><span class="mi">180</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;time_constant&#39;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Time constant&#39;</span><span class="p">,</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;s&#39;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_time_constant</span><span class="p">,</span>
+            <span class="n">get_parser</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_time_constant</span><span class="p">,</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Numbers</span><span class="p">()</span>
+        <span class="p">)</span>  
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;frequency&#39;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Frequency&#39;</span><span class="p">,</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;Hz&#39;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_frequency</span><span class="p">,</span>
+            <span class="n">get_parser</span><span class="o">=</span><span class="nb">float</span>
+        <span class="p">)</span> 
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;sigout_range&#39;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Signal output range&#39;</span><span class="p">,</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;V&#39;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_sigout_range</span><span class="p">,</span>
+            <span class="n">get_parser</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_sigout_range</span><span class="p">,</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Enum</span><span class="p">(</span><span class="mf">0.01</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;sigout_offset&#39;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Signal output offset&#39;</span><span class="p">,</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;V&#39;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_sigout_offset</span><span class="p">,</span>
+            <span class="n">get_parser</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_sigout_offset</span><span class="p">,</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="n">docstring</span><span class="o">=</span><span class="s1">&#39;Multiply by sigout_range to get actual offset voltage.&#39;</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_sigout_mixer_channels</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+                <span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;sigout_enable</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+                <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;Signal output mixer </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1"> enable&#39;</span><span class="p">,</span>
+                <span class="n">get_cmd</span><span class="o">=</span><span class="k">lambda</span> <span class="n">mixer_channel</span><span class="o">=</span><span class="n">i</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_sigout_enable</span><span class="p">(</span><span class="n">mixer_channel</span><span class="p">),</span>
+                <span class="n">get_parser</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+                <span class="n">set_cmd</span><span class="o">=</span><span class="k">lambda</span> <span class="n">amp</span><span class="p">,</span> <span class="n">mixer_channel</span><span class="o">=</span><span class="n">i</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set_sigout_enable</span><span class="p">(</span><span class="n">mixer_channel</span><span class="p">,</span> <span class="n">amp</span><span class="p">),</span>
+                <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Enum</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">),</span>
+                <span class="n">docstring</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">                0: Channel off (unconditionally)</span>
+<span class="s2">                1: Channel on (unconditionally)</span>
+<span class="s2">                2: Channel off (will be turned off on next change of sign from negative to positive)</span>
+<span class="s2">                3: Channel on (will be turned on on next change of sign from negative to positive)</span>
+<span class="s2">                &quot;&quot;&quot;</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+                <span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;sigout_amplitude</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+                <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;Signal output mixer </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1"> amplitude&#39;</span><span class="p">,</span>
+                <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;Gain&#39;</span><span class="p">,</span>
+                <span class="n">get_cmd</span><span class="o">=</span><span class="k">lambda</span> <span class="n">mixer_channel</span><span class="o">=</span><span class="n">i</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_sigout_amplitude</span><span class="p">(</span><span class="n">mixer_channel</span><span class="p">),</span>
+                <span class="n">get_parser</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+                <span class="n">set_cmd</span><span class="o">=</span><span class="k">lambda</span> <span class="n">amp</span><span class="p">,</span> <span class="n">mixer_channel</span><span class="o">=</span><span class="n">i</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set_sigout_amplitude</span><span class="p">(</span><span class="n">mixer_channel</span><span class="p">,</span> <span class="n">amp</span><span class="p">),</span>
+                <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+                <span class="n">docstring</span><span class="o">=</span><span class="s1">&#39;Multiply by sigout_range to get actual output voltage.&#39;</span>
+            <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_phase</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">dev_id</span><span class="si">}</span><span class="s1">/demods/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">demod</span><span class="si">}</span><span class="s1">/phaseshift/&#39;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">daq</span><span class="o">.</span><span class="n">getDouble</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_set_phase</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phase</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">dev_id</span><span class="si">}</span><span class="s1">/demods/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">demod</span><span class="si">}</span><span class="s1">/phaseshift/&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">daq</span><span class="o">.</span><span class="n">setDouble</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">phase</span><span class="p">)</span>
+        
+    <span class="k">def</span> <span class="nf">_get_gain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">dev_id</span><span class="si">}</span><span class="s1">/auxouts/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">auxouts</span><span class="p">[</span><span class="n">channel</span><span class="p">]</span><span class="si">}</span><span class="s1">/scale/&#39;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">daq</span><span class="o">.</span><span class="n">getDouble</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_set_gain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gain</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">channel</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">dev_id</span><span class="si">}</span><span class="s1">/auxouts/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">auxouts</span><span class="p">[</span><span class="n">channel</span><span class="p">]</span><span class="si">}</span><span class="s1">/scale/&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">daq</span><span class="o">.</span><span class="n">setDouble</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">gain</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_offset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">dev_id</span><span class="si">}</span><span class="s1">/auxouts/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">auxouts</span><span class="p">[</span><span class="n">channel</span><span class="p">]</span><span class="si">}</span><span class="s1">/offset/&#39;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">daq</span><span class="o">.</span><span class="n">getDouble</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_set_offset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">offset</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">channel</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">dev_id</span><span class="si">}</span><span class="s1">/auxouts/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">auxouts</span><span class="p">[</span><span class="n">channel</span><span class="p">]</span><span class="si">}</span><span class="s1">/offset/&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">daq</span><span class="o">.</span><span class="n">setDouble</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">offset</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_output_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">dev_id</span><span class="si">}</span><span class="s1">/auxouts/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">auxouts</span><span class="p">[</span><span class="n">channel</span><span class="p">]</span><span class="si">}</span><span class="s1">/value/&#39;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">daq</span><span class="o">.</span><span class="n">getDouble</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_output_select</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">dev_id</span><span class="si">}</span><span class="s1">/auxouts/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">auxouts</span><span class="p">[</span><span class="n">channel</span><span class="p">]</span><span class="si">}</span><span class="s1">/outputselect/&#39;</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">daq</span><span class="o">.</span><span class="n">getInt</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">OUTPUT_MAPPING</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">_set_output_select</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">dev_id</span><span class="si">}</span><span class="s1">/auxouts/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">auxouts</span><span class="p">[</span><span class="n">channel</span><span class="p">]</span><span class="si">}</span><span class="s1">/outputselect/&#39;</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">OUTPUT_MAPPING</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="n">keys</span><span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">OUTPUT_MAPPING</span><span class="o">.</span><span class="n">values</span><span class="p">())</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">channel</span><span class="p">)]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">daq</span><span class="o">.</span><span class="n">setInt</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">idx</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_time_constant</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">dev_id</span><span class="si">}</span><span class="s1">/demods/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">demod</span><span class="si">}</span><span class="s1">/timeconstant/&#39;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">daq</span><span class="o">.</span><span class="n">getDouble</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_set_time_constant</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tc</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">dev_id</span><span class="si">}</span><span class="s1">/demods/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">demod</span><span class="si">}</span><span class="s1">/timeconstant/&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">daq</span><span class="o">.</span><span class="n">setDouble</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">tc</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_sigout_range</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">dev_id</span><span class="si">}</span><span class="s1">/sigouts/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">sigout</span><span class="si">}</span><span class="s1">/range/&#39;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">daq</span><span class="o">.</span><span class="n">getDouble</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_set_sigout_range</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rng</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">dev_id</span><span class="si">}</span><span class="s1">/sigouts/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">sigout</span><span class="si">}</span><span class="s1">/range/&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">daq</span><span class="o">.</span><span class="n">setDouble</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">rng</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_sigout_offset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">dev_id</span><span class="si">}</span><span class="s1">/sigouts/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">sigout</span><span class="si">}</span><span class="s1">/offset/&#39;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">daq</span><span class="o">.</span><span class="n">getDouble</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_set_sigout_offset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">offset</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">dev_id</span><span class="si">}</span><span class="s1">/sigouts/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">sigout</span><span class="si">}</span><span class="s1">/offset/&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">daq</span><span class="o">.</span><span class="n">setDouble</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">offset</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_sigout_amplitude</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mixer_channel</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">dev_id</span><span class="si">}</span><span class="s1">/sigouts/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">sigout</span><span class="si">}</span><span class="s1">/amplitudes/</span><span class="si">{</span><span class="n">mixer_channel</span><span class="si">}</span><span class="s1">/&#39;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">daq</span><span class="o">.</span><span class="n">getDouble</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_set_sigout_amplitude</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mixer_channel</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">amp</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">dev_id</span><span class="si">}</span><span class="s1">/sigouts/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">sigout</span><span class="si">}</span><span class="s1">/amplitudes/</span><span class="si">{</span><span class="n">mixer_channel</span><span class="si">}</span><span class="s1">/&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">daq</span><span class="o">.</span><span class="n">setDouble</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">amp</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_sigout_enable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mixer_channel</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">dev_id</span><span class="si">}</span><span class="s1">/sigouts/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">sigout</span><span class="si">}</span><span class="s1">/enables/</span><span class="si">{</span><span class="n">mixer_channel</span><span class="si">}</span><span class="s1">/&#39;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">daq</span><span class="o">.</span><span class="n">getInt</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_set_sigout_enable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mixer_channel</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">val</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">dev_id</span><span class="si">}</span><span class="s1">/sigouts/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">sigout</span><span class="si">}</span><span class="s1">/enables/</span><span class="si">{</span><span class="n">mixer_channel</span><span class="si">}</span><span class="s1">/&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">daq</span><span class="o">.</span><span class="n">setInt</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_frequency</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">dev_id</span><span class="si">}</span><span class="s1">/demods/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">demod</span><span class="si">}</span><span class="s1">/freq/&#39;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">daq</span><span class="o">.</span><span class="n">getDouble</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
+<div class="viewcode-block" id="HF2LI.sample">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.ZurichInstruments.html#qcodes_contrib_drivers.drivers.ZurichInstruments.HF2LI.HF2LI.sample">[docs]</a>
+    <span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">dev_id</span><span class="si">}</span><span class="s1">/demods/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">demod</span><span class="si">}</span><span class="s1">/sample/&#39;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">daq</span><span class="o">.</span><span class="n">getSample</span><span class="p">(</span><span class="n">path</span><span class="p">)</span></div>
+</div>
+
+        
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, QCoDeS Users.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

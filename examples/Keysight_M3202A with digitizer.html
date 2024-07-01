@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Keysight M3202A AWG example with digitizer &mdash; qcodes_contrib_drivers 0.23.0.dev14+main.g6d96817 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/documentation_options.js?v=7415f6af"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+        <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Qcodes example with Lakeshore 311" href="Lakeshore_311.html" />
+    <link rel="prev" title="Keysight M3202A AWG" href="Keysight_M3202A.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            qcodes_contrib_drivers
+          </a>
+              <div class="version">
+                0.23.0.dev14+main.g6d96817
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Examples of how to use drivers</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Agilent_N9000A.html">Example with the Agilent N9000A</a></li>
+<li class="toctree-l2"><a class="reference internal" href="AimTTi_EL320P.html">Example notebook for AimTTi EL320P</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Andor_DU401.html">Qcodes example with Andor DU401 BU2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Attocube_ANC300.html">QCoDeS example with Attocube ANC300</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Aviosys_IP_Power_9258S.html">Qcodes example with Aviosys IP Power 9258S</a></li>
+<li class="toctree-l2"><a class="reference internal" href="BlueFors.html">Example with the BlueFors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CopperMountain_M5180.html">Example with CopperMountain Model M5180 vector network analyzer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CopperMountain_M5180.html#Setup-db-and-station-for-test-measurerment">Setup db and station for test measurerment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CopperMountain_M5180.html#Look-at-the-names-and-the-labels-of-the-Sxx-parameters">Look at the names and the labels of the Sxx parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ERASynth.html">Example with ERASynth</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Gentec_Maestro.html">QCoDeS Example with Gentec Maestro</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Holzworth_HS900.html">Example notebook for the Holzworth HS900B RF synthesizer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Horiba_FHR.html">Example for Horiba FHR</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ITest.html">Example with the iTest from Bilt</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Keithley_6430.html">Example notebook for Keithley 6430 SMU</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Keithley_6430.html#Measure-resistance-of-a-~100k\Omega-resistor">Measure resistance of a ~100k<span class="math notranslate nohighlight">\(\Omega\)</span> resistor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Keysight_M3202A.html">Keysight M3202A AWG</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Keysight M3202A AWG example with digitizer</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#Generate-and-enqueue-waveforms">Generate and enqueue waveforms</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#configure-digitizer-to-capture-signals">configure digitizer to capture signals</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Trigger-AWGs-and-digitizer">Trigger AWGs and digitizer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Retrieve-digitizer-data-and-plot-result">Retrieve digitizer data and plot result</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Lakeshore_311.html">Qcodes example with Lakeshore 311</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Lakeshore_625.html">Example with Lakeshore Model 625 Superconducting Magnet power supply</a></li>
+<li class="toctree-l2"><a class="reference internal" href="NationalInstruments_DAQ.html">National Instruments Multifunction DAQ example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="NationalInstruments_PXIe_2597.html">Qcodes example for National Instruments PXIe-2597 RF Switch</a></li>
+<li class="toctree-l2"><a class="reference internal" href="NationalInstruments_RFSG.html">Qcodes example with the NI RFSG signal generator driver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Newport_AG-UC8.html">QCoDeS Example with Newport AG-UC8 Piezo Motion Controller</a></li>
+<li class="toctree-l2"><a class="reference internal" href="OxfordTriton.html">Example of the oxford triton driver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Rohde_Schwarz_HMC8043.html">QCoDeS Example with R&amp;S HMC 8043 Power Supply</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Rohde_Schwarz_HMP4040.html">QCoDeS Example with R&amp;S HMP4040 Power Supply</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Rohde_Schwarz_SMW200A.html">QCoDeS example with Rohe&amp;Schwarz SMW200A</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SR844.html">Changing the Sensitivity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SR844.html#Preparing-for-reading-the-buffer-and-measurement">Preparing for reading the buffer and measurement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Shamrock_SR750.html">Qcodes example with Shamrock SR750</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SignalCore.html">Example with the microwave source SC5521A from Signal Core</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SignalCore.html#Device-connection">Device connection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SignalCore.html#Set-parameters">Set parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SignalRecovery_7270.html">Example of Signal Recovery 7270 driver usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SingleQuantum.html">Example for Single Quantum SNSPD</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Standa_10MWA168.html">Qcodes example with Standa 10MWA168</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Tektronix_AFG3000_series.html">Tektronix AFG3000 series arbitrary function generator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Tektronix_FCA3100.html">overview over all parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Tektronix_FCA3100.html#Usage-of-the-two-main-parameters">Usage of the two main parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Tektronix_Keithley_6500.html">QCoDeS Example with Tektronix Keithley Digital Multimeter DMM6500</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Thorlabs_K10CR1.html">Qcodes example with Thorlabs K10CR1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Thorlabs_KLS1550.html">QCoDeS example with Thorlabs KLS1550 laser source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Thorlabs_MFF10x.html">Qcodes example with Thorlabs MFF10x</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Thorlabs_PRM1Z8.html">Qcodes example with Thorlabs PRM1Z8</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Valon_5015.html">QCoDeS example with Valon 5015</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Vaunix_LDA.html">Qcodes example for Vaunix LDA step attenuator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Vaunix_LDA.html#Model-with-many-channels">Model with many channels</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ZVL13.html">Rohde &amp; Schwarz ZVL13 Vector Network Analyzer example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ZVL13.html#Parameters-definition">Parameters definition</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ZurichInstruments_HF2LI.html">Zurich Instruments HF2LI example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="QDevil/index.html">QDevil drivers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HP/HP8594E.html">QCoDeS Example with HP8594E</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../api/generated/qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">qcodes_contrib_drivers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Examples of how to use drivers</a></li>
+      <li class="breadcrumb-item active">Keysight M3202A AWG example with digitizer</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/examples/Keysight_M3202A with digitizer.ipynb.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="Keysight-M3202A-AWG-example-with-digitizer">
+<h1>Keysight M3202A AWG example with digitizer<a class="headerlink" href="#Keysight-M3202A-AWG-example-with-digitizer" title="Link to this heading">¶</a></h1>
+<p>The Keysight M3202A is a 1 GSa/a arbitrary waveform generator.</p>
+<p>An instance of M3202A represents a module with 4 output channels. The channels of one module share the uploaded waveforms and trigers.</p>
+<p>This example loads loads waveforms in AWGs in slots 2 and 3 of chassis 0.</p>
+<p>This example uses a digitizer from the keysightSD1 module to read the generated signals. The digitizer is in slot 5. The output channels 1 and 2 of the AWG in slot 2 should be connected to inputs 1 and 2 of the digitizer and output channels 3 and 4 of the AWG slot 3 should be conencted to inputs 3 and 4 of the digitizer.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">logging</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">keysightSD1</span>
+<span class="k">except</span><span class="p">:</span>
+    <span class="c1"># add the path where the keysight library probably resides and try again</span>
+    <span class="kn">import</span> <span class="nn">sys</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;C:\Program Files (x86)\Keysight\SD1\Libraries\Python&#39;</span><span class="p">)</span>
+    <span class="kn">import</span> <span class="nn">keysightSD1</span>
+
+<span class="kn">import</span> <span class="nn">qcodes</span>
+<span class="kn">from</span> <span class="nn">qcodes_contrib_drivers.drivers.Keysight.M3202A</span> <span class="kn">import</span> <span class="n">M3202A</span>
+
+<span class="kn">import</span> <span class="nn">qcodes.logger</span> <span class="k">as</span> <span class="nn">logger</span>
+<span class="kn">from</span> <span class="nn">qcodes.logger</span> <span class="kn">import</span> <span class="n">start_all_logging</span>
+
+<span class="n">start_all_logging</span><span class="p">()</span>
+<span class="c1"># logger.get_file_handler().setLevel(logging.DEBUG)</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># try to close station from previous run.</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">station</span><span class="o">.</span><span class="n">close_all_registered_instruments</span><span class="p">()</span>
+<span class="k">except</span><span class="p">:</span> <span class="k">pass</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Demonstration of some errors</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">wrong_chassis</span> <span class="o">=</span> <span class="n">M3202A</span><span class="p">(</span><span class="s2">&quot;wrong chassis&quot;</span><span class="p">,</span> <span class="n">chassis</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="n">slot</span> <span class="o">=</span> <span class="mi">16</span><span class="p">)</span>
+<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Expected failure:&#39;</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">empty_slot</span> <span class="o">=</span> <span class="n">M3202A</span><span class="p">(</span><span class="s2">&quot;empty_slot&quot;</span><span class="p">,</span> <span class="n">chassis</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">slot</span> <span class="o">=</span> <span class="mi">16</span><span class="p">)</span>
+<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Expected failure:&#39;</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">not_M3202A</span> <span class="o">=</span> <span class="n">M3202A</span><span class="p">(</span><span class="s2">&quot;Digitizer&quot;</span><span class="p">,</span> <span class="n">chassis</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">slot</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span>
+<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Expected failure:&#39;</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">awg1</span> <span class="o">=</span> <span class="n">M3202A</span><span class="p">(</span><span class="s2">&quot;AWG1&quot;</span><span class="p">,</span> <span class="n">chassis</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">slot</span> <span class="o">=</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">awg2</span> <span class="o">=</span> <span class="n">M3202A</span><span class="p">(</span><span class="s2">&quot;AWG2&quot;</span><span class="p">,</span> <span class="n">chassis</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">slot</span> <span class="o">=</span> <span class="mi">3</span><span class="p">)</span>
+
+<span class="n">station</span> <span class="o">=</span> <span class="n">qcodes</span><span class="o">.</span><span class="n">Station</span><span class="p">()</span>
+
+<span class="n">station</span><span class="o">.</span><span class="n">add_component</span><span class="p">(</span><span class="n">awg1</span><span class="p">)</span>
+<span class="n">station</span><span class="o">.</span><span class="n">add_component</span><span class="p">(</span><span class="n">awg2</span><span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># utility functions to create waveforms</span>
+
+<span class="k">def</span> <span class="nf">get_divider</span><span class="p">(</span><span class="n">prescaler</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">prescaler</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">divider</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">elif</span> <span class="n">prescaler</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">divider</span> <span class="o">=</span> <span class="mi">5</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">divider</span> <span class="o">=</span> <span class="n">prescaler</span> <span class="o">*</span> <span class="mi">10</span>
+
+    <span class="k">return</span> <span class="n">divider</span>
+
+<span class="k">def</span> <span class="nf">create_sawtooth</span><span class="p">(</span><span class="n">period</span><span class="p">,</span> <span class="n">repetition</span><span class="p">,</span> <span class="n">prescaler</span><span class="p">):</span>
+    <span class="n">divider</span> <span class="o">=</span> <span class="n">get_divider</span><span class="p">(</span><span class="n">prescaler</span><span class="p">)</span>
+    <span class="n">n_pts</span> <span class="o">=</span> <span class="n">period</span> <span class="o">//</span> <span class="n">divider</span>
+    <span class="n">w</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n_pts</span><span class="p">)</span>
+    <span class="n">w</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">repetition</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">w</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2000</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;not enough data&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">w</span>
+
+<span class="k">def</span> <span class="nf">create_sine</span><span class="p">(</span><span class="n">period</span><span class="p">,</span> <span class="n">repetition</span><span class="p">,</span> <span class="n">prescaler</span><span class="p">):</span>
+    <span class="n">divider</span> <span class="o">=</span> <span class="n">get_divider</span><span class="p">(</span><span class="n">prescaler</span><span class="p">)</span>
+    <span class="n">n_pts</span> <span class="o">=</span> <span class="n">repetition</span> <span class="o">*</span> <span class="n">period</span> <span class="o">//</span> <span class="n">divider</span>
+    <span class="n">phi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="mi">2</span><span class="o">*</span><span class="n">repetition</span><span class="p">,</span> <span class="n">n_pts</span><span class="p">)</span>
+    <span class="n">w</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">phi</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">w</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2000</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;not enough data&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">w</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># setup output channels</span>
+
+<span class="n">pxi1</span> <span class="o">=</span> <span class="n">keysightSD1</span><span class="o">.</span><span class="n">SD_TriggerExternalSources</span><span class="o">.</span><span class="n">TRIGGER_PXI1</span>
+<span class="n">trigger_mode</span> <span class="o">=</span> <span class="n">keysightSD1</span><span class="o">.</span><span class="n">SD_TriggerBehaviors</span><span class="o">.</span><span class="n">TRIGGER_FALL</span>
+
+<span class="k">for</span> <span class="n">awg</span> <span class="ow">in</span> <span class="p">[</span><span class="n">awg1</span><span class="p">,</span> <span class="n">awg2</span><span class="p">]:</span>
+    <span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">5</span><span class="p">):</span>
+        <span class="n">awg</span><span class="o">.</span><span class="n">set_channel_offset</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">ch</span><span class="p">)</span>
+        <span class="n">awg</span><span class="o">.</span><span class="n">set_channel_amplitude</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">ch</span><span class="p">)</span>
+
+        <span class="n">awg</span><span class="o">.</span><span class="n">set_channel_wave_shape</span><span class="p">(</span><span class="n">keysightSD1</span><span class="o">.</span><span class="n">SD_Waveshapes</span><span class="o">.</span><span class="n">AOU_AWG</span><span class="p">,</span> <span class="n">ch</span><span class="p">)</span>
+        <span class="n">awg</span><span class="o">.</span><span class="n">awg_queue_config</span><span class="p">(</span><span class="n">ch</span><span class="p">,</span> <span class="n">keysightSD1</span><span class="o">.</span><span class="n">SD_QueueMode</span><span class="o">.</span><span class="n">CYCLIC</span><span class="p">)</span>
+        <span class="n">awg</span><span class="o">.</span><span class="n">awg_config_external_trigger</span><span class="p">(</span><span class="n">ch</span><span class="p">,</span> <span class="n">pxi1</span><span class="p">,</span> <span class="n">trigger_mode</span><span class="p">)</span>
+
+<span class="n">awg2</span><span class="o">.</span><span class="n">amplitude_channel_1</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>
+<span class="n">awg2</span><span class="o">.</span><span class="n">offset_channel_2</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+<section id="Generate-and-enqueue-waveforms">
+<h2>Generate and enqueue waveforms<a class="headerlink" href="#Generate-and-enqueue-waveforms" title="Link to this heading">¶</a></h2>
+<p>Signal duration 20 us: * “AWG1.1”: 20x sawtooth (followed by zeros) * “AWG1.2”: 20 steps (followed by zeros) * “AWG2.3”: 2 us zero, 4 us sine, 2 us zero, 12 us sine * “AWG2.4”: 4 us sine, 4 us zero, 8 us sine, 4 us zero</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">prescaler_1GSa</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">prescaler_200MSa</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">prescaler_50MSa</span> <span class="o">=</span> <span class="mi">2</span>
+
+<span class="c1"># 2000 zero&#39;s for end</span>
+<span class="n">zeros</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">2000</span><span class="p">)</span>
+
+<span class="c1"># sawtooth period = 1 us: 2 period in 1 sample</span>
+<span class="n">sawtooth_2us</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">create_sawtooth</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">prescaler_1GSa</span><span class="p">)</span>
+<span class="c1"># 20 steps use prescaler to reduce total number of samples. 200MSa/s =&gt; 4000 pts; 200 per step</span>
+<span class="n">steps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="mf">0.02</span><span class="o">*</span><span class="n">i</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="mi">200</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">20</span><span class="p">)])</span>
+
+<span class="c1"># sine wave 2 MHz, 4 periods</span>
+<span class="n">sine</span> <span class="o">=</span> <span class="mf">0.6</span> <span class="o">*</span> <span class="n">create_sine</span><span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="n">prescaler_1GSa</span><span class="p">)</span>
+
+<span class="c1"># start all uploads</span>
+<span class="n">zeros_awg1</span> <span class="o">=</span> <span class="n">awg1</span><span class="o">.</span><span class="n">upload_waveform</span><span class="p">(</span><span class="n">zeros</span><span class="p">)</span>
+<span class="n">sawtooth_2us_awg1</span> <span class="o">=</span> <span class="n">awg1</span><span class="o">.</span><span class="n">upload_waveform</span><span class="p">(</span><span class="n">sawtooth_2us</span><span class="p">)</span>
+<span class="n">steps_awg1</span> <span class="o">=</span> <span class="n">awg1</span><span class="o">.</span><span class="n">upload_waveform</span><span class="p">(</span><span class="n">steps</span><span class="p">)</span>
+
+<span class="n">zeros_awg2</span> <span class="o">=</span> <span class="n">awg2</span><span class="o">.</span><span class="n">upload_waveform</span><span class="p">(</span><span class="n">zeros</span><span class="p">)</span>
+<span class="n">sine_awg2</span> <span class="o">=</span> <span class="n">awg2</span><span class="o">.</span><span class="n">upload_waveform</span><span class="p">(</span><span class="n">sine</span><span class="p">)</span>
+
+<span class="c1"># enqueue wave references</span>
+<span class="n">delay</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">ext_trigger</span> <span class="o">=</span> <span class="n">keysightSD1</span><span class="o">.</span><span class="n">SD_TriggerModes</span><span class="o">.</span><span class="n">EXTTRIG</span>
+<span class="n">auto_trigger</span> <span class="o">=</span> <span class="n">keysightSD1</span><span class="o">.</span><span class="n">SD_TriggerModes</span><span class="o">.</span><span class="n">AUTOTRIG</span>
+
+<span class="n">awg1</span><span class="o">.</span><span class="n">awg_queue_waveform</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">sawtooth_2us_awg1</span><span class="p">,</span> <span class="n">ext_trigger</span><span class="p">,</span> <span class="n">delay</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="n">prescaler_1GSa</span><span class="p">)</span>
+<span class="n">awg1</span><span class="o">.</span><span class="n">awg_queue_waveform</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">zeros_awg1</span><span class="p">,</span> <span class="n">auto_trigger</span><span class="p">,</span> <span class="n">delay</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">prescaler_1GSa</span><span class="p">)</span>
+
+<span class="n">awg1</span><span class="o">.</span><span class="n">awg_queue_waveform</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">steps_awg1</span><span class="p">,</span> <span class="n">ext_trigger</span><span class="p">,</span> <span class="n">delay</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">prescaler_200MSa</span><span class="p">)</span>
+<span class="n">awg1</span><span class="o">.</span><span class="n">awg_queue_waveform</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">zeros_awg1</span><span class="p">,</span> <span class="n">auto_trigger</span><span class="p">,</span> <span class="n">delay</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">prescaler_1GSa</span><span class="p">)</span>
+
+<span class="n">awg2</span><span class="o">.</span><span class="n">awg_queue_waveform</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">zeros_awg2</span><span class="p">,</span> <span class="n">ext_trigger</span><span class="p">,</span> <span class="n">delay</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">prescaler_1GSa</span><span class="p">)</span>
+<span class="n">awg2</span><span class="o">.</span><span class="n">awg_queue_waveform</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">sine_awg2</span><span class="p">,</span> <span class="n">auto_trigger</span><span class="p">,</span> <span class="n">delay</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">prescaler_1GSa</span><span class="p">)</span>
+<span class="n">awg2</span><span class="o">.</span><span class="n">awg_queue_waveform</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">zeros_awg2</span><span class="p">,</span> <span class="n">auto_trigger</span><span class="p">,</span> <span class="n">delay</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">prescaler_1GSa</span><span class="p">)</span>
+<span class="n">awg2</span><span class="o">.</span><span class="n">awg_queue_waveform</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">sine_awg2</span><span class="p">,</span> <span class="n">auto_trigger</span><span class="p">,</span> <span class="n">delay</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="n">prescaler_1GSa</span><span class="p">)</span>
+
+<span class="n">awg2</span><span class="o">.</span><span class="n">awg_queue_waveform</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="n">sine_awg2</span><span class="p">,</span> <span class="n">ext_trigger</span><span class="p">,</span> <span class="n">delay</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">prescaler_1GSa</span><span class="p">)</span>
+<span class="n">awg2</span><span class="o">.</span><span class="n">awg_queue_waveform</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="n">zeros_awg2</span><span class="p">,</span> <span class="n">auto_trigger</span><span class="p">,</span> <span class="n">delay</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">prescaler_1GSa</span><span class="p">)</span>
+<span class="n">awg2</span><span class="o">.</span><span class="n">awg_queue_waveform</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="n">sine_awg2</span><span class="p">,</span> <span class="n">auto_trigger</span><span class="p">,</span> <span class="n">delay</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="n">prescaler_1GSa</span><span class="p">)</span>
+<span class="n">awg2</span><span class="o">.</span><span class="n">awg_queue_waveform</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="n">zeros_awg2</span><span class="p">,</span> <span class="n">auto_trigger</span><span class="p">,</span> <span class="n">delay</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">prescaler_1GSa</span><span class="p">)</span>
+
+<span class="c1"># start AWGs. They will wait for external trigger.</span>
+<span class="n">awg1</span><span class="o">.</span><span class="n">awg_start_multiple</span><span class="p">(</span><span class="mb">0b0011</span><span class="p">)</span>
+<span class="n">awg2</span><span class="o">.</span><span class="n">awg_start_multiple</span><span class="p">(</span><span class="mb">0b1100</span><span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+</section>
+<section id="configure-digitizer-to-capture-signals">
+<h2>configure digitizer to capture signals<a class="headerlink" href="#configure-digitizer-to-capture-signals" title="Link to this heading">¶</a></h2>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><br/><br/><span></span><span class="k">def</span> <span class="nf">check_error</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">error</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">int</span> <span class="ow">and</span> <span class="n">error</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">keysightSD1</span><span class="o">.</span><span class="n">SD_Error</span><span class="o">.</span><span class="n">getErrorMessage</span><span class="p">(</span><span class="n">error</span><span class="p">),</span> <span class="n">error</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
+
+
+<span class="n">PRODUCT</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+<span class="n">CHASSIS</span> <span class="o">=</span> <span class="mi">0</span>
+
+<span class="c1"># change slot numbers to your values</span>
+<span class="n">SLOT_IN</span> <span class="o">=</span> <span class="mi">5</span>
+
+<span class="n">NUM_CHANNELS</span> <span class="o">=</span> <span class="mi">4</span>
+
+<span class="c1"># CREATE AND OPEN MODULE IN</span>
+<span class="n">moduleIn</span> <span class="o">=</span> <span class="n">keysightSD1</span><span class="o">.</span><span class="n">SD_AIN</span><span class="p">()</span>
+
+<span class="n">moduleInID</span> <span class="o">=</span> <span class="n">moduleIn</span><span class="o">.</span><span class="n">openWithSlot</span><span class="p">(</span><span class="n">PRODUCT</span><span class="p">,</span> <span class="n">CHASSIS</span><span class="p">,</span> <span class="n">SLOT_IN</span><span class="p">)</span>
+
+<span class="n">NUM_CYCLES</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">DIG_PRESCALER</span> <span class="o">=</span> <span class="mi">0</span>
+
+<span class="c1"># sample 21 us</span>
+<span class="n">IN_DURATION</span> <span class="o">=</span> <span class="mi">21</span>
+<span class="n">TOT_POINTS_IN</span> <span class="o">=</span> <span class="mi">500</span> <span class="o">*</span> <span class="n">IN_DURATION</span>
+
+<span class="n">FULL_SCALE</span> <span class="o">=</span> <span class="mf">2.5</span>
+
+<span class="n">DELAY_IN</span> <span class="o">=</span> <span class="mi">200</span> <span class="o">//</span> <span class="p">(</span><span class="n">DIG_PRESCALER</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+
+<span class="n">mask</span> <span class="o">=</span> <span class="mi">0</span>
+
+<span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">5</span><span class="p">):</span>
+    <span class="n">moduleIn</span><span class="o">.</span><span class="n">DAQstop</span><span class="p">(</span><span class="n">ch</span><span class="p">)</span>
+    <span class="n">moduleIn</span><span class="o">.</span><span class="n">DAQflush</span><span class="p">(</span><span class="n">ch</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">NUM_CHANNELS</span><span class="p">):</span>
+    <span class="n">mask</span> <span class="o">|=</span> <span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="n">c</span>
+    <span class="n">ch</span> <span class="o">=</span> <span class="n">c</span> <span class="o">+</span> <span class="mi">1</span>
+
+    <span class="c1"># MODULE IN</span>
+    <span class="n">moduleIn</span><span class="o">.</span><span class="n">channelInputConfig</span><span class="p">(</span><span class="n">ch</span><span class="p">,</span> <span class="n">FULL_SCALE</span><span class="p">,</span> <span class="n">keysightSD1</span><span class="o">.</span><span class="n">AIN_Impedance</span><span class="o">.</span><span class="n">AIN_IMPEDANCE_HZ</span><span class="p">,</span> <span class="n">keysightSD1</span><span class="o">.</span><span class="n">AIN_Coupling</span><span class="o">.</span><span class="n">AIN_COUPLING_DC</span><span class="p">)</span>
+    <span class="n">moduleIn</span><span class="o">.</span><span class="n">channelPrescalerConfig</span><span class="p">(</span><span class="n">ch</span><span class="p">,</span> <span class="n">DIG_PRESCALER</span><span class="p">)</span>
+    <span class="n">moduleIn</span><span class="o">.</span><span class="n">DAQdigitalTriggerConfig</span><span class="p">(</span><span class="n">ch</span><span class="p">,</span> <span class="n">pxi1</span><span class="p">,</span> <span class="n">trigger_mode</span><span class="p">)</span>
+    <span class="n">moduleIn</span><span class="o">.</span><span class="n">DAQconfig</span><span class="p">(</span><span class="n">ch</span><span class="p">,</span> <span class="n">TOT_POINTS_IN</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">DELAY_IN</span><span class="p">,</span> <span class="n">ext_trigger</span><span class="p">)</span>
+
+<span class="n">moduleIn</span><span class="o">.</span><span class="n">DAQstartMultiple</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="Trigger-AWGs-and-digitizer">
+<h2>Trigger AWGs and digitizer<a class="headerlink" href="#Trigger-AWGs-and-digitizer" title="Link to this heading">¶</a></h2>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># start AWGs and digitizers via PXI</span>
+<span class="c1"># Note: PXI trigger can be set via any module</span>
+<span class="n">awg1</span><span class="o">.</span><span class="n">set_pxi_trigger</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">pxi1</span><span class="p">)</span>
+<span class="n">awg1</span><span class="o">.</span><span class="n">set_pxi_trigger</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">pxi1</span><span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+</section>
+<section id="Retrieve-digitizer-data-and-plot-result">
+<h2>Retrieve digitizer data and plot result<a class="headerlink" href="#Retrieve-digitizer-data-and-plot-result" title="Link to this heading">¶</a></h2>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><br/><span></span><span class="n">POINTS_PER_READ</span> <span class="o">=</span> <span class="mi">20000</span>
+
+<span class="n">READ_TIMEOUT</span> <span class="o">=</span> <span class="mi">1000</span>
+
+<span class="n">numReadPoints</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">dataPoints</span> <span class="o">=</span> <span class="p">[]</span>
+
+<span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">NUM_CHANNELS</span><span class="p">):</span>
+    <span class="n">numReadPoints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">dataPoints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">short</span><span class="p">))</span>
+
+<span class="n">readDone</span> <span class="o">=</span> <span class="kc">False</span>
+
+<span class="nb">print</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Reading data...&quot;</span><span class="p">)</span>
+
+<span class="n">cnt</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="k">while</span> <span class="ow">not</span> <span class="n">readDone</span><span class="p">:</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">cnt</span> <span class="o">&gt;</span> <span class="mi">10</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;no more data&#39;</span><span class="p">)</span>
+        <span class="k">break</span>
+
+    <span class="n">readDone</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">NUM_CHANNELS</span><span class="p">):</span>
+        <span class="n">npts</span> <span class="o">=</span> <span class="n">moduleIn</span><span class="o">.</span><span class="n">DAQcounterRead</span><span class="p">(</span><span class="n">c</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">npts</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;channel </span><span class="si">{</span><span class="n">c</span><span class="si">}</span><span class="s1"> counter </span><span class="si">{</span><span class="n">npts</span><span class="si">}</span><span class="s1"> </span><span class="si">{</span><span class="n">numReadPoints</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">cnt</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">readPoints</span> <span class="o">=</span> <span class="n">moduleIn</span><span class="o">.</span><span class="n">DAQread</span><span class="p">(</span><span class="n">c</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">POINTS_PER_READ</span><span class="p">,</span> <span class="n">npts</span><span class="p">),</span> <span class="n">READ_TIMEOUT</span><span class="p">)</span>
+
+            <span class="n">check_error</span><span class="p">(</span><span class="n">readPoints</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">readPoints</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">int</span> <span class="ow">or</span> <span class="n">readPoints</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">cnt</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">cnt</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">dataPoints</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dataPoints</span><span class="p">[</span><span class="n">c</span><span class="p">],</span> <span class="n">readPoints</span><span class="p">)</span>
+
+                <span class="n">numReadPoints</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">+=</span> <span class="n">readPoints</span><span class="o">.</span><span class="n">size</span>
+
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;channel </span><span class="si">{</span><span class="n">c</span><span class="si">}</span><span class="s1"> counter </span><span class="si">{</span><span class="n">npts</span><span class="si">}</span><span class="s1"> read </span><span class="si">{</span><span class="n">readPoints</span><span class="o">.</span><span class="n">size</span><span class="si">}</span><span class="s1"> (</span><span class="si">{</span><span class="n">numReadPoints</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="si">}</span><span class="s1">)&#39;</span><span class="p">)</span>
+
+                <span class="n">readDone</span> <span class="o">=</span> <span class="n">readDone</span> <span class="ow">and</span> <span class="p">(</span><span class="n">numReadPoints</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">TOT_POINTS_IN</span><span class="p">)</span>
+
+
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">5</span><span class="p">):</span>
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">dataPoints</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Keysight_M3202A.html" class="btn btn-neutral float-left" title="Keysight M3202A AWG" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Lakeshore_311.html" class="btn btn-neutral float-right" title="Qcodes example with Lakeshore 311" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, QCoDeS Users.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

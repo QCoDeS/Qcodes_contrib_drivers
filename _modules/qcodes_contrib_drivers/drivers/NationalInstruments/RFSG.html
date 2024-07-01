@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>qcodes_contrib_drivers.drivers.NationalInstruments.RFSG &mdash; qcodes_contrib_drivers 0.23.0.dev14+main.g6d96817 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../_static/documentation_options.js?v=7415f6af"></script>
+        <script src="../../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            qcodes_contrib_drivers
+          </a>
+              <div class="version">
+                0.23.0.dev14+main.g6d96817
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples/index.html">Examples of how to use drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/generated/qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">qcodes_contrib_drivers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">qcodes_contrib_drivers.drivers.NationalInstruments.RFSG</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for qcodes_contrib_drivers.drivers.NationalInstruments.RFSG</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+
+<span class="kn">from</span> <span class="nn">qcodes.utils.helpers</span> <span class="kn">import</span> <span class="n">create_on_off_val_mapping</span> <span class="k">as</span> <span class="n">on_off_map</span>
+<span class="kn">from</span> <span class="nn">qcodes.utils.validators</span> <span class="kn">import</span> <span class="n">Numbers</span>
+
+<span class="kn">from</span> <span class="nn">.visa_types</span> <span class="kn">import</span> <span class="p">(</span>
+        <span class="n">ViString</span><span class="p">,</span> <span class="n">ViAttr</span><span class="p">,</span> <span class="n">ViSession</span><span class="p">,</span> <span class="n">ViReal64</span><span class="p">,</span> <span class="n">ViBoolean</span><span class="p">,</span> <span class="n">ViInt32</span><span class="p">,</span>
+        <span class="p">)</span>
+<span class="kn">from</span> <span class="nn">.dll_wrapper</span> <span class="kn">import</span> <span class="n">AttributeWrapper</span><span class="p">,</span> <span class="n">NamedArgType</span>
+<span class="kn">from</span> <span class="nn">.ni_dll_instrument</span> <span class="kn">import</span> <span class="n">NIDLLInstrument</span>
+
+<span class="c1"># Constants used for querying attributes.</span>
+<span class="c1"># These can be found in the RFSG C API documentation, see below.</span>
+<span class="n">NIRFSG_ATTR_INSTRUMENT_FIRMWARE_REVISION</span> <span class="o">=</span> <span class="n">AttributeWrapper</span><span class="p">(</span><span class="n">ViAttr</span><span class="p">(</span><span class="mi">1050510</span><span class="p">),</span> <span class="n">ViString</span><span class="p">)</span>
+<span class="n">NIRFSG_ATTR_INSTRUMENT_MANUFACTURER</span>      <span class="o">=</span> <span class="n">AttributeWrapper</span><span class="p">(</span><span class="n">ViAttr</span><span class="p">(</span><span class="mi">1050511</span><span class="p">),</span> <span class="n">ViString</span><span class="p">)</span>
+<span class="n">NIRFSG_ATTR_INSTRUMENT_MODEL</span>             <span class="o">=</span> <span class="n">AttributeWrapper</span><span class="p">(</span><span class="n">ViAttr</span><span class="p">(</span><span class="mi">1050512</span><span class="p">),</span> <span class="n">ViString</span><span class="p">)</span>
+<span class="n">NIRFSG_ATTR_SPECIFIC_DRIVER_VENDOR</span>       <span class="o">=</span> <span class="n">AttributeWrapper</span><span class="p">(</span><span class="n">ViAttr</span><span class="p">(</span><span class="mi">1050513</span><span class="p">),</span> <span class="n">ViString</span><span class="p">)</span>
+<span class="n">NIRFSG_ATTR_SPECIFIC_DRIVER_REVISION</span>     <span class="o">=</span> <span class="n">AttributeWrapper</span><span class="p">(</span><span class="n">ViAttr</span><span class="p">(</span><span class="mi">1050551</span><span class="p">),</span> <span class="n">ViString</span><span class="p">)</span>
+<span class="n">NIRFSG_ATTR_SERIAL_NUMBER</span>                <span class="o">=</span> <span class="n">AttributeWrapper</span><span class="p">(</span><span class="n">ViAttr</span><span class="p">(</span><span class="mi">1150026</span><span class="p">),</span> <span class="n">ViString</span><span class="p">)</span>
+<span class="n">NIRFSG_ATTR_FREQUENCY</span>                    <span class="o">=</span> <span class="n">AttributeWrapper</span><span class="p">(</span><span class="n">ViAttr</span><span class="p">(</span><span class="mi">1250001</span><span class="p">),</span> <span class="n">ViReal64</span><span class="p">)</span>
+<span class="n">NIRFSG_ATTR_POWER_LEVEL</span>                  <span class="o">=</span> <span class="n">AttributeWrapper</span><span class="p">(</span><span class="n">ViAttr</span><span class="p">(</span><span class="mi">1250002</span><span class="p">),</span> <span class="n">ViReal64</span><span class="p">)</span>
+<span class="n">NIRFSG_ATTR_OUTPUT_ENABLED</span>               <span class="o">=</span> <span class="n">AttributeWrapper</span><span class="p">(</span><span class="n">ViAttr</span><span class="p">(</span><span class="mi">1250004</span><span class="p">),</span> <span class="n">ViBoolean</span><span class="p">)</span>
+<span class="n">NIRFSG_ATTR_REF_CLOCK_SOURCE</span>             <span class="o">=</span> <span class="n">AttributeWrapper</span><span class="p">(</span><span class="n">ViAttr</span><span class="p">(</span><span class="mi">1150001</span><span class="p">),</span> <span class="n">ViString</span><span class="p">)</span>
+<span class="n">NIRFSG_ATTR_ANALOG_MODULATION_TYPE</span>       <span class="o">=</span> <span class="n">AttributeWrapper</span><span class="p">(</span><span class="n">ViAttr</span><span class="p">(</span><span class="mi">1150032</span><span class="p">),</span> <span class="n">ViInt32</span><span class="p">)</span>
+<span class="n">NIRFSG_ATTR_ANALOG_MODULATION_AM_SENSITIVITY</span> <span class="o">=</span> <span class="n">AttributeWrapper</span><span class="p">(</span><span class="n">ViAttr</span><span class="p">(</span><span class="mi">1150167</span><span class="p">),</span> <span class="n">ViReal64</span><span class="p">)</span>
+<span class="n">NIRFSG_ATTR_PULSE_MODULATION_ENABLED</span>     <span class="o">=</span> <span class="n">AttributeWrapper</span><span class="p">(</span><span class="n">ViAttr</span><span class="p">(</span><span class="mi">1250051</span><span class="p">),</span> <span class="n">ViBoolean</span><span class="p">)</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<span class="c1"># Name mapping for analog modulation mode.</span>
+<span class="c1"># These can be found in the NI RFSG header file, found by default in</span>
+<span class="c1"># C:\Program Files (x86)\IVI Foundation\IVI\Include\niRFSG.h</span>
+<span class="c1"># or in the online documentation: https://zone.ni.com/reference/en-XX/help/371025V-01/rfsgproperties/pnirfsg_anlgmod.type/</span>
+<span class="n">ANALOG_MOD_NAME_MAP</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;none&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="c1"># NIRFSG_VAL_NONE</span>
+    <span class="s2">&quot;FM&quot;</span><span class="p">:</span> <span class="mi">2000</span><span class="p">,</span> <span class="c1"># NIRFSG_VAL_FM</span>
+    <span class="s2">&quot;PM&quot;</span><span class="p">:</span> <span class="mi">2001</span><span class="p">,</span> <span class="c1"># NIRFSG_VAL_PM</span>
+    <span class="s2">&quot;AM&quot;</span><span class="p">:</span> <span class="mi">2002</span><span class="p">,</span> <span class="c1"># NIRFSG_VAL_AM</span>
+<span class="p">}</span>
+
+
+<span class="n">CLK_SRC_MAP</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;onboard&quot;</span><span class="p">:</span> <span class="s2">&quot;OnboardClock&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;clk_in&quot;</span><span class="p">:</span> <span class="s2">&quot;ClkIn&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ref_in&quot;</span><span class="p">:</span> <span class="s2">&quot;RefIn&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;pxi_clk&quot;</span><span class="p">:</span> <span class="s2">&quot;PXI_CLK&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ref_in_2&quot;</span><span class="p">:</span> <span class="s2">&quot;RefIn2&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;pxi_clk_master&quot;</span><span class="p">:</span> <span class="s2">&quot;PXI_ClkMaster&quot;</span><span class="p">,</span>
+<span class="p">}</span>
+
+
+<div class="viewcode-block" id="NationalInstruments_RFSG">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.NationalInstruments.html#qcodes_contrib_drivers.drivers.NationalInstruments.RFSG.NationalInstruments_RFSG">[docs]</a>
+<span class="k">class</span> <span class="nc">NationalInstruments_RFSG</span><span class="p">(</span><span class="n">NIDLLInstrument</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This is the QCoDeS driver for National Instruments RF signal generator</span>
+<span class="sd">    devices based on the NI-RFSG driver. As of NI-RFSG version 18.1, the</span>
+<span class="sd">    supported devices are</span>
+<span class="sd">    PXI-5610,  PXI-5650,  PXI-5651,  PXI-5652,  PXI-5670,  PXI-5671, PXIe-5611,</span>
+<span class="sd">    PXIe-5644, PXIe-5645, PXIe-5646, PXIe-5650, PXIe-5651, PXIe-5652,</span>
+<span class="sd">    PXIe-5653, PXIe-5654, PXIe-5672, PXIe-5673, PXIe-5673E, PXIe-5820,</span>
+<span class="sd">    PXIe-5840.</span>
+
+<span class="sd">    Documentation for the NI-RFSG C API can be found by default in the</span>
+<span class="sd">    folder C:\Users\Public\Documents\National Instruments\NI-RFSG\Documentation</span>
+
+<span class="sd">    Only very basic functionality is implemented.</span>
+
+<span class="sd">    Tested with</span>
+
+<span class="sd">    - PXIe-5654</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        name: Name for this instrument</span>
+<span class="sd">        resource: Identifier for this instrument in NI MAX.</span>
+<span class="sd">        dll_path: path to the NI-RFSG library DLL. If not provided, use the</span>
+<span class="sd">            default location,</span>
+<span class="sd">            ``C:\Program Files\IVI Foundation\IVI\bin\NiRFSG_64.dll``.</span>
+<span class="sd">        id_query: whether to perform an ID query on initialization</span>
+<span class="sd">        reset_device: whether to reset the device on initialization</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># default DLL location</span>
+    <span class="n">dll_path</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;C:\Program Files\IVI Foundation\IVI\bin\NiRFSG_64.dll&quot;</span>
+    <span class="c1"># C:\Program Files (x86)\IVI Foundation\IVI\bin\NiRFSG.dll for 32-bit</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">resource</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                 <span class="n">dll_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">id_query</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+                 <span class="n">reset_device</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+                 <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">resource</span><span class="o">=</span><span class="n">resource</span><span class="p">,</span>
+                         <span class="n">dll_path</span><span class="o">=</span><span class="n">dll_path</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">dll_path</span><span class="p">,</span>
+                         <span class="n">lib_prefix</span><span class="o">=</span><span class="s2">&quot;niRFSG&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="c1"># Wrap DLL calls</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wrapper</span><span class="o">.</span><span class="n">Initiate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wrapper</span><span class="o">.</span><span class="n">wrap_dll_function_checked</span><span class="p">(</span>  <span class="c1"># type: ignore[attr-defined]</span>
+                <span class="n">name_in_library</span><span class="o">=</span><span class="s2">&quot;Initiate&quot;</span><span class="p">,</span>
+                <span class="n">argtypes</span><span class="o">=</span><span class="p">[</span><span class="n">NamedArgType</span><span class="p">(</span><span class="s2">&quot;vi&quot;</span><span class="p">,</span> <span class="n">ViSession</span><span class="p">)]</span>
+                <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">wrapper</span><span class="o">.</span><span class="n">Abort</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wrapper</span><span class="o">.</span><span class="n">wrap_dll_function_checked</span><span class="p">(</span>  <span class="c1"># type: ignore[attr-defined]</span>
+                <span class="n">name_in_library</span><span class="o">=</span><span class="s2">&quot;Abort&quot;</span><span class="p">,</span>
+                <span class="n">argtypes</span><span class="o">=</span><span class="p">[</span><span class="n">NamedArgType</span><span class="p">(</span><span class="s2">&quot;vi&quot;</span><span class="p">,</span> <span class="n">ViSession</span><span class="p">)])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">wrapper</span><span class="o">.</span><span class="n">ConfigureRF</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wrapper</span><span class="o">.</span><span class="n">wrap_dll_function_checked</span><span class="p">(</span>  <span class="c1"># type: ignore[attr-defined]</span>
+                <span class="n">name_in_library</span><span class="o">=</span><span class="s2">&quot;ConfigureRF&quot;</span><span class="p">,</span>
+                <span class="n">argtypes</span><span class="o">=</span><span class="p">[</span>
+                    <span class="n">NamedArgType</span><span class="p">(</span><span class="s2">&quot;vi&quot;</span><span class="p">,</span> <span class="n">ViSession</span><span class="p">),</span>
+                    <span class="n">NamedArgType</span><span class="p">(</span><span class="s2">&quot;frequency&quot;</span><span class="p">,</span> <span class="n">ViReal64</span><span class="p">),</span>
+                    <span class="n">NamedArgType</span><span class="p">(</span><span class="s2">&quot;powerLevel&quot;</span><span class="p">,</span> <span class="n">ViReal64</span><span class="p">),</span>
+                    <span class="p">]</span>
+                <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;frequency&quot;</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;Hz&quot;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_attribute</span><span class="p">,</span>
+                                           <span class="n">NIRFSG_ATTR_FREQUENCY</span><span class="p">),</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_frequency</span><span class="p">,</span>
+                           <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;power_level&quot;</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;dBm&quot;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s2">&quot;power level&quot;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_attribute</span><span class="p">,</span>
+                                           <span class="n">NIRFSG_ATTR_POWER_LEVEL</span><span class="p">),</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_power_level</span><span class="p">,</span>
+                           <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;output_enabled&quot;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Output enabled&quot;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_attribute</span><span class="p">,</span>
+                                           <span class="n">NIRFSG_ATTR_OUTPUT_ENABLED</span><span class="p">),</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">set_attribute</span><span class="p">,</span>
+                                           <span class="n">NIRFSG_ATTR_OUTPUT_ENABLED</span><span class="p">),</span>
+                           <span class="n">val_mapping</span><span class="o">=</span><span class="n">on_off_map</span><span class="p">(</span><span class="n">on_val</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">off_val</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+                           <span class="n">initial_value</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                           <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;pulse_mod_enabled&quot;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Pulse modulation enabled&quot;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_attribute</span><span class="p">,</span>
+                                           <span class="n">NIRFSG_ATTR_PULSE_MODULATION_ENABLED</span>
+                                           <span class="p">),</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">set_attribute</span><span class="p">,</span>
+                                           <span class="n">NIRFSG_ATTR_PULSE_MODULATION_ENABLED</span>
+                                           <span class="p">),</span>
+                           <span class="n">val_mapping</span><span class="o">=</span><span class="n">on_off_map</span><span class="p">(</span><span class="n">on_val</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">off_val</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+                           <span class="n">initial_value</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                           <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;analog_mod_type&quot;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Analog modulation type&quot;</span><span class="p">,</span>
+                           <span class="n">docstring</span><span class="o">=</span><span class="s2">&quot;Specifies the analog modulation format &quot;</span>
+                                     <span class="s2">&quot;to use. FM = frequency modulation, PM = &quot;</span>
+                                     <span class="s2">&quot;phase modulation, AM = amplitude &quot;</span>
+                                     <span class="s2">&quot;modulation. Set to &#39;none&#39; to disable &quot;</span>
+                                     <span class="s2">&quot;analog modulation.&quot;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_attribute</span><span class="p">,</span>
+                                           <span class="n">NIRFSG_ATTR_ANALOG_MODULATION_TYPE</span><span class="p">),</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">set_attribute</span><span class="p">,</span>
+                                           <span class="n">NIRFSG_ATTR_ANALOG_MODULATION_TYPE</span><span class="p">),</span>
+                           <span class="n">val_mapping</span><span class="o">=</span><span class="n">ANALOG_MOD_NAME_MAP</span><span class="p">,</span>
+                           <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;amplitude_mod_sensitivity&quot;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Amplitude modulation sensitivity&quot;</span><span class="p">,</span>
+                           <span class="n">docstring</span><span class="o">=</span><span class="s2">&quot;The modulation signal sent to AM IN is &quot;</span>
+                                     <span class="s2">&quot;scaled by this percentage before &quot;</span>
+                                     <span class="s2">&quot;multiplying the carrier wave.&quot;</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;%/V&quot;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">get_attribute</span><span class="p">,</span>
+                                <span class="n">NIRFSG_ATTR_ANALOG_MODULATION_AM_SENSITIVITY</span>
+                           <span class="p">),</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">set_attribute</span><span class="p">,</span>
+                                <span class="n">NIRFSG_ATTR_ANALOG_MODULATION_AM_SENSITIVITY</span>
+                           <span class="p">),</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">Numbers</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">),</span>
+                           <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;clock_source&quot;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Reference clock source&quot;</span><span class="p">,</span>
+                           <span class="n">docstring</span><span class="o">=</span><span class="s2">&quot;Specify the reference clock source for &quot;</span>
+                           <span class="s2">&quot;the device. See the ``vals`` attribute for valid &quot;</span>
+                           <span class="s2">&quot;values.</span><span class="se">\n\n</span><span class="s2">The values &#39;ref_in_2&#39; and &quot;</span>
+                           <span class="s2">&quot;&#39;pxi_clk_master&#39; are valid for PXIe-5840 with &quot;</span>
+                           <span class="s2">&quot;PXIe-5653. For further details, see the NI-RFSG &quot;</span>
+                           <span class="s2">&quot;documentation.&quot;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_attribute</span><span class="p">,</span>
+                                           <span class="n">NIRFSG_ATTR_REF_CLOCK_SOURCE</span><span class="p">),</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">set_attribute</span><span class="p">,</span>
+                                           <span class="n">NIRFSG_ATTR_REF_CLOCK_SOURCE</span><span class="p">),</span>
+                           <span class="n">val_mapping</span><span class="o">=</span><span class="n">CLK_SRC_MAP</span><span class="p">,</span>
+                           <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">initiate</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect_message</span><span class="p">()</span>
+
+<div class="viewcode-block" id="NationalInstruments_RFSG.initiate">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.NationalInstruments.html#qcodes_contrib_drivers.drivers.NationalInstruments.RFSG.NationalInstruments_RFSG.initiate">[docs]</a>
+    <span class="k">def</span> <span class="nf">initiate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initiate signal generation. This causes the NI-RFSG device to leave</span>
+<span class="sd">        the Configuration state.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wrapper</span><span class="o">.</span><span class="n">Initiate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_handle</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="NationalInstruments_RFSG.abort">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.NationalInstruments.html#qcodes_contrib_drivers.drivers.NationalInstruments.RFSG.NationalInstruments_RFSG.abort">[docs]</a>
+    <span class="k">def</span> <span class="nf">abort</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Stop signal generation and return to the Configuration state.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wrapper</span><span class="o">.</span><span class="n">Abort</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_handle</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_configure_rf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frequency</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">power_level</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+                      <span class="n">initiate</span><span class="p">:</span> <span class="nb">bool</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        NI-RFSG devices can only set both the frequency and power level</span>
+<span class="sd">        simultatneously. Convenience methods are defined below for setting</span>
+<span class="sd">        them individually.</span>
+
+<span class="sd">        NOTE: PXI-5670/5671 and PXIe-5672 devices must be in the Configuration</span>
+<span class="sd">        state before calling this function (by calling abort()), that is not</span>
+<span class="sd">        checked here.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            frequency: frequency in Hz</span>
+<span class="sd">            power_level: power level in dBm</span>
+<span class="sd">            initiate: if True, call self.initiate after configuring, which</span>
+<span class="sd">                starts RF output</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wrapper</span><span class="o">.</span><span class="n">ConfigureRF</span><span class="p">(</span>  <span class="c1"># type: ignore[attr-defined]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_handle</span><span class="p">,</span>
+            <span class="n">ViReal64</span><span class="p">(</span><span class="n">frequency</span><span class="p">),</span>
+            <span class="n">ViReal64</span><span class="p">(</span><span class="n">power_level</span><span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">initiate</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">initiate</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_set_frequency</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frequency</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">initiate</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="n">power_level</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_attribute</span><span class="p">(</span><span class="n">NIRFSG_ATTR_POWER_LEVEL</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_configure_rf</span><span class="p">(</span><span class="n">frequency</span><span class="p">,</span> <span class="n">power_level</span><span class="p">,</span> <span class="n">initiate</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_set_power_level</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">power_level</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">initiate</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="n">frequency</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_attribute</span><span class="p">(</span><span class="n">NIRFSG_ATTR_FREQUENCY</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_configure_rf</span><span class="p">(</span><span class="n">frequency</span><span class="p">,</span> <span class="n">power_level</span><span class="p">,</span> <span class="n">initiate</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">vendor</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_attribute</span><span class="p">(</span><span class="n">NIRFSG_ATTR_SPECIFIC_DRIVER_VENDOR</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">model</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_attribute</span><span class="p">(</span><span class="n">NIRFSG_ATTR_INSTRUMENT_MODEL</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">serial</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_attribute</span><span class="p">(</span><span class="n">NIRFSG_ATTR_SERIAL_NUMBER</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">firmware</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_attribute</span><span class="p">(</span><span class="n">NIRFSG_ATTR_INSTRUMENT_FIRMWARE_REVISION</span><span class="p">)</span>
+
+<div class="viewcode-block" id="NationalInstruments_RFSG.get_idn">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.NationalInstruments.html#qcodes_contrib_drivers.drivers.NationalInstruments.RFSG.NationalInstruments_RFSG.get_idn">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_idn</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span>
+                <span class="s2">&quot;vendor&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">vendor</span><span class="p">,</span>
+                <span class="s2">&quot;model&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span>
+                <span class="s2">&quot;serial&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">serial</span><span class="p">,</span>
+                <span class="s2">&quot;firmware&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">firmware</span>
+        <span class="p">}</span></div>
+</div>
+
+
+<span class="c1"># class NationalInstruments_RFSG</span>
+
+
+<span class="c1"># shorthand alias for the above</span>
+<span class="n">NI_RFSG</span> <span class="o">=</span> <span class="n">NationalInstruments_RFSG</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, QCoDeS Users.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>qcodes_contrib_drivers.drivers.Keysight.SD_common.memory_manager &mdash; qcodes_contrib_drivers 0.23.0.dev14+main.g6d96817 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../../_static/documentation_options.js?v=7415f6af"></script>
+        <script src="../../../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../../index.html" class="icon icon-home">
+            qcodes_contrib_drivers
+          </a>
+              <div class="version">
+                0.23.0.dev14+main.g6d96817
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../examples/index.html">Examples of how to use drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../../index.html">qcodes_contrib_drivers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">qcodes_contrib_drivers.drivers.Keysight.SD_common.memory_manager</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for qcodes_contrib_drivers.drivers.Keysight.SD_common.memory_manager</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+
+<div class="viewcode-block" id="MemoryManager">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.memory_manager.MemoryManager">[docs]</a>
+<span class="k">class</span> <span class="nc">MemoryManager</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Memory manager for AWG memory.</span>
+
+<span class="sd">    AWG memory is reserved in slots of sizes from 1e4 till 1e8 samples.</span>
+<span class="sd">    Allocation of memory takes time. So, only request a high maximum waveform size when it is needed.</span>
+
+<span class="sd">    Memory slots (number: size):</span>
+<span class="sd">        400: 1e4 samples</span>
+<span class="sd">        100: 1e5 samples</span>
+<span class="sd">        20: 1e6 samples</span>
+<span class="sd">        8: 1e7 samples</span>
+<span class="sd">        4: 1e8 samples</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        waveform_size_limit: maximum waveform size to support.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">verbose</span> <span class="o">=</span> <span class="kc">False</span>
+
+<div class="viewcode-block" id="MemoryManager.AllocatedSlot">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.memory_manager.MemoryManager.AllocatedSlot">[docs]</a>
+    <span class="nd">@dataclass</span>
+    <span class="k">class</span> <span class="nc">AllocatedSlot</span><span class="p">:</span>
+        <span class="n">number</span><span class="p">:</span> <span class="nb">int</span>
+        <span class="n">allocation_ref</span><span class="p">:</span> <span class="nb">int</span>
+        <span class="n">memory_manager</span><span class="p">:</span> <span class="s1">&#39;MemoryManager&#39;</span>
+
+<div class="viewcode-block" id="MemoryManager.AllocatedSlot.release">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.memory_manager.MemoryManager.AllocatedSlot.release">[docs]</a>
+        <span class="k">def</span> <span class="nf">release</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">memory_manager</span><span class="o">.</span><span class="n">release</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+</div>
+
+
+    <span class="nd">@dataclass</span>
+    <span class="k">class</span> <span class="nc">_MemorySlot</span><span class="p">:</span>
+        <span class="n">number</span><span class="p">:</span> <span class="nb">int</span>
+        <span class="n">size</span><span class="p">:</span> <span class="nb">int</span>
+        <span class="n">allocated</span><span class="p">:</span> <span class="nb">bool</span>
+        <span class="n">initialized</span><span class="p">:</span> <span class="nb">bool</span>
+        <span class="n">allocation_ref</span><span class="p">:</span> <span class="nb">int</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;Unique reference value when allocated.</span>
+<span class="sd">        Used to check for incorrect or missing release calls.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">allocation_time</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+
+    <span class="c1"># Note (M3202A): size must be multiples of 10 and &gt;= 2000</span>
+    <span class="n">memory_sizes</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="mf">1e4</span><span class="p">),</span> <span class="mi">400</span><span class="p">),</span>
+            <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="mf">1e5</span><span class="p">),</span> <span class="mi">100</span><span class="p">),</span>
+            <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="mf">1e6</span><span class="p">),</span> <span class="mi">20</span><span class="p">),</span>
+            <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="mf">1e7</span><span class="p">),</span> <span class="mi">8</span><span class="p">),</span> <span class="c1"># Uploading 8e7 samples takes 1.5s.</span>
+            <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="mf">1e8</span><span class="p">),</span> <span class="mi">4</span><span class="p">)</span> <span class="c1"># Uploading 4e8 samples takes 7.3s.</span>
+            <span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">log</span><span class="p">,</span> <span class="n">waveform_size_limit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mf">1e6</span><span class="p">))</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_log</span> <span class="o">=</span> <span class="n">log</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_allocation_ref_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_created_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_max_waveform_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_free_memory_slots</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_slots</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">MemoryManager</span><span class="o">.</span><span class="n">_MemorySlot</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_slot_sizes</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">([</span><span class="n">size</span> <span class="k">for</span> <span class="n">size</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span>
+                                   <span class="n">MemoryManager</span><span class="o">.</span><span class="n">memory_sizes</span><span class="p">])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_waveform_limit</span><span class="p">(</span><span class="n">waveform_size_limit</span><span class="p">)</span>
+
+<div class="viewcode-block" id="MemoryManager.set_waveform_limit">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.memory_manager.MemoryManager.set_waveform_limit">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_waveform_limit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">waveform_size_limit</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Increases the maximum size of waveforms that can be uploaded.</span>
+
+<span class="sd">        Additional memory will be reserved in the AWG.</span>
+<span class="sd">        Limit can not be reduced, because reservation cannot be undone.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            waveform_size_limit: maximum size of waveform that can be uploaded</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">waveform_size_limit</span> <span class="o">&gt;</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_slot_sizes</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Requested waveform size </span><span class="si">{</span><span class="n">waveform_size_limit</span><span class="si">}</span><span class="s1"> &#39;</span>
+                            <span class="sa">f</span><span class="s1">&#39;is too big&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_max_waveform_size</span> <span class="o">=</span> <span class="n">waveform_size_limit</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_create_memory_slots</span><span class="p">(</span><span class="n">waveform_size_limit</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="MemoryManager.get_uninitialized_slots">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.memory_manager.MemoryManager.get_uninitialized_slots">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_uninitialized_slots</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s1">&#39;MemoryManager._MemorySlot&#39;</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns list of slots that must be initialized (reserved in AWG)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">new_slots</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="n">slots</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_slots</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">slot</span> <span class="ow">in</span> <span class="n">slots</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">slot</span><span class="o">.</span><span class="n">initialized</span><span class="p">:</span>
+                <span class="n">new_slots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">slot</span><span class="p">)</span>
+                <span class="n">slot</span><span class="o">.</span><span class="n">initialized</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="k">return</span> <span class="n">new_slots</span></div>
+
+
+<div class="viewcode-block" id="MemoryManager.allocate">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.memory_manager.MemoryManager.allocate">[docs]</a>
+    <span class="k">def</span> <span class="nf">allocate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wave_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;MemoryManager.AllocatedSlot&#39;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Allocates a memory slot with at least the specified wave size.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            wave_size: number of samples of the waveform</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            allocated slot</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">wave_size</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_waveform_size</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;AWG wave with </span><span class="si">{</span><span class="n">wave_size</span><span class="si">}</span><span class="s1"> samples is too long. &#39;</span>
+                            <span class="sa">f</span><span class="s1">&#39;Max size=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_max_waveform_size</span><span class="si">}</span><span class="s1">. Increase &#39;</span>
+                            <span class="sa">f</span><span class="s1">&#39;waveform size limit with set_waveform_limit().&#39;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">slot_size</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_slot_sizes</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">wave_size</span> <span class="o">&gt;</span> <span class="n">slot_size</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">slot_size</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_created_size</span><span class="p">:</span>
+                <span class="c1"># slots of this size are not initialized.</span>
+                <span class="k">break</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_free_memory_slots</span><span class="p">[</span><span class="n">slot_size</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">slot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_free_memory_slots</span><span class="p">[</span><span class="n">slot_size</span><span class="p">]</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_allocation_ref_count</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_slots</span><span class="p">[</span><span class="n">slot</span><span class="p">]</span><span class="o">.</span><span class="n">allocation_ref</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_allocation_ref_count</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_slots</span><span class="p">[</span><span class="n">slot</span><span class="p">]</span><span class="o">.</span><span class="n">allocated</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_slots</span><span class="p">[</span><span class="n">slot</span><span class="p">]</span><span class="o">.</span><span class="n">allocation_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%H:%M:%S.</span><span class="si">%f</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">MemoryManager</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Allocated slot </span><span class="si">{</span><span class="n">slot</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">MemoryManager</span><span class="o">.</span><span class="n">AllocatedSlot</span><span class="p">(</span><span class="n">slot</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_slots</span><span class="p">[</span><span class="n">slot</span><span class="p">]</span><span class="o">.</span><span class="n">allocation_ref</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;No free memory slots left for waveform with&#39;</span>
+                        <span class="sa">f</span><span class="s1">&#39; </span><span class="si">{</span><span class="n">wave_size</span><span class="si">}</span><span class="s1"> samples.&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="MemoryManager.release">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.memory_manager.MemoryManager.release">[docs]</a>
+    <span class="k">def</span> <span class="nf">release</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">allocated_slot</span><span class="p">:</span> <span class="n">AllocatedSlot</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Releases the `allocated_slot`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">slot_number</span> <span class="o">=</span> <span class="n">allocated_slot</span><span class="o">.</span><span class="n">number</span>
+        <span class="n">slot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_slots</span><span class="p">[</span><span class="n">slot_number</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">slot</span><span class="o">.</span><span class="n">allocated</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;memory slot </span><span class="si">{</span><span class="n">slot_number</span><span class="si">}</span><span class="s1"> not in use&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">slot</span><span class="o">.</span><span class="n">allocation_ref</span> <span class="o">!=</span> <span class="n">allocated_slot</span><span class="o">.</span><span class="n">allocation_ref</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;memory slot </span><span class="si">{</span><span class="n">slot_number</span><span class="si">}</span><span class="s1"> allocation reference &#39;</span>
+                            <span class="sa">f</span><span class="s1">&#39;mismatch:</span><span class="si">{</span><span class="n">slot</span><span class="o">.</span><span class="n">allocation_ref</span><span class="si">}</span><span class="s1"> is not equal to &#39;</span>
+                            <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">allocated_slot</span><span class="o">.</span><span class="n">allocation_ref</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+        <span class="n">slot</span><span class="o">.</span><span class="n">allocated</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">slot</span><span class="o">.</span><span class="n">allocation_ref</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_free_memory_slots</span><span class="p">[</span><span class="n">slot</span><span class="o">.</span><span class="n">size</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">slot_number</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">MemoryManager</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Released slot </span><span class="si">{</span><span class="n">slot_number</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="c1"># self._log throws exception when instrument has been closed.</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Released slot </span><span class="si">{</span><span class="n">slot_number</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_create_memory_slots</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+
+        <span class="n">creation_limit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_slot_size</span><span class="p">(</span><span class="n">max_size</span><span class="p">)</span>
+
+        <span class="n">free_slots</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_free_memory_slots</span>
+        <span class="n">slots</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_slots</span>
+
+        <span class="k">for</span> <span class="n">size</span><span class="p">,</span> <span class="n">amount</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">MemoryManager</span><span class="o">.</span><span class="n">memory_sizes</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">size</span> <span class="o">&gt;</span> <span class="n">creation_limit</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="k">if</span> <span class="n">size</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_created_size</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="n">free_slots</span><span class="p">[</span><span class="n">size</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">amount</span><span class="p">):</span>
+                <span class="n">number</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">slots</span><span class="p">)</span>
+                <span class="n">free_slots</span><span class="p">[</span><span class="n">size</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">number</span><span class="p">)</span>
+                <span class="n">slots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">MemoryManager</span><span class="o">.</span><span class="n">_MemorySlot</span><span class="p">(</span><span class="n">number</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_free_memory_slots</span> <span class="o">=</span> <span class="n">free_slots</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_slots</span> <span class="o">=</span> <span class="n">slots</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_created_size</span> <span class="o">=</span> <span class="n">creation_limit</span>
+
+    <span class="k">def</span> <span class="nf">_get_slot_size</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">slot_size</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_slot_sizes</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">slot_size</span> <span class="o">&gt;=</span> <span class="n">size</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">slot_size</span>
+
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Requested waveform size </span><span class="si">{</span><span class="n">size</span><span class="si">}</span><span class="s1"> is too big&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="MemoryManager.mem_usage">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.memory_manager.MemoryManager.mem_usage">[docs]</a>
+    <span class="k">def</span> <span class="nf">mem_usage</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Example:</span>
+<span class="sd">            pprint(awg._memory_manager.mem_usage(), sort_dicts=False)</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">result</span><span class="p">[</span><span class="s1">&#39; Block size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Created&#39;</span><span class="p">,</span> <span class="s1">&#39;Allocated&#39;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">size</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_slot_sizes</span><span class="p">:</span>
+            <span class="n">result</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">size</span><span class="p">)]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">slot</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_slots</span><span class="p">:</span>
+            <span class="n">stats</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">slot</span><span class="o">.</span><span class="n">size</span><span class="p">)]</span>
+            <span class="n">stats</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">stats</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="n">slot</span><span class="o">.</span><span class="n">allocated</span>
+        <span class="n">result</span><span class="p">[</span><span class="s1">&#39;Free&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">size</span><span class="p">:</span><span class="nb">len</span><span class="p">(</span><span class="n">slots</span><span class="p">)</span> <span class="k">for</span> <span class="n">size</span><span class="p">,</span><span class="n">slots</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_free_memory_slots</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="k">return</span> <span class="n">result</span></div>
+
+
+<div class="viewcode-block" id="MemoryManager.allocation_state">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.memory_manager.MemoryManager.allocation_state">[docs]</a>
+    <span class="k">def</span> <span class="nf">allocation_state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Example:</span>
+<span class="sd">            pprint(awg._memory_manager.allocation_state())</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">result</span><span class="p">[</span><span class="s1">&#39; Free&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">size</span><span class="p">:</span><span class="nb">len</span><span class="p">(</span><span class="n">slots</span><span class="p">)</span> <span class="k">for</span> <span class="n">size</span><span class="p">,</span><span class="n">slots</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_free_memory_slots</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="n">result</span><span class="p">[</span><span class="s1">&#39;Allocated&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">slot</span> <span class="k">for</span> <span class="n">slot</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_slots</span> <span class="k">if</span> <span class="n">slot</span><span class="o">.</span><span class="n">allocated</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">result</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, QCoDeS Users.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

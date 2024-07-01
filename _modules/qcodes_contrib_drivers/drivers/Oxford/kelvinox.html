@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>qcodes_contrib_drivers.drivers.Oxford.kelvinox &mdash; qcodes_contrib_drivers 0.23.0.dev14+main.g6d96817 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../_static/documentation_options.js?v=7415f6af"></script>
+        <script src="../../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            qcodes_contrib_drivers
+          </a>
+              <div class="version">
+                0.23.0.dev14+main.g6d96817
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples/index.html">Examples of how to use drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/generated/qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">qcodes_contrib_drivers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">qcodes_contrib_drivers.drivers.Oxford.kelvinox</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for qcodes_contrib_drivers.drivers.Oxford.kelvinox</h1><div class="highlight"><pre>
+<span></span><span class="c1"># OxfordInstruments_Kelvinox_IGH class, to perform the communication between the Wrapper and the device</span>
+<span class="c1"># Copyright (c) 2017 QuTech (Delft)</span>
+<span class="c1"># Code is available under the available under the `MIT open-source license</span>
+<span class="c1"># &lt;https://opensource.org/licenses/MIT&gt;`_</span>
+
+<span class="c1"># Sjaak van Diepen &lt;c.j.vandiepen@gmail.com&gt;, 2017</span>
+<span class="c1"># Guenevere Prawiroatmodjo &lt;guen@vvtp.tudelft.nl&gt;, 2009</span>
+<span class="c1"># Pieter de Groot &lt;pieterdegroot@gmail.com&gt;, 2009</span>
+
+
+<span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">sleep</span>
+<span class="kn">import</span> <span class="nn">pyvisa</span>
+<span class="kn">import</span> <span class="nn">pyvisa.constants</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">from</span> <span class="nn">qcodes.instrument</span> <span class="kn">import</span> <span class="n">VisaInstrument</span>
+<span class="kn">from</span> <span class="nn">qcodes</span> <span class="kn">import</span> <span class="n">validators</span> <span class="k">as</span> <span class="n">vals</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+
+
+<span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="OxfordInstruments_Kelvinox_IGH">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Oxford.html#qcodes_contrib_drivers.drivers.Oxford.kelvinox.OxfordInstruments_Kelvinox_IGH">[docs]</a>
+<span class="k">class</span> <span class="nc">OxfordInstruments_Kelvinox_IGH</span><span class="p">(</span><span class="n">VisaInstrument</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This is the python driver for the Oxford Instruments Kelvinox IGH Dilution Refrigerator and</span>
+<span class="sd">    Intelligent Dilution Refrigerator Power Supply (IDR PS).</span>
+
+<span class="sd">    Usage:</span>
+<span class="sd">    Initialize with</span>
+<span class="sd">    fridge = qcodes_contrib_drivers.drivers.oxford.kelvinox.OxfordInstruments_Kelvinox_IGH(name=&#39;fridge&#39;, address=&#39;ASRL4::INSTR&#39;)</span>
+
+<span class="sd">    Note: Since the ISOBUS allows for several instruments to be managed in parallel, the command</span>
+<span class="sd">    which is sent to the device starts with &#39;@n&#39;, where n is the ISOBUS instrument number.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="OxfordInstruments_Kelvinox_IGH.__init__">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Oxford.html#qcodes_contrib_drivers.drivers.Oxford.kelvinox.OxfordInstruments_Kelvinox_IGH.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">address</span><span class="p">,</span> <span class="n">number</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initializes the Oxford Instruments Kelvinox IGH Dilution Refrigerator.</span>
+
+<span class="sd">        Input:</span>
+<span class="sd">            name (string)    : name of the instrument</span>
+<span class="sd">            address (string) : instrument address</span>
+<span class="sd">            number (int)     : ISOBUS instrument number</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Initializing instrument&#39;</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">address</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_address</span> <span class="o">=</span> <span class="n">address</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_number</span> <span class="o">=</span> <span class="n">number</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_values</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">visa_handle</span><span class="o">.</span><span class="n">set_visa_attribute</span><span class="p">(</span><span class="n">pyvisa</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">VI_ATTR_ASRL_STOP_BITS</span><span class="p">,</span>
+                                            <span class="n">pyvisa</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">VI_ASRL_STOP_TWO</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_valve_map</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="mi">1</span><span class="p">:</span> <span class="s1">&#39;9&#39;</span><span class="p">,</span>
+            <span class="mi">2</span><span class="p">:</span> <span class="s1">&#39;8&#39;</span><span class="p">,</span>
+            <span class="mi">3</span><span class="p">:</span> <span class="s1">&#39;7&#39;</span><span class="p">,</span>
+            <span class="mi">4</span><span class="p">:</span> <span class="s1">&#39;11A&#39;</span><span class="p">,</span>
+            <span class="mi">5</span><span class="p">:</span> <span class="s1">&#39;13A&#39;</span><span class="p">,</span>
+            <span class="mi">6</span><span class="p">:</span> <span class="s1">&#39;13B&#39;</span><span class="p">,</span>
+            <span class="mi">7</span><span class="p">:</span> <span class="s1">&#39;11B&#39;</span><span class="p">,</span>
+            <span class="mi">8</span><span class="p">:</span> <span class="s1">&#39;12B&#39;</span><span class="p">,</span>
+            <span class="mi">10</span><span class="p">:</span> <span class="s1">&#39;1&#39;</span><span class="p">,</span>
+            <span class="mi">11</span><span class="p">:</span> <span class="s1">&#39;5&#39;</span><span class="p">,</span>
+            <span class="mi">12</span><span class="p">:</span> <span class="s1">&#39;4&#39;</span><span class="p">,</span>
+            <span class="mi">13</span><span class="p">:</span> <span class="s1">&#39;3&#39;</span><span class="p">,</span>
+            <span class="mi">14</span><span class="p">:</span> <span class="s1">&#39;14&#39;</span><span class="p">,</span>
+            <span class="mi">15</span><span class="p">:</span> <span class="s1">&#39;10&#39;</span><span class="p">,</span>
+            <span class="mi">16</span><span class="p">:</span> <span class="s1">&#39;2&#39;</span><span class="p">,</span>
+            <span class="mi">17</span><span class="p">:</span> <span class="s1">&#39;2A&#39;</span><span class="p">,</span>
+            <span class="mi">18</span><span class="p">:</span> <span class="s1">&#39;1A&#39;</span><span class="p">,</span>
+            <span class="mi">19</span><span class="p">:</span> <span class="s1">&#39;5A&#39;</span><span class="p">,</span>
+            <span class="mi">20</span><span class="p">:</span> <span class="s1">&#39;4A&#39;</span>
+        <span class="p">}</span>
+
+        <span class="c1"># Add parameters</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;one_K_pot_temp&#39;</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;K&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_one_K_pot_temp</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;mix_chamber_temp&#39;</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;K&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_mix_chamber_temp</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_mix_chamber_temp</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;G1&#39;</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;mbar&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_G1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;G2&#39;</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;mbar&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_G2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;G3&#39;</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;mbar&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_G3</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;P1&#39;</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;mbar&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_P1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;P2&#39;</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;mbar&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_P2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;V6_valve&#39;</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;%&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_V6_valve</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_V6_valve</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;V12A_valve&#39;</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;%&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_V12A_valve</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_V12A_valve</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;still_status&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_still_status</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;sorb_status&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_sorb_status</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;still_power&#39;</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;mW&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_still_power</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_still_power</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;sorb_temp&#39;</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;K&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_sorb_temp</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_sorb_temp</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;remote_status&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_remote_status</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_remote_status</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Ints</span><span class="p">())</span>
+
+        <span class="k">for</span> <span class="n">valve</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_valve_map</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;V</span><span class="si">%s</span><span class="s1">_valve&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_valve_map</span><span class="p">[</span><span class="n">valve</span><span class="p">],</span>
+                               <span class="n">get_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span>
+                                   <span class="bp">self</span><span class="o">.</span><span class="n">_get_valve_status</span><span class="p">,</span> <span class="n">valve</span><span class="o">=</span><span class="n">valve</span><span class="p">),</span>
+                               <span class="n">set_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_valve_status</span><span class="p">,</span> <span class="n">valve</span><span class="o">=</span><span class="n">valve</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="OxfordInstruments_Kelvinox_IGH.get_all">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Oxford.html#qcodes_contrib_drivers.drivers.Oxford.kelvinox.OxfordInstruments_Kelvinox_IGH.get_all">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_all</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Reads all implemented parameters from the instrument,</span>
+<span class="sd">        and updates the wrapper.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;reading all settings from instrument&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">snapshot</span><span class="p">(</span><span class="n">update</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+
+    <span class="c1"># Functions</span>
+    <span class="k">def</span> <span class="nf">_execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Write a command to the device</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            message (str) : write command for the device</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Send the following command to the device: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">message</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">visa_handle</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;@</span><span class="si">%s%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_number</span><span class="p">,</span> <span class="n">message</span><span class="p">))</span>
+        <span class="n">sleep</span><span class="p">(</span><span class="mf">70e-3</span><span class="p">)</span>  <span class="c1"># wait for the device to be able to respond</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;?&#39;</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error: Command </span><span class="si">%s</span><span class="s2"> not recognized&quot;</span> <span class="o">%</span> <span class="n">message</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">result</span>
+
+    <span class="k">def</span> <span class="nf">_read</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Reads the total bytes in the buffer and outputs as a string.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            message (str)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">bytes_in_buffer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">visa_handle</span><span class="o">.</span><span class="n">bytes_in_buffer</span>
+        <span class="k">with</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">visa_handle</span><span class="o">.</span><span class="n">ignore_warning</span><span class="p">(</span><span class="n">pyvisa</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">VI_SUCCESS_MAX_CNT</span><span class="p">)):</span>
+            <span class="n">mes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">visa_handle</span><span class="o">.</span><span class="n">visalib</span><span class="o">.</span><span class="n">read</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">visa_handle</span><span class="o">.</span><span class="n">session</span><span class="p">,</span> <span class="n">bytes_in_buffer</span><span class="p">)</span>
+        <span class="n">mes</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">mes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">decode</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">mes</span>
+
+<div class="viewcode-block" id="OxfordInstruments_Kelvinox_IGH.identify">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Oxford.html#qcodes_contrib_drivers.drivers.Oxford.kelvinox.OxfordInstruments_Kelvinox_IGH.identify">[docs]</a>
+    <span class="k">def</span> <span class="nf">identify</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Identify the device</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">             a string of the form ``&#39;IGH    Version 3.02 (c) OXFORD 1998\\r&#39;``</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Identify the device&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;V&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="OxfordInstruments_Kelvinox_IGH.remote">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Oxford.html#qcodes_contrib_drivers.drivers.Oxford.kelvinox.OxfordInstruments_Kelvinox_IGH.remote">[docs]</a>
+    <span class="k">def</span> <span class="nf">remote</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set control to remote and unlocked&quot;&quot;&quot;</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Set control to remote and unlocked&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">remote_status</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="OxfordInstruments_Kelvinox_IGH.local">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Oxford.html#qcodes_contrib_drivers.drivers.Oxford.kelvinox.OxfordInstruments_Kelvinox_IGH.local">[docs]</a>
+    <span class="k">def</span> <span class="nf">local</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set control to local and unlocked&quot;&quot;&quot;</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Set control to local and unlocked&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">remote_status</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="OxfordInstruments_Kelvinox_IGH.close">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Oxford.html#qcodes_contrib_drivers.drivers.Oxford.kelvinox.OxfordInstruments_Kelvinox_IGH.close">[docs]</a>
+    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Safely close connection&quot;&quot;&quot;</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Closing IPS120 connection&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">local</span><span class="p">()</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="OxfordInstruments_Kelvinox_IGH.get_idn">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Oxford.html#qcodes_contrib_drivers.drivers.Oxford.kelvinox.OxfordInstruments_Kelvinox_IGH.get_idn">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_idn</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overides the function of Instrument since IPS120 does not support `*IDN?`</span>
+
+<span class="sd">        This string is supposed to be a comma-separated list of vendor, model,</span>
+<span class="sd">        serial, and firmware, but semicolon and colon are also common</span>
+<span class="sd">        separators so we accept them here as well.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A dict containing vendor, model, serial, and firmware.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">identity</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">identify</span><span class="p">()</span>
+        <span class="n">idparts</span> <span class="o">=</span> <span class="p">[</span><span class="n">identity</span><span class="p">[</span><span class="mi">24</span><span class="p">:</span><span class="mi">30</span><span class="p">],</span> <span class="n">identity</span><span class="p">[:</span><span class="mi">3</span><span class="p">],</span> <span class="kc">None</span><span class="p">,</span> <span class="n">identity</span><span class="p">[</span><span class="mi">15</span><span class="p">:</span><span class="mi">19</span><span class="p">]]</span>
+
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">((</span><span class="s1">&#39;vendor&#39;</span><span class="p">,</span> <span class="s1">&#39;model&#39;</span><span class="p">,</span> <span class="s1">&#39;serial&#39;</span><span class="p">,</span> <span class="s1">&#39;firmware&#39;</span><span class="p">),</span> <span class="n">idparts</span><span class="p">))</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_get_remote_status</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get remote control status</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            result(str) :</span>
+<span class="sd">            &quot;Local &amp; locked&quot;,</span>
+<span class="sd">            &quot;Remote &amp; locked&quot;,</span>
+<span class="sd">            &quot;Local &amp; unlocked&quot;,</span>
+<span class="sd">            &quot;Remote &amp; unlocked&quot;,</span>
+<span class="sd">            &quot;Auto-run-down&quot;,</span>
+<span class="sd">            &quot;Auto-run-down&quot;,</span>
+<span class="sd">            &quot;Auto-run-down&quot;,</span>
+<span class="sd">            &quot;Auto-run-down&quot;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Get remote control status&#39;</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;X&#39;</span><span class="p">)</span>
+        <span class="n">val_mapping</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="s2">&quot;Local and locked&quot;</span><span class="p">,</span>
+                       <span class="mi">1</span><span class="p">:</span> <span class="s2">&quot;Remote and locked&quot;</span><span class="p">,</span>
+                       <span class="mi">2</span><span class="p">:</span> <span class="s2">&quot;Local and unlocked&quot;</span><span class="p">,</span>
+                       <span class="mi">3</span><span class="p">:</span> <span class="s2">&quot;Remote and unlocked&quot;</span><span class="p">,</span>
+                       <span class="mi">4</span><span class="p">:</span> <span class="s2">&quot;Auto-run-down&quot;</span><span class="p">,</span>
+                       <span class="mi">5</span><span class="p">:</span> <span class="s2">&quot;Auto-run-down&quot;</span><span class="p">,</span>
+                       <span class="mi">6</span><span class="p">:</span> <span class="s2">&quot;Auto-run-down&quot;</span><span class="p">,</span>
+                       <span class="mi">7</span><span class="p">:</span> <span class="s2">&quot;Auto-run-down&quot;</span><span class="p">}</span>
+        <span class="k">return</span> <span class="n">val_mapping</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="mi">5</span><span class="p">])]</span>
+
+    <span class="k">def</span> <span class="nf">_set_remote_status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set remote control status.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            mode(int) :</span>
+<span class="sd">            0 : &quot;Local and locked&quot;,</span>
+<span class="sd">            1 : &quot;Remote and locked&quot; (not available),</span>
+<span class="sd">            2 : &quot;Local and unlocked&quot;,</span>
+<span class="sd">            3 : &quot;Remote and unlocked&quot;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="mi">0</span><span class="p">:</span> <span class="s2">&quot;Local and locked&quot;</span><span class="p">,</span>
+            <span class="mi">2</span><span class="p">:</span> <span class="s2">&quot;Local and unlocked&quot;</span><span class="p">,</span>
+            <span class="mi">3</span><span class="p">:</span> <span class="s2">&quot;Remote and unlocked&quot;</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="k">if</span> <span class="n">status</span><span class="o">.</span><span class="fm">__contains__</span><span class="p">(</span><span class="n">mode</span><span class="p">):</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Setting remote control status to </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span>
+                     <span class="n">status</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                         <span class="n">mode</span><span class="p">,</span>
+                         <span class="s2">&quot;Unknown&quot;</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;C</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">mode</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Invalid mode inserted: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">mode</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_one_K_pot_temp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get 1K Pot Temperature from device.</span>
+
+<span class="sd">        Output:</span>
+<span class="sd">            result (float) : 1K Pot Temperature in mK</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Read 1K Pot Temperature&#39;</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;R2&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;R&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span> <span class="o">/</span> <span class="mi">1000</span>
+
+    <span class="k">def</span> <span class="nf">_get_mix_chamber_temp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get Mix Chamber Temperature</span>
+
+<span class="sd">        Output:</span>
+<span class="sd">            result (float) : Mix Chamber Temperature in mK</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Read Mix Chamber Temperature&#39;</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;R3&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="mf">1e-3</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;R&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
+
+<div class="viewcode-block" id="OxfordInstruments_Kelvinox_IGH.set_mix_chamber_heater_mode">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Oxford.html#qcodes_contrib_drivers.drivers.Oxford.kelvinox.OxfordInstruments_Kelvinox_IGH.set_mix_chamber_heater_mode">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_mix_chamber_heater_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        0 : off</span>
+<span class="sd">        1 : fixed heater power</span>
+<span class="sd">        2 : temperature control</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Setting Mix Chamber Power control&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;A</span><span class="si">%i</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">mode</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="OxfordInstruments_Kelvinox_IGH.set_mix_chamber_heater_power_range">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Oxford.html#qcodes_contrib_drivers.drivers.Oxford.kelvinox.OxfordInstruments_Kelvinox_IGH.set_mix_chamber_heater_power_range">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_mix_chamber_heater_power_range</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        1 : 2uW</span>
+<span class="sd">        2 : 20uW</span>
+<span class="sd">        3 : 200uW</span>
+<span class="sd">        4 : 2mW</span>
+<span class="sd">        5 : 20mW</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Setting Mix Chamber Power range&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;E</span><span class="si">%i</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">mode</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_set_mix_chamber_temp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">temperature</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Temperature in kelvin</span>
+<span class="sd">        Between 0 and 2K</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">T</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">temperature</span> <span class="o">/</span> <span class="mf">0.1e-3</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Setting Mix Chamber Temperature&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;T</span><span class="si">%i</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">T</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_G1</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the pressure indicated by G1</span>
+
+<span class="sd">        Output:</span>
+<span class="sd">            result (float) : G1 pressure in mbar</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Read G1&#39;</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;R14&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;R&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span> <span class="o">/</span> <span class="mi">10</span>
+
+    <span class="k">def</span> <span class="nf">_get_G2</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the pressure indicated by G2</span>
+
+<span class="sd">        Output:</span>
+<span class="sd">            result (float) : G2 pressure in mbar</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Read G2&#39;</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;R15&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;R&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span> <span class="o">/</span> <span class="mi">10</span>
+
+    <span class="k">def</span> <span class="nf">_get_G3</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the pressure indicated by G3</span>
+
+<span class="sd">        Output:</span>
+<span class="sd">            result (float) : G3 pressure in mbar</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Read G3&#39;</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;R16&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;R&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span> <span class="o">/</span> <span class="mi">10</span>
+
+    <span class="k">def</span> <span class="nf">_get_P1</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the pressure indicated by P1</span>
+
+<span class="sd">        Output:</span>
+<span class="sd">            result (float) : P1 pressure in mbar</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Read P1&#39;</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;R20&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;R&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_get_P2</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the pressure indicated by P2</span>
+
+<span class="sd">        Output:</span>
+<span class="sd">            result (float) : P2 pressure in mbar</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Read P2&#39;</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;R21&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;R&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_get_valve_status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">valve</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the status of the valve number &quot;valve&quot; where valve must be a number between 1 and 20 (self._map_valve)</span>
+
+<span class="sd">        Output: &#39;On&#39; or &#39;off&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;X&#39;</span><span class="p">)[</span><span class="mi">7</span><span class="p">:</span><span class="mi">15</span><span class="p">]</span>
+        <span class="c1"># change the hexadecimal number to a 20 bit string</span>
+        <span class="n">full_status</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">binary_repr</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="mi">16</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+        <span class="c1"># reverse the order of the binary string</span>
+        <span class="n">full_status</span> <span class="o">=</span> <span class="n">full_status</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="n">full_status</span><span class="p">[</span><span class="n">valve</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="n">val_mapping</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="s1">&#39;off&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span> <span class="s1">&#39;on&#39;</span><span class="p">}</span>
+        <span class="k">return</span> <span class="n">val_mapping</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">status</span><span class="p">)]</span>
+
+    <span class="k">def</span> <span class="nf">_set_valve_status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">status</span><span class="p">,</span> <span class="n">valve</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the status of the valve number &quot;valve&quot; where valve must be a number between 1 and 20 (self._map_valve)</span>
+<span class="sd">        status: 0 for off and 1 for on</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">remote</span><span class="p">()</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Setting valve </span><span class="si">%s</span><span class="s1"> status&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_valve_map</span><span class="p">[</span><span class="n">valve</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;P</span><span class="si">%i</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">valve</span> <span class="o">+</span> <span class="n">numpy</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">status</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">local</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_set_V6_valve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">status</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This set the opening of the stepper valve 6. Status should be a percentage.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">remote</span><span class="p">()</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Setting valve 6 status&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;G</span><span class="si">%i</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">int</span><span class="p">(</span><span class="mi">10</span> <span class="o">*</span> <span class="n">status</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">local</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_get_V6_valve</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the opening of valve 6.</span>
+
+<span class="sd">        Output:</span>
+<span class="sd">            result(float): Opening of V6 valve in percent</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;R7&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;R&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span> <span class="o">/</span> <span class="mi">10</span>
+
+    <span class="k">def</span> <span class="nf">_set_V12A_valve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">status</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This set the opening of the stepper valve 12. Status should be a percentage.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">remote</span><span class="p">()</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Setting valve V12A status&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;H</span><span class="si">%i</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">int</span><span class="p">(</span><span class="mi">10</span> <span class="o">*</span> <span class="n">status</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">local</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_get_V12A_valve</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the opening of valve V12A.</span>
+
+<span class="sd">        Output:</span>
+<span class="sd">            result(float): Opening of valve V12A in percent</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;R8&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;R&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span> <span class="o">/</span> <span class="mi">10</span>
+
+<div class="viewcode-block" id="OxfordInstruments_Kelvinox_IGH.rotate_Nvalve">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Oxford.html#qcodes_contrib_drivers.drivers.Oxford.kelvinox.OxfordInstruments_Kelvinox_IGH.rotate_Nvalve">[docs]</a>
+    <span class="k">def</span> <span class="nf">rotate_Nvalve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This set the opening of the stepper valve N. Status should be a percentage.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">remote</span><span class="p">()</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Setting valve N status&#39;</span><span class="p">)</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="o">&lt;</span> <span class="mi">1000</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">value</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;N</span><span class="si">%i</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">local</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Wrong value....&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Wrong value....&#39;</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_get_still_sorb_status</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the the still and sorb status</span>
+<span class="sd">            O0 : both off</span>
+<span class="sd">            O1 : Still ON, sorb OFF</span>
+<span class="sd">            O2 : Still OFF, sorb on T control</span>
+<span class="sd">            O3 : Still ON, sorb ON T control</span>
+<span class="sd">            O4 : Still OFF, sorb on power control</span>
+<span class="sd">            O5 : Still ON, sorb ON power control</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;X&#39;</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="mi">17</span><span class="p">:</span><span class="mi">19</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">result</span>
+
+    <span class="k">def</span> <span class="nf">_set_still_sorb_status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">status</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the the still and sorb status</span>
+<span class="sd">            O0 : both off</span>
+<span class="sd">            O1 : Still ON, sorb OFF</span>
+<span class="sd">            O2 : Still OFF, sorb on T control</span>
+<span class="sd">            O3 : Still ON, sorb ON T control</span>
+<span class="sd">            O4 : Still OFF, sorb on power control</span>
+<span class="sd">            O3 : Still ON, sorb ON power control</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">remote</span><span class="p">()</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Set still and sorb status&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="n">status</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">local</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_get_still_status</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; get the status of the still (on/off)&quot;&quot;&quot;</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_still_sorb_status</span><span class="p">()</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">status</span> <span class="o">==</span> <span class="s1">&#39;O0&#39;</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">status</span> <span class="o">==</span> <span class="s1">&#39;O2&#39;</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">status</span> <span class="o">==</span> <span class="s1">&#39;O4&#39;</span><span class="p">):</span>
+            <span class="n">still_status</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">still_status</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">val_mapping</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="s1">&#39;off&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span> <span class="s1">&#39;on&#39;</span><span class="p">}</span>
+        <span class="k">return</span> <span class="n">val_mapping</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">still_status</span><span class="p">)]</span>
+
+    <span class="k">def</span> <span class="nf">_get_sorb_status</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; get the status of the still (on/off)&quot;&quot;&quot;</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_still_sorb_status</span><span class="p">()</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">status</span> <span class="o">==</span> <span class="s1">&#39;O0&#39;</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">status</span> <span class="o">==</span> <span class="s1">&#39;O1&#39;</span><span class="p">):</span>
+            <span class="n">sorb_status</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="n">status</span> <span class="o">==</span> <span class="s1">&#39;O2&#39;</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">status</span> <span class="o">==</span> <span class="s1">&#39;O3&#39;</span><span class="p">):</span>
+            <span class="n">sorb_status</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="n">status</span> <span class="o">==</span> <span class="s1">&#39;O4&#39;</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">status</span> <span class="o">==</span> <span class="s1">&#39;O5&#39;</span><span class="p">):</span>
+            <span class="n">sorb_status</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="n">val_mapping</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="s1">&#39;off&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span> <span class="s1">&#39;on T control&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span> <span class="s1">&#39;on P control&#39;</span><span class="p">}</span>
+        <span class="k">return</span> <span class="n">val_mapping</span><span class="p">[</span><span class="n">sorb_status</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">_get_still_power</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; get the power on the still&quot;&quot;&quot;</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Read still power&#39;</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;R5&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;R&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span> <span class="o">/</span> <span class="mi">10</span>
+
+    <span class="k">def</span> <span class="nf">_get_sorb_temp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; get the temperature of the sorb&quot;&quot;&quot;</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Read sorb temperature&#39;</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;R1&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;R&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span> <span class="o">/</span> <span class="mi">10</span>
+
+    <span class="k">def</span> <span class="nf">_set_sorb_temp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">temperature</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Temperature in kelvin &quot;&quot;&quot;</span>
+        <span class="n">T</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">temperature</span> <span class="o">/</span> <span class="mf">0.1</span><span class="p">)</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_still_sorb_status</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">remote</span><span class="p">()</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">status</span> <span class="o">==</span> <span class="s1">&#39;O0&#39;</span><span class="p">):</span>  <span class="c1"># turn the sorb ON</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_set_still_sorb_status</span><span class="p">(</span><span class="s1">&#39;O2&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="n">status</span> <span class="o">==</span> <span class="s1">&#39;O1&#39;</span><span class="p">):</span>  <span class="c1"># turn the sorb ON</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_set_still_sorb_status</span><span class="p">(</span><span class="s1">&#39;O3&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="n">status</span> <span class="o">==</span> <span class="s1">&#39;O2&#39;</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">status</span> <span class="o">==</span> <span class="s1">&#39;O3&#39;</span><span class="p">):</span>  <span class="c1"># the sorb already on T control</span>
+            <span class="k">pass</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;The sorb must be either OFF or on temperature control&#39;</span><span class="p">)</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Setting sorb temperature&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;K</span><span class="si">%i</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">T</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">get_sorb_status</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">local</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_set_still_power</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">temperature</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; power in mW&quot;&quot;&quot;</span>
+        <span class="n">P</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">temperature</span> <span class="o">/</span> <span class="mf">0.1</span><span class="p">)</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_still_sorb_status</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">remote</span><span class="p">()</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">status</span> <span class="o">==</span> <span class="s1">&#39;O0&#39;</span><span class="p">):</span>  <span class="c1"># turn the sorb ON</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_set_still_sorb_status</span><span class="p">(</span><span class="s1">&#39;O1&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="n">status</span> <span class="o">==</span> <span class="s1">&#39;O2&#39;</span><span class="p">):</span>  <span class="c1"># turn the sorb ON</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_set_still_sorb_status</span><span class="p">(</span><span class="s1">&#39;O3&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="n">status</span> <span class="o">==</span> <span class="s1">&#39;O4&#39;</span><span class="p">):</span>  <span class="c1"># the sorb already on T control</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_set_still_sorb_status</span><span class="p">(</span><span class="s1">&#39;O5&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Setting still power&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;S</span><span class="si">%i</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">P</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_get_still_status</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">local</span><span class="p">()</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, QCoDeS Users.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

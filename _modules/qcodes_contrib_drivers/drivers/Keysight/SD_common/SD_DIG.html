@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG &mdash; qcodes_contrib_drivers 0.23.0.dev14+main.g6d96817 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../../_static/documentation_options.js?v=7415f6af"></script>
+        <script src="../../../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../../index.html" class="icon icon-home">
+            qcodes_contrib_drivers
+          </a>
+              <div class="version">
+                0.23.0.dev14+main.g6d96817
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../examples/index.html">Examples of how to use drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../../index.html">qcodes_contrib_drivers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">qcodes.utils.validators</span> <span class="kn">import</span> <span class="n">Numbers</span><span class="p">,</span> <span class="n">Enum</span><span class="p">,</span> <span class="n">Ints</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+
+<span class="kn">from</span> <span class="nn">.SD_Module</span> <span class="kn">import</span> <span class="o">*</span>
+
+
+<div class="viewcode-block" id="SD_DIG">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG">[docs]</a>
+<span class="k">class</span> <span class="nc">SD_DIG</span><span class="p">(</span><span class="n">SD_Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This is the qcodes driver for a generic Signadyne Digitizer of the M32/33XX series.</span>
+
+<span class="sd">    Status: beta</span>
+
+<span class="sd">    This driver is written with the M3300A in mind.</span>
+
+<span class="sd">    This driver makes use of the Python library provided by Keysight as part of the SD1 Software package (v.2.01.00).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="SD_DIG.__init__">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">chassis</span><span class="p">,</span> <span class="n">slot</span><span class="p">,</span> <span class="n">channels</span><span class="p">,</span> <span class="n">triggers</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Initialises a generic Signadyne digitizer and its parameters</span>
+
+<span class="sd">            Args:</span>
+<span class="sd">                name (str)      : the name of the digitizer card</span>
+<span class="sd">                channels (int)  : the number of input channels the specified card has</span>
+<span class="sd">                triggers (int)  : the number of trigger inputs the specified card has</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">chassis</span><span class="p">,</span> <span class="n">slot</span><span class="p">,</span> <span class="n">module_class</span><span class="o">=</span><span class="n">keysightSD1</span><span class="o">.</span><span class="n">SD_AIN</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+
+        <span class="c1"># store card-specifics</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span> <span class="o">=</span> <span class="n">channels</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_triggers</span> <span class="o">=</span> <span class="n">triggers</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">SD_AIN</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SD_module</span>
+
+        <span class="c1">#</span>
+        <span class="c1"># Create a set of internal variables to aid set/get cmds in params</span>
+        <span class="c1">#</span>
+
+        <span class="c1"># Create distinct parameters for each of the digitizer channels</span>
+
+        <span class="c1"># For channelInputConfig</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__full_scale</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span>  <span class="c1"># By default, full scale = 1V</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__impedance</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span>  <span class="c1"># By default, Hi-z</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__coupling</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span>  <span class="c1"># By default, DC coupling</span>
+        <span class="c1"># For channelPrescalerConfig</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__prescaler</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span>  <span class="c1"># By default, no prescaling</span>
+        <span class="c1"># For channelTriggerConfig</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__trigger_mode</span> <span class="o">=</span> <span class="p">[</span><span class="n">keysightSD1</span><span class="o">.</span><span class="n">SD_AIN_TriggerMode</span><span class="o">.</span><span class="n">RISING_EDGE</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__trigger_threshold</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span>  <span class="c1"># By default, threshold at 0V</span>
+        <span class="c1"># For DAQ config</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__points_per_cycle</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__n_cycles</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__trigger_delay</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__trigger_mode</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span>
+        <span class="c1"># For DAQ trigger Config</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__digital_trigger_mode</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__digital_trigger_source</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__analog_trigger_mask</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span>
+        <span class="c1"># For DAQ trigger External Config</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__external_source</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__trigger_behaviour</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span>
+        <span class="c1"># For DAQ read</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__n_points</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__timeout</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span>
+
+        <span class="c1">#</span>
+        <span class="c1"># Create internal parameters</span>
+        <span class="c1">#</span>
+
+        <span class="c1"># for triggerIOconfig</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="s1">&#39;trigger_direction&#39;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Trigger direction for trigger port&#39;</span><span class="p">,</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">Enum</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">SD_AIN</span><span class="o">.</span><span class="n">triggerIOconfig</span><span class="p">,</span>
+            <span class="n">docstring</span><span class="o">=</span><span class="s1">&#39;The trigger direction for digitizer trigger port&#39;</span>
+        <span class="p">)</span>
+
+        <span class="c1"># for clockSetFrequency</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="s1">&#39;sys_frequency&#39;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;CLKsys frequency&#39;</span><span class="p">,</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">Ints</span><span class="p">(),</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">SD_AIN</span><span class="o">.</span><span class="n">clockSetFrequency</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">SD_AIN</span><span class="o">.</span><span class="n">clockGetFrequency</span><span class="p">,</span>
+            <span class="n">docstring</span><span class="o">=</span><span class="s1">&#39;The frequency of internal CLKsys in Hz&#39;</span>
+        <span class="p">)</span>
+
+        <span class="c1"># for clockGetSyncFrequency</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="s1">&#39;sync_frequency&#39;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;CLKsync frequency&#39;</span><span class="p">,</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">Ints</span><span class="p">(),</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">SD_AIN</span><span class="o">.</span><span class="n">clockGetSyncFrequency</span><span class="p">,</span>
+            <span class="n">docstring</span><span class="o">=</span><span class="s1">&#39;The frequency of internal CLKsync in Hz&#39;</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;trigger_io&#39;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;trigger io&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_trigger_io</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">set_trigger_io</span><span class="p">,</span>
+                           <span class="n">docstring</span><span class="o">=</span><span class="s1">&#39;The trigger input value, 0 (OFF) or 1 (ON)&#39;</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">Enum</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+
+        <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span><span class="p">):</span>
+            <span class="c1"># For channelInputConfig</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+                <span class="s1">&#39;full_scale_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">),</span>
+                <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Full scale range for channel </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">),</span>
+                <span class="c1"># TODO: validator must be set after device opened</span>
+                <span class="c1"># vals=Numbers(self.SD_AIN.channelMinFullScale(), self.SD_AIN.channelMaxFullScale())</span>
+                <span class="n">set_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">set_full_scale</span><span class="p">,</span> <span class="n">channel</span><span class="o">=</span><span class="n">n</span><span class="p">),</span>
+                <span class="n">get_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_full_scale</span><span class="p">,</span> <span class="n">channel</span><span class="o">=</span><span class="n">n</span><span class="p">),</span>
+                <span class="n">docstring</span><span class="o">=</span><span class="s1">&#39;The full scale voltage for channel </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+            <span class="p">)</span>
+
+            <span class="c1"># For channelTriggerConfig</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+                <span class="s1">&#39;impedance_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">),</span>
+                <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Impedance for channel </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">),</span>
+                <span class="n">vals</span><span class="o">=</span><span class="n">Enum</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+                <span class="n">set_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">set_impedance</span><span class="p">,</span> <span class="n">channel</span><span class="o">=</span><span class="n">n</span><span class="p">),</span>
+                <span class="n">get_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_impedance</span><span class="p">,</span> <span class="n">channel</span><span class="o">=</span><span class="n">n</span><span class="p">),</span>
+                <span class="n">docstring</span><span class="o">=</span><span class="s1">&#39;The input impedance of channel </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+            <span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+                <span class="s1">&#39;coupling_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">),</span>
+                <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Coupling for channel </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">),</span>
+                <span class="n">vals</span><span class="o">=</span><span class="n">Enum</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+                <span class="n">set_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">set_coupling</span><span class="p">,</span> <span class="n">channel</span><span class="o">=</span><span class="n">n</span><span class="p">),</span>
+                <span class="n">get_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_coupling</span><span class="p">,</span> <span class="n">channel</span><span class="o">=</span><span class="n">n</span><span class="p">),</span>
+                <span class="n">docstring</span><span class="o">=</span><span class="s1">&#39;The coupling of channel </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+            <span class="p">)</span>
+
+            <span class="c1"># For channelPrescalerConfig</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+                <span class="s1">&#39;prescaler_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">),</span>
+                <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Prescaler for channel </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">),</span>
+                <span class="n">vals</span><span class="o">=</span><span class="n">Ints</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">4095</span><span class="p">),</span>
+                <span class="n">set_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">set_prescaler</span><span class="p">,</span> <span class="n">channel</span><span class="o">=</span><span class="n">n</span><span class="p">),</span>
+                <span class="n">get_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_prescaler</span><span class="p">,</span> <span class="n">channel</span><span class="o">=</span><span class="n">n</span><span class="p">),</span>
+                <span class="n">docstring</span><span class="o">=</span><span class="s1">&#39;The sampling frequency prescaler for channel </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+            <span class="p">)</span>
+
+            <span class="c1"># For channelTriggerConfig</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+                <span class="s1">&#39;trigger_mode_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Trigger mode for channel </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">),</span>
+                <span class="n">vals</span><span class="o">=</span><span class="n">Enum</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">),</span>
+                <span class="n">set_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">set_trigger_mode</span><span class="p">,</span> <span class="n">channel</span><span class="o">=</span><span class="n">n</span><span class="p">),</span>
+                <span class="n">docstring</span><span class="o">=</span><span class="s1">&#39;The trigger mode for channel </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+            <span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+                <span class="s1">&#39;trigger_threshold_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">),</span>
+                <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Trigger threshold for channel </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">),</span>
+                <span class="n">vals</span><span class="o">=</span><span class="n">Numbers</span><span class="p">(</span><span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+                <span class="n">set_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">set_trigger_threshold</span><span class="p">,</span> <span class="n">channel</span><span class="o">=</span><span class="n">n</span><span class="p">),</span>
+                <span class="n">docstring</span><span class="o">=</span><span class="s1">&#39;The trigger threshold for channel </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+            <span class="p">)</span>
+
+            <span class="c1"># For DAQ config</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+                <span class="s1">&#39;points_per_cycle_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">),</span>
+                <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Points per cycle for channel </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">),</span>
+                <span class="n">vals</span><span class="o">=</span><span class="n">Ints</span><span class="p">(),</span>
+                <span class="n">set_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">set_points_per_cycle</span><span class="p">,</span> <span class="n">channel</span><span class="o">=</span><span class="n">n</span><span class="p">),</span>
+                <span class="n">docstring</span><span class="o">=</span><span class="s1">&#39;The number of points per cycle for DAQ </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+            <span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+                <span class="s1">&#39;n_cycles_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">),</span>
+                <span class="n">label</span><span class="o">=</span><span class="s1">&#39;n cycles for DAQ </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">),</span>
+                <span class="n">vals</span><span class="o">=</span><span class="n">Ints</span><span class="p">(),</span>
+                <span class="n">set_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">set_n_cycles</span><span class="p">,</span> <span class="n">channel</span><span class="o">=</span><span class="n">n</span><span class="p">),</span>
+                <span class="n">docstring</span><span class="o">=</span><span class="s1">&#39;The number of cycles to collect on DAQ </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+            <span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+                <span class="s1">&#39;DAQ_trigger_delay_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">),</span>
+                <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Trigger delay for for DAQ </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">),</span>
+                <span class="n">vals</span><span class="o">=</span><span class="n">Ints</span><span class="p">(),</span>
+                <span class="n">set_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">set_daq_trigger_delay</span><span class="p">,</span> <span class="n">channel</span><span class="o">=</span><span class="n">n</span><span class="p">),</span>
+                <span class="n">docstring</span><span class="o">=</span><span class="s1">&#39;The trigger delay for DAQ </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+            <span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+                <span class="s1">&#39;DAQ_trigger_mode_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">),</span>
+                <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Trigger mode for for DAQ </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">),</span>
+                <span class="n">vals</span><span class="o">=</span><span class="n">Ints</span><span class="p">(),</span>
+                <span class="n">set_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">set_daq_trigger_mode</span><span class="p">,</span> <span class="n">channel</span><span class="o">=</span><span class="n">n</span><span class="p">),</span>
+                <span class="n">docstring</span><span class="o">=</span><span class="s1">&#39;The trigger mode for DAQ </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+            <span class="p">)</span>
+
+            <span class="c1"># For DAQ trigger Config</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+                <span class="s1">&#39;digital_trigger_mode_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">),</span>
+                <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Digital trigger mode for DAQ </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">),</span>
+                <span class="n">vals</span><span class="o">=</span><span class="n">Ints</span><span class="p">(),</span>
+                <span class="n">set_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">set_digital_trigger_mode</span><span class="p">,</span> <span class="n">channel</span><span class="o">=</span><span class="n">n</span><span class="p">),</span>
+                <span class="n">docstring</span><span class="o">=</span><span class="s1">&#39;The digital trigger mode for DAQ </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+            <span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+                <span class="s1">&#39;digital_trigger_source_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">),</span>
+                <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Digital trigger source for DAQ </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">),</span>
+                <span class="n">vals</span><span class="o">=</span><span class="n">Ints</span><span class="p">(),</span>
+                <span class="n">set_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">set_digital_trigger_source</span><span class="p">,</span> <span class="n">channel</span><span class="o">=</span><span class="n">n</span><span class="p">),</span>
+                <span class="n">docstring</span><span class="o">=</span><span class="s1">&#39;The digital trigger source for DAQ </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+            <span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+                <span class="s1">&#39;analog_trigger_mask_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">),</span>
+                <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Analog trigger mask for DAQ </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">),</span>
+                <span class="n">vals</span><span class="o">=</span><span class="n">Ints</span><span class="p">(),</span>
+                <span class="n">set_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">set_analog_trigger_mask</span><span class="p">,</span> <span class="n">channel</span><span class="o">=</span><span class="n">n</span><span class="p">),</span>
+                <span class="n">docstring</span><span class="o">=</span><span class="s1">&#39;The analog trigger mask for DAQ </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+            <span class="p">)</span>
+
+            <span class="c1"># For DAQ trigger External Config</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+                <span class="s1">&#39;ext_trigger_source_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">),</span>
+                <span class="n">label</span><span class="o">=</span><span class="s1">&#39;External trigger source for DAQ </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">),</span>
+                <span class="n">vals</span><span class="o">=</span><span class="n">Ints</span><span class="p">(),</span>
+                <span class="n">set_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">set_ext_trigger_source</span><span class="p">,</span> <span class="n">channel</span><span class="o">=</span><span class="n">n</span><span class="p">),</span>
+                <span class="n">docstring</span><span class="o">=</span><span class="s1">&#39;The trigger source for DAQ </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+            <span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+                <span class="s1">&#39;ext_trigger_behaviour_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">),</span>
+                <span class="n">label</span><span class="o">=</span><span class="s1">&#39;External trigger behaviour for DAQ </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">),</span>
+                <span class="n">vals</span><span class="o">=</span><span class="n">Ints</span><span class="p">(),</span>
+                <span class="n">set_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">set_ext_trigger_behaviour</span><span class="p">,</span> <span class="n">channel</span><span class="o">=</span><span class="n">n</span><span class="p">),</span>
+                <span class="n">docstring</span><span class="o">=</span><span class="s1">&#39;The trigger behaviour for DAQ </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+            <span class="p">)</span>
+
+            <span class="c1"># For DAQ read</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+                <span class="s1">&#39;n_points_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">),</span>
+                <span class="n">label</span><span class="o">=</span><span class="s1">&#39;n points for DAQ </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">),</span>
+                <span class="n">vals</span><span class="o">=</span><span class="n">Ints</span><span class="p">(),</span>
+                <span class="n">set_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">set_n_points</span><span class="p">,</span> <span class="n">channel</span><span class="o">=</span><span class="n">n</span><span class="p">),</span>
+                <span class="n">docstring</span><span class="o">=</span><span class="s1">&#39;The number of points to be read using daq_read on DAQ </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+            <span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+                <span class="s1">&#39;timeout_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">),</span>
+                <span class="n">label</span><span class="o">=</span><span class="s1">&#39;timeout for DAQ </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">),</span>
+                <span class="n">vals</span><span class="o">=</span><span class="n">Ints</span><span class="p">(),</span>
+                <span class="n">set_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">set_timeout</span><span class="p">,</span> <span class="n">channel</span><span class="o">=</span><span class="n">n</span><span class="p">),</span>
+                <span class="n">docstring</span><span class="o">=</span><span class="s1">&#39;The read timeout for DAQ </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+            <span class="p">)</span></div>
+
+
+    <span class="c1">#</span>
+    <span class="c1"># User functions</span>
+    <span class="c1">#</span>
+
+<div class="viewcode-block" id="SD_DIG.daq_read">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.daq_read">[docs]</a>
+    <span class="k">def</span> <span class="nf">daq_read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">daq</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Read from the specified DAQ</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            daq (int)       : the input DAQ you are reading from</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            n_points</span>
+<span class="sd">            timeout</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SD_AIN</span><span class="o">.</span><span class="n">DAQread</span><span class="p">(</span><span class="n">daq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__n_points</span><span class="p">[</span><span class="n">daq</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">__timeout</span><span class="p">[</span><span class="n">daq</span><span class="p">])</span>
+        <span class="n">value_name</span> <span class="o">=</span> <span class="s1">&#39;DAQ_read channel </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">daq</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result_parser</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">value_name</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SD_DIG.daq_start">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.daq_start">[docs]</a>
+    <span class="k">def</span> <span class="nf">daq_start</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">daq</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Start acquiring data or waiting for a trigger on the specified DAQ</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            daq (int)       : the input DAQ you are enabling</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SD_AIN</span><span class="o">.</span><span class="n">DAQstart</span><span class="p">(</span><span class="n">daq</span><span class="p">)</span>
+        <span class="n">value_name</span> <span class="o">=</span> <span class="s1">&#39;DAQ_start channel </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">daq</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result_parser</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">value_name</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SD_DIG.daq_start_multiple">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.daq_start_multiple">[docs]</a>
+    <span class="k">def</span> <span class="nf">daq_start_multiple</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">daq_mask</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Start acquiring data or waiting for a trigger on the specified DAQs</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            daq_mask (int)  : the input DAQs you are enabling, composed as a bitmask</span>
+<span class="sd">                              where the LSB is for DAQ_0, bit 1 is for DAQ_1 etc.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SD_AIN</span><span class="o">.</span><span class="n">DAQstartMultiple</span><span class="p">(</span><span class="n">daq_mask</span><span class="p">)</span>
+        <span class="n">value_name</span> <span class="o">=</span> <span class="s1">&#39;DAQ_start_multiple mask </span><span class="si">{:#b}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">daq_mask</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result_parser</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">value_name</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SD_DIG.daq_stop">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.daq_stop">[docs]</a>
+    <span class="k">def</span> <span class="nf">daq_stop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">daq</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Stop acquiring data on the specified DAQ</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            daq (int)       : the DAQ you are disabling</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SD_AIN</span><span class="o">.</span><span class="n">DAQstop</span><span class="p">(</span><span class="n">daq</span><span class="p">)</span>
+        <span class="n">value_name</span> <span class="o">=</span> <span class="s1">&#39;DAQ_stop channel </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">daq</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result_parser</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">value_name</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SD_DIG.daq_stop_multiple">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.daq_stop_multiple">[docs]</a>
+    <span class="k">def</span> <span class="nf">daq_stop_multiple</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">daq_mask</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Stop acquiring data on the specified DAQs</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            daq_mask (int)  : the DAQs you are triggering, composed as a bitmask</span>
+<span class="sd">                              where the LSB is for DAQ_0, bit 1 is for DAQ_1 etc.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SD_AIN</span><span class="o">.</span><span class="n">DAQstopMultiple</span><span class="p">(</span><span class="n">daq_mask</span><span class="p">)</span>
+        <span class="n">value_name</span> <span class="o">=</span> <span class="s1">&#39;DAQ_stop_multiple mask </span><span class="si">{:#b}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">daq_mask</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result_parser</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">value_name</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SD_DIG.daq_trigger">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.daq_trigger">[docs]</a>
+    <span class="k">def</span> <span class="nf">daq_trigger</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">daq</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Manually trigger the specified DAQ</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            daq (int)       : the DAQ you are triggering</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SD_AIN</span><span class="o">.</span><span class="n">DAQtrigger</span><span class="p">(</span><span class="n">daq</span><span class="p">)</span>
+        <span class="n">value_name</span> <span class="o">=</span> <span class="s1">&#39;DAQ_trigger channel </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">daq</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result_parser</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">value_name</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SD_DIG.daq_trigger_multiple">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.daq_trigger_multiple">[docs]</a>
+    <span class="k">def</span> <span class="nf">daq_trigger_multiple</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">daq_mask</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Manually trigger the specified DAQs</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            daq_mask (int)  : the DAQs you are triggering, composed as a bitmask</span>
+<span class="sd">                              where the LSB is for DAQ_0, bit 1 is for DAQ_1 etc.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SD_AIN</span><span class="o">.</span><span class="n">DAQtriggerMultiple</span><span class="p">(</span><span class="n">daq_mask</span><span class="p">)</span>
+        <span class="n">value_name</span> <span class="o">=</span> <span class="s1">&#39;DAQ_trigger_multiple mask </span><span class="si">{:#b}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">daq_mask</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result_parser</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">value_name</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SD_DIG.daq_flush">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.daq_flush">[docs]</a>
+    <span class="k">def</span> <span class="nf">daq_flush</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">daq</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Flush the specified DAQ</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            daq (int)       : the DAQ you are flushing</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SD_AIN</span><span class="o">.</span><span class="n">DAQflush</span><span class="p">(</span><span class="n">daq</span><span class="p">)</span>
+        <span class="n">value_name</span> <span class="o">=</span> <span class="s1">&#39;DAQ_flush channel </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">daq</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result_parser</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">value_name</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SD_DIG.daq_flush_multiple">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.daq_flush_multiple">[docs]</a>
+    <span class="k">def</span> <span class="nf">daq_flush_multiple</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">daq_mask</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Flush the specified DAQs</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            daq_mask (int)  : the DAQs you are flushing, composed as a bitmask</span>
+<span class="sd">                              where the LSB is for DAQ_0, bit 1 is for DAQ_1 etc.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SD_AIN</span><span class="o">.</span><span class="n">DAQflushMultiple</span><span class="p">(</span><span class="n">daq_mask</span><span class="p">)</span>
+        <span class="n">value_name</span> <span class="o">=</span> <span class="s1">&#39;DAQ_flush_multiple mask </span><span class="si">{:#b}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">daq_mask</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result_parser</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">value_name</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SD_DIG.set_trigger_io">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.set_trigger_io">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_trigger_io</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Write a value to the IO trigger port</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            value (int)     : the binary value to write to the IO port</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># TODO: Check if the port is writable</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SD_AIN</span><span class="o">.</span><span class="n">triggerIOwrite</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+        <span class="n">value_name</span> <span class="o">=</span> <span class="s1">&#39;set io trigger output to </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result_parser</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">value_name</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SD_DIG.get_trigger_io">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.get_trigger_io">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_trigger_io</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Write a value to the IO trigger port</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># TODO: Check if the port is readable</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SD_AIN</span><span class="o">.</span><span class="n">triggerIOread</span><span class="p">()</span>
+        <span class="n">value_name</span> <span class="o">=</span> <span class="s1">&#39;trigger_io&#39;</span>
+        <span class="k">return</span> <span class="n">result_parser</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">value_name</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SD_DIG.reset_clock_phase">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.reset_clock_phase">[docs]</a>
+    <span class="k">def</span> <span class="nf">reset_clock_phase</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trigger_behaviour</span><span class="p">,</span> <span class="n">trigger_source</span><span class="p">,</span> <span class="n">skew</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Reset the clock phase between CLKsync and CLKsys</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            trigger_behaviour (int) :</span>
+<span class="sd">            trigger_source    (int) : the PXI trigger number</span>
+<span class="sd">            skew           (float) : the skew between PXI_CLK10 and CLKsync in multiples of 10ns</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SD_AIN</span><span class="o">.</span><span class="n">clockResetPhase</span><span class="p">(</span><span class="n">trigger_behaviour</span><span class="p">,</span> <span class="n">trigger_source</span><span class="p">,</span> <span class="n">skew</span><span class="p">)</span>
+        <span class="n">value_name</span> <span class="o">=</span> <span class="s1">&#39;reset_clock_phase trigger_behaviour: </span><span class="si">{}</span><span class="s1">, trigger_source: </span><span class="si">{}</span><span class="s1">, skew: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">trigger_behaviour</span><span class="p">,</span> <span class="n">trigger_source</span><span class="p">,</span> <span class="n">skew</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result_parser</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">value_name</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span></div>
+
+
+    <span class="c1">#</span>
+    <span class="c1"># Functions used internally to set/get parameters</span>
+    <span class="c1">#</span>
+
+<div class="viewcode-block" id="SD_DIG.set_clksys_frequency">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.set_clksys_frequency">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">set_clksys_frequency</span><span class="p">(</span><span class="n">frequency</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Sets the CLKsys frequency</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">        frequency (int)         : frequency of CLKsys in Hz</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">value_name</span> <span class="o">=</span> <span class="s1">&#39;set_CLKsys_frequency not implemented&#39;</span>
+        <span class="k">return</span> <span class="n">result_parser</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">value_name</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SD_DIG.get_prescaler">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.get_prescaler">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_prescaler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Gets the channel prescaler value</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            channel (int)       : the input channel you are observing</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SD_AIN</span><span class="o">.</span><span class="n">channelPrescaler</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
+        <span class="c1"># Update internal parameter for consistency</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__prescaler</span><span class="p">[</span><span class="n">channel</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="n">value_name</span> <span class="o">=</span> <span class="s1">&#39;get_prescaler&#39;</span>
+        <span class="k">return</span> <span class="n">result_parser</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">value_name</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SD_DIG.set_prescaler">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.set_prescaler">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_prescaler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prescaler</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Sets the channel sampling frequency via the prescaler</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            channel (int)       : the input channel you are configuring</span>
+<span class="sd">            prescaler (int)     : the prescaler value [0..4095]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__prescaler</span><span class="p">[</span><span class="n">channel</span><span class="p">]</span> <span class="o">=</span> <span class="n">prescaler</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SD_AIN</span><span class="o">.</span><span class="n">channelPrescalerConfig</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="n">prescaler</span><span class="p">)</span>
+        <span class="n">value_name</span> <span class="o">=</span> <span class="s1">&#39;set_prescaler </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">prescaler</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result_parser</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">value_name</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span></div>
+
+
+    <span class="c1"># channelInputConfig</span>
+    <span class="c1"># NOTE: When setting any of full_scale, coupling or impedance</span>
+    <span class="c1"># the initial internal value is used as a placeholder, as all 3 arguments</span>
+    <span class="c1"># are required at once to the Keysight library</span>
+<div class="viewcode-block" id="SD_DIG.get_full_scale">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.get_full_scale">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_full_scale</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Gets the channel full scale input voltage</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            channel(int)        : the input channel you are observing</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SD_AIN</span><span class="o">.</span><span class="n">channelFullScale</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
+        <span class="c1"># Update internal parameter for consistency</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__full_scale</span><span class="p">[</span><span class="n">channel</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="n">value_name</span> <span class="o">=</span> <span class="s1">&#39;get_full_scale&#39;</span>
+        <span class="k">return</span> <span class="n">result_parser</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">value_name</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SD_DIG.set_full_scale">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.set_full_scale">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_full_scale</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">full_scale</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Sets the channel full scale input voltage</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            channel(int)        : the input channel you are configuring</span>
+<span class="sd">            full_scale (float)  : the input full scale range in volts</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__full_scale</span><span class="p">[</span><span class="n">channel</span><span class="p">]</span> <span class="o">=</span> <span class="n">full_scale</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SD_AIN</span><span class="o">.</span><span class="n">channelInputConfig</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__full_scale</span><span class="p">[</span><span class="n">channel</span><span class="p">],</span>
+                                               <span class="bp">self</span><span class="o">.</span><span class="n">__impedance</span><span class="p">[</span><span class="n">channel</span><span class="p">],</span>
+                                               <span class="bp">self</span><span class="o">.</span><span class="n">__coupling</span><span class="p">[</span><span class="n">channel</span><span class="p">])</span>
+        <span class="n">value_name</span> <span class="o">=</span> <span class="s1">&#39;set_full_scale </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">full_scale</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result_parser</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">value_name</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SD_DIG.get_impedance">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.get_impedance">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_impedance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Gets the channel input impedance</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            channel (int)       : the input channel you are observing</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SD_AIN</span><span class="o">.</span><span class="n">channelImpedance</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
+        <span class="c1"># Update internal parameter for consistency</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__impedance</span><span class="p">[</span><span class="n">channel</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="n">value_name</span> <span class="o">=</span> <span class="s1">&#39;get_impedance&#39;</span>
+        <span class="k">return</span> <span class="n">result_parser</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">value_name</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SD_DIG.set_impedance">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.set_impedance">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_impedance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">impedance</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Sets the channel input impedance</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            channel (int)       : the input channel you are configuring</span>
+<span class="sd">            impedance (int)     : the input impedance (0 = Hi-Z, 1 = 50 Ohm)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__impedance</span><span class="p">[</span><span class="n">channel</span><span class="p">]</span> <span class="o">=</span> <span class="n">impedance</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SD_AIN</span><span class="o">.</span><span class="n">channelInputConfig</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__full_scale</span><span class="p">[</span><span class="n">channel</span><span class="p">],</span>
+                                               <span class="bp">self</span><span class="o">.</span><span class="n">__impedance</span><span class="p">[</span><span class="n">channel</span><span class="p">],</span>
+                                               <span class="bp">self</span><span class="o">.</span><span class="n">__coupling</span><span class="p">[</span><span class="n">channel</span><span class="p">])</span>
+        <span class="n">value_name</span> <span class="o">=</span> <span class="s1">&#39;set_impedance </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">impedance</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result_parser</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">value_name</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SD_DIG.get_coupling">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.get_coupling">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_coupling</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Gets the channel coupling</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            channel (int)       : the input channel you are observing</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SD_AIN</span><span class="o">.</span><span class="n">channelCoupling</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
+        <span class="c1"># Update internal parameter for consistency</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__coupling</span><span class="p">[</span><span class="n">channel</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="n">value_name</span> <span class="o">=</span> <span class="s1">&#39;get_coupling&#39;</span>
+        <span class="k">return</span> <span class="n">result_parser</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">value_name</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SD_DIG.set_coupling">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.set_coupling">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_coupling</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coupling</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Sets the channel coupling</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            channel (int)       : the input channel you are configuring</span>
+<span class="sd">            coupling (int)      : the channel coupling (0 = DC, 1 = AC)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__coupling</span><span class="p">[</span><span class="n">channel</span><span class="p">]</span> <span class="o">=</span> <span class="n">coupling</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SD_AIN</span><span class="o">.</span><span class="n">channelInputConfig</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__full_scale</span><span class="p">[</span><span class="n">channel</span><span class="p">],</span>
+                                               <span class="bp">self</span><span class="o">.</span><span class="n">__impedance</span><span class="p">[</span><span class="n">channel</span><span class="p">],</span>
+                                               <span class="bp">self</span><span class="o">.</span><span class="n">__coupling</span><span class="p">[</span><span class="n">channel</span><span class="p">])</span>
+        <span class="n">value_name</span> <span class="o">=</span> <span class="s1">&#39;set_coupling </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">coupling</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result_parser</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">value_name</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span></div>
+
+
+    <span class="c1"># channelTriggerConfig</span>
+<div class="viewcode-block" id="SD_DIG.set_trigger_mode">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.set_trigger_mode">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_trigger_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Sets the current trigger mode from those defined in SD_AIN_TriggerMode</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            channel (int)       : the input channel you are configuring</span>
+<span class="sd">            mode (int)          : the trigger mode drawn from the class SD_AIN_TriggerMode</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__trigger_mode</span><span class="p">[</span><span class="n">channel</span><span class="p">]</span> <span class="o">=</span> <span class="n">mode</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SD_AIN</span><span class="o">.</span><span class="n">channelTriggerConfig</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__analog_trigger_mask</span><span class="p">[</span><span class="n">channel</span><span class="p">],</span>
+                                                 <span class="bp">self</span><span class="o">.</span><span class="n">__trigger_threshold</span><span class="p">[</span><span class="n">channel</span><span class="p">])</span>
+        <span class="n">value_name</span> <span class="o">=</span> <span class="s1">&#39;set_trigger_mode </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mode</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result_parser</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">value_name</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SD_DIG.get_trigger_mode">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.get_trigger_mode">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_trigger_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Returns the current trigger mode</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            channel (int)       : the input channel you are observing</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__trigger_mode</span><span class="p">[</span><span class="n">channel</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="SD_DIG.set_trigger_threshold">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.set_trigger_threshold">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_trigger_threshold</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Sets the current trigger threshold, in the range of -3V and 3V</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            channel (int)       : the input channel you are configuring</span>
+<span class="sd">            threshold (float)   : the value in volts for the trigger threshold</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__trigger_threshold</span><span class="p">[</span><span class="n">channel</span><span class="p">]</span> <span class="o">=</span> <span class="n">threshold</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SD_AIN</span><span class="o">.</span><span class="n">channelTriggerConfig</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__analog_trigger_mask</span><span class="p">[</span><span class="n">channel</span><span class="p">],</span>
+                                                 <span class="bp">self</span><span class="o">.</span><span class="n">__trigger_threshold</span><span class="p">[</span><span class="n">channel</span><span class="p">])</span>
+        <span class="n">value_name</span> <span class="o">=</span> <span class="s1">&#39;set_trigger_threshold </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">threshold</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result_parser</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">value_name</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SD_DIG.get_trigger_threshold">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.get_trigger_threshold">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_trigger_threshold</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Returns the current trigger threshold</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            channel (int)       : the input channel you are observing</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__trigger_threshold</span><span class="p">[</span><span class="n">channel</span><span class="p">]</span></div>
+
+
+    <span class="c1"># DAQConfig</span>
+<div class="viewcode-block" id="SD_DIG.set_points_per_cycle">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.set_points_per_cycle">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_points_per_cycle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_points</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Sets the number of points to be collected per trigger</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            n_points (int)      : the number of points to collect per cycle</span>
+<span class="sd">            channel (int)       : the input channel you are configuring</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__points_per_cycle</span><span class="p">[</span><span class="n">channel</span><span class="p">]</span> <span class="o">=</span> <span class="n">n_points</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SD_AIN</span><span class="o">.</span><span class="n">DAQconfig</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__points_per_cycle</span><span class="p">[</span><span class="n">channel</span><span class="p">],</span>
+                                      <span class="bp">self</span><span class="o">.</span><span class="n">__n_cycles</span><span class="p">[</span><span class="n">channel</span><span class="p">],</span>
+                                      <span class="bp">self</span><span class="o">.</span><span class="n">__trigger_delay</span><span class="p">[</span><span class="n">channel</span><span class="p">],</span>
+                                      <span class="bp">self</span><span class="o">.</span><span class="n">__trigger_mode</span><span class="p">[</span><span class="n">channel</span><span class="p">])</span>
+        <span class="n">value_name</span> <span class="o">=</span> <span class="s1">&#39;set_points_per_cycle </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n_points</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result_parser</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">value_name</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SD_DIG.set_n_cycles">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.set_n_cycles">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_n_cycles</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_cycles</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Sets the number of trigger cycles to collect data for</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            channel (int)       : the input channel you are configuring</span>
+<span class="sd">            n_cycles (int)      : the number of triggers to collect data from</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__n_cycles</span><span class="p">[</span><span class="n">channel</span><span class="p">]</span> <span class="o">=</span> <span class="n">n_cycles</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SD_AIN</span><span class="o">.</span><span class="n">DAQconfig</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__points_per_cycle</span><span class="p">[</span><span class="n">channel</span><span class="p">],</span>
+                                      <span class="bp">self</span><span class="o">.</span><span class="n">__n_cycles</span><span class="p">[</span><span class="n">channel</span><span class="p">],</span>
+                                      <span class="bp">self</span><span class="o">.</span><span class="n">__trigger_delay</span><span class="p">[</span><span class="n">channel</span><span class="p">],</span>
+                                      <span class="bp">self</span><span class="o">.</span><span class="n">__trigger_mode</span><span class="p">[</span><span class="n">channel</span><span class="p">])</span>
+        <span class="n">value_name</span> <span class="o">=</span> <span class="s1">&#39;set_n_cycles </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n_cycles</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result_parser</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">value_name</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SD_DIG.set_daq_trigger_delay">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.set_daq_trigger_delay">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_daq_trigger_delay</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delay</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Sets the trigger delay for the specified trigger source</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            channel (int)       : the input channel you are configuring</span>
+<span class="sd">            delay   (int)       : the delay in unknown units</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__trigger_delay</span><span class="p">[</span><span class="n">channel</span><span class="p">]</span> <span class="o">=</span> <span class="n">delay</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SD_AIN</span><span class="o">.</span><span class="n">DAQconfig</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__points_per_cycle</span><span class="p">[</span><span class="n">channel</span><span class="p">],</span>
+                                      <span class="bp">self</span><span class="o">.</span><span class="n">__n_cycles</span><span class="p">[</span><span class="n">channel</span><span class="p">],</span>
+                                      <span class="bp">self</span><span class="o">.</span><span class="n">__trigger_delay</span><span class="p">[</span><span class="n">channel</span><span class="p">],</span>
+                                      <span class="bp">self</span><span class="o">.</span><span class="n">__trigger_mode</span><span class="p">[</span><span class="n">channel</span><span class="p">])</span>
+        <span class="n">value_name</span> <span class="o">=</span> <span class="s1">&#39;set_DAQ_trigger_delay </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">delay</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result_parser</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">value_name</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SD_DIG.set_daq_trigger_mode">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.set_daq_trigger_mode">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_daq_trigger_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Sets the trigger mode when using an external trigger</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            channel (int)       : the input channel you are configuring</span>
+<span class="sd">            mode  (int)         : the trigger mode you are using</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__trigger_mode</span><span class="p">[</span><span class="n">channel</span><span class="p">]</span> <span class="o">=</span> <span class="n">mode</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SD_AIN</span><span class="o">.</span><span class="n">DAQconfig</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__points_per_cycle</span><span class="p">[</span><span class="n">channel</span><span class="p">],</span>
+                                      <span class="bp">self</span><span class="o">.</span><span class="n">__n_cycles</span><span class="p">[</span><span class="n">channel</span><span class="p">],</span>
+                                      <span class="bp">self</span><span class="o">.</span><span class="n">__trigger_delay</span><span class="p">[</span><span class="n">channel</span><span class="p">],</span>
+                                      <span class="bp">self</span><span class="o">.</span><span class="n">__trigger_mode</span><span class="p">[</span><span class="n">channel</span><span class="p">])</span>
+        <span class="n">value_name</span> <span class="o">=</span> <span class="s1">&#39;set_DAQ_trigger_mode </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mode</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result_parser</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">value_name</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span></div>
+
+
+    <span class="c1"># DAQ trigger Config</span>
+<div class="viewcode-block" id="SD_DIG.set_digital_trigger_mode">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.set_digital_trigger_mode">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_digital_trigger_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            channel (int)       : the input channel you are configuring</span>
+<span class="sd">            mode  (int)         : the trigger mode you are using</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__digital_trigger_mode</span><span class="p">[</span><span class="n">channel</span><span class="p">]</span> <span class="o">=</span> <span class="n">mode</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SD_AIN</span><span class="o">.</span><span class="n">DAQtriggerConfig</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__digital_trigger_mode</span><span class="p">[</span><span class="n">channel</span><span class="p">],</span>
+                                             <span class="bp">self</span><span class="o">.</span><span class="n">__digital_trigger_source</span><span class="p">[</span><span class="n">channel</span><span class="p">],</span>
+                                             <span class="bp">self</span><span class="o">.</span><span class="n">__analog_trigger_mask</span><span class="p">[</span><span class="n">channel</span><span class="p">])</span>
+        <span class="n">value_name</span> <span class="o">=</span> <span class="s1">&#39;set_digital_trigger_mode </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mode</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result_parser</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">value_name</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SD_DIG.set_digital_trigger_source">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.set_digital_trigger_source">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_digital_trigger_source</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            channel (int)       : the input channel you are configuring</span>
+<span class="sd">            source  (int)         : the trigger source you are using</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__digital_trigger_source</span><span class="p">[</span><span class="n">channel</span><span class="p">]</span> <span class="o">=</span> <span class="n">source</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SD_AIN</span><span class="o">.</span><span class="n">DAQtriggerConfig</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__digital_trigger_mode</span><span class="p">[</span><span class="n">channel</span><span class="p">],</span>
+                                             <span class="bp">self</span><span class="o">.</span><span class="n">__digital_trigger_source</span><span class="p">[</span><span class="n">channel</span><span class="p">],</span>
+                                             <span class="bp">self</span><span class="o">.</span><span class="n">__analog_trigger_mask</span><span class="p">[</span><span class="n">channel</span><span class="p">])</span>
+        <span class="n">value_name</span> <span class="o">=</span> <span class="s1">&#39;set_digital_trigger_source </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result_parser</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">value_name</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SD_DIG.set_analog_trigger_mask">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.set_analog_trigger_mask">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_analog_trigger_mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mask</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            channel (int)       : the input channel you are configuring</span>
+<span class="sd">            mask  (int)         : the trigger mask you are using</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__analog_trigger_mask</span><span class="p">[</span><span class="n">channel</span><span class="p">]</span> <span class="o">=</span> <span class="n">mask</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SD_AIN</span><span class="o">.</span><span class="n">DAQtriggerConfig</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__digital_trigger_mode</span><span class="p">[</span><span class="n">channel</span><span class="p">],</span>
+                                             <span class="bp">self</span><span class="o">.</span><span class="n">__digital_trigger_source</span><span class="p">[</span><span class="n">channel</span><span class="p">],</span>
+                                             <span class="bp">self</span><span class="o">.</span><span class="n">__analog_trigger_mask</span><span class="p">[</span><span class="n">channel</span><span class="p">])</span>
+        <span class="n">value_name</span> <span class="o">=</span> <span class="s1">&#39;set_analog_trigger_mask </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result_parser</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">value_name</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span></div>
+
+
+    <span class="c1"># DAQ trigger External Config</span>
+<div class="viewcode-block" id="SD_DIG.set_ext_trigger_source">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.set_ext_trigger_source">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_ext_trigger_source</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Sets the trigger source</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            channel (int)       : the input channel you are configuring</span>
+<span class="sd">            source  (int)       : the trigger source you are using</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__external_source</span><span class="p">[</span><span class="n">channel</span><span class="p">]</span> <span class="o">=</span> <span class="n">source</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SD_AIN</span><span class="o">.</span><span class="n">DAQtriggerExternalConfig</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__external_source</span><span class="p">[</span><span class="n">channel</span><span class="p">],</span>
+                                                     <span class="bp">self</span><span class="o">.</span><span class="n">__trigger_behaviour</span><span class="p">[</span><span class="n">channel</span><span class="p">])</span>
+        <span class="n">value_name</span> <span class="o">=</span> <span class="s1">&#39;set_ext_trigger_source </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result_parser</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">value_name</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SD_DIG.set_ext_trigger_behaviour">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.set_ext_trigger_behaviour">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_ext_trigger_behaviour</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">behaviour</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Sets the trigger source</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            channel (int)       : the input channel you are configuring</span>
+<span class="sd">            behaviour  (int)    : the trigger behaviour you are using</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__external_behaviour</span><span class="p">[</span><span class="n">channel</span><span class="p">]</span> <span class="o">=</span> <span class="n">behaviour</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SD_AIN</span><span class="o">.</span><span class="n">DAQtriggerExternalConfig</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__external_source</span><span class="p">[</span><span class="n">channel</span><span class="p">],</span>
+                                                     <span class="bp">self</span><span class="o">.</span><span class="n">__trigger_behaviour</span><span class="p">[</span><span class="n">channel</span><span class="p">])</span>
+        <span class="n">value_name</span> <span class="o">=</span> <span class="s1">&#39;set_ext_trigger_behaviour </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">behaviour</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result_parser</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">value_name</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span></div>
+
+
+    <span class="c1"># DAQ read</span>
+<div class="viewcode-block" id="SD_DIG.set_n_points">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.set_n_points">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_n_points</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_points</span><span class="p">,</span> <span class="n">channel</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Sets the trigger source</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            channel (int)       : the input channel you are configuring</span>
+<span class="sd">            n_points  (int)     : the number of points to be read from specified DAQ</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__n_points</span><span class="p">[</span><span class="n">channel</span><span class="p">]</span> <span class="o">=</span> <span class="n">n_points</span></div>
+
+
+<div class="viewcode-block" id="SD_DIG.set_timeout">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.set_timeout">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_timeout</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timeout</span><span class="p">,</span> <span class="n">channel</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Sets the trigger source</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            channel (int)       : the input channel you are configuring</span>
+<span class="sd">            timeout (int)       : the read timeout in ms for the specified DAQ</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__timeout</span><span class="p">[</span><span class="n">channel</span><span class="p">]</span> <span class="o">=</span> <span class="n">timeout</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, QCoDeS Users.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

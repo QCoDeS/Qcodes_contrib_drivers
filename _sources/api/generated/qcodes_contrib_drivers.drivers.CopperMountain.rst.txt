@@ -1,0 +1,29 @@
+qcodes\_contrib\_drivers.drivers.CopperMountain package
+=======================================================
+
+Submodules
+----------
+
+qcodes\_contrib\_drivers.drivers.CopperMountain.M5180 module
+------------------------------------------------------------
+
+.. automodule:: qcodes_contrib_drivers.drivers.CopperMountain.M5180
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+qcodes\_contrib\_drivers.drivers.CopperMountain.S5048 module
+------------------------------------------------------------
+
+.. automodule:: qcodes_contrib_drivers.drivers.CopperMountain.S5048
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: qcodes_contrib_drivers.drivers.CopperMountain
+   :members:
+   :undoc-members:
+   :show-inheritance:

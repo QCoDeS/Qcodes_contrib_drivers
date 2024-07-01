@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR570 &mdash; qcodes_contrib_drivers 0.23.0.dev14+main.g6d96817 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../_static/documentation_options.js?v=7415f6af"></script>
+        <script src="../../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            qcodes_contrib_drivers
+          </a>
+              <div class="version">
+                0.23.0.dev14+main.g6d96817
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples/index.html">Examples of how to use drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/generated/qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">qcodes_contrib_drivers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR570</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR570</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span>
+
+<span class="kn">import</span> <span class="nn">qcodes.validators</span> <span class="k">as</span> <span class="nn">vals</span>
+<span class="kn">from</span> <span class="nn">pyvisa.constants</span> <span class="kn">import</span> <span class="n">Parity</span><span class="p">,</span> <span class="n">StopBits</span>
+<span class="kn">from</span> <span class="nn">pyvisa.resources.serial</span> <span class="kn">import</span> <span class="n">SerialInstrument</span>
+<span class="kn">from</span> <span class="nn">pyvisa.resources.tcpip</span> <span class="kn">import</span> <span class="n">TCPIPSocket</span>
+<span class="kn">from</span> <span class="nn">qcodes.instrument.visa</span> <span class="kn">import</span> <span class="n">VisaInstrument</span>
+<span class="kn">from</span> <span class="nn">qcodes.parameters</span> <span class="kn">import</span> <span class="n">ParameterBase</span><span class="p">,</span> <span class="n">create_on_off_val_mapping</span>
+
+
+<div class="viewcode-block" id="SR570">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.StanfordResearchSystems.html#qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR570.SR570">[docs]</a>
+<span class="k">class</span> <span class="nc">SR570</span><span class="p">(</span><span class="n">VisaInstrument</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    QCoDeS driver for the Stanford Research Systems SR570 Low-Noise Current Preamplifier.</span>
+
+<span class="sd">    This is a real driver and it will talk to your instrument (as opposed to SR560 from QCoDeS).</span>
+
+<span class="sd">    It *can&#39;t listen to it*, so make sure that you either reset or set parameters before reading them.</span>
+
+<span class="sd">    (Resetting the device will update the parameters&#39; value with their reset value as per documentation.)</span>
+
+<span class="sd">    The device can also be accessed via TCP/IP if exposed via something like:</span>
+
+<span class="sd">    .. code-block:: console</span>
+
+<span class="sd">        socat /dev/ttyUSB0,echo=0,b9600,cstopb=1,parenb=0,raw tcp-listen:20570,reuseaddr,nodelay</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">address</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">address</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">visa_handle</span><span class="p">,</span> <span class="n">TCPIPSocket</span><span class="p">):</span>
+            <span class="c1"># allow connection to remote serial device over TCP/IP address</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">visa_handle</span><span class="o">.</span><span class="n">write_termination</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\r\n</span><span class="s2">&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">visa_handle</span><span class="o">.</span><span class="n">read_termination</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>  <span class="c1"># but there&#39;s no read</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">visa_handle</span><span class="p">,</span> <span class="n">SerialInstrument</span><span class="p">)</span>
+            <span class="n">serial</span><span class="p">:</span> <span class="n">SerialInstrument</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">visa_handle</span>
+            <span class="c1"># 9600 Baud DCE, 8 bit, no parity, 2 stop bits</span>
+            <span class="n">serial</span><span class="o">.</span><span class="n">baud_rate</span> <span class="o">=</span> <span class="mi">9600</span>
+            <span class="n">serial</span><span class="o">.</span><span class="n">parity</span> <span class="o">=</span> <span class="n">Parity</span><span class="o">.</span><span class="n">none</span>
+            <span class="n">serial</span><span class="o">.</span><span class="n">stop_bits</span> <span class="o">=</span> <span class="n">StopBits</span><span class="o">.</span><span class="n">two</span>
+            <span class="n">serial</span><span class="o">.</span><span class="n">write_termination</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\r\n</span><span class="s2">&quot;</span>
+            <span class="n">serial</span><span class="o">.</span><span class="n">read_termination</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>  <span class="c1"># but there&#39;s no read</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect_message</span><span class="p">()</span>
+
+        <span class="c1"># fmt:off</span>
+        <span class="n">sensitivity</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="mf">1e-12</span><span class="p">,</span>   <span class="mf">2e-12</span><span class="p">,</span>   <span class="mf">5e-12</span><span class="p">,</span>
+            <span class="mf">10e-12</span><span class="p">,</span>  <span class="mf">20e-12</span><span class="p">,</span>  <span class="mf">50e-12</span><span class="p">,</span>
+            <span class="mf">100e-12</span><span class="p">,</span> <span class="mf">200e-12</span><span class="p">,</span> <span class="mf">500e-12</span><span class="p">,</span>
+            <span class="mf">1e-9</span><span class="p">,</span>    <span class="mf">2e-9</span><span class="p">,</span>    <span class="mf">5e-9</span><span class="p">,</span>
+            <span class="mf">10e-9</span><span class="p">,</span>   <span class="mf">20e-9</span><span class="p">,</span>   <span class="mf">50e-9</span><span class="p">,</span>
+            <span class="mf">100e-9</span><span class="p">,</span>  <span class="mf">200e-9</span><span class="p">,</span>  <span class="mf">500e-9</span><span class="p">,</span>
+            <span class="mf">1e-6</span><span class="p">,</span>    <span class="mf">2e-6</span><span class="p">,</span>    <span class="mf">5e-6</span><span class="p">,</span>
+            <span class="mf">10e-6</span><span class="p">,</span>   <span class="mf">20e-6</span><span class="p">,</span>   <span class="mf">50e-6</span><span class="p">,</span>
+            <span class="mf">100e-6</span><span class="p">,</span>  <span class="mf">200e-6</span><span class="p">,</span>  <span class="mf">500e-6</span><span class="p">,</span>
+            <span class="mf">1e-3</span>
+        <span class="p">]</span>
+
+        <span class="n">input_offset_current</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="mf">1e-12</span><span class="p">,</span>   <span class="mf">2e-12</span><span class="p">,</span>   <span class="mf">5e-12</span><span class="p">,</span>
+            <span class="mf">10e-12</span><span class="p">,</span>  <span class="mf">20e-12</span><span class="p">,</span>  <span class="mf">50e-12</span><span class="p">,</span>
+            <span class="mf">100e-12</span><span class="p">,</span> <span class="mf">200e-12</span><span class="p">,</span> <span class="mf">500e-12</span><span class="p">,</span>
+            <span class="mf">1e-9</span><span class="p">,</span>    <span class="mf">2e-9</span><span class="p">,</span>    <span class="mf">5e-9</span><span class="p">,</span>
+            <span class="mf">10e-9</span><span class="p">,</span>   <span class="mf">20e-9</span><span class="p">,</span>   <span class="mf">50e-9</span><span class="p">,</span>
+            <span class="mf">100e-9</span><span class="p">,</span>  <span class="mf">200e-9</span><span class="p">,</span>  <span class="mf">500e-9</span><span class="p">,</span>
+            <span class="mf">1e-6</span><span class="p">,</span>    <span class="mf">2e-6</span><span class="p">,</span>    <span class="mf">5e-6</span><span class="p">,</span>
+            <span class="mf">10e-6</span><span class="p">,</span>   <span class="mf">20e-6</span><span class="p">,</span>   <span class="mf">50e-6</span><span class="p">,</span>
+            <span class="mf">100e-6</span><span class="p">,</span>  <span class="mf">200e-6</span><span class="p">,</span>  <span class="mf">500e-6</span><span class="p">,</span>
+            <span class="mf">1e-3</span><span class="p">,</span>    <span class="mf">2e-3</span><span class="p">,</span>    <span class="mf">5e-3</span>
+        <span class="p">]</span>
+
+        <span class="n">filter_type</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s2">&quot;6db_highpass&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;12db_highpass&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;6db_bandpass&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;6db_lowpass&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;12db_lowpass&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;none&quot;</span><span class="p">,</span>
+        <span class="p">]</span>
+
+        <span class="n">filter_freq</span> <span class="o">=</span> <span class="p">[</span>
+                   <span class="mf">0.03</span><span class="p">,</span>
+            <span class="mf">0.1</span><span class="p">,</span>    <span class="mf">0.3</span><span class="p">,</span>
+              <span class="mi">1</span><span class="p">,</span>      <span class="mi">3</span><span class="p">,</span>
+              <span class="mi">10</span><span class="p">,</span>     <span class="mi">30</span><span class="p">,</span>
+              <span class="mi">100</span><span class="p">,</span>    <span class="mi">300</span><span class="p">,</span>
+              <span class="mf">1e+3</span><span class="p">,</span>   <span class="mf">3e+3</span><span class="p">,</span>
+              <span class="mf">10e+3</span><span class="p">,</span>  <span class="mf">30e+3</span><span class="p">,</span>
+              <span class="mf">100e+3</span><span class="p">,</span> <span class="mf">300e+3</span><span class="p">,</span>
+              <span class="mf">1e+6</span><span class="p">,</span>
+        <span class="p">]</span>
+
+        <span class="n">gain_modes</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s2">&quot;low_noise&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;high_bandwidth&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;low_drift&quot;</span>
+        <span class="p">]</span>
+
+        <span class="c1"># fmt:on</span>
+        <span class="n">on_off_val_mapping</span> <span class="o">=</span> <span class="n">create_on_off_val_mapping</span><span class="p">(</span><span class="n">on_val</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">off_val</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_reset_defaults</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="s2">&quot;sensitivity&quot;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s2">&quot;SENS </span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">val_mapping</span><span class="o">=</span><span class="p">{</span><span class="n">scale</span><span class="p">:</span> <span class="n">n</span> <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">scale</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">sensitivity</span><span class="p">)},</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;A/V&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_reset_defaults</span><span class="p">[</span><span class="s2">&quot;sensitivity&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1e-6</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="s2">&quot;sensitivity_uncalibrated_mode&quot;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s2">&quot;SUCM </span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">val_mapping</span><span class="o">=</span><span class="n">create_on_off_val_mapping</span><span class="p">(</span><span class="n">on_val</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">off_val</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_reset_defaults</span><span class="p">[</span><span class="s2">&quot;sensitivity_uncalibrated_mode&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="s2">&quot;sensitivity_uncalibrated_vernier&quot;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s2">&quot;SUCV </span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Ints</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">),</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;%&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="s2">&quot;input_offset_current_status&quot;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s2">&quot;IOON </span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">val_mapping</span><span class="o">=</span><span class="n">on_off_val_mapping</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_reset_defaults</span><span class="p">[</span><span class="s2">&quot;input_offset_current_status&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="s2">&quot;input_offset_current_level&quot;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s2">&quot;IOLV </span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">val_mapping</span><span class="o">=</span><span class="p">{</span><span class="n">scale</span><span class="p">:</span> <span class="n">n</span> <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">scale</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">input_offset_current</span><span class="p">)},</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;A&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_reset_defaults</span><span class="p">[</span><span class="s2">&quot;input_offset_current_level&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1e-12</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="s2">&quot;input_offset_current_sign&quot;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s2">&quot;IOSN </span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">val_mapping</span><span class="o">=</span><span class="p">{</span><span class="o">+</span><span class="mi">1</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_reset_defaults</span><span class="p">[</span><span class="s2">&quot;input_offset_current_sign&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="o">+</span><span class="mi">1</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="s2">&quot;input_offset_uncalibrated_mode&quot;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s2">&quot;IOUC </span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">val_mapping</span><span class="o">=</span><span class="n">on_off_val_mapping</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_reset_defaults</span><span class="p">[</span><span class="s2">&quot;input_offset_uncalibrated_mode&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="s2">&quot;input_offset_uncalibrated_vernier&quot;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s2">&quot;IOUV </span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">MultiTypeAnd</span><span class="p">(</span>
+                <span class="n">vals</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(</span><span class="o">-</span><span class="mi">100</span><span class="p">,</span> <span class="mi">100</span><span class="p">),</span> <span class="n">vals</span><span class="o">.</span><span class="n">PermissiveMultiples</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span>
+            <span class="p">),</span>
+            <span class="n">set_parser</span><span class="o">=</span><span class="k">lambda</span> <span class="n">v</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">v</span> <span class="o">*</span> <span class="mi">10</span><span class="p">),</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;%&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="s2">&quot;bias_voltage_status&quot;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s2">&quot;BSON </span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">val_mapping</span><span class="o">=</span><span class="n">on_off_val_mapping</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_reset_defaults</span><span class="p">[</span><span class="s2">&quot;bias_voltage_status&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="s2">&quot;bias_voltage&quot;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s2">&quot;BSLV </span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(</span><span class="o">-</span><span class="mf">5.0</span><span class="p">,</span> <span class="o">+</span><span class="mf">5.0</span><span class="p">),</span>
+            <span class="n">set_parser</span><span class="o">=</span><span class="k">lambda</span> <span class="n">v</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">v</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">),</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;V&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_reset_defaults</span><span class="p">[</span><span class="s2">&quot;bias_voltage&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="s2">&quot;filter_type&quot;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s2">&quot;FLTT </span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">val_mapping</span><span class="o">=</span><span class="p">{</span><span class="n">fltt</span><span class="p">:</span> <span class="n">n</span> <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">fltt</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">filter_type</span><span class="p">)},</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_reset_defaults</span><span class="p">[</span><span class="s2">&quot;filter_type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;none&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="s2">&quot;filter_lowpass_frequency&quot;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s2">&quot;LFRQ </span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">val_mapping</span><span class="o">=</span><span class="p">{</span><span class="n">f</span><span class="p">:</span> <span class="n">n</span> <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">filter_freq</span><span class="p">)},</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;Hz&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_reset_defaults</span><span class="p">[</span><span class="s2">&quot;filter_lowpass_frequency&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1e6</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="s2">&quot;filter_highpass_frequency&quot;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s2">&quot;HFRQ </span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">val_mapping</span><span class="o">=</span><span class="p">{</span><span class="n">f</span><span class="p">:</span> <span class="n">n</span> <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">filter_freq</span><span class="p">[:</span><span class="mi">12</span><span class="p">])},</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;Hz&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_reset_defaults</span><span class="p">[</span><span class="s2">&quot;filter_highpass_frequency&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.03</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_function</span><span class="p">(</span><span class="s2">&quot;reset_overload_condition&quot;</span><span class="p">,</span> <span class="n">call_cmd</span><span class="o">=</span><span class="s2">&quot;ROLD&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="s2">&quot;gain_mode&quot;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s2">&quot;GNMD </span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">val_mapping</span><span class="o">=</span><span class="p">{</span><span class="n">mode</span><span class="p">:</span> <span class="n">n</span> <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">mode</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">gain_modes</span><span class="p">)},</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_reset_defaults</span><span class="p">[</span><span class="s2">&quot;gain_mode&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">gain_modes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="s2">&quot;invert&quot;</span><span class="p">,</span> <span class="n">get_cmd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">set_cmd</span><span class="o">=</span><span class="s2">&quot;INVT </span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">val_mapping</span><span class="o">=</span><span class="n">on_off_val_mapping</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_reset_defaults</span><span class="p">[</span><span class="s2">&quot;invert&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="s2">&quot;blank&quot;</span><span class="p">,</span> <span class="n">get_cmd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">set_cmd</span><span class="o">=</span><span class="s2">&quot;BLNK </span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">val_mapping</span><span class="o">=</span><span class="n">on_off_val_mapping</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_reset_defaults</span><span class="p">[</span><span class="s2">&quot;blank&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+
+<div class="viewcode-block" id="SR570.reset">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.StanfordResearchSystems.html#qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR570.SR570.reset">[docs]</a>
+    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;*RST&quot;</span><span class="p">)</span>
+        <span class="n">p</span><span class="p">:</span> <span class="n">ParameterBase</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="s2">&quot;cache&quot;</span><span class="p">):</span>
+                <span class="k">continue</span>
+            <span class="n">p</span><span class="o">.</span><span class="n">cache</span><span class="o">.</span><span class="n">invalidate</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reset_defaults</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">p</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="s2">&quot;cache&quot;</span><span class="p">):</span>
+                <span class="k">continue</span>
+            <span class="n">p</span><span class="o">.</span><span class="n">cache</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SR570.get_idn">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.StanfordResearchSystems.html#qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR570.SR570.get_idn">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_idn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+        <span class="n">vendor</span> <span class="o">=</span> <span class="s2">&quot;Stanford Research Systems&quot;</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="s2">&quot;SR570&quot;</span>
+        <span class="n">serial</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">firmware</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;vendor&quot;</span><span class="p">:</span> <span class="n">vendor</span><span class="p">,</span>
+            <span class="s2">&quot;model&quot;</span><span class="p">:</span> <span class="n">model</span><span class="p">,</span>
+            <span class="s2">&quot;serial&quot;</span><span class="p">:</span> <span class="n">serial</span><span class="p">,</span>
+            <span class="s2">&quot;firmware&quot;</span><span class="p">:</span> <span class="n">firmware</span><span class="p">,</span>
+        <span class="p">}</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, QCoDeS Users.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

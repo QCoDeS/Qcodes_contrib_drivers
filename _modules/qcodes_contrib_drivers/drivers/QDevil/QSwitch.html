@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>qcodes_contrib_drivers.drivers.QDevil.QSwitch &mdash; qcodes_contrib_drivers 0.23.0.dev14+main.g6d96817 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../_static/documentation_options.js?v=7415f6af"></script>
+        <script src="../../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            qcodes_contrib_drivers
+          </a>
+              <div class="version">
+                0.23.0.dev14+main.g6d96817
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples/index.html">Examples of how to use drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/generated/qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">qcodes_contrib_drivers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">qcodes_contrib_drivers.drivers.QDevil.QSwitch</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for qcodes_contrib_drivers.drivers.QDevil.QSwitch</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">sleep</span> <span class="k">as</span> <span class="n">sleep_s</span>
+<span class="kn">from</span> <span class="nn">qcodes.instrument.parameter</span> <span class="kn">import</span> <span class="n">DelegateParameter</span>
+<span class="kn">from</span> <span class="nn">qcodes.instrument.visa</span> <span class="kn">import</span> <span class="n">VisaInstrument</span>
+<span class="kn">from</span> <span class="nn">qcodes.utils</span> <span class="kn">import</span> <span class="n">validators</span>
+<span class="kn">from</span> <span class="nn">pyvisa.errors</span> <span class="kn">import</span> <span class="n">VisaIOError</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">Tuple</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Set</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Optional</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">packaging.version</span> <span class="kn">import</span> <span class="n">parse</span>
+
+<span class="c1"># Version 0.5.0</span>
+
+<span class="n">State</span> <span class="o">=</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span>
+
+
+<span class="k">def</span> <span class="nf">_line_tap_split</span><span class="p">(</span><span class="nb">input</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+    <span class="n">pair</span> <span class="o">=</span> <span class="nb">input</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;!&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pair</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Expected channel pair, got </span><span class="si">{</span><span class="nb">input</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">pair</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">isdecimal</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Expected channel, got </span><span class="si">{</span><span class="n">pair</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">pair</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">isdecimal</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Expected channel, got </span><span class="si">{</span><span class="n">pair</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">pair</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">int</span><span class="p">(</span><span class="n">pair</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+
+<div class="viewcode-block" id="channel_list_to_state">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.QDevil.html#qcodes_contrib_drivers.drivers.QDevil.QSwitch.channel_list_to_state">[docs]</a>
+<span class="k">def</span> <span class="nf">channel_list_to_state</span><span class="p">(</span><span class="n">channel_list</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">State</span><span class="p">:</span>
+    <span class="n">outer</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\(@([0-9,:! ]*)\)&#39;</span><span class="p">,</span> <span class="n">channel_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">outer</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Expected channel list, got </span><span class="si">{</span><span class="n">channel_list</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">result</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">sequences</span> <span class="o">=</span> <span class="n">outer</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">sequences</span> <span class="o">==</span> <span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="n">result</span>
+    <span class="k">for</span> <span class="n">sequence</span> <span class="ow">in</span> <span class="n">sequences</span><span class="p">:</span>
+        <span class="n">limits</span> <span class="o">=</span> <span class="n">sequence</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">limits</span> <span class="o">==</span> <span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Expected channel sequence, got </span><span class="si">{</span><span class="n">limits</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">line_start</span><span class="p">,</span> <span class="n">tap_start</span> <span class="o">=</span> <span class="n">_line_tap_split</span><span class="p">(</span><span class="n">limits</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">line_stop</span><span class="p">,</span> <span class="n">tap_stop</span> <span class="o">=</span> <span class="n">line_start</span><span class="p">,</span> <span class="n">tap_start</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">limits</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">line_stop</span><span class="p">,</span> <span class="n">tap_stop</span> <span class="o">=</span> <span class="n">_line_tap_split</span><span class="p">(</span><span class="n">limits</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">limits</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Expected channel sequence, got </span><span class="si">{</span><span class="n">limits</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">tap_start</span> <span class="o">!=</span> <span class="n">tap_stop</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s1">&#39;Expected same breakout in sequence, got </span><span class="si">{</span><span class="n">limits</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">line_start</span><span class="p">,</span> <span class="n">line_stop</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">line</span><span class="p">,</span> <span class="n">tap_start</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">result</span></div>
+
+
+
+<div class="viewcode-block" id="state_to_expanded_list">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.QDevil.html#qcodes_contrib_drivers.drivers.QDevil.QSwitch.state_to_expanded_list">[docs]</a>
+<span class="k">def</span> <span class="nf">state_to_expanded_list</span><span class="p">(</span><span class="n">state</span><span class="p">:</span> <span class="n">State</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">return</span> \
+        <span class="s1">&#39;(@&#39;</span> <span class="o">+</span> \
+        <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">line</span><span class="si">}</span><span class="s1">!</span><span class="si">{</span><span class="n">tap</span><span class="si">}</span><span class="s1">&#39;</span> <span class="k">for</span> <span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="n">tap</span><span class="p">)</span> <span class="ow">in</span> <span class="n">state</span><span class="p">])</span> <span class="o">+</span> \
+        <span class="s1">&#39;)&#39;</span></div>
+
+
+
+<div class="viewcode-block" id="state_to_compressed_list">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.QDevil.html#qcodes_contrib_drivers.drivers.QDevil.QSwitch.state_to_compressed_list">[docs]</a>
+<span class="k">def</span> <span class="nf">state_to_compressed_list</span><span class="p">(</span><span class="n">state</span><span class="p">:</span> <span class="n">State</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="n">tap_to_line</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Set</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">line</span><span class="p">,</span> <span class="n">tap</span> <span class="ow">in</span> <span class="n">state</span><span class="p">:</span>
+        <span class="n">tap_to_line</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">tap</span><span class="p">,</span> <span class="nb">set</span><span class="p">())</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+    <span class="n">taps</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">tap_to_line</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="n">taps</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+    <span class="n">intervals</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">tap</span> <span class="ow">in</span> <span class="n">taps</span><span class="p">:</span>
+        <span class="n">start_line</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">end_line</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">tap_to_line</span><span class="p">[</span><span class="n">tap</span><span class="p">])</span>
+        <span class="n">lines</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">start_line</span><span class="p">:</span>
+                <span class="n">start_line</span> <span class="o">=</span> <span class="n">line</span>
+                <span class="n">end_line</span> <span class="o">=</span> <span class="n">line</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">line</span> <span class="o">==</span> <span class="n">end_line</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">end_line</span> <span class="o">=</span> <span class="n">line</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">start_line</span> <span class="o">==</span> <span class="n">end_line</span><span class="p">:</span>
+                <span class="n">intervals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">start_line</span><span class="si">}</span><span class="s1">!</span><span class="si">{</span><span class="n">tap</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">intervals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">start_line</span><span class="si">}</span><span class="s1">!</span><span class="si">{</span><span class="n">tap</span><span class="si">}</span><span class="s1">:</span><span class="si">{</span><span class="n">end_line</span><span class="si">}</span><span class="s1">!</span><span class="si">{</span><span class="n">tap</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">start_line</span> <span class="o">=</span> <span class="n">line</span>
+            <span class="n">end_line</span> <span class="o">=</span> <span class="n">line</span>
+        <span class="k">if</span> <span class="n">start_line</span> <span class="o">==</span> <span class="n">end_line</span><span class="p">:</span>
+            <span class="n">intervals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">start_line</span><span class="si">}</span><span class="s1">!</span><span class="si">{</span><span class="n">tap</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">intervals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">start_line</span><span class="si">}</span><span class="s1">!</span><span class="si">{</span><span class="n">tap</span><span class="si">}</span><span class="s1">:</span><span class="si">{</span><span class="n">end_line</span><span class="si">}</span><span class="s1">!</span><span class="si">{</span><span class="n">tap</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="s1">&#39;(@&#39;</span> <span class="o">+</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">intervals</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;)&#39;</span></div>
+
+
+
+<div class="viewcode-block" id="expand_channel_list">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.QDevil.html#qcodes_contrib_drivers.drivers.QDevil.QSwitch.expand_channel_list">[docs]</a>
+<span class="k">def</span> <span class="nf">expand_channel_list</span><span class="p">(</span><span class="n">channel_list</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">state_to_expanded_list</span><span class="p">(</span><span class="n">channel_list_to_state</span><span class="p">(</span><span class="n">channel_list</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="compress_channel_list">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.QDevil.html#qcodes_contrib_drivers.drivers.QDevil.QSwitch.compress_channel_list">[docs]</a>
+<span class="k">def</span> <span class="nf">compress_channel_list</span><span class="p">(</span><span class="n">channel_list</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">state_to_compressed_list</span><span class="p">(</span><span class="n">channel_list_to_state</span><span class="p">(</span><span class="n">channel_list</span><span class="p">))</span></div>
+
+
+
+<span class="n">relay_lines</span> <span class="o">=</span> <span class="mi">24</span>
+<span class="n">relays_per_line</span> <span class="o">=</span> <span class="mi">9</span>
+
+
+<span class="k">def</span> <span class="nf">_state_diff</span><span class="p">(</span><span class="n">before</span><span class="p">:</span> <span class="n">State</span><span class="p">,</span> <span class="n">after</span><span class="p">:</span> <span class="n">State</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">State</span><span class="p">,</span> <span class="n">State</span><span class="p">,</span> <span class="n">State</span><span class="p">]:</span>
+    <span class="n">initial</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">(</span><span class="n">before</span><span class="p">)</span>
+    <span class="n">target</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">(</span><span class="n">after</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">target</span> <span class="o">-</span> <span class="n">initial</span><span class="p">),</span> <span class="nb">list</span><span class="p">(</span><span class="n">initial</span> <span class="o">-</span> <span class="n">target</span><span class="p">),</span> <span class="nb">list</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="QSwitch">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.QDevil.html#qcodes_contrib_drivers.drivers.QDevil.QSwitch.QSwitch">[docs]</a>
+<span class="k">class</span> <span class="nc">QSwitch</span><span class="p">(</span><span class="n">VisaInstrument</span><span class="p">):</span>
+
+<div class="viewcode-block" id="QSwitch.__init__">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.QDevil.html#qcodes_contrib_drivers.drivers.QDevil.QSwitch.QSwitch.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">address</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Connect to a QSwitch</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            name (str): Name for instrument</span>
+<span class="sd">            address (str): Visa identification string</span>
+<span class="sd">            **kwargs: additional argument to the Visa driver</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_instrument_name</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">address</span><span class="p">,</span> <span class="n">terminator</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_up_serial</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_up_debug_settings</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_up_simple_functions</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect_message</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_for_wrong_model</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_for_incompatiable_firmware</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_default_names</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state_force_update</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;state&#39;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;relays&#39;</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_state</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_state</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;closed_relays&#39;</span><span class="p">,</span>
+            <span class="n">source</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="p">,</span>
+            <span class="n">set_parser</span><span class="o">=</span><span class="n">state_to_compressed_list</span><span class="p">,</span>
+            <span class="n">get_parser</span><span class="o">=</span><span class="n">channel_list_to_state</span><span class="p">,</span>
+            <span class="n">parameter_class</span><span class="o">=</span><span class="n">DelegateParameter</span><span class="p">,</span>
+            <span class="n">snapshot_value</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;auto_save&#39;</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s1">&#39;aut </span><span class="si">{0}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">&#39;</span><span class="p">),</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;aut?&#39;</span><span class="p">,</span>
+            <span class="n">get_parser</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">validators</span><span class="o">.</span><span class="n">Enum</span><span class="p">(</span><span class="s1">&#39;on&#39;</span><span class="p">,</span> <span class="s1">&#39;off&#39;</span><span class="p">),</span>
+            <span class="n">snapshot_value</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;error_indicator&#39;</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s1">&#39;beep:stat </span><span class="si">{0}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">&#39;</span><span class="p">),</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;beep:stat?&#39;</span><span class="p">,</span>
+            <span class="n">get_parser</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">validators</span><span class="o">.</span><span class="n">Enum</span><span class="p">(</span><span class="s1">&#39;on&#39;</span><span class="p">,</span> <span class="s1">&#39;off&#39;</span><span class="p">),</span>
+            <span class="n">snapshot_value</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_add_monitor_pseudo_parameters</span><span class="p">()</span></div>
+
+
+    <span class="c1"># -----------------------------------------------------------------------</span>
+    <span class="c1"># Instrument-wide functions</span>
+    <span class="c1"># -----------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="QSwitch.reset">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.QDevil.html#qcodes_contrib_drivers.drivers.QDevil.QSwitch.QSwitch.reset">[docs]</a>
+    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_write</span><span class="p">(</span><span class="s1">&#39;*rst&#39;</span><span class="p">)</span>
+        <span class="n">sleep_s</span><span class="p">(</span><span class="mf">0.6</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state_force_update</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="QSwitch.errors">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.QDevil.html#qcodes_contrib_drivers.drivers.QDevil.QSwitch.QSwitch.errors">[docs]</a>
+    <span class="k">def</span> <span class="nf">errors</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Retrieve and clear all previous errors</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str: Comma separated list of errors or &#39;0, &quot;No error&quot;&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s1">&#39;all?&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="QSwitch.error">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.QDevil.html#qcodes_contrib_drivers.drivers.QDevil.QSwitch.QSwitch.error">[docs]</a>
+    <span class="k">def</span> <span class="nf">error</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Retrieve next error</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str: The next error or &#39;0, &quot;No error&quot;&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s1">&#39;next?&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="QSwitch.state_force_update">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.QDevil.html#qcodes_contrib_drivers.drivers.QDevil.QSwitch.QSwitch.state_force_update">[docs]</a>
+    <span class="k">def</span> <span class="nf">state_force_update</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_state_raw</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s1">&#39;stat?&#39;</span><span class="p">))</span></div>
+
+
+    <span class="c1"># -----------------------------------------------------------------------</span>
+    <span class="c1"># Direct manipulation of the relays</span>
+    <span class="c1"># -----------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="QSwitch.close_relays">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.QDevil.html#qcodes_contrib_drivers.drivers.QDevil.QSwitch.QSwitch.close_relays">[docs]</a>
+    <span class="k">def</span> <span class="nf">close_relays</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">relays</span><span class="p">:</span> <span class="n">State</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">currently</span> <span class="o">=</span> <span class="n">channel_list_to_state</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="p">)</span>
+        <span class="n">union</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span><span class="n">currently</span><span class="p">,</span> <span class="n">relays</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_effectuate</span><span class="p">(</span><span class="n">union</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="QSwitch.close_relay">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.QDevil.html#qcodes_contrib_drivers.drivers.QDevil.QSwitch.QSwitch.close_relay">[docs]</a>
+    <span class="k">def</span> <span class="nf">close_relay</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">line</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">tap</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">close_relays</span><span class="p">([(</span><span class="n">line</span><span class="p">,</span> <span class="n">tap</span><span class="p">)])</span></div>
+
+
+<div class="viewcode-block" id="QSwitch.open_relays">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.QDevil.html#qcodes_contrib_drivers.drivers.QDevil.QSwitch.QSwitch.open_relays">[docs]</a>
+    <span class="k">def</span> <span class="nf">open_relays</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">relays</span><span class="p">:</span> <span class="n">State</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">currently</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">(</span><span class="n">channel_list_to_state</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="p">))</span>
+        <span class="n">subtraction</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">(</span><span class="n">relays</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_effectuate</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">currently</span> <span class="o">-</span> <span class="n">subtraction</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="QSwitch.open_relay">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.QDevil.html#qcodes_contrib_drivers.drivers.QDevil.QSwitch.QSwitch.open_relay">[docs]</a>
+    <span class="k">def</span> <span class="nf">open_relay</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">line</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">tap</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">open_relays</span><span class="p">([(</span><span class="n">line</span><span class="p">,</span> <span class="n">tap</span><span class="p">)])</span></div>
+
+
+    <span class="c1"># -----------------------------------------------------------------------</span>
+    <span class="c1"># Manipulation by name</span>
+    <span class="c1"># -----------------------------------------------------------------------</span>
+
+    <span class="n">OneOrMore</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span>
+
+<div class="viewcode-block" id="QSwitch.ground">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.QDevil.html#qcodes_contrib_drivers.drivers.QDevil.QSwitch.QSwitch.ground">[docs]</a>
+    <span class="k">def</span> <span class="nf">ground</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lines</span><span class="p">:</span> <span class="n">OneOrMore</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">connections</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">lines</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_to_line</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">close_relay</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="n">taps</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">relays_per_line</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">connections</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">zip_longest</span><span class="p">([],</span> <span class="n">taps</span><span class="p">,</span> <span class="n">fillvalue</span><span class="o">=</span><span class="n">line</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">open_relays</span><span class="p">(</span><span class="n">connections</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">numbers</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_to_line</span><span class="p">,</span> <span class="n">lines</span><span class="p">)</span>
+            <span class="n">grounds</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">zip_longest</span><span class="p">(</span><span class="n">numbers</span><span class="p">,</span> <span class="p">[],</span> <span class="n">fillvalue</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">close_relays</span><span class="p">(</span><span class="n">grounds</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">tap</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">relays_per_line</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="n">connections</span> <span class="o">+=</span> <span class="n">itertools</span><span class="o">.</span><span class="n">zip_longest</span><span class="p">(</span>
+                                    <span class="nb">map</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_to_line</span><span class="p">,</span> <span class="n">lines</span><span class="p">),</span> <span class="p">[],</span> <span class="n">fillvalue</span><span class="o">=</span><span class="n">tap</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">open_relays</span><span class="p">(</span><span class="n">connections</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="QSwitch.connect">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.QDevil.html#qcodes_contrib_drivers.drivers.QDevil.QSwitch.QSwitch.connect">[docs]</a>
+    <span class="k">def</span> <span class="nf">connect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lines</span><span class="p">:</span> <span class="n">OneOrMore</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">lines</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">close_relay</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_to_line</span><span class="p">(</span><span class="n">lines</span><span class="p">),</span> <span class="mi">9</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">open_relay</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_to_line</span><span class="p">(</span><span class="n">lines</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">numbers</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_to_line</span><span class="p">,</span> <span class="n">lines</span><span class="p">)</span>
+            <span class="n">pairs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">zip_longest</span><span class="p">(</span><span class="n">numbers</span><span class="p">,</span> <span class="p">[],</span> <span class="n">fillvalue</span><span class="o">=</span><span class="mi">9</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">close_relays</span><span class="p">(</span><span class="n">pairs</span><span class="p">)</span>
+            <span class="n">numbers</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_to_line</span><span class="p">,</span> <span class="n">lines</span><span class="p">)</span>
+            <span class="n">connections</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">zip_longest</span><span class="p">(</span><span class="n">numbers</span><span class="p">,</span> <span class="p">[],</span> <span class="n">fillvalue</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">open_relays</span><span class="p">(</span><span class="n">connections</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="QSwitch.breakout">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.QDevil.html#qcodes_contrib_drivers.drivers.QDevil.QSwitch.QSwitch.breakout">[docs]</a>
+    <span class="k">def</span> <span class="nf">breakout</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">line</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">tap</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">close_relay</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_to_line</span><span class="p">(</span><span class="n">line</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_to_tap</span><span class="p">(</span><span class="n">tap</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">open_relay</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_to_line</span><span class="p">(</span><span class="n">line</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="QSwitch.arrange">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.QDevil.html#qcodes_contrib_drivers.drivers.QDevil.QSwitch.QSwitch.arrange">[docs]</a>
+    <span class="k">def</span> <span class="nf">arrange</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">breakouts</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="n">lines</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;An arrangement of names for lines and breakouts</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            breakouts (Dict[str, int]): Name/breakout pairs</span>
+<span class="sd">            lines (Dict[str, int]): Name/line pairs</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">lines</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_line_names</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">line</span>
+        <span class="k">if</span> <span class="n">breakouts</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">tap</span> <span class="ow">in</span> <span class="n">breakouts</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_tap_names</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">tap</span></div>
+
+
+    <span class="c1"># -----------------------------------------------------------------------</span>
+    <span class="c1"># Debugging and testing</span>
+
+<div class="viewcode-block" id="QSwitch.start_recording_scpi">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.QDevil.html#qcodes_contrib_drivers.drivers.QDevil.QSwitch.QSwitch.start_recording_scpi">[docs]</a>
+    <span class="k">def</span> <span class="nf">start_recording_scpi</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Record all SCPI commands sent to the instrument</span>
+
+<span class="sd">        Any previous recordings are removed.  To inspect the SCPI commands sent</span>
+<span class="sd">        to the instrument, call get_recorded_scpi_commands().</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_scpi_sent</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_record_commands</span> <span class="o">=</span> <span class="kc">True</span></div>
+
+
+<div class="viewcode-block" id="QSwitch.get_recorded_scpi_commands">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.QDevil.html#qcodes_contrib_drivers.drivers.QDevil.QSwitch.QSwitch.get_recorded_scpi_commands">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_recorded_scpi_commands</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Sequence[str]: SCPI commands sent to the instrument</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">commands</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scpi_sent</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_scpi_sent</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">commands</span></div>
+
+
+<div class="viewcode-block" id="QSwitch.clear_read_queue">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.QDevil.html#qcodes_contrib_drivers.drivers.QDevil.QSwitch.QSwitch.clear_read_queue">[docs]</a>
+    <span class="k">def</span> <span class="nf">clear_read_queue</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Flush the VISA message queue of the instrument</span>
+
+<span class="sd">        Takes at least _message_flush_timeout_ms to carry out.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Sequence[str]: Messages lingering in queue</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">lingering</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+        <span class="n">original_timeout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">visa_handle</span><span class="o">.</span><span class="n">timeout</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">visa_handle</span><span class="o">.</span><span class="n">timeout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_message_flush_timeout_ms</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">message</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">visa_handle</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+            <span class="k">except</span> <span class="n">VisaIOError</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">lingering</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">visa_handle</span><span class="o">.</span><span class="n">timeout</span> <span class="o">=</span> <span class="n">original_timeout</span>
+        <span class="k">return</span> <span class="n">lingering</span></div>
+
+
+    <span class="c1"># -----------------------------------------------------------------------</span>
+    <span class="c1"># Override communication methods to make it possible to check for errors</span>
+    <span class="c1"># and to record the communication with the instrument.</span>
+
+<div class="viewcode-block" id="QSwitch.write">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.QDevil.html#qcodes_contrib_drivers.drivers.QDevil.QSwitch.QSwitch.write">[docs]</a>
+    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmd</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Send SCPI command to instrument</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            cmd (str): SCPI command</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_write</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s1">&#39;*opc?&#39;</span><span class="p">)</span>
+            <span class="n">errors</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s1">&#39;all?&#39;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Error: </span><span class="si">{</span><span class="nb">repr</span><span class="p">(</span><span class="n">error</span><span class="p">)</span><span class="si">}</span><span class="s1"> after executing </span><span class="si">{</span><span class="n">cmd</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">errors</span> <span class="o">==</span> <span class="s1">&#39;0,&quot;No error&quot;&#39;</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Error: </span><span class="si">{</span><span class="n">errors</span><span class="si">}</span><span class="s1"> after executing </span><span class="si">{</span><span class="n">cmd</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="QSwitch.ask">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.QDevil.html#qcodes_contrib_drivers.drivers.QDevil.QSwitch.QSwitch.ask">[docs]</a>
+    <span class="k">def</span> <span class="nf">ask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmd</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Send SCPI query to instrument</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            cmd (str): SCPI query</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str: SCPI answer</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_record_commands</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_scpi_sent</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+        <span class="n">answer</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">answer</span></div>
+
+
+    <span class="c1"># -----------------------------------------------------------------------</span>
+
+    <span class="k">def</span> <span class="nf">_write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmd</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_record_commands</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_scpi_sent</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_channel_list_to_overview</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_list</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+        <span class="n">state</span> <span class="o">=</span> <span class="n">channel_list_to_state</span><span class="p">(</span><span class="n">channel_list</span><span class="p">)</span>
+        <span class="n">line_names</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_line_names</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">line_names</span><span class="p">[</span><span class="n">line</span><span class="p">]</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="n">tap_names</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">tap</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tap_names</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">tap_names</span><span class="p">[</span><span class="n">tap</span><span class="p">]</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="n">result</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">line</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">state</span><span class="p">:</span>
+            <span class="n">line_name</span> <span class="o">=</span> <span class="n">line_names</span><span class="p">[</span><span class="n">line</span><span class="p">]</span>
+            <span class="n">result</span><span class="p">[</span><span class="n">line_name</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">line</span><span class="p">,</span> <span class="n">tap</span> <span class="ow">in</span> <span class="n">state</span><span class="p">:</span>
+            <span class="n">line_name</span> <span class="o">=</span> <span class="n">line_names</span><span class="p">[</span><span class="n">line</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">tap</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">result</span><span class="p">[</span><span class="n">line_name</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;grounded&#39;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">tap</span> <span class="o">==</span> <span class="mi">9</span><span class="p">:</span>
+                <span class="n">result</span><span class="p">[</span><span class="n">line_name</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;connected&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">tap_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;breakout </span><span class="si">{</span><span class="n">tap_names</span><span class="p">[</span><span class="n">tap</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span>
+                <span class="n">result</span><span class="p">[</span><span class="n">line_name</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tap_name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span>
+
+    <span class="k">def</span> <span class="nf">_to_line</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_line_names</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Unknown line &quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">&quot;&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_to_tap</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tap_names</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Unknown tap &quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">&quot;&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_state</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state_force_update</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state</span>
+
+    <span class="k">def</span> <span class="nf">_set_state_raw</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_list</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_state</span> <span class="o">=</span> <span class="n">channel_list</span>
+
+    <span class="k">def</span> <span class="nf">_set_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_list</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_effectuate</span><span class="p">(</span><span class="n">channel_list_to_state</span><span class="p">(</span><span class="n">channel_list</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_effectuate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">State</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">currently</span> <span class="o">=</span> <span class="n">channel_list_to_state</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="p">)</span>
+        <span class="n">positive</span><span class="p">,</span> <span class="n">negative</span><span class="p">,</span> <span class="n">total</span> <span class="o">=</span> <span class="n">_state_diff</span><span class="p">(</span><span class="n">currently</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">positive</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;clos </span><span class="si">{</span><span class="n">state_to_compressed_list</span><span class="p">(</span><span class="n">positive</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">negative</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;open </span><span class="si">{</span><span class="n">state_to_compressed_list</span><span class="p">(</span><span class="n">negative</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_state_raw</span><span class="p">(</span><span class="n">state_to_compressed_list</span><span class="p">(</span><span class="n">total</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_set_up_debug_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_record_commands</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_scpi_sent</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_message_flush_timeout_ms</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_round_off</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">_set_up_serial</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># No harm in setting the speed even if the connection is not serial.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">visa_handle</span><span class="o">.</span><span class="n">baud_rate</span> <span class="o">=</span> <span class="mi">9600</span>  <span class="c1"># type: ignore</span>
+
+    <span class="k">def</span> <span class="nf">_check_for_wrong_model</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">IDN</span><span class="p">()[</span><span class="s1">&#39;model&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">model</span> <span class="o">!=</span> <span class="s1">&#39;QSwitch&#39;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Unknown model </span><span class="si">{</span><span class="n">model</span><span class="si">}</span><span class="s1">. Are you using the right&#39;</span>
+                             <span class="s1">&#39; driver for your instrument?&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_check_for_incompatiable_firmware</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">firmware</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">IDN</span><span class="p">()[</span><span class="s1">&#39;firmware&#39;</span><span class="p">]</span>
+        <span class="n">least_compatible_fw</span> <span class="o">=</span> <span class="s1">&#39;0.178&#39;</span>
+        <span class="k">if</span> <span class="n">parse</span><span class="p">(</span><span class="n">firmware</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">parse</span><span class="p">(</span><span class="n">least_compatible_fw</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Incompatible firmware </span><span class="si">{</span><span class="n">firmware</span><span class="si">}</span><span class="s1">. You need at &#39;</span>
+                             <span class="sa">f</span><span class="s1">&#39;least </span><span class="si">{</span><span class="n">least_compatible_fw</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_set_up_simple_functions</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_function</span><span class="p">(</span><span class="s1">&#39;abort&#39;</span><span class="p">,</span> <span class="n">call_cmd</span><span class="o">=</span><span class="s1">&#39;abor&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_set_default_names</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">relay_lines</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">taps</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">relays_per_line</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_line_names</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">lines</span><span class="p">),</span> <span class="n">lines</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_tap_names</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">taps</span><span class="p">),</span> <span class="n">taps</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_add_monitor_pseudo_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;overview&#39;</span><span class="p">,</span>
+            <span class="n">source</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="p">,</span>
+            <span class="n">get_parser</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_channel_list_to_overview</span><span class="p">,</span>
+            <span class="n">parameter_class</span><span class="o">=</span><span class="n">DelegateParameter</span><span class="p">,</span>
+            <span class="n">snapshot_value</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_check_instrument_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">name</span><span class="o">.</span><span class="n">isidentifier</span><span class="p">():</span>
+            <span class="k">return</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s1">&#39;Instrument name &quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">&quot; is incompatible with QCoDeS parameter &#39;</span>
+            <span class="s1">&#39;generation (no spaces, punctuation, prepended numbers, etc)&#39;</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, QCoDeS Users.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

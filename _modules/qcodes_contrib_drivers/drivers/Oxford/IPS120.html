@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>qcodes_contrib_drivers.drivers.Oxford.IPS120 &mdash; qcodes_contrib_drivers 0.23.0.dev14+main.g6d96817 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../_static/documentation_options.js?v=7415f6af"></script>
+        <script src="../../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            qcodes_contrib_drivers
+          </a>
+              <div class="version">
+                0.23.0.dev14+main.g6d96817
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples/index.html">Examples of how to use drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/generated/qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">qcodes_contrib_drivers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">qcodes_contrib_drivers.drivers.Oxford.IPS120</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for qcodes_contrib_drivers.drivers.Oxford.IPS120</h1><div class="highlight"><pre>
+<span></span><span class="c1"># OxfordInstruments_IPS120.py class, to perform the communication between the Wrapper and the device</span>
+<span class="c1"># Copyright (c) 2017 QuTech (Delft)</span>
+<span class="c1"># Code is available under the available under the `MIT open-source license &lt;https://opensource.org/licenses/MIT&gt;`_</span>
+
+<span class="c1"># Sjaak van Diepen &lt;c.j.vandiepen@gmail.com&gt;, 2017</span>
+<span class="c1"># Takafumi Fujita &lt;t.fujita@tudelft.nl&gt;, 2016</span>
+<span class="c1"># Mohammad Shafiei &lt;m.shafiei@tudelft.nl&gt;, 2011</span>
+<span class="c1"># Guenevere Prawiroatmodjo &lt;guen@vvtp.tudelft.nl&gt;, 2009</span>
+<span class="c1"># Pieter de Groot &lt;pieterdegroot@gmail.com&gt;, 2009</span>
+
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">qcodes</span> <span class="kn">import</span> <span class="n">VisaInstrument</span>
+<span class="kn">from</span> <span class="nn">qcodes</span> <span class="kn">import</span> <span class="n">validators</span> <span class="k">as</span> <span class="n">vals</span>
+<span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">sleep</span>
+<span class="kn">import</span> <span class="nn">pyvisa</span>
+
+
+<span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<div class="viewcode-block" id="OxfordInstruments_IPS120">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Oxford.html#qcodes_contrib_drivers.drivers.Oxford.IPS120.OxfordInstruments_IPS120">[docs]</a>
+<span class="k">class</span> <span class="nc">OxfordInstruments_IPS120</span><span class="p">(</span><span class="n">VisaInstrument</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;This is the driver for the Oxford Instruments IPS 120 Magnet Power Supply</span>
+
+<span class="sd">    The IPS 120 can connect through both RS232 serial as well as GPIB. The</span>
+<span class="sd">    commands sent in both cases are similar. When using the serial connection,</span>
+<span class="sd">    commands are prefaced with &#39;@n&#39; where n is the ISOBUS number.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_GET_STATUS_MODE</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="mi">0</span><span class="p">:</span> <span class="s2">&quot;Amps, Magnet sweep: fast&quot;</span><span class="p">,</span>
+            <span class="mi">1</span><span class="p">:</span> <span class="s2">&quot;Tesla, Magnet sweep: fast&quot;</span><span class="p">,</span>
+            <span class="mi">4</span><span class="p">:</span> <span class="s2">&quot;Amps, Magnet sweep: slow&quot;</span><span class="p">,</span>
+            <span class="mi">5</span><span class="p">:</span> <span class="s2">&quot;Tesla, Magnet sweep: slow&quot;</span><span class="p">,</span>
+            <span class="mi">8</span> <span class="p">:</span> <span class="s2">&quot;Amps, (Magnet sweep: unaffected)&quot;</span><span class="p">,</span>
+            <span class="mi">9</span> <span class="p">:</span> <span class="s2">&quot;Tesla, (Magnet sweep: unaffected)&quot;</span><span class="p">}</span>
+
+    <span class="n">_GET_STATUS_MODE2</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="mi">0</span><span class="p">:</span> <span class="s2">&quot;At rest&quot;</span><span class="p">,</span>
+            <span class="mi">1</span><span class="p">:</span> <span class="s2">&quot;Sweeping&quot;</span><span class="p">,</span>
+            <span class="mi">2</span><span class="p">:</span> <span class="s2">&quot;Sweep limiting&quot;</span><span class="p">,</span>
+            <span class="mi">3</span><span class="p">:</span> <span class="s2">&quot;Sweeping &amp; sweep limiting&quot;</span><span class="p">,</span>
+            <span class="mi">5</span><span class="p">:</span> <span class="s2">&quot;Unknown&quot;</span><span class="p">}</span>
+
+    <span class="n">_GET_STATUS_SWITCH_HEATER</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="mi">0</span><span class="p">:</span> <span class="s2">&quot;Off magnet at zero (switch closed)&quot;</span><span class="p">,</span>
+            <span class="mi">1</span><span class="p">:</span> <span class="s2">&quot;On (switch open)&quot;</span><span class="p">,</span>
+            <span class="mi">2</span><span class="p">:</span> <span class="s2">&quot;Off magnet at field (switch closed)&quot;</span><span class="p">,</span>
+            <span class="mi">5</span><span class="p">:</span> <span class="s2">&quot;Heater fault (heater is on but current is low)&quot;</span><span class="p">,</span>
+            <span class="mi">8</span><span class="p">:</span> <span class="s2">&quot;No switch fitted&quot;</span><span class="p">}</span>
+
+    <span class="n">_GET_STATUS_REMOTE</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="mi">0</span><span class="p">:</span> <span class="s2">&quot;Local and locked&quot;</span><span class="p">,</span>
+            <span class="mi">1</span><span class="p">:</span> <span class="s2">&quot;Remote and locked&quot;</span><span class="p">,</span>
+            <span class="mi">2</span><span class="p">:</span> <span class="s2">&quot;Local and unlocked&quot;</span><span class="p">,</span>
+            <span class="mi">3</span><span class="p">:</span> <span class="s2">&quot;Remote and unlocked&quot;</span><span class="p">,</span>
+            <span class="mi">4</span><span class="p">:</span> <span class="s2">&quot;Auto-run-down&quot;</span><span class="p">,</span>
+            <span class="mi">5</span><span class="p">:</span> <span class="s2">&quot;Auto-run-down&quot;</span><span class="p">,</span>
+            <span class="mi">6</span><span class="p">:</span> <span class="s2">&quot;Auto-run-down&quot;</span><span class="p">,</span>
+            <span class="mi">7</span><span class="p">:</span> <span class="s2">&quot;Auto-run-down&quot;</span><span class="p">}</span>
+
+    <span class="n">_GET_SYSTEM_STATUS</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="mi">0</span><span class="p">:</span> <span class="s2">&quot;Normal&quot;</span><span class="p">,</span>
+            <span class="mi">1</span><span class="p">:</span> <span class="s2">&quot;Quenched&quot;</span><span class="p">,</span>
+            <span class="mi">2</span><span class="p">:</span> <span class="s2">&quot;Over Heated&quot;</span><span class="p">,</span>
+            <span class="mi">3</span><span class="p">:</span> <span class="s2">&quot;Warming Up&quot;</span><span class="p">,</span>
+            <span class="mi">4</span><span class="p">:</span> <span class="s2">&quot;Fault&quot;</span><span class="p">}</span>
+
+    <span class="n">_GET_SYSTEM_STATUS2</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="mi">0</span><span class="p">:</span> <span class="s2">&quot;Normal&quot;</span><span class="p">,</span>
+            <span class="mi">1</span><span class="p">:</span> <span class="s2">&quot;On positive voltage limit&quot;</span><span class="p">,</span>
+            <span class="mi">2</span><span class="p">:</span> <span class="s2">&quot;On negative voltage limit&quot;</span><span class="p">,</span>
+            <span class="mi">3</span><span class="p">:</span> <span class="s2">&quot;Outside negative current limit&quot;</span><span class="p">,</span>
+            <span class="mi">4</span><span class="p">:</span> <span class="s2">&quot;Outside positive current limit&quot;</span><span class="p">}</span>
+
+    <span class="n">_GET_POLARITY_STATUS1</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="mi">0</span><span class="p">:</span> <span class="s2">&quot;Desired: Positive, Magnet: Positive, Commanded: Positive&quot;</span><span class="p">,</span>
+            <span class="mi">1</span><span class="p">:</span> <span class="s2">&quot;Desired: Positive, Magnet: Positive, Commanded: Negative&quot;</span><span class="p">,</span>
+            <span class="mi">2</span><span class="p">:</span> <span class="s2">&quot;Desired: Positive, Magnet: Negative, Commanded: Positive&quot;</span><span class="p">,</span>
+            <span class="mi">3</span><span class="p">:</span> <span class="s2">&quot;Desired: Positive, Magnet: Negative, Commanded: Negative&quot;</span><span class="p">,</span>
+            <span class="mi">4</span><span class="p">:</span> <span class="s2">&quot;Desired: Negative, Magnet: Positive, Commanded: Positive&quot;</span><span class="p">,</span>
+            <span class="mi">5</span><span class="p">:</span> <span class="s2">&quot;Desired: Negative, Magnet: Positive, Commanded: Negative&quot;</span><span class="p">,</span>
+            <span class="mi">6</span><span class="p">:</span> <span class="s2">&quot;Desired: Negative, Magnet: Negative, Commanded: Positive&quot;</span><span class="p">,</span>
+            <span class="mi">7</span><span class="p">:</span> <span class="s2">&quot;Desired: Negative, Magnet: Negative, Commanded: Negative&quot;</span><span class="p">}</span>
+
+    <span class="n">_GET_POLARITY_STATUS2</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="mi">1</span><span class="p">:</span> <span class="s2">&quot;Negative contactor closed&quot;</span><span class="p">,</span>
+            <span class="mi">2</span><span class="p">:</span> <span class="s2">&quot;Positive contactor closed&quot;</span><span class="p">,</span>
+            <span class="mi">3</span><span class="p">:</span> <span class="s2">&quot;Both contactors open&quot;</span><span class="p">,</span>
+            <span class="mi">4</span><span class="p">:</span> <span class="s2">&quot;Both contactors closed&quot;</span><span class="p">}</span>
+
+    <span class="n">_SET_ACTIVITY</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="mi">0</span><span class="p">:</span> <span class="s2">&quot;Hold&quot;</span><span class="p">,</span>
+            <span class="mi">1</span><span class="p">:</span> <span class="s2">&quot;To set point&quot;</span><span class="p">,</span>
+            <span class="mi">2</span><span class="p">:</span> <span class="s2">&quot;To zero&quot;</span><span class="p">}</span>
+
+    <span class="n">_WRITE_WAIT</span> <span class="o">=</span> <span class="mf">100e-3</span> <span class="c1"># seconds</span>
+
+<div class="viewcode-block" id="OxfordInstruments_IPS120.__init__">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Oxford.html#qcodes_contrib_drivers.drivers.Oxford.IPS120.OxfordInstruments_IPS120.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">address</span><span class="p">,</span> <span class="n">use_gpib</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">number</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initializes the Oxford Instruments IPS 120 Magnet Power Supply.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            name (str)    : name of the instrument</span>
+<span class="sd">            address (str) : instrument address</span>
+<span class="sd">            use_gpib (bool)  : whether to use GPIB or serial</span>
+<span class="sd">            number (int)     : ISOBUS instrument number. Ignored if using GPIB.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">address</span><span class="p">,</span> <span class="n">terminator</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\r</span><span class="s1">&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_address</span> <span class="o">=</span> <span class="n">address</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_number</span> <span class="o">=</span> <span class="n">number</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_values</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_use_gpib</span> <span class="o">=</span> <span class="n">use_gpib</span>
+
+        <span class="c1"># Add parameters</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;mode&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_mode</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_mode</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Ints</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;mode2&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_mode2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;activity&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_activity</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_activity</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Ints</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;switch_heater&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_switch_heater</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_switch_heater</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Ints</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;field_setpoint&#39;</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;T&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_field_setpoint</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_field_setpoint</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(</span><span class="o">-</span><span class="mi">14</span><span class="p">,</span> <span class="mi">14</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;sweeprate_field&#39;</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;T/min&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_sweeprate_field</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_sweeprate_field</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.7</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;system_status&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_system_status</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;system_status2&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_system_status2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;polarity&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_polarity</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;voltage&#39;</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;V&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_voltage</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;voltage_limit&#39;</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;V&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_voltage_limit</span><span class="p">)</span>
+
+        <span class="c1"># Find the F field limits</span>
+        <span class="n">MaxField</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">field_setpoint</span><span class="o">.</span><span class="n">vals</span><span class="o">.</span><span class="n">_max_value</span>
+        <span class="n">MinField</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">field_setpoint</span><span class="o">.</span><span class="n">vals</span><span class="o">.</span><span class="n">_min_value</span>
+        <span class="n">MaxFieldSweep</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sweeprate_field</span><span class="o">.</span><span class="n">vals</span><span class="o">.</span><span class="n">_max_value</span>
+        <span class="n">MinFieldSweep</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sweeprate_field</span><span class="o">.</span><span class="n">vals</span><span class="o">.</span><span class="n">_min_value</span>
+        <span class="c1"># A to B conversion</span>
+        <span class="n">ABconversion</span> <span class="o">=</span> <span class="mf">115.733</span> <span class="o">/</span> <span class="mi">14</span>  <span class="c1"># Ampere per Tesla</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;current_setpoint&#39;</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;A&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_current_setpoint</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_current_setpoint</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(</span><span class="n">ABconversion</span> <span class="o">*</span> <span class="n">MinField</span><span class="p">,</span>
+                                             <span class="n">ABconversion</span> <span class="o">*</span> <span class="n">MaxField</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;sweeprate_current&#39;</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;A/min&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_sweeprate_current</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_sweeprate_current</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(</span><span class="n">ABconversion</span> <span class="o">*</span> <span class="n">MinFieldSweep</span><span class="p">,</span>
+                                             <span class="n">ABconversion</span> <span class="o">*</span> <span class="n">MaxFieldSweep</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;remote_status&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_remote_status</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_remote_status</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Ints</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;current&#39;</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;A&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_current</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;magnet_current&#39;</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;A&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_magnet_current</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;field&#39;</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;T&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_field</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;persistent_current&#39;</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;A&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_persistent_current</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;persistent_field&#39;</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;T&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_persistent_field</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;magnet_inductance&#39;</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;H&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_magnet_inductance</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;lead_resistance&#39;</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;mOhm&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_lead_resistance</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;current_limit_lower&#39;</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;A&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_current_limit_lower</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;current_limit_upper&#39;</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;A&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_current_limit_upper</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;heater_current&#39;</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;mA&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_heater_current</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;trip_field&#39;</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;T&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_trip_field</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;trip_current&#39;</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;A&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_trip_current</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_use_gpib</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">visa_handle</span><span class="o">.</span><span class="n">set_visa_attribute</span><span class="p">(</span>
+                    <span class="n">pyvisa</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">VI_ATTR_ASRL_STOP_BITS</span><span class="p">,</span>
+                    <span class="n">pyvisa</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">VI_ASRL_STOP_TWO</span><span class="p">)</span>
+            <span class="c1"># to handle VisaIOError which occurs at first read</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">visa_handle</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;@</span><span class="si">%s%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_number</span><span class="p">,</span> <span class="s1">&#39;V&#39;</span><span class="p">))</span>
+                <span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_WRITE_WAIT</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_read</span><span class="p">()</span>
+            <span class="k">except</span> <span class="n">pyvisa</span><span class="o">.</span><span class="n">VisaIOError</span><span class="p">:</span>
+                <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="OxfordInstruments_IPS120.get_all">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Oxford.html#qcodes_contrib_drivers.drivers.Oxford.IPS120.OxfordInstruments_IPS120.get_all">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_all</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Reads all implemented parameters from the instrument,</span>
+<span class="sd">        and updates the wrapper.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">snapshot</span><span class="p">(</span><span class="n">update</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Write a command to the device and return the result.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            message (str) : write command for the device</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Response from the device as a string.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Send the following command to the device: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">message</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_use_gpib</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">visa_handle</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;@</span><span class="si">%s%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_number</span><span class="p">,</span> <span class="n">message</span><span class="p">))</span>
+        <span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_WRITE_WAIT</span><span class="p">)</span>  <span class="c1"># wait for the device to be able to respond</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;?&#39;</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error: Command </span><span class="si">%s</span><span class="s2"> not recognized&quot;</span> <span class="o">%</span> <span class="n">message</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">result</span>
+
+    <span class="k">def</span> <span class="nf">_read</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Reads the total bytes in the buffer and outputs as a string.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            message (str)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">bytes_in_buffer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">visa_handle</span><span class="o">.</span><span class="n">bytes_in_buffer</span>
+        <span class="k">with</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">visa_handle</span><span class="o">.</span><span class="n">ignore_warning</span><span class="p">(</span><span class="n">pyvisa</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">VI_SUCCESS_MAX_CNT</span><span class="p">)):</span>
+            <span class="n">mes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">visa_handle</span><span class="o">.</span><span class="n">visalib</span><span class="o">.</span><span class="n">read</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">visa_handle</span><span class="o">.</span><span class="n">session</span><span class="p">,</span> <span class="n">bytes_in_buffer</span><span class="p">)</span>
+        <span class="n">mes</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">mes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">decode</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">mes</span>
+
+<div class="viewcode-block" id="OxfordInstruments_IPS120.identify">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Oxford.html#qcodes_contrib_drivers.drivers.Oxford.IPS120.OxfordInstruments_IPS120.identify">[docs]</a>
+    <span class="k">def</span> <span class="nf">identify</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Identify the device&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Identify the device&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;V&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="OxfordInstruments_IPS120.examine">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Oxford.html#qcodes_contrib_drivers.drivers.Oxford.IPS120.OxfordInstruments_IPS120.examine">[docs]</a>
+    <span class="k">def</span> <span class="nf">examine</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Examine the status of the device&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Examine status&#39;</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;System Status: &#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">system_status</span><span class="p">())</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Activity: &#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">activity</span><span class="p">())</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Local/Remote status: &#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">remote_status</span><span class="p">())</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Switch heater: &#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">switch_heater</span><span class="p">())</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Mode: &#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mode</span><span class="p">())</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Polarity: &#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">polarity</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="OxfordInstruments_IPS120.remote">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Oxford.html#qcodes_contrib_drivers.drivers.Oxford.IPS120.OxfordInstruments_IPS120.remote">[docs]</a>
+    <span class="k">def</span> <span class="nf">remote</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set control to remote and unlocked&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Set control to remote and unlocked&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">remote_status</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="OxfordInstruments_IPS120.local">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Oxford.html#qcodes_contrib_drivers.drivers.Oxford.IPS120.OxfordInstruments_IPS120.local">[docs]</a>
+    <span class="k">def</span> <span class="nf">local</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set control to local and unlocked&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Set control to local and unlocked&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">remote_status</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="OxfordInstruments_IPS120.close">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Oxford.html#qcodes_contrib_drivers.drivers.Oxford.IPS120.OxfordInstruments_IPS120.close">[docs]</a>
+    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Safely close connection&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Closing IPS120 connection&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">local</span><span class="p">()</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="OxfordInstruments_IPS120.get_idn">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Oxford.html#qcodes_contrib_drivers.drivers.Oxford.IPS120.OxfordInstruments_IPS120.get_idn">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_idn</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overides the function of Instrument since IPS120 does not support `*IDN?`</span>
+
+<span class="sd">        This string is supposed to be a comma-separated list of vendor, model,</span>
+<span class="sd">        serial, and firmware, but semicolon and colon are also common</span>
+<span class="sd">        separators so we accept them here as well.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A dict containing vendor, model, serial, and firmware.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">idparts</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Oxford Instruments&#39;</span><span class="p">,</span> <span class="s1">&#39;IPS120&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">((</span><span class="s1">&#39;vendor&#39;</span><span class="p">,</span> <span class="s1">&#39;model&#39;</span><span class="p">,</span> <span class="s1">&#39;serial&#39;</span><span class="p">,</span> <span class="s1">&#39;firmware&#39;</span><span class="p">),</span> <span class="n">idparts</span><span class="p">))</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_get_remote_status</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get remote control status</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            result(str) :</span>
+<span class="sd">            &quot;Local &amp; locked&quot;,</span>
+<span class="sd">            &quot;Remote &amp; locked&quot;,</span>
+<span class="sd">            &quot;Local &amp; unlocked&quot;,</span>
+<span class="sd">            &quot;Remote &amp; unlocked&quot;,</span>
+<span class="sd">            &quot;Auto-run-down&quot;,</span>
+<span class="sd">            &quot;Auto-run-down&quot;,</span>
+<span class="sd">            &quot;Auto-run-down&quot;,</span>
+<span class="sd">            &quot;Auto-run-down&quot;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Get remote control status&#39;</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;X&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_GET_STATUS_REMOTE</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="mi">6</span><span class="p">])]</span>
+
+    <span class="k">def</span> <span class="nf">_set_remote_status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set remote control status.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            mode(int): Refer to _GET_STATUS_REMOTE for allowed values and</span>
+<span class="sd">            meanings.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">mode</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_GET_STATUS_REMOTE</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Setting remote control status to </span><span class="si">%s</span><span class="s1">&#39;</span>
+                    <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_GET_STATUS_REMOTE</span><span class="p">[</span><span class="n">mode</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;C</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">mode</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Invalid mode inserted: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">mode</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_system_status</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the system status</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            result (str) :</span>
+<span class="sd">            &quot;Normal&quot;,</span>
+<span class="sd">            &quot;Quenched&quot;,</span>
+<span class="sd">            &quot;Over Heated&quot;,</span>
+<span class="sd">            &quot;Warming Up&quot;,</span>
+<span class="sd">            &quot;Fault&quot;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;X&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Getting system status&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_GET_SYSTEM_STATUS</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="mi">1</span><span class="p">])]</span>
+
+    <span class="k">def</span> <span class="nf">_get_system_status2</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the system status</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            result (str) :</span>
+<span class="sd">            &quot;Normal&quot;,</span>
+<span class="sd">            &quot;On positive voltage limit&quot;,</span>
+<span class="sd">            &quot;On negative voltage limit&quot;,</span>
+<span class="sd">            &quot;Outside negative current limit&quot;,</span>
+<span class="sd">            &quot;Outside positive current limit&quot;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;X&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Getting system status&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_GET_SYSTEM_STATUS2</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="mi">2</span><span class="p">])]</span>
+
+    <span class="k">def</span> <span class="nf">_get_current</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Demand output current of device</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            result (float) : output current in Amp</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Read output current&#39;</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;R0&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;R&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_get_voltage</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Demand measured output voltage of device</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            result (float) : output voltage in Volt</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Read output voltage&#39;</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;R1&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;R&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_get_magnet_current</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Demand measured magnet current of device</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            result (float) : measured magnet current in Amp</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Read measured magnet current&#39;</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;R2&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;R&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_get_current_setpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the set point (target current)</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            result (float) : Target current in Amp</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Read set point (target current)&#39;</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;R5&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;R&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_set_current_setpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">current</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set current setpoint (target current)</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            current (float) : target current in Amp</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Setting target current to </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">current</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">remote</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;I</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">current</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">local</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">field_setpoint</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_get_sweeprate_current</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return sweep rate (current)</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            result (float) : sweep rate in A/min</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Read sweep rate (current)&#39;</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;R6&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;R&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_set_sweeprate_current</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sweeprate</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set sweep rate (current)</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            sweeprate(float) : Sweep rate in A/min.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">remote</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Set sweep rate (current) to </span><span class="si">%s</span><span class="s1"> A/min&#39;</span> <span class="o">%</span> <span class="n">sweeprate</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;S</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">sweeprate</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">local</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sweeprate_field</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_get_field</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Demand output field</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            result (float) : magnetic field in Tesla</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Read output field&#39;</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;R7&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;R&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_get_field_setpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the set point (target field)</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            result (float) : Field set point in Tesla</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Read field set point&#39;</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;R8&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;R&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_set_field_setpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the field set point (target field)</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            field (float) : target field in Tesla</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Setting target field to </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">field</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">remote</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;J</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">field</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">local</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_setpoint</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_get_sweeprate_field</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return sweep rate (field)</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            result (float) : sweep rate in Tesla/min</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Read sweep rate (field)&#39;</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;R9&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;R&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_set_sweeprate_field</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sweeprate</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set sweep rate (field)</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            sweeprate(float) : Sweep rate in Tesla/min.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Set sweep rate (field) to </span><span class="si">%s</span><span class="s1"> Tesla/min&#39;</span> <span class="o">%</span> <span class="n">sweeprate</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">remote</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;T</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">sweeprate</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">local</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sweeprate_current</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_get_voltage_limit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return voltage limit</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            result (float) : voltage limit in Volt</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Read voltage limit&#39;</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;R15&#39;</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;R&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">voltage</span><span class="o">.</span><span class="n">vals</span> <span class="o">=</span> <span class="n">vals</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(</span><span class="o">-</span><span class="n">result</span><span class="p">,</span> <span class="n">result</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span>
+
+    <span class="k">def</span> <span class="nf">_get_persistent_current</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return persistent magnet current</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            result (float) : persistent magnet current in Amp</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Read persistent magnet current&#39;</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;R16&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;R&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_get_trip_current</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return trip current</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            result (float) : trip current om Amp</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Read trip current&#39;</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;R17&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;R&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_get_persistent_field</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return persistent magnet field</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            result (float) : persistent magnet field in Tesla</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Read persistent magnet field&#39;</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;R18&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;R&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_get_trip_field</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return trip field</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            result (float) : trip field in Tesla</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Read trip field&#39;</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;R19&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;R&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_get_heater_current</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return switch heater current</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            result (float) : switch heater current in milliAmp</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Read switch heater current&#39;</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;R20&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;R&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_get_current_limit_upper</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return safe current limit, most positive</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            result (float) : safe current limit, most positive in Amp</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Read safe current limit, most positive&#39;</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;R22&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;R&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_get_current_limit_lower</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return safe current limit, most negative</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            result (float) : safe current limit, most negative in Amp</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Read safe current limit, most negative&#39;</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;R21&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;R&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_get_lead_resistance</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return lead resistance</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            result (float) : lead resistance in milliOhm</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Read lead resistance&#39;</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;R23&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;R&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_get_magnet_inductance</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return magnet inductance</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            result (float) : magnet inductance in Henry</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Read magnet inductance&#39;</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;R24&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;R&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_get_activity</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the activity of the magnet. Possibilities: Hold, Set point, Zero or Clamp.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            result(str) : &quot;Hold&quot;, &quot;Set point&quot;, &quot;Zero&quot; or &quot;Clamp&quot;.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Get activity of the magnet.&#39;</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;X&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_SET_ACTIVITY</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="mi">4</span><span class="p">])]</span>
+
+    <span class="k">def</span> <span class="nf">_set_activity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the activity to Hold, To Set point or To Zero.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            mode (int): See _SET_ACTIVITY for values and meanings.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">mode</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_SET_ACTIVITY</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Setting magnet activity to </span><span class="si">%s</span><span class="s1">&#39;</span>
+                    <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_SET_ACTIVITY</span><span class="p">[</span><span class="n">mode</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">remote</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;A</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">mode</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">local</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Invalid mode inserted.&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="OxfordInstruments_IPS120.hold">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Oxford.html#qcodes_contrib_drivers.drivers.Oxford.IPS120.OxfordInstruments_IPS120.hold">[docs]</a>
+    <span class="k">def</span> <span class="nf">hold</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the device activity to Hold&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">activity</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="OxfordInstruments_IPS120.to_setpoint">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Oxford.html#qcodes_contrib_drivers.drivers.Oxford.IPS120.OxfordInstruments_IPS120.to_setpoint">[docs]</a>
+    <span class="k">def</span> <span class="nf">to_setpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the device activity to &quot;To set point&quot;. This initiates a sweep.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">activity</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="OxfordInstruments_IPS120.to_zero">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Oxford.html#qcodes_contrib_drivers.drivers.Oxford.IPS120.OxfordInstruments_IPS120.to_zero">[docs]</a>
+    <span class="k">def</span> <span class="nf">to_zero</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the device activity to &quot;To zero&quot;. This sweeps te magnet back to zero.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">activity</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_get_switch_heater</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the switch heater status.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            result(str): See _GET_STATUS_SWITCH_HEATER.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Get switch heater status&#39;</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;X&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_GET_STATUS_SWITCH_HEATER</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="mi">8</span><span class="p">])]</span>
+
+    <span class="k">def</span> <span class="nf">_set_switch_heater</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the switch heater Off or On. Note: After issuing a command it is necessary to wait</span>
+<span class="sd">        several seconds for the switch to respond.</span>
+<span class="sd">        Args:</span>
+<span class="sd">            mode (int) :</span>
+<span class="sd">            0 : Off</span>
+<span class="sd">            1 : On</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">mode</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Setting switch heater to </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">mode</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">remote</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;H</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">mode</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Setting switch heater... (wait 40s)&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">local</span><span class="p">()</span>
+            <span class="n">sleep</span><span class="p">(</span><span class="mi">40</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Invalid mode inserted.&#39;</span><span class="p">)</span>
+        <span class="n">sleep</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">switch_heater</span><span class="p">()</span>
+
+<div class="viewcode-block" id="OxfordInstruments_IPS120.heater_on">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Oxford.html#qcodes_contrib_drivers.drivers.Oxford.IPS120.OxfordInstruments_IPS120.heater_on">[docs]</a>
+    <span class="k">def</span> <span class="nf">heater_on</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Switch the heater on, with PSU = Magnet current check&quot;&quot;&quot;</span>
+        <span class="n">current_in_magnet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">persistent_current</span><span class="p">()</span>
+        <span class="n">current_in_leads</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">current</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">switch_heater</span><span class="p">()</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_GET_STATUS_SWITCH_HEATER</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Heater is already on!&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode2</span><span class="p">()</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_GET_STATUS_MODE2</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="n">current_in_leads</span> <span class="o">==</span> <span class="n">current_in_magnet</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">switch_heater</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Current in the leads is not matching persistent current!&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Magnet supply not at rest, cannot switch on heater!&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">switch_heater</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="OxfordInstruments_IPS120.set_persistent">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Oxford.html#qcodes_contrib_drivers.drivers.Oxford.IPS120.OxfordInstruments_IPS120.set_persistent">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_persistent</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Puts magnet into persistent mode</span>
+
+<span class="sd">        Note: After turning of the switch heater we will wait for additional 20</span>
+<span class="sd">        seconds before we put the current to zero. This is done to make sure</span>
+<span class="sd">        that the switch heater is cold enough and becomes superconducting.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode2</span><span class="p">()</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_GET_STATUS_MODE2</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">heater_off</span><span class="p">()</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Waiting for the switch heater to become superconducting&#39;</span><span class="p">)</span>
+            <span class="n">sleep</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">to_zero</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_all</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Magnet is not at rest, cannot put it in persistent mode&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">get_all</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="OxfordInstruments_IPS120.leave_persistent_mode">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Oxford.html#qcodes_contrib_drivers.drivers.Oxford.IPS120.OxfordInstruments_IPS120.leave_persistent_mode">[docs]</a>
+    <span class="k">def</span> <span class="nf">leave_persistent_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Read out persistent current, match the current in the leads to that current</span>
+<span class="sd">        and switch on heater</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">switch_heater</span><span class="p">()</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_GET_STATUS_SWITCH_HEATER</span><span class="p">[</span><span class="mi">2</span><span class="p">]:</span>
+            <span class="n">field_in_magnet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">persistent_field</span><span class="p">()</span>
+            <span class="n">field_in_leads</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">field</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">hold</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">field_setpoint</span><span class="p">(</span><span class="n">field_in_magnet</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">to_setpoint</span><span class="p">()</span>
+
+            <span class="k">while</span> <span class="n">field_in_leads</span> <span class="o">!=</span> <span class="n">field_in_magnet</span><span class="p">:</span>
+                <span class="n">field_in_leads</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">field</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">heater_on</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">hold</span><span class="p">()</span>
+
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">switch_heater</span><span class="p">()</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_GET_STATUS_SWITCH_HEATER</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Heater is already on, so the magnet was not in persistent mode&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">switch_heater</span><span class="p">()</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_GET_STATUS_SWITCH_HEATER</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Heater is off, field is zero. Turning on switch heater.&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">heater_on</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">get_all</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="OxfordInstruments_IPS120.run_to_field">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Oxford.html#qcodes_contrib_drivers.drivers.Oxford.IPS120.OxfordInstruments_IPS120.run_to_field">[docs]</a>
+    <span class="k">def</span> <span class="nf">run_to_field</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field_value</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Go to field value</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            field_value (float): the magnetic field value to go to in Tesla</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">switch_heater</span><span class="p">()</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_GET_STATUS_SWITCH_HEATER</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">hold</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">field_setpoint</span><span class="p">(</span><span class="n">field_value</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">to_setpoint</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Switch heater is off, cannot change the field.&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">get_all</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="OxfordInstruments_IPS120.run_to_field_wait">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Oxford.html#qcodes_contrib_drivers.drivers.Oxford.IPS120.OxfordInstruments_IPS120.run_to_field_wait">[docs]</a>
+    <span class="k">def</span> <span class="nf">run_to_field_wait</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field_value</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Go to field value and wait until it&#39;s done sweeping.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            field_value (float): the magnetic field value to go to in Tesla</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">switch_heater</span><span class="p">()</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_GET_STATUS_SWITCH_HEATER</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">hold</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">field_setpoint</span><span class="p">(</span><span class="n">field_value</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">remote</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">to_setpoint</span><span class="p">()</span>
+            <span class="n">magnet_mode</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode2</span><span class="p">()</span>
+            <span class="k">while</span> <span class="n">magnet_mode</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_GET_STATUS_MODE2</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="n">magnet_mode</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode2</span><span class="p">()</span>
+                <span class="n">sleep</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Switch heater is off, cannot change the field.&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">get_all</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">local</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="OxfordInstruments_IPS120.heater_off">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Oxford.html#qcodes_contrib_drivers.drivers.Oxford.IPS120.OxfordInstruments_IPS120.heater_off">[docs]</a>
+    <span class="k">def</span> <span class="nf">heater_off</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Switch the heater off&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">switch_heater</span><span class="p">()</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_GET_STATUS_SWITCH_HEATER</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">or</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">switch_heater</span><span class="p">()</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_GET_STATUS_SWITCH_HEATER</span><span class="p">[</span><span class="mi">2</span><span class="p">]):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Heater is already off!&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode2</span><span class="p">()</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_GET_STATUS_MODE2</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">switch_heater</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Magnet is not at rest, cannot switch of the heater!&#39;</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_get_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the mode of the device</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            mode(str): See _GET_STATUS_MODE.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Get device mode&#39;</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;X&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_GET_STATUS_MODE</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="mi">10</span><span class="p">])]</span>
+
+    <span class="k">def</span> <span class="nf">_get_mode2</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the sweeping mode of the device</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            mode(str): See _GET_STATUS_MODE2.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Get device mode&#39;</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;X&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_GET_STATUS_MODE2</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="mi">11</span><span class="p">])]</span>
+
+    <span class="k">def</span> <span class="nf">_set_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            mode(int): Refer to _GET_STATUS_MODE dictionary for the allowed</span>
+<span class="sd">            mode values and meanings.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">mode</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_GET_STATUS_MODE</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Setting device mode to </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_GET_STATUS_MODE</span><span class="p">[</span><span class="n">mode</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">remote</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;M</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">mode</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">local</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Invalid mode inserted.&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_polarity</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the polarity of the output current</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            result (str): See _GET_POLARITY_STATUS1 and _GET_POLARITY_STATUS2.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Get device polarity&#39;</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;X&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_GET_POLARITY_STATUS1</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="mi">13</span><span class="p">])]</span> <span class="o">+</span> \
+            <span class="s2">&quot;, &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_GET_POLARITY_STATUS2</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="mi">14</span><span class="p">])]</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, QCoDeS Users.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>qcodes_contrib_drivers.drivers.Shamrock.SR750 &mdash; qcodes_contrib_drivers 0.23.0.dev14+main.g6d96817 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../_static/documentation_options.js?v=7415f6af"></script>
+        <script src="../../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            qcodes_contrib_drivers
+          </a>
+              <div class="version">
+                0.23.0.dev14+main.g6d96817
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples/index.html">Examples of how to use drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/generated/qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">qcodes_contrib_drivers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">qcodes_contrib_drivers.drivers.Shamrock.SR750</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for qcodes_contrib_drivers.drivers.Shamrock.SR750</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">qcodes</span> <span class="kn">import</span> <span class="n">Instrument</span>
+<span class="kn">from</span> <span class="nn">qcodes.utils.validators</span> <span class="kn">import</span> <span class="n">Ints</span><span class="p">,</span> <span class="n">Numbers</span>
+<span class="kn">import</span> <span class="nn">ctypes</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="ShamrockCIF">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Shamrock.html#qcodes_contrib_drivers.drivers.Shamrock.SR750.ShamrockCIF">[docs]</a>
+<span class="k">class</span> <span class="nc">ShamrockCIF</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Wrapper class for the ShamrockCIF.dll library.</span>
+
+<span class="sd">    The class has been tested for a Shamrock SR750.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        dll_path: Path to the ShamrockCIF.dll file. If not set, a default path is used.</span>
+<span class="sd">        verbose: Flag for the verbose behaviour. If true, successful events are printed.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        verbose: Flag for the verbose behaviour.</span>
+<span class="sd">        dll: WinDLL object for ShamrockCIF.dll.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># default dll path</span>
+    <span class="n">_dll_path</span> <span class="o">=</span> <span class="s1">&#39;C:</span><span class="se">\\</span><span class="s1">Program Files</span><span class="se">\\</span><span class="s1">Andor SDK</span><span class="se">\\</span><span class="s1">Shamrock64</span><span class="se">\\</span><span class="s1">ShamrockCIF.dll&#39;</span>
+
+    <span class="c1"># success and error codes</span>
+    <span class="n">_success_codes</span> <span class="o">=</span> <span class="p">{</span><span class="mi">20202</span><span class="p">:</span> <span class="s1">&#39;SHAMROCK_SUCCESS&#39;</span><span class="p">}</span>
+    <span class="n">_error_codes</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="mi">20201</span><span class="p">:</span> <span class="s1">&#39;SHAMROCK_COMMUNICATION_ERROR&#39;</span><span class="p">,</span>
+        <span class="mi">20266</span><span class="p">:</span> <span class="s1">&#39;SHAMROCK_P1INVALID&#39;</span><span class="p">,</span>
+        <span class="mi">20267</span><span class="p">:</span> <span class="s1">&#39;SHAMROCK_P2INVALID&#39;</span><span class="p">,</span>
+        <span class="mi">20268</span><span class="p">:</span> <span class="s1">&#39;SHAMROCK_P3INVALID&#39;</span><span class="p">,</span>
+        <span class="mi">20269</span><span class="p">:</span> <span class="s1">&#39;SHAMROCK_P4INVALID&#39;</span><span class="p">,</span>
+        <span class="mi">20270</span><span class="p">:</span> <span class="s1">&#39;SHAMROCK_P5INVALID&#39;</span><span class="p">,</span>
+        <span class="mi">20275</span><span class="p">:</span> <span class="s1">&#39;SHAMROCK_NOT_INITIALIZED&#39;</span><span class="p">,</span>
+        <span class="mi">20292</span><span class="p">:</span> <span class="s1">&#39;SHAMROCK_NOT_AVAILABLE&#39;</span>
+    <span class="p">}</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dll_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span> <span class="o">!=</span> <span class="s1">&#39;win32&#39;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">OSError</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\&quot;</span><span class="s2">ShamrockCIF</span><span class="se">\&quot;</span><span class="s2"> is only compatible with Microsoft Windows&quot;</span><span class="p">)</span>
+
+        <span class="c1"># save attributes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">verbose</span>
+
+        <span class="c1"># connect to the DLL</span>
+        <span class="n">current_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dll_path</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dll</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">windll</span><span class="o">.</span><span class="n">LoadLibrary</span><span class="p">(</span><span class="n">dll_path</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dll_path</span><span class="p">)</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">current_path</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ShamrockCIF.error_check">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Shamrock.html#qcodes_contrib_drivers.drivers.Shamrock.SR750.ShamrockCIF.error_check">[docs]</a>
+    <span class="k">def</span> <span class="nf">error_check</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="n">function_name</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">code</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_success_codes</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ShamrockCIF: [</span><span class="si">{</span><span class="n">function_name</span><span class="si">}</span><span class="s2">]: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_success_codes</span><span class="p">[</span><span class="n">code</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">code</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_error_codes</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">error_string</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;ShamrockCIF: [</span><span class="si">{</span><span class="n">function_name</span><span class="si">}</span><span class="s2">]: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_error_codes</span><span class="p">[</span><span class="n">code</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">error_string</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="n">error_string</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">error_string</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;ShamrockCIF: [</span><span class="si">{</span><span class="n">function_name</span><span class="si">}</span><span class="s2">]: Unknown code: </span><span class="si">{</span><span class="n">code</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">error_string</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="n">error_string</span><span class="p">)</span></div>
+
+
+    <span class="c1"># dll functions</span>
+<div class="viewcode-block" id="ShamrockCIF.close">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Shamrock.html#qcodes_contrib_drivers.drivers.Shamrock.SR750.ShamrockCIF.close">[docs]</a>
+    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">ShamrockClose</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_check</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="s1">&#39;ShamrockClose&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ShamrockCIF.get_calibration">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Shamrock.html#qcodes_contrib_drivers.drivers.Shamrock.SR750.ShamrockCIF.get_calibration">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_calibration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">device</span><span class="p">,</span> <span class="n">number_pixels</span><span class="p">):</span>
+        <span class="n">c_device</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">c_calibration</span> <span class="o">=</span> <span class="p">(</span><span class="n">ctypes</span><span class="o">.</span><span class="n">c_float</span> <span class="o">*</span> <span class="n">number_pixels</span><span class="p">)()</span>
+        <span class="n">c_number_pixels</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">(</span><span class="n">number_pixels</span><span class="p">)</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">ShamrockGetCalibration</span><span class="p">(</span><span class="n">c_device</span><span class="p">,</span> <span class="n">c_calibration</span><span class="p">,</span> <span class="n">c_number_pixels</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_check</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="s1">&#39;ShamrockGetCalibration&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="nb">max</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">c_calibration</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="ShamrockCIF.get_grating">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Shamrock.html#qcodes_contrib_drivers.drivers.Shamrock.SR750.ShamrockCIF.get_grating">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_grating</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">device</span><span class="p">):</span>
+        <span class="n">c_device</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">c_grating</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">()</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">ShamrockGetGrating</span><span class="p">(</span><span class="n">c_device</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">c_grating</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_check</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="s1">&#39;ShamrockGetGrating&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">c_grating</span><span class="o">.</span><span class="n">value</span></div>
+
+
+<div class="viewcode-block" id="ShamrockCIF.get_grating_info">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Shamrock.html#qcodes_contrib_drivers.drivers.Shamrock.SR750.ShamrockCIF.get_grating_info">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_grating_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">device</span><span class="p">,</span> <span class="n">grating</span><span class="p">):</span>
+        <span class="n">c_device</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">c_grating</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">(</span><span class="n">grating</span><span class="p">)</span>
+        <span class="n">c_lines</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_float</span><span class="p">()</span>
+        <span class="n">c_blaze</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">create_string_buffer</span><span class="p">(</span><span class="mi">64</span><span class="p">)</span>
+        <span class="n">c_home</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">()</span>
+        <span class="n">c_offset</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">()</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">ShamrockGetGratingInfo</span><span class="p">(</span><span class="n">c_device</span><span class="p">,</span> <span class="n">c_grating</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">c_lines</span><span class="p">),</span> <span class="n">c_blaze</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">c_home</span><span class="p">),</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">c_offset</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_check</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="s1">&#39;ShamrockGetGratingInfo&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">c_lines</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">c_blaze</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">c_home</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">c_offset</span><span class="o">.</span><span class="n">value</span></div>
+
+
+<div class="viewcode-block" id="ShamrockCIF.get_number_devices">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Shamrock.html#qcodes_contrib_drivers.drivers.Shamrock.SR750.ShamrockCIF.get_number_devices">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_number_devices</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">c_no_devices</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">()</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">ShamrockGetNumberDevices</span><span class="p">(</span><span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">c_no_devices</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_check</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="s1">&#39;ShamrockGetNumberDevices&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">c_no_devices</span><span class="o">.</span><span class="n">value</span></div>
+
+
+<div class="viewcode-block" id="ShamrockCIF.get_number_gratings">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Shamrock.html#qcodes_contrib_drivers.drivers.Shamrock.SR750.ShamrockCIF.get_number_gratings">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_number_gratings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">device</span><span class="p">):</span>
+        <span class="n">c_device</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">c_no_gratings</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">()</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">ShamrockGetNumberGratings</span><span class="p">(</span><span class="n">c_device</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">c_no_gratings</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_check</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="s1">&#39;ShamrockGetNumberGratings&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">c_no_gratings</span><span class="o">.</span><span class="n">value</span></div>
+
+
+<div class="viewcode-block" id="ShamrockCIF.get_number_pixels">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Shamrock.html#qcodes_contrib_drivers.drivers.Shamrock.SR750.ShamrockCIF.get_number_pixels">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_number_pixels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">device</span><span class="p">):</span>
+        <span class="n">c_device</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">c_number_pixels</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">()</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">ShamrockGetNumberPixels</span><span class="p">(</span><span class="n">c_device</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">c_number_pixels</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_check</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="s1">&#39;ShamrockGetNumberPixels&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">c_number_pixels</span><span class="o">.</span><span class="n">value</span></div>
+
+
+<div class="viewcode-block" id="ShamrockCIF.get_pixel_width">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Shamrock.html#qcodes_contrib_drivers.drivers.Shamrock.SR750.ShamrockCIF.get_pixel_width">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_pixel_width</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">device</span><span class="p">):</span>
+        <span class="n">c_device</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">c_width</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_float</span><span class="p">()</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">ShamrockGetPixelWidth</span><span class="p">(</span><span class="n">c_device</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">c_width</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_check</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="s1">&#39;ShamrockGetPixelWidth&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">c_width</span><span class="o">.</span><span class="n">value</span></div>
+
+
+<div class="viewcode-block" id="ShamrockCIF.get_serial_number">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Shamrock.html#qcodes_contrib_drivers.drivers.Shamrock.SR750.ShamrockCIF.get_serial_number">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_serial_number</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">device</span><span class="p">):</span>
+        <span class="n">c_device</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">c_serial</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">create_string_buffer</span><span class="p">(</span><span class="mi">128</span><span class="p">)</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">ShamrockGetSerialNumber</span><span class="p">(</span><span class="n">c_device</span><span class="p">,</span> <span class="n">c_serial</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_check</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="s1">&#39;ShamrockGetSerialNumber&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">c_serial</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;ascii&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ShamrockCIF.get_slit">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Shamrock.html#qcodes_contrib_drivers.drivers.Shamrock.SR750.ShamrockCIF.get_slit">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_slit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">device</span><span class="p">):</span>
+        <span class="n">c_device</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">c_width</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_float</span><span class="p">()</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">ShamrockGetSlit</span><span class="p">(</span><span class="n">c_device</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">c_width</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_check</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="s1">&#39;ShamrockGetSlit&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">c_width</span><span class="o">.</span><span class="n">value</span></div>
+
+
+<div class="viewcode-block" id="ShamrockCIF.get_wavelength">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Shamrock.html#qcodes_contrib_drivers.drivers.Shamrock.SR750.ShamrockCIF.get_wavelength">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_wavelength</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">device</span><span class="p">):</span>
+        <span class="n">c_device</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">c_wavelength</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_float</span><span class="p">()</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">ShamrockGetWavelength</span><span class="p">(</span><span class="n">c_device</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">c_wavelength</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_check</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="s1">&#39;ShamrockGetWavelength&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">c_wavelength</span><span class="o">.</span><span class="n">value</span></div>
+
+
+<div class="viewcode-block" id="ShamrockCIF.get_wavelength_limits">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Shamrock.html#qcodes_contrib_drivers.drivers.Shamrock.SR750.ShamrockCIF.get_wavelength_limits">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_wavelength_limits</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">device</span><span class="p">,</span> <span class="n">grating</span><span class="p">):</span>
+        <span class="n">c_device</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">c_grating</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">(</span><span class="n">grating</span><span class="p">)</span>
+        <span class="n">c_min</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_float</span><span class="p">()</span>
+        <span class="n">c_max</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_float</span><span class="p">()</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">ShamrockGetWavelengthLimits</span><span class="p">(</span><span class="n">c_device</span><span class="p">,</span> <span class="n">c_grating</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">c_min</span><span class="p">),</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">c_max</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_check</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="s1">&#39;ShamrockGetWavelengthLimits&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">c_min</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">c_max</span><span class="o">.</span><span class="n">value</span></div>
+
+
+<div class="viewcode-block" id="ShamrockCIF.initialize">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Shamrock.html#qcodes_contrib_drivers.drivers.Shamrock.SR750.ShamrockCIF.initialize">[docs]</a>
+    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">ShamrockInitialize</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_check</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="s1">&#39;ShamrockInitialize&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ShamrockCIF.set_grating">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Shamrock.html#qcodes_contrib_drivers.drivers.Shamrock.SR750.ShamrockCIF.set_grating">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_grating</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">device</span><span class="p">,</span> <span class="n">grating</span><span class="p">):</span>
+        <span class="n">c_device</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">c_grating</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">(</span><span class="n">grating</span><span class="p">)</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">ShamrockSetGrating</span><span class="p">(</span><span class="n">c_device</span><span class="p">,</span> <span class="n">c_grating</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_check</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="s1">&#39;ShamrockSetGrating&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ShamrockCIF.set_number_pixels">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Shamrock.html#qcodes_contrib_drivers.drivers.Shamrock.SR750.ShamrockCIF.set_number_pixels">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_number_pixels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">device</span><span class="p">,</span> <span class="n">number_pixels</span><span class="p">):</span>
+        <span class="n">c_device</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">c_number_pixels</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">(</span><span class="n">number_pixels</span><span class="p">)</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">ShamrockSetNumberPixels</span><span class="p">(</span><span class="n">c_device</span><span class="p">,</span> <span class="n">c_number_pixels</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_check</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="s1">&#39;ShamrockSetNumberPixels&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ShamrockCIF.set_pixel_width">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Shamrock.html#qcodes_contrib_drivers.drivers.Shamrock.SR750.ShamrockCIF.set_pixel_width">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_pixel_width</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">device</span><span class="p">,</span> <span class="n">width</span><span class="p">):</span>
+        <span class="n">c_device</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">c_width</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_float</span><span class="p">(</span><span class="n">width</span><span class="p">)</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">ShamrockSetPixelWidth</span><span class="p">(</span><span class="n">c_device</span><span class="p">,</span> <span class="n">c_width</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_check</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="s1">&#39;ShamrockSetPixelWidth&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ShamrockCIF.set_slit">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Shamrock.html#qcodes_contrib_drivers.drivers.Shamrock.SR750.ShamrockCIF.set_slit">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_slit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">device</span><span class="p">,</span> <span class="n">width</span><span class="p">):</span>
+        <span class="n">c_device</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">c_width</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_float</span><span class="p">(</span><span class="n">width</span><span class="p">)</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">ShamrockSetSlit</span><span class="p">(</span><span class="n">c_device</span><span class="p">,</span> <span class="n">c_width</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_check</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="s1">&#39;ShamrockSetSlit&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ShamrockCIF.set_wavelength">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Shamrock.html#qcodes_contrib_drivers.drivers.Shamrock.SR750.ShamrockCIF.set_wavelength">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_wavelength</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">device</span><span class="p">,</span> <span class="n">wavelength</span><span class="p">):</span>
+        <span class="n">c_device</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">c_wavelength</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_float</span><span class="p">(</span><span class="n">wavelength</span><span class="p">)</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">ShamrockSetWavelength</span><span class="p">(</span><span class="n">c_device</span><span class="p">,</span> <span class="n">c_wavelength</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_check</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="s1">&#39;ShamrockSetWavelength&#39;</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="Shamrock_SR750">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Shamrock.html#qcodes_contrib_drivers.drivers.Shamrock.SR750.Shamrock_SR750">[docs]</a>
+<span class="k">class</span> <span class="nc">Shamrock_SR750</span><span class="p">(</span><span class="n">Instrument</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Instrument driver for the Shamrock SR750 spectrometer.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        name: Instrument name.</span>
+<span class="sd">        dll_path: Path to the ShamrockCIF.dll file. If not set, a default path is used.</span>
+<span class="sd">        device_id: ID for the desired spectrometer.</span>
+<span class="sd">        ccd_number_pixels: Number of pixels on the connected CCD.</span>
+<span class="sd">        ccd_pixel_width: Pixel width on the connected CCD.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        ShamrockCIF: DLL wrapper for ShamrockCIF.dll</span>
+<span class="sd">        device_id: Spectrometer device ID.</span>
+<span class="sd">        serial_number: Serial number of the spectrometer.</span>
+<span class="sd">        number_gratings: Number of gratings on the spectrometer.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                 <span class="n">dll_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">device_id</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+                 <span class="n">ccd_number_pixels</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1024</span><span class="p">,</span> <span class="n">ccd_pixel_width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">26</span><span class="p">,</span>
+                 <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="c1"># link to dll</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ShamrockCIF</span><span class="p">:</span> <span class="n">ShamrockCIF</span> <span class="o">=</span> <span class="n">ShamrockCIF</span><span class="p">(</span><span class="n">dll_path</span><span class="o">=</span><span class="n">dll_path</span><span class="p">)</span>
+
+        <span class="c1"># store device number</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">device_id</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">device_id</span>
+
+        <span class="c1"># initialize Shamrock</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ShamrockCIF</span><span class="o">.</span><span class="n">initialize</span><span class="p">()</span>
+
+        <span class="c1"># read info from Shamrock</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">serial_number</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ShamrockCIF</span><span class="o">.</span><span class="n">get_serial_number</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device_id</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">number_gratings</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ShamrockCIF</span><span class="o">.</span><span class="n">get_number_gratings</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device_id</span><span class="p">)</span>
+
+        <span class="c1"># send CCD info to Shamrock</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ShamrockCIF</span><span class="o">.</span><span class="n">set_number_pixels</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device_id</span><span class="p">,</span> <span class="n">ccd_number_pixels</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ShamrockCIF</span><span class="o">.</span><span class="n">set_pixel_width</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device_id</span><span class="p">,</span> <span class="n">ccd_pixel_width</span><span class="p">)</span>
+
+        <span class="c1"># add the instrument parameters</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;blaze&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_blaze</span><span class="p">,</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Blaze&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;calibration&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_calibration</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;nm&#39;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Calibration&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;grating&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_grating</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_grating</span><span class="p">,</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">Ints</span><span class="p">(</span><span class="n">min_value</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                                     <span class="n">max_value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">number_gratings</span><span class="p">),</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Grating&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;groove_density&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_groove_density</span><span class="p">,</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;l/mm&#39;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Groove density&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;slit&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_slit</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_slit</span><span class="p">,</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">Ints</span><span class="p">(</span><span class="n">min_value</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+                                     <span class="n">max_value</span><span class="o">=</span><span class="mi">2500</span><span class="p">),</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="sa">u</span><span class="s2">&quot;</span><span class="se">\u03BC</span><span class="s2">&quot;</span><span class="o">+</span><span class="s1">&#39;m&#39;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Slit&#39;</span><span class="p">)</span>
+
+        <span class="n">min_wavelength</span><span class="p">,</span> <span class="n">max_wavelength</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ShamrockCIF</span><span class="o">.</span><span class="n">get_wavelength_limits</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_grating</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;wavelength&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_wavelength</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_wavelength</span><span class="p">,</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">Numbers</span><span class="p">(</span><span class="n">min_value</span><span class="o">=</span><span class="n">min_wavelength</span><span class="p">,</span>
+                                        <span class="n">max_value</span><span class="o">=</span><span class="n">max_wavelength</span><span class="p">),</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;nm&#39;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Wavelength&#39;</span><span class="p">)</span>
+
+        <span class="c1"># print connect message</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect_message</span><span class="p">()</span>
+
+    <span class="c1"># get methods</span>
+
+    <span class="k">def</span> <span class="nf">_get_blaze</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">grating</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ShamrockCIF</span><span class="o">.</span><span class="n">get_grating</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device_id</span><span class="p">)</span>
+        <span class="n">grating_info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ShamrockCIF</span><span class="o">.</span><span class="n">get_grating_info</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device_id</span><span class="p">,</span> <span class="n">grating</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">grating_info</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">_get_calibration</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ShamrockCIF</span><span class="o">.</span><span class="n">get_calibration</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device_id</span><span class="p">,</span> <span class="mi">1024</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_grating</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ShamrockCIF</span><span class="o">.</span><span class="n">get_grating</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device_id</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_groove_density</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">grating</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ShamrockCIF</span><span class="o">.</span><span class="n">get_grating</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device_id</span><span class="p">)</span>
+        <span class="n">grating_info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ShamrockCIF</span><span class="o">.</span><span class="n">get_grating_info</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device_id</span><span class="p">,</span> <span class="n">grating</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">grating_info</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+<div class="viewcode-block" id="Shamrock_SR750.get_idn">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Shamrock.html#qcodes_contrib_drivers.drivers.Shamrock.SR750.Shamrock_SR750.get_idn">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_idn</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;vendor&#39;</span><span class="p">:</span> <span class="s1">&#39;Shamrock&#39;</span><span class="p">,</span> <span class="s1">&#39;serial&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">serial_number</span><span class="p">}</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_get_slit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ShamrockCIF</span><span class="o">.</span><span class="n">get_slit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device_id</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_wavelength</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ShamrockCIF</span><span class="o">.</span><span class="n">get_wavelength</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device_id</span><span class="p">)</span>
+
+    <span class="c1"># set methods</span>
+
+    <span class="k">def</span> <span class="nf">_set_grating</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">grating</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ShamrockCIF</span><span class="o">.</span><span class="n">set_grating</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device_id</span><span class="p">,</span> <span class="n">grating</span><span class="p">)</span>
+        <span class="n">min_wavelength</span><span class="p">,</span> <span class="n">max_wavelength</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ShamrockCIF</span><span class="o">.</span><span class="n">get_wavelength_limits</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device_id</span><span class="p">,</span> <span class="n">grating</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wavelength</span><span class="o">.</span><span class="n">vals</span> <span class="o">=</span> <span class="n">Numbers</span><span class="p">(</span><span class="n">min_value</span><span class="o">=</span><span class="n">min_wavelength</span><span class="p">,</span> <span class="n">max_value</span><span class="o">=</span><span class="n">max_wavelength</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_set_slit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ShamrockCIF</span><span class="o">.</span><span class="n">set_slit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device_id</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_set_wavelength</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wavelength</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ShamrockCIF</span><span class="o">.</span><span class="n">set_wavelength</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device_id</span><span class="p">,</span> <span class="n">wavelength</span><span class="p">)</span>
+
+    <span class="c1"># further methods</span>
+
+<div class="viewcode-block" id="Shamrock_SR750.close">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Shamrock.html#qcodes_contrib_drivers.drivers.Shamrock.SR750.Shamrock_SR750.close">[docs]</a>
+    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ShamrockCIF</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, QCoDeS Users.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

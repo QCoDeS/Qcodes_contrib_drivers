@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>qcodes_contrib_drivers.drivers.Spectrum package &mdash; qcodes_contrib_drivers 0.23.0.dev14+main.g6d96817 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/documentation_options.js?v=7415f6af"></script>
+        <script src="../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="qcodes_contrib_drivers.drivers.Spectrum.py_header package" href="qcodes_contrib_drivers.drivers.Spectrum.py_header.html" />
+    <link rel="prev" title="qcodes_contrib_drivers.drivers.SingleQuantum package" href="qcodes_contrib_drivers.drivers.SingleQuantum.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            qcodes_contrib_drivers
+          </a>
+              <div class="version">
+                0.23.0.dev14+main.g6d96817
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../examples/index.html">Examples of how to use drivers</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="qcodes_contrib_drivers.drivers.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Advantech.html">qcodes_contrib_drivers.drivers.Advantech package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Agilent.html">qcodes_contrib_drivers.drivers.Agilent package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.AimTTi.html">qcodes_contrib_drivers.drivers.AimTTi package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Ametek.html">qcodes_contrib_drivers.drivers.Ametek package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Andor.html">qcodes_contrib_drivers.drivers.Andor package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Attocube.html">qcodes_contrib_drivers.drivers.Attocube package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Aviosys.html">qcodes_contrib_drivers.drivers.Aviosys package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Bilt.html">qcodes_contrib_drivers.drivers.Bilt package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.BlueFors.html">qcodes_contrib_drivers.drivers.BlueFors package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.CopperMountain.html">qcodes_contrib_drivers.drivers.CopperMountain package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Cryocon.html">qcodes_contrib_drivers.drivers.Cryocon package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Cryogenic.html">qcodes_contrib_drivers.drivers.Cryogenic package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.DaylightSolutions.html">qcodes_contrib_drivers.drivers.DaylightSolutions package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.ERAInstruments.html">qcodes_contrib_drivers.drivers.ERAInstruments package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.GeneralMicrowave.html">qcodes_contrib_drivers.drivers.GeneralMicrowave package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Gentec.html">qcodes_contrib_drivers.drivers.Gentec package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Holzworth.html">qcodes_contrib_drivers.drivers.Holzworth package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Horiba.html">qcodes_contrib_drivers.drivers.Horiba package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.html">qcodes_contrib_drivers.drivers.Keysight package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Lakeshore.html">qcodes_contrib_drivers.drivers.Lakeshore package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.LighthousePhotonics.html">qcodes_contrib_drivers.drivers.LighthousePhotonics package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.M2.html">qcodes_contrib_drivers.drivers.M2 package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Minicircuits.html">qcodes_contrib_drivers.drivers.Minicircuits package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.MontanaInstruments.html">qcodes_contrib_drivers.drivers.MontanaInstruments package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.NationalInstruments.html">qcodes_contrib_drivers.drivers.NationalInstruments package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Newport.html">qcodes_contrib_drivers.drivers.Newport package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Oxford.html">qcodes_contrib_drivers.drivers.Oxford package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.QDevil.html">qcodes_contrib_drivers.drivers.QDevil package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.QuTech.html">qcodes_contrib_drivers.drivers.QuTech package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.RohdeSchwarz.html">qcodes_contrib_drivers.drivers.RohdeSchwarz package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Shamrock.html">qcodes_contrib_drivers.drivers.Shamrock package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Siglent.html">qcodes_contrib_drivers.drivers.Siglent package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.SignalCore.html">qcodes_contrib_drivers.drivers.SignalCore package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.SingleQuantum.html">qcodes_contrib_drivers.drivers.SingleQuantum package</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">qcodes_contrib_drivers.drivers.Spectrum package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-qcodes_contrib_drivers.drivers.Spectrum.M4i">qcodes_contrib_drivers.drivers.Spectrum.M4i module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-qcodes_contrib_drivers.drivers.Spectrum">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Standa.html">qcodes_contrib_drivers.drivers.Standa package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.StanfordResearchSystems.html">qcodes_contrib_drivers.drivers.StanfordResearchSystems package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Tektronix.html">qcodes_contrib_drivers.drivers.Tektronix package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Thermotek.html">qcodes_contrib_drivers.drivers.Thermotek package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Thorlabs.html">qcodes_contrib_drivers.drivers.Thorlabs package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Valon.html">qcodes_contrib_drivers.drivers.Valon package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Vaunix.html">qcodes_contrib_drivers.drivers.Vaunix package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.ZurichInstruments.html">qcodes_contrib_drivers.drivers.ZurichInstruments package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.html#module-qcodes_contrib_drivers.drivers.CMTS5048">qcodes_contrib_drivers.drivers.CMTS5048 module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.html#module-qcodes_contrib_drivers.drivers">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">qcodes_contrib_drivers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a></li>
+      <li class="breadcrumb-item active">qcodes_contrib_drivers.drivers.Spectrum package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/api/generated/qcodes_contrib_drivers.drivers.Spectrum.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="qcodes-contrib-drivers-drivers-spectrum-package">
+<h1>qcodes_contrib_drivers.drivers.Spectrum package<a class="headerlink" href="#qcodes-contrib-drivers-drivers-spectrum-package" title="Link to this heading">¶</a></h1>
+<section id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Link to this heading">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Spectrum.py_header.html">qcodes_contrib_drivers.drivers.Spectrum.py_header package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Spectrum.py_header.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Spectrum.py_header.html#module-qcodes_contrib_drivers.drivers.Spectrum.py_header.h2py">qcodes_contrib_drivers.drivers.Spectrum.py_header.h2py module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Spectrum.py_header.html#qcodes_contrib_drivers.drivers.Spectrum.py_header.h2py.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Spectrum.py_header.html#qcodes_contrib_drivers.drivers.Spectrum.py_header.h2py.process"><code class="docutils literal notranslate"><span class="pre">process()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Spectrum.py_header.html#qcodes_contrib_drivers.drivers.Spectrum.py_header.h2py.pytify"><code class="docutils literal notranslate"><span class="pre">pytify()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Spectrum.py_header.html#module-qcodes_contrib_drivers.drivers.Spectrum.py_header.regs">qcodes_contrib_drivers.drivers.Spectrum.py_header.regs module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Spectrum.py_header.html#qcodes_contrib_drivers.drivers.Spectrum.py_header.regs.GIGA"><code class="docutils literal notranslate"><span class="pre">GIGA()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Spectrum.py_header.html#qcodes_contrib_drivers.drivers.Spectrum.py_header.regs.GIGA_B"><code class="docutils literal notranslate"><span class="pre">GIGA_B()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Spectrum.py_header.html#qcodes_contrib_drivers.drivers.Spectrum.py_header.regs.KILO"><code class="docutils literal notranslate"><span class="pre">KILO()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Spectrum.py_header.html#qcodes_contrib_drivers.drivers.Spectrum.py_header.regs.KILO_B"><code class="docutils literal notranslate"><span class="pre">KILO_B()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Spectrum.py_header.html#qcodes_contrib_drivers.drivers.Spectrum.py_header.regs.MEGA"><code class="docutils literal notranslate"><span class="pre">MEGA()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Spectrum.py_header.html#qcodes_contrib_drivers.drivers.Spectrum.py_header.regs.MEGA_B"><code class="docutils literal notranslate"><span class="pre">MEGA_B()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Spectrum.py_header.html#module-qcodes_contrib_drivers.drivers.Spectrum.py_header.spcerr">qcodes_contrib_drivers.drivers.Spectrum.py_header.spcerr module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Spectrum.py_header.html#module-qcodes_contrib_drivers.drivers.Spectrum.py_header">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">¶</a></h2>
+</section>
+<section id="module-qcodes_contrib_drivers.drivers.Spectrum.M4i">
+<span id="qcodes-contrib-drivers-drivers-spectrum-m4i-module"></span><h2>qcodes_contrib_drivers.drivers.Spectrum.M4i module<a class="headerlink" href="#module-qcodes_contrib_drivers.drivers.Spectrum.M4i" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Spectrum.M4i.M4i">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.Spectrum.M4i.</span></span><span class="sig-name descname"><span class="pre">M4i</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Spectrum/M4i.html#M4i"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Spectrum.M4i.M4i" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://microsoft.github.io/Qcodes/api/instrument/index.html#qcodes.instrument.Instrument" title="(in QCoDeS v0.46.0.dev534+main.g6b2e56f83)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Instrument</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Spectrum.M4i.M4i.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cardid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'spcm0'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Spectrum/M4i.html#M4i.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Spectrum.M4i.M4i.__init__" title="Link to this definition">¶</a></dt>
+<dd><p>Driver for the Spectrum M4i.44xx-x8 cards.</p>
+<p>For more information see: <a class="reference external" href="http://spectrum-instrumentation.com/en/m4i-platform-overview">http://spectrum-instrumentation.com/en/m4i-platform-overview</a></p>
+<p class="rubric">Example</p>
+<p>Example usage for acquisition with channel 2 using an external trigger
+that triggers multiple times with trigger mode HIGH:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">m4</span> <span class="o">=</span> <span class="n">M4i</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;M4i&#39;</span><span class="p">,</span> <span class="n">server_name</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<span class="n">m4</span><span class="o">.</span><span class="n">enable_channels</span><span class="p">(</span><span class="n">pyspcm</span><span class="o">.</span><span class="n">CHANNEL2</span><span class="p">)</span>
+<span class="n">m4</span><span class="o">.</span><span class="n">set_channel_settings</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="n">mV_range</span><span class="p">,</span> <span class="n">input_path</span><span class="p">,</span> <span class="n">termination</span><span class="p">,</span> <span class="n">coupling</span><span class="p">,</span> <span class="n">compensation</span><span class="p">)</span>
+<span class="n">m4</span><span class="o">.</span><span class="n">set_ext0_OR_trigger_settings</span><span class="p">(</span><span class="n">pyspcm</span><span class="o">.</span><span class="n">SPC_TM_HIGH</span><span class="p">,</span><span class="n">termination</span><span class="p">,</span><span class="n">coupling</span><span class="p">,</span><span class="n">level0</span><span class="p">)</span>
+<span class="n">calc</span> <span class="o">=</span> <span class="n">m4</span><span class="o">.</span><span class="n">multiple_trigger_acquisition</span><span class="p">(</span><span class="n">mV_range</span><span class="p">,</span><span class="n">memsize</span><span class="p">,</span><span class="n">seg_size</span><span class="p">,</span><span class="n">posttrigger_size</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Error generated by the card can be retrieved with the method <a class="reference internal" href="#qcodes_contrib_drivers.drivers.Spectrum.M4i.M4i.get_error_info32bit" title="qcodes_contrib_drivers.drivers.Spectrum.M4i.M4i.get_error_info32bit"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_error_info32bit()</span></code></a>. The card can be
+reset with <a class="reference internal" href="#qcodes_contrib_drivers.drivers.Spectrum.M4i.M4i.reset" title="qcodes_contrib_drivers.drivers.Spectrum.M4i.M4i.reset"><code class="xref py py-func docutils literal notranslate"><span class="pre">reset()</span></code></a>.
+Sometimes when an error occurs (including validation errors) the python console needs to be restarted</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Spectrum.M4i.M4i.active_channels">
+<span class="sig-name descname"><span class="pre">active_channels</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Spectrum/M4i.html#M4i.active_channels"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Spectrum.M4i.M4i.active_channels" title="Link to this definition">¶</a></dt>
+<dd><p>Return a list with the indices of the active channels</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Spectrum.M4i.M4i.blockavg_hardware_trigger_acquisition">
+<span class="sig-name descname"><span class="pre">blockavg_hardware_trigger_acquisition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mV_range</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nr_averages</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">post_trigger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Spectrum/M4i.html#M4i.blockavg_hardware_trigger_acquisition"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Spectrum.M4i.M4i.blockavg_hardware_trigger_acquisition" title="Link to this definition">¶</a></dt>
+<dd><p>Acquire data using block averaging and hardware triggering</p>
+<p>To read out multiple channels, use <cite>initialize_channels</cite>. This methods updates
+the external_trigger_mode and trigger_or_mask parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mV_range</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a>)</p></li>
+<li><p><strong>nr_averages</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – number of averages to take</p></li>
+<li><p><strong>verbose</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – output level</p></li>
+<li><p><strong>post_trigger</strong> (<em>None</em><em> or </em><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – optional size of post_trigger buffer</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>An array of voltages. If multiple channels are read,
+then the data is interleaved</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Spectrum.M4i.M4i.close">
+<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Spectrum/M4i.html#M4i.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Spectrum.M4i.M4i.close" title="Link to this definition">¶</a></dt>
+<dd><p>Close handle to the card.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Spectrum.M4i.M4i.convert_to_voltage">
+<span class="sig-name descname"><span class="pre">convert_to_voltage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_range</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Spectrum/M4i.html#M4i.convert_to_voltage"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Spectrum.M4i.M4i.convert_to_voltage" title="Link to this definition">¶</a></dt>
+<dd><p>convert an array of numbers to an array of voltages.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Spectrum.M4i.M4i.gated_trigger_acquisition">
+<span class="sig-name descname"><span class="pre">gated_trigger_acquisition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mV_range</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memsize</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pretrigger_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">posttrigger_size</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Spectrum/M4i.html#M4i.gated_trigger_acquisition"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Spectrum.M4i.M4i.gated_trigger_acquisition" title="Link to this definition">¶</a></dt>
+<dd><p>doesn’t work completely as expected, it triggers even when the
+trigger level is set outside of the signal range it also seems to
+additionally acquire some wrong parts of the wave, but this also exists
+in SBench6, so it is not a problem caused by this code.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Spectrum.M4i.M4i.get_card_memory">
+<span class="sig-name descname"><span class="pre">get_card_memory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Spectrum/M4i.html#M4i.get_card_memory"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Spectrum.M4i.M4i.get_card_memory" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Spectrum.M4i.M4i.get_card_type">
+<span class="sig-name descname"><span class="pre">get_card_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Spectrum/M4i.html#M4i.get_card_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Spectrum.M4i.M4i.get_card_type" title="Link to this definition">¶</a></dt>
+<dd><p>Read card type.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Spectrum.M4i.M4i.get_data">
+<span class="sig-name descname"><span class="pre">get_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Spectrum/M4i.html#M4i.get_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Spectrum.M4i.M4i.get_data" title="Link to this definition">¶</a></dt>
+<dd><p>Reads measurement data from the digitizer.</p>
+<p>The data acquisition must have been started by start_acquisition() or
+start_triggered().</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>2D array with voltages per channel in V.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Spectrum.M4i.M4i.get_error_info32bit">
+<span class="sig-name descname"><span class="pre">get_error_info32bit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Spectrum/M4i.html#M4i.get_error_info32bit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Spectrum.M4i.M4i.get_error_info32bit" title="Link to this definition">¶</a></dt>
+<dd><p>Read an error from the error register.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>verbose</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a>) – If True then print the error message to stdout</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>errorreg (int)
+errorvalue (int)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Spectrum.M4i.M4i.get_firmware_version">
+<span class="sig-name descname"><span class="pre">get_firmware_version</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Spectrum/M4i.html#M4i.get_firmware_version"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Spectrum.M4i.M4i.get_firmware_version" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Spectrum.M4i.M4i.get_hardware_version">
+<span class="sig-name descname"><span class="pre">get_hardware_version</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Spectrum/M4i.html#M4i.get_hardware_version"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Spectrum.M4i.M4i.get_hardware_version" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Spectrum.M4i.M4i.get_idn">
+<span class="sig-name descname"><span class="pre">get_idn</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Spectrum/M4i.html#M4i.get_idn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Spectrum.M4i.M4i.get_idn" title="Link to this definition">¶</a></dt>
+<dd><p>Parse a standard VISA <code class="docutils literal notranslate"><span class="pre">*IDN?</span></code> response into an ID dict.</p>
+<p>Even though this is the VISA standard, it applies to various other
+types as well, such as IPInstruments, so it is included here in the
+Instrument base class.</p>
+<p>Override this if your instrument does not support <code class="docutils literal notranslate"><span class="pre">*IDN?</span></code> or
+returns a nonstandard IDN string. This string is supposed to be a
+comma-separated list of vendor, model, serial, and firmware, but
+semicolon and colon are also common separators so we accept them here
+as well.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A dict containing vendor, model, serial, and firmware.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Spectrum.M4i.M4i.get_max_sample_rate">
+<span class="sig-name descname"><span class="pre">get_max_sample_rate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Spectrum/M4i.html#M4i.get_max_sample_rate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Spectrum.M4i.M4i.get_max_sample_rate" title="Link to this definition">¶</a></dt>
+<dd><p>Return max sample rate.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Spectrum.M4i.M4i.initialize_channels">
+<span class="sig-name descname"><span class="pre">initialize_channels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mV_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">termination</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coupling</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compensation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4096</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pretrigger_memsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lp_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Spectrum/M4i.html#M4i.initialize_channels"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Spectrum.M4i.M4i.initialize_channels" title="Link to this definition">¶</a></dt>
+<dd><p>Setup channels of the digitizer for simple readout using Parameters</p>
+<p>The channels can be read out using the Parameters <cite>channel_0</cite>,
+<cite>channel_1</cite>, …</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>channels</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#list" title="(in Python v3.10)"><em>list</em></a>) – list of channels to setup. mV_range, input_path,
+termination, coupling, compensation. Passed to the
+set_channel_settings function</p></li>
+<li><p><strong>memsize</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – memory size to use for simple channel readout</p></li>
+<li><p><strong>pretrigger_memsize</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – Pretrigger memory size to use.
+The default value used is 16, which is the smallest value
+possible.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Spectrum.M4i.M4i.multiple_trigger_acquisition">
+<span class="sig-name descname"><span class="pre">multiple_trigger_acquisition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mV_range</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memsize</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seg_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">posttrigger_size</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Spectrum/M4i.html#M4i.multiple_trigger_acquisition"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Spectrum.M4i.M4i.multiple_trigger_acquisition" title="Link to this definition">¶</a></dt>
+<dd><p>Acquire traces with the SPC_REC_STD_MULTI mode</p>
+<p>This method does not update the triggering properties.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mV_range</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a>) – Input range used for coversion to voltage</p></li>
+<li><p><strong>memsize</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – Size of total buffer to acquire</p></li>
+<li><p><strong>seg_size</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – Size of segments to record</p></li>
+<li><p><strong>posttrigger_size</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – Size of the if post trigger buffer</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Array with measured voltages</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Spectrum.M4i.M4i.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Spectrum/M4i.html#M4i.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Spectrum.M4i.M4i.reset" title="Link to this definition">¶</a></dt>
+<dd><p>Reset the card</p>
+<p>The pyspcm.M2CMD_CARD_RESET command is executed.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Spectrum.M4i.M4i.retrieve_data">
+<span class="sig-name descname"><span class="pre">retrieve_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Spectrum/M4i.html#M4i.retrieve_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Spectrum.M4i.M4i.retrieve_data" title="Link to this definition">¶</a></dt>
+<dd><p>Retrieve data from the digitizer</p>
+<p>The data acquisition must have been started by start_acquisition.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>trace</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#dict" title="(in Python v3.10)"><em>dict</em></a>) – dictionary with acquisition settings.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>voltages (array)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Spectrum.M4i.M4i.set_channel_OR_trigger_settings">
+<span class="sig-name descname"><span class="pre">set_channel_OR_trigger_settings</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trig_mode</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bitlevel0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bitlevel1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Spectrum/M4i.html#M4i.set_channel_OR_trigger_settings"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Spectrum.M4i.M4i.set_channel_OR_trigger_settings" title="Link to this definition">¶</a></dt>
+<dd><p>When a channel is used for triggering it must be enabled during the
+acquisition.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Spectrum.M4i.M4i.set_channel_settings">
+<span class="sig-name descname"><span class="pre">set_channel_settings</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel_index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mV_range</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">termination</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coupling</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compensation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lp_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Spectrum/M4i.html#M4i.set_channel_settings"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Spectrum.M4i.M4i.set_channel_settings" title="Link to this definition">¶</a></dt>
+<dd><p>Update settings of the specified channel</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>channel_index</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – channel to update</p></li>
+<li><p><strong>mV_range</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a>) – measurement range for the channel
+(buffered path: 200, 500, 1000, 2000, 5000, or 10000)
+(HF path: 500, 1000, 2500, or 5000)</p></li>
+<li><p><strong>input_path</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – input path (0: default/buffered; 1: HF/50 Ohm)</p></li>
+<li><p><strong>termination</strong> (<em>None</em><em> or </em><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – If None, then do not update the
+termination (0: 1 MOhm; 1: 50 Ohm)</p></li>
+<li><p><strong>coupling</strong> (<em>None</em><em> or </em><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – Set the ACDC_coupling.If None, then do not
+update the coupling (0: DC; 1 AC)</p></li>
+<li><p><strong>compensation</strong> (<em>None</em><em> or </em><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – If None, then do not update the
+compensation (0: off, 1: off)</p></li>
+<li><p><strong>lp_filter</strong> (<em>Optional</em><em>[</em><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a><em>]</em>) – enable (1) or disable (0) the 20 MHz low pass filter</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Spectrum.M4i.M4i.set_ext0_OR_trigger_settings">
+<span class="sig-name descname"><span class="pre">set_ext0_OR_trigger_settings</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trig_mode</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">termination</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coupling</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Spectrum/M4i.html#M4i.set_ext0_OR_trigger_settings"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Spectrum.M4i.M4i.set_ext0_OR_trigger_settings" title="Link to this definition">¶</a></dt>
+<dd><p>Configures ext0 trigger</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>trig_mode</strong> – 0: None, 1: Positive edge, 2: Negative edge, 4: Both, 8: High, 16: Low,
+32: Enter window, 64: Leave window, 128: Inside window, 256: Outside window,
+0x01000001: Positive + re-arm, 0x01000002: Negative + re-arm</p></li>
+<li><p><strong>termination</strong> – input termination 0: 1 MOhm, 1: 50 Ohm</p></li>
+<li><p><strong>coupling</strong> – DC/AC input coupling (0: DC, 1: AC)</p></li>
+<li><p><strong>level0</strong> – trigger level [mV]</p></li>
+<li><p><strong>level1</strong> – 2nd level for re-arm and windowed modes. [mV]</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Spectrum.M4i.M4i.setup_multi_recording">
+<span class="sig-name descname"><span class="pre">setup_multi_recording</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">posttrigger_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_triggers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pretrigger_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boxcar_average</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Spectrum/M4i.html#M4i.setup_multi_recording"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Spectrum.M4i.M4i.setup_multi_recording" title="Link to this definition">¶</a></dt>
+<dd><p>Setup multi recording.</p>
+<p>Triggering must have been configured separately.
+Data acquisition must started with start_triggered().
+The collected data can be acquired with the function get_data().</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>posttrigger_size</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – size of data trace after triggering</p></li>
+<li><p><strong>n_triggers</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – total number of triggers</p></li>
+<li><p><strong>pretrigger_size</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – size of data trace before triggering</p></li>
+<li><p><strong>boxcar_average</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a>) – use mode ‘boxcar average’</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<p>digitizer.setup_multi_recording(size, n_triggers)
+digitizer.start_triggered()
+data = digitizer.get_data()
+# do another measurement with same settings
+digitizer.start_triggered()
+data = digitizer.get_data()</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Spectrum.M4i.M4i.single_software_trigger_acquisition">
+<span class="sig-name descname"><span class="pre">single_software_trigger_acquisition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mV_range</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memsize</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">posttrigger_size</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Spectrum/M4i.html#M4i.single_software_trigger_acquisition"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Spectrum.M4i.M4i.single_software_trigger_acquisition" title="Link to this definition">¶</a></dt>
+<dd><p>Acquire a single data trace</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mV_range</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a>) – range in mV</p></li>
+<li><p><strong>memsize</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – size of data trace</p></li>
+<li><p><strong>posttrigger_size</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – size of data trace after triggering</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>voltages (array)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Spectrum.M4i.M4i.single_software_trigger_acquisition_boxcar">
+<span class="sig-name descname"><span class="pre">single_software_trigger_acquisition_boxcar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mV_range</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memsize</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">posttrigger_size</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Spectrum/M4i.html#M4i.single_software_trigger_acquisition_boxcar"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Spectrum.M4i.M4i.single_software_trigger_acquisition_boxcar" title="Link to this definition">¶</a></dt>
+<dd><p>Acquire a single data trace with boxcar averaging</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mV_range</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a>) – range in mV</p></li>
+<li><p><strong>memsize</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – size of data trace</p></li>
+<li><p><strong>posttrigger_size</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – size of data trace after triggering</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>voltages (array)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Spectrum.M4i.M4i.single_trigger_acquisition">
+<span class="sig-name descname"><span class="pre">single_trigger_acquisition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mV_range</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memsize</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">posttrigger_size</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Spectrum/M4i.html#M4i.single_trigger_acquisition"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Spectrum.M4i.M4i.single_trigger_acquisition" title="Link to this definition">¶</a></dt>
+<dd><p>Acquire traces with the SPC_REC_STD_SINGLE mode</p>
+<p>This method does not update the triggering properties.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mV_range</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a>) – Input range used for coversion to voltage</p></li>
+<li><p><strong>memsize</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – Size of total buffer to acquire</p></li>
+<li><p><strong>posttrigger_size</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – Size of the if post trigger buffer</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Array with measured voltages</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Spectrum.M4i.M4i.start_acquisition">
+<span class="sig-name descname"><span class="pre">start_acquisition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mV_range</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memsize</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">posttrigger_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Spectrum/M4i.html#M4i.start_acquisition"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Spectrum.M4i.M4i.start_acquisition" title="Link to this definition">¶</a></dt>
+<dd><p>Start data acquisition of a single data trace</p>
+<p>The resulting data can be acquired with the function retrieve_data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mV_range</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a>) – range in mV</p></li>
+<li><p><strong>memsize</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – size of data trace</p></li>
+<li><p><strong>posttrigger_size</strong> (<a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a><em> or </em><em>None</em>) – size of data trace after triggering</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>trace as a dict. Data concerning the trace</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Spectrum.M4i.M4i.start_triggered">
+<span class="sig-name descname"><span class="pre">start_triggered</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Spectrum/M4i.html#M4i.start_triggered"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Spectrum.M4i.M4i.start_triggered" title="Link to this definition">¶</a></dt>
+<dd><p>Starts triggered acquisition</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Spectrum.M4i.M4i.wait_ready">
+<span class="sig-name descname"><span class="pre">wait_ready</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Spectrum/M4i.html#M4i.wait_ready"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Spectrum.M4i.M4i.wait_ready" title="Link to this definition">¶</a></dt>
+<dd><p>Wait for the M4i card to be ready using M2CMD_CARD_WAITREADY
+:returns: Return code of the M4i general command used to wait for the card to be ready</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Spectrum.M4i.szTypeToName">
+<span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.Spectrum.M4i.</span></span><span class="sig-name descname"><span class="pre">szTypeToName</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lCardType</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Spectrum/M4i.html#szTypeToName"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Spectrum.M4i.szTypeToName" title="Link to this definition">¶</a></dt>
+<dd><p>Convert card type to string</p>
+<p>This function is taken from an example provided by Spectrum GmbH</p>
+</dd></dl>
+
+</section>
+<section id="module-qcodes_contrib_drivers.drivers.Spectrum">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-qcodes_contrib_drivers.drivers.Spectrum" title="Link to this heading">¶</a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="qcodes_contrib_drivers.drivers.SingleQuantum.html" class="btn btn-neutral float-left" title="qcodes_contrib_drivers.drivers.SingleQuantum package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="qcodes_contrib_drivers.drivers.Spectrum.py_header.html" class="btn btn-neutral float-right" title="qcodes_contrib_drivers.drivers.Spectrum.py_header package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, QCoDeS Users.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

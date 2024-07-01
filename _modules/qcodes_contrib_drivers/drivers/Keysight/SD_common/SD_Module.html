@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_Module &mdash; qcodes_contrib_drivers 0.23.0.dev14+main.g6d96817 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../../_static/documentation_options.js?v=7415f6af"></script>
+        <script src="../../../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../../index.html" class="icon icon-home">
+            qcodes_contrib_drivers
+          </a>
+              <div class="version">
+                0.23.0.dev14+main.g6d96817
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../examples/index.html">Examples of how to use drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../../index.html">qcodes_contrib_drivers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_Module</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_Module</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Any</span>
+<span class="kn">from</span> <span class="nn">qcodes.instrument.base</span> <span class="kn">import</span> <span class="n">Instrument</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">keysightSD1</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s1">&#39;to use the Keysight SD drivers install the keysightSD1 module &#39;</span>
+                      <span class="s1">&#39;(http://www.keysight.com/main/software.jspx?ckey=2784055)&#39;</span><span class="p">)</span>
+
+<span class="c1"># check whether SD1 version 2.x or 3.x</span>
+<span class="n">is_sd1_3x</span> <span class="o">=</span> <span class="s1">&#39;SD_SandBoxRegister&#39;</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">keysightSD1</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="result_parser">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_Module.result_parser">[docs]</a>
+<span class="k">def</span> <span class="nf">result_parser</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;result&#39;</span><span class="p">,</span>
+                  <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This method is used for parsing the result in the get-methods.</span>
+<span class="sd">    For values that are non-negative, the value is simply returned.</span>
+<span class="sd">    Negative values indicate an error, so an error is raised</span>
+<span class="sd">    with a reference to the error code.</span>
+
+<span class="sd">    The parser also can print to the result to the shell if verbose is 1.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        value: the value to be parsed</span>
+<span class="sd">        name: name of the value to be parsed</span>
+<span class="sd">        verbose: boolean indicating verbose mode</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        parsed value, which is the same as value if non-negative or not a number</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="n">error_message</span> <span class="o">=</span> <span class="n">keysightSD1</span><span class="o">.</span><span class="n">SD_Error</span><span class="o">.</span><span class="n">getErrorMessage</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="n">call_message</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39; (</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">)&#39;</span> <span class="k">if</span> <span class="n">name</span> <span class="o">!=</span> <span class="s1">&#39;result&#39;</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Error in call to module (</span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s1">): &#39;</span>
+                        <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">error_message</span><span class="si">}{</span><span class="n">call_message</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">: </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">value</span></div>
+
+
+
+<div class="viewcode-block" id="SD_Module">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_Module.SD_Module">[docs]</a>
+<span class="k">class</span> <span class="nc">SD_Module</span><span class="p">(</span><span class="n">Instrument</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This is the general SD_Module driver class that implements shared</span>
+<span class="sd">    parameters and functionality among all PXIe-based digitizer/awg/combo</span>
+<span class="sd">    cards by Keysight.</span>
+
+<span class="sd">    This driver was written to be inherited from by either the SD_AWG,</span>
+<span class="sd">    SD_DIG or SD_Combo class, depending on the functionality of the card.</span>
+
+<span class="sd">    Specifically, this driver was written with the M3201A and M3300A cards in</span>
+<span class="sd">    mind.</span>
+
+<span class="sd">    This driver makes use of the Python library provided by Keysight as part</span>
+<span class="sd">    of the SD1 Software package (v.2.01.00).</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        name: an identifier for this instrument, particularly for</span>
+<span class="sd">            attaching it to a Station.</span>
+<span class="sd">        chassis: identification of the chassis.</span>
+<span class="sd">        slot: slot of the module in the chassis.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">chassis</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">slot</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                 <span class="n">module_class</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">=</span> <span class="n">keysightSD1</span><span class="o">.</span><span class="n">SD_Module</span><span class="p">,</span>
+                 <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="c1"># Create instance of keysight module class</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SD_module</span> <span class="o">=</span> <span class="n">module_class</span><span class="p">()</span>
+
+        <span class="c1"># Open the device, using the specified chassis and slot number</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">module_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SD_module</span><span class="o">.</span><span class="n">getProductNameBySlot</span><span class="p">(</span><span class="n">chassis</span><span class="p">,</span> <span class="n">slot</span><span class="p">)</span>
+        <span class="n">result_parser</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">module_name</span><span class="p">,</span>
+                      <span class="sa">f</span><span class="s1">&#39;getProductNameBySlot(</span><span class="si">{</span><span class="n">chassis</span><span class="si">}</span><span class="s1">, </span><span class="si">{</span><span class="n">slot</span><span class="si">}</span><span class="s1">)&#39;</span><span class="p">)</span>
+
+        <span class="n">result_code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SD_module</span><span class="o">.</span><span class="n">openWithSlot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">module_name</span><span class="p">,</span> <span class="n">chassis</span><span class="p">,</span> <span class="n">slot</span><span class="p">)</span>
+        <span class="n">result_parser</span><span class="p">(</span><span class="n">result_code</span><span class="p">,</span>
+                      <span class="sa">f</span><span class="s1">&#39;openWithSlot(</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">module_name</span><span class="si">}</span><span class="s1">, </span><span class="si">{</span><span class="n">chassis</span><span class="si">}</span><span class="s1">, </span><span class="si">{</span><span class="n">slot</span><span class="si">}</span><span class="s1">)&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;module_count&#39;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;module count&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_module_count</span><span class="p">,</span>
+                           <span class="n">docstring</span><span class="o">=</span><span class="s1">&#39;The number of Keysight modules &#39;</span>
+                                     <span class="s1">&#39;installed in the system&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;product_name&#39;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;product name&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_product_name</span><span class="p">,</span>
+                           <span class="n">docstring</span><span class="o">=</span><span class="s1">&#39;The product name of the device&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;serial_number&#39;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;serial number&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_serial_number</span><span class="p">,</span>
+                           <span class="n">docstring</span><span class="o">=</span><span class="s1">&#39;The serial number of the device&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;chassis_number&#39;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;chassis number&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_chassis</span><span class="p">,</span>
+                           <span class="n">docstring</span><span class="o">=</span><span class="s1">&#39;The chassis number where the device is &#39;</span>
+                                     <span class="s1">&#39;located&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;slot_number&#39;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;slot number&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_slot</span><span class="p">,</span>
+                           <span class="n">docstring</span><span class="o">=</span><span class="s1">&#39;The slot number where the device is &#39;</span>
+                                     <span class="s1">&#39;located&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;status&#39;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;status&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_status</span><span class="p">,</span>
+                           <span class="n">docstring</span><span class="o">=</span><span class="s1">&#39;The status of the device&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;firmware_version&#39;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;firmware version&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_firmware_version</span><span class="p">,</span>
+                           <span class="n">docstring</span><span class="o">=</span><span class="s1">&#39;The firmware version of the device&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;hardware_version&#39;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;hardware version&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_hardware_version</span><span class="p">,</span>
+                           <span class="n">docstring</span><span class="o">=</span><span class="s1">&#39;The hardware version of the device&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;instrument_type&#39;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;type&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_type</span><span class="p">,</span>
+                           <span class="n">docstring</span><span class="o">=</span><span class="s1">&#39;The type of the device&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;open&#39;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;open&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_open</span><span class="p">,</span>
+                           <span class="n">docstring</span><span class="o">=</span><span class="s1">&#39;Indicating if device is open, &#39;</span>
+                                     <span class="s1">&#39;True (open) or False (closed)&#39;</span><span class="p">)</span>
+
+    <span class="c1">#</span>
+    <span class="c1"># Get-commands</span>
+    <span class="c1">#</span>
+
+<div class="viewcode-block" id="SD_Module.get_module_count">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_Module.SD_Module.get_module_count">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_module_count</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the number of SD modules installed in the system&quot;&quot;&quot;</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SD_module</span><span class="o">.</span><span class="n">moduleCount</span><span class="p">()</span>
+        <span class="n">value_name</span> <span class="o">=</span> <span class="s1">&#39;module_count&#39;</span>
+        <span class="k">return</span> <span class="n">result_parser</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">value_name</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SD_Module.get_product_name">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_Module.SD_Module.get_product_name">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_product_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the product name of the device&quot;&quot;&quot;</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SD_module</span><span class="o">.</span><span class="n">getProductName</span><span class="p">()</span>
+        <span class="n">value_name</span> <span class="o">=</span> <span class="s1">&#39;product_name&#39;</span>
+        <span class="k">return</span> <span class="n">result_parser</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">value_name</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SD_Module.get_serial_number">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_Module.SD_Module.get_serial_number">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_serial_number</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the serial number of the device&quot;&quot;&quot;</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SD_module</span><span class="o">.</span><span class="n">getSerialNumber</span><span class="p">()</span>
+        <span class="n">value_name</span> <span class="o">=</span> <span class="s1">&#39;serial_number&#39;</span>
+        <span class="k">return</span> <span class="n">result_parser</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">value_name</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SD_Module.get_chassis">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_Module.SD_Module.get_chassis">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_chassis</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the chassis number where the device is located&quot;&quot;&quot;</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SD_module</span><span class="o">.</span><span class="n">getChassis</span><span class="p">()</span>
+        <span class="n">value_name</span> <span class="o">=</span> <span class="s1">&#39;chassis_number&#39;</span>
+        <span class="k">return</span> <span class="n">result_parser</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">value_name</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SD_Module.get_slot">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_Module.SD_Module.get_slot">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_slot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the slot number where the device is located&quot;&quot;&quot;</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SD_module</span><span class="o">.</span><span class="n">getSlot</span><span class="p">()</span>
+        <span class="n">value_name</span> <span class="o">=</span> <span class="s1">&#39;slot_number&#39;</span>
+        <span class="k">return</span> <span class="n">result_parser</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">value_name</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SD_Module.get_status">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_Module.SD_Module.get_status">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the status of the device&quot;&quot;&quot;</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SD_module</span><span class="o">.</span><span class="n">getStatus</span><span class="p">()</span>
+        <span class="n">value_name</span> <span class="o">=</span> <span class="s1">&#39;status&#39;</span>
+        <span class="k">return</span> <span class="n">result_parser</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">value_name</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SD_Module.get_firmware_version">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_Module.SD_Module.get_firmware_version">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_firmware_version</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the firmware version of the device&quot;&quot;&quot;</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SD_module</span><span class="o">.</span><span class="n">getFirmwareVersion</span><span class="p">()</span>
+        <span class="n">value_name</span> <span class="o">=</span> <span class="s1">&#39;firmware_version&#39;</span>
+        <span class="k">return</span> <span class="n">result_parser</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">value_name</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SD_Module.get_hardware_version">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_Module.SD_Module.get_hardware_version">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_hardware_version</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the hardware version of the device&quot;&quot;&quot;</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SD_module</span><span class="o">.</span><span class="n">getHardwareVersion</span><span class="p">()</span>
+        <span class="n">value_name</span> <span class="o">=</span> <span class="s1">&#39;hardware_version&#39;</span>
+        <span class="k">return</span> <span class="n">result_parser</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">value_name</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SD_Module.get_type">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_Module.SD_Module.get_type">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the type of the device&quot;&quot;&quot;</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SD_module</span><span class="o">.</span><span class="n">getType</span><span class="p">()</span>
+        <span class="n">value_name</span> <span class="o">=</span> <span class="s1">&#39;type&#39;</span>
+        <span class="k">return</span> <span class="n">result_parser</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">value_name</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SD_Module.get_open">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_Module.SD_Module.get_open">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_open</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns whether the device is open (True) or not (False)&quot;&quot;&quot;</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SD_module</span><span class="o">.</span><span class="n">isOpen</span><span class="p">()</span>
+        <span class="n">value_name</span> <span class="o">=</span> <span class="s1">&#39;open&#39;</span>
+        <span class="k">return</span> <span class="n">result_parser</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">value_name</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SD_Module.get_pxi_trigger">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_Module.SD_Module.get_pxi_trigger">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_pxi_trigger</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pxi_trigger</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the digital value of the specified PXI trigger</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            pxi_trigger: PXI trigger number (4000 + Trigger No.)</span>
+<span class="sd">            verbose: boolean indicating verbose mode</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Digital value with negated logic, 0 (ON) or 1 (OFF), or negative</span>
+<span class="sd">                numbers for errors</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SD_module</span><span class="o">.</span><span class="n">PXItriggerRead</span><span class="p">(</span><span class="n">pxi_trigger</span><span class="p">)</span>
+        <span class="n">value_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;pxi_trigger number </span><span class="si">{</span><span class="n">pxi_trigger</span><span class="si">}</span><span class="s1">&#39;</span>
+        <span class="k">return</span> <span class="n">result_parser</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">value_name</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span></div>
+
+
+    <span class="c1">#</span>
+    <span class="c1"># Set-commands</span>
+    <span class="c1">#</span>
+
+<div class="viewcode-block" id="SD_Module.set_pxi_trigger">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_Module.SD_Module.set_pxi_trigger">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_pxi_trigger</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">pxi_trigger</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                        <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets the digital value of the specified PXI trigger</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            pxi_trigger: PXI trigger number (4000 + Trigger No.)</span>
+<span class="sd">            value: Digital value with negated logic, 0 (ON) or 1 (OFF)</span>
+<span class="sd">            verbose: boolean indicating verbose mode</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SD_module</span><span class="o">.</span><span class="n">PXItriggerWrite</span><span class="p">(</span><span class="n">pxi_trigger</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+        <span class="n">value_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;set pxi_trigger </span><span class="si">{</span><span class="n">pxi_trigger</span><span class="si">}</span><span class="s1"> to </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s1">&#39;</span>
+        <span class="n">result_parser</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">value_name</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span></div>
+
+
+    <span class="c1">#</span>
+    <span class="c1"># FPGA related functions</span>
+    <span class="c1">#</span>
+
+<div class="viewcode-block" id="SD_Module.get_fpga_pc_port">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_Module.SD_Module.get_fpga_pc_port">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_fpga_pc_port</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">port</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">data_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">address</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                         <span class="n">address_mode</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">access_mode</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                         <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Reads data at the PCport FPGA Block</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            port: PCport number</span>
+<span class="sd">            data_size: number of 32-bit words to read (maximum is 128 words)</span>
+<span class="sd">            address: address that wil appear at the PCport interface</span>
+<span class="sd">            address_mode: auto-increment (0), or fixed (1)</span>
+<span class="sd">            access_mode: non-dma (0), or dma (1)</span>
+<span class="sd">            verbose: boolean indicating verbose mode</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            register data.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SD_module</span><span class="o">.</span><span class="n">FPGAreadPCport</span><span class="p">(</span><span class="n">port</span><span class="p">,</span> <span class="n">data_size</span><span class="p">,</span> <span class="n">address</span><span class="p">,</span>
+                                          <span class="n">address_mode</span><span class="p">,</span> <span class="n">access_mode</span><span class="p">)</span>
+        <span class="n">value_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;data at PCport </span><span class="si">{</span><span class="n">port</span><span class="si">}</span><span class="s1">&#39;</span>
+        <span class="k">return</span> <span class="n">result_parser</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">value_name</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SD_Module.set_fpga_pc_port">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_Module.SD_Module.set_fpga_pc_port">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_fpga_pc_port</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">port</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">address</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                         <span class="n">address_mode</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">access_mode</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                         <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Writes data at the PCport FPGA Block</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            port: PCport number</span>
+<span class="sd">            data: array of integers containing the data</span>
+<span class="sd">            address: address that will appear at the PCport interface</span>
+<span class="sd">            address_mode: auto-increment (0), or fixed (1)</span>
+<span class="sd">            access_mode: non-dma (0), or dma (1)</span>
+<span class="sd">            verbose: boolean indicating verbose mode</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SD_module</span><span class="o">.</span><span class="n">FPGAwritePCport</span><span class="p">(</span><span class="n">port</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">address</span><span class="p">,</span>
+                                               <span class="n">address_mode</span><span class="p">,</span>
+                                             <span class="n">access_mode</span><span class="p">)</span>
+        <span class="n">value_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;set fpga PCport </span><span class="si">{</span><span class="n">port</span><span class="si">}</span><span class="s1"> to data:</span><span class="si">{</span><span class="n">data</span><span class="si">}</span><span class="s1">, &#39;</span> \
+                     <span class="sa">f</span><span class="s1">&#39;address:</span><span class="si">{</span><span class="n">address</span><span class="si">}</span><span class="s1">, address_mode:</span><span class="si">{</span><span class="n">address_mode</span><span class="si">}</span><span class="s1">, &#39;</span> \
+                     <span class="sa">f</span><span class="s1">&#39;access_mode:</span><span class="si">{</span><span class="n">access_mode</span><span class="si">}</span><span class="s1">&#39;</span>
+        <span class="n">result_parser</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">value_name</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SD_Module.load_fpga_image">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_Module.SD_Module.load_fpga_image">[docs]</a>
+    <span class="k">def</span> <span class="nf">load_fpga_image</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Loads FPGA binary image in module.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            filename: name of the FPGA image.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;FPGA bitstream </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s1"> not found&#39;</span><span class="p">)</span>
+        <span class="n">result_parser</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">SD_module</span><span class="o">.</span><span class="n">FPGAload</span><span class="p">(</span><span class="n">filename</span><span class="p">),</span>
+                      <span class="sa">f</span><span class="s1">&#39;loading FPGA bitstream: </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span></div>
+
+
+    <span class="c1">#</span>
+    <span class="c1"># HVI related functions</span>
+    <span class="c1">#</span>
+
+<div class="viewcode-block" id="SD_Module.set_hvi_register">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_Module.SD_Module.set_hvi_register">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_hvi_register</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">register</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="n">value</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                         <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets value of specified HVI register.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            register: register to set.</span>
+<span class="sd">            value: new value.</span>
+<span class="sd">            verbose: boolean indicating verbose mode</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">register</span><span class="p">)</span> <span class="o">==</span> <span class="nb">int</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SD_module</span><span class="o">.</span><span class="n">writeRegisterByNumber</span><span class="p">(</span><span class="n">register</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SD_module</span><span class="o">.</span><span class="n">writeRegisterByName</span><span class="p">(</span><span class="n">register</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+        <span class="n">value_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;set HVI register </span><span class="si">{</span><span class="n">register</span><span class="si">}</span><span class="s1">:</span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s1">&#39;</span>
+        <span class="n">result_parser</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">value_name</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SD_Module.get_hvi_register">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_Module.SD_Module.get_hvi_register">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_hvi_register</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">register</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span>
+                         <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns value of specified HVI register.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            register: register to read.</span>
+<span class="sd">            verbose: boolean indicating verbose mode</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            register value.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">register</span><span class="p">)</span> <span class="o">==</span> <span class="nb">int</span><span class="p">:</span>
+            <span class="n">error</span><span class="p">,</span> <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SD_module</span><span class="o">.</span><span class="n">readRegisterByNumber</span><span class="p">(</span><span class="n">register</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">error</span><span class="p">,</span> <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SD_module</span><span class="o">.</span><span class="n">readRegisterByName</span><span class="p">(</span><span class="n">register</span><span class="p">)</span>
+
+        <span class="n">value_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;get HVI register </span><span class="si">{</span><span class="n">register</span><span class="si">}</span><span class="s1">&#39;</span>
+        <span class="n">result_parser</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="n">value_name</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span></div>
+
+
+    <span class="c1">#</span>
+    <span class="c1"># The methods below are not used for setting or getting parameters,</span>
+    <span class="c1"># but can be used in the test functions of the test suite e.g. The main</span>
+    <span class="c1"># reason they are defined is to make this driver more complete</span>
+    <span class="c1">#</span>
+
+<div class="viewcode-block" id="SD_Module.get_product_name_by_slot">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_Module.SD_Module.get_product_name_by_slot">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_product_name_by_slot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chassis</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">slot</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                                 <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SD_module</span><span class="o">.</span><span class="n">getProductNameBySlot</span><span class="p">(</span><span class="n">chassis</span><span class="p">,</span> <span class="n">slot</span><span class="p">)</span>
+        <span class="n">value_name</span> <span class="o">=</span> <span class="s1">&#39;product_name&#39;</span>
+        <span class="k">return</span> <span class="n">result_parser</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">value_name</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SD_Module.get_product_name_by_index">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_Module.SD_Module.get_product_name_by_index">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_product_name_by_index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+                                  <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SD_module</span><span class="o">.</span><span class="n">getProductNameByIndex</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+        <span class="n">value_name</span> <span class="o">=</span> <span class="s1">&#39;product_name&#39;</span>
+        <span class="k">return</span> <span class="n">result_parser</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">value_name</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SD_Module.get_serial_number_by_slot">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_Module.SD_Module.get_serial_number_by_slot">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_serial_number_by_slot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chassis</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">slot</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                                  <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Returns faulty serial number due to error in Keysight &#39;</span>
+                      <span class="s1">&#39;lib v.2.01.00&#39;</span><span class="p">,</span> <span class="ne">UserWarning</span><span class="p">)</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SD_module</span><span class="o">.</span><span class="n">getSerialNumberBySlot</span><span class="p">(</span><span class="n">chassis</span><span class="p">,</span> <span class="n">slot</span><span class="p">)</span>
+        <span class="n">value_name</span> <span class="o">=</span> <span class="s1">&#39;serial_number&#39;</span>
+        <span class="k">return</span> <span class="n">result_parser</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">value_name</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SD_Module.get_serial_number_by_index">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_Module.SD_Module.get_serial_number_by_index">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_serial_number_by_index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+                                   <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Returns faulty serial number due to error in Keysight &#39;</span>
+                      <span class="s1">&#39;lib v.2.01.00&#39;</span><span class="p">,</span> <span class="ne">UserWarning</span><span class="p">)</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SD_module</span><span class="o">.</span><span class="n">getSerialNumberByIndex</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+        <span class="n">value_name</span> <span class="o">=</span> <span class="s1">&#39;serial_number&#39;</span>
+        <span class="k">return</span> <span class="n">result_parser</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">value_name</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SD_Module.get_type_by_slot">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_Module.SD_Module.get_type_by_slot">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_type_by_slot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chassis</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">slot</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                         <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SD_module</span><span class="o">.</span><span class="n">getTypeBySlot</span><span class="p">(</span><span class="n">chassis</span><span class="p">,</span> <span class="n">slot</span><span class="p">)</span>
+        <span class="n">value_name</span> <span class="o">=</span> <span class="s1">&#39;type&#39;</span>
+        <span class="k">return</span> <span class="n">result_parser</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">value_name</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SD_Module.get_type_by_index">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_Module.SD_Module.get_type_by_index">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_type_by_index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SD_module</span><span class="o">.</span><span class="n">getTypeByIndex</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+        <span class="n">value_name</span> <span class="o">=</span> <span class="s1">&#39;type&#39;</span>
+        <span class="k">return</span> <span class="n">result_parser</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">value_name</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span></div>
+
+
+    <span class="c1">#</span>
+    <span class="c1"># The methods below are useful for controlling the device, but are not</span>
+    <span class="c1"># used for setting or getting parameters</span>
+    <span class="c1">#</span>
+
+<div class="viewcode-block" id="SD_Module.close">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_Module.SD_Module.close">[docs]</a>
+    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Closes the hardware device and frees resources.</span>
+
+<span class="sd">        If you want to open the instrument again, you have to initialize a</span>
+<span class="sd">        new instrument object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Note: module keeps track of open/close state. So, keep the reference.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SD_module</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+    <span class="c1"># only closes the hardware device, does not delete the current instrument</span>
+    <span class="c1"># object</span>
+<div class="viewcode-block" id="SD_Module.close_soft">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_Module.SD_Module.close_soft">[docs]</a>
+    <span class="k">def</span> <span class="nf">close_soft</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SD_module</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="SD_Module.open_with_serial_number">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_Module.SD_Module.open_with_serial_number">[docs]</a>
+    <span class="k">def</span> <span class="nf">open_with_serial_number</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">serial_number</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SD_module</span><span class="o">.</span><span class="n">openWithSerialNumber</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">serial_number</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result_parser</span><span class="p">(</span><span class="n">result</span><span class="p">,</span>
+                             <span class="sa">f</span><span class="s1">&#39;openWithSerialNumber(</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">, </span><span class="si">{</span><span class="n">serial_number</span><span class="si">}</span><span class="s1">)&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SD_Module.open_with_slot">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_Module.SD_Module.open_with_slot">[docs]</a>
+    <span class="k">def</span> <span class="nf">open_with_slot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">chassis</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">slot</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SD_module</span><span class="o">.</span><span class="n">openWithSlot</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">chassis</span><span class="p">,</span> <span class="n">slot</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result_parser</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;openWithSlot(</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">, </span><span class="si">{</span><span class="n">chassis</span><span class="si">}</span><span class="s1">, </span><span class="si">{</span><span class="n">slot</span><span class="si">}</span><span class="s1">)&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SD_Module.run_self_test">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_Module.SD_Module.run_self_test">[docs]</a>
+    <span class="k">def</span> <span class="nf">run_self_test</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SD_module</span><span class="o">.</span><span class="n">runSelfTest</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Did self test and got result: </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">value</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, QCoDeS Users.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

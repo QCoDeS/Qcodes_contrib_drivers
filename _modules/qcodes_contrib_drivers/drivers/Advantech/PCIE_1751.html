@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>qcodes_contrib_drivers.drivers.Advantech.PCIE_1751 &mdash; qcodes_contrib_drivers 0.23.0.dev14+main.g6d96817 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../_static/documentation_options.js?v=7415f6af"></script>
+        <script src="../../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            qcodes_contrib_drivers
+          </a>
+              <div class="version">
+                0.23.0.dev14+main.g6d96817
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples/index.html">Examples of how to use drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/generated/qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">qcodes_contrib_drivers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">qcodes_contrib_drivers.drivers.Advantech.PCIE_1751</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for qcodes_contrib_drivers.drivers.Advantech.PCIE_1751</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">cffi</span>
+<span class="kn">import</span> <span class="nn">collections</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">from</span> <span class="nn">qcodes.instrument.base</span> <span class="kn">import</span> <span class="n">Instrument</span>
+<span class="kn">from</span> <span class="nn">qcodes.utils</span> <span class="kn">import</span> <span class="n">validators</span> <span class="k">as</span> <span class="n">vals</span>
+
+<span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="DAQNaviException">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Advantech.html#qcodes_contrib_drivers.drivers.Advantech.PCIE_1751.DAQNaviException">[docs]</a>
+<span class="k">class</span> <span class="nc">DAQNaviException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Exception raised if one of the Advantech&#39;s DAQNavi library&#39;s functions</span>
+<span class="sd">    encounters an error.</span>
+<span class="sd">    &quot;&quot;&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="DAQNaviWarning">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Advantech.html#qcodes_contrib_drivers.drivers.Advantech.PCIE_1751.DAQNaviWarning">[docs]</a>
+<span class="k">class</span> <span class="nc">DAQNaviWarning</span><span class="p">(</span><span class="ne">Warning</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Warning raised if one of the Advantech&#39;s DAQNavi library&#39;s functions</span>
+<span class="sd">    encounters a warning condition.</span>
+<span class="sd">    &quot;&quot;&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="Advantech_PCIE_1751">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Advantech.html#qcodes_contrib_drivers.drivers.Advantech.PCIE_1751.Advantech_PCIE_1751">[docs]</a>
+<span class="k">class</span> <span class="nc">Advantech_PCIE_1751</span><span class="p">(</span><span class="n">Instrument</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Driver for DIO card from Advantech. The card has six 8255 PPI mode</span>
+<span class="sd">    C DI/O ports, each containing 8 pins, that can be configured for either</span>
+<span class="sd">    input or output in groups of four.</span>
+
+<span class="sd">    The Advantech drivers have to be installed so that biodaq.dll can be</span>
+<span class="sd">    accessed. This QCodes driver uses python&#39;s C foreign function interface</span>
+<span class="sd">    cffi to call the necessary functions from the dynamically linked library.</span>
+<span class="sd">    Automatically loads the declaration of the library from the</span>
+<span class="sd">    _bdaqctrl.h file, that can be generated by running only the C preprocessor</span>
+<span class="sd">    on the header included with Advantech drivers:</span>
+
+<span class="sd">        gcc -D_BDAQ_C_INTERFACE -E bdaqctrl.h &gt; _bdaqctrl.h</span>
+
+<span class="sd">    Before running the above command, WIN32 and _WIN32 should be undefined at</span>
+<span class="sd">    the start of the bdaqctrl.h and #include &lt;stdlib.h&gt; should be commented</span>
+<span class="sd">    out.</span>
+
+<span class="sd">    Current version of this driver implements only instant digital input and</span>
+<span class="sd">    output. Buffered input and output, interrupts and counters are not</span>
+<span class="sd">    implemented.</span>
+
+<span class="sd">    Tested with driver version 3.1.10.0 and ddl version 3.1.12.1.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">device_description</span><span class="o">=</span><span class="s2">&quot;PCIE-1751,BID#0&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">device_description</span> <span class="o">=</span> <span class="n">device_description</span>
+
+        <span class="c1"># parse the header for function and structure declarations</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ffi</span> <span class="o">=</span> <span class="n">cffi</span><span class="o">.</span><span class="n">FFI</span><span class="p">()</span>
+        <span class="n">package_directory</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">))</span>
+        <span class="n">header_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">package_directory</span><span class="p">,</span> <span class="s1">&#39;_bdaqctrl.h&#39;</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">header_file</span><span class="p">)</span> <span class="k">as</span> <span class="n">h</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ffi</span><span class="o">.</span><span class="n">cdef</span><span class="p">(</span><span class="n">h</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dll</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ffi</span><span class="o">.</span><span class="n">dlopen</span><span class="p">(</span><span class="s2">&quot;biodaq.dll&quot;</span><span class="p">)</span>
+
+        <span class="c1"># create the digital input and output devices</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ffi</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">&quot;DeviceInformation *&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">Description</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">device_description</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">DeviceNumber</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">DeviceMode</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">ModeWriteWithReset</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">ModuleIndex</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">di</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">AdxInstantDiCtrlCreate</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">check</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">InstantDiCtrl_setSelectedDevice</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">di</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">do</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">AdxInstantDoCtrlCreate</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">check</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">InstantDoCtrl_setSelectedDevice</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">do</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">))</span>
+
+        <span class="c1"># Create QCoDeS parameters</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">port_count</span><span class="p">()):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+                <span class="s1">&#39;port</span><span class="si">{}</span><span class="s1">_dir&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">),</span>
+                <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Port </span><span class="si">{}</span><span class="s1"> direction&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">),</span>
+                <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Enum</span><span class="p">(</span><span class="mh">0x00</span><span class="p">,</span> <span class="mh">0x0f</span><span class="p">,</span> <span class="mh">0xf0</span><span class="p">,</span> <span class="mh">0xff</span><span class="p">),</span>
+                <span class="n">get_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_port_direction</span><span class="p">,</span> <span class="n">i</span><span class="p">),</span>
+                <span class="n">set_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_port_direction</span><span class="p">,</span> <span class="n">i</span><span class="p">),</span>
+                <span class="n">docstring</span><span class="o">=</span><span class="s2">&quot;The direction (input or output) of the digital i/o &quot;</span>
+                          <span class="s2">&quot;port nr </span><span class="si">{}</span><span class="s2">. Possible values are</span><span class="se">\n</span><span class="s2">&quot;</span>
+                          <span class="s2">&quot;    0x00 indicating that all pins of the port are &quot;</span>
+                          <span class="s2">&quot;configured as inputs</span><span class="se">\n</span><span class="s2">&quot;</span>
+                          <span class="s2">&quot;    0x0f indicating that pins 0 to 3 are configured &quot;</span>
+                          <span class="s2">&quot;as outputs and pins 4 to 7 as inputs</span><span class="se">\n</span><span class="s2">&quot;</span>
+                          <span class="s2">&quot;    0xf0 indicating that pins 0 to 3 are configured &quot;</span>
+                          <span class="s2">&quot;as inputs and pins 4 to 7 as outputs</span><span class="se">\n</span><span class="s2">&quot;</span>
+                          <span class="s2">&quot;    0xff indicating that all pins are configured as &quot;</span>
+                          <span class="s2">&quot;outputs&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect_message</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Advantech_PCIE_1751.read_port">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Advantech.html#qcodes_contrib_drivers.drivers.Advantech.PCIE_1751.Advantech_PCIE_1751.read_port">[docs]</a>
+    <span class="k">def</span> <span class="nf">read_port</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Reads and returns the values of ports i, ..., i+n-1.</span>
+<span class="sd">        For n=1 returns a single integer which encodes the 8 bit values,</span>
+<span class="sd">        for n&gt;1 returns a list of integers.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ffi</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s1">&#39;uint8[]&#39;</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">check</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">InstantDiCtrl_ReadAny</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">di</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">values</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">values</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Advantech_PCIE_1751.write_port">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Advantech.html#qcodes_contrib_drivers.drivers.Advantech.PCIE_1751.Advantech_PCIE_1751.write_port">[docs]</a>
+    <span class="k">def</span> <span class="nf">write_port</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Writes values to output ports. If value is an integer, writes its</span>
+<span class="sd">        binary representation to the pins of port i. If value is a list of</span>
+<span class="sd">        integers, writes the binary representations of their values to the pins</span>
+<span class="sd">        of ports i, ..., i+len(value)-1 respectively.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">collections</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">Iterable</span><span class="p">):</span>
+            <span class="n">vallist</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">vallist</span> <span class="o">=</span> <span class="p">[</span><span class="n">value</span><span class="p">]</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ffi</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s1">&#39;uint8[]&#39;</span><span class="p">,</span> <span class="n">vallist</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;PCIE-1751: Write(</span><span class="si">{}</span><span class="s1">, </span><span class="si">{}</span><span class="s1">, </span><span class="si">{}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">vallist</span><span class="p">),</span>
+                                                        <span class="n">vallist</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">check</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">InstantDoCtrl_WriteAny</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">do</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">vallist</span><span class="p">),</span>
+                                                   <span class="n">data</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="Advantech_PCIE_1751.read_pin">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Advantech.html#qcodes_contrib_drivers.drivers.Advantech.PCIE_1751.Advantech_PCIE_1751.read_pin">[docs]</a>
+    <span class="k">def</span> <span class="nf">read_pin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">pin</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Reads and returns the value pin pin of port port.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ffi</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s1">&#39;uint8 *&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">check</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">InstantDiCtrl_ReadBit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">di</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">pin</span><span class="p">,</span> <span class="n">data</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="Advantech_PCIE_1751.write_pin">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Advantech.html#qcodes_contrib_drivers.drivers.Advantech.PCIE_1751.Advantech_PCIE_1751.write_pin">[docs]</a>
+    <span class="k">def</span> <span class="nf">write_pin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">pin</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets pin pin of port port to 1 if value != 0, and to 0 otherwise.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">check</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">InstantDoCtrl_WriteBit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">do</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">pin</span><span class="p">,</span> <span class="n">value</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="Advantech_PCIE_1751.port_count">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Advantech.html#qcodes_contrib_drivers.drivers.Advantech.PCIE_1751.Advantech_PCIE_1751.port_count">[docs]</a>
+    <span class="k">def</span> <span class="nf">port_count</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the number of ports on the device. Each port contains 8 input</span>
+<span class="sd">        or output pins.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">InstantDoCtrl_getPortCount</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">do</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Advantech_PCIE_1751.check">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Advantech.html#qcodes_contrib_drivers.drivers.Advantech.PCIE_1751.Advantech_PCIE_1751.check">[docs]</a>
+    <span class="k">def</span> <span class="nf">check</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">errorcode</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Checks the errorcode and raises an Exception if error occurred.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">errorcode</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">Success</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="k">elif</span> <span class="n">errorcode</span> <span class="o">&lt;</span> <span class="mh">0xE0000000</span><span class="p">:</span>
+            <span class="n">message</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ERRORMSG</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">errorcode</span><span class="p">,</span> <span class="s2">&quot;Undefined error code.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">DAQNaviWarning</span><span class="p">(</span><span class="s2">&quot;DAQNavi warning </span><span class="si">{:#010X}</span><span class="s2">: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">errorcode</span><span class="p">,</span> <span class="n">message</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">message</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ERRORMSG</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">errorcode</span><span class="p">,</span> <span class="s2">&quot;Undefined error code.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">DAQNaviException</span><span class="p">(</span><span class="s2">&quot;DAQNavi error </span><span class="si">{:#010X}</span><span class="s2">: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">errorcode</span><span class="p">,</span> <span class="n">message</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="Advantech_PCIE_1751.close">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Advantech.html#qcodes_contrib_drivers.drivers.Advantech.PCIE_1751.Advantech_PCIE_1751.close">[docs]</a>
+    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">InstantDoCtrl_Dispose</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">do</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">InstantDiCtrl_Dispose</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">di</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_get_port_direction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the direction of port i as a 8-bit number where for each bit,</span>
+<span class="sd">        the value 0 means that the corresponding pin is set up as an input and</span>
+<span class="sd">        the value 1 means that it is set up as an output.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pcoll</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">InstantDoCtrl_getPortDirection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">do</span><span class="p">)</span>
+        <span class="n">port_objs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ICollection_to_list</span><span class="p">(</span><span class="n">pcoll</span><span class="p">,</span> <span class="s1">&#39;PortDirection *&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">PortDirection_getDirection</span><span class="p">(</span><span class="n">port_objs</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">_set_port_direction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">direction</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        i is the number of the port to configure</span>
+<span class="sd">        direction has to be one of the following:</span>
+<span class="sd">            0x00 for all pins configured as inputs</span>
+<span class="sd">            0x0f for the 4 lower pins configured as outputs and 4 higher pins</span>
+<span class="sd">                 as inputs</span>
+<span class="sd">            0xf0 for the 4 lower pins configured as inputs and 4 higher pins as</span>
+<span class="sd">                 outputs</span>
+<span class="sd">            0xff for all pins configured as outputs</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pcoll</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">InstantDoCtrl_getPortDirection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">do</span><span class="p">)</span>
+        <span class="n">port_objs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ICollection_to_list</span><span class="p">(</span><span class="n">pcoll</span><span class="p">,</span> <span class="s1">&#39;PortDirection *&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">check</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">PortDirection_setDirection</span><span class="p">(</span><span class="n">port_objs</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">direction</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_ICollection_to_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">collection</span><span class="p">,</span> <span class="n">ctype</span><span class="o">=</span><span class="s1">&#39;void *&#39;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        collection is a cffi object of type &#39;ICollection *&#39;</span>
+<span class="sd">        ctype is the data type of the collection members</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">ICollection_getCount</span><span class="p">(</span><span class="n">collection</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">n</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+            <span class="n">voidptr_i</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">ICollection_getItem</span><span class="p">(</span><span class="n">collection</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+            <span class="n">result</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ffi</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">ctype</span><span class="p">,</span> <span class="n">voidptr_i</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span>
+
+<div class="viewcode-block" id="Advantech_PCIE_1751.get_idn">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Advantech.html#qcodes_contrib_drivers.drivers.Advantech.PCIE_1751.Advantech_PCIE_1751.get_idn">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_idn</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;vendor&#39;</span><span class="p">:</span> <span class="s1">&#39;Advantech&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;model&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">device_description</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="s1">&#39;serial&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;firmware&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">}</span></div>
+
+
+    <span class="n">ERRORMSG</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="mh">0x00000000</span><span class="p">:</span> <span class="s2">&quot;The operation is completed successfully.&quot;</span><span class="p">,</span>
+        <span class="mh">0xA0000000</span><span class="p">:</span> <span class="s2">&quot;The interrupt resource is not available.&quot;</span><span class="p">,</span>
+        <span class="mh">0xA0000001</span><span class="p">:</span> <span class="s2">&quot;The parameter is out of the range.&quot;</span><span class="p">,</span>
+        <span class="mh">0xA0000002</span><span class="p">:</span> <span class="s2">&quot;The property value is out of range.&quot;</span><span class="p">,</span>
+        <span class="mh">0xA0000003</span><span class="p">:</span> <span class="s2">&quot;The property value is not supported.&quot;</span><span class="p">,</span>
+        <span class="mh">0xA0000004</span><span class="p">:</span> <span class="s2">&quot;The property value conflicts with the current state.&quot;</span><span class="p">,</span>
+        <span class="mh">0xA0000005</span><span class="p">:</span> <span class="s2">&quot;The value range of all channels in a group should be &quot;</span>
+                    <span class="s2">&quot;same, such as 4~20mA of PCI-1724.&quot;</span><span class="p">,</span>
+        <span class="mh">0xE0000000</span><span class="p">:</span> <span class="s2">&quot;The handle is NULL or its type doesn&#39;t match the required &quot;</span>
+                    <span class="s2">&quot;operation.&quot;</span><span class="p">,</span>
+        <span class="mh">0xE0000001</span><span class="p">:</span> <span class="s2">&quot;The parameter value is out of range.&quot;</span><span class="p">,</span>
+        <span class="mh">0xE0000002</span><span class="p">:</span> <span class="s2">&quot;The parameter value is not supported.&quot;</span><span class="p">,</span>
+        <span class="mh">0xE0000003</span><span class="p">:</span> <span class="s2">&quot;The parameter value format is not the expected.&quot;</span><span class="p">,</span>
+        <span class="mh">0xE0000004</span><span class="p">:</span> <span class="s2">&quot;Not enough memory is available to complete the operation.&quot;</span><span class="p">,</span>
+        <span class="mh">0xE0000005</span><span class="p">:</span> <span class="s2">&quot;The data buffer is null.&quot;</span><span class="p">,</span>
+        <span class="mh">0xE0000006</span><span class="p">:</span> <span class="s2">&quot;The data buffer is too small for the operation.&quot;</span><span class="p">,</span>
+        <span class="mh">0xE0000007</span><span class="p">:</span> <span class="s2">&quot;The data length exceeded the limitation.&quot;</span><span class="p">,</span>
+        <span class="mh">0xE0000008</span><span class="p">:</span> <span class="s2">&quot;The required function is not supported.&quot;</span><span class="p">,</span>
+        <span class="mh">0xE0000009</span><span class="p">:</span> <span class="s2">&quot;The required event is not supported.&quot;</span><span class="p">,</span>
+        <span class="mh">0xE000000A</span><span class="p">:</span> <span class="s2">&quot;The required property is not supported.&quot;</span><span class="p">,</span>
+        <span class="mh">0xE000000B</span><span class="p">:</span> <span class="s2">&quot;The required property is read-only.&quot;</span><span class="p">,</span>
+        <span class="mh">0xE000000C</span><span class="p">:</span> <span class="s2">&quot;The specified property value conflicts with the current &quot;</span>
+                    <span class="s2">&quot;state.&quot;</span><span class="p">,</span>
+        <span class="mh">0xE000000D</span><span class="p">:</span> <span class="s2">&quot;The specified property value is out of range.&quot;</span><span class="p">,</span>
+        <span class="mh">0xE000000E</span><span class="p">:</span> <span class="s2">&quot;The specified property value is not supported.&quot;</span><span class="p">,</span>
+        <span class="mh">0xE000000F</span><span class="p">:</span> <span class="s2">&quot;The handle hasn&#39;t own the privilege of the operation the &quot;</span>
+                    <span class="s2">&quot;user wanted.&quot;</span><span class="p">,</span>
+        <span class="mh">0xE0000010</span><span class="p">:</span> <span class="s2">&quot;The required privilege is not available because someone &quot;</span>
+                    <span class="s2">&quot;else had own it.&quot;</span><span class="p">,</span>
+        <span class="mh">0xE0000011</span><span class="p">:</span> <span class="s2">&quot;The driver of specified device was not found.&quot;</span><span class="p">,</span>
+        <span class="mh">0xE0000012</span><span class="p">:</span> <span class="s2">&quot;The driver version of the specified device mismatched.&quot;</span><span class="p">,</span>
+        <span class="mh">0xE0000013</span><span class="p">:</span> <span class="s2">&quot;The loaded driver count exceeded the limitation.&quot;</span><span class="p">,</span>
+        <span class="mh">0xE0000014</span><span class="p">:</span> <span class="s2">&quot;The device is not opened.&quot;</span><span class="p">,</span>
+        <span class="mh">0xE0000015</span><span class="p">:</span> <span class="s2">&quot;The required device does not exist.&quot;</span><span class="p">,</span>
+        <span class="mh">0xE0000016</span><span class="p">:</span> <span class="s2">&quot;The required device is unrecognized by driver.&quot;</span><span class="p">,</span>
+        <span class="mh">0xE0000017</span><span class="p">:</span> <span class="s2">&quot;The configuration data of the specified device is lost or &quot;</span>
+                    <span class="s2">&quot;unavailable.&quot;</span><span class="p">,</span>
+        <span class="mh">0xE0000018</span><span class="p">:</span> <span class="s2">&quot;The function is not initialized and can&#39;t be started.&quot;</span><span class="p">,</span>
+        <span class="mh">0xE0000019</span><span class="p">:</span> <span class="s2">&quot;The function is busy.&quot;</span><span class="p">,</span>
+        <span class="mh">0xE000001A</span><span class="p">:</span> <span class="s2">&quot;The interrupt resource is not available.&quot;</span><span class="p">,</span>
+        <span class="mh">0xE000001B</span><span class="p">:</span> <span class="s2">&quot;The DMA channel is not available.&quot;</span><span class="p">,</span>
+        <span class="mh">0xE000001C</span><span class="p">:</span> <span class="s2">&quot;Time out when reading/writing the device.&quot;</span><span class="p">,</span>
+        <span class="mh">0xE000001D</span><span class="p">:</span> <span class="s2">&quot;The given signature does not match with the device &quot;</span>
+                    <span class="s2">&quot;current one.&quot;</span><span class="p">,</span>
+        <span class="mh">0xE000001E</span><span class="p">:</span> <span class="s2">&quot;The function cannot be executed while the buffered AI is &quot;</span>
+                    <span class="s2">&quot;running.&quot;</span><span class="p">,</span>
+        <span class="mh">0xE000001F</span><span class="p">:</span> <span class="s2">&quot;The value range is not available in single-ended mode.&quot;</span><span class="p">,</span>
+        <span class="mh">0xE000FFFF</span><span class="p">:</span> <span class="s2">&quot;Undefined error.&quot;</span><span class="p">,</span>
+    <span class="p">}</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, QCoDeS Users.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>qcodes_contrib_drivers.drivers.Oxford.ILM200 &mdash; qcodes_contrib_drivers 0.23.0.dev14+main.g6d96817 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../_static/documentation_options.js?v=7415f6af"></script>
+        <script src="../../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            qcodes_contrib_drivers
+          </a>
+              <div class="version">
+                0.23.0.dev14+main.g6d96817
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples/index.html">Examples of how to use drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/generated/qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">qcodes_contrib_drivers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">qcodes_contrib_drivers.drivers.Oxford.ILM200</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for qcodes_contrib_drivers.drivers.Oxford.ILM200</h1><div class="highlight"><pre>
+<span></span><span class="c1"># OxfordInstruments_ILM200.py class, to perform the communication between the Wrapper and the device</span>
+<span class="c1"># Copyright (c) 2017 QuTech (Delft)</span>
+<span class="c1"># Code is available under the available under the `MIT open-source license &lt;https://opensource.org/licenses/MIT&gt;`__</span>
+<span class="c1">#</span>
+<span class="c1"># Pieter Eendebak &lt;pieter.eendebak@tno.nl&gt;, 2017</span>
+<span class="c1"># Takafumi Fujita &lt;t.fujita@tudelft.nl&gt;, 2016</span>
+<span class="c1"># Guenevere Prawiroatmodjo &lt;guen@vvtp.tudelft.nl&gt;, 2009</span>
+<span class="c1"># Pieter de Groot &lt;pieterdegroot@gmail.com&gt;, 2009</span>
+
+
+<span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">sleep</span>
+<span class="kn">import</span> <span class="nn">pyvisa</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">qcodes</span> <span class="kn">import</span> <span class="n">VisaInstrument</span>
+
+
+<div class="viewcode-block" id="OxfordInstruments_ILM200">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Oxford.html#qcodes_contrib_drivers.drivers.Oxford.ILM200.OxfordInstruments_ILM200">[docs]</a>
+<span class="k">class</span> <span class="nc">OxfordInstruments_ILM200</span><span class="p">(</span><span class="n">VisaInstrument</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This is the qcodes driver for the Oxford Instruments ILM 200 Helium Level Meter.</span>
+
+<span class="sd">    Usage:</span>
+<span class="sd">    Initialize with</span>
+<span class="sd">    &lt;name&gt; = instruments.create(&#39;name&#39;, &#39;OxfordInstruments_ILM200&#39;, address=&#39;&lt;Instrument address&gt;&#39;)</span>
+<span class="sd">    &lt;Instrument address&gt; = ASRL4::INSTR</span>
+
+<span class="sd">    Note: Since the ISOBUS allows for several instruments to be managed in parallel, the command</span>
+<span class="sd">    which is sent to the device starts with &#39;@n&#39;, where n is the ISOBUS instrument number.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="OxfordInstruments_ILM200.__init__">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Oxford.html#qcodes_contrib_drivers.drivers.Oxford.ILM200.OxfordInstruments_ILM200.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">address</span><span class="p">,</span> <span class="n">number</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initializes the Oxford Instruments ILM 200 Helium Level Meter.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            name (str): name of the instrument</span>
+<span class="sd">            address (str): instrument address</span>
+<span class="sd">            number (int): ISOBUS instrument number (number=1 is specific to the ILM in F008)</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="vm">__name__</span> <span class="o">+</span> <span class="s1">&#39; : Initializing instrument&#39;</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">address</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">visa_handle</span><span class="o">.</span><span class="n">set_visa_attribute</span><span class="p">(</span><span class="n">pyvisa</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">VI_ATTR_ASRL_STOP_BITS</span><span class="p">,</span>
+                                            <span class="n">pyvisa</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">VI_ASRL_STOP_TWO</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_address</span> <span class="o">=</span> <span class="n">address</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_number</span> <span class="o">=</span> <span class="n">number</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_values</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;level&#39;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;level&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_do_get_level</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;%&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;status&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_do_get_status</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;rate&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_do_get_rate</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_do_set_rate</span><span class="p">)</span>
+
+        <span class="c1"># a dummy command to avoid the initial error</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_idn</span><span class="p">()</span>
+            <span class="n">sleep</span><span class="p">(</span><span class="mf">70e-3</span><span class="p">)</span>  <span class="c1"># wait for the device to be able to respond</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_read</span><span class="p">()</span>  <span class="c1"># to flush the buffer</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Write a command to the device and read answer. This function writes to</span>
+<span class="sd">        the buffer by adding the device number at the front, instead of &#39;ask&#39;.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            message (str) : write command for the device</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="vm">__name__</span> <span class="o">+</span> <span class="s1">&#39; : Send the following command to the device: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">message</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">visa_handle</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;@</span><span class="si">%s%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_number</span><span class="p">,</span> <span class="n">message</span><span class="p">))</span>
+        <span class="n">sleep</span><span class="p">(</span><span class="mf">70e-3</span><span class="p">)</span>  <span class="c1"># wait for the device to be able to respond</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;?&#39;</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error: Command </span><span class="si">%s</span><span class="s2"> not recognized&quot;</span> <span class="o">%</span> <span class="n">message</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">result</span>
+
+    <span class="k">def</span> <span class="nf">_read</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Reads the total bytes in the buffer and outputs as a string.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            message (str)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># because protocol has no termination chars the read reads the number</span>
+        <span class="c1"># of bytes in the buffer</span>
+        <span class="n">bytes_in_buffer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">visa_handle</span><span class="o">.</span><span class="n">bytes_in_buffer</span>
+        <span class="c1"># a workaround for a timeout error in the pyvsia read_raw() function</span>
+        <span class="k">with</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">visa_handle</span><span class="o">.</span><span class="n">ignore_warning</span><span class="p">(</span><span class="n">pyvisa</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">VI_SUCCESS_MAX_CNT</span><span class="p">)):</span>
+            <span class="n">mes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">visa_handle</span><span class="o">.</span><span class="n">visalib</span><span class="o">.</span><span class="n">read</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">visa_handle</span><span class="o">.</span><span class="n">session</span><span class="p">,</span> <span class="n">bytes_in_buffer</span><span class="p">)</span>
+        <span class="c1"># cannot be done on same line for some reason</span>
+        <span class="n">mes</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">mes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">decode</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">mes</span>
+
+<div class="viewcode-block" id="OxfordInstruments_ILM200.get_idn">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Oxford.html#qcodes_contrib_drivers.drivers.Oxford.ILM200.OxfordInstruments_ILM200.get_idn">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_idn</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overrides the function of Instrument since ILM does not support `*IDN?`</span>
+
+<span class="sd">        This string is supposed to be a</span>
+<span class="sd">        comma-separated list of vendor, model, serial, and firmware, but</span>
+<span class="sd">        semicolon and colon are also common separators so we accept them here</span>
+<span class="sd">        as well.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A dict containing vendor, model, serial, and firmware.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">idstr</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>  <span class="c1"># in case self.ask fails</span>
+            <span class="n">idstr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_version</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+            <span class="c1"># form is supposed to be comma-separated, but we&#39;ve seen</span>
+            <span class="c1"># other separators occasionally</span>
+            <span class="n">idparts</span> <span class="o">=</span> <span class="p">[</span><span class="n">idstr</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="n">idstr</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span> <span class="n">idstr</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">idstr</span><span class="p">[</span><span class="mi">5</span><span class="p">],</span>
+                       <span class="n">idstr</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="n">idstr</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span>
+            <span class="c1"># in case parts at the end are missing, fill in None</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">idparts</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">4</span><span class="p">:</span>
+                <span class="n">idparts</span> <span class="o">+=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="mi">4</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">idparts</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Error getting or interpreting *IDN?: &#39;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">idstr</span><span class="p">))</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span>
+            <span class="n">idparts</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">((</span><span class="s1">&#39;vendor&#39;</span><span class="p">,</span> <span class="s1">&#39;model&#39;</span><span class="p">,</span> <span class="s1">&#39;serial&#39;</span><span class="p">,</span> <span class="s1">&#39;firmware&#39;</span><span class="p">),</span> <span class="n">idparts</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="OxfordInstruments_ILM200.get_all">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Oxford.html#qcodes_contrib_drivers.drivers.Oxford.ILM200.OxfordInstruments_ILM200.get_all">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_all</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Reads all implemented parameters from the instrument,</span>
+<span class="sd">        and updates the wrapper.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="vm">__name__</span> <span class="o">+</span> <span class="s1">&#39; : reading all settings from instrument&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">level</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rate</span><span class="o">.</span><span class="n">get</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="OxfordInstruments_ILM200.close">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Oxford.html#qcodes_contrib_drivers.drivers.Oxford.ILM200.OxfordInstruments_ILM200.close">[docs]</a>
+    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Safely close connection</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="vm">__name__</span> <span class="o">+</span> <span class="s1">&#39; : Closing ILM200 connection&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">local</span><span class="p">()</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+    <span class="c1"># Functions: Monitor commands</span>
+    <span class="k">def</span> <span class="nf">_get_version</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Identify the device</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            identification (str): should be &#39;ILM200 Version 1.08 (c) OXFORD 1994\r&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="vm">__name__</span> <span class="o">+</span> <span class="s1">&#39; : Identify the device&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;V&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_do_get_level</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get Helium level of channel 1.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            result (float) : Helium level</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="vm">__name__</span> <span class="o">+</span> <span class="s1">&#39; : Read level of channel 1&#39;</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;R1&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;R&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">))</span> <span class="o">/</span> <span class="mi">10</span>
+
+    <span class="k">def</span> <span class="nf">_do_get_status</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get status of the device.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="vm">__name__</span> <span class="o">+</span> <span class="s1">&#39; : Get status of the device.&#39;</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;X&#39;</span><span class="p">)</span>
+        <span class="n">usage</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="mi">0</span><span class="p">:</span> <span class="s2">&quot;Channel not in use&quot;</span><span class="p">,</span>
+            <span class="mi">1</span><span class="p">:</span> <span class="s2">&quot;Channel used for Nitrogen level&quot;</span><span class="p">,</span>
+            <span class="mi">2</span><span class="p">:</span> <span class="s2">&quot;Channel used for Helium Level (Normal pulsed operation)&quot;</span><span class="p">,</span>
+            <span class="mi">3</span><span class="p">:</span> <span class="s2">&quot;Channel used for Helium Level (Continuous measurement)&quot;</span><span class="p">,</span>
+            <span class="mi">9</span><span class="p">:</span> <span class="s2">&quot;Error on channel (Usually means probe unplugged)&quot;</span>
+        <span class="p">}</span>
+        <span class="c1"># current_flowing = {</span>
+        <span class="c1"># 0 : &quot;Curent not flowing in Helium Probe Wire&quot;,</span>
+        <span class="c1"># 1 : &quot;Curent not flowing in Helium Probe Wire&quot;</span>
+        <span class="c1"># }</span>
+        <span class="c1"># auto_fill_status = {</span>
+        <span class="c1"># 00 : &quot;End Fill (Level &gt; FULL)&quot;,</span>
+        <span class="c1"># 01 : &quot;Not Filling (Level &lt; FULL, Level &gt; FILL)&quot;,</span>
+        <span class="c1"># 10 : &quot;Filling (Level &lt; FULL, Level &gt; FILL)&quot;,</span>
+        <span class="c1"># 11 : &quot;Start Filling (Level &lt; FILL)&quot;</span>
+        <span class="c1"># }</span>
+        <span class="k">return</span> <span class="n">usage</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="s2">&quot;Unknown&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_do_get_rate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get helium meter channel 1 probe rate</span>
+
+<span class="sd">        Input:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        Output:</span>
+<span class="sd">            rate(int) :</span>
+<span class="sd">            0 : &quot;SLOW&quot;</span>
+<span class="sd">            1 : &quot;FAST&quot;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">rate</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="mi">1</span><span class="p">:</span> <span class="s2">&quot;1 : Helium Probe in FAST rate&quot;</span><span class="p">,</span>
+            <span class="mi">0</span><span class="p">:</span> <span class="s2">&quot;0 : Helium Probe in SLOW rate&quot;</span>
+        <span class="p">}</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;X&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">rate</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="nb">format</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="mi">5</span><span class="p">:</span><span class="mi">7</span><span class="p">]),</span> <span class="s1">&#39;08b&#39;</span><span class="p">)[</span><span class="mi">6</span><span class="p">]),</span> <span class="s2">&quot;Unknown&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="OxfordInstruments_ILM200.remote">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Oxford.html#qcodes_contrib_drivers.drivers.Oxford.ILM200.OxfordInstruments_ILM200.remote">[docs]</a>
+    <span class="k">def</span> <span class="nf">remote</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set control to remote &amp; locked</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="vm">__name__</span> <span class="o">+</span> <span class="s1">&#39; : Set control to remote &amp; locked&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_remote_status</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="OxfordInstruments_ILM200.local">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Oxford.html#qcodes_contrib_drivers.drivers.Oxford.ILM200.OxfordInstruments_ILM200.local">[docs]</a>
+    <span class="k">def</span> <span class="nf">local</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set control to local &amp; locked</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="vm">__name__</span> <span class="o">+</span> <span class="s1">&#39; : Set control to local &amp; locked&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_remote_status</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="OxfordInstruments_ILM200.set_remote_status">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Oxford.html#qcodes_contrib_drivers.drivers.Oxford.ILM200.OxfordInstruments_ILM200.set_remote_status">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_remote_status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set remote control status.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            mode(int) :</span>
+<span class="sd">            0 : &quot;Local and locked&quot;,</span>
+<span class="sd">            1 : &quot;Remote and locked&quot;,</span>
+<span class="sd">            2 : &quot;Local and unlocked&quot;,</span>
+<span class="sd">            3 : &quot;Remote and unlocked&quot;,</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="mi">0</span><span class="p">:</span> <span class="s2">&quot;Local and locked&quot;</span><span class="p">,</span>
+            <span class="mi">1</span><span class="p">:</span> <span class="s2">&quot;Remote and locked&quot;</span><span class="p">,</span>
+            <span class="mi">2</span><span class="p">:</span> <span class="s2">&quot;Local and unlocked&quot;</span><span class="p">,</span>
+            <span class="mi">3</span><span class="p">:</span> <span class="s2">&quot;Remote and unlocked&quot;</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="vm">__name__</span> <span class="o">+</span> <span class="s1">&#39; : Setting remote control status to </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span>
+                     <span class="n">status</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">mode</span><span class="p">,</span> <span class="s2">&quot;Unknown&quot;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;C</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">mode</span><span class="p">)</span></div>
+
+
+    <span class="c1"># Functions: Control commands (only recognised when in REMOTE control)</span>
+<div class="viewcode-block" id="OxfordInstruments_ILM200.set_to_slow">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Oxford.html#qcodes_contrib_drivers.drivers.Oxford.ILM200.OxfordInstruments_ILM200.set_to_slow">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_to_slow</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set helium meter channel 1 to slow mode.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_remote_status</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="vm">__name__</span> <span class="o">+</span> <span class="s1">&#39; : Setting Helium Probe in SLOW rate&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;S1&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_remote_status</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="OxfordInstruments_ILM200.set_to_fast">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Oxford.html#qcodes_contrib_drivers.drivers.Oxford.ILM200.OxfordInstruments_ILM200.set_to_fast">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_to_fast</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set helium meter channel 1 to fast mode.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_remote_status</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="vm">__name__</span> <span class="o">+</span> <span class="s1">&#39; : Setting Helium Probe in FAST rate&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">(</span><span class="s1">&#39;T1&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_remote_status</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_do_set_rate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rate</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set helium meter channel 1 probe rate</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            rate(int) :</span>
+<span class="sd">            0 : &quot;SLOW&quot;</span>
+<span class="sd">            1 : &quot;FAST&quot;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_remote_status</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">rate</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_to_slow</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">rate</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_to_fast</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_remote_status</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_do_get_rate</span><span class="p">())</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, QCoDeS Users.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

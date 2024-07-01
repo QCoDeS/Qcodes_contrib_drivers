@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>qcodes_contrib_drivers.drivers.Holzworth.HS9008B &mdash; qcodes_contrib_drivers 0.23.0.dev14+main.g6d96817 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../_static/documentation_options.js?v=7415f6af"></script>
+        <script src="../../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            qcodes_contrib_drivers
+          </a>
+              <div class="version">
+                0.23.0.dev14+main.g6d96817
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples/index.html">Examples of how to use drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/generated/qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">qcodes_contrib_drivers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">qcodes_contrib_drivers.drivers.Holzworth.HS9008B</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for qcodes_contrib_drivers.drivers.Holzworth.HS9008B</h1><div class="highlight"><pre>
+<span></span><span class="c1"># This Python file uses the following encoding: utf-8</span>
+<span class="c1"># Valentin John, spring 2021</span>
+<span class="c1"># Simon Zihlmannr &lt;zihlmann.simon@gmail.com&gt;, spring 2021</span>
+<span class="c1"># Tongyu Zhao &lt;ty.zhao.work@gmail.com&gt;, spring 2022</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">import</span> <span class="nn">pyvisa</span> <span class="k">as</span> <span class="nn">visa</span>
+
+<span class="kn">from</span> <span class="nn">qcodes</span> <span class="kn">import</span> <span class="n">Instrument</span><span class="p">,</span> <span class="n">VisaInstrument</span>
+<span class="kn">from</span> <span class="nn">qcodes.instrument.channel</span> <span class="kn">import</span> <span class="n">InstrumentChannel</span>
+<span class="kn">from</span> <span class="nn">qcodes.utils.validators</span> <span class="kn">import</span> <span class="n">Numbers</span><span class="p">,</span> <span class="n">Enum</span>
+<span class="kn">from</span> <span class="nn">qcodes.utils.helpers</span> <span class="kn">import</span> <span class="n">create_on_off_val_mapping</span>
+
+
+<div class="viewcode-block" id="HS9008BChannel">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Holzworth.html#qcodes_contrib_drivers.drivers.Holzworth.HS9008B.HS9008BChannel">[docs]</a>
+<span class="k">class</span> <span class="nc">HS9008BChannel</span><span class="p">(</span><span class="n">InstrumentChannel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class to hold the Holzworth HS9008B channels, i.e.</span>
+<span class="sd">    CH1, CH2, ...</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="HS9008BChannel.__init__">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Holzworth.html#qcodes_contrib_drivers.drivers.Holzworth.HS9008B.HS9008BChannel.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">:</span> <span class="n">Instrument</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">channel</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            parent: The Instrument instance to which the channel is</span>
+<span class="sd">                to be attached.</span>
+<span class="sd">            name: The &#39;colloquial&#39; name of the channel</span>
+<span class="sd">            channel: The name used by the Holzworth, i.e. either</span>
+<span class="sd">                     &#39;CH1&#39; or &#39;CH2&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">channel</span> <span class="o">=</span> <span class="n">channel</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_min_f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_f_unit</span><span class="p">(</span>
+                      <span class="bp">self</span><span class="o">.</span><span class="n">ask_raw</span><span class="p">(</span><span class="s1">&#39;:</span><span class="si">{}</span><span class="s1">:Freq:MIN?&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">channel</span><span class="p">)))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_max_f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_f_unit</span><span class="p">(</span>
+                      <span class="bp">self</span><span class="o">.</span><span class="n">ask_raw</span><span class="p">(</span><span class="s1">&#39;:</span><span class="si">{}</span><span class="s1">:Freq:MAX?&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">channel</span><span class="p">)))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_min_pwr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_pwr_unit</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">ask_raw</span><span class="p">(</span><span class="s1">&#39;:</span><span class="si">{}</span><span class="s1">:PWR:MIN?&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">channel</span><span class="p">)))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_max_pwr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_pwr_unit</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">ask_raw</span><span class="p">(</span><span class="s1">&#39;:</span><span class="si">{}</span><span class="s1">:PWR:MAX?&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">channel</span><span class="p">)))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_min_phase</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_phase_unit</span><span class="p">(</span>
+                          <span class="bp">self</span><span class="o">.</span><span class="n">ask_raw</span><span class="p">(</span><span class="s1">&#39;:</span><span class="si">{}</span><span class="s1">:PHASE:MIN?&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">channel</span><span class="p">)))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_max_phase</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_phase_unit</span><span class="p">(</span>
+                          <span class="bp">self</span><span class="o">.</span><span class="n">ask_raw</span><span class="p">(</span><span class="s1">&#39;:</span><span class="si">{}</span><span class="s1">:PHASE:MAX?&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">channel</span><span class="p">)))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;state&#39;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;State&#39;</span><span class="p">,</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;:</span><span class="si">{}</span><span class="s1">:PWR:RF?&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">channel</span><span class="p">),</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_state</span><span class="p">,</span>
+                           <span class="n">val_mapping</span><span class="o">=</span><span class="n">create_on_off_val_mapping</span><span class="p">(</span><span class="n">on_val</span><span class="o">=</span><span class="s1">&#39;ON&#39;</span><span class="p">,</span>
+                                                                 <span class="n">off_val</span><span class="o">=</span><span class="s1">&#39;OFF&#39;</span><span class="p">)</span>
+                           <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;power&#39;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Power&#39;</span><span class="p">,</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;:</span><span class="si">{}</span><span class="s1">:PWR?&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">channel</span><span class="p">),</span>
+                           <span class="n">set_cmd</span><span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set_pwr</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;dBm&#39;</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">Numbers</span><span class="p">(</span><span class="n">min_value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_min_pwr</span><span class="p">,</span>
+                                        <span class="n">max_value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_max_pwr</span><span class="p">)</span>
+                           <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;frequency&#39;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Frequency&#39;</span><span class="p">,</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_f</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set_f</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;Hz&#39;</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">Numbers</span><span class="p">(</span><span class="n">min_value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_min_f</span><span class="p">,</span>
+                                        <span class="n">max_value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_max_f</span><span class="p">)</span>
+                           <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;phase&#39;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Phase&#39;</span><span class="p">,</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;:</span><span class="si">{}</span><span class="s1">:PHASE?&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">channel</span><span class="p">),</span>
+                           <span class="n">set_cmd</span><span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set_phase</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;deg&#39;</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">Numbers</span><span class="p">(</span><span class="n">min_value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_min_phase</span><span class="p">,</span>
+                                        <span class="n">max_value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_max_phase</span><span class="p">)</span>
+                           <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;temp&#39;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Temperature&#39;</span><span class="p">,</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_temp</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;C&#39;</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_parse_f_unit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">raw_str</span><span class="p">:</span><span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Function that converts strings consisting of a number and a unit into</span>
+<span class="sd">        frequencies in Hz and returing it as a float:</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            raw_str: String of the form &#39;100 MHz&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">f</span><span class="p">,</span> <span class="n">unit</span> <span class="o">=</span> <span class="n">raw_str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)</span>
+        <span class="n">unit_dict</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;GHz&#39;</span><span class="p">:</span> <span class="mf">1e9</span><span class="p">,</span>
+            <span class="s1">&#39;MHz&#39;</span><span class="p">:</span> <span class="mf">1e6</span><span class="p">,</span>
+            <span class="s1">&#39;kHz&#39;</span><span class="p">:</span> <span class="mf">1e3</span>
+        <span class="p">}</span>
+        <span class="k">if</span> <span class="n">unit</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">unit_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> is not in </span><span class="si">{}</span><span class="s1">. Cannot parse </span><span class="si">{}</span><span class="s1">.&#39;</span>
+                               <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span> <span class="n">unit_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="n">unit</span><span class="p">))</span>
+        <span class="n">frequency</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="o">*</span> <span class="n">unit_dict</span><span class="p">[</span><span class="n">unit</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">frequency</span>
+
+
+    <span class="k">def</span> <span class="nf">_parse_pwr_unit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">raw_str</span><span class="p">:</span><span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Function that converts strings consisting of a number only or</span>
+<span class="sd">        a number plus a unit dBm into a float in dBm:</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            raw_str: String of the form &#39;-10&#39; or &#39;-10 dBm&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">power</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">raw_str</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="n">pwr</span><span class="p">,</span> <span class="n">unit</span> <span class="o">=</span> <span class="n">raw_str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)</span>
+            <span class="n">power</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">pwr</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">power</span>
+
+    <span class="k">def</span> <span class="nf">_parse_phase_unit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">raw_str</span><span class="p">:</span><span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Function that converts strings consisting of a number only or</span>
+<span class="sd">        a number plus a unit deg into a float in deg:</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            raw_str: String of the form &#39;90&#39; or &#39;90deg&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">phase</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">raw_str</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="n">phase</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">raw_str</span><span class="p">[:</span><span class="o">-</span><span class="mi">3</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">phase</span>
+
+    <span class="k">def</span> <span class="nf">_set_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">st</span><span class="p">:</span><span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Function that turns the channel on or off</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            st (str): accepts as argument &#39;ON&#39; or &#39;OFF&#39;, only in CAPITAL</span>
+<span class="sd">            letters</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            RuntimeError: Function compares reply from instrument and raises</span>
+<span class="sd">            RuntimeError if state setting was not performed sucessfully</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">write_str</span> <span class="o">=</span> <span class="s1">&#39;:</span><span class="si">{}</span><span class="s1">:PWR:RF:&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">channel</span><span class="p">)</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">st</span><span class="p">)</span>
+        <span class="n">read_str</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="n">write_str</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">read_str</span> <span class="o">!=</span> <span class="s1">&#39;RF POWER &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">st</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                         <span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> is not </span><span class="se">\&#39;</span><span class="s1">State Set</span><span class="se">\&#39;</span><span class="s1">. Setting state did not work&#39;</span>
+                         <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">read_str</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_get_f</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Getting the fundamental frequency from the RF source channel</span>
+<span class="sd">        in Hz. Instrument gives frequency as a string in the format</span>
+<span class="sd">        &#39;800.0 MHz&#39;.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            float: frequency in Hz, e.g. 0.8e9</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">raw_str</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s1">&#39;:</span><span class="si">{}</span><span class="s1">:FREQ?&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">channel</span><span class="p">))</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_f_unit</span><span class="p">(</span><span class="n">raw_str</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_set_f</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f</span><span class="p">:</span><span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Function that sets the frequency of a channel.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            f (float): RF source channel fundamental frequency in Hz</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            RuntimeError: Instrument tells us if frequency has been set</span>
+<span class="sd">            correctly.</span>
+<span class="sd">            Otherwise RuntimeError.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">write_str</span> <span class="o">=</span> <span class="s1">&#39;:</span><span class="si">{}</span><span class="s1">:FREQ:&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">channel</span><span class="p">)</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">f</span><span class="o">/</span><span class="mf">1e9</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;GHz&#39;</span>
+        <span class="n">read_str</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="n">write_str</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">read_str</span> <span class="o">!=</span> <span class="s1">&#39;Frequency Set&#39;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                 <span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> is not </span><span class="se">\&#39;</span><span class="s1">Frequency Set</span><span class="se">\&#39;</span><span class="s1">. Setting frequency did not work&#39;</span>
+                 <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">read_str</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_set_pwr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pwr</span><span class="p">:</span><span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Setting the power of the RF source channel in dBm.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            pwr (float): power in dBm</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            RuntimeError: Instrument tells us if frequency has been set</span>
+<span class="sd">            correctly.</span>
+<span class="sd">            Otherwise RuntimeError.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">write_str</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;:</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">channel</span><span class="si">}</span><span class="s1">:PWR:</span><span class="si">{</span><span class="n">pwr</span><span class="si">:</span><span class="s1">.2f</span><span class="si">}</span><span class="s1">dBm&#39;</span>
+        <span class="n">read_str</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="n">write_str</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">read_str</span> <span class="o">!=</span> <span class="sa">f</span><span class="s1">&#39;Power Set to </span><span class="si">{</span><span class="n">pwr</span><span class="si">:</span><span class="s1">.2f</span><span class="si">}</span><span class="s1"> dBm&#39;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                         <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">read_str</span><span class="si">}</span><span class="s1"> is not </span><span class="se">\&#39;</span><span class="s1">Power Set to </span><span class="si">{</span><span class="n">pwr</span><span class="si">:</span><span class="s1">.2f</span><span class="si">}</span><span class="s1"> dBm</span><span class="se">\&#39;</span><span class="s1">. Setting power did not work&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_set_phase</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ph</span><span class="p">:</span><span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Setting the phase in deg.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            ph (float): phase angle in deg</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            RuntimeError: Instrument tells us if phase has been set correctly.</span>
+<span class="sd">            Otherwise RuntimeError.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">write_str</span> <span class="o">=</span> <span class="s1">&#39;:</span><span class="si">{}</span><span class="s1">:PHASE:&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">channel</span><span class="p">)</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">ph</span><span class="p">))</span> <span class="o">+</span> <span class="s1">&#39;deg&#39;</span>
+        <span class="n">read_str</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="n">write_str</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">read_str</span> <span class="o">!=</span> <span class="s1">&#39;Phase Set&#39;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                         <span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> is not </span><span class="se">\&#39;</span><span class="s1">Phase Set</span><span class="se">\&#39;</span><span class="s1">. Setting phase did not work&#39;</span>
+                         <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">read_str</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_get_temp</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Getting the temperature of a channel input/output in deg Celsius.</span>
+<span class="sd">        Instrument returns string in the form &#39;Temp = 54C&#39;</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            float: Temperature in C, e.g. 54</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">raw_str</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s1">&#39;:</span><span class="si">{}</span><span class="s1">:TEMP?&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">channel</span><span class="p">))</span>
+        <span class="n">T</span> <span class="o">=</span> <span class="n">raw_str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">][:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">T</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="HS9008B">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Holzworth.html#qcodes_contrib_drivers.drivers.Holzworth.HS9008B.HS9008B">[docs]</a>
+<span class="k">class</span> <span class="nc">HS9008B</span><span class="p">(</span><span class="n">VisaInstrument</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    QCoDeS driver for the Holzworth HS9008B RF synthesizer.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="HS9008B.__init__">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Holzworth.html#qcodes_contrib_drivers.drivers.Holzworth.HS9008B.HS9008B.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">address</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            name: Name to use internally in QCoDeS</span>
+<span class="sd">            address: VISA ressource address</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">address</span><span class="p">,</span> <span class="n">terminator</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;channel_names&#39;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Channels&#39;</span><span class="p">,</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_channels</span><span class="p">)</span> <span class="c1"># No of ports</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;ref&#39;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Reference&#39;</span><span class="p">,</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;:REF:STATUS?&#39;</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_ref</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">Enum</span><span class="p">(</span><span class="s1">&#39;ext10&#39;</span><span class="p">,</span> <span class="s1">&#39;ext100&#39;</span><span class="p">,</span> <span class="s1">&#39;int100&#39;</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;ref_locked&#39;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Clock Locked&#39;</span><span class="p">,</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_ref_locked</span><span class="p">)</span>
+
+        <span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">IDN</span><span class="p">()[</span><span class="s1">&#39;model&#39;</span><span class="p">]</span>
+        <span class="n">knownmodels</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;HS9008B&#39;</span><span class="p">]</span>
+        <span class="c1"># Driver was tested with &#39;HS9008B&#39;.</span>
+        <span class="k">if</span> <span class="n">model</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">knownmodels</span><span class="p">:</span>
+            <span class="n">kmstring</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">, &#39;</span><span class="o">*</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">knownmodels</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="n">knownmodels</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">kmstring</span> <span class="o">+=</span> <span class="s1">&#39;and </span><span class="si">{}</span><span class="s1">.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">knownmodels</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;This model </span><span class="si">{}</span><span class="s1"> is unknown and might not be&#39;</span>
+                          <span class="s1">&#39;compatible with the driver. Known models&#39;</span>
+                          <span class="s1">&#39;are: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">kmstring</span><span class="p">))</span>
+
+        <span class="c1"># Add the channel to the instrument</span>
+        <span class="n">channels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask_raw</span><span class="p">(</span><span class="s1">&#39;:ATTACH?&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)[</span><span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">ch_name</span> <span class="ow">in</span> <span class="n">channels</span><span class="p">:</span>
+            <span class="n">channel</span> <span class="o">=</span> <span class="n">HS9008BChannel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ch_name</span><span class="p">,</span> <span class="n">ch_name</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_submodule</span><span class="p">(</span><span class="n">ch_name</span><span class="p">,</span> <span class="n">channel</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect_message</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="HS9008B.set_address">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Holzworth.html#qcodes_contrib_drivers.drivers.Holzworth.HS9008B.HS9008B.set_address">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_address</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">address</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the address for this instrument.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            address: The visa resource name to use to connect. The address</span>
+<span class="sd">                should be the actual address and just that. If you wish to</span>
+<span class="sd">                change the backend for VISA, use the self.visalib attribute</span>
+<span class="sd">                (and then call this function).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># in case we&#39;re changing the address - close the old handle first</span>
+        <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;visa_handle&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">visa_handle</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">visalib</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">visa_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Opening PyVISA Resource Manager with visalib:&#39;</span>
+                          <span class="s1">&#39; </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">visalib</span><span class="p">))</span>
+            <span class="n">resource_manager</span> <span class="o">=</span> <span class="n">visa</span><span class="o">.</span><span class="n">ResourceManager</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">visalib</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">visabackend</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">visalib</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;@&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">visa_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Opening PyVISA Resource Manager with default&#39;</span>
+                          <span class="s1">&#39; backend.&#39;</span><span class="p">)</span>
+            <span class="n">resource_manager</span> <span class="o">=</span> <span class="n">visa</span><span class="o">.</span><span class="n">ResourceManager</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">visabackend</span> <span class="o">=</span> <span class="s1">&#39;ni&#39;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">visa_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Opening PyVISA resource at address: </span><span class="si">{</span><span class="n">address</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">resource</span> <span class="o">=</span> <span class="n">resource_manager</span><span class="o">.</span><span class="n">open_resource</span><span class="p">(</span><span class="n">address</span><span class="p">,</span> <span class="n">send_end</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">resource</span><span class="p">,</span> <span class="n">visa</span><span class="o">.</span><span class="n">resources</span><span class="o">.</span><span class="n">MessageBasedResource</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;QCoDeS only support MessageBasedResource &quot;</span>
+                            <span class="s2">&quot;Visa resources&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">visa_handle</span> <span class="o">=</span> <span class="n">resource</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_address</span> <span class="o">=</span> <span class="n">address</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_get_channels</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Getting the available channel names. Instrument returns string</span>
+<span class="sd">        in the form :REF:CH1:CH2:&#39;</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            list: list with available channel names, e.g. [&#39;CH1&#39;, &#39;CH2&#39;]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">raw_str</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s1">&#39;:ATTACH?&#39;</span><span class="p">)</span>
+        <span class="n">channels</span> <span class="o">=</span> <span class="n">raw_str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)[</span><span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">channels</span>
+
+    <span class="k">def</span> <span class="nf">_set_ref</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f_ref_str</span><span class="p">:</span><span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Function that sets clock reference</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            f_ref_str (str): accepts as argument ext10, ext100 and int100,</span>
+<span class="sd">                             for internal and external reference with a clock</span>
+<span class="sd">                             reference frequency of 10 or 100 MHz</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            RuntimeError: Function compares reply from instrument and raises</span>
+<span class="sd">                          RuntimeError if reference setting was not performed</span>
+<span class="sd">                          sucessfully</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">location</span> <span class="o">=</span> <span class="n">f_ref_str</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span>
+        <span class="n">f_ref</span> <span class="o">=</span> <span class="n">f_ref_str</span><span class="p">[</span><span class="mi">3</span><span class="p">:]</span>
+        <span class="n">write_str</span> <span class="o">=</span> <span class="s1">&#39;:REF:</span><span class="si">{}</span><span class="s1">:</span><span class="si">{}</span><span class="s1">MHz&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">location</span><span class="o">.</span><span class="n">swapcase</span><span class="p">(),</span> <span class="nb">str</span><span class="p">(</span><span class="n">f_ref</span><span class="p">))</span>
+        <span class="n">read_str</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="n">write_str</span><span class="p">)</span>
+        <span class="n">PLL</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;ext10&#39;</span><span class="p">:</span><span class="s1">&#39;PLL Enabled&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;ext100&#39;</span><span class="p">:</span><span class="s1">&#39;PLL Enabled&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;int100&#39;</span><span class="p">:</span><span class="s1">&#39;PLL Disabled&#39;</span>
+               <span class="p">}</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="s1">&#39;Reference Set to </span><span class="si">{}</span><span class="s1">MHz </span><span class="si">{}</span><span class="s1">ernal, </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">f_ref</span><span class="p">),</span>
+                                                                <span class="n">location</span><span class="o">.</span><span class="n">capitalize</span><span class="p">(),</span>
+                                                                <span class="n">PLL</span><span class="p">[</span><span class="n">f_ref_str</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">read_str</span> <span class="o">!=</span> <span class="n">response</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="s1">&#39;</span><span class="se">\&#39;</span><span class="si">{}</span><span class="se">\&#39;</span><span class="s1"> is not </span><span class="se">\&#39;</span><span class="s1">Reference Set to </span><span class="si">{}</span><span class="s1">MHz </span><span class="si">{}</span><span class="s1">ernal, </span><span class="si">{}</span><span class="se">\&#39;</span><span class="s1">.&#39;</span>\
+                <span class="s1">&#39;Setting reference did not work.&#39;</span>
+                <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">read_str</span><span class="p">,</span>
+                        <span class="nb">str</span><span class="p">(</span><span class="n">f_ref</span><span class="p">),</span>
+                        <span class="n">location</span><span class="o">.</span><span class="n">capitalize</span><span class="p">(),</span>
+                        <span class="n">PLL</span><span class="p">[</span><span class="n">f_ref_str</span><span class="p">]))</span>
+
+    <span class="k">def</span> <span class="nf">_get_ref_locked</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Function that checks whether the Holzworth is locked through a PLL</span>
+<span class="sd">        with an external reference</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            bool: True if properly locked via the phase locked loop (PLL),</span>
+<span class="sd">            False if not.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">locked</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">read_str</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s1">&#39;:REF:PLL?&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">read_str</span> <span class="o">==</span> <span class="s1">&#39;1 PLL Locked, 0 errors&#39;</span><span class="p">:</span>
+            <span class="n">locked</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="n">locked</span></div>
+
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, QCoDeS Users.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

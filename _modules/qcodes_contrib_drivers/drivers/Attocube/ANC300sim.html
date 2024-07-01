@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>qcodes_contrib_drivers.drivers.Attocube.ANC300sim &mdash; qcodes_contrib_drivers 0.23.0.dev14+main.g6d96817 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../_static/documentation_options.js?v=7415f6af"></script>
+        <script src="../../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            qcodes_contrib_drivers
+          </a>
+              <div class="version">
+                0.23.0.dev14+main.g6d96817
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples/index.html">Examples of how to use drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/generated/qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">qcodes_contrib_drivers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">qcodes_contrib_drivers.drivers.Attocube.ANC300sim</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for qcodes_contrib_drivers.drivers.Attocube.ANC300sim</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;QCoDeS- Simulation for the Attocube ANC300 controller.</span>
+
+<span class="sd">Simulation for the Attocube ANC300 driver in the same way as it is used in our lab.</span>
+
+<span class="sd">Author:</span>
+<span class="sd">    Michael Wagener, FZJ / ZEA-2, m.wagener@fz-juelich.de</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">pyvisa</span>
+<span class="kn">from</span> <span class="nn">qcodes.instrument</span> <span class="kn">import</span> <span class="n">VisaInstrument</span>
+
+<span class="c1"># if set to True, every communication line is printed</span>
+<span class="n">_USE_DEBUG</span> <span class="o">=</span> <span class="kc">True</span>
+
+<span class="c1"># The ANC300 script implies an echo from the device</span>
+<span class="c1"># The AttocubeController script implies no echo!!!!</span>
+<span class="n">_USE_ECHO</span> <span class="o">=</span> <span class="kc">True</span>
+
+
+
+<div class="viewcode-block" id="MockVisa">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.html#qcodes_contrib_drivers.drivers.Attocube.ANC300sim.MockVisa">[docs]</a>
+<span class="k">class</span> <span class="nc">MockVisa</span><span class="p">(</span><span class="n">VisaInstrument</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<div class="viewcode-block" id="MockVisa.set_address">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.html#qcodes_contrib_drivers.drivers.Attocube.ANC300sim.MockVisa.set_address">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_address</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">address</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">visa_handle</span> <span class="o">=</span> <span class="n">MockVisaHandle</span><span class="p">()</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="MockVisaHandle">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.html#qcodes_contrib_drivers.drivers.Attocube.ANC300sim.MockVisaHandle">[docs]</a>
+<span class="k">class</span> <span class="nc">MockVisaHandle</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Simulate the API needed for the communication.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># List of possible commands asked the instrument to give a realistic answer.</span>
+    <span class="n">cmddef</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;ver&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;attocube ANC300 controller version 1.1.0-1304 2013-10-17 08:16&#39;</span><span class="p">,</span>
+                      <span class="s1">&#39;ANC150 compatibillity console&#39;</span><span class="p">],</span>
+              <span class="s1">&#39;getcser&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="s1">&#39;ANC300B-C-1514-3006076&#39;</span><span class="p">],</span>
+              <span class="s1">&#39;getser 1&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;ANM150A-M-1545-3010045&#39;</span><span class="p">],</span>
+              <span class="s1">&#39;getser 2&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;ANM150A-M-1545-3010041&#39;</span><span class="p">],</span>
+              <span class="s1">&#39;getser 3&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;Wrong axis type&#39;</span><span class="p">,</span><span class="s1">&#39;ERROR&#39;</span><span class="p">],</span>
+              <span class="s1">&#39;getser 4&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;Wrong axis type&#39;</span><span class="p">,</span><span class="s1">&#39;ERROR&#39;</span><span class="p">],</span>
+              <span class="s1">&#39;getser 5&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;Wrong axis type&#39;</span><span class="p">,</span><span class="s1">&#39;ERROR&#39;</span><span class="p">],</span>
+              <span class="s1">&#39;getser 6&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;Wrong axis type&#39;</span><span class="p">,</span><span class="s1">&#39;ERROR&#39;</span><span class="p">],</span>
+              <span class="s1">&#39;getser 7&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;Wrong axis type&#39;</span><span class="p">,</span><span class="s1">&#39;ERROR&#39;</span><span class="p">],</span>
+
+              <span class="s1">&#39;getf 1&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;frequency = 210 Hz&#39;</span><span class="p">],</span>
+              <span class="s1">&#39;getf 2&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;frequency = 210 Hz&#39;</span><span class="p">],</span>
+              <span class="s1">&#39;getf 3&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;Wrong axis type&#39;</span><span class="p">,</span><span class="s1">&#39;ERROR&#39;</span><span class="p">],</span>
+              <span class="s1">&#39;getf 4&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;Wrong axis type&#39;</span><span class="p">,</span><span class="s1">&#39;ERROR&#39;</span><span class="p">],</span>
+              <span class="s1">&#39;getf 5&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;Wrong axis type&#39;</span><span class="p">,</span><span class="s1">&#39;ERROR&#39;</span><span class="p">],</span>
+              <span class="s1">&#39;getf 6&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;Wrong axis type&#39;</span><span class="p">,</span><span class="s1">&#39;ERROR&#39;</span><span class="p">],</span>
+              <span class="s1">&#39;getf 7&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;Wrong axis type&#39;</span><span class="p">,</span><span class="s1">&#39;ERROR&#39;</span><span class="p">],</span>
+
+              <span class="s1">&#39;getv 1&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;voltage = 20.000000 V&#39;</span><span class="p">],</span>
+              <span class="s1">&#39;getv 2&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;voltage = 20.000000 V&#39;</span><span class="p">],</span>
+              <span class="s1">&#39;getv 3&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;Wrong axis type&#39;</span><span class="p">,</span><span class="s1">&#39;ERROR&#39;</span><span class="p">],</span>
+              <span class="s1">&#39;getv 4&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;Wrong axis type&#39;</span><span class="p">,</span><span class="s1">&#39;ERROR&#39;</span><span class="p">],</span>
+              <span class="s1">&#39;getv 5&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;Wrong axis type&#39;</span><span class="p">,</span><span class="s1">&#39;ERROR&#39;</span><span class="p">],</span>
+              <span class="s1">&#39;getv 6&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;Wrong axis type&#39;</span><span class="p">,</span><span class="s1">&#39;ERROR&#39;</span><span class="p">],</span>
+              <span class="s1">&#39;getv 7&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;Wrong axis type&#39;</span><span class="p">,</span><span class="s1">&#39;ERROR&#39;</span><span class="p">],</span>
+
+              <span class="s1">&#39;geta 1&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;voltage = 0.000000 V&#39;</span><span class="p">],</span>
+              <span class="s1">&#39;geta 2&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;voltage = 0.000000 V&#39;</span><span class="p">],</span>
+              <span class="s1">&#39;geta 3&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;Wrong axis type&#39;</span><span class="p">,</span><span class="s1">&#39;ERROR&#39;</span><span class="p">],</span>
+              <span class="s1">&#39;geta 4&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;Wrong axis type&#39;</span><span class="p">,</span><span class="s1">&#39;ERROR&#39;</span><span class="p">],</span>
+              <span class="s1">&#39;geta 5&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;Wrong axis type&#39;</span><span class="p">,</span><span class="s1">&#39;ERROR&#39;</span><span class="p">],</span>
+              <span class="s1">&#39;geta 6&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;Wrong axis type&#39;</span><span class="p">,</span><span class="s1">&#39;ERROR&#39;</span><span class="p">],</span>
+              <span class="s1">&#39;geta 7&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;Wrong axis type&#39;</span><span class="p">,</span><span class="s1">&#39;ERROR&#39;</span><span class="p">],</span>
+
+              <span class="s1">&#39;getm 1&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;mode = gnd&#39;</span><span class="p">],</span>
+              <span class="s1">&#39;getm 2&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;mode = gnd&#39;</span><span class="p">],</span>
+              <span class="s1">&#39;getm 3&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;Wrong axis type&#39;</span><span class="p">,</span><span class="s1">&#39;ERROR&#39;</span><span class="p">],</span>
+              <span class="s1">&#39;getm 4&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;Wrong axis type&#39;</span><span class="p">,</span><span class="s1">&#39;ERROR&#39;</span><span class="p">],</span>
+              <span class="s1">&#39;getm 5&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;Wrong axis type&#39;</span><span class="p">,</span><span class="s1">&#39;ERROR&#39;</span><span class="p">],</span>
+              <span class="s1">&#39;getm 6&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;Wrong axis type&#39;</span><span class="p">,</span><span class="s1">&#39;ERROR&#39;</span><span class="p">],</span>
+              <span class="s1">&#39;getm 7&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;Wrong axis type&#39;</span><span class="p">,</span><span class="s1">&#39;ERROR&#39;</span><span class="p">],</span>
+
+              <span class="s1">&#39;getaci 1&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;acin = off&#39;</span><span class="p">],</span>
+              <span class="s1">&#39;getaci 2&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;acin = off&#39;</span><span class="p">],</span>
+              <span class="s1">&#39;getaci 3&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;Wrong axis type&#39;</span><span class="p">,</span><span class="s1">&#39;ERROR&#39;</span><span class="p">],</span>
+              <span class="s1">&#39;getaci 4&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;Wrong axis type&#39;</span><span class="p">,</span><span class="s1">&#39;ERROR&#39;</span><span class="p">],</span>
+              <span class="s1">&#39;getaci 5&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;Wrong axis type&#39;</span><span class="p">,</span><span class="s1">&#39;ERROR&#39;</span><span class="p">],</span>
+              <span class="s1">&#39;getaci 6&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;Wrong axis type&#39;</span><span class="p">,</span><span class="s1">&#39;ERROR&#39;</span><span class="p">],</span>
+              <span class="s1">&#39;getaci 7&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;Wrong axis type&#39;</span><span class="p">,</span><span class="s1">&#39;ERROR&#39;</span><span class="p">],</span>
+
+              <span class="s1">&#39;getdci 1&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;dcin = off&#39;</span><span class="p">],</span>
+              <span class="s1">&#39;getdci 2&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;dcin = off&#39;</span><span class="p">],</span>
+              <span class="s1">&#39;getdci 3&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;Wrong axis type&#39;</span><span class="p">,</span><span class="s1">&#39;ERROR&#39;</span><span class="p">],</span>
+              <span class="s1">&#39;getdci 4&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;Wrong axis type&#39;</span><span class="p">,</span><span class="s1">&#39;ERROR&#39;</span><span class="p">],</span>
+              <span class="s1">&#39;getdci 5&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;Wrong axis type&#39;</span><span class="p">,</span><span class="s1">&#39;ERROR&#39;</span><span class="p">],</span>
+              <span class="s1">&#39;getdci 6&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;Wrong axis type&#39;</span><span class="p">,</span><span class="s1">&#39;ERROR&#39;</span><span class="p">],</span>
+              <span class="s1">&#39;getdci 7&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;Wrong axis type&#39;</span><span class="p">,</span><span class="s1">&#39;ERROR&#39;</span><span class="p">],</span>
+
+              <span class="s1">&#39;gettu 1&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;trigger = off&#39;</span><span class="p">],</span>
+              <span class="s1">&#39;gettu 2&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;trigger = 2&#39;</span><span class="p">],</span>
+              <span class="s1">&#39;gettu 3&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;Wrong axis type&#39;</span><span class="p">,</span><span class="s1">&#39;ERROR&#39;</span><span class="p">],</span>
+              <span class="s1">&#39;gettu 4&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;Wrong axis type&#39;</span><span class="p">,</span><span class="s1">&#39;ERROR&#39;</span><span class="p">],</span>
+              <span class="s1">&#39;gettu 5&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;Wrong axis type&#39;</span><span class="p">,</span><span class="s1">&#39;ERROR&#39;</span><span class="p">],</span>
+              <span class="s1">&#39;gettu 6&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;Wrong axis type&#39;</span><span class="p">,</span><span class="s1">&#39;ERROR&#39;</span><span class="p">],</span>
+              <span class="s1">&#39;gettu 7&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;Wrong axis type&#39;</span><span class="p">,</span><span class="s1">&#39;ERROR&#39;</span><span class="p">],</span>
+
+              <span class="s1">&#39;gettd 1&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;trigger = 1&#39;</span><span class="p">],</span>
+              <span class="s1">&#39;gettd 2&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;trigger = 3&#39;</span><span class="p">],</span>
+              <span class="s1">&#39;gettd 3&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;Wrong axis type&#39;</span><span class="p">,</span><span class="s1">&#39;ERROR&#39;</span><span class="p">],</span>
+              <span class="s1">&#39;gettd 4&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;Wrong axis type&#39;</span><span class="p">,</span><span class="s1">&#39;ERROR&#39;</span><span class="p">],</span>
+              <span class="s1">&#39;gettd 5&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;Wrong axis type&#39;</span><span class="p">,</span><span class="s1">&#39;ERROR&#39;</span><span class="p">],</span>
+              <span class="s1">&#39;gettd 6&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;Wrong axis type&#39;</span><span class="p">,</span><span class="s1">&#39;ERROR&#39;</span><span class="p">],</span>
+              <span class="s1">&#39;gettd 7&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;Wrong axis type&#39;</span><span class="p">,</span><span class="s1">&#39;ERROR&#39;</span><span class="p">],</span>
+
+              <span class="s1">&#39;getc 1&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="s1">&#39;cap = 5 nF&#39;</span><span class="p">],</span> <span class="c1"># TODO</span>
+              <span class="s1">&#39;getc 2&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="s1">&#39;cap = 5 nF&#39;</span><span class="p">],</span> <span class="c1"># TODO</span>
+              <span class="s1">&#39;getc 3&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="s1">&#39;Wrong axis type&#39;</span><span class="p">,</span><span class="s1">&#39;ERROR&#39;</span><span class="p">],</span>
+              <span class="s1">&#39;getc 4&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="s1">&#39;Wrong axis type&#39;</span><span class="p">,</span><span class="s1">&#39;ERROR&#39;</span><span class="p">],</span>
+              <span class="s1">&#39;getc 5&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="s1">&#39;Wrong axis type&#39;</span><span class="p">,</span><span class="s1">&#39;ERROR&#39;</span><span class="p">],</span>
+              <span class="s1">&#39;getc 6&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="s1">&#39;Wrong axis type&#39;</span><span class="p">,</span><span class="s1">&#39;ERROR&#39;</span><span class="p">],</span>
+              <span class="s1">&#39;getc 7&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="s1">&#39;Wrong axis type&#39;</span><span class="p">,</span><span class="s1">&#39;ERROR&#39;</span><span class="p">],</span>
+
+              <span class="s1">&#39;stepu 1&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;0&#39;</span><span class="p">],</span>
+              <span class="s1">&#39;stepu 2&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;0&#39;</span><span class="p">],</span>
+              <span class="s1">&#39;stepd 1&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;0&#39;</span><span class="p">],</span>
+              <span class="s1">&#39;stepd 2&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;0&#39;</span><span class="p">],</span>
+              <span class="c1"># There is no simulation for the correct movement</span>
+
+              <span class="p">}</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">_USE_DEBUG</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DBG-Mock: init&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">closed</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">answer</span> <span class="o">=</span> <span class="p">[]</span>
+
+<div class="viewcode-block" id="MockVisaHandle.clear">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.html#qcodes_contrib_drivers.drivers.Attocube.ANC300sim.MockVisaHandle.clear">[docs]</a>
+    <span class="k">def</span> <span class="nf">clear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">_USE_DEBUG</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DBG-Mock: clear&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">answer</span> <span class="o">=</span> <span class="p">[]</span></div>
+
+
+<div class="viewcode-block" id="MockVisaHandle.close">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.html#qcodes_contrib_drivers.drivers.Attocube.ANC300sim.MockVisaHandle.close">[docs]</a>
+    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># make it an error to ask or write after close</span>
+        <span class="k">if</span> <span class="n">_USE_DEBUG</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DBG-Mock: close&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">closed</span> <span class="o">=</span> <span class="kc">True</span></div>
+
+
+<div class="viewcode-block" id="MockVisaHandle.write">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.html#qcodes_contrib_drivers.drivers.Attocube.ANC300sim.MockVisaHandle.write">[docs]</a>
+    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Writes data to device or interface synchronously.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">closed</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Trying to write to a closed instrument&quot;</span><span class="p">)</span>
+        <span class="n">cmd</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">_USE_DEBUG</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DBG-Mock: write&quot;</span><span class="p">,</span> <span class="n">cmd</span><span class="p">)</span>
+        <span class="c1"># setxx &lt;axis&gt; &lt;val&gt; --&gt; &lt;kenn&gt; = &lt;val&gt; &lt;unit&gt;</span>
+        <span class="c1"># getxx &lt;axis&gt; &lt;val&gt; --&gt; &lt;kenn&gt; = &lt;val&gt; &lt;unit&gt;</span>
+        <span class="k">if</span> <span class="n">cmd</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;set&#39;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">_USE_ECHO</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">answer</span> <span class="o">=</span> <span class="p">[</span> <span class="n">cmd</span><span class="p">,</span> <span class="s1">&#39;OK&#39;</span> <span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">answer</span> <span class="o">=</span> <span class="p">[</span> <span class="s1">&#39;OK&#39;</span> <span class="p">]</span>
+            <span class="n">tmp</span> <span class="o">=</span> <span class="n">cmd</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+            <span class="n">cmd</span> <span class="o">=</span> <span class="n">tmp</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;set&#39;</span><span class="p">,</span><span class="s1">&#39;get&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="n">tmp</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">cmd</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cmddef</span><span class="p">:</span>
+                <span class="n">val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cmddef</span><span class="p">[</span><span class="n">cmd</span><span class="p">]</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">val</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="p">):</span>
+                    <span class="n">val</span> <span class="o">=</span> <span class="n">val</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">val</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="n">val</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; = &#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">unit</span> <span class="o">=</span> <span class="n">val</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">unit</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">unit</span> <span class="o">=</span> <span class="n">unit</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">unit</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+                <span class="n">setval</span> <span class="o">=</span> <span class="p">[</span> <span class="n">val</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="s1">&#39; = &#39;</span><span class="o">+</span><span class="n">tmp</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">+</span><span class="s1">&#39; &#39;</span><span class="o">+</span><span class="n">unit</span> <span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">cmddef</span><span class="o">.</span><span class="n">update</span><span class="p">(</span> <span class="p">{</span><span class="n">cmd</span><span class="p">:</span> <span class="n">setval</span><span class="p">}</span> <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">cmddef</span><span class="o">.</span><span class="n">update</span><span class="p">(</span> <span class="p">{</span><span class="n">cmd</span><span class="p">:</span> <span class="n">tmp</span><span class="p">[</span><span class="mi">2</span><span class="p">]}</span> <span class="p">)</span>
+        <span class="k">elif</span> <span class="n">cmd</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cmddef</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">_USE_ECHO</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">answer</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cmddef</span><span class="p">[</span><span class="n">cmd</span><span class="p">]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">answer</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">answer</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;ERROR&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">answer</span><span class="o">.</span><span class="n">append</span><span class="p">(</span> <span class="s1">&#39;OK&#39;</span> <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">_USE_ECHO</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">answer</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">answer</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;OK&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">cmd</span><span class="p">),</span> <span class="n">pyvisa</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">StatusCode</span><span class="o">.</span><span class="n">success</span></div>
+
+
+<div class="viewcode-block" id="MockVisaHandle.read">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.html#qcodes_contrib_drivers.drivers.Attocube.ANC300sim.MockVisaHandle.read">[docs]</a>
+    <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Reads data from device or interface synchronously.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">closed</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Trying to read from a closed instrument&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">_USE_DEBUG</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DBG-Mock: read&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">answer</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">answer</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">answer</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s1">&#39;ERROR&#39;</span></div>
+
+
+<div class="viewcode-block" id="MockVisaHandle.ask">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.html#qcodes_contrib_drivers.drivers.Attocube.ANC300sim.MockVisaHandle.ask">[docs]</a>
+    <span class="k">def</span> <span class="nf">ask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmd</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DBG-Mock: MockVisaHandle ask&quot;</span><span class="p">,</span> <span class="n">cmd</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">closed</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Trying to ask a closed instrument&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">read</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="MockVisaHandle.query">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.html#qcodes_contrib_drivers.drivers.Attocube.ANC300sim.MockVisaHandle.query">[docs]</a>
+    <span class="k">def</span> <span class="nf">query</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmd</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">read</span><span class="p">()</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, QCoDeS Users.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

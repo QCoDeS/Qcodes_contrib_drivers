@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Changing the Sensitivity &mdash; qcodes_contrib_drivers 0.23.0.dev14+main.g6d96817 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/documentation_options.js?v=7415f6af"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+        <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Qcodes example with Shamrock SR750" href="Shamrock_SR750.html" />
+    <link rel="prev" title="QCoDeS example with Rohe&amp;Schwarz SMW200A" href="Rohde_Schwarz_SMW200A.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            qcodes_contrib_drivers
+          </a>
+              <div class="version">
+                0.23.0.dev14+main.g6d96817
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Examples of how to use drivers</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Agilent_N9000A.html">Example with the Agilent N9000A</a></li>
+<li class="toctree-l2"><a class="reference internal" href="AimTTi_EL320P.html">Example notebook for AimTTi EL320P</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Andor_DU401.html">Qcodes example with Andor DU401 BU2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Attocube_ANC300.html">QCoDeS example with Attocube ANC300</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Aviosys_IP_Power_9258S.html">Qcodes example with Aviosys IP Power 9258S</a></li>
+<li class="toctree-l2"><a class="reference internal" href="BlueFors.html">Example with the BlueFors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CopperMountain_M5180.html">Example with CopperMountain Model M5180 vector network analyzer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CopperMountain_M5180.html#Setup-db-and-station-for-test-measurerment">Setup db and station for test measurerment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CopperMountain_M5180.html#Look-at-the-names-and-the-labels-of-the-Sxx-parameters">Look at the names and the labels of the Sxx parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ERASynth.html">Example with ERASynth</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Gentec_Maestro.html">QCoDeS Example with Gentec Maestro</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Holzworth_HS900.html">Example notebook for the Holzworth HS900B RF synthesizer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Horiba_FHR.html">Example for Horiba FHR</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ITest.html">Example with the iTest from Bilt</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Keithley_6430.html">Example notebook for Keithley 6430 SMU</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Keithley_6430.html#Measure-resistance-of-a-~100k\Omega-resistor">Measure resistance of a ~100k<span class="math notranslate nohighlight">\(\Omega\)</span> resistor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Keysight_M3202A.html">Keysight M3202A AWG</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Keysight_M3202A%20with%20digitizer.html">Keysight M3202A AWG example with digitizer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Lakeshore_311.html">Qcodes example with Lakeshore 311</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Lakeshore_625.html">Example with Lakeshore Model 625 Superconducting Magnet power supply</a></li>
+<li class="toctree-l2"><a class="reference internal" href="NationalInstruments_DAQ.html">National Instruments Multifunction DAQ example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="NationalInstruments_PXIe_2597.html">Qcodes example for National Instruments PXIe-2597 RF Switch</a></li>
+<li class="toctree-l2"><a class="reference internal" href="NationalInstruments_RFSG.html">Qcodes example with the NI RFSG signal generator driver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Newport_AG-UC8.html">QCoDeS Example with Newport AG-UC8 Piezo Motion Controller</a></li>
+<li class="toctree-l2"><a class="reference internal" href="OxfordTriton.html">Example of the oxford triton driver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Rohde_Schwarz_HMC8043.html">QCoDeS Example with R&amp;S HMC 8043 Power Supply</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Rohde_Schwarz_HMP4040.html">QCoDeS Example with R&amp;S HMP4040 Power Supply</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Rohde_Schwarz_SMW200A.html">QCoDeS example with Rohe&amp;Schwarz SMW200A</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Changing the Sensitivity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Preparing-for-reading-the-buffer-and-measurement">Preparing for reading the buffer and measurement</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#Measurements-using-trigger">Measurements using trigger</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Non-buffer-measurements">Non-buffer measurements</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Shamrock_SR750.html">Qcodes example with Shamrock SR750</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SignalCore.html">Example with the microwave source SC5521A from Signal Core</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SignalCore.html#Device-connection">Device connection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SignalCore.html#Set-parameters">Set parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SignalRecovery_7270.html">Example of Signal Recovery 7270 driver usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SingleQuantum.html">Example for Single Quantum SNSPD</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Standa_10MWA168.html">Qcodes example with Standa 10MWA168</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Tektronix_AFG3000_series.html">Tektronix AFG3000 series arbitrary function generator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Tektronix_FCA3100.html">overview over all parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Tektronix_FCA3100.html#Usage-of-the-two-main-parameters">Usage of the two main parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Tektronix_Keithley_6500.html">QCoDeS Example with Tektronix Keithley Digital Multimeter DMM6500</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Thorlabs_K10CR1.html">Qcodes example with Thorlabs K10CR1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Thorlabs_KLS1550.html">QCoDeS example with Thorlabs KLS1550 laser source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Thorlabs_MFF10x.html">Qcodes example with Thorlabs MFF10x</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Thorlabs_PRM1Z8.html">Qcodes example with Thorlabs PRM1Z8</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Valon_5015.html">QCoDeS example with Valon 5015</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Vaunix_LDA.html">Qcodes example for Vaunix LDA step attenuator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Vaunix_LDA.html#Model-with-many-channels">Model with many channels</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ZVL13.html">Rohde &amp; Schwarz ZVL13 Vector Network Analyzer example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ZVL13.html#Parameters-definition">Parameters definition</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ZurichInstruments_HF2LI.html">Zurich Instruments HF2LI example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="QDevil/index.html">QDevil drivers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HP/HP8594E.html">QCoDeS Example with HP8594E</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../api/generated/qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">qcodes_contrib_drivers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Examples of how to use drivers</a></li>
+      <li class="breadcrumb-item active">Changing the Sensitivity</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/examples/SR844.ipynb.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Standford Research SR844 example</span>
+<span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">sleep</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">qcodes.dataset</span> <span class="kn">import</span> <span class="n">do0d</span><span class="p">,</span> <span class="n">do1d</span><span class="p">,</span> <span class="n">do2d</span><span class="p">,</span> <span class="n">load_or_create_experiment</span>
+<span class="kn">from</span> <span class="nn">qcodes.instrument.parameter</span> <span class="kn">import</span> <span class="n">ParameterWithSetpoints</span>
+<span class="kn">from</span> <span class="nn">qcodes.utils</span> <span class="kn">import</span> <span class="n">validators</span>
+<span class="kn">from</span> <span class="nn">qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844</span> <span class="kn">import</span> <span class="n">SR844</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">lockin1</span> <span class="o">=</span> <span class="n">SR844</span><span class="p">(</span><span class="s1">&#39;lockin&#39;</span><span class="p">,</span> <span class="s1">&#39;GPIB0::3::INSTR&#39;</span><span class="p">)</span>
+<span class="n">exp</span> <span class="o">=</span> <span class="n">load_or_create_experiment</span><span class="p">(</span><span class="n">experiment_name</span><span class="o">=</span><span class="s1">&#39;SR844_notebook__&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Connected to: Stanford_Research_Systems SR844 (serial:s/n49388, firmware:ver1.006) in 0.79s
+</pre></div></div>
+</div>
+<p>Let’s quickly look at the status of the instrument after connecting to it:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">lockin1</span><span class="o">.</span><span class="n">print_readable_snapshot</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+lockin:
+        parameter       value
+--------------------------------------------------------------------------------
+IDN              :      {&#39;vendor&#39;: &#39;Stanford_Research_Systems&#39;, &#39;model&#39;: &#39;SR844&#39;, ...
+R_V              :      None (V)
+R_V_offset       :      None (% of full scale)
+R_dBm            :      None (dBm)
+R_dBm_offset     :      None (% of 200 dBm scale)
+X                :      None (V)
+X_offset         :      None (% of full scale)
+Y                :      None (V)
+Y_offset         :      None (% of full scale)
+aux_in1          :      None (V)
+aux_in2          :      None (V)
+aux_out1         :      None (V)
+aux_out2         :      None (V)
+buffer_SR        :      Trigger (Hz)
+buffer_acq_mode  :      None
+buffer_npts      :      None
+buffer_trig_mode :      None
+ch1              :      None (V)
+ch1_datatrace    :      Not available (V)
+ch1_display      :      R_V
+ch2              :      None (V)
+ch2_datatrace    :      Not available (deg)
+ch2_display      :      Phase
+complex_voltage  :      None (V)
+filter_slope     :      None (dB/oct)
+frequency        :      None (Hz)
+harmonic         :      None
+input_impedance  :      None
+output_interface :      None
+phase            :      None (deg)
+phase_offset     :      None (deg)
+ratio_mode       :      none
+reference_source :      None
+reserve          :      None
+sensitivity      :      None
+sweep_setpoints  :      None
+time_constant    :      None (s)
+timeout          :      5 (s)
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">lockin1</span><span class="o">.</span><span class="n">complex_voltage</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+(0.00901563+0.0074385j)
+</pre></div></div>
+</div>
+<p>In fact, a method name <code class="docutils literal notranslate"><span class="pre">snap</span></code> is available on the SR844 lockin which allows the user to read 2 to 6 parameters simultaneously out of the following.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pprint</span> <span class="kn">import</span> <span class="n">pprint</span>
+
+<span class="n">pprint</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">lockin1</span><span class="o">.</span><span class="n">SNAP_PARAMETERS</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+[&#39;x&#39;,
+ &#39;y&#39;,
+ &#39;r_v&#39;,
+ &#39;r_dbm&#39;,
+ &#39;p&#39;,
+ &#39;phase&#39;,
+ &#39;θ&#39;,
+ &#39;aux1&#39;,
+ &#39;aux2&#39;,
+ &#39;freq&#39;,
+ &#39;ch1&#39;,
+ &#39;ch2&#39;]
+</pre></div></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">snap</span></code> method can be used in the following manner</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">lockin1</span><span class="o">.</span><span class="n">snap</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;phase&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+(0.00901262, 0.00744152, 39.5453)
+</pre></div></div>
+</div>
+<section id="Changing-the-Sensitivity">
+<h1>Changing the Sensitivity<a class="headerlink" href="#Changing-the-Sensitivity" title="Link to this heading">¶</a></h1>
+<p>The driver can change the sensitivity automatically according to the R value of the lock-in. So instead of manually changing the sensitivity on the front panel, you can simply run this in your data acquisition or Measurement</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">lockin1</span><span class="o">.</span><span class="n">auto_gain</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<p>You can get and set your sensitivity using the sensitivity attribute</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">lockin1</span><span class="o">.</span><span class="n">sensitivity</span><span class="p">(</span><span class="mf">0.03</span><span class="p">)</span>
+<span class="n">lockin1</span><span class="o">.</span><span class="n">sensitivity</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+0.03
+</pre></div></div>
+</div>
+<p>The driver also supports incremental changes in sensitivity</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">lockin1</span><span class="o">.</span><span class="n">increment_sensitivity</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+0.1
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">lockin1</span><span class="o">.</span><span class="n">decrement_sensitivity</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+0.03
+</pre></div></div>
+</div>
+</section>
+<section id="Preparing-for-reading-the-buffer-and-measurement">
+<h1>Preparing for reading the buffer and measurement<a class="headerlink" href="#Preparing-for-reading-the-buffer-and-measurement" title="Link to this heading">¶</a></h1>
+<p>The SR844 has two internal data buffers corresponding to the values on the displays of channel 1 and channel 2. Here we present a simple way to use the buffers. The buffer can be filled either at a constant sampling rate or by sending an trigger. Each buffer can hold 16383 points. The buffers are filled simultaneously. The QCoDeS driver always pulls the entire buffer, so make sure to reset (clear) the buffer of old data before starting and acquisition.</p>
+<p>We setup channel 1 and the buffer to be filled at a constant sampling rate:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[71]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">lockin1</span><span class="o">.</span><span class="n">ch1_display</span><span class="p">(</span><span class="s1">&#39;X&#39;</span><span class="p">)</span>
+<span class="n">lockin1</span><span class="o">.</span><span class="n">ratio_mode</span><span class="p">(</span><span class="s1">&#39;none&#39;</span><span class="p">)</span>
+<span class="n">lockin1</span><span class="o">.</span><span class="n">buffer_SR</span><span class="p">(</span><span class="mi">512</span><span class="p">)</span>  <span class="c1"># Sample rate (SR)</span>
+<span class="n">lockin1</span><span class="o">.</span><span class="n">buffer_trig_mode</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;OFF&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>We fill the buffer for one second as shown below:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[72]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">lockin1</span><span class="o">.</span><span class="n">buffer_reset</span><span class="p">()</span>
+<span class="n">lockin1</span><span class="o">.</span><span class="n">buffer_start</span><span class="p">()</span>
+<span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">lockin1</span><span class="o">.</span><span class="n">buffer_pause</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<p>Now we run a QCoDeS Measurement using do0d to get the buffer and plot it:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[73]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">do0d</span><span class="p">(</span><span class="n">lockin1</span><span class="o">.</span><span class="n">ch1_datatrace</span><span class="p">,</span> <span class="n">do_plot</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Starting experimental run with id: 556. Using &#39;qcodes.dataset.do0d&#39;
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[73]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+(results #556@C:\Users\Farzad\experiments.db
+ -------------------------------------------
+ lockin_sweep_setpoints - array
+ lockin_ch1_datatrace - array,
+ (&lt;Axes: title={&#39;center&#39;: &#39;Run #556, Experiment SR844_notebook__ (some_sample)&#39;}, xlabel=&#39;Time (ms)&#39;, ylabel=&#39;X (μV)&#39;&gt;,),
+ (None,))
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_SR844_22_2.png" src="../_images/examples_SR844_22_2.png" />
+</div>
+</div>
+<section id="Measurements-using-trigger">
+<h2>Measurements using trigger<a class="headerlink" href="#Measurements-using-trigger" title="Link to this heading">¶</a></h2>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">lockin1</span><span class="o">.</span><span class="n">ch1_display</span><span class="p">(</span><span class="s1">&#39;R_V&#39;</span><span class="p">)</span>
+<span class="n">lockin1</span><span class="o">.</span><span class="n">ratio_mode</span><span class="p">(</span><span class="s1">&#39;none&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>We need to set up the lock-in to use the trigger</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[83]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">lockin1</span><span class="o">.</span><span class="n">buffer_SR</span><span class="p">(</span><span class="s2">&quot;Trigger&quot;</span><span class="p">)</span>
+<span class="n">lockin1</span><span class="o">.</span><span class="n">buffer_trig_mode</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;ON&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>We need to connect the data points stored in the buffer to the corresponding values of the sweep parameter for which the data was taken, i.e we need to give the set points. For this purpose the driver has the convinence function set_sweep_parameters, that generates the set point with units and labels corresponding to the independent parameter here frequency.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[84]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">lockin1</span><span class="o">.</span><span class="n">set_sweep_parameters</span><span class="p">(</span><span class="n">lockin1</span><span class="o">.</span><span class="n">frequency</span><span class="p">,</span> <span class="mi">25000</span><span class="p">,</span> <span class="mi">35000</span><span class="p">,</span> <span class="mi">101</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>To fill the buffer we iterate through values of the sweep_setpoints and change the value of the frequency followed by a trigger statement. To get and plot the data we use the do0d.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[85]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">lockin1</span><span class="o">.</span><span class="n">buffer_reset</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">lockin1</span><span class="o">.</span><span class="n">sweep_setpoints</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
+    <span class="n">lockin1</span><span class="o">.</span><span class="n">frequency</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+    <span class="n">sleep</span><span class="p">(</span><span class="mf">0.05</span><span class="p">)</span>
+    <span class="n">lockin1</span><span class="o">.</span><span class="n">send_trigger</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[86]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">do0d</span><span class="p">(</span><span class="n">lockin1</span><span class="o">.</span><span class="n">ch1_datatrace</span><span class="p">,</span> <span class="n">do_plot</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Starting experimental run with id: 558. Using &#39;qcodes.dataset.do0d&#39;
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[86]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+(results #558@C:\Users\Farzad\experiments.db
+ -------------------------------------------
+ lockin_sweep_setpoints - array
+ lockin_ch1_datatrace - array,
+ (&lt;Axes: title={&#39;center&#39;: &#39;Run #558, Experiment SR844_notebook__ (some_sample)&#39;}, xlabel=&#39;Frequency (kHz)&#39;, ylabel=&#39;R_V (μV)&#39;&gt;,),
+ (None,))
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_SR844_31_2.png" src="../_images/examples_SR844_31_2.png" />
+</div>
+</div>
+<p>We are not restricted to sample on an equally spaced grid. We can set the sweep_array directly.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[91]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">grid_sample</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">25000</span><span class="p">,</span> <span class="mi">29000</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">29300</span><span class="p">,</span> <span class="mi">35000</span><span class="p">,</span> <span class="mi">91</span><span class="p">)))</span>
+<span class="n">lockin1</span><span class="o">.</span><span class="n">sweep_setpoints</span><span class="o">.</span><span class="n">sweep_array</span> <span class="o">=</span> <span class="n">grid_sample</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[92]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">lockin1</span><span class="o">.</span><span class="n">buffer_reset</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">lockin1</span><span class="o">.</span><span class="n">sweep_setpoints</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
+    <span class="n">lockin1</span><span class="o">.</span><span class="n">frequency</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+    <span class="n">sleep</span><span class="p">(</span><span class="mf">0.05</span><span class="p">)</span>
+    <span class="n">lockin1</span><span class="o">.</span><span class="n">send_trigger</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[93]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">do0d</span><span class="p">(</span><span class="n">lockin1</span><span class="o">.</span><span class="n">ch1_datatrace</span><span class="p">,</span> <span class="n">do_plot</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Starting experimental run with id: 560. Using &#39;qcodes.dataset.do0d&#39;
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[93]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+(results #560@C:\Users\Farzad\experiments.db
+ -------------------------------------------
+ lockin_sweep_setpoints - array
+ lockin_ch1_datatrace - array,
+ (&lt;Axes: title={&#39;center&#39;: &#39;Run #560, Experiment SR844_notebook__ (some_sample)&#39;}, xlabel=&#39;frequency (kHz)&#39;, ylabel=&#39;R_V (μV)&#39;&gt;,),
+ (None,))
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_SR844_35_2.png" src="../_images/examples_SR844_35_2.png" />
+</div>
+</div>
+<p>We can also construct <code class="docutils literal notranslate"><span class="pre">2d</span></code>-maps using buffer readout. Let’s make an object which runs the measurement on the fast axis and returns the channel 1 buffer</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[139]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Fast_Axis</span><span class="p">(</span><span class="n">ParameterWithSetpoints</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">measurement_instrument</span><span class="p">,</span> <span class="n">sweeper</span><span class="p">,</span> <span class="n">wait_fast</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">measurement_instrument</span> <span class="o">=</span> <span class="n">measurement_instrument</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">measurment_label</span> <span class="o">=</span> <span class="n">measurement_instrument</span><span class="o">.</span><span class="n">ch1_display</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">measurement_var</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">measurement_instrument</span><span class="p">,</span> <span class="n">measurement_instrument</span><span class="o">.</span><span class="n">ch1_display</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sweeper</span> <span class="o">=</span> <span class="n">sweeper</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wait_fast</span> <span class="o">=</span> <span class="n">wait_fast</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">measurment_label</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">measurement_var</span><span class="o">.</span><span class="n">unit</span><span class="p">,</span>
+                        <span class="n">vals</span><span class="o">=</span><span class="n">validators</span><span class="o">.</span><span class="n">Arrays</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">measurement_instrument</span><span class="o">.</span><span class="n">buffer_npts</span><span class="o">.</span><span class="n">get</span><span class="p">,)),</span>
+                        <span class="n">setpoints</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">measurement_instrument</span><span class="o">.</span><span class="n">sweep_setpoints</span><span class="p">,),</span>
+                        <span class="n">docstring</span><span class="o">=</span><span class="s1">&#39;Constructs a buffer measurement over the aux out 1 axis&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">meas</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">measurement_instrument</span><span class="o">.</span><span class="n">buffer_reset</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">measurement_instrument</span><span class="o">.</span><span class="n">sweep_setpoints</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sweeper</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+            <span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wait_fast</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">measurement_instrument</span><span class="o">.</span><span class="n">send_trigger</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">get_raw</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meas</span><span class="p">()</span>
+        <span class="n">sleep</span><span class="p">(</span><span class="mf">0.005</span><span class="p">)</span> <span class="c1"># crucial to avoid buffer readout error</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">measurement_instrument</span><span class="o">.</span><span class="n">ch1_datatrace</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<p>The instrument should be loaded with the setpoints on the fast axis before creating the Spectrum object</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[140]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">lockin1</span><span class="o">.</span><span class="n">ch1_display</span><span class="p">(</span><span class="s1">&#39;R_V&#39;</span><span class="p">)</span>
+<span class="n">lockin1</span><span class="o">.</span><span class="n">ratio_mode</span><span class="p">(</span><span class="s1">&#39;none&#39;</span><span class="p">)</span>
+<span class="n">lockin1</span><span class="o">.</span><span class="n">buffer_SR</span><span class="p">(</span><span class="s2">&quot;Trigger&quot;</span><span class="p">)</span>
+<span class="n">lockin1</span><span class="o">.</span><span class="n">buffer_trig_mode</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;ON&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[141]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">lockin1</span><span class="o">.</span><span class="n">set_sweep_parameters</span><span class="p">(</span><span class="n">lockin1</span><span class="o">.</span><span class="n">frequency</span><span class="p">,</span> <span class="mi">25000</span><span class="p">,</span> <span class="mi">35000</span><span class="p">,</span> <span class="mi">101</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[142]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">Frequency_Buffer</span> <span class="o">=</span> <span class="n">Fast_Axis</span><span class="p">(</span><span class="s1">&#39;freq_meas&#39;</span><span class="p">,</span> <span class="n">measurement_instrument</span><span class="o">=</span><span class="n">lockin1</span><span class="p">,</span> <span class="n">sweeper</span><span class="o">=</span><span class="n">lockin1</span><span class="o">.</span><span class="n">frequency</span><span class="p">,</span> <span class="n">wait_fast</span><span class="o">=</span><span class="mf">0.03</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>We are now ready for the <code class="docutils literal notranslate"><span class="pre">2d</span></code>-measurement using buffer readout</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[143]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">do1d</span><span class="p">(</span><span class="n">lockin1</span><span class="o">.</span><span class="n">aux_out1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mi">21</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">,</span> <span class="n">Frequency_Buffer</span><span class="p">,</span> <span class="n">do_plot</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Starting experimental run with id: 598. Using &#39;qcodes.dataset.do1d&#39;
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[143]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+(results #598@C:\Users\Farzad\experiments.db
+ -------------------------------------------
+ lockin_aux_out1 - numeric
+ lockin_sweep_setpoints - array
+ freq_meas - array,
+ (&lt;Axes: title={&#39;center&#39;: &#39;Run #598, Experiment SR844_notebook__ (some_sample)&#39;}, xlabel=&#39;Aux output 1 (mV)&#39;, ylabel=&#39;Frequency (kHz)&#39;&gt;,),
+ (&lt;matplotlib.colorbar.Colorbar at 0x18a73db7850&gt;,))
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_SR844_43_2.png" src="../_images/examples_SR844_43_2.png" />
+</div>
+</div>
+</section>
+<section id="Non-buffer-measurements">
+<h2>Non-buffer measurements<a class="headerlink" href="#Non-buffer-measurements" title="Link to this heading">¶</a></h2>
+<p>The instrument also supports do1d and do2d measurements without buffer</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[95]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">do1d</span><span class="p">(</span><span class="n">lockin1</span><span class="o">.</span><span class="n">frequency</span><span class="p">,</span> <span class="mi">25000</span><span class="p">,</span> <span class="mi">35000</span><span class="p">,</span> <span class="mi">101</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">,</span> <span class="n">lockin1</span><span class="o">.</span><span class="n">R_V</span><span class="p">,</span> <span class="n">do_plot</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Starting experimental run with id: 562. Using &#39;qcodes.dataset.do1d&#39;
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[95]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+(results #562@C:\Users\Farzad\experiments.db
+ -------------------------------------------
+ lockin_frequency - numeric
+ lockin_R_V - numeric,
+ (&lt;Axes: title={&#39;center&#39;: &#39;Run #562, Experiment SR844_notebook__ (some_sample)&#39;}, xlabel=&#39;Frequency (kHz)&#39;, ylabel=&#39;R_V (μV)&#39;&gt;,),
+ (None,))
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_SR844_46_2.png" src="../_images/examples_SR844_46_2.png" />
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[102]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">do2d</span><span class="p">(</span>
+    <span class="n">lockin1</span><span class="o">.</span><span class="n">frequency</span><span class="p">,</span> <span class="mi">25000</span><span class="p">,</span> <span class="mi">35000</span><span class="p">,</span> <span class="mi">101</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">,</span>
+    <span class="n">lockin1</span><span class="o">.</span><span class="n">aux_out1</span><span class="p">,</span> <span class="mf">0.001</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">,</span>
+    <span class="n">lockin1</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">lockin1</span><span class="o">.</span><span class="n">R_V</span><span class="p">,</span>
+    <span class="n">do_plot</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Starting experimental run with id: 565. Using &#39;qcodes.dataset.do2d&#39;
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[102]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+(results #565@C:\Users\Farzad\experiments.db
+ -------------------------------------------
+ lockin_frequency - numeric
+ lockin_aux_out1 - numeric
+ lockin_X - numeric
+ lockin_R_V - numeric,
+ (&lt;Axes: title={&#39;center&#39;: &#39;Run #565, Experiment SR844_notebook__ (some_sample)&#39;}, xlabel=&#39;Frequency (kHz)&#39;, ylabel=&#39;Aux output 1 (mV)&#39;&gt;,
+  &lt;Axes: title={&#39;center&#39;: &#39;Run #565, Experiment SR844_notebook__ (some_sample)&#39;}, xlabel=&#39;Frequency (kHz)&#39;, ylabel=&#39;Aux output 1 (mV)&#39;&gt;),
+ (&lt;matplotlib.colorbar.Colorbar at 0x26ca6ddc850&gt;,
+  &lt;matplotlib.colorbar.Colorbar at 0x26ca6e02fd0&gt;))
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_SR844_47_2.png" src="../_images/examples_SR844_47_2.png" />
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_SR844_47_3.png" src="../_images/examples_SR844_47_3.png" />
+</div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Rohde_Schwarz_SMW200A.html" class="btn btn-neutral float-left" title="QCoDeS example with Rohe&amp;Schwarz SMW200A" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Shamrock_SR750.html" class="btn btn-neutral float-right" title="Qcodes example with Shamrock SR750" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, QCoDeS Users.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>qcodes_contrib_drivers.drivers.Cryogenic.CryogenicSMS120C &mdash; qcodes_contrib_drivers 0.23.0.dev14+main.g6d96817 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../_static/documentation_options.js?v=7415f6af"></script>
+        <script src="../../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            qcodes_contrib_drivers
+          </a>
+              <div class="version">
+                0.23.0.dev14+main.g6d96817
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples/index.html">Examples of how to use drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/generated/qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">qcodes_contrib_drivers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">qcodes_contrib_drivers.drivers.Cryogenic.CryogenicSMS120C</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for qcodes_contrib_drivers.drivers.Cryogenic.CryogenicSMS120C</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Driver for Cryogenic Magnet Power Supply SMS120C.</span>
+
+<span class="sd">Please refer to Cryogenic&#39;s Magnet Power Supply SMS120C manual for further</span>
+<span class="sd">details and functionality. This magnet PS model is not SCPI compliant. Note</span>
+<span class="sd">that some commands return more than one line in the output, some are</span>
+<span class="sd">unidirectional, with no return (eg. &#39;write&#39; rather than &#39;ask&#39;).</span>
+
+<span class="sd">This magnet PS driver has been tested with FTDI chip drivers (USB to serial),</span>
+<span class="sd">    D2XX version installed and with  Cryogenic SMS120C and SMS60C (though the</span>
+<span class="sd">    default init arguments are not correct for the latter). Both the</span>
+<span class="sd">    coil_constant and current_rating should be based on calibration data</span>
+<span class="sd">    accompanying the magnet. The SMS60C current_rating should be slightly below</span>
+<span class="sd">    60, as indicated by its name. Examples of values for a 2T magnet using</span>
+<span class="sd">    SMS60C are: coil_constant=0.0380136, current_rating=52.61</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">time</span>
+
+<span class="kn">from</span> <span class="nn">qcodes.utils.validators</span> <span class="kn">import</span> <span class="n">Numbers</span>
+<span class="kn">from</span> <span class="nn">qcodes</span> <span class="kn">import</span> <span class="n">VisaInstrument</span>
+<span class="kn">import</span> <span class="nn">pyvisa.constants</span> <span class="k">as</span> <span class="nn">vi_const</span>
+
+
+<span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="CryogenicSMS120C">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Cryogenic.html#qcodes_contrib_drivers.drivers.Cryogenic.CryogenicSMS120C.CryogenicSMS120C">[docs]</a>
+<span class="k">class</span> <span class="nc">CryogenicSMS120C</span><span class="p">(</span><span class="n">VisaInstrument</span><span class="p">):</span>
+
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The following hard-coded, default values for Cryogenic magnets are safety limits</span>
+<span class="sd">    and should not be modified.</span>
+<span class="sd">    - these values should be set using the corresponding arguments when the class is called.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">default_current_ramp_limit</span> <span class="o">=</span> <span class="mf">0.0506</span>  <span class="c1"># [A/s]</span>
+    <span class="n">default_max_current_ramp_limit</span> <span class="o">=</span> <span class="mf">0.12</span>  <span class="c1"># [A/s]</span>
+
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Driver for the Cryogenic SMS120C magnet power supply.</span>
+<span class="sd">    This class controls a single magnet PSU.</span>
+<span class="sd">    Magnet and magnet PSU limits : max B=12T, I=105.84A, V=3.5V</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        name (str): a name for the instrument</span>
+<span class="sd">        address (str): (serial to USB) COM number of the power supply</span>
+<span class="sd">        coil_constant (float): coil constant in Tesla per ampere, fixed at 0.113375T/A</span>
+<span class="sd">        current_rating (float): maximum current rating in ampere, fixed at 105.84A</span>
+<span class="sd">        current_ramp_limit (float): current ramp limit in ampere per second,</span>
+<span class="sd">            for 50mK operation 0.0506A/s (5.737E-3 T/s, 0.34422T/min) - usually used</span>
+<span class="sd">            for 4K operation 0.12A/s (0.013605 T/s, 0.8163 T/min) - not recommended</span>
+
+<span class="sd">    Note about timing : SMS120C needs a minimum of 200ms delay between commands being sent</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Reg. exp. to match a float or exponent in a string</span>
+    <span class="n">_re_float_exp</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;[-+]?(\d+(\.\d*)?|\.\d+)([eE][-+]?\d+)?&#39;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">address</span><span class="p">,</span> <span class="n">coil_constant</span><span class="o">=</span><span class="mf">0.113375</span><span class="p">,</span> <span class="n">current_rating</span><span class="o">=</span><span class="mf">105.84</span><span class="p">,</span>
+                 <span class="n">current_ramp_limit</span><span class="o">=</span><span class="mf">0.0506</span><span class="p">,</span> <span class="n">reset</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Initializing instrument&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="s1">&#39;terminator&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;terminator&#39;</span><span class="p">)</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Passing terminator to CryogenicSMS is no longer supported and has no effect&#39;</span><span class="p">)</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">address</span><span class="p">,</span> <span class="n">terminator</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\r\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">visa_handle</span><span class="o">.</span><span class="n">baud_rate</span> <span class="o">=</span> <span class="mi">9600</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">visa_handle</span><span class="o">.</span><span class="n">parity</span> <span class="o">=</span> <span class="n">vi_const</span><span class="o">.</span><span class="n">Parity</span><span class="o">.</span><span class="n">none</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">visa_handle</span><span class="o">.</span><span class="n">stop_bits</span> <span class="o">=</span> <span class="n">vi_const</span><span class="o">.</span><span class="n">StopBits</span><span class="o">.</span><span class="n">one</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">visa_handle</span><span class="o">.</span><span class="n">data_bits</span> <span class="o">=</span> <span class="mi">8</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">visa_handle</span><span class="o">.</span><span class="n">flow_control</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">visa_handle</span><span class="o">.</span><span class="n">flush</span><span class="p">(</span><span class="n">vi_const</span><span class="o">.</span><span class="n">VI_READ_BUF_DISCARD</span> <span class="o">|</span>
+                               <span class="n">vi_const</span><span class="o">.</span><span class="n">VI_WRITE_BUF_DISCARD</span><span class="p">)</span>  <span class="c1"># keep for debugging</span>
+
+        <span class="n">idn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">IDN</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">idn</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_persistentField</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># temp code stub</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_coil_constant</span> <span class="o">=</span> <span class="n">coil_constant</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_current_rating</span> <span class="o">=</span> <span class="n">current_rating</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_current_ramp_limit</span> <span class="o">=</span> <span class="n">current_ramp_limit</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_field_rating</span> <span class="o">=</span> <span class="n">coil_constant</span> <span class="o">*</span> \
+            <span class="n">current_rating</span>  <span class="c1"># corresponding max field based</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_field_ramp_limit</span> <span class="o">=</span> <span class="n">coil_constant</span> <span class="o">*</span> <span class="n">current_ramp_limit</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;unit&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_unit</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_unit</span><span class="p">,</span>
+                           <span class="n">val_mapping</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;AMPS&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;TESLA&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">})</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;rampStatus&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_rampStatus</span><span class="p">,</span>
+                           <span class="n">val_mapping</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;HOLDING&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                                        <span class="s1">&#39;RAMPING&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                                        <span class="s1">&#39;QUENCH DETECTED&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+                                        <span class="s1">&#39;EXTERNAL TRIP&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+                                        <span class="s1">&#39;FAULT&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+                                        <span class="p">})</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;polarity&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_polarity</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_polarity</span><span class="p">,</span>
+                           <span class="n">val_mapping</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;POSITIVE&#39;</span><span class="p">:</span> <span class="s1">&#39;+&#39;</span><span class="p">,</span> <span class="s1">&#39;NEGATIVE&#39;</span><span class="p">:</span> <span class="s1">&#39;-&#39;</span><span class="p">})</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;switchHeater&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_switchHeater</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_switchHeater</span><span class="p">,</span>
+                           <span class="n">val_mapping</span><span class="o">=</span><span class="p">{</span><span class="kc">False</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">True</span><span class="p">:</span> <span class="mi">1</span><span class="p">})</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;persistentMode&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_persistentMode</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_persistentMode</span><span class="p">,</span>
+                           <span class="n">val_mapping</span><span class="o">=</span><span class="p">{</span><span class="kc">False</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">True</span><span class="p">:</span> <span class="mi">1</span><span class="p">})</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;persistentField&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_persistentField</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">Numbers</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_persistentField</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;field&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_field</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_field</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">Numbers</span><span class="p">(</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">_field_rating</span><span class="p">,</span>  <span class="c1"># i.e. ~12T, calculated</span>
+                                        <span class="bp">self</span><span class="o">.</span><span class="n">_field_rating</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;maxField&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_maxField</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_maxField</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">Numbers</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span>  <span class="c1"># i.e. ~12T, calculated</span>
+                                        <span class="bp">self</span><span class="o">.</span><span class="n">_field_rating</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;rampRate&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_rampRate</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_rampRate</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">Numbers</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span>
+                                        <span class="bp">self</span><span class="o">.</span><span class="n">_current_ramp_limit</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;pauseRamp&#39;</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_pauseRamp</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_pauseRamp</span><span class="p">,</span>
+                           <span class="n">val_mapping</span><span class="o">=</span><span class="p">{</span><span class="kc">False</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">True</span><span class="p">:</span> <span class="mi">1</span><span class="p">})</span>
+
+
+<div class="viewcode-block" id="CryogenicSMS120C.get_idn">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Cryogenic.html#qcodes_contrib_drivers.drivers.Cryogenic.CryogenicSMS120C.CryogenicSMS120C.get_idn">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_idn</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overwrites the get_idn function using constants as the hardware</span>
+<span class="sd">        does not have a proper ``*IDN`` function.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">idparts</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Cryogenic&#39;</span><span class="p">,</span> <span class="s1">&#39;Magnet PS SMS120C&#39;</span><span class="p">,</span> <span class="s1">&#39;None&#39;</span><span class="p">,</span> <span class="s1">&#39;1.0&#39;</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">((</span><span class="s1">&#39;vendor&#39;</span><span class="p">,</span> <span class="s1">&#39;model&#39;</span><span class="p">,</span> <span class="s1">&#39;serial&#39;</span><span class="p">,</span> <span class="s1">&#39;firmware&#39;</span><span class="p">),</span> <span class="n">idparts</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="CryogenicSMS120C.query">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Cryogenic.html#qcodes_contrib_drivers.drivers.Cryogenic.CryogenicSMS120C.CryogenicSMS120C.query">[docs]</a>
+    <span class="k">def</span> <span class="nf">query</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Message outputs do not follow the standard SCPI format,</span>
+<span class="sd">        separate regexp to parse unique/variable instrument message structures.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            The key (unused), and the value (parsed value extracted from output</span>
+<span class="sd">            message)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+        <span class="c1">#BUG: The SMS60C sometimes returns an incorrect \x13 at the beginning of the string</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\x13</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;((\S</span><span class="si">{8}</span><span class="s1">)\s)+(([^:]+)(:([^:]+))?)&#39;</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">m</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">m</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;-------&gt;&#39;</span><span class="p">:</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                    <span class="s1">&#39;Command information or unrecognizable qualifier: &quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="n">m</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+                <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">m</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span> <span class="n">m</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                <span class="s1">&#39;Malformed message received from the magnet PS: &quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="n">value</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_get_limit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>  <span class="c1"># Get voltage limits, returns a float</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s1">&#39;GET VL&#39;</span><span class="p">)</span>
+        <span class="c1"># extract number from string</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;(</span><span class="si">{}</span><span class="s1">) VOLTS&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">CryogenicSMS120C</span><span class="o">.</span><span class="n">_re_float_exp</span><span class="p">),</span> <span class="n">value</span><span class="p">)</span>
+        <span class="n">limit</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">m</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">limit</span>
+
+    <span class="c1"># get heater status, returns a boolean ON (1) or OFF (0)</span>
+    <span class="k">def</span> <span class="nf">_get_switchHeater</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s1">&#39;HEATER&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s1">&#39;OFF&#39;</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
+            <span class="n">switchHeater</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">elif</span> <span class="s1">&#39;ON&#39;</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
+            <span class="n">switchHeater</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="n">switchHeater</span>
+
+    <span class="c1"># check if magnet is in persistent mode, and if so return current in the</span>
+    <span class="c1"># magnet</span>
+    <span class="k">def</span> <span class="nf">_get_persistentMode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s1">&#39;HEATER&#39;</span><span class="p">)</span>
+        <span class="n">field</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_field</span><span class="p">()</span>
+        <span class="c1"># check for switch heater OFF, and non-zero current</span>
+        <span class="k">if</span> <span class="s1">&#39;OFF&#39;</span> <span class="ow">in</span> <span class="n">value</span> <span class="ow">and</span> <span class="nb">abs</span><span class="p">(</span><span class="n">field</span> <span class="o">&lt;=</span> <span class="mf">0.007</span><span class="p">):</span>
+            <span class="n">persistentField</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_persistentField</span><span class="p">()</span>
+            <span class="n">units</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_unit</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">units</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Magnet in persistent mode, at a field of </span><span class="si">%f</span><span class="s2"> T&quot;</span> <span class="o">%</span>
+                         <span class="n">persistentField</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">units</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Magnet in persistent mode, at a field of </span><span class="si">%f</span><span class="s2"> A&quot;</span> <span class="o">%</span>
+                         <span class="n">persistentField</span><span class="p">)</span>
+            <span class="n">persistentMode</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Magnet not persistent.&quot;</span><span class="p">)</span>
+            <span class="n">persistentMode</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="n">persistentMode</span>
+
+    <span class="c1"># get units, returns a boolean integer - Tesla (1) or Amps(0)</span>
+    <span class="k">def</span> <span class="nf">_get_persistentField</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># read persistent field from controller</span>
+        <span class="n">BLeads</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_field</span><span class="p">()</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_switchHeater</span><span class="p">()</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Switch heater ON, magnet not in persistent mode.&quot;</span><span class="p">)</span>
+            <span class="n">persistentField</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_switchHeater</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">BLeads</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">0.007</span><span class="p">):</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="s2">&quot;Switch heater OFF, but current is still in present in leads - not in persistent mode. Leads at: </span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">BLeads</span><span class="p">)</span>
+            <span class="n">perString</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s1">&#39;GET PER&#39;</span><span class="p">)</span>
+            <span class="n">m</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;((\S</span><span class="si">{8}</span><span class="s1">)\s)+([^:]+)&#39;</span><span class="p">,</span> <span class="n">perString</span><span class="p">)</span>
+            <span class="n">persistentField</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">m</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">perString</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s1">&#39;GET PER&#39;</span><span class="p">)</span>
+            <span class="c1"># handles a different string return format</span>
+            <span class="n">m</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;((\S</span><span class="si">{8}</span><span class="s1">)\s)+([^:]+)&#39;</span><span class="p">,</span> <span class="n">perString</span><span class="p">)</span>
+            <span class="n">persistentField</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">m</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">persistentField</span>
+
+    <span class="k">def</span> <span class="nf">_get_unit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>  <span class="c1"># get units, returns a boolean integer - Tesla (1) or Amps(0)</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s1">&#39;TESLA&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="s1">&#39;TESLA&#39;</span><span class="p">:</span>
+            <span class="n">unit</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>  <span class="c1"># assume in Amps</span>
+            <span class="n">unit</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">return</span> <span class="n">unit</span>
+
+    <span class="c1"># get direction of current, returns a string - Positive (1) or Negative(0)</span>
+    <span class="k">def</span> <span class="nf">_get_polarity</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s1">&#39;GET SIGN&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="s1">&#39;POSITIVE&#39;</span><span class="p">:</span>
+            <span class="n">polarity</span> <span class="o">=</span> <span class="s1">&#39;+&#39;</span>
+        <span class="k">elif</span> <span class="n">value</span> <span class="o">==</span> <span class="s1">&#39;NEGATIVE&#39;</span><span class="p">:</span>  <span class="c1"># assume Negative</span>
+            <span class="n">polarity</span> <span class="o">=</span> <span class="s1">&#39;-&#39;</span>
+        <span class="k">return</span> <span class="n">polarity</span>
+
+    <span class="k">def</span> <span class="nf">_get_maxField</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>  <span class="c1"># Get the maximum B field, returns a float (in Amps or Tesla)</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s1">&#39;GET MAX&#39;</span><span class="p">)</span>
+        <span class="n">units</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_unit</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">units</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">m</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;(</span><span class="si">{}</span><span class="s1">) TESLA&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">CryogenicSMS120C</span><span class="o">.</span><span class="n">_re_float_exp</span><span class="p">),</span> <span class="n">value</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">units</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">m</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;(</span><span class="si">{}</span><span class="s1">) AMPS&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">CryogenicSMS120C</span><span class="o">.</span><span class="n">_re_float_exp</span><span class="p">),</span> <span class="n">value</span><span class="p">)</span>
+        <span class="n">maxField</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">m</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">maxField</span>
+
+    <span class="c1"># Get current magnetic field, returns a float (if unit is Tesla, otherwise raises an exception)</span>
+    <span class="k">def</span> <span class="nf">_get_field</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_unit</span><span class="p">()</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;Controller is not in TESLA mode, switch to TESLA to get the field&#39;</span><span class="p">)</span>
+
+        <span class="n">_</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s1">&#39;GET OUTPUT&#39;</span><span class="p">)</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;(</span><span class="si">{}</span><span class="s1">) TESLA AT (</span><span class="si">{}</span><span class="s1">) VOLTS&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">CryogenicSMS120C</span><span class="o">.</span><span class="n">_re_float_exp</span><span class="p">,</span><span class="n">CryogenicSMS120C</span><span class="o">.</span><span class="n">_re_float_exp</span><span class="p">),</span> <span class="n">value</span><span class="p">)</span>
+        <span class="n">field</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">m</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">field</span>
+
+    <span class="k">def</span> <span class="nf">_get_rampStatus</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>  <span class="c1"># get current magnet status, returns an integer</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s1">&#39;RAMP STATUS&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s1">&#39;HOLDING&#39;</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>  <span class="c1"># holding on</span>
+            <span class="n">rampStatus</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">elif</span> <span class="s1">&#39;RAMPING&#39;</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>  <span class="c1"># magnet ramping</span>
+            <span class="n">rampStatus</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">elif</span> <span class="s1">&#39;QUENCH&#39;</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>  <span class="c1"># detect magnet quench</span>
+            <span class="n">rampStatus</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="k">elif</span> <span class="s1">&#39;EXTERNAL&#39;</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>  <span class="c1"># detect external trip</span>
+            <span class="n">rampStatus</span> <span class="o">=</span> <span class="mi">3</span>
+        <span class="k">elif</span> <span class="s1">&#39;FAULT&#39;</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>  <span class="c1"># detect either controller or power fault</span>
+            <span class="n">rampStatus</span> <span class="o">=</span> <span class="mi">4</span>
+        <span class="k">return</span> <span class="n">rampStatus</span>
+
+    <span class="c1"># checks if controller is paused (1) or active (0), returns a boolean</span>
+    <span class="c1"># integer</span>
+    <span class="k">def</span> <span class="nf">_get_pauseRamp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s1">&#39;PAUSE&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="s1">&#39;ON&#39;</span><span class="p">:</span>
+            <span class="n">pauseRamp</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>  <span class="c1"># assume pause OFF</span>
+            <span class="n">pauseRamp</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">return</span> <span class="n">pauseRamp</span>
+
+    <span class="c1"># Get current magnet ramping rate, returns a float (in units of Amps/sec</span>
+    <span class="c1"># only)</span>
+    <span class="k">def</span> <span class="nf">_get_rampRate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s1">&#39;GET RATE&#39;</span><span class="p">)</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span>
+            <span class="sa">r</span><span class="s1">&#39;(</span><span class="si">{}</span><span class="s1">) A/SEC&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">CryogenicSMS120C</span><span class="o">.</span><span class="n">_re_float_exp</span><span class="p">),</span> <span class="n">value</span><span class="p">)</span>
+        <span class="n">rampRate</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">m</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">rampRate</span>
+
+    <span class="c1"># Set magnet sweep direction : &quot;+&quot; for positive B, &quot;-&quot; for negative B</span>
+    <span class="k">def</span> <span class="nf">_set_polarity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+        <span class="c1"># using standard write as read returns an error/is non-existent.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_persistentMode</span><span class="p">()</span> <span class="o">==</span> <span class="kc">False</span> <span class="ow">and</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_field</span><span class="p">())</span> <span class="o">&lt;=</span> <span class="mf">0.007</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;DIRECTION </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">val</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_persistentMode</span><span class="p">()</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                <span class="s1">&#39;Cannot switch polarity, magnet in persistent mode - please engage switch heater and go to zero field before changing sign.&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">elif</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_field</span><span class="p">())</span> <span class="o">&gt;</span> <span class="mf">0.007</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;Recommended to switch sign only when field is at zero.&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;Cannot switch polarity, check magnet.&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">def</span> <span class="nf">_set_unit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>        <span class="c1"># Set unit to Tesla(1) or Amps(0),</span>
+        <span class="c1"># Enables us to set units of Tesla</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s1">&#39;SET TPA </span><span class="si">%f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coil_constant</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s1">&#39;TESLA </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">val</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_set_maxField</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>  <span class="c1"># Set the maximum field (in Amps or Tesla)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s1">&#39;SET MAX </span><span class="si">%0.2f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">val</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_set_switchHeater</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>  <span class="c1"># Turn heater ON(1) or OFF(0)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_rampStatus</span><span class="p">()</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                <span class="s1">&#39;Cannot switch heater during a ramp, first pause the controller.&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Switch ON, if currently OFF</span>
+            <span class="k">if</span> <span class="n">val</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_switchHeater</span><span class="p">()</span> <span class="o">==</span> <span class="kc">False</span><span class="p">):</span>
+                <span class="n">strHeaterStatus</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s1">&#39;HEATER </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">val</span><span class="p">)</span>
+                <span class="n">switchHeater</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="c1"># Switch OFF, if currently ON</span>
+            <span class="k">elif</span> <span class="n">val</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_switchHeater</span><span class="p">()</span> <span class="o">==</span> <span class="kc">True</span><span class="p">):</span>
+                <span class="n">strHeaterStatus</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s1">&#39;HEATER </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">val</span><span class="p">)</span>
+                <span class="n">switchHeater</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">else</span><span class="p">:</span>  <span class="c1"># assume no change to current switch heater state</span>
+                <span class="n">strHeaterStatus</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s1">&#39;HEATER </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">val</span><span class="p">)</span>
+                <span class="n">switchHeater</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_switchHeater</span><span class="p">()</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">strHeaterStatus</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">switchHeater</span>
+
+    <span class="c1"># Move into persistent mode (1) or out of persistent mode(0)</span>
+    <span class="k">def</span> <span class="nf">_set_persistentMode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_rampStatus</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>     <span class="c1"># Check magnet on HOLD</span>
+            <span class="n">currField</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_field</span><span class="p">()</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Leads now at </span><span class="si">%f</span><span class="s2"> .&quot;</span> <span class="o">%</span> <span class="n">currField</span><span class="p">)</span>
+            <span class="c1"># Enter persistent mode from non-persistent</span>
+            <span class="k">if</span> <span class="n">val</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_persistentMode</span><span class="p">()</span> <span class="o">==</span> <span class="kc">False</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_switchHeater</span><span class="p">()</span> <span class="o">==</span> <span class="kc">True</span><span class="p">):</span>
+                    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Moving into persistent mode:&#39;</span><span class="p">)</span>
+                    <span class="n">switchHeater</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">strHeaterStatus</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s1">&#39;HEATER </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">switchHeater</span><span class="p">)</span>
+                    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">strHeaterStatus</span><span class="p">)</span>
+                    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Waiting 60s for switch heater to cool down.&#39;</span><span class="p">)</span>
+                    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">60</span><span class="p">)</span>
+                    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Ramping down magnet leads...&#39;</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_set_field</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_rampStatus</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Leads at zero.&#39;</span><span class="p">)</span>
+                            <span class="n">persistentMode</span> <span class="o">=</span> <span class="mi">1</span>
+                            <span class="n">persistentField</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_persistentField</span><span class="p">()</span>
+                            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                                <span class="s1">&#39;Magnet is in persistent mode at Field = </span><span class="si">%f</span><span class="s1">.&#39;</span> <span class="o">%</span> <span class="n">persistentField</span><span class="p">)</span>
+                            <span class="k">break</span>
+                        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>  <span class="c1"># check every 5 seconds</span>
+                <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_persistentMode</span><span class="p">()</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+                    <span class="n">persistentMode</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="n">persistentField</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_persistentField</span><span class="p">()</span>
+                    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Already in persistent mode.&#39;</span><span class="p">)</span>
+            <span class="c1"># Exit persistent mode</span>
+            <span class="k">elif</span> <span class="n">val</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">persistentField</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_persistentField</span><span class="p">()</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_persistentMode</span><span class="p">()</span> <span class="o">==</span> <span class="kc">True</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_switchHeater</span><span class="p">()</span> <span class="o">==</span> <span class="kc">False</span><span class="p">):</span>
+                    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Exiting persistent mode from a field of </span><span class="si">%f</span><span class="s1">&#39;</span> <span class="o">%</span>
+                             <span class="n">persistentField</span><span class="p">)</span>
+                    <span class="n">switchHeater</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="n">strHeaterStatus</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s1">&#39;HEATER </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">switchHeater</span><span class="p">)</span>
+                    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">strHeaterStatus</span><span class="p">)</span>
+                    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Waiting 30s for switch heater to warm up.&#39;</span><span class="p">)</span>
+                    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">30</span><span class="p">)</span>
+                    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                        <span class="s1">&#39;Matching magnet lead current to persistent field of </span><span class="si">%f</span><span class="s1">...&#39;</span> <span class="o">%</span> <span class="n">persistentField</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_set_field</span><span class="p">(</span><span class="n">persistentField</span><span class="p">)</span>
+                    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_rampStatus</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                            <span class="n">persistentMode</span> <span class="o">=</span> <span class="mi">0</span>
+                            <span class="n">persistentField</span> <span class="o">=</span> <span class="mi">0</span>
+                            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Magnet is non-persistent.&#39;</span><span class="p">)</span>
+                            <span class="k">break</span>
+                        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>  <span class="c1"># check every 5 seconds</span>
+                <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_persistentMode</span><span class="p">()</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+                    <span class="n">persistentMode</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">persistentField</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Magnet already non-persistent.&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="s1">&#39;Cannot change (non-)persistent mode state, check magnet status.&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">persistentMode</span><span class="p">,</span> <span class="n">persistentField</span>
+
+    <span class="k">def</span> <span class="nf">_set_pauseRamp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>  <span class="c1"># Pause magnet controller Pause=1, Unpause=0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s1">&#39;PAUSE </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">val</span><span class="p">)</span>
+
+    <span class="c1"># Set ramp speed Amps/sec , check it is reasonable if it is being manually</span>
+    <span class="c1"># modified</span>
+    <span class="k">def</span> <span class="nf">_set_rampRate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_current_ramp_limit</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_current_ramp_limit</span> <span class="o">=</span> <span class="n">CryogenicSMS120C</span><span class="o">.</span><span class="n">default_current_ramp_limit</span>
+
+        <span class="k">if</span> <span class="n">val</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_current_ramp_limit</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s1">&#39;SET RAMP </span><span class="si">%0.2f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">val</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">elif</span> <span class="n">val</span> <span class="o">&gt;</span> <span class="n">CryogenicSMS120C</span><span class="o">.</span><span class="n">default_max_current_ramp_limit</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s1">&#39;SET RAMP </span><span class="si">%0.2f</span><span class="s1">&#39;</span> <span class="o">%</span>
+                     <span class="n">CryogenicSMS120C</span><span class="o">.</span><span class="n">default_current_ramp_limit</span><span class="p">)</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;Requested rate of </span><span class="si">{}</span><span class="s1"> is unsafe and over the maximum limit of </span><span class="si">{}</span><span class="s1"> A/s. Coerced to default ramp rate.&#39;</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">msg</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">val</span><span class="p">,</span> <span class="n">CryogenicSMS120C</span><span class="o">.</span><span class="n">default_max_current_ramp_limit</span><span class="p">))</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;Requested ramp speed is over the limit of </span><span class="si">{}</span><span class="s1"> A/s. Change limit, at your own risk after consulting the SMS120C manual.&#39;</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">msg</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_current_ramp_limit</span><span class="p">))</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="c1"># Check magnet state and ramp speed to see if it is safe to ramp, returns</span>
+    <span class="c1"># boolean</span>
+    <span class="k">def</span> <span class="nf">_can_startRamping</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_rampStatus</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_rampRate</span><span class="p">()</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_current_ramp_limit</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">state</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>         <span class="c1"># Quench</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                    <span class="s1">&#39;Magnet quench detected - please check magnet status before ramping.&#39;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="kc">False</span>
+            <span class="k">elif</span> <span class="n">state</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>       <span class="c1"># Ramping</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Magnet currently ramping.&#39;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="kc">True</span>
+            <span class="k">elif</span> <span class="n">state</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>       <span class="c1"># Holding</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Magnet currently holding.&#39;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="kc">True</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                <span class="s1">&#39;Could not ramp, magnet in state: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">state</span><span class="p">))</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="s1">&#39;Could not ramp, ramp rate is over the set limit, please lower.&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="c1"># Between any two commands, there are must be around 200ms waiting time.</span>
+    <span class="k">def</span> <span class="nf">_set_field</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">switchHeater</span><span class="p">():</span> <span class="c1"># If switch heater is OFF</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;Unable to set field, switch heater is off, persistent mode may be active&#39;</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="c1"># check ramp status is OK</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_can_startRamping</span><span class="p">():</span>
+            <span class="c1"># Check that field is not outside max.field limit</span>
+            <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_unit</span><span class="p">()</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="p">(</span><span class="n">val</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_maxField</span><span class="p">()))</span> <span class="ow">or</span> <span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_get_unit</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="p">(</span><span class="n">val</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_current_rating</span><span class="p">)):</span>
+                <span class="c1"># pause the controller if it is currently ramping</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_set_pauseRamp</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s1">&#39;SET MID </span><span class="si">%0.2f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">val</span><span class="p">)</span>       <span class="c1"># Set target field</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_set_pauseRamp</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>               <span class="c1"># Unpause the controller</span>
+                <span class="c1"># Ramp magnet/field to MID or ZERO (Note: Using standard write</span>
+                <span class="c1"># as read returns an error/is non-existent).</span>
+                <span class="k">if</span> <span class="n">val</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;RAMP ZERO&#39;</span><span class="p">)</span>
+                    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Ramping magnetic field to zero...&#39;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;RAMP MID&#39;</span><span class="p">)</span>
+                    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Ramping magnetic field...&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                    <span class="s1">&#39;Target field is outside max. limits, please lower the target value.&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;Cannot set field - check magnet status.&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_set_field_bidirectional</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+        <span class="n">polarity</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_polarity</span><span class="p">()</span>
+        <span class="n">desired_polarity</span> <span class="o">=</span> <span class="s1">&#39;-&#39;</span> <span class="k">if</span> <span class="n">val</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="s1">&#39;+&#39;</span>
+
+        <span class="k">if</span> <span class="p">((</span><span class="n">polarity</span> <span class="o">==</span> <span class="s1">&#39;+&#39;</span> <span class="ow">and</span> <span class="n">desired_polarity</span> <span class="o">==</span> <span class="s1">&#39;-&#39;</span><span class="p">)</span> <span class="ow">or</span>
+                <span class="p">(</span><span class="n">polarity</span> <span class="o">==</span> <span class="s1">&#39;-&#39;</span> <span class="ow">and</span> <span class="n">desired_polarity</span> <span class="o">==</span> <span class="s1">&#39;+&#39;</span><span class="p">)):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_set_field</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="c1"># This is, sadly, blocking</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_wait_for_field_zero</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_set_polarity</span><span class="p">(</span><span class="n">desired_polarity</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_field</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">val</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_wait_for_field_zero</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field_threshold</span><span class="o">=</span><span class="mf">0.003</span><span class="p">,</span> <span class="n">refresh_time</span><span class="o">=</span><span class="mf">0.1</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Waits for the field to be within a certain threshold&quot;&quot;&quot;</span>
+        <span class="k">while</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">field</span><span class="p">())</span> <span class="o">&gt;</span> <span class="n">field_threshold</span><span class="p">:</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">refresh_time</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, QCoDeS Users.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

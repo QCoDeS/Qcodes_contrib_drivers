@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>qcodes_contrib_drivers.drivers.RohdeSchwarz.SMR40 &mdash; qcodes_contrib_drivers 0.23.0.dev14+main.g6d96817 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../_static/documentation_options.js?v=7415f6af"></script>
+        <script src="../../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            qcodes_contrib_drivers
+          </a>
+              <div class="version">
+                0.23.0.dev14+main.g6d96817
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples/index.html">Examples of how to use drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/generated/qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">qcodes_contrib_drivers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">qcodes_contrib_drivers.drivers.RohdeSchwarz.SMR40</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for qcodes_contrib_drivers.drivers.RohdeSchwarz.SMR40</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Driver for microwave source RS_SMR40</span>
+<span class="c1">#</span>
+<span class="c1"># Written by Takafumi Fujita (t.fujita@tudelft.nl)</span>
+<span class="c1"># This program is based on RS_SMR40.py in QTlab</span>
+<span class="c1">#</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+
+<span class="kn">from</span> <span class="nn">qcodes</span> <span class="kn">import</span> <span class="n">VisaInstrument</span>
+<span class="kn">from</span> <span class="nn">qcodes</span> <span class="kn">import</span> <span class="n">validators</span> <span class="k">as</span> <span class="n">vals</span>
+
+<span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<div class="viewcode-block" id="RohdeSchwarz_SMR40">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.RohdeSchwarz.html#qcodes_contrib_drivers.drivers.RohdeSchwarz.SMR40.RohdeSchwarz_SMR40">[docs]</a>
+<span class="k">class</span> <span class="nc">RohdeSchwarz_SMR40</span><span class="p">(</span><span class="n">VisaInstrument</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This is the qcodes driver for the Rohde &amp; Schwarz SMR40 signal generator</span>
+<span class="sd">    Status: beta-version.</span>
+
+<span class="sd">    Work still pending:</span>
+<span class="sd">        - Add all parameters that are in the manual</span>
+<span class="sd">        - Add test suite</span>
+<span class="sd">        - See if there can be a common driver for RS mw sources from which</span>
+<span class="sd">          different models inherit</span>
+
+<span class="sd">    This driver does not contain all commands available for the SMR40 but</span>
+<span class="sd">    only the ones most commonly used.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">address</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">reset</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="n">verbose</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="vm">__name__</span> <span class="o">+</span> <span class="s1">&#39; : Initializing instrument&#39;</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">address</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="c1"># TODO(TF): check what parser parameters can do</span>
+        <span class="c1">#           check what &#39;tags=[&#39;sweep&#39;]&#39; and &#39;types&#39; do in qtlab</span>
+        <span class="c1">#           fix format types</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;frequency&#39;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Frequency&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">do_get_frequency</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">do_set_frequency</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(</span><span class="mf">10e6</span><span class="p">,</span> <span class="mf">40e9</span><span class="p">),</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;Hz&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;power&#39;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Power&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">do_get_power</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">do_set_power</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(</span><span class="o">-</span><span class="mi">30</span><span class="p">,</span> <span class="mi">25</span><span class="p">),</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;dBm&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;status&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">do_get_status</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">do_set_status</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Strings</span><span class="p">())</span>
+
+        <span class="c1"># TODO(TF): check how to fix the get functions</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;status_of_modulation&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">do_get_status_of_modulation</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">do_set_status_of_modulation</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Strings</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;status_of_ALC&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">do_get_status_of_ALC</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">do_set_status_of_ALC</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Strings</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;pulse_delay&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">do_get_pulse_delay</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">do_set_pulse_delay</span><span class="p">)</span>
+
+        <span class="c1"># TODO(TF): check the way of defining this type of functions, where logging is added</span>
+        <span class="c1"># self.add_function(&#39;reset&#39;)</span>
+        <span class="c1"># self.add_function(&#39;get_all&#39;)</span>
+
+        <span class="k">if</span> <span class="n">reset</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_all</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect_message</span><span class="p">()</span>
+
+    <span class="c1"># Functions</span>
+<div class="viewcode-block" id="RohdeSchwarz_SMR40.reset">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.RohdeSchwarz.html#qcodes_contrib_drivers.drivers.RohdeSchwarz.SMR40.RohdeSchwarz_SMR40.reset">[docs]</a>
+    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Resets the instrument to default values.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        Output:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="vm">__name__</span> <span class="o">+</span> <span class="s1">&#39; : Resetting instrument&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;*RST&#39;</span><span class="p">)</span>
+        <span class="c1"># TODO: make it printable</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">get_all</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="RohdeSchwarz_SMR40.get_all">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.RohdeSchwarz.html#qcodes_contrib_drivers.drivers.RohdeSchwarz.SMR40.RohdeSchwarz_SMR40.get_all">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_all</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Reads all implemented parameters from the instrument, and updates</span>
+<span class="sd">        the wrapper.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        Output:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="vm">__name__</span> <span class="o">+</span> <span class="s1">&#39; : reading all settings from instrument&#39;</span><span class="p">)</span>
+        <span class="c1"># TODO: make it printable</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">frequency</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">power</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="o">.</span><span class="n">get</span><span class="p">()</span></div>
+
+
+    <span class="c1"># Communication functions</span>
+<div class="viewcode-block" id="RohdeSchwarz_SMR40.do_get_frequency">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.RohdeSchwarz.html#qcodes_contrib_drivers.drivers.RohdeSchwarz.SMR40.RohdeSchwarz_SMR40.do_get_frequency">[docs]</a>
+    <span class="k">def</span> <span class="nf">do_get_frequency</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get frequency from device.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        Output:</span>
+<span class="sd">            frequency (float) : frequency in Hz</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="vm">__name__</span> <span class="o">+</span> <span class="s1">&#39; : reading frequency from instrument&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s1">&#39;SOUR:FREQ?&#39;</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="RohdeSchwarz_SMR40.do_set_frequency">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.RohdeSchwarz.html#qcodes_contrib_drivers.drivers.RohdeSchwarz.SMR40.RohdeSchwarz_SMR40.do_set_frequency">[docs]</a>
+    <span class="k">def</span> <span class="nf">do_set_frequency</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frequency</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set frequency of device.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            frequency (float) : frequency in Hz</span>
+
+<span class="sd">        Output:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="vm">__name__</span> <span class="o">+</span> <span class="s1">&#39; : setting frequency to </span><span class="si">%s</span><span class="s1"> GHz&#39;</span> <span class="o">%</span> <span class="n">frequency</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;SOUR:FREQ </span><span class="si">%e</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">frequency</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="RohdeSchwarz_SMR40.do_get_power">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.RohdeSchwarz.html#qcodes_contrib_drivers.drivers.RohdeSchwarz.SMR40.RohdeSchwarz_SMR40.do_get_power">[docs]</a>
+    <span class="k">def</span> <span class="nf">do_get_power</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get output power from device.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        Output:</span>
+<span class="sd">            power (float) : output power in dBm</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="vm">__name__</span> <span class="o">+</span> <span class="s1">&#39; : reading power from instrument&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s1">&#39;SOUR:POW?&#39;</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="RohdeSchwarz_SMR40.do_set_power">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.RohdeSchwarz.html#qcodes_contrib_drivers.drivers.RohdeSchwarz.SMR40.RohdeSchwarz_SMR40.do_set_power">[docs]</a>
+    <span class="k">def</span> <span class="nf">do_set_power</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">power</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set output power of device.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            power (float) : output power in dBm</span>
+
+<span class="sd">        Output:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="vm">__name__</span> <span class="o">+</span> <span class="s1">&#39; : setting power to </span><span class="si">%s</span><span class="s1"> dBm&#39;</span> <span class="o">%</span> <span class="n">power</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;SOUR:POW </span><span class="si">%e</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">power</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="RohdeSchwarz_SMR40.do_get_status">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.RohdeSchwarz.html#qcodes_contrib_drivers.drivers.RohdeSchwarz.SMR40.RohdeSchwarz_SMR40.do_get_status">[docs]</a>
+    <span class="k">def</span> <span class="nf">do_get_status</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get status from instrument.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        Output:</span>
+<span class="sd">            status (str) : &#39;on or &#39;off&#39;</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="vm">__name__</span> <span class="o">+</span> <span class="s1">&#39; : reading status from instrument&#39;</span><span class="p">)</span>
+        <span class="n">stat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s1">&#39;:OUTP:STAT?&#39;</span><span class="p">)</span>
+
+        <span class="c1"># TODO: fix</span>
+        <span class="k">if</span> <span class="n">stat</span> <span class="o">==</span> <span class="s1">&#39;1</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;ON&#39;</span>
+        <span class="k">elif</span> <span class="n">stat</span> <span class="o">==</span> <span class="s1">&#39;0</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;OFF&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Output status not specified : </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">stat</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="RohdeSchwarz_SMR40.do_set_status">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.RohdeSchwarz.html#qcodes_contrib_drivers.drivers.RohdeSchwarz.SMR40.RohdeSchwarz_SMR40.do_set_status">[docs]</a>
+    <span class="k">def</span> <span class="nf">do_set_status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">status</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set status of instrument.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            status (str) : &#39;on or &#39;off&#39;</span>
+
+<span class="sd">        Output:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="vm">__name__</span> <span class="o">+</span> <span class="s1">&#39; : setting status to &quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="n">status</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">status</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;ON&#39;</span><span class="p">,</span> <span class="s1">&#39;OFF&#39;</span><span class="p">):</span>
+            <span class="n">status</span> <span class="o">=</span> <span class="n">status</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;set_status(): can only set on or off&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;:OUTP:STAT </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">status</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="RohdeSchwarz_SMR40.do_get_status_of_modulation">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.RohdeSchwarz.html#qcodes_contrib_drivers.drivers.RohdeSchwarz.SMR40.RohdeSchwarz_SMR40.do_get_status_of_modulation">[docs]</a>
+    <span class="k">def</span> <span class="nf">do_get_status_of_modulation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get status from instrument.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        Output:</span>
+<span class="sd">            status (str) : &#39;on&#39; or &#39;off&#39;</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="vm">__name__</span> <span class="o">+</span> <span class="s1">&#39; : reading status from instrument&#39;</span><span class="p">)</span>
+        <span class="n">stat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s1">&#39;:SOUR:PULM:STAT?&#39;</span><span class="p">)</span>
+
+        <span class="c1"># TODO: fix</span>
+        <span class="c1"># if stat == &#39;1&#39;:</span>
+        <span class="c1"># return &#39;ON&#39;</span>
+        <span class="c1"># elif stat == &#39;0&#39;:</span>
+        <span class="c1"># return &#39;OFF&#39;</span>
+        <span class="k">if</span> <span class="n">stat</span> <span class="o">==</span> <span class="s1">&#39;1</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;ON&#39;</span>
+        <span class="k">elif</span> <span class="n">stat</span> <span class="o">==</span> <span class="s1">&#39;0</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;OFF&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Output status not specified : </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">stat</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="RohdeSchwarz_SMR40.do_set_status_of_modulation">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.RohdeSchwarz.html#qcodes_contrib_drivers.drivers.RohdeSchwarz.SMR40.RohdeSchwarz_SMR40.do_set_status_of_modulation">[docs]</a>
+    <span class="k">def</span> <span class="nf">do_set_status_of_modulation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">status</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set status of modulation.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            status (str) : &#39;on&#39; or &#39;off&#39;</span>
+
+<span class="sd">        Output:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="vm">__name__</span> <span class="o">+</span> <span class="s1">&#39; : setting status to &quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="n">status</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">status</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;ON&#39;</span><span class="p">,</span> <span class="s1">&#39;OFF&#39;</span><span class="p">):</span>
+            <span class="n">status</span> <span class="o">=</span> <span class="n">status</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;set_status(): can only set on or off&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;:SOUR:PULM:STAT </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">status</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="RohdeSchwarz_SMR40.do_get_status_of_ALC">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.RohdeSchwarz.html#qcodes_contrib_drivers.drivers.RohdeSchwarz.SMR40.RohdeSchwarz_SMR40.do_get_status_of_ALC">[docs]</a>
+    <span class="k">def</span> <span class="nf">do_get_status_of_ALC</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get status from instrument.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        Output:</span>
+<span class="sd">            status (str) : &#39;on or &#39;off&#39;</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="vm">__name__</span> <span class="o">+</span> <span class="s1">&#39; : reading ALC status from instrument&#39;</span><span class="p">)</span>
+        <span class="n">stat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s1">&#39;:SOUR:POW:ALC?&#39;</span><span class="p">)</span>
+
+        <span class="c1"># TODO: fix</span>
+        <span class="c1"># if stat == &#39;1&#39;:</span>
+        <span class="c1"># return &#39;ON&#39;</span>
+        <span class="c1"># elif stat == &#39;0&#39;:</span>
+        <span class="c1"># return &#39;OFF&#39;</span>
+        <span class="k">if</span> <span class="n">stat</span> <span class="o">==</span> <span class="s1">&#39;1</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;ON&#39;</span>
+        <span class="k">elif</span> <span class="n">stat</span> <span class="o">==</span> <span class="s1">&#39;0</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;OFF&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Output status not specified : </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">stat</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="RohdeSchwarz_SMR40.do_set_status_of_ALC">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.RohdeSchwarz.html#qcodes_contrib_drivers.drivers.RohdeSchwarz.SMR40.RohdeSchwarz_SMR40.do_set_status_of_ALC">[docs]</a>
+    <span class="k">def</span> <span class="nf">do_set_status_of_ALC</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">status</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set status of instrument.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            status (str) : &#39;on or &#39;off&#39;</span>
+
+<span class="sd">        Output:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="vm">__name__</span> <span class="o">+</span> <span class="s1">&#39; : setting ALC status to &quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="n">status</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">status</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;ON&#39;</span><span class="p">,</span> <span class="s1">&#39;OFF&#39;</span><span class="p">):</span>
+            <span class="n">status</span> <span class="o">=</span> <span class="n">status</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;set_status(): can only set on or off&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;:SOUR:POW:ALC </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">status</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="RohdeSchwarz_SMR40.do_get_pulse_delay">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.RohdeSchwarz.html#qcodes_contrib_drivers.drivers.RohdeSchwarz.SMR40.RohdeSchwarz_SMR40.do_get_pulse_delay">[docs]</a>
+    <span class="k">def</span> <span class="nf">do_get_pulse_delay</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get output power from device.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        Output:</span>
+<span class="sd">            power (float) : output power in dBm</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="vm">__name__</span> <span class="o">+</span> <span class="s1">&#39; : reading pulse delay from instrument&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s1">&#39;SOUR:PULS:DEL?&#39;</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="RohdeSchwarz_SMR40.do_set_pulse_delay">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.RohdeSchwarz.html#qcodes_contrib_drivers.drivers.RohdeSchwarz.SMR40.RohdeSchwarz_SMR40.do_set_pulse_delay">[docs]</a>
+    <span class="k">def</span> <span class="nf">do_set_pulse_delay</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delay</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set output power of device.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            power (float) : output power in dBm</span>
+
+<span class="sd">        Output:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+            <span class="vm">__name__</span> <span class="o">+</span> <span class="s1">&#39; : setting pulse delay to </span><span class="si">%s</span><span class="s1"> seconds&#39;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">delay</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;SOUR:PULS:DEL 1us&#39;</span><span class="p">)</span></div>
+
+
+    <span class="c1"># Shortcuts</span>
+<div class="viewcode-block" id="RohdeSchwarz_SMR40.off">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.RohdeSchwarz.html#qcodes_contrib_drivers.drivers.RohdeSchwarz.SMR40.RohdeSchwarz_SMR40.off">[docs]</a>
+    <span class="k">def</span> <span class="nf">off</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set status to &#39;off&#39;.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        Output:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="RohdeSchwarz_SMR40.on">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.RohdeSchwarz.html#qcodes_contrib_drivers.drivers.RohdeSchwarz.SMR40.RohdeSchwarz_SMR40.on">[docs]</a>
+    <span class="k">def</span> <span class="nf">on</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set status to &#39;on&#39;.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        Output:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;on&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="RohdeSchwarz_SMR40.off_modulation">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.RohdeSchwarz.html#qcodes_contrib_drivers.drivers.RohdeSchwarz.SMR40.RohdeSchwarz_SMR40.off_modulation">[docs]</a>
+    <span class="k">def</span> <span class="nf">off_modulation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set status of modulation to &#39;off&#39;.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        Output:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_status_of_modulation</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="RohdeSchwarz_SMR40.on_modulation">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.RohdeSchwarz.html#qcodes_contrib_drivers.drivers.RohdeSchwarz.SMR40.RohdeSchwarz_SMR40.on_modulation">[docs]</a>
+    <span class="k">def</span> <span class="nf">on_modulation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set status of modulation to &#39;on&#39;.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        Output:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_status_of_modulation</span><span class="p">(</span><span class="s1">&#39;on&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="RohdeSchwarz_SMR40.set_ext_trig">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.RohdeSchwarz.html#qcodes_contrib_drivers.drivers.RohdeSchwarz.SMR40.RohdeSchwarz_SMR40.set_ext_trig">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_ext_trig</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set to the external trigger mode.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        Output:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="vm">__name__</span> <span class="o">+</span> <span class="s1">&#39; : setting to the external trigger mode&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;TRIG:PULS:SOUR EXT_TRIG&#39;</span><span class="p">)</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, QCoDeS Users.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

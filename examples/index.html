@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Examples of how to use drivers &mdash; qcodes_contrib_drivers 0.23.0.dev14+main.g6d96817 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/documentation_options.js?v=7415f6af"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+        <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Example with the Agilent N9000A" href="Agilent_N9000A.html" />
+    <link rel="prev" title="Welcome to QCoDeS Contributed Drivers’s documentation!" href="../index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            qcodes_contrib_drivers
+          </a>
+              <div class="version">
+                0.23.0.dev14+main.g6d96817
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Examples of how to use drivers</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Agilent_N9000A.html">Example with the Agilent N9000A</a></li>
+<li class="toctree-l2"><a class="reference internal" href="AimTTi_EL320P.html">Example notebook for AimTTi EL320P</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Andor_DU401.html">Qcodes example with Andor DU401 BU2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Attocube_ANC300.html">QCoDeS example with Attocube ANC300</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Aviosys_IP_Power_9258S.html">Qcodes example with Aviosys IP Power 9258S</a></li>
+<li class="toctree-l2"><a class="reference internal" href="BlueFors.html">Example with the BlueFors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CopperMountain_M5180.html">Example with CopperMountain Model M5180 vector network analyzer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CopperMountain_M5180.html#Setup-db-and-station-for-test-measurerment">Setup db and station for test measurerment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CopperMountain_M5180.html#Look-at-the-names-and-the-labels-of-the-Sxx-parameters">Look at the names and the labels of the Sxx parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ERASynth.html">Example with ERASynth</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Gentec_Maestro.html">QCoDeS Example with Gentec Maestro</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Holzworth_HS900.html">Example notebook for the Holzworth HS900B RF synthesizer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Horiba_FHR.html">Example for Horiba FHR</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ITest.html">Example with the iTest from Bilt</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Keithley_6430.html">Example notebook for Keithley 6430 SMU</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Keithley_6430.html#Measure-resistance-of-a-~100k\Omega-resistor">Measure resistance of a ~100k<span class="math notranslate nohighlight">\(\Omega\)</span> resistor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Keysight_M3202A.html">Keysight M3202A AWG</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Keysight_M3202A%20with%20digitizer.html">Keysight M3202A AWG example with digitizer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Lakeshore_311.html">Qcodes example with Lakeshore 311</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Lakeshore_625.html">Example with Lakeshore Model 625 Superconducting Magnet power supply</a></li>
+<li class="toctree-l2"><a class="reference internal" href="NationalInstruments_DAQ.html">National Instruments Multifunction DAQ example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="NationalInstruments_PXIe_2597.html">Qcodes example for National Instruments PXIe-2597 RF Switch</a></li>
+<li class="toctree-l2"><a class="reference internal" href="NationalInstruments_RFSG.html">Qcodes example with the NI RFSG signal generator driver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Newport_AG-UC8.html">QCoDeS Example with Newport AG-UC8 Piezo Motion Controller</a></li>
+<li class="toctree-l2"><a class="reference internal" href="OxfordTriton.html">Example of the oxford triton driver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Rohde_Schwarz_HMC8043.html">QCoDeS Example with R&amp;S HMC 8043 Power Supply</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Rohde_Schwarz_HMP4040.html">QCoDeS Example with R&amp;S HMP4040 Power Supply</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Rohde_Schwarz_SMW200A.html">QCoDeS example with Rohe&amp;Schwarz SMW200A</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SR844.html">Changing the Sensitivity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SR844.html#Preparing-for-reading-the-buffer-and-measurement">Preparing for reading the buffer and measurement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Shamrock_SR750.html">Qcodes example with Shamrock SR750</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SignalCore.html">Example with the microwave source SC5521A from Signal Core</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SignalCore.html#Device-connection">Device connection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SignalCore.html#Set-parameters">Set parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SignalRecovery_7270.html">Example of Signal Recovery 7270 driver usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SingleQuantum.html">Example for Single Quantum SNSPD</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Standa_10MWA168.html">Qcodes example with Standa 10MWA168</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Tektronix_AFG3000_series.html">Tektronix AFG3000 series arbitrary function generator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Tektronix_FCA3100.html">overview over all parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Tektronix_FCA3100.html#Usage-of-the-two-main-parameters">Usage of the two main parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Tektronix_Keithley_6500.html">QCoDeS Example with Tektronix Keithley Digital Multimeter DMM6500</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Thorlabs_K10CR1.html">Qcodes example with Thorlabs K10CR1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Thorlabs_KLS1550.html">QCoDeS example with Thorlabs KLS1550 laser source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Thorlabs_MFF10x.html">Qcodes example with Thorlabs MFF10x</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Thorlabs_PRM1Z8.html">Qcodes example with Thorlabs PRM1Z8</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Valon_5015.html">QCoDeS example with Valon 5015</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Vaunix_LDA.html">Qcodes example for Vaunix LDA step attenuator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Vaunix_LDA.html#Model-with-many-channels">Model with many channels</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ZVL13.html">Rohde &amp; Schwarz ZVL13 Vector Network Analyzer example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ZVL13.html#Parameters-definition">Parameters definition</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ZurichInstruments_HF2LI.html">Zurich Instruments HF2LI example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="QDevil/index.html">QDevil drivers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HP/HP8594E.html">QCoDeS Example with HP8594E</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../api/generated/qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">qcodes_contrib_drivers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Examples of how to use drivers</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/examples/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="examples-of-how-to-use-drivers">
+<h1>Examples of how to use drivers<a class="headerlink" href="#examples-of-how-to-use-drivers" title="Link to this heading">¶</a></h1>
+<p>These are all examples based on notebooks that can be found in
+<a class="reference external" href="https://github.com/QCoDeS/Qcodes_contrib_drivers/tree/master/docs/examples">https://github.com/QCoDeS/Qcodes_contrib_drivers/tree/master/docs/examples</a> and below.
+To experiment with the examples you can download them directly from the git repository.</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Agilent_N9000A.html">Example with the Agilent N9000A</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Agilent_N9000A.html#Import">Import</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Agilent_N9000A.html#Load-instrument">Load instrument</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Agilent_N9000A.html#Initiallization">Initiallization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Agilent_N9000A.html#Measurement">Measurement</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="AimTTi_EL320P.html">Example notebook for AimTTi EL320P</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="AimTTi_EL320P.html#This-is-the-power-supply-used-for-the-Bluefors-4-K-stage-warmup-heater.">This is the power supply used for the Bluefors 4 K stage warmup heater.</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Andor_DU401.html">Qcodes example with Andor DU401 BU2</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Andor_DU401.html#Initialize-the-instrument">Initialize the instrument</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Andor_DU401.html#Take-a-spectrum-in-the-single-scan-acquisition-mode">Take a spectrum in the single scan acquisition mode</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Andor_DU401.html#Take-a-spectrum-in-the-accumulate-acquisition-mode">Take a spectrum in the accumulate acquisition mode</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Andor_DU401.html#Take-a-snapshot">Take a snapshot</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Andor_DU401.html#Close-the-instrument">Close the instrument</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Attocube_ANC300.html">QCoDeS example with Attocube ANC300</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Attocube_ANC300.html#The-test-controller-is-equiped-with-two-ANM150-axis-modules">The test controller is equiped with two ANM150 axis modules</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Aviosys_IP_Power_9258S.html">Qcodes example with Aviosys IP Power 9258S</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Aviosys_IP_Power_9258S.html#Initialize-instrument">Initialize instrument</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Aviosys_IP_Power_9258S.html#Read-the-power-status">Read the power status</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Aviosys_IP_Power_9258S.html#Set-the-power-status">Set the power status</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Aviosys_IP_Power_9258S.html#Turn-of-all-sockets">Turn of all sockets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Aviosys_IP_Power_9258S.html#Close-instrument">Close instrument</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="BlueFors.html">Example with the BlueFors</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="BlueFors.html#Import">Import</a></li>
+<li class="toctree-l2"><a class="reference internal" href="BlueFors.html#Load-instrument">Load instrument</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="CopperMountain_M5180.html">Example with CopperMountain Model M5180 vector network analyzer</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="CopperMountain_M5180.html#Connecting-to-device">Connecting to device</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="CopperMountain_M5180.html#Setup-db-and-station-for-test-measurerment">Setup db and station for test measurerment</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="CopperMountain_M5180.html#Measure-a-trace">Measure a trace</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="CopperMountain_M5180.html#Look-at-the-names-and-the-labels-of-the-Sxx-parameters">Look at the names and the labels of the Sxx parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ERASynth.html">Example with ERASynth</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ERASynth.html#Set-a-frequency-and-turn-on">Set a frequency and turn on</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ERASynth.html#Run-a-self-test">Run a self test</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ERASynth.html#Sweep-mode">Sweep mode</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ERASynth.html#Communication-performance">Communication performance</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Gentec_Maestro.html">QCoDeS Example with Gentec Maestro</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Gentec_Maestro.html#Initialize-the-instrument-using-its-ASRL-address">Initialize the instrument using its ASRL address</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Gentec_Maestro.html#Set-the-wavelength-to-get-the-right-calibration">Set the wavelength to get the right calibration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Gentec_Maestro.html#Read-the-laser-power">Read the laser power</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Gentec_Maestro.html#Close-instrument">Close instrument</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Holzworth_HS900.html">Example notebook for the Holzworth HS900B RF synthesizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Horiba_FHR.html">Example for Horiba FHR</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ITest.html">Example with the iTest from Bilt</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ITest.html#Import">Import</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ITest.html#Load-instrument">Load instrument</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ITest.html#Initiallization">Initiallization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ITest.html#Measurement">Measurement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ITest.html#Set">Set</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Keithley_6430.html">Example notebook for Keithley 6430 SMU</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Keithley_6430.html#Measure-resistance-of-a-~100k\Omega-resistor">Measure resistance of a ~100k<span class="math notranslate nohighlight">\(\Omega\)</span> resistor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Keysight_M3202A.html">Keysight M3202A AWG</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Keysight_M3202A.html#Generate-and-enqueue-waveforms">Generate and enqueue waveforms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Keysight_M3202A.html#Trigger-AWGs">Trigger AWGs</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Keysight_M3202A%20with%20digitizer.html">Keysight M3202A AWG example with digitizer</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Keysight_M3202A%20with%20digitizer.html#Generate-and-enqueue-waveforms">Generate and enqueue waveforms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Keysight_M3202A%20with%20digitizer.html#configure-digitizer-to-capture-signals">configure digitizer to capture signals</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Keysight_M3202A%20with%20digitizer.html#Trigger-AWGs-and-digitizer">Trigger AWGs and digitizer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Keysight_M3202A%20with%20digitizer.html#Retrieve-digitizer-data-and-plot-result">Retrieve digitizer data and plot result</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Lakeshore_311.html">Qcodes example with Lakeshore 311</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Lakeshore_311.html#Initialize-instrument">Initialize instrument</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Lakeshore_311.html#Read-temperatures">Read temperatures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Lakeshore_311.html#Heater-configuration">Heater configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Lakeshore_311.html#Close-the-instrument">Close the instrument</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Lakeshore_625.html">Example with Lakeshore Model 625 Superconducting Magnet power supply</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Lakeshore_625.html#Check-current-to-field-conversion">Check current to field conversion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Lakeshore_625.html#Let's-have-a-look-at-other-parameters">Let’s have a look at other parameters</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="Lakeshore_625.html#Field">Field</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Lakeshore_625.html#Ramp-rate">Ramp rate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Lakeshore_625.html#Quench-detection">Quench detection</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="NationalInstruments_DAQ.html">National Instruments Multifunction DAQ example</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="NationalInstruments_DAQ.html#DAQAnalogInputs"><code class="docutils literal notranslate"><span class="pre">DAQAnalogInputs</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="NationalInstruments_DAQ.html#DAQAnalogOutputs"><code class="docutils literal notranslate"><span class="pre">DAQAnalogOutputs</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="NationalInstruments_PXIe_2597.html">Qcodes example for National Instruments PXIe-2597 RF Switch</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="NationalInstruments_PXIe_2597.html#Connect-different-channels-on-the-switch">Connect different channels on the switch</a></li>
+<li class="toctree-l2"><a class="reference internal" href="NationalInstruments_PXIe_2597.html#Aliasing-channel-names">Aliasing channel names</a></li>
+<li class="toctree-l2"><a class="reference internal" href="NationalInstruments_PXIe_2597.html#Print-a-snapshot">Print a snapshot</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="NationalInstruments_RFSG.html">Qcodes example with the NI RFSG signal generator driver</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="NationalInstruments_RFSG.html#Initialize-the-instrument">Initialize the instrument</a></li>
+<li class="toctree-l2"><a class="reference internal" href="NationalInstruments_RFSG.html#Generate-a-signal">Generate a signal</a></li>
+<li class="toctree-l2"><a class="reference internal" href="NationalInstruments_RFSG.html#Generate-a-pulsed-signal">Generate a pulsed signal</a></li>
+<li class="toctree-l2"><a class="reference internal" href="NationalInstruments_RFSG.html#Analog-(amplitude-/-phase-/-frequency)-modulation">Analog (amplitude / phase / frequency) modulation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="NationalInstruments_RFSG.html#Stop-RF-generation">Stop RF generation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="NationalInstruments_RFSG.html#Take-a-snapshot">Take a snapshot</a></li>
+<li class="toctree-l2"><a class="reference internal" href="NationalInstruments_RFSG.html#Close-the-instrument">Close the instrument</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Newport_AG-UC8.html">QCoDeS Example with Newport AG-UC8 Piezo Motion Controller</a></li>
+<li class="toctree-l1"><a class="reference internal" href="OxfordTriton.html">Example of the oxford triton driver</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="OxfordTriton.html#Imports">Imports</a></li>
+<li class="toctree-l2"><a class="reference internal" href="OxfordTriton.html#Load-instrument">Load instrument</a></li>
+<li class="toctree-l2"><a class="reference internal" href="OxfordTriton.html#Readout-instrument-parameters">Readout instrument parameters</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Rohde_Schwarz_HMC8043.html">QCoDeS Example with R&amp;S HMC 8043 Power Supply</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Rohde_Schwarz_HMP4040.html">QCoDeS Example with R&amp;S HMP4040 Power Supply</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Rohde_Schwarz_SMW200A.html">QCoDeS example with Rohe&amp;Schwarz SMW200A</a></li>
+<li class="toctree-l1"><a class="reference internal" href="SR844.html">Changing the Sensitivity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="SR844.html#Preparing-for-reading-the-buffer-and-measurement">Preparing for reading the buffer and measurement</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="SR844.html#Measurements-using-trigger">Measurements using trigger</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SR844.html#Non-buffer-measurements">Non-buffer measurements</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Shamrock_SR750.html">Qcodes example with Shamrock SR750</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Shamrock_SR750.html#Initialize-the-instrument">Initialize the instrument</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Shamrock_SR750.html#Get-the-current-spectrometer-setup">Get the current spectrometer setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Shamrock_SR750.html#Change-spectrometer-setup">Change spectrometer setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Shamrock_SR750.html#Get-spectrometer-calibration">Get spectrometer calibration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Shamrock_SR750.html#Take-a-snapshot">Take a snapshot</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Shamrock_SR750.html#Close-the-instrument">Close the instrument</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="SignalCore.html">Example with the microwave source SC5521A from Signal Core</a></li>
+<li class="toctree-l1"><a class="reference internal" href="SignalCore.html#Device-connection">Device connection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="SignalCore.html#Set-parameters">Set parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="SignalRecovery_7270.html">Example of Signal Recovery 7270 driver usage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="SignalRecovery_7270.html#Connect-to-device">Connect to device</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SignalRecovery_7270.html#Setup-db-and-station-for-test-measurerment">Setup db and station for test measurerment</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="SingleQuantum.html">Example for Single Quantum SNSPD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Standa_10MWA168.html">Qcodes example with Standa 10MWA168</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Standa_10MWA168.html#Initialize-instrument">Initialize instrument</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Tektronix_AFG3000_series.html">Tektronix AFG3000 series arbitrary function generator</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Tektronix_AFG3000_series.html#Upload-an-arbitrary-waveform-to-the-AFG-and-output-it">Upload an arbitrary waveform to the AFG and output it</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Tektronix_FCA3100.html">overview over all parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tektronix_FCA3100.html#Usage-of-the-two-main-parameters">Usage of the two main parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tektronix_Keithley_6500.html">QCoDeS Example with Tektronix Keithley Digital Multimeter DMM6500</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Tektronix_Keithley_6500.html#Initialization-and-Connection">Initialization and Connection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Tektronix_Keithley_6500.html#Performing-simple-measurements">Performing simple measurements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Tektronix_Keithley_6500.html#Querying-the-active-terminal">Querying the active terminal</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Tektronix_Keithley_6500.html#Using-the-2000-SCAN-scanning-card">Using the 2000-SCAN scanning card</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Tektronix_Keithley_6500.html#Checking-the-active-terminal">Checking the active terminal</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Thorlabs_K10CR1.html">Qcodes example with Thorlabs K10CR1</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Thorlabs_K10CR1.html#Initialization">Initialization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Thorlabs_K10CR1.html#Moving-the-rotator">Moving the rotator</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="Thorlabs_K10CR1.html#Moving-home">Moving home</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Thorlabs_K10CR1.html#Moving-to-certain-position">Moving to certain position</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Thorlabs_K10CR1.html#Moving-to-certain-position-(asynchronously)">Moving to certain position (asynchronously)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Thorlabs_K10CR1.html#Clean-up-resources">Clean up resources</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Thorlabs_KLS1550.html">QCoDeS example with Thorlabs KLS1550 laser source</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Thorlabs_KLS1550.html#Initialisation">Initialisation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Thorlabs_KLS1550.html#Turning-the-laser-output-on/off">Turning the laser output on/off</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Thorlabs_KLS1550.html#Setting-the-laser-output-power">Setting the laser output power</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Thorlabs_KLS1550.html#Disconnecting">Disconnecting</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Thorlabs_MFF10x.html">Qcodes example with Thorlabs MFF10x</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Thorlabs_MFF10x.html#Initialize-the-instrument">Initialize the instrument</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Thorlabs_MFF10x.html#Read-the-current-position">Read the current position</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Thorlabs_MFF10x.html#Change-the-position">Change the position</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Thorlabs_MFF10x.html#Close-instrument">Close instrument</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Thorlabs_PRM1Z8.html">Qcodes example with Thorlabs PRM1Z8</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Thorlabs_PRM1Z8.html#Initialize-the-instrument">Initialize the instrument</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Thorlabs_PRM1Z8.html#Read-the-current-position">Read the current position</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Thorlabs_PRM1Z8.html#Change-the-position">Change the position</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Thorlabs_PRM1Z8.html#Close-instrument">Close instrument</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Valon_5015.html">QCoDeS example with Valon 5015</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Vaunix_LDA.html">Qcodes example for Vaunix LDA step attenuator</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Vaunix_LDA.html#Initialize-the-instrument">Initialize the instrument</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Vaunix_LDA.html#Set-parameters">Set parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Vaunix_LDA.html#Save-settings">Save settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Vaunix_LDA.html#Close-instrument">Close instrument</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Vaunix_LDA.html#Model-with-many-channels">Model with many channels</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ZVL13.html">Rohde &amp; Schwarz ZVL13 Vector Network Analyzer example</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ZVL13.html#Instrument-and-station-initialization">Instrument and station initialization</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="ZVL13.html#Parameters-definition">Parameters definition</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ZVL13.html#Trace-acquisition-in-Network-Analyzer-Mode">Trace acquisition in Network Analyzer Mode</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="ZVL13.html#Plot">Plot</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="ZVL13.html#Trace-acquisition-in-Spectrum-Analyzer-Mode">Trace acquisition in Spectrum Analyzer Mode</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="ZVL13.html#id1">Plot</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="ZurichInstruments_HF2LI.html">Zurich Instruments HF2LI example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="QDevil/index.html">QDevil drivers</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="QDevil/QDAC1/index.html">QCoDeS examples of how to use QDAC-I</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="QDevil/QDAC1/QCodes%20example%20with%20QDevil_QDAC.html">QCoDeS Example with QDevil_QDAC</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="QDevil/QDAC1/QCodes%20example%20with%20QDevil_QDAC.html#Initialisation">Initialisation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="QDevil/QDAC1/QCodes%20example%20with%20QDevil_QDAC.html#Basic-QDAC-Usage">Basic QDAC Usage</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="QDevil/QDAC1/QCodes%20example%20with%20QDevil_QDAC.html#Setting-voltages-and-reading-currents">Setting voltages and reading currents</a></li>
+<li class="toctree-l5"><a class="reference internal" href="QDevil/QDAC1/QCodes%20example%20with%20QDevil_QDAC.html#Smooth-ramping-between-voltages">Smooth ramping between voltages</a></li>
+<li class="toctree-l5"><a class="reference internal" href="QDevil/QDAC1/QCodes%20example%20with%20QDevil_QDAC.html#Addressing-multiple-channels">Addressing multiple channels</a></li>
+<li class="toctree-l5"><a class="reference internal" href="QDevil/QDAC1/QCodes%20example%20with%20QDevil_QDAC.html#Output-a-SYNC-pulse">Output a SYNC pulse</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="QDevil/QDAC1/QCodes%20example%20with%20QDevil_QDAC.html#Ramp-one-or-more-channels-simultaneously">Ramp one or more channels simultaneously</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="QDevil/QDAC1/QCodes%20example%20with%20QDevil_QDAC.html#Ramp-a-single-channel-step-by-step-and-record-and-plot-the-current-sensor-reading">Ramp a single channel step by step and record and plot the current sensor reading</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="QDevil/QDAC1/QCodes%20example%20with%20QDevil_QDAC.html#2D-scan">2D scan</a></li>
+<li class="toctree-l4"><a class="reference internal" href="QDevil/QDAC1/QCodes%20example%20with%20QDevil_QDAC.html#The-%22mode%22-parameter:-controlling-voltage-and-current-ranges:">The “mode” parameter: controlling voltage and current ranges:</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="QDevil/QDAC1/QCodes%20example%20with%20QDevil_QDAC.html#When-%22mode%22-change-results-in-change-of-voltage-range">When “mode” change results in change of voltage range</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="QDevil/QDAC1/QCodes%20example%20with%20QDevil_QDAC.html#Overview-of-channels">Overview of channels</a></li>
+<li class="toctree-l4"><a class="reference internal" href="QDevil/QDAC1/QCodes%20example%20with%20QDevil_QDAC.html#Temperature-sensors">Temperature sensors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="QDevil/QDAC1/QCodes%20example%20with%20QDevil_QDAC.html#Resetting-the-driver-and-the-QDAC">Resetting the driver and the QDAC</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="QDevil/QDAC2/index.html">QCoDeS examples of how to use QDAC-II</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="QDevil/QDAC2/AWG.html">QDAC-II arbitrary-waveform generator</a></li>
+<li class="toctree-l3"><a class="reference internal" href="QDevil/QDAC2/Chaining.html">QDAC-II trigger chaining</a></li>
+<li class="toctree-l3"><a class="reference internal" href="QDevil/QDAC2/DC_Constant.html">QDAC-II constant voltage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="QDevil/QDAC2/Debugging.html">QDAC-II debugging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="QDevil/QDAC2/GateLeakage.html">Gate Leakage Test</a></li>
+<li class="toctree-l3"><a class="reference internal" href="QDevil/QDAC2/GateLeakageMultipleQDACs.html">Gate Leakage using multiple QDAC-IIs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="QDevil/QDAC2/List.html">QDAC-II voltage lists</a></li>
+<li class="toctree-l3"><a class="reference internal" href="QDevil/QDAC2/MultiGenerator.html">QDAC-II multiple generators per channel</a></li>
+<li class="toctree-l3"><a class="reference internal" href="QDevil/QDAC2/PyvisaAwg.html">PyVisa direct use of QDAC-II</a></li>
+<li class="toctree-l3"><a class="reference internal" href="QDevil/QDAC2/Scan.html">QDAC-II 1D &amp; 2D scan</a></li>
+<li class="toctree-l3"><a class="reference internal" href="QDevil/QDAC2/Scan2DDiode.html">QDAC-II 2D diode scan</a></li>
+<li class="toctree-l3"><a class="reference internal" href="QDevil/QDAC2/Sine.html">QDAC-II sine waves</a></li>
+<li class="toctree-l3"><a class="reference internal" href="QDevil/QDAC2/Square.html">QDAC-II square waves</a></li>
+<li class="toctree-l3"><a class="reference internal" href="QDevil/QDAC2/Sweep.html">QDAC-II voltage sweep</a></li>
+<li class="toctree-l3"><a class="reference internal" href="QDevil/QDAC2/SyncMultipleQDACs.html">Synchronise multiple QDAC-IIs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="QDevil/QDAC2/Triangle.html">QDAC-II triangle waves</a></li>
+<li class="toctree-l3"><a class="reference internal" href="QDevil/QDAC2/VirtualGates.html">QDAC-II virtual gates</a></li>
+<li class="toctree-l3"><a class="reference internal" href="QDevil/QDAC2/do2dScan.html">QDAC-II 2D diode scan</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="QDevil/QSwitch/index.html">QCoDeS examples of how to use QSwitch</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="QDevil/QSwitch/Debugging.html">QSwitch debugging</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="QDevil/QSwitch/Debugging.html#Connections">Connections</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="QDevil/QSwitch/Usage.html">QSwitch usage</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="QDevil/QSwitch/Usage.html#Manipulation-by-numbers">Manipulation by numbers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="QDevil/QSwitch/Usage.html#Arrangements">Arrangements</a></li>
+<li class="toctree-l4"><a class="reference internal" href="QDevil/QSwitch/Usage.html#Monitors">Monitors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="QDevil/QSwitch/Usage.html#Autosave">Autosave</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="HP/HP8594E.html">QCoDeS Example with HP8594E</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="HP/HP8594E.html#Start,-Stop,-Center-and-Span">Start, Stop, Center and Span</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HP/HP8594E.html#More-settings">More settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HP/HP8594E.html#Transfer-type">Transfer type</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../index.html" class="btn btn-neutral float-left" title="Welcome to QCoDeS Contributed Drivers’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Agilent_N9000A.html" class="btn btn-neutral float-right" title="Example with the Agilent N9000A" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, QCoDeS Users.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
