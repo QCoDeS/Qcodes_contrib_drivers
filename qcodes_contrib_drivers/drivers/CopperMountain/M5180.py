@@ -1,6 +1,6 @@
 # This Python file uses the following encoding: utf-8
 # Etienne Dumur <etienne.dumur@gmail.com>, august 2020
-# Simon Zihlmannr <zihlmann.simon@gmail.com>, february/march 2021
+# Simon Zihlmann <zihlmann.simon@gmail.com>, february/march 2021
 import logging
 import numpy as np
 import cmath, math
@@ -153,6 +153,7 @@ class FrequencySegmentSweepMagPhase(MultiParameter):
     def set_sweep(self) -> None:
         """Updates the setpoints and shapes based on the freq array
         """
+        self.instrument.write('SENS1:SWE:TYPE SEGMent')# set the sweep type
         f = self.instrument.ask("SENS1:FREQ:DATA?")
         self.setpoints = (([float(i) for i in f.split(',')],), ([float(i) for i in f.split(',')],))
         self.shapes = ((len([float(i) for i in f.split(',')]),), (len([float(i) for i in f.split(',')]),))
@@ -167,7 +168,6 @@ class FrequencySegmentSweepMagPhase(MultiParameter):
         self.instrument.write('CALC1:PAR:COUN 1') # 1 trace
         self.instrument.write('CALC1:PAR1:DEF {}'.format(self.name))
         self.instrument.trigger_source('bus') # set the trigger to bus
-        self.instrument.write('SENS1:SWE:TYPE SEGMent') # set the sweep type
         self.instrument.write('TRIG:SEQ:SING') # Trigger a single sweep
         self.instrument.ask('*OPC?') # Wait for measurement to complete
 
@@ -516,7 +516,7 @@ class M5180(VisaInstrument):
                            set_cmd='FORM:DATA {}',
                            vals = Enum('ascii', 'real', 'real32'))
 
-        self.add_parameter(name='freq_seg',
+        self.add_parameter(name='freq_seg', #see progamming manual p314, Sets segment table and updates segmented trace parameters.
                            label='Frequency Segments',
                            get_parser=str,
                            get_cmd='SENS1:FREQ:DATA?',
@@ -707,7 +707,8 @@ class M5180(VisaInstrument):
             
         """
         self.write(format(seg_table))
-        self.update_lin_traces()
+        self.update_seg_traces()
+        
 
     def get_s(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray,
                              np.ndarray, np.ndarray, np.ndarray, np.ndarray,
@@ -772,7 +773,10 @@ class M5180(VisaInstrument):
                     parameter.set_sweep(start, stop, npts)
                 except AttributeError:
                     pass
-            elif isinstance(parameter, (FrequencySegmentSweepMagPhase)):
+
+    def update_seg_traces(self) -> None:   
+        for _, parameter in self.parameters.items():         
+            if isinstance(parameter, (FrequencySegmentSweepMagPhase)):
                 try:
                     parameter.set_sweep()
                 except AttributeError:
