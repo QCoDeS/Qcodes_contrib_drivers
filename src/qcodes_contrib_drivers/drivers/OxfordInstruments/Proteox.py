@@ -52,7 +52,7 @@ DUAL_PTRS_FITTED=False # not currently used
 DUAL_TURBO_FITTED=False # not currently used
 
 # Does the system have a 3He flow meter
-HE3_FLOW_METER_FITTED=True
+HE3_FLOW_METER_FITTED=False
 
 #############################################
 
