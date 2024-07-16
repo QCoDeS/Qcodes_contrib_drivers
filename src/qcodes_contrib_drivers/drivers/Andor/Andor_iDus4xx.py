@@ -203,7 +203,6 @@ class SingleTrackSettingsParameter(MultiParameter):
             raise RuntimeError("No instrument attached to Parameter.")
 
         self.instrument.atmcd64d.set_single_track(*val)
-        self.cache.set(self.SingleTrackSettings(*val))
 
 
 class MultiTrackSettingsParameter(MultiParameter):
@@ -263,7 +262,6 @@ class RandomTrackSettingsParameter(MultiParameter):
             raise RuntimeError("No instrument attached to Parameter.")
 
         self.instrument.atmcd64d.set_random_tracks(*val)
-        self.cache.set(self.RandomTrackSettings(*val))
 
 
 class ImageSettingsParameter(MultiParameter):
@@ -283,7 +281,6 @@ class ImageSettingsParameter(MultiParameter):
             raise RuntimeError("No instrument attached to Parameter.")
 
         self.instrument.atmcd64d.set_image(*val)
-        self.cache.set(self.ImageSettings(*val))
 
 
 class FastKineticsSettingsParameter(MultiParameter):
@@ -310,7 +307,6 @@ class FastKineticsSettingsParameter(MultiParameter):
         # The exposure time always seems to be 0 in fast kinetics mode
         # self.instrument.exposure_time.set(val[2])
         self.instrument.read_mode.set(self.instrument.read_mode.inverse_val_mapping[val[3]])
-        self.cache.set(self.FastKineticsSettings(*val))
 
 
 class ParameterWithSetSideEffect(Parameter):
