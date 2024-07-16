@@ -335,6 +335,15 @@ class PixelAxis(Parameter):
     """
     A parameter that enumerates the pixels along an axis.
 
+    If acquisition is in 'image' mode, getting this parameter returns
+    the center pixels of subpixels binned together, e.g. for the
+    horizontal axis::
+
+        px = [hstart + i * hbin + hbin // 2
+              for i in range((hend - hstart) // hbin + 1)]
+
+    Otherwise, simply enumerates the number of pixels starting from 1.
+
     If you have a calibration of horizontal pixels to, for example in a
     spectrograph, wavelength at hand, set this parameter's get_parser
     and unit.
@@ -349,7 +358,18 @@ class PixelAxis(Parameter):
         if self.instrument is None:
             raise RuntimeError("No instrument attached to Parameter.")
 
-        return np.arange(1, self.instrument.acquired_pixels.get()[self.dimension] + 1)
+        if self.instrument.read_mode.get_latest() == 'image':
+            hbin, vbin, hstart, hend, vstart, vend = self.instrument.image_settings.get()
+            bins = [hbin, vbin]
+            starts = [hstart, vstart]
+            ends = [hend, vend]
+            return np.arange(starts[self.dimension], ends[self.dimension] + 1,
+                             bins[self.dimension], dtype=np.int_) + bins[self.dimension] // 2
+        # In the other read modes there is no horizontal binning whereas for the vertical axis
+        # select rows may be read out and binned, so we cannot assign meaningful 'pixel' values to
+        # them.
+        return np.arange(1, self.instrument.acquired_pixels.get_latest()[self.dimension] + 1,
+                         dtype=np.int_)
 
 
 class TimeAxis(Parameter):
