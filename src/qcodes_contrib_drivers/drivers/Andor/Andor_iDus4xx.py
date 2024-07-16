@@ -213,12 +213,25 @@ class MultiTrackSettingsParameter(MultiParameter):
     When setting, a sequence of *three* numbers (number, height, and
     offset).
 
-    When getting, a tuple of *five* numbers (number, height, offset,
-    bottom, gap) is returned. The last two are calculated by the dll
-    function and are thus only available when getting.
+    When getting, a tuple of *three* numbers (number, height, offset) is
+    again returned. In addition, the CCD calculates the gap between
+    tracks and the offset from the bottom row. These are stored as
+    properties of the parameter, i.e., accessible through
+    :property:`gap` and :property:`bottom`, respectively.
     """
-    MultiTrackSettings = namedtuple('MultiTrackSettings',
-                                    ['number', 'height', 'offset', 'bottom', 'gap'])
+    MultiTrackSettings = namedtuple('MultiTrackSettings', ['number', 'height', 'offset'])
+    _bottom: int | None = None
+    _gap: int | None = None
+
+    @property
+    def bottom(self) -> int | None:
+        """The bottom row as computed by the CCD."""
+        return self._bottom
+
+    @property
+    def gap(self) -> int | None:
+        """The gap between rows as computed by the CCD."""
+        return self._gap
 
     def get_raw(self) -> Optional[MultiTrackSettings]:
         if self.instrument is None:
@@ -231,8 +244,7 @@ class MultiTrackSettingsParameter(MultiParameter):
         if self.instrument is None:
             raise RuntimeError("No instrument attached to Parameter.")
 
-        bottom, gap = self.instrument.atmcd64d.set_multi_track(*val)
-        self.cache.set(self.MultiTrackSettings(*(tuple(val) + (bottom, gap))))
+        self._bottom, self._gap = self.instrument.atmcd64d.set_multi_track(*val)
 
 
 class RandomTrackSettingsParameter(MultiParameter):
@@ -694,8 +706,8 @@ class AndorIDus4xx(Instrument):
         self.add_parameter('multi_track_settings',
                            parameter_class=MultiTrackSettingsParameter,
                            names=MultiTrackSettingsParameter.MultiTrackSettings._fields,
-                           shapes=((), (), (), (), ()),
-                           units=('px', 'px', 'px', 'px', 'px'),
+                           shapes=((), (), ()),
+                           units=('px', 'px', 'px'),
                            vals=_HeterogeneousSequence([validators.Ints(1), validators.Ints(1),
                                                         validators.Ints(0)]),
                            docstring=dedent(self.atmcd64d.set_multi_track.__doc__),
