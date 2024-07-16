@@ -114,7 +114,7 @@ class _HeterogeneousSequence(validators.Validator[Sequence[Any]]):
 
 
 class _PostProcessingCallable(validators.Validator[Callable[[npt.NDArray[np.int32]],
-                              npt.NDArray[np.int32]]]):
+                                                            npt.NDArray[np.int32]]]):
     """A validator for post-processing functions."""
 
     def __init__(self) -> None:
@@ -196,7 +196,7 @@ class SingleTrackSettingsParameter(MultiParameter):
             raise RuntimeError("No instrument attached to Parameter.")
 
         val = self.cache.get(False)
-        return self.SingleTrackSettings(*self.cache.get(False)) if val is not None else None
+        return self.SingleTrackSettings(*val) if val is not None else None
 
     def set_raw(self, val: SingleTrackSettings):
         if self.instrument is None:
@@ -938,7 +938,7 @@ class AndorIDus4xx(Instrument):
                            parameter_class=TimeAxis,
                            vals=validators.Arrays(shape=(self.acquired_frames.get_latest,)),
                            unit='s',
-                           label='Time axis (frames)',
+                           label='Time axis',
                            docstring=TimeAxis.__doc__)
 
         self.add_parameter('horizontal_axis',
