@@ -1192,7 +1192,8 @@ class AndorIDus4xx(Instrument):
                 'acquisition_timings': self.get_acquisition_timings(),
                 'acquired_frames': self._get_acquired_frames(),
                 'acquired_accumulations': self._get_acquired_accumulations(),
-                'acquired_pixels': self.acquired_pixels.get_latest(),
+                # acquired_pixels can change depending on other settings; perform new get
+                'acquired_pixels': self.acquired_pixels.get(),
                 'fast_kinetics_settings': self.fast_kinetics_settings.get_latest(),
                 'read_mode': self.read_mode.get_latest(),
                 'single_track_settings': self.single_track_settings.get_latest(),
