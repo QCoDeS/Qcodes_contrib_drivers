@@ -906,10 +906,10 @@ class AndorIDus4xx(Instrument):
                            vals=_HeterogeneousSequence([
                                validators.Ints(1, self.detector_pixels.get_latest()[0]),
                                validators.Ints(1, self.detector_pixels.get_latest()[1]),
-                               validators.Ints(1, self.detector_pixels.get_latest()[0] - 1),
-                               validators.Ints(2, self.detector_pixels.get_latest()[0]),
-                               validators.Ints(1, self.detector_pixels.get_latest()[1] - 1),
-                               validators.Ints(2, self.detector_pixels.get_latest()[1])
+                               validators.Ints(1, self.detector_pixels.get_latest()[0]),
+                               validators.Ints(1, self.detector_pixels.get_latest()[0]),
+                               validators.Ints(1, self.detector_pixels.get_latest()[1]),
+                               validators.Ints(1, self.detector_pixels.get_latest()[1])
                            ]),
                            docstring=dedent(self.atmcd64d.set_image.__doc__),
                            snapshot_value=True)
