@@ -1309,6 +1309,37 @@ class AndorIDus4xx(Instrument):
     get_acquisition_timings.__doc__ = _merge_docstrings(get_acquisition_timings,
                                                         atmcd64d.get_acquisition_timings)
 
+    def yield_till_abort(self):
+        with self.acquisition_mode.set_to('run till abort'):
+            data = self._get_acquisition_data()
+            self.arm()
+            self.start_acquisition()
+            self.log.debug('Starting acquisition in run-till-abort mode.')
+            t_start = time.perf_counter()
+            taken = 0
+
+            try:
+                while True:
+                    # data.cycle_time is a lower bound for the time to get a new image
+                    if (to_sleep := data.cycle_time - (time.perf_counter() - t_start)) > 0:
+                        time.sleep(to_sleep)
+
+                    while not (new := self.atmcd64d.get_acquisition_progress()[1] - taken):
+                        continue
+
+                    if new > 1:
+                        self.log.warning('Skipping {new-1} new frames.')
+
+                    self.atmcd64d.get_most_recent_image_by_reference(data.buffer)
+
+                    t_elapsed = time.perf_counter() - t_start
+                    self.log.debug(f'Got new frame in {t_elapsed:.4g} s.')
+                    t_start += t_elapsed
+                    taken += new
+                    yield data.buffer.reshape(data.shape)
+            finally:
+                self.abort_acquisition()
+
     def cool_down(self, setpoint: int | None = None,
                   target: Literal['stabilized', 'reached'] = 'reached',
                   show_progress: bool = True) -> None:
