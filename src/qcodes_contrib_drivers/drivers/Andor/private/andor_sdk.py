@@ -663,6 +663,41 @@ class atmcd64d:
         self.error_check(code, 'GetAcquiredData')
         return np.ctypeslib.as_array(c_data)
 
+    def get_acquisition_progress(self) -> tuple[int, int]:
+        """This function will return information on the progress of the
+         current acquisition.
+
+        It can be called at any time but is best used in conjunction
+        with :meth:`set_driver_event`. The values returned show the
+        number of completed scans in the current acquisition. If 0 is
+        returned for both accum and series then either:
+
+         - No acquisition is currently running
+         - The acquisition has just completed
+         - The very first scan of an acquisition has just started and
+           not yet completed
+
+        :meth:`get_status` can be used to confirm if the first scan has
+        just started, returning DRV_ACQUIRING, otherwise it will return
+        DRV_IDLE. For example, if `accum=2` and `series=3` then the
+        acquisition has completed 3 in the series and 2 accumulations
+        in the 4 scan of the series.
+
+        Returns
+        -------
+        acc:
+            The number of accumulations completed in the current
+            kinetic scan.
+        series:
+            The number of kinetic scans completed.
+
+        """
+        c_acc = ctypes.c_long()
+        c_series = ctypes.c_long()
+        code = self.dll.GetAcquisitionProgress(ctypes.byref(c_acc), ctypes.byref(c_series))
+        self.error_check(code, 'GetAcquisitionProgress')
+        return c_acc.value, c_series.value
+
     def get_acquisition_timings(self) -> Tuple[float, float, float]:
         """
         This function will return the current “valid” acquisition timing
@@ -2385,3 +2420,32 @@ class atmcd64d:
         """
         code = self.dll.WaitForAcquisition()
         self.error_check(code, 'WaitForAcquisition')
+
+    def wait_for_acquisition_timeout(self, timeout_ms: int) -> None:
+        """
+        WaitForAcquisitionTimeOut can be called after an acquisition is
+        started using :meth:`start_acquisition` to put the calling
+        thread to sleep until an Acquisition Event occurs. This can be
+        used as a simple alternative to the functionality provided by
+        the :meth:`set_driver_event` function, as all Event creation
+        and handling is performed internally by the SDK library. Like
+        the :meth:`set_driver_event` functionality it will use less
+        processor resources than continuously polling with the
+        :meth:`get_status` function. If you wish to restart the calling
+        thread without waiting for an Acquisition event, call the
+        function :meth:`cancel_wait`. An Acquisition Event occurs each
+        time a new image is acquired during an Accumulation, Kinetic
+        Series or Run-Till-Abort acquisition or at the end of a Single
+        Scan Acquisition. If an Acquisition Event does not occur within
+        timeout_ms milliseconds, WaitForAcquisitionTimeOut returns
+        DRV_NO_NEW_DATA.
+
+        Parameters
+        ----------
+        timeout_ms:
+            Time before returning DRV_NO_NEW_DATA if no Acquisition Event
+            occurs.
+
+        """
+        code = self.dll.WaitForAcquisitionTimeOut(int(timeout_ms))
+        self.error_check(code, 'WaitForAcquisitionTimeout')
