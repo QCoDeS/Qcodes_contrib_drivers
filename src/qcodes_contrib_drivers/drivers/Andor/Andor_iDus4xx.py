@@ -32,10 +32,7 @@ TODO (thangleiter, 23/11/11):
  - Live monitor using 'run till abort' mode and async event queue
  - Triggering
  - Handle shutter modes
- - It might be smarter not to use :meth:`AndorIDus4xx.wait_for_acquisition`
-   in :class:`CCDData` since it will lock the dll away forever if there are
-   incorrect acquisition settings or it's waiting for a trigger that never
-   comes. This might lead to a reboot of the computer being required.
+ - Multiple cameras
 
 """
 from __future__ import annotations
@@ -59,12 +56,23 @@ from qcodes.utils.helpers import create_on_off_val_mapping
 from tqdm import tqdm
 
 from . import post_processing
-from .private.andor_sdk import SDKError, atmcd64d
+from .private.andor_sdk import atmcd64d
 
 _T = TypeVar('_T')
 
+_ACQUISITION_TIMEOUT_FACTOR = 1.5
+"""Relative overhead for acquisition timeout."""
+_MINIMUM_ACQUISITION_TIMEOUT = 1.0
+"""Minimum acquisition timeout in seconds."""
+
 AcquisitionTimings = namedtuple('AcquisitionTimings',
                                 ('exposure_time', 'accumulation_cycle_time', 'kinetic_cycle_time'))
+"""Timings computed by the SDK."""
+_AcquisitionParams = namedtuple('_AcquisitionParams',
+                                ('timeout_ms', 'cycle_time', 'number_accumulations',
+                                 'number_frames', 'number_frames_acquired', 'buffer', 'shape',
+                                 'fetch_lazy'))
+"""Data tuple defining acquisition parameters and objects."""
 
 
 @wraps(textwrap.dedent)
@@ -417,6 +425,7 @@ class CCDData(ParameterWithSetpoints):
         the rest of this driver.
 
     """
+    instrument: AndorIDus4xx
     _delegates: set['CCDDataDelegateParameter'] = set()
 
     def get_raw(self) -> npt.NDArray[np.int32]:
@@ -424,65 +433,39 @@ class CCDData(ParameterWithSetpoints):
             raise RuntimeError("No instrument attached to Parameter.")
 
         # Calls get_acquisition_timings() to get the correct timing info.
-        acquisition_settings = self.instrument.freeze_acquisition_settings()
+        data = self.instrument._get_acquisition_data()
 
-        shape = tuple(setpoints.get().size for setpoints in self.setpoints)
-        number_frames = acquisition_settings['acquired_frames']
-        number_accumulations = acquisition_settings['acquired_accumulations']
-        number_pixels = np.prod(acquisition_settings['acquired_pixels'])
+        self.instrument.arm()
+        self.instrument.start_acquisition()
 
-        # In fast kinetics mode, an acquisition event only occurs once per series,
-        # not number_frames times like in regular kinetic series mode.
-        if acquisition_settings['acquisition_mode'] != 'fast kinetics':
-            number_acquisitions = number_frames
-        else:
-            number_acquisitions = 1
-
-        # We decide here which method we use to fetch data from the SDK. The CCD
-        # has a circular buffer, so we should fetch data during acquisition if
-        # the desired result is larger.
-        fetch_lazy = number_frames < self.instrument.atmcd64d.get_size_of_circular_buffer()
-
-        # TODO (thangleiter): for fast kinetics, one might want to fetch a number of images
-        #                     every few acquisitions.
-        if fetch_lazy:
-            data_buffer = np.empty(number_frames * number_pixels, dtype=np.int32)
-        else:
-            data_buffer = np.empty((number_frames, number_pixels), dtype=np.int32)
-
-        if not self.instrument.status().startswith('DRV_ACQUIRING'):
-            self.instrument.log.debug('Starting acquisition.')
-            self.instrument.atmcd64d.start_acquisition()
-
+        t0 = time.perf_counter()
         try:
-            for frame in range(number_acquisitions):
-                self.instrument.log.debug(f'Acquiring frame {frame}/{number_frames}.')
+            for frame in range(data.number_frames_acquired):
+                self.instrument.log.debug('Acquiring frame '
+                                          f'{frame}/{data.number_frames_acquired}.')
 
-                for accumulation in range(number_accumulations):
+                for accumulation in range(data.number_accumulations):
                     self.instrument.log.debug('Acquiring accumulation '
-                                              f'{accumulation}/{number_accumulations}.')
-                    # TODO (thangleiter): If using an external trigger and it does not arrive for
-                    #                     whatever reason, the interpreter will live here forever.
-                    self.instrument.atmcd64d.wait_for_acquisition()
+                                              f'{accumulation}/{data.number_accumulations}.')
+                    self.instrument.atmcd64d.wait_for_acquisition_timeout(data.timeout_ms)
 
-                if not fetch_lazy:
-                    # TODO (thangleiter): For unforeseen reasons, this might fetch old data. Better
-                    #                     to clear internal buffer before acquisition start?
-                    self.instrument.log.debug(f'Fetching frame {frame}/{number_frames}.')
-                    self.instrument.atmcd64d.get_oldest_image_by_reference(data_buffer[frame])
+                if not data.fetch_lazy:
+                    self.instrument.log.debug('Fetching frame '
+                                              f'{frame}/{data.number_frames_acquired}.')
+                    self.instrument.atmcd64d.get_oldest_image_by_reference(data.buffer[frame])
 
-            if fetch_lazy:
+            if data.fetch_lazy:
                 self.instrument.log.debug('Fetching all frames.')
-                self.instrument.atmcd64d.get_acquired_data_by_reference(data_buffer.reshape(-1))
+                self.instrument.atmcd64d.get_acquired_data_by_reference(data.buffer.reshape(-1))
         except KeyboardInterrupt:
-            self.instrument.log.debug('Aborted acquisition.')
-            try:
-                self.instrument.atmcd64d.abort_acquisition()
-            except SDKError:
-                pass
-
-        self.instrument.log.debug('Finished acquisition.')
-        return data_buffer.reshape(shape)
+            self.instrument.log.debug('Aborting acquisition after '
+                                      f'{time.perf_counter() - t0:.3g} s.')
+            self.instrument.abort_acquisition()
+        else:
+            self.instrument.log.debug('Finished acquisition after '
+                                      f'{time.perf_counter() - t0:.3g} s.')
+        finally:
+            return data.buffer.reshape(data.shape)
 
     def register_delegate(self, delegate: 'CCDDataDelegateParameter'):
         self._delegates.add(delegate)
@@ -1049,6 +1032,46 @@ class AndorIDus4xx(Instrument):
             return self.number_kinetics.get_latest()
         return 1
 
+    def _get_acquisition_data(self) -> _AcquisitionParams:
+        """Prepare all relevant data needed by acquisition functions."""
+        settings = self.freeze_acquisition_settings()
+
+        if settings['acquisition_mode'] == 'run till abort':
+            cycle_time = settings['acquisition_timings'].kinetic_cycle_time
+        else:
+            cycle_time = settings['acquisition_timings'].accumulation_cycle_time
+
+        timeout_ms = max(_ACQUISITION_TIMEOUT_FACTOR * cycle_time,
+                         _MINIMUM_ACQUISITION_TIMEOUT) * 1e3
+
+        number_frames = settings['acquired_frames']
+        number_accumulations = settings['acquired_accumulations']
+        number_pixels = np.prod(settings['acquired_pixels'])
+
+        # In fast kinetics mode, an acquisition event only occurs once per series,
+        # not number_frames times like in regular kinetic series mode.
+        if settings['acquisition_mode'] != 'fast kinetics':
+            number_frames_acquired = number_frames
+        else:
+            number_frames_acquired = 1
+
+        # We decide here which method we use to fetch data from the SDK. The CCD
+        # has a circular buffer, so we should fetch data during acquisition if
+        # the desired result is larger.
+        fetch_lazy = number_frames < self.atmcd64d.get_size_of_circular_buffer()
+
+        # TODO (thangleiter): for fast kinetics, one might want to fetch a number of images
+        #                     every few acquisitions.
+        if fetch_lazy:
+            buffer = np.empty(number_frames * number_pixels, dtype=np.int32)
+        else:
+            buffer = np.empty((number_frames, number_pixels), dtype=np.int32)
+
+        shape = tuple(setpoints.get().size for setpoints in self.ccd_data.setpoints)
+
+        return _AcquisitionParams(timeout_ms, cycle_time, number_accumulations, number_frames,
+                                  number_frames_acquired, buffer, shape, fetch_lazy)
+
     def get_idn(self) -> Dict[str, Optional[str]]:
         return {'vendor': 'Andor', 'model': self.head_model,
                 'serial': str(self.serial_number),
@@ -1225,19 +1248,23 @@ class AndorIDus4xx(Instrument):
         super().close()
 
     def arm(self) -> None:
-        """TODO: Placeholder."""
-        self.log.debug('Arming: clear buffer, prepare and starting acquisition.')
+        status = self.status.get()
+        if not (status.startswith('DRV_IDLE') or status.startswith('DRV_ACQUIRING')):
+            raise RuntimeError(f'Device not ready to acquire data. {status}')
+
         self.clear_circular_buffer()
         self.prepare_acquisition()
-        self.start_acquisition()
 
     # Some methods of the dll that we expose directly on the instrument
     def abort_acquisition(self) -> None:
-        self.atmcd64d.abort_acquisition()
+        if self.status().startswith('DRV_ACQUIRING'):
+            self.log.debug('Aborting acquisition.')
+            self.atmcd64d.abort_acquisition()
 
     abort_acquisition.__doc__ = atmcd64d.abort_acquisition.__doc__
 
     def prepare_acquisition(self) -> None:
+        self.log.debug('Preparing acquisition.')
         self.atmcd64d.prepare_acquisition()
 
     prepare_acquisition.__doc__ = atmcd64d.prepare_acquisition.__doc__
@@ -1245,7 +1272,9 @@ class AndorIDus4xx(Instrument):
     def start_acquisition(self) -> None:
         """Start the acquisition. Exposed for 'run till abort'
         acquisition mode and external triggering."""
-        self.atmcd64d.start_acquisition()
+        if not self.status().startswith('DRV_ACQUIRING'):
+            self.log.debug('Starting acquisition.')
+            self.atmcd64d.start_acquisition()
 
     start_acquisition.__doc__ = atmcd64d.start_acquisition.__doc__
 
@@ -1255,6 +1284,7 @@ class AndorIDus4xx(Instrument):
     send_software_trigger.__doc__ = atmcd64d.send_software_trigger.__doc__
 
     def clear_circular_buffer(self) -> None:
+        self.log.debug('Clearing internal buffer.')
         self.atmcd64d.free_internal_memory()
 
     clear_circular_buffer.__doc__ = atmcd64d.free_internal_memory.__doc__
