@@ -1,8 +1,30 @@
+import warnings
+
 from qcodes import Instrument
-from .private.APT import Thorlabs_APT, ThorlabsHWType
+from qcodes_contrib_drivers.drivers.Thorlabs.private.APT import (
+    ThorlabsHWType, Thorlabs_APT
+)
 
 
-class Thorlabs_MFF10x(Instrument):
+def _position_get_parser(val) -> str:
+    val = int(val)
+    if val == 0:
+        return 'open'
+    elif val == 1:
+        return 'close'
+    raise ValueError('Invalid return code', val)
+
+
+def _position_set_parser(val) -> int:
+    if val == 'open':
+        return 0
+    elif val == 'close':
+        return 1
+    else:
+        return int(val)
+
+
+class ThorlabsMFF10x(Instrument):
     """
     Instrument driver for the Thorlabs MFF10x mirror flipper.
 
@@ -34,7 +56,8 @@ class Thorlabs_MFF10x(Instrument):
         self.add_parameter('position',
                            get_cmd=self._get_position,
                            set_cmd=self._set_position,
-                           get_parser=int,
+                           get_parser=_position_get_parser,
+                           set_parser=_position_set_parser,
                            label='Position')
 
         # print connect message
@@ -52,3 +75,10 @@ class Thorlabs_MFF10x(Instrument):
     # set methods
     def _set_position(self, position):
         self.apt.mot_move_jog(self.serial_number, position+1, False)
+
+
+class MFF10x(ThorlabsMFF10x):
+    def __init__(self, name: str, device_id: int, apt: Thorlabs_APT, **kwargs):
+        warnings.warn('This class name is deprecated. Please use the ThorlabsMFF10x class instead',
+                      DeprecationWarning)
+        super().__init__(name, device_id, apt, **kwargs)

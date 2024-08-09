@@ -35,5 +35,6 @@ class Thorlabs_KLS1550(_Thorlabs_LS):
         else:
             self._dll_path = 'Thorlabs.MotionControl.KCube.LaserSource.dll'
         self._dll_dir: Optional[str] = dll_dir if dll_dir else None
-        super().__init__(name, serial_number, self._dll_path, self._dll_dir,
-                         simulation, polling, **kwargs)
+        super().__init__(name, serial_number=serial_number,
+                         dll_path=self._dll_path, dll_dir=self._dll_dir,
+                         simulation=simulation, polling=polling, **kwargs)
