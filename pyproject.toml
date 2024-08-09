@@ -84,7 +84,9 @@ module = [
     "spirack",
     "zhinst.*",
     "ruamel.*",
-    "msl.loadlib"
+    "msl.loadlib",
+    "AMC",
+    "ACS"
 ]
 ignore_missing_imports = true
 
