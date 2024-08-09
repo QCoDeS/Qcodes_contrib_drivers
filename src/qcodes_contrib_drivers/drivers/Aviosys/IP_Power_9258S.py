@@ -1,3 +1,5 @@
+import warnings
+
 from qcodes import Instrument, InstrumentChannel, ChannelList
 from qcodes.utils.validators import Enum
 from qcodes.utils.helpers import create_on_off_val_mapping
@@ -30,7 +32,6 @@ class PowerChannel(InstrumentChannel):
         self.add_parameter('power_enabled',
                            get_cmd=self._get_power_enabled,
                            set_cmd=self._set_power_enabled,
-                           get_parser=int,
                            val_mapping=create_on_off_val_mapping(on_val="1", off_val="0"),
                            label='Power {}'.format(self._id_name))
 
@@ -47,7 +48,7 @@ class PowerChannel(InstrumentChannel):
         urllib.request.urlopen(request)
 
 
-class Aviosys_IP_Power_9258S(Instrument):
+class AviosysIPPower9258S(Instrument):
     """
     Instrument driver for the Aviosys IP Power 9258S. The IP Power 9258S is a network power controller. The device
     controls up to four power channels, that can be turned on and off. With this instrument also non-smart instruments
@@ -68,6 +69,8 @@ class Aviosys_IP_Power_9258S(Instrument):
         super().__init__(name, **kwargs)
 
         # save access settings
+        if not address.startswith('http://'):
+            address = f'http://{address}'
         self.address = address
 
         # set up http connection
@@ -92,3 +95,13 @@ class Aviosys_IP_Power_9258S(Instrument):
     # get functions
     def get_idn(self):
         return {'vendor': 'Aviosys', 'model': 'IP Power 9258S'}
+
+
+class Aviosys_IP_Power_9258S(AviosysIPPower9258S):
+    def __init__(self, name: str, address: str, login_name: str,
+                 login_password: str, **kwargs):
+        warnings.warn('This class name is deprecated. Please use the '
+                      'AviosysIPPower9258S class instead',
+                      DeprecationWarning)
+        super().__init__(name, address, login_name, login_password,
+                         **kwargs)
