@@ -37,14 +37,14 @@ jobs:
       PYTHON: ${{ matrix.python-version }}
 
     steps:
-    - uses: actions/checkout@v4.1.6
+    - uses: actions/checkout@v4.1.7
       with:
         submodules: true
     - name: setup ubuntu-latest xvfb
       uses: ./.github/actions/setup-ubuntu-latest-xvfb
       if: runner.os == 'Linux'
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5.1.0
+      uses: actions/setup-python@v5.1.1
       with:
         python-version: ${{ matrix.python-version }}
         cache: 'pip'
@@ -63,7 +63,7 @@ jobs:
       run: |
         pytest --cov=qcodes_contrib_drivers --cov-report xml --cov-config=pyproject.toml tests
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v4.4.0
+      uses: codecov/codecov-action@v4.5.0
       with:
         file: ./coverage.xml
         env_vars: OS,PYTHON
