@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.v4 &mdash; qcodes_contrib_drivers 0.23.0.dev36+main.g4e2ee8f documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../../_static/documentation_options.js?v=fc3c8481"></script>
+        <script src="../../../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../../index.html" class="icon icon-home">
+            qcodes_contrib_drivers
+          </a>
+              <div class="version">
+                0.23.0.dev36+main.g4e2ee8f
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../examples/index.html">Examples of how to use drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../../index.html">qcodes_contrib_drivers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.v4</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.v4</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;ANC350v4Lib is a Python wrapper for the C++ library of the Attocube ANC350 driver (version 4)</span>
+
+<span class="sd">It depends on anc350v4.dll (and libusb0.dll) which are provided by Attocube on the installation</span>
+<span class="sd">disc. You can find the dll files for 32-bit and 64-bit in folder ANC350_Library.</span>
+<span class="sd">Please the dlls into the working directory or specify the path when instantiating the ANC350v4Lib.</span>
+
+<span class="sd">Author:</span>
+<span class="sd">    Lukas Lankes, Forschungszentrum Jülich GmbH / ZEA-2, l.lankes@fz-juelich.de</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">ctypes</span> <span class="kn">import</span> <span class="n">c_int32</span><span class="p">,</span> <span class="n">c_uint32</span><span class="p">,</span> <span class="n">c_double</span><span class="p">,</span> <span class="n">c_void_p</span><span class="p">,</span> <span class="n">byref</span>
+<span class="kn">from</span> <span class="nn">ctypes</span> <span class="kn">import</span> <span class="n">create_string_buffer</span> <span class="k">as</span> <span class="n">c_string</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
+
+<span class="kn">from</span> <span class="nn">.interface</span> <span class="kn">import</span> <span class="n">ANC350LibError</span><span class="p">,</span> <span class="n">ANC350LibDeviceType</span><span class="p">,</span> <span class="n">ANC350LibExternalTriggerMode</span><span class="p">,</span> \
+    <span class="n">ANC350LibTriggerPolarity</span><span class="p">,</span> <span class="n">ANC350LibActuatorType</span>
+<span class="kn">from</span> <span class="nn">.v3</span> <span class="kn">import</span> <span class="n">ANC350v3Lib</span><span class="p">,</span> <span class="n">ANC350v3LibError</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;ANC350v4Lib&quot;</span><span class="p">,</span> <span class="s2">&quot;ANC350v3LibError&quot;</span><span class="p">,</span> <span class="s2">&quot;ANC350LibError&quot;</span><span class="p">,</span> <span class="s2">&quot;ANC350LibDeviceType&quot;</span><span class="p">,</span>
+           <span class="s2">&quot;ANC350LibExternalTriggerMode&quot;</span><span class="p">,</span> <span class="s2">&quot;ANC350LibTriggerPolarity&quot;</span><span class="p">,</span> <span class="s2">&quot;ANC350LibActuatorType&quot;</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="ANC350v4Lib">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.html#qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.v4.ANC350v4Lib">[docs]</a>
+<span class="k">class</span> <span class="nc">ANC350v4Lib</span><span class="p">(</span><span class="n">ANC350v3Lib</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A wrapper class for version 4 of the ANC350 driver anc350v4.dll</span>
+
+<span class="sd">    This class adapts all functions of anc350v4.dll and forwards its calls to the dll.</span>
+<span class="sd">    ANC350v4Lib is backwards compatible to ANC350v3Lib; version 4 only has some more functions.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">DEFAULT_PATH_TO_DLL</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;anc350v4.dll&quot;</span>
+
+<div class="viewcode-block" id="ANC350v4Lib.__init__">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.html#qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.v4.ANC350v4Lib.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path_to_dll</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates an instance of the anc350v4.dll-wrapper</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            path_to_dll: Path to anc350v4.dll or None, if it&#39;s stored in the working directory</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">path_to_dll</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ANC350v4Lib.register_external_ip">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.html#qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.v4.ANC350v4Lib.register_external_ip">[docs]</a>
+    <span class="k">def</span> <span class="nf">register_external_ip</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hostname</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Register IP Device in external Network</span>
+
+<span class="sd">        ``discover`` is able to find devices connected via TCP/IP in the same network segment, but</span>
+<span class="sd">        it can&#39;t &quot;look through&quot; routers. To connect devices in external networks, reachable by</span>
+<span class="sd">        routing, the IP addresses of those devices have to be registered prior to calling</span>
+<span class="sd">        ``discover``. The function registers one device and can be called several times.</span>
+
+<span class="sd">        The function will return True, if the name resolution succeeds (False otherwise); it doesn&#39;t</span>
+<span class="sd">        test if the device is reachable. Registered and reachable devices will be found by</span>
+<span class="sd">        ``discover``.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            hostname: Hostname or IP Address in dotted decimal notation of the device to register.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            True, if the name resolution succeeds. This doesn&#39;t guarantee that the device is</span>
+<span class="sd">            reachable. False, if the hostname couldn&#39;t be resolved.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ANC350LibError is raised, if the function call fails</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">c_hostname</span> <span class="o">=</span> <span class="n">c_string</span><span class="p">(</span><span class="n">hostname</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_encoding</span><span class="p">))</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">return_code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dll</span><span class="o">.</span><span class="n">ANC_registerExternalIp</span><span class="p">(</span><span class="n">byref</span><span class="p">(</span><span class="n">c_hostname</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ANC350v3LibError</span><span class="p">(</span><span class="s2">&quot;Unexpected error in ANC_registerExternalIp&quot;</span><span class="p">)</span> <span class="kn">from</span> <span class="nn">exc</span>
+
+        <span class="c1"># This function returns 0 (ANC_Ok) if the hostname was added successfully (otherwise it</span>
+        <span class="c1"># returns 9 (ANC_NoDevice)). So, don&#39;t raise an exception if this is the case.</span>
+        <span class="k">if</span> <span class="n">return_code</span> <span class="o">==</span> <span class="mi">9</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ANC350v3LibError</span><span class="o">.</span><span class="n">check_error</span><span class="p">(</span><span class="n">return_code</span><span class="p">,</span> <span class="s2">&quot;ANC_registerExternalIp&quot;</span><span class="p">)</span>
+            <span class="c1"># If no other error was raised, registering the hostname was successful</span>
+            <span class="k">return</span> <span class="kc">True</span></div>
+
+
+<div class="viewcode-block" id="ANC350v4Lib.get_dc_voltage">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.html#qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.v4.ANC350v4Lib.get_dc_voltage">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_dc_voltage</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dev_handle</span><span class="p">:</span> <span class="n">c_void_p</span><span class="p">,</span> <span class="n">axis_no</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Read back DC Output Voltage</span>
+
+<span class="sd">        Reads back the current DC level. It may be the level that has been set by ``set_dc_voltag``</span>
+<span class="sd">        or the value currently adjusted by the feedback controller.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dev_handle: Handle of the device to access</span>
+<span class="sd">            axis_no: Axis number (0..2)</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            DC output voltage in Volts [V]</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ANC350LibError is raised, if the function call fails</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">c_axis_no</span> <span class="o">=</span> <span class="n">c_uint32</span><span class="p">(</span><span class="n">axis_no</span><span class="p">)</span>
+        <span class="n">c_voltage</span> <span class="o">=</span> <span class="n">c_double</span><span class="p">()</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">return_code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dll</span><span class="o">.</span><span class="n">ANC_getDcVoltage</span><span class="p">(</span><span class="n">dev_handle</span><span class="p">,</span> <span class="n">c_axis_no</span><span class="p">,</span> <span class="n">byref</span><span class="p">(</span><span class="n">c_voltage</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ANC350v3LibError</span><span class="p">(</span><span class="s2">&quot;Unexpected error in ANC_getDcVoltage&quot;</span><span class="p">)</span> <span class="kn">from</span> <span class="nn">exc</span>
+        <span class="n">ANC350v3LibError</span><span class="o">.</span><span class="n">check_error</span><span class="p">(</span><span class="n">return_code</span><span class="p">,</span> <span class="s2">&quot;ANC_getDcVoltage&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">c_voltage</span><span class="o">.</span><span class="n">value</span></div>
+
+
+<div class="viewcode-block" id="ANC350v4Lib.set_target_ground">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.html#qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.v4.ANC350v4Lib.set_target_ground">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_target_ground</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dev_handle</span><span class="p">:</span> <span class="n">c_void_p</span><span class="p">,</span> <span class="n">axis_no</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">target_ground</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set Target Ground Flag</span>
+
+<span class="sd">        Sets or clears the Target Ground Flag. It determines the action performed in automatic</span>
+<span class="sd">        positioning mode when the target position is reached.</span>
+<span class="sd">        If set, the DC output is set to 0V and the position control feedback loop is stopped.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dev_handle: Handle of the device to access</span>
+<span class="sd">            axis_no: Axis number (0..2)</span>
+<span class="sd">            target_ground: Target Ground Flag</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ANC350LibError is raised, if the function call fails</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">c_axis_no</span> <span class="o">=</span> <span class="n">c_uint32</span><span class="p">(</span><span class="n">axis_no</span><span class="p">)</span>
+        <span class="n">c_target_ground</span> <span class="o">=</span> <span class="n">c_int32</span><span class="p">(</span><span class="n">target_ground</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">return_code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dll</span><span class="o">.</span><span class="n">ANC_setTargetGround</span><span class="p">(</span><span class="n">dev_handle</span><span class="p">,</span> <span class="n">c_axis_no</span><span class="p">,</span> <span class="n">c_target_ground</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ANC350v3LibError</span><span class="p">(</span><span class="s2">&quot;Unexpected error in ANC_setTargetGround&quot;</span><span class="p">)</span> <span class="kn">from</span> <span class="nn">exc</span>
+        <span class="n">ANC350v3LibError</span><span class="o">.</span><span class="n">check_error</span><span class="p">(</span><span class="n">return_code</span><span class="p">,</span> <span class="s2">&quot;ANC_setTargetGround&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ANC350v4Lib.get_lut_name">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.html#qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.v4.ANC350v4Lib.get_lut_name">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_lut_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dev_handle</span><span class="p">:</span> <span class="n">c_void_p</span><span class="p">,</span> <span class="n">axis_no</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get LUT Name</span>
+
+<span class="sd">        Get the name of the currently selected sensor look-up table.</span>
+<span class="sd">        The function is only available in RES devices.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dev_handle: Handle of the device to access</span>
+<span class="sd">            axis_no: Axis number (0..2)</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Name of the look-up table.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ANC350LibError is raised, if the function call fails</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">c_axis_no</span> <span class="o">=</span> <span class="n">c_uint32</span><span class="p">(</span><span class="n">axis_no</span><span class="p">)</span>
+        <span class="n">c_name</span> <span class="o">=</span> <span class="n">c_string</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">return_code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dll</span><span class="o">.</span><span class="n">ANC_getLutName</span><span class="p">(</span><span class="n">dev_handle</span><span class="p">,</span> <span class="n">c_axis_no</span><span class="p">,</span> <span class="n">byref</span><span class="p">(</span><span class="n">c_name</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ANC350v3LibError</span><span class="p">(</span><span class="s2">&quot;Unexpected error in ANC_getLutName&quot;</span><span class="p">)</span> <span class="kn">from</span> <span class="nn">exc</span>
+        <span class="n">ANC350v3LibError</span><span class="o">.</span><span class="n">check_error</span><span class="p">(</span><span class="n">return_code</span><span class="p">,</span> <span class="s2">&quot;ANC_getLutName&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">c_name</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_encoding</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ANC350v4Lib.load_lut_file">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.html#qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.v4.ANC350v4Lib.load_lut_file">[docs]</a>
+    <span class="k">def</span> <span class="nf">load_lut_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dev_handle</span><span class="p">:</span> <span class="n">c_void_p</span><span class="p">,</span> <span class="n">axis_no</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">file_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load Lookup Table</span>
+
+<span class="sd">        Loads a sensor lookup table from a file into the device.</span>
+<span class="sd">        The function is only available in RES devices.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dev_handle: Handle of the device to access</span>
+<span class="sd">            axis_no: Axis number (0..2)</span>
+<span class="sd">            file_name: Name of the LUT file to read, optionally with path.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ANC350LibError is raised, if the function call fails</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">c_axis_no</span> <span class="o">=</span> <span class="n">c_uint32</span><span class="p">(</span><span class="n">axis_no</span><span class="p">)</span>
+        <span class="n">c_file_name</span> <span class="o">=</span> <span class="n">c_string</span><span class="p">(</span><span class="n">file_name</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_encoding</span><span class="p">))</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">return_code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dll</span><span class="o">.</span><span class="n">ANC_loadLutFile</span><span class="p">(</span><span class="n">dev_handle</span><span class="p">,</span> <span class="n">c_axis_no</span><span class="p">,</span> <span class="n">byref</span><span class="p">(</span><span class="n">c_file_name</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ANC350v3LibError</span><span class="p">(</span><span class="s2">&quot;Unexpected error in ANC_loadLutFile&quot;</span><span class="p">)</span> <span class="kn">from</span> <span class="nn">exc</span>
+        <span class="n">ANC350v3LibError</span><span class="o">.</span><span class="n">check_error</span><span class="p">(</span><span class="n">return_code</span><span class="p">,</span> <span class="s2">&quot;ANC_loadLutFile&quot;</span><span class="p">)</span></div>
+</div>
+
+
+    <span class="c1"># TODO: This function is part of the DLL but not documented. Not sure about signature, yet</span>
+    <span class="c1"># def enable_trace(self, dev_handle: c_void_p, ...):</span>
+    <span class="c1">#     try:</span>
+    <span class="c1">#         return_code = self._anc350v4.ANC_enableTrace(dev_handle, ...)</span>
+    <span class="c1">#     except Exception as exc:</span>
+    <span class="c1">#         raise ANC350LibError(&quot;Unexpected error in ANC_enableTrace&quot;) from exc</span>
+    <span class="c1">#     ANC350LibError.check_error(return_code, &quot;ANC_enableTrace&quot;)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, QCoDeS Users.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

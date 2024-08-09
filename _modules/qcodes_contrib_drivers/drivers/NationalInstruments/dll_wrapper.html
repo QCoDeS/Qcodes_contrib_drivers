@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>qcodes_contrib_drivers.drivers.NationalInstruments.dll_wrapper &mdash; qcodes_contrib_drivers 0.23.0.dev36+main.g4e2ee8f documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../_static/documentation_options.js?v=fc3c8481"></script>
+        <script src="../../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            qcodes_contrib_drivers
+          </a>
+              <div class="version">
+                0.23.0.dev36+main.g4e2ee8f
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples/index.html">Examples of how to use drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/generated/qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">qcodes_contrib_drivers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">qcodes_contrib_drivers.drivers.NationalInstruments.dll_wrapper</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for qcodes_contrib_drivers.drivers.NationalInstruments.dll_wrapper</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module has some convenience classes and functions for wrapping NI C API</span>
+<span class="sd">calls. Modeled after the DLL calls in the NIMI-python library, see e.g.</span>
+<span class="sd">https://github.com/ni/nimi-python/blob/master/generated/nitclk/nitclk/_library.py</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">ctypes</span>
+<span class="kn">from</span> <span class="nn">ctypes</span> <span class="kn">import</span> <span class="n">POINTER</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">NamedTuple</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span> <span class="nn">.visa_types</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">ViChar</span><span class="p">,</span> <span class="n">ViStatus</span><span class="p">,</span> <span class="n">ViRsrc</span><span class="p">,</span> <span class="n">ViInt32</span><span class="p">,</span> <span class="n">ViString</span><span class="p">,</span> <span class="n">ViSession</span><span class="p">,</span> <span class="n">ViBoolean</span><span class="p">,</span> <span class="n">ViAttr</span><span class="p">,</span>
+    <span class="n">ViChar</span><span class="p">,</span> <span class="n">ViReal64</span><span class="p">,</span> <span class="n">VI_NULL</span>
+<span class="p">)</span>
+
+<span class="c1"># 256 bytes should be enough, according to the documentation</span>
+<span class="n">STRING_BUFFER_SIZE</span> <span class="o">=</span> <span class="mi">257</span>
+
+
+<div class="viewcode-block" id="c_str">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.NationalInstruments.html#qcodes_contrib_drivers.drivers.NationalInstruments.dll_wrapper.c_str">[docs]</a>
+<span class="k">def</span> <span class="nf">c_str</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span> <span class="k">return</span> <span class="nb">bytes</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="s2">&quot;ascii&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="AttributeWrapper">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.NationalInstruments.html#qcodes_contrib_drivers.drivers.NationalInstruments.dll_wrapper.AttributeWrapper">[docs]</a>
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">AttributeWrapper</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Struct to associate a data type to a numeric constant (i.e. attribute)</span>
+<span class="sd">    defined in a NI DLL library. ``dtype`` should be one of the types defined</span>
+<span class="sd">    in the ``visa_types`` module. Here, ``value`` means the same as the</span>
+<span class="sd">    attributeID in the DLL documentation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">value</span><span class="p">:</span> <span class="n">ViAttr</span>
+    <span class="n">dtype</span><span class="p">:</span> <span class="n">Any</span></div>
+
+
+
+<div class="viewcode-block" id="NamedArgType">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.NationalInstruments.html#qcodes_contrib_drivers.drivers.NationalInstruments.dll_wrapper.NamedArgType">[docs]</a>
+<span class="k">class</span> <span class="nc">NamedArgType</span><span class="p">(</span><span class="n">NamedTuple</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Struct for associating a name with an argument type for DLL function</span>
+<span class="sd">    signatures.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">argtype</span><span class="p">:</span> <span class="n">Any</span></div>
+
+
+
+<div class="viewcode-block" id="NIDLLWrapper">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.NationalInstruments.html#qcodes_contrib_drivers.drivers.NationalInstruments.dll_wrapper.NIDLLWrapper">[docs]</a>
+<span class="k">class</span> <span class="nc">NIDLLWrapper</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class provides convenience functions for wrapping and checking a DLL</span>
+<span class="sd">    function call, as well as some premade pythonic wrapper functinos for</span>
+<span class="sd">    common library functions such as libName_error_message, libName_init/close</span>
+<span class="sd">    and libName_GetAttribute (e.g. niRFSG_init or niSync_init). Other functions</span>
+<span class="sd">    should be wrapped by a library-specific class by calling</span>
+<span class="sd">    ``wrap_dll_function_checked``. See the NI_RFSG driver for a concrete</span>
+<span class="sd">    example.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        dll_path: path to the DLL file containing the library</span>
+<span class="sd">        lib_prefix: All function names in the library start with this. For</span>
+<span class="sd">            example, for NI-RFSG, where function names are of the form</span>
+<span class="sd">            niRFSG_FunctionName, ``lib_prefix`` should be &#39;niRFSG&#39;.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dll_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">lib_prefix</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dll</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">cdll</span><span class="o">.</span><span class="n">LoadLibrary</span><span class="p">(</span><span class="n">dll_path</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_lib_prefix</span> <span class="o">=</span> <span class="n">lib_prefix</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dtype_map</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="n">ViBoolean</span><span class="p">:</span> <span class="s2">&quot;ViBoolean&quot;</span><span class="p">,</span>
+                <span class="n">ViInt32</span><span class="p">:</span> <span class="s2">&quot;ViInt32&quot;</span><span class="p">,</span>
+                <span class="n">ViReal64</span><span class="p">:</span> <span class="s2">&quot;ViReal64&quot;</span><span class="p">,</span>
+                <span class="n">ViString</span><span class="p">:</span> <span class="s2">&quot;ViString&quot;</span>
+        <span class="p">}</span>
+
+        <span class="c1"># wrap standard functions that are the same in all libraries</span>
+
+        <span class="c1"># note: self.error_messsage is a convenience wrapper around this, with</span>
+        <span class="c1"># a different signature</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_error_message</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wrap_dll_function</span><span class="p">(</span>
+                <span class="n">name_in_library</span><span class="o">=</span><span class="s2">&quot;error_message&quot;</span><span class="p">,</span>
+                <span class="n">argtypes</span><span class="o">=</span><span class="p">[</span>
+                    <span class="n">NamedArgType</span><span class="p">(</span><span class="s2">&quot;vi&quot;</span><span class="p">,</span> <span class="n">ViSession</span><span class="p">),</span>
+                    <span class="n">NamedArgType</span><span class="p">(</span><span class="s2">&quot;errorCode&quot;</span><span class="p">,</span> <span class="n">ViStatus</span><span class="p">),</span>
+                    <span class="n">NamedArgType</span><span class="p">(</span><span class="s2">&quot;errorMessage&quot;</span><span class="p">,</span> <span class="n">POINTER</span><span class="p">(</span><span class="n">ViChar</span><span class="p">)),</span>
+                    <span class="p">]</span>
+                <span class="p">)</span>
+
+        <span class="c1"># this is wrapped in self.init with a different signature</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wrap_dll_function_checked</span><span class="p">(</span>
+                <span class="n">name_in_library</span><span class="o">=</span><span class="s2">&quot;init&quot;</span><span class="p">,</span>
+                <span class="n">argtypes</span><span class="o">=</span><span class="p">[</span>
+                    <span class="n">NamedArgType</span><span class="p">(</span><span class="s2">&quot;resourceName&quot;</span><span class="p">,</span> <span class="n">ViRsrc</span><span class="p">),</span>
+                    <span class="n">NamedArgType</span><span class="p">(</span><span class="s2">&quot;idQuery&quot;</span><span class="p">,</span> <span class="n">ViBoolean</span><span class="p">),</span>
+                    <span class="n">NamedArgType</span><span class="p">(</span><span class="s2">&quot;resetDevice&quot;</span><span class="p">,</span> <span class="n">ViBoolean</span><span class="p">),</span>
+                    <span class="p">]</span>
+                <span class="p">)</span>
+
+        <span class="c1"># no special name is needed, the signature is the same</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wrap_dll_function_checked</span><span class="p">(</span>
+                <span class="n">name_in_library</span><span class="o">=</span><span class="s2">&quot;reset&quot;</span><span class="p">,</span>
+                <span class="n">argtypes</span><span class="o">=</span><span class="p">[</span><span class="n">NamedArgType</span><span class="p">(</span><span class="s2">&quot;vi&quot;</span><span class="p">,</span> <span class="n">ViSession</span><span class="p">)]</span>
+                <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">close</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wrap_dll_function_checked</span><span class="p">(</span>
+                <span class="n">name_in_library</span><span class="o">=</span><span class="s2">&quot;close&quot;</span><span class="p">,</span>
+                <span class="n">argtypes</span><span class="o">=</span><span class="p">[</span><span class="n">NamedArgType</span><span class="p">(</span><span class="s2">&quot;vi&quot;</span><span class="p">,</span> <span class="n">ViSession</span><span class="p">)]</span>
+                <span class="p">)</span>
+
+        <span class="c1"># wrap GetAttribute&lt;DataType&gt; functions (see get_attribute method)</span>
+        <span class="k">for</span> <span class="n">dtype</span><span class="p">,</span> <span class="n">dtype_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dtype_map</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+
+            <span class="c1"># argtypes for the GetAttribute&lt;DataType&gt; functions</span>
+            <span class="n">getter_argtypes</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="n">NamedArgType</span><span class="p">(</span><span class="s2">&quot;vi&quot;</span><span class="p">,</span> <span class="n">ViSession</span><span class="p">),</span>
+                    <span class="n">NamedArgType</span><span class="p">(</span><span class="s2">&quot;channelName&quot;</span><span class="p">,</span> <span class="n">ViString</span><span class="p">),</span>
+                    <span class="n">NamedArgType</span><span class="p">(</span><span class="s2">&quot;attributeID&quot;</span><span class="p">,</span> <span class="n">ViAttr</span><span class="p">),</span>
+                    <span class="n">NamedArgType</span><span class="p">(</span><span class="s2">&quot;attributeValue&quot;</span><span class="p">,</span> <span class="n">POINTER</span><span class="p">(</span><span class="n">dtype</span><span class="p">))</span>
+            <span class="p">]</span>
+
+            <span class="c1"># the argtypes for the corresponding SetAttribute&lt;DataType&gt;</span>
+            <span class="c1"># functions. note that the signature for SetAttributeViString is</span>
+            <span class="c1"># the same as for the other types even though GetAttributeViString</span>
+            <span class="c1"># has a unique signature</span>
+            <span class="n">setter_argtypes</span> <span class="o">=</span> <span class="n">getter_argtypes</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="n">dtype</span> <span class="o">==</span> <span class="n">ViString</span><span class="p">:</span>
+                <span class="c1"># replace last argument</span>
+                <span class="n">getter_argtypes</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+                <span class="n">getter_argtypes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">NamedArgType</span><span class="p">(</span><span class="s2">&quot;bufferSize&quot;</span><span class="p">,</span> <span class="n">ViInt32</span><span class="p">))</span>
+                <span class="c1"># ViString is already a pointer, so no POINTER() here</span>
+                <span class="n">getter_argtypes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">NamedArgType</span><span class="p">(</span><span class="s2">&quot;attributeValue&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="p">))</span>
+
+            <span class="n">getter_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;GetAttribute</span><span class="si">{</span><span class="n">dtype_name</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="n">getter_func</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wrap_dll_function_checked</span><span class="p">(</span>
+                    <span class="n">getter_name</span><span class="p">,</span>
+                    <span class="n">argtypes</span><span class="o">=</span><span class="n">getter_argtypes</span><span class="p">)</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">getter_name</span><span class="p">,</span> <span class="n">getter_func</span><span class="p">)</span>
+
+            <span class="n">setter_argtypes</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">NamedArgType</span><span class="p">(</span><span class="s2">&quot;attributeValue&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="p">)</span>
+
+            <span class="n">setter_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;SetAttribute</span><span class="si">{</span><span class="n">dtype_name</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="n">setter_func</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wrap_dll_function_checked</span><span class="p">(</span>
+                    <span class="n">setter_name</span><span class="p">,</span>
+                    <span class="n">argtypes</span><span class="o">=</span><span class="n">setter_argtypes</span><span class="p">)</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">setter_name</span><span class="p">,</span> <span class="n">setter_func</span><span class="p">)</span>
+
+<div class="viewcode-block" id="NIDLLWrapper.wrap_dll_function">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.NationalInstruments.html#qcodes_contrib_drivers.drivers.NationalInstruments.dll_wrapper.NIDLLWrapper.wrap_dll_function">[docs]</a>
+    <span class="k">def</span> <span class="nf">wrap_dll_function</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name_in_library</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                          <span class="n">argtypes</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">NamedArgType</span><span class="p">],</span>
+                          <span class="n">restype</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">ViStatus</span><span class="p">,</span>
+                          <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Convenience method for wrapping a function in a NI C API.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            name_in_library: The name of the function in the library (e.g.</span>
+<span class="sd">                &quot;niRFSG_init&quot;, or without the prefix, just &quot;init&quot;)</span>
+<span class="sd">            argtypes: list of ``NamedArgType`` tuples containing the names and</span>
+<span class="sd">                types of the arguments of the function to be wrapped.</span>
+<span class="sd">            restype: The return type of the library function (most likely</span>
+<span class="sd">                ``ViStatus``).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">name_in_library</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_lib_prefix</span><span class="p">):</span>
+            <span class="n">name_in_library</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_lib_prefix</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">name_in_library</span><span class="si">}</span><span class="s2">&quot;</span>
+
+        <span class="c1"># TODO( mgunyho ): thread lock? (see nimi-python link at top of file)</span>
+        <span class="n">func</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dll</span><span class="p">,</span> <span class="n">name_in_library</span><span class="p">)</span>
+        <span class="n">func</span><span class="o">.</span><span class="n">restype</span> <span class="o">=</span> <span class="n">restype</span>
+        <span class="n">func</span><span class="o">.</span><span class="n">argtypes</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">argtype</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">argtypes</span><span class="p">]</span>
+        <span class="n">func</span><span class="o">.</span><span class="n">argnames</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">argtypes</span><span class="p">]</span>  <span class="c1"># just in case</span>
+
+        <span class="k">return</span> <span class="n">func</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_check_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">error_code</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        If the error code is nonzero, convert it to a string using</span>
+<span class="sd">        ``self.error_message`` and raise an exception or issue a warning as</span>
+<span class="sd">        appropriate. ``self.error_message`` must be initialized with</span>
+<span class="sd">        ``wrap_dll_function`` before this method can be used.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">error_code</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">error_message</span><span class="p">(</span><span class="n">error_code</span><span class="o">=</span><span class="n">ViStatus</span><span class="p">(</span><span class="n">error_code</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">error_code</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="c1"># negative error codes are errors</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="n">error_code</span><span class="si">}</span><span class="s2">) </span><span class="si">{</span><span class="n">msg</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="n">error_code</span><span class="si">}</span><span class="s2">) </span><span class="si">{</span><span class="n">msg</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="ne">RuntimeWarning</span><span class="p">,</span>
+                              <span class="n">stacklevel</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="NIDLLWrapper.wrap_dll_function_checked">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.NationalInstruments.html#qcodes_contrib_drivers.drivers.NationalInstruments.dll_wrapper.NIDLLWrapper.wrap_dll_function_checked">[docs]</a>
+    <span class="k">def</span> <span class="nf">wrap_dll_function_checked</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name_in_library</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                                  <span class="n">argtypes</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">NamedArgType</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Same as ``wrap_dll_function``, but check the return value and convert</span>
+<span class="sd">        it to a Python exception or warning if it is nonzero using</span>
+<span class="sd">        ``self._check_error``. The arguments are the same as for</span>
+<span class="sd">        ``wrap_dll_function``, except that ``restype`` is always ``ViStatus``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">func</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wrap_dll_function</span><span class="p">(</span>
+                <span class="n">name_in_library</span><span class="o">=</span><span class="n">name_in_library</span><span class="p">,</span>
+                <span class="n">argtypes</span><span class="o">=</span><span class="n">argtypes</span><span class="p">,</span>
+                <span class="n">restype</span><span class="o">=</span><span class="n">ViStatus</span><span class="p">,</span>
+                <span class="p">)</span>
+
+        <span class="c1"># see https://docs.python.org/3/library/ctypes.html#return-types</span>
+        <span class="n">func</span><span class="o">.</span><span class="n">restype</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_error</span>
+
+        <span class="k">return</span> <span class="n">func</span></div>
+
+
+<div class="viewcode-block" id="NIDLLWrapper.init">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.NationalInstruments.html#qcodes_contrib_drivers.drivers.NationalInstruments.dll_wrapper.NIDLLWrapper.init">[docs]</a>
+    <span class="k">def</span> <span class="nf">init</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">resource</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">id_query</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+             <span class="n">reset_device</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ViSession</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Convenience wrapper around libName_init (e.g. niRFSG_init). Returns the</span>
+<span class="sd">        ViSession handle of the initialized session. The wrapped version of the</span>
+<span class="sd">        actual DLL function is registered as self._init, see __init__. Note</span>
+<span class="sd">        that this class is not responsible for storing the handle, it should</span>
+<span class="sd">        be managed by the function or class that calls the functions wrapped by</span>
+<span class="sd">        this class.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            resource: the resource name of the device to initialize, as given</span>
+<span class="sd">                by NI MAX.</span>
+<span class="sd">            id_query: whether to perform an ID query on initialization</span>
+<span class="sd">            reset_device: whether to reset the device during initialization</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            the ViSession handle of the initialized device</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">session</span> <span class="o">=</span> <span class="n">ViSession</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init</span><span class="p">(</span><span class="n">ViRsrc</span><span class="p">(</span><span class="n">c_str</span><span class="p">(</span><span class="n">resource</span><span class="p">)),</span> <span class="n">id_query</span><span class="p">,</span> <span class="n">reset_device</span><span class="p">,</span>
+                   <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">session</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">session</span></div>
+
+
+<div class="viewcode-block" id="NIDLLWrapper.get_attribute">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.NationalInstruments.html#qcodes_contrib_drivers.drivers.NationalInstruments.dll_wrapper.NIDLLWrapper.get_attribute">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_attribute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session</span><span class="p">:</span> <span class="n">ViSession</span><span class="p">,</span> <span class="n">attr</span><span class="p">:</span> <span class="n">AttributeWrapper</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get an attribute with data type &quot;DataType&quot; by calling the appropriate</span>
+<span class="sd">        &quot;libName_GetAttribute&lt;DataType&gt;&quot; function (for example</span>
+<span class="sd">        niRFSG_GetAttributeViReal64 when ``lib_prefix`` is &quot;niRFSG&quot; and</span>
+<span class="sd">        ``attr.dtype`` is ``ViReal64``).</span>
+
+<span class="sd">        NOTE: channels are not implemented.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="n">attr</span><span class="o">.</span><span class="n">dtype</span>
+        <span class="k">if</span> <span class="n">dtype</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dtype_map</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;get_attribute() not implemented for </span><span class="si">{</span><span class="n">dtype</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">dtype_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dtype_map</span><span class="p">[</span><span class="n">dtype</span><span class="p">]</span>
+        <span class="n">func</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;GetAttribute</span><span class="si">{</span><span class="n">dtype_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">dtype</span> <span class="o">==</span> <span class="n">ViString</span><span class="p">:</span>
+            <span class="n">res</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">create_string_buffer</span><span class="p">(</span><span class="n">STRING_BUFFER_SIZE</span><span class="p">)</span>
+            <span class="n">func</span><span class="p">(</span><span class="n">session</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">attr</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">STRING_BUFFER_SIZE</span><span class="p">,</span> <span class="n">res</span><span class="p">)</span>
+            <span class="n">ret</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">res</span> <span class="o">=</span> <span class="n">dtype</span><span class="p">()</span>
+            <span class="n">func</span><span class="p">(</span><span class="n">session</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">attr</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">res</span><span class="p">))</span>
+            <span class="n">ret</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">value</span>
+
+        <span class="k">return</span> <span class="n">ret</span></div>
+
+
+<div class="viewcode-block" id="NIDLLWrapper.set_attribute">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.NationalInstruments.html#qcodes_contrib_drivers.drivers.NationalInstruments.dll_wrapper.NIDLLWrapper.set_attribute">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_attribute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session</span><span class="p">:</span> <span class="n">ViSession</span><span class="p">,</span> <span class="n">attr</span><span class="p">:</span> <span class="n">AttributeWrapper</span><span class="p">,</span>
+                      <span class="n">set_value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set an attribute with data type &quot;DataType&quot; by calling the appropriate</span>
+<span class="sd">        &quot;libName_SetAttribute&lt;DataType&gt;&quot; function (for example</span>
+<span class="sd">        niRFSG_SetAttributeViReal64 when ``lib_prefix`` is &quot;niRFSG&quot; and</span>
+<span class="sd">        ``attr.dtype`` is ``ViReal64``).</span>
+
+<span class="sd">        NOTE: channels are not implemented.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="n">attr</span><span class="o">.</span><span class="n">dtype</span>
+        <span class="k">if</span> <span class="n">dtype</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dtype_map</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;set_attribute() not implemented for </span><span class="si">{</span><span class="n">dtype</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">dtype_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dtype_map</span><span class="p">[</span><span class="n">dtype</span><span class="p">]</span>
+        <span class="n">func</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;SetAttribute</span><span class="si">{</span><span class="n">dtype_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">dtype</span> <span class="o">==</span> <span class="n">ViString</span><span class="p">:</span>
+            <span class="n">res</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">create_string_buffer</span><span class="p">(</span><span class="n">STRING_BUFFER_SIZE</span><span class="p">)</span>
+            <span class="n">func</span><span class="p">(</span><span class="n">session</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">attr</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">c_str</span><span class="p">(</span><span class="n">set_value</span><span class="p">),</span> <span class="n">res</span><span class="p">)</span>
+            <span class="n">ret</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">res</span> <span class="o">=</span> <span class="n">dtype</span><span class="p">()</span>
+            <span class="n">func</span><span class="p">(</span><span class="n">session</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">attr</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">set_value</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="NIDLLWrapper.error_message">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.NationalInstruments.html#qcodes_contrib_drivers.drivers.NationalInstruments.dll_wrapper.NIDLLWrapper.error_message">[docs]</a>
+    <span class="k">def</span> <span class="nf">error_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">ViSession</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                      <span class="n">error_code</span><span class="p">:</span> <span class="n">ViStatus</span> <span class="o">=</span> <span class="n">ViStatus</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Convenience wrapper around libName_error_message (which is wrapped as</span>
+<span class="sd">        self._error_message).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">buf</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">create_string_buffer</span><span class="p">(</span><span class="n">STRING_BUFFER_SIZE</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_error_message</span><span class="p">(</span><span class="n">session</span> <span class="ow">or</span> <span class="n">VI_NULL</span><span class="p">,</span> <span class="n">error_code</span><span class="p">,</span> <span class="n">buf</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">buf</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, QCoDeS Users.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

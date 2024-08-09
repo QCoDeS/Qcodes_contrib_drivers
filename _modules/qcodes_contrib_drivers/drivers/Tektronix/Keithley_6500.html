@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>qcodes_contrib_drivers.drivers.Tektronix.Keithley_6500 &mdash; qcodes_contrib_drivers 0.23.0.dev36+main.g4e2ee8f documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../_static/documentation_options.js?v=fc3c8481"></script>
+        <script src="../../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            qcodes_contrib_drivers
+          </a>
+              <div class="version">
+                0.23.0.dev36+main.g4e2ee8f
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples/index.html">Examples of how to use drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/generated/qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">qcodes_contrib_drivers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">qcodes_contrib_drivers.drivers.Tektronix.Keithley_6500</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for qcodes_contrib_drivers.drivers.Tektronix.Keithley_6500</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">qcodes.instrument.visa</span> <span class="kn">import</span> <span class="n">VisaInstrument</span>
+<span class="kn">from</span> <span class="nn">qcodes.instrument</span> <span class="kn">import</span> <span class="n">InstrumentChannel</span>
+<span class="kn">from</span> <span class="nn">qcodes.utils.validators</span> <span class="kn">import</span> <span class="n">Numbers</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+<span class="kn">from</span> <span class="nn">.Keithley_2000_Scan</span> <span class="kn">import</span> <span class="n">Keithley_2000_Scan_Channel</span>
+
+
+<div class="viewcode-block" id="Keithley_Sense">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Tektronix.html#qcodes_contrib_drivers.drivers.Tektronix.Keithley_6500.Keithley_Sense">[docs]</a>
+<span class="k">class</span> <span class="nc">Keithley_Sense</span><span class="p">(</span><span class="n">InstrumentChannel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This is the class for a measurement channel, i.e. the quantity to be measured (e.g. resistance, voltage).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="Keithley_Sense.__init__">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Tektronix.html#qcodes_contrib_drivers.drivers.Tektronix.Keithley_6500.Keithley_Sense.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">:</span> <span class="n">VisaInstrument</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">channel</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            parent: VisaInstrument instance of the Keithley Digital Multimeter</span>
+<span class="sd">            name: Channel name (e.g. &#39;CH1&#39;)</span>
+<span class="sd">            channel: Name of the quantity to measure (e.g. &#39;VOLT&#39; for DC voltage measurement)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">valid_channels</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;VOLT&#39;</span><span class="p">,</span> <span class="s1">&#39;CURR&#39;</span><span class="p">,</span> <span class="s1">&#39;RES&#39;</span><span class="p">,</span> <span class="s1">&#39;FRES&#39;</span><span class="p">,</span> <span class="s1">&#39;TEMP&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">channel</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">valid_channels</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Channel must be one of the following: </span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">valid_channels</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;measure&#39;</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_unit</span><span class="p">(</span><span class="n">channel</span><span class="p">),</span>
+                           <span class="n">label</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_label</span><span class="p">(</span><span class="n">channel</span><span class="p">),</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">_measure</span><span class="p">,</span> <span class="n">channel</span><span class="p">),</span>
+                           <span class="n">docstring</span><span class="o">=</span><span class="s2">&quot;Measure value of chosen quantity (Current/Voltage/Resistance/Temperature).&quot;</span>
+                           <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;nplc&#39;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;NPLC&#39;</span><span class="p">,</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;SENS:</span><span class="si">{</span><span class="n">channel</span><span class="si">}</span><span class="s2">:NPLC?&quot;</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;SENS:</span><span class="si">{</span><span class="n">channel</span><span class="si">}</span><span class="s2">:NPLC </span><span class="se">{{</span><span class="s2">:.4f</span><span class="se">}}</span><span class="s2">&quot;</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">Numbers</span><span class="p">(</span><span class="mf">0.0005</span><span class="p">,</span> <span class="mi">12</span><span class="p">),</span>
+                           <span class="n">docstring</span><span class="o">=</span><span class="s2">&quot;Integration rate (Number of Power Line Cycles)&quot;</span>
+                           <span class="p">)</span></div>
+
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_get_unit</span><span class="p">(</span><span class="n">quantity</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            quantity: Quantity to be measured</span>
+
+<span class="sd">        Returns: Corresponding unit string</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">channel_units</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;VOLT&#39;</span><span class="p">:</span> <span class="s1">&#39;V&#39;</span><span class="p">,</span> <span class="s1">&#39;CURR&#39;</span><span class="p">:</span> <span class="s1">&#39;A&#39;</span><span class="p">,</span> <span class="s1">&#39;RES&#39;</span><span class="p">:</span> <span class="s1">&#39;Ohm&#39;</span><span class="p">,</span> <span class="s1">&#39;FRES&#39;</span><span class="p">:</span> <span class="s1">&#39;Ohm&#39;</span><span class="p">,</span> <span class="s1">&#39;TEMP&#39;</span><span class="p">:</span> <span class="s1">&#39;C&#39;</span><span class="p">}</span>
+        <span class="k">return</span> <span class="n">channel_units</span><span class="p">[</span><span class="n">quantity</span><span class="p">]</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_get_label</span><span class="p">(</span><span class="n">quantity</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            quantity: Quantity to be measured</span>
+
+<span class="sd">        Returns: Corresponding parameter label</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">channel_labels</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;VOLT&#39;</span><span class="p">:</span> <span class="s1">&#39;Measured voltage.&#39;</span><span class="p">,</span>
+                          <span class="s1">&#39;CURR&#39;</span><span class="p">:</span> <span class="s1">&#39;Measured current.&#39;</span><span class="p">,</span>
+                          <span class="s1">&#39;RES&#39;</span><span class="p">:</span> <span class="s1">&#39;Measured resistance&#39;</span><span class="p">,</span>
+                          <span class="s1">&#39;FRES&#39;</span><span class="p">:</span> <span class="s1">&#39;Measured resistance (4w)&#39;</span><span class="p">,</span>
+                          <span class="s1">&#39;TEMP&#39;</span><span class="p">:</span> <span class="s1">&#39;Measured temperature&#39;</span><span class="p">}</span>
+        <span class="k">return</span> <span class="n">channel_labels</span><span class="p">[</span><span class="n">quantity</span><span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="Keithley_6500">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Tektronix.html#qcodes_contrib_drivers.drivers.Tektronix.Keithley_6500.Keithley_6500">[docs]</a>
+<span class="k">class</span> <span class="nc">Keithley_6500</span><span class="p">(</span><span class="n">VisaInstrument</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This is the qcodes driver for a Keithley DMM6500 digital multimeter.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="Keithley_6500.__init__">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Tektronix.html#qcodes_contrib_drivers.drivers.Tektronix.Keithley_6500.Keithley_6500.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                 <span class="n">address</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                 <span class="n">terminator</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
+                 <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize instance of digital multimeter Keithley6500. Check if scanner card is inserted.</span>
+<span class="sd">        Args:</span>
+<span class="sd">            name: Name of instrument</span>
+<span class="sd">            address: Address of instrument</span>
+<span class="sd">            terminator: Termination character for SCPI commands</span>
+<span class="sd">            **kwargs: Keyword arguments to pass to __init__ function of VisaInstrument class</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">address</span><span class="p">,</span> <span class="n">terminator</span><span class="o">=</span><span class="n">terminator</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">quantity</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;VOLT&#39;</span><span class="p">,</span> <span class="s1">&#39;CURR&#39;</span><span class="p">,</span> <span class="s1">&#39;RES&#39;</span><span class="p">,</span> <span class="s1">&#39;FRES&#39;</span><span class="p">,</span> <span class="s1">&#39;TEMP&#39;</span><span class="p">]:</span>
+            <span class="n">channel</span> <span class="o">=</span> <span class="n">Keithley_Sense</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">quantity</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span> <span class="n">quantity</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_submodule</span><span class="p">(</span><span class="n">quantity</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span> <span class="n">channel</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;active_terminal&#39;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;active terminal&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="s2">&quot;ROUTe:TERMinals?&quot;</span><span class="p">,</span>
+                           <span class="n">docstring</span><span class="o">=</span><span class="s2">&quot;Active terminal of instrument. Can only be switched via knob on front panel.&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;resistance&#39;</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;Ohm&#39;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Measured resistance&#39;</span><span class="p">,</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_measure</span><span class="p">,</span> <span class="s1">&#39;RES&#39;</span><span class="p">),</span>
+                           <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;resistance_4w&#39;</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;Ohm&#39;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Measured resistance&#39;</span><span class="p">,</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_measure</span><span class="p">,</span> <span class="s1">&#39;FRES&#39;</span><span class="p">)</span>
+                           <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;voltage_dc&#39;</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;V&#39;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Measured DC voltage&#39;</span><span class="p">,</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_measure</span><span class="p">,</span> <span class="s1">&#39;VOLT&#39;</span><span class="p">)</span>
+                           <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;current_dc&#39;</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;A&#39;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Measured DC current&#39;</span><span class="p">,</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_measure</span><span class="p">,</span> <span class="s1">&#39;CURR&#39;</span><span class="p">)</span>
+                           <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;temperature&#39;</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;C&#39;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Measured temperature&#39;</span><span class="p">,</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_measure</span><span class="p">,</span> <span class="s1">&#39;TEMP&#39;</span><span class="p">)</span>
+                           <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect_message</span><span class="p">()</span>
+
+        <span class="c1"># check if scanner card is connected</span>
+        <span class="c1"># If no scanner card is connected, the query below returns &quot;Empty Slot&quot;.</span>
+        <span class="c1"># For the Scanner Card 2000-SCAN used for development of this driver the output was</span>
+        <span class="c1"># &quot;2000,10-Chan Mux,0.0.0a,00000000&quot;.</span>
+        <span class="n">scan_idn_msg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s2">&quot;:SYSTem:CARD1:IDN?&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">scan_idn_msg</span> <span class="o">!=</span> <span class="s2">&quot;Empty Slot&quot;</span><span class="p">:</span>
+            <span class="n">msg_parts</span> <span class="o">=</span> <span class="n">scan_idn_msg</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Scanner card </span><span class="si">{</span><span class="n">msg_parts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">-SCAN detected.&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">ch_number</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">11</span><span class="p">):</span>
+                <span class="n">scan_channel</span> <span class="o">=</span> <span class="n">Keithley_2000_Scan_Channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ch_number</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">add_submodule</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ch</span><span class="si">{</span><span class="n">ch_number</span><span class="si">:</span><span class="s2">d</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">scan_channel</span><span class="p">)</span></div>
+
+
+    <span class="c1"># only measure if front terminal is active</span>
+    <span class="k">def</span> <span class="nf">_measure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">quantity</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Measure given quantity at front terminal of the instrument. Only perform measurement if front terminal is</span>
+<span class="sd">        active. Send SCPI command to measure and read out given quantity.</span>
+<span class="sd">        Args:</span>
+<span class="sd">            quantity: Quantity to be measured</span>
+
+<span class="sd">        Returns: Measurement result</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_terminal</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;FRON&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;MEAS:</span><span class="si">{</span><span class="n">quantity</span><span class="si">}</span><span class="s2">?&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Rear terminal is active instead of front terminal.&quot;</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, QCoDeS Users.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

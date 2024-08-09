@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>qcodes_contrib_drivers.drivers.ERAInstruments.erasynth &mdash; qcodes_contrib_drivers 0.23.0.dev36+main.g4e2ee8f documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../_static/documentation_options.js?v=fc3c8481"></script>
+        <script src="../../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            qcodes_contrib_drivers
+          </a>
+              <div class="version">
+                0.23.0.dev36+main.g4e2ee8f
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples/index.html">Examples of how to use drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/generated/qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">qcodes_contrib_drivers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">qcodes_contrib_drivers.drivers.ERAInstruments.erasynth</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for qcodes_contrib_drivers.drivers.ERAInstruments.erasynth</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Driver for the ERASynth/ERASynth+/ERASynth++ signal generators.</span>
+
+<span class="sd">Author: Victor Negîrneac, vnegirneac@qblox.com</span>
+
+<span class="sd">For official instrument support visit:</span>
+
+<span class="sd">- https://erainstruments.com</span>
+<span class="sd">- https://github.com/erainstruments/</span>
+
+<span class="sd">This module provides the following drivers:</span>
+
+<span class="sd">- :class:`qcodes_contrib_drivers.drivers.ERAInstruments.ERASynth &lt;qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynth&gt;`,</span>
+<span class="sd">- :class:`qcodes_contrib_drivers.drivers.ERAInstruments.ERASynthPlus &lt;qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthPlus&gt;`, and</span>
+<span class="sd">- :class:`qcodes_contrib_drivers.drivers.ERAInstruments.ERASynthPlusPlus &lt;qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthPlusPlus&gt;`.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+
+<span class="kn">from</span> <span class="nn">qcodes</span> <span class="kn">import</span> <span class="n">VisaInstrument</span><span class="p">,</span> <span class="n">Parameter</span><span class="p">,</span> <span class="n">validators</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">pyvisa</span>
+<span class="k">except</span> <span class="ne">ModuleNotFoundError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">ModuleNotFoundError</span><span class="p">(</span>
+        <span class="s2">&quot;ERAInstrument drivers require the `pyvisa` package to be installed.</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;Install it with `pip install pyvisa` and try again.&quot;</span>
+    <span class="p">)</span> <span class="kn">from</span> <span class="nn">e</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="n">BAUDRATE</span> <span class="o">=</span> <span class="mi">115200</span>
+
+<span class="n">_CMD_TO_JSON_MAPPING</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="c1"># We will treat these differently when confirming the value</span>
+    <span class="c1"># because the instrument replies with a sentence containing the value.</span>
+    <span class="c1"># which is much faster than reading the full JSON</span>
+    <span class="c1"># as fast as possible</span>
+    <span class="c1"># &quot;P0&quot;: &quot;rfoutput&quot;,</span>
+    <span class="c1"># &quot;A&quot;: &quot;amplitude&quot;,</span>
+    <span class="c1"># &quot;F&quot;: &quot;frequency&quot;,</span>
+    <span class="s2">&quot;P1&quot;</span><span class="p">:</span> <span class="s2">&quot;reference_int_ext&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;P5&quot;</span><span class="p">:</span> <span class="s2">&quot;reference_tcxo_ocxo&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;MS&quot;</span><span class="p">:</span> <span class="s2">&quot;modulation_on_off&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;M2&quot;</span><span class="p">:</span> <span class="s2">&quot;modulation_signal_waveform&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;M1&quot;</span><span class="p">:</span> <span class="s2">&quot;modulation_source&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;M0&quot;</span><span class="p">:</span> <span class="s2">&quot;modulation_type&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;M3&quot;</span><span class="p">:</span> <span class="s2">&quot;modulation_freq&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;M5&quot;</span><span class="p">:</span> <span class="s2">&quot;modulation_am_depth&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;M4&quot;</span><span class="p">:</span> <span class="s2">&quot;modulation_fm_deviation&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;M6&quot;</span><span class="p">:</span> <span class="s2">&quot;modulation_pulse_period&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;M7&quot;</span><span class="p">:</span> <span class="s2">&quot;modulation_pulse_width&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;SS&quot;</span><span class="p">:</span> <span class="s2">&quot;sweep_start_stop&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;S0&quot;</span><span class="p">:</span> <span class="s2">&quot;sweep_trigger&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;S1&quot;</span><span class="p">:</span> <span class="s2">&quot;sweep_start&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;S2&quot;</span><span class="p">:</span> <span class="s2">&quot;sweep_stop&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;S3&quot;</span><span class="p">:</span> <span class="s2">&quot;sweep_step&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;S4&quot;</span><span class="p">:</span> <span class="s2">&quot;sweep_dwell&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;P9&quot;</span><span class="p">:</span> <span class="s2">&quot;phase_noise_mode&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;PEW&quot;</span><span class="p">:</span> <span class="s2">&quot;wifi_mode&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;PES0&quot;</span><span class="p">:</span> <span class="s2">&quot;wifi_sta_ssid&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;PEP0&quot;</span><span class="p">:</span> <span class="s2">&quot;wifi_sta_password&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;PES1&quot;</span><span class="p">:</span> <span class="s2">&quot;wifi_ap_ssid&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;PEP1&quot;</span><span class="p">:</span> <span class="s2">&quot;wifi_ap_password&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;PEI&quot;</span><span class="p">:</span> <span class="s2">&quot;wifi_ip_address&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;PEN&quot;</span><span class="p">:</span> <span class="s2">&quot;wifi_subnet_address&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;PEG&quot;</span><span class="p">:</span> <span class="s2">&quot;wifi_gateway_address&quot;</span><span class="p">,</span>
+<span class="p">}</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">A mapping used to read back certain commands to ensure they have been set.</span>
+<span class="sd">This is necessary due to non-deterministic communication times.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ERASynthBase">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.ERAInstruments.html#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase">[docs]</a>
+<span class="k">class</span> <span class="nc">ERASynthBase</span><span class="p">(</span><span class="n">VisaInstrument</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A Base class for the ERASynth/ERASynth+/ERASynth++ instruments.</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">    .. code-block::</span>
+
+<span class="sd">        from qcodes import Instrument</span>
+<span class="sd">        from qcodes_contrib_drivers.drivers.ERAInstruments import ERASynthPlus</span>
+
+<span class="sd">        # list communication ports</span>
+<span class="sd">        ERASynthPlus.print_pyvisa_resources()</span>
+
+<span class="sd">        # Instantiate the instrument</span>
+<span class="sd">        lo = ERASynthPlus(&quot;ERASynthPlus&quot;, &#39;ASRL/dev/cu.usbmodem14101::INSTR&#39;)</span>
+
+<span class="sd">        lo.off()  # Turn off the output</span>
+
+<span class="sd">        # print updated snapshot once to make sure the snapshot will be up-to-date</span>
+<span class="sd">        # takes a few seconds</span>
+<span class="sd">        lo.print_readable_snapshot(update=True)</span>
+
+<span class="sd">        # Configure the local oscillator</span>
+<span class="sd">        lo.ref_osc_source(&quot;int&quot;)  # Use internal reference</span>
+<span class="sd">        lo.frequency(4.7e9)</span>
+<span class="sd">        lo.power(10)  # Set the amplitude to 10 dBm</span>
+<span class="sd">        lo.on()  # Turn on the output</span>
+
+
+<span class="sd">    .. seealso::</span>
+
+<span class="sd">        The raw serial commands can be found here:</span>
+<span class="sd">        https://github.com/erainstruments/erasynth-docs/blob/master/erasynth-command-list.pdf</span>
+
+<span class="sd">        ``self.visa_handle`` can be used to interact directly with the serial pyvisa</span>
+<span class="sd">        communication.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ERASynthBase.print_pyvisa_resources">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.ERAInstruments.html#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.print_pyvisa_resources">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">print_pyvisa_resources</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Utility to list all.&quot;&quot;&quot;</span>
+        <span class="n">resource_manager</span> <span class="o">=</span> <span class="n">pyvisa</span><span class="o">.</span><span class="n">ResourceManager</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">resource_manager</span><span class="o">.</span><span class="n">list_resources</span><span class="p">())</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_prep_communication</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Makes sure the instrument config is compatible with this driver.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">debug_messages_en</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>  <span class="c1"># Print less messages to improve communication</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wifi_off</span><span class="p">()</span>  <span class="c1"># print less messages to improve communication</span>
+
+<div class="viewcode-block" id="ERASynthBase.__init__">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.ERAInstruments.html#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">address</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create an instance of the instrument.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            name: Instrument name.</span>
+<span class="sd">            address: Used to connect to the instrument.</span>
+<span class="sd">                Run :meth:`.ERASynthBase.print_pyvisa_resources` to list available list.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">address</span><span class="o">=</span><span class="n">address</span><span class="p">,</span> <span class="n">terminator</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\r\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="c1"># ##############################################################################</span>
+        <span class="c1"># Standard LO parameters</span>
+        <span class="c1"># ##############################################################################</span>
+
+        <span class="c1"># NB `initial_value` is not used because that would make the initialization slow</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;status&quot;</span><span class="p">,</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+            <span class="n">val_mapping</span><span class="o">=</span><span class="p">{</span><span class="kc">False</span><span class="p">:</span> <span class="s2">&quot;0&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">},</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="s2">&quot;RA:rfoutput&quot;</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_status</span><span class="p">,</span>
+        <span class="p">)</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Sets the output state (`True`/`False`).&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">power</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;power&quot;</span><span class="p">,</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Power&quot;</span><span class="p">,</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;dBm&quot;</span><span class="p">,</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">validators</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(</span><span class="n">min_value</span><span class="o">=-</span><span class="mf">60.0</span><span class="p">,</span> <span class="n">max_value</span><span class="o">=</span><span class="mf">20.0</span><span class="p">),</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="s2">&quot;RA:amplitude&quot;</span><span class="p">,</span>
+            <span class="n">get_parser</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+            <span class="n">set_parser</span><span class="o">=</span><span class="k">lambda</span> <span class="n">power</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">power</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_power</span><span class="p">,</span>
+        <span class="p">)</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Signal power in dBm of the ERASynth signal, &#39;amplitude&#39; in EraSynth docs.&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ref_osc_source</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;ref_osc_source&quot;</span><span class="p">,</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+            <span class="n">val_mapping</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;int&quot;</span><span class="p">:</span> <span class="s2">&quot;0&quot;</span><span class="p">,</span> <span class="s2">&quot;ext&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">},</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;RA:</span><span class="si">{</span><span class="n">_CMD_TO_JSON_MAPPING</span><span class="p">[</span><span class="s1">&#39;P1&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s2">&quot;P1</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set to external if a 10 MHz reference is connected to the REF input connector.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># ##############################################################################</span>
+        <span class="c1"># ERASynth specific parameters</span>
+        <span class="c1"># ##############################################################################</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">temperature</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;temperature&quot;</span><span class="p">,</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Temperature&quot;</span><span class="p">,</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\u00B0</span><span class="s2">C&quot;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="s2">&quot;RD:temperature&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Temperature of the device.&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">voltage</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;voltage&quot;</span><span class="p">,</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Voltage&quot;</span><span class="p">,</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;V&quot;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="s2">&quot;RD:voltage&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The input voltage value from power input of the ERASynth.&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">current</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;current&quot;</span><span class="p">,</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Current&quot;</span><span class="p">,</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;V&quot;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="s2">&quot;RD:current&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The current value drawn by the ERASynth.&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">embedded_version</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;embedded_version&quot;</span><span class="p">,</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Embedded version&quot;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="s2">&quot;RD:em&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The firmware version of the ERASynth.&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">wifi_rssi</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;wifi_rssi&quot;</span><span class="p">,</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s2">&quot;WiFi RSSI&quot;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="s2">&quot;RD:rssi&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The Wifi received signal power.&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">pll_lmx1_status</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;pll_lmx1_status&quot;</span><span class="p">,</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s2">&quot;PLL LMX1 status&quot;</span><span class="p">,</span>
+            <span class="n">val_mapping</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;locked&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="s2">&quot;unlocked&quot;</span><span class="p">:</span> <span class="s2">&quot;0&quot;</span><span class="p">},</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="s2">&quot;RD:lock_lmx1&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;PLL lock status of LMX1.&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">pll_lmx2_status</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;pll_lmx2_status&quot;</span><span class="p">,</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s2">&quot;PLL LMX2 status&quot;</span><span class="p">,</span>
+            <span class="n">val_mapping</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;locked&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="s2">&quot;unlocked&quot;</span><span class="p">:</span> <span class="s2">&quot;0&quot;</span><span class="p">},</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="s2">&quot;RD:lock_lmx2&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;PLL lock status of LMX2.&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">pll_xtal_status</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;pll_xtal_status&quot;</span><span class="p">,</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s2">&quot;PLL XTAL status&quot;</span><span class="p">,</span>
+            <span class="n">val_mapping</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;locked&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="s2">&quot;unlocked&quot;</span><span class="p">:</span> <span class="s2">&quot;0&quot;</span><span class="p">},</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="s2">&quot;RD:lock_xtal&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;PLL lock status of XTAL.&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">modulation_en</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;modulation_en&quot;</span><span class="p">,</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+            <span class="n">val_mapping</span><span class="o">=</span><span class="p">{</span><span class="kc">False</span><span class="p">:</span> <span class="s2">&quot;0&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">},</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;RA:</span><span class="si">{</span><span class="n">_CMD_TO_JSON_MAPPING</span><span class="p">[</span><span class="s1">&#39;MS&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s2">&quot;MS</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Modulation on/off.&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">modulation_signal_waveform</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;modulation_signal_waveform&quot;</span><span class="p">,</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+            <span class="n">val_mapping</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;sine&quot;</span><span class="p">:</span> <span class="s2">&quot;0&quot;</span><span class="p">,</span> <span class="s2">&quot;triangle&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="s2">&quot;ramp&quot;</span><span class="p">:</span> <span class="s2">&quot;2&quot;</span><span class="p">,</span> <span class="s2">&quot;square&quot;</span><span class="p">:</span> <span class="s2">&quot;3&quot;</span><span class="p">},</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;RA:</span><span class="si">{</span><span class="n">_CMD_TO_JSON_MAPPING</span><span class="p">[</span><span class="s1">&#39;M2&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s2">&quot;M2</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Internal modulation waveform.&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">modulation_source</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;modulation_source&quot;</span><span class="p">,</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+            <span class="n">val_mapping</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;internal&quot;</span><span class="p">:</span> <span class="s2">&quot;0&quot;</span><span class="p">,</span> <span class="s2">&quot;external&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="s2">&quot;microphone&quot;</span><span class="p">:</span> <span class="s2">&quot;2&quot;</span><span class="p">},</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;RA:</span><span class="si">{</span><span class="n">_CMD_TO_JSON_MAPPING</span><span class="p">[</span><span class="s1">&#39;M1&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s2">&quot;M1</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Modulation source.&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">modulation_type</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;modulation_type&quot;</span><span class="p">,</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+            <span class="n">val_mapping</span><span class="o">=</span><span class="p">{</span>
+                <span class="s2">&quot;narrowband_fm&quot;</span><span class="p">:</span> <span class="s2">&quot;0&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;wideband_fm&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;am&quot;</span><span class="p">:</span> <span class="s2">&quot;2&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;pulse&quot;</span><span class="p">:</span> <span class="s2">&quot;3&quot;</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;RA:</span><span class="si">{</span><span class="n">_CMD_TO_JSON_MAPPING</span><span class="p">[</span><span class="s1">&#39;M0&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s2">&quot;M0</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Modulation type.&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">modulation_freq</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;modulation_freq&quot;</span><span class="p">,</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Modulation frequency&quot;</span><span class="p">,</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;Hz&quot;</span><span class="p">,</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">validators</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(</span><span class="n">min_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_value</span><span class="o">=</span><span class="mf">20e9</span><span class="p">),</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;RA:</span><span class="si">{</span><span class="n">_CMD_TO_JSON_MAPPING</span><span class="p">[</span><span class="s1">&#39;M3&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">get_parser</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s2">&quot;M3</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">set_parser</span><span class="o">=</span><span class="k">lambda</span> <span class="n">freq</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">freq</span><span class="p">)),</span>
+        <span class="p">)</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Internal modulation frequency in Hz.&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">modulation_am_depth</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;modulation_am_depth&quot;</span><span class="p">,</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s2">&quot;AM depth&quot;</span><span class="p">,</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;%&quot;</span><span class="p">,</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">validators</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(</span><span class="n">min_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_value</span><span class="o">=</span><span class="mi">100</span><span class="p">),</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;RA:</span><span class="si">{</span><span class="n">_CMD_TO_JSON_MAPPING</span><span class="p">[</span><span class="s1">&#39;M5&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">get_parser</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s2">&quot;M5</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">set_parser</span><span class="o">=</span><span class="k">lambda</span> <span class="n">depth</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">depth</span><span class="p">)),</span>
+        <span class="p">)</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;AM modulation depth.&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">modulation_fm_deviation</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;modulation_fm_deviation&quot;</span><span class="p">,</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s2">&quot;FM deviation&quot;</span><span class="p">,</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;Hz&quot;</span><span class="p">,</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">validators</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(</span><span class="n">min_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_value</span><span class="o">=</span><span class="mf">20e9</span><span class="p">),</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;RA:</span><span class="si">{</span><span class="n">_CMD_TO_JSON_MAPPING</span><span class="p">[</span><span class="s1">&#39;M4&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">get_parser</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s2">&quot;M4</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">set_parser</span><span class="o">=</span><span class="k">lambda</span> <span class="n">freq</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">freq</span><span class="p">)),</span>
+        <span class="p">)</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;FM modulation deviation.&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">modulation_pulse_period</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;modulation_pulse_period&quot;</span><span class="p">,</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Pulse period&quot;</span><span class="p">,</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;s&quot;</span><span class="p">,</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">validators</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(</span><span class="n">min_value</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span> <span class="n">max_value</span><span class="o">=</span><span class="mi">10</span><span class="p">),</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;RA:</span><span class="si">{</span><span class="n">_CMD_TO_JSON_MAPPING</span><span class="p">[</span><span class="s1">&#39;M6&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">get_parser</span><span class="o">=</span><span class="k">lambda</span> <span class="n">val</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1e-6</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s2">&quot;M6</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">set_parser</span><span class="o">=</span><span class="k">lambda</span> <span class="n">period</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">period</span> <span class="o">*</span> <span class="mf">1e6</span><span class="p">)),</span>
+        <span class="p">)</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Pulse period in seconds.&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">modulation_pulse_width</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;modulation_pulse_width&quot;</span><span class="p">,</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Pulse width&quot;</span><span class="p">,</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;s&quot;</span><span class="p">,</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">validators</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(</span><span class="n">min_value</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span> <span class="n">max_value</span><span class="o">=</span><span class="mi">10</span><span class="p">),</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;RA:</span><span class="si">{</span><span class="n">_CMD_TO_JSON_MAPPING</span><span class="p">[</span><span class="s1">&#39;M7&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">get_parser</span><span class="o">=</span><span class="k">lambda</span> <span class="n">val</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1e-6</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s2">&quot;M7</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">set_parser</span><span class="o">=</span><span class="k">lambda</span> <span class="n">period</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">period</span> <span class="o">*</span> <span class="mf">1e6</span><span class="p">)),</span>
+        <span class="p">)</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Pulse width in s.&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">sweep_en</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;sweep_en&quot;</span><span class="p">,</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+            <span class="n">val_mapping</span><span class="o">=</span><span class="p">{</span><span class="kc">False</span><span class="p">:</span> <span class="s2">&quot;0&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">},</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;RA:</span><span class="si">{</span><span class="n">_CMD_TO_JSON_MAPPING</span><span class="p">[</span><span class="s1">&#39;SS&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s2">&quot;SS</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Sweep on/off.&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">sweep_trigger</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;sweep_trigger&quot;</span><span class="p">,</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+            <span class="n">val_mapping</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;freerun&quot;</span><span class="p">:</span> <span class="s2">&quot;0&quot;</span><span class="p">,</span> <span class="s2">&quot;external&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">},</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;RA:</span><span class="si">{</span><span class="n">_CMD_TO_JSON_MAPPING</span><span class="p">[</span><span class="s1">&#39;S0&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s2">&quot;S0</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Sweep trigger freerun/external.&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">sweep_dwell</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;sweep_dwell&quot;</span><span class="p">,</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Sweep dwell&quot;</span><span class="p">,</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;s&quot;</span><span class="p">,</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">validators</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(</span><span class="n">min_value</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span> <span class="n">max_value</span><span class="o">=</span><span class="mi">10</span><span class="p">),</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;RA:</span><span class="si">{</span><span class="n">_CMD_TO_JSON_MAPPING</span><span class="p">[</span><span class="s1">&#39;S4&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">get_parser</span><span class="o">=</span><span class="k">lambda</span> <span class="n">val</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1e-3</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s2">&quot;S4</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">set_parser</span><span class="o">=</span><span class="k">lambda</span> <span class="n">period</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">period</span> <span class="o">*</span> <span class="mf">1e3</span><span class="p">)),</span>
+        <span class="p">)</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Sweep dwell time in s. Requires sweep_trigger(&#39;freerun&#39;).&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">synthesizer_mode</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;synthesizer_mode&quot;</span><span class="p">,</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+            <span class="n">val_mapping</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;low_spurious&quot;</span><span class="p">:</span> <span class="s2">&quot;0&quot;</span><span class="p">,</span> <span class="s2">&quot;low_phase_noise&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">},</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;RA:</span><span class="si">{</span><span class="n">_CMD_TO_JSON_MAPPING</span><span class="p">[</span><span class="s1">&#39;P9&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s2">&quot;P9</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Synthesizer mode, low spurious/low phase noise.&quot;&quot;&quot;</span>
+
+        <span class="c1"># WiFi control, NB initial_cache_value is used to avoid overriding these values</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">wifi_mode</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;wifi_mode&quot;</span><span class="p">,</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+            <span class="n">val_mapping</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;station&quot;</span><span class="p">:</span> <span class="s2">&quot;0&quot;</span><span class="p">,</span> <span class="s2">&quot;hotspot&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">},</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;RA:</span><span class="si">{</span><span class="n">_CMD_TO_JSON_MAPPING</span><span class="p">[</span><span class="s1">&#39;PEW&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s2">&quot;PEW</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;WiFi Mode, station/hotspot.&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">wifi_station_ssid</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;wifi_station_ssid&quot;</span><span class="p">,</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">validators</span><span class="o">.</span><span class="n">Strings</span><span class="p">(),</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;RA:</span><span class="si">{</span><span class="n">_CMD_TO_JSON_MAPPING</span><span class="p">[</span><span class="s1">&#39;PES0&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s2">&quot;PES0</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Sets network SSID for WiFi module.&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">wifi_station_password</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;wifi_station_password&quot;</span><span class="p">,</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">validators</span><span class="o">.</span><span class="n">Strings</span><span class="p">(),</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;RA:</span><span class="si">{</span><span class="n">_CMD_TO_JSON_MAPPING</span><span class="p">[</span><span class="s1">&#39;PEP0&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s2">&quot;PEP0</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Sets network password for WiFi module.&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">wifi_hotspot_ssid</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;wifi_hotspot_ssid&quot;</span><span class="p">,</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">validators</span><span class="o">.</span><span class="n">Strings</span><span class="p">(),</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;RA:</span><span class="si">{</span><span class="n">_CMD_TO_JSON_MAPPING</span><span class="p">[</span><span class="s1">&#39;PES1&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s2">&quot;PES1</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Sets hotspot SSID for WiFi module.&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">wifi_hotspot_password</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;wifi_hotspot_password&quot;</span><span class="p">,</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">validators</span><span class="o">.</span><span class="n">Strings</span><span class="p">(),</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;RA:</span><span class="si">{</span><span class="n">_CMD_TO_JSON_MAPPING</span><span class="p">[</span><span class="s1">&#39;PEP1&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s2">&quot;PEP1</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Sets hotspot password for WiFi module.&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">wifi_ip_address</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;wifi_ip_address&quot;</span><span class="p">,</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">validators</span><span class="o">.</span><span class="n">Strings</span><span class="p">(),</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;RA:</span><span class="si">{</span><span class="n">_CMD_TO_JSON_MAPPING</span><span class="p">[</span><span class="s1">&#39;PEI&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s2">&quot;PEI</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Sets IP address for WiFi module.&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">wifi_subnet_address</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;wifi_subnet_address&quot;</span><span class="p">,</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">validators</span><span class="o">.</span><span class="n">Strings</span><span class="p">(),</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;RA:</span><span class="si">{</span><span class="n">_CMD_TO_JSON_MAPPING</span><span class="p">[</span><span class="s1">&#39;PEN&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s2">&quot;PEN</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Sets Subnet mask for WiFi module.&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">wifi_gateway_address</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;wifi_gateway_address&quot;</span><span class="p">,</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">validators</span><span class="o">.</span><span class="n">Strings</span><span class="p">(),</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;RA:</span><span class="si">{</span><span class="n">_CMD_TO_JSON_MAPPING</span><span class="p">[</span><span class="s1">&#39;PEG&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s2">&quot;PEG</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Sets default gateway for WiFi module.&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">debug_messages_en</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;debug_messages_en&quot;</span><span class="p">,</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">validators</span><span class="o">.</span><span class="n">Strings</span><span class="p">(),</span>
+            <span class="n">initial_cache_value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">val_mapping</span><span class="o">=</span><span class="p">{</span><span class="kc">True</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">:</span> <span class="s2">&quot;0&quot;</span><span class="p">},</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s2">&quot;PD</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Enables/disables debug printing on the serial port.&quot;&quot;&quot;</span>
+
+        <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">visa_handle</span><span class="p">,</span> <span class="s2">&quot;baud_rate&quot;</span><span class="p">,</span> <span class="n">BAUDRATE</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">timeout</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>  <span class="c1"># generous timeout to avoid disrupting measurements</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect_message</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_prep_communication</span><span class="p">()</span></div>
+
+
+    <span class="c1"># ##################################################################################</span>
+    <span class="c1"># Public methods</span>
+    <span class="c1"># ##################################################################################</span>
+
+    <span class="c1"># Standard LO methods</span>
+
+<div class="viewcode-block" id="ERASynthBase.on">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.ERAInstruments.html#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.on">[docs]</a>
+    <span class="k">def</span> <span class="nf">on</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Turns ON the RF output.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ERASynthBase.off">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.ERAInstruments.html#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.off">[docs]</a>
+    <span class="k">def</span> <span class="nf">off</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Turns OFF the RF output.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span></div>
+
+
+    <span class="c1"># Custom communication</span>
+
+<div class="viewcode-block" id="ERASynthBase.get_idn">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.ERAInstruments.html#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.get_idn">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_idn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+        <span class="n">models</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;0&quot;</span><span class="p">:</span> <span class="s2">&quot;ERASynth&quot;</span><span class="p">,</span> <span class="s2">&quot;1&quot;</span><span class="p">:</span> <span class="s2">&quot;ERASynth+&quot;</span><span class="p">,</span> <span class="s2">&quot;2&quot;</span><span class="p">:</span> <span class="s2">&quot;ERASynth++&quot;</span><span class="p">}</span>
+        <span class="n">d_status</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_diagnostic_status</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">d_status</span><span class="p">,</span> <span class="n">Dict</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;vendor&quot;</span><span class="p">:</span> <span class="s2">&quot;ERA Instruments&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;model&quot;</span><span class="p">:</span> <span class="n">models</span><span class="p">[</span><span class="n">d_status</span><span class="p">[</span><span class="s2">&quot;model&quot;</span><span class="p">]],</span>
+            <span class="s2">&quot;serial&quot;</span><span class="p">:</span> <span class="n">d_status</span><span class="p">[</span><span class="s2">&quot;serial_number&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;firmware&quot;</span><span class="p">:</span> <span class="n">d_status</span><span class="p">[</span><span class="s2">&quot;em&quot;</span><span class="p">],</span>
+        <span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="ERASynthBase.clear_read_buffer">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.ERAInstruments.html#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.clear_read_buffer">[docs]</a>
+    <span class="k">def</span> <span class="nf">clear_read_buffer</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Clears the read buffer. The instrument often sends information we do not care</span>
+<span class="sd">        about in this driver. This function discards the entire read buffer by reading</span>
+<span class="sd">        it.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">bytes_in_buffer</span> <span class="o">=</span> <span class="k">lambda</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">visa_handle</span><span class="p">,</span> <span class="s2">&quot;bytes_in_buffer&quot;</span><span class="p">)</span>
+        <span class="k">while</span> <span class="n">bytes_in_buffer</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">visa_handle</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">(</span><span class="n">bytes_in_buffer</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="ERASynthBase.ask">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.ERAInstruments.html#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.ask">[docs]</a>
+    <span class="k">def</span> <span class="nf">ask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmd</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Writes a command to the communication channel of the instrument and return</span>
+<span class="sd">        the response.</span>
+
+<span class="sd">        Commands are prefixed with `&quot;&gt;&quot;` as required by the ERASynth.</span>
+
+<span class="sd">        NB the read buffer is discarded before and after reading one line.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clear_read_buffer</span><span class="p">()</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&gt;</span><span class="si">{</span><span class="n">cmd</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clear_read_buffer</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">response</span></div>
+
+
+<div class="viewcode-block" id="ERASynthBase.ask_raw">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.ERAInstruments.html#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.ask_raw">[docs]</a>
+    <span class="k">def</span> <span class="nf">ask_raw</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmd</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Detects special commands for which the `get_configuration` will be used.</span>
+
+<span class="sd">        This makes it convenient to not implement individual getters for most commands.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">cmd</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;RA:&quot;</span><span class="p">):</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_configuration</span><span class="p">(</span><span class="n">cmd</span><span class="p">[</span><span class="mi">1</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="s2">&quot;RA:&quot;</span><span class="p">)</span> <span class="p">:])</span>
+        <span class="k">elif</span> <span class="n">cmd</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;RD:&quot;</span><span class="p">):</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_diagnostic_status</span><span class="p">(</span><span class="n">cmd</span><span class="p">[</span><span class="mi">1</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="s2">&quot;RD:&quot;</span><span class="p">)</span> <span class="p">:])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">ask_raw</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">response</span></div>
+
+
+<div class="viewcode-block" id="ERASynthBase.write">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.ERAInstruments.html#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.write">[docs]</a>
+    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmd</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Writes a command to the communication channel of the instrument.</span>
+
+<span class="sd">        Commands are prefixed with `&quot;&gt;&quot;` as required by the ERASynth.</span>
+
+<span class="sd">        NB the read buffer is discarded before and after reading one line.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clear_read_buffer</span><span class="p">()</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&gt;</span><span class="si">{</span><span class="n">cmd</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clear_read_buffer</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="ERASynthBase.write_raw">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.ERAInstruments.html#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.write_raw">[docs]</a>
+    <span class="k">def</span> <span class="nf">write_raw</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmd</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        For some commands we confirm that the value has been set correctly.</span>
+
+<span class="sd">        This is only possible for configurations that can be retrieved from the</span>
+<span class="sd">        instrument.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">is_readable_cmd</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">for</span> <span class="n">command</span> <span class="ow">in</span> <span class="n">_CMD_TO_JSON_MAPPING</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">cmd</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">command</span><span class="p">):</span>
+                <span class="n">is_readable_cmd</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">break</span>
+
+        <span class="k">if</span> <span class="n">is_readable_cmd</span><span class="p">:</span>
+            <span class="n">json_key</span> <span class="o">=</span> <span class="n">_CMD_TO_JSON_MAPPING</span><span class="p">[</span><span class="n">command</span><span class="p">]</span>
+            <span class="n">cmd_arg</span> <span class="o">=</span> <span class="n">cmd</span><span class="p">[</span><span class="mi">1</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">command</span><span class="p">)</span> <span class="p">:]</span>
+            <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+                <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">write_raw</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">clear_read_buffer</span><span class="p">()</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_configuration</span><span class="p">(</span><span class="n">json_key</span><span class="p">)</span> <span class="o">==</span> <span class="n">cmd_arg</span><span class="p">:</span>
+                    <span class="k">break</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">write_raw</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_get_json</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmd</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">first_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sends command and reads result until the result looks like a JSON.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">timeout</span> <span class="o">=</span> <span class="mi">10</span>
+        <span class="n">t_start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="n">first_key</span> <span class="o">=</span> <span class="s1">&#39;{&quot;&#39;</span> <span class="o">+</span> <span class="n">first_key</span> <span class="o">+</span> <span class="s1">&#39;&quot;&#39;</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">read_line</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+            <span class="c1"># Ensure the line contains the json</span>
+            <span class="k">if</span> <span class="n">first_key</span> <span class="ow">in</span> <span class="n">read_line</span> <span class="ow">and</span> <span class="n">read_line</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;}&quot;</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="k">if</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">&gt;</span> <span class="n">t_start</span> <span class="o">+</span> <span class="n">timeout</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TimeoutError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Failed to query JSON within </span><span class="si">{</span><span class="n">timeout</span><span class="si">}</span><span class="s2"> s. &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;Command </span><span class="si">{</span><span class="n">cmd</span><span class="si">!r}</span><span class="s2"> failed.&quot;</span>
+                <span class="p">)</span>
+
+        <span class="k">return</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">&quot;{&quot;</span><span class="p">,</span> <span class="o">*</span><span class="n">read_line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;{&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">:]])</span>
+
+    <span class="c1"># ERASynth specific methods</span>
+
+<div class="viewcode-block" id="ERASynthBase.get_configuration">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.ERAInstruments.html#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.get_configuration">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_configuration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">par_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the configuration JSON that contains all parameters.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">config_json</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_json</span><span class="p">(</span><span class="s2">&quot;RA&quot;</span><span class="p">,</span> <span class="s2">&quot;rfoutput&quot;</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">config_json</span> <span class="k">if</span> <span class="n">par_name</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">config_json</span><span class="p">[</span><span class="n">par_name</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="ERASynthBase.get_diagnostic_status">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.ERAInstruments.html#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.get_diagnostic_status">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_diagnostic_status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">par_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the diagnostic JSON.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">config_json</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_json</span><span class="p">(</span><span class="s2">&quot;RD&quot;</span><span class="p">,</span> <span class="s2">&quot;temperature&quot;</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">config_json</span> <span class="k">if</span> <span class="n">par_name</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">config_json</span><span class="p">[</span><span class="n">par_name</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="ERASynthBase.preset">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.ERAInstruments.html#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.preset">[docs]</a>
+    <span class="k">def</span> <span class="nf">preset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Presets the device to known values.</span>
+
+<span class="sd">        .. warning::</span>
+
+<span class="sd">            After the reset the output is set to power 0.0 dBm @ 1GHz!</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;PP&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_prep_communication</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="ERASynthBase.factory_reset">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.ERAInstruments.html#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.factory_reset">[docs]</a>
+    <span class="k">def</span> <span class="nf">factory_reset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Does factory reset on the device.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;PR&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_prep_communication</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="ERASynthBase.esp8266_upload_mode">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.ERAInstruments.html#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.esp8266_upload_mode">[docs]</a>
+    <span class="k">def</span> <span class="nf">esp8266_upload_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Sets the ESP8266 module in upload mode.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;U&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ERASynthBase.wifi_on">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.ERAInstruments.html#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.wifi_on">[docs]</a>
+    <span class="k">def</span> <span class="nf">wifi_on</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Turn ESP8266 WiFi module on.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;PE01&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ERASynthBase.wifi_off">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.ERAInstruments.html#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.wifi_off">[docs]</a>
+    <span class="k">def</span> <span class="nf">wifi_off</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Turn ESP8266 WiFi module off.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;PE00&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ERASynthBase.run_self_test">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.ERAInstruments.html#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthBase.run_self_test">[docs]</a>
+    <span class="k">def</span> <span class="nf">run_self_test</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets all settable parameters to different values.</span>
+
+<span class="sd">        NB serves as self test of the instrument because setting readable parameters</span>
+<span class="sd">        is done by setting and confirming the value.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">par_values</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">_SELF_TEST_LIST</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">(</span><span class="n">ERASynthPlus</span><span class="p">,</span> <span class="n">ERASynthPlusPlus</span><span class="p">)):</span>
+            <span class="c1"># Only ERASynth+ and ERASynth++ have this functionality</span>
+            <span class="n">par_values</span> <span class="o">+=</span> <span class="p">[</span>
+                <span class="p">(</span><span class="s2">&quot;reference_tcxo_ocxo&quot;</span><span class="p">,</span> <span class="s2">&quot;tcxo&quot;</span><span class="p">),</span>
+                <span class="p">(</span><span class="s2">&quot;reference_tcxo_ocxo&quot;</span><span class="p">,</span> <span class="s2">&quot;ocxo&quot;</span><span class="p">),</span>
+            <span class="p">]</span>
+
+        <span class="n">num_tests</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">par_values</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">par_values</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\r</span><span class="s2">[</span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">:</span><span class="s2">2d</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">num_tests</span><span class="si">}</span><span class="s2">] Running...&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Done!&quot;</span><span class="p">)</span></div>
+
+
+    <span class="c1"># ##################################################################################</span>
+    <span class="c1"># set commands</span>
+    <span class="c1"># ##################################################################################</span>
+
+    <span class="k">def</span> <span class="nf">_set_and_confirm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmd</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">cmd_arg</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">str_back</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Because for this command the instrument replies with a text containing the</span>
+<span class="sd">        value, we make use of it to ensure we waited enough time for the changes to</span>
+<span class="sd">        take effect.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">str_back</span> <span class="o">=</span> <span class="n">cmd_arg</span> <span class="k">if</span> <span class="n">str_back</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">str_back</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">read_line</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cmd</span><span class="si">}{</span><span class="n">cmd_arg</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">str_back</span> <span class="ow">in</span> <span class="n">read_line</span><span class="p">:</span>
+                <span class="k">break</span>
+
+    <span class="k">def</span> <span class="nf">_set_frequency</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_and_confirm</span><span class="p">(</span><span class="n">cmd</span><span class="o">=</span><span class="s2">&quot;F&quot;</span><span class="p">,</span> <span class="n">cmd_arg</span><span class="o">=</span><span class="n">value</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_set_power</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_and_confirm</span><span class="p">(</span><span class="n">cmd</span><span class="o">=</span><span class="s2">&quot;A&quot;</span><span class="p">,</span> <span class="n">cmd_arg</span><span class="o">=</span><span class="n">value</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_set_status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">str_back</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;0&quot;</span><span class="p">:</span> <span class="s2">&quot;OFF&quot;</span><span class="p">,</span> <span class="s2">&quot;1&quot;</span><span class="p">:</span> <span class="s2">&quot;ON&quot;</span><span class="p">}[</span><span class="n">value</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_and_confirm</span><span class="p">(</span><span class="n">cmd</span><span class="o">=</span><span class="s2">&quot;P0&quot;</span><span class="p">,</span> <span class="n">cmd_arg</span><span class="o">=</span><span class="n">value</span><span class="p">,</span> <span class="n">str_back</span><span class="o">=</span><span class="n">str_back</span><span class="p">)</span></div>
+
+
+
+<span class="k">def</span> <span class="nf">_mk_frequency</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_frequency</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Parameter</span><span class="p">:</span>
+    <span class="n">frequency</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;frequency&quot;</span><span class="p">,</span>
+        <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+        <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Frequency&quot;</span><span class="p">,</span>
+        <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;Hz&quot;</span><span class="p">,</span>
+        <span class="n">vals</span><span class="o">=</span><span class="n">validators</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(</span><span class="n">min_value</span><span class="o">=</span><span class="mf">250e3</span><span class="p">,</span> <span class="n">max_value</span><span class="o">=</span><span class="n">max_frequency</span><span class="p">),</span>
+        <span class="n">get_cmd</span><span class="o">=</span><span class="s2">&quot;RA:frequency&quot;</span><span class="p">,</span>
+        <span class="n">get_parser</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+        <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_frequency</span><span class="p">,</span>
+        <span class="n">set_parser</span><span class="o">=</span><span class="k">lambda</span> <span class="n">freq</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">freq</span><span class="p">)),</span>
+    <span class="p">)</span>
+    <span class="n">frequency</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="s2">&quot;The RF Frequency in Hz.&quot;</span>
+    <span class="k">return</span> <span class="n">frequency</span>
+
+
+<span class="k">def</span> <span class="nf">_mk_sweep_start_frequency</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_frequency</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Parameter</span><span class="p">:</span>
+    <span class="n">sweep_start_frequency</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;sweep_start_frequency&quot;</span><span class="p">,</span>
+        <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+        <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Sweep start&quot;</span><span class="p">,</span>
+        <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;Hz&quot;</span><span class="p">,</span>
+        <span class="n">vals</span><span class="o">=</span><span class="n">validators</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(</span><span class="n">min_value</span><span class="o">=</span><span class="mf">250e3</span><span class="p">,</span> <span class="n">max_value</span><span class="o">=</span><span class="n">max_frequency</span><span class="p">),</span>
+        <span class="n">get_cmd</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;RA:</span><span class="si">{</span><span class="n">_CMD_TO_JSON_MAPPING</span><span class="p">[</span><span class="s1">&#39;S1&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="n">get_parser</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+        <span class="n">set_cmd</span><span class="o">=</span><span class="s2">&quot;S1</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="n">set_parser</span><span class="o">=</span><span class="k">lambda</span> <span class="n">freq</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">freq</span><span class="p">)),</span>
+    <span class="p">)</span>
+    <span class="n">sweep_start_frequency</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="s2">&quot;Sweep start frequency in Hz.&quot;</span>
+    <span class="k">return</span> <span class="n">sweep_start_frequency</span>
+
+
+<span class="k">def</span> <span class="nf">_mk_sweep_stop_frequency</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_frequency</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Parameter</span><span class="p">:</span>
+    <span class="n">sweep_stop_frequency</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;sweep_stop_frequency&quot;</span><span class="p">,</span>
+        <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+        <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Sweep stop&quot;</span><span class="p">,</span>
+        <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;Hz&quot;</span><span class="p">,</span>
+        <span class="n">vals</span><span class="o">=</span><span class="n">validators</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(</span><span class="n">min_value</span><span class="o">=</span><span class="mf">250e3</span><span class="p">,</span> <span class="n">max_value</span><span class="o">=</span><span class="n">max_frequency</span><span class="p">),</span>
+        <span class="n">get_cmd</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;RA:</span><span class="si">{</span><span class="n">_CMD_TO_JSON_MAPPING</span><span class="p">[</span><span class="s1">&#39;S2&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="n">get_parser</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+        <span class="n">set_cmd</span><span class="o">=</span><span class="s2">&quot;S2</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="n">set_parser</span><span class="o">=</span><span class="k">lambda</span> <span class="n">freq</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">freq</span><span class="p">)),</span>
+    <span class="p">)</span>
+    <span class="n">sweep_stop_frequency</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="s2">&quot;Sweep stop frequency in Hz.&quot;</span>
+    <span class="k">return</span> <span class="n">sweep_stop_frequency</span>
+
+
+<span class="k">def</span> <span class="nf">_mk_sweep_step_frequency</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_frequency</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Parameter</span><span class="p">:</span>
+    <span class="n">sweep_step_frequency</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;sweep_step_frequency&quot;</span><span class="p">,</span>
+        <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+        <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Sweep step&quot;</span><span class="p">,</span>
+        <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;Hz&quot;</span><span class="p">,</span>
+        <span class="n">vals</span><span class="o">=</span><span class="n">validators</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(</span><span class="n">min_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_value</span><span class="o">=</span><span class="n">max_frequency</span><span class="p">),</span>
+        <span class="n">get_cmd</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;RA:</span><span class="si">{</span><span class="n">_CMD_TO_JSON_MAPPING</span><span class="p">[</span><span class="s1">&#39;S3&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="n">get_parser</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+        <span class="n">set_cmd</span><span class="o">=</span><span class="s2">&quot;S3</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="n">set_parser</span><span class="o">=</span><span class="k">lambda</span> <span class="n">freq</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">freq</span><span class="p">)),</span>
+    <span class="p">)</span>
+    <span class="n">sweep_step_frequency</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="s2">&quot;Sweep step frequency in Hz.&quot;</span>
+    <span class="k">return</span> <span class="n">sweep_step_frequency</span>
+
+
+<div class="viewcode-block" id="ERASynth">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.ERAInstruments.html#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynth">[docs]</a>
+<span class="k">class</span> <span class="nc">ERASynth</span><span class="p">(</span><span class="n">ERASynthBase</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Driver for the ERASynth model instrument.</span>
+
+<span class="sd">    For ERASynth+/ERASynth++ see :class:`.EraSynthPlus`/:class:`.EraSynthPlusPlus`</span>
+<span class="sd">    classes.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">address</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">address</span><span class="o">=</span><span class="n">address</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">frequency</span> <span class="o">=</span> <span class="n">_mk_frequency</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_frequency</span><span class="o">=</span><span class="mf">6e9</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sweep_start_frequency</span> <span class="o">=</span> <span class="n">_mk_sweep_start_frequency</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_frequency</span><span class="o">=</span><span class="mf">6e9</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sweep_stop_frequency</span> <span class="o">=</span> <span class="n">_mk_sweep_stop_frequency</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_frequency</span><span class="o">=</span><span class="mf">6e9</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sweep_step_frequency</span> <span class="o">=</span> <span class="n">_mk_sweep_step_frequency</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="n">max_frequency</span><span class="o">=</span><span class="mf">6e9</span> <span class="o">-</span> <span class="mf">250e3</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">reference_tcxo_ocxo</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;reference_tcxo_ocxo&quot;</span><span class="p">,</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+            <span class="n">val_mapping</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;tcxo&quot;</span><span class="p">:</span> <span class="s2">&quot;0&quot;</span><span class="p">,</span> <span class="s2">&quot;ocxo&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">},</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;RA:</span><span class="si">{</span><span class="n">_CMD_TO_JSON_MAPPING</span><span class="p">[</span><span class="s1">&#39;P5&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        NB not tested if this parameter is available for the ERASynth model (&lt;6GHz)!</span>
+<span class="sd">        &quot;&quot;&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="ERASynthPlus">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.ERAInstruments.html#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthPlus">[docs]</a>
+<span class="k">class</span> <span class="nc">ERASynthPlus</span><span class="p">(</span><span class="n">ERASynthBase</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Driver for the ERASynth+ model instrument.</span>
+
+<span class="sd">    For ERASynth/ERASynth++ see :class:`.EraSynth`/:class:`.EraSynthPlusPlus` classes.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">address</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">address</span><span class="o">=</span><span class="n">address</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">frequency</span> <span class="o">=</span> <span class="n">_mk_frequency</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_frequency</span><span class="o">=</span><span class="mf">15e9</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sweep_start_frequency</span> <span class="o">=</span> <span class="n">_mk_sweep_start_frequency</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_frequency</span><span class="o">=</span><span class="mf">15e9</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sweep_stop_frequency</span> <span class="o">=</span> <span class="n">_mk_sweep_stop_frequency</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_frequency</span><span class="o">=</span><span class="mf">15e9</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sweep_step_frequency</span> <span class="o">=</span> <span class="n">_mk_sweep_step_frequency</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="n">max_frequency</span><span class="o">=</span><span class="mf">15e9</span> <span class="o">-</span> <span class="mf">250e3</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">reference_tcxo_ocxo</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;reference_tcxo_ocxo&quot;</span><span class="p">,</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+            <span class="n">val_mapping</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;tcxo&quot;</span><span class="p">:</span> <span class="s2">&quot;0&quot;</span><span class="p">,</span> <span class="s2">&quot;ocxo&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">},</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;RA:</span><span class="si">{</span><span class="n">_CMD_TO_JSON_MAPPING</span><span class="p">[</span><span class="s1">&#39;P5&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s2">&quot;P5</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Chooses reference type.&quot;&quot;&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="ERASynthPlusPlus">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.ERAInstruments.html#qcodes_contrib_drivers.drivers.ERAInstruments.erasynth.ERASynthPlusPlus">[docs]</a>
+<span class="k">class</span> <span class="nc">ERASynthPlusPlus</span><span class="p">(</span><span class="n">ERASynthBase</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Driver for the ERASynth++ model instrument.</span>
+
+<span class="sd">    For ERASynth/ERASynth+ see :class:`.EraSynth`/:class:`.EraSynthPlus` classes.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">address</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">address</span><span class="o">=</span><span class="n">address</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">frequency</span> <span class="o">=</span> <span class="n">_mk_frequency</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_frequency</span><span class="o">=</span><span class="mf">20e9</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sweep_start_frequency</span> <span class="o">=</span> <span class="n">_mk_sweep_start_frequency</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_frequency</span><span class="o">=</span><span class="mf">20e9</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sweep_stop_frequency</span> <span class="o">=</span> <span class="n">_mk_sweep_stop_frequency</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_frequency</span><span class="o">=</span><span class="mf">20e9</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sweep_step_frequency</span> <span class="o">=</span> <span class="n">_mk_sweep_step_frequency</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="n">max_frequency</span><span class="o">=</span><span class="mf">20e9</span> <span class="o">-</span> <span class="mf">250e3</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">reference_tcxo_ocxo</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;reference_tcxo_ocxo&quot;</span><span class="p">,</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+            <span class="n">val_mapping</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;tcxo&quot;</span><span class="p">:</span> <span class="s2">&quot;0&quot;</span><span class="p">,</span> <span class="s2">&quot;ocxo&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">},</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;RA:</span><span class="si">{</span><span class="n">_CMD_TO_JSON_MAPPING</span><span class="p">[</span><span class="s1">&#39;P5&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s2">&quot;P5</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Chooses reference type.&quot;&quot;&quot;</span></div>
+
+
+
+<span class="n">_SELF_TEST_LIST</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">(</span><span class="s2">&quot;frequency&quot;</span><span class="p">,</span> <span class="mf">3.3e9</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;modulation_am_depth&quot;</span><span class="p">,</span> <span class="mi">30</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;modulation_fm_deviation&quot;</span><span class="p">,</span> <span class="mf">1e3</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;modulation_freq&quot;</span><span class="p">,</span> <span class="mf">2e3</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;modulation_pulse_period&quot;</span><span class="p">,</span> <span class="mf">0.003</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;modulation_pulse_width&quot;</span><span class="p">,</span> <span class="mf">0.002</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;power&quot;</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;power&quot;</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.01</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;sweep_dwell&quot;</span><span class="p">,</span> <span class="mf">0.001</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;sweep_start_frequency&quot;</span><span class="p">,</span> <span class="mf">2e9</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;sweep_step_frequency&quot;</span><span class="p">,</span> <span class="mf">0.5e9</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;sweep_stop_frequency&quot;</span><span class="p">,</span> <span class="mf">6e9</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;status&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;status&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;modulation_en&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;modulation_en&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;modulation_signal_waveform&quot;</span><span class="p">,</span> <span class="s2">&quot;triangle&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;modulation_signal_waveform&quot;</span><span class="p">,</span> <span class="s2">&quot;ramp&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;modulation_signal_waveform&quot;</span><span class="p">,</span> <span class="s2">&quot;square&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;modulation_signal_waveform&quot;</span><span class="p">,</span> <span class="s2">&quot;sine&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;modulation_source&quot;</span><span class="p">,</span> <span class="s2">&quot;internal&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;modulation_source&quot;</span><span class="p">,</span> <span class="s2">&quot;external&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;modulation_source&quot;</span><span class="p">,</span> <span class="s2">&quot;microphone&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;modulation_type&quot;</span><span class="p">,</span> <span class="s2">&quot;narrowband_fm&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;modulation_type&quot;</span><span class="p">,</span> <span class="s2">&quot;am&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;modulation_type&quot;</span><span class="p">,</span> <span class="s2">&quot;pulse&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;modulation_type&quot;</span><span class="p">,</span> <span class="s2">&quot;wideband_fm&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;ref_osc_source&quot;</span><span class="p">,</span> <span class="s2">&quot;ext&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;ref_osc_source&quot;</span><span class="p">,</span> <span class="s2">&quot;int&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;synthesizer_mode&quot;</span><span class="p">,</span> <span class="s2">&quot;low_phase_noise&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;synthesizer_mode&quot;</span><span class="p">,</span> <span class="s2">&quot;low_spurious&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;sweep_en&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;sweep_en&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;sweep_trigger&quot;</span><span class="p">,</span> <span class="s2">&quot;freerun&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;sweep_trigger&quot;</span><span class="p">,</span> <span class="s2">&quot;external&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;wifi_mode&quot;</span><span class="p">,</span> <span class="s2">&quot;hotspot&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;wifi_mode&quot;</span><span class="p">,</span> <span class="s2">&quot;station&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;wifi_station_ssid&quot;</span><span class="p">,</span> <span class="s2">&quot;ERA_123&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;wifi_station_ssid&quot;</span><span class="p">,</span> <span class="s2">&quot;ERA&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;wifi_station_password&quot;</span><span class="p">,</span> <span class="s2">&quot;era1234&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;wifi_station_password&quot;</span><span class="p">,</span> <span class="s2">&quot;era19050&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;wifi_hotspot_ssid&quot;</span><span class="p">,</span> <span class="s2">&quot;ERA&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;wifi_hotspot_ssid&quot;</span><span class="p">,</span> <span class="s2">&quot;ERASynth&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;wifi_hotspot_password&quot;</span><span class="p">,</span> <span class="s2">&quot;erainstruments+&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;wifi_hotspot_password&quot;</span><span class="p">,</span> <span class="s2">&quot;erainstruments&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;wifi_ip_address&quot;</span><span class="p">,</span> <span class="s2">&quot;192.168.001.151&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;wifi_ip_address&quot;</span><span class="p">,</span> <span class="s2">&quot;192.168.001.150&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;wifi_gateway_address&quot;</span><span class="p">,</span> <span class="s2">&quot;192.168.001.002&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;wifi_gateway_address&quot;</span><span class="p">,</span> <span class="s2">&quot;192.168.001.001&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;wifi_subnet_address&quot;</span><span class="p">,</span> <span class="s2">&quot;255.255.255.001&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;wifi_subnet_address&quot;</span><span class="p">,</span> <span class="s2">&quot;255.255.255.000&quot;</span><span class="p">),</span>
+<span class="p">]</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">A list of `Tuple[&lt;parameter_name, value&gt;]` used for a self-test of the instrument.</span>
+<span class="sd">It is intended to check that read/write parameters are set correctly.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, QCoDeS Users.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

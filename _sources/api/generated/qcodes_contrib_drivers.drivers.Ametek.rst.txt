@@ -1,0 +1,21 @@
+qcodes\_contrib\_drivers.drivers.Ametek package
+===============================================
+
+Submodules
+----------
+
+qcodes\_contrib\_drivers.drivers.Ametek.SR\_7270 module
+-------------------------------------------------------
+
+.. automodule:: qcodes_contrib_drivers.drivers.Ametek.SR_7270
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: qcodes_contrib_drivers.drivers.Ametek
+   :members:
+   :undoc-members:
+   :show-inheritance:

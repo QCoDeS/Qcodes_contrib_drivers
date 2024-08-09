@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>qcodes_contrib_drivers.drivers.Siglent.sds &mdash; qcodes_contrib_drivers 0.23.0.dev36+main.g4e2ee8f documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../_static/documentation_options.js?v=fc3c8481"></script>
+        <script src="../../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            qcodes_contrib_drivers
+          </a>
+              <div class="version">
+                0.23.0.dev36+main.g4e2ee8f
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples/index.html">Examples of how to use drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/generated/qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">qcodes_contrib_drivers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">qcodes_contrib_drivers.drivers.Siglent.sds</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for qcodes_contrib_drivers.drivers.Siglent.sds</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">.sdx</span> <span class="kn">import</span> <span class="n">SiglentSDx</span>
+
+<span class="kn">from</span> <span class="nn">enum</span> <span class="kn">import</span> <span class="n">Enum</span>
+<span class="kn">from</span> <span class="nn">attr</span> <span class="kn">import</span> <span class="n">dataclass</span>
+
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">numpy.typing</span> <span class="k">as</span> <span class="nn">npt</span>
+
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Tuple</span>
+
+
+<div class="viewcode-block" id="TriggerMode">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Siglent.html#qcodes_contrib_drivers.drivers.Siglent.sds.TriggerMode">[docs]</a>
+<span class="k">class</span> <span class="nc">TriggerMode</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+    <span class="n">AUTO</span> <span class="o">=</span> <span class="s2">&quot;AUTO&quot;</span>
+    <span class="n">NORMAL</span> <span class="o">=</span> <span class="s2">&quot;NORM&quot;</span>
+    <span class="n">SINGLE</span> <span class="o">=</span> <span class="s2">&quot;SINGLE&quot;</span>
+    <span class="n">STOP</span> <span class="o">=</span> <span class="s2">&quot;STOP&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span></div>
+
+
+
+<div class="viewcode-block" id="WaveformSetup">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Siglent.html#qcodes_contrib_drivers.drivers.Siglent.sds.WaveformSetup">[docs]</a>
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">WaveformSetup</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Waveform download setup</span>
+
+<span class="sd">    spacing</span>
+<span class="sd">        SP: 0 or 1 = every point, n = every n-th</span>
+
+<span class="sd">    num_points:</span>
+<span class="sd">        NP: 0 = default, all</span>
+
+<span class="sd">    start_idx</span>
+<span class="sd">        FP: 0 is default</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">spacing</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">num_points</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">start_idx</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span></div>
+
+
+
+<span class="c1"># Not a proper QCoDeS instrument</span>
+<span class="c1"># TODO: Add channels, add parameters, add parameter axes</span>
+<div class="viewcode-block" id="Siglent_SDS_120NxE">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Siglent.html#qcodes_contrib_drivers.drivers.Siglent.sds.Siglent_SDS_120NxE">[docs]</a>
+<span class="k">class</span> <span class="nc">Siglent_SDS_120NxE</span><span class="p">(</span><span class="n">SiglentSDx</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Siglent SDS 1202/1204xE</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Siglent_SDS_120NxE.get_time_base">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Siglent.html#qcodes_contrib_drivers.drivers.Siglent.sds.Siglent_SDS_120NxE.get_time_base">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_time_base</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">channel</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">_RE</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^TDIV[ ]*([0-9eE+\-.,]+)[ ]*[sS]$&quot;</span><span class="p">),</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s2">&quot;TDIV?&quot;</span><span class="p">)</span>
+        <span class="n">groups</span> <span class="o">=</span> <span class="n">_RE</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">groups</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">groups</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">,</span> <span class="s2">&quot;.&quot;</span><span class="p">))</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Siglent_SDS_120NxE.get_num_samples">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Siglent.html#qcodes_contrib_drivers.drivers.Siglent.sds.Siglent_SDS_120NxE.get_num_samples">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_num_samples</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">channel</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">_RE</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^SANU[ ]*([0-9eE+\-.,]+)[ ]*([kK]?)[ ]*pts$&quot;</span><span class="p">),</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SANU? C</span><span class="si">{</span><span class="n">channel</span><span class="si">:</span><span class="s2">d</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">groups</span> <span class="o">=</span> <span class="n">_RE</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">groups</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">groups</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">,</span> <span class="s2">&quot;.&quot;</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">groups</span><span class="p">[</span><span class="mi">2</span><span class="p">]:</span>
+            <span class="n">value</span> <span class="o">*=</span> <span class="mi">1000</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Siglent_SDS_120NxE.get_sample_rate">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Siglent.html#qcodes_contrib_drivers.drivers.Siglent.sds.Siglent_SDS_120NxE.get_sample_rate">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_sample_rate</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">_RE</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^SARA[ ]*([0-9eE+\-.,]+)[ ]*([kKMG]?)[ ]*[sS]a[ ]*/[ ]*s$&quot;</span><span class="p">),</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s2">&quot;SARA?&quot;</span><span class="p">)</span>
+        <span class="n">groups</span> <span class="o">=</span> <span class="n">_RE</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">groups</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">groups</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">,</span> <span class="s2">&quot;.&quot;</span><span class="p">))</span>
+        <span class="n">multiplier</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;k&quot;</span><span class="p">:</span> <span class="mf">1e3</span><span class="p">,</span>
+            <span class="s2">&quot;K&quot;</span><span class="p">:</span> <span class="mf">1e3</span><span class="p">,</span>
+            <span class="s2">&quot;M&quot;</span><span class="p">:</span> <span class="mf">1e6</span><span class="p">,</span>
+            <span class="s2">&quot;G&quot;</span><span class="p">:</span> <span class="mf">1e9</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="n">value</span> <span class="o">*=</span> <span class="n">multiplier</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">groups</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="mf">1.0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Siglent_SDS_120NxE.get_vdiv">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Siglent.html#qcodes_contrib_drivers.drivers.Siglent.sds.Siglent_SDS_120NxE.get_vdiv">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_vdiv</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">channel</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">_RE</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^C[0-9]+:VDIV[ ]*([0-9eE+\-.,]+)[ ]*V$&quot;</span><span class="p">),</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;C</span><span class="si">{</span><span class="n">channel</span><span class="si">:</span><span class="s2">d</span><span class="si">}</span><span class="s2">:VDIV?&quot;</span><span class="p">)</span>
+        <span class="n">groups</span> <span class="o">=</span> <span class="n">_RE</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">groups</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">groups</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">,</span> <span class="s2">&quot;.&quot;</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">value</span></div>
+
+
+<div class="viewcode-block" id="Siglent_SDS_120NxE.get_ofst">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Siglent.html#qcodes_contrib_drivers.drivers.Siglent.sds.Siglent_SDS_120NxE.get_ofst">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_ofst</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">channel</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">_RE</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^C[0-9]+:OFST[ ]*([0-9eE+\-.,]+)[ ]*V$&quot;</span><span class="p">),</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;C</span><span class="si">{</span><span class="n">channel</span><span class="si">:</span><span class="s2">d</span><span class="si">}</span><span class="s2">:OFST?&quot;</span><span class="p">)</span>
+        <span class="n">groups</span> <span class="o">=</span> <span class="n">_RE</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">groups</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">groups</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">,</span> <span class="s2">&quot;.&quot;</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">value</span></div>
+
+
+<div class="viewcode-block" id="Siglent_SDS_120NxE.get_raw_analog_waveform_data">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Siglent.html#qcodes_contrib_drivers.drivers.Siglent.sds.Siglent_SDS_120NxE.get_raw_analog_waveform_data">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_raw_analog_waveform_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">visa_handle</span><span class="o">.</span><span class="n">query_binary_values</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;C</span><span class="si">{</span><span class="n">channel</span><span class="si">:</span><span class="s2">d</span><span class="si">}</span><span class="s2">:WF? DAT2&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;b&quot;</span><span class="p">,</span>
+            <span class="n">header_fmt</span><span class="o">=</span><span class="s2">&quot;ieee&quot;</span><span class="p">,</span>
+            <span class="n">container</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span>  <span class="c1"># type: ignore</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Siglent_SDS_120NxE.get_math_vdiv">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Siglent.html#qcodes_contrib_drivers.drivers.Siglent.sds.Siglent_SDS_120NxE.get_math_vdiv">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_math_vdiv</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">_RE</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^MTVD[ ]*([0-9eE+\-.,]+)[ ]*V$&quot;</span><span class="p">),</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s2">&quot;MTVD?&quot;</span><span class="p">)</span>
+        <span class="n">groups</span> <span class="o">=</span> <span class="n">_RE</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">groups</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">groups</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">,</span> <span class="s2">&quot;.&quot;</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">value</span></div>
+
+
+<div class="viewcode-block" id="Siglent_SDS_120NxE.get_raw_math_waveform_data">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Siglent.html#qcodes_contrib_drivers.drivers.Siglent.sds.Siglent_SDS_120NxE.get_raw_math_waveform_data">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_raw_math_waveform_data</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;MATH:WF? DAT2&quot;</span><span class="p">)</span>
+        <span class="n">len_prefix</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="s2">&quot;MATH:WF ALL,&quot;</span><span class="p">)</span>
+        <span class="n">response_header</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">visa_handle</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">(</span><span class="n">count</span><span class="o">=</span><span class="n">len_prefix</span><span class="p">)</span>  <span class="c1"># noqa: F841</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">visa_handle</span><span class="o">.</span><span class="n">read_binary_values</span><span class="p">(</span>
+            <span class="s2">&quot;b&quot;</span><span class="p">,</span>
+            <span class="n">header_fmt</span><span class="o">=</span><span class="s2">&quot;ieee&quot;</span><span class="p">,</span>
+            <span class="n">container</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span>  <span class="c1"># type: ignore</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Siglent_SDS_120NxE.get_raw_digital_waveform_data">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Siglent.html#qcodes_contrib_drivers.drivers.Siglent.sds.Siglent_SDS_120NxE.get_raw_digital_waveform_data">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_raw_digital_waveform_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">:</span>
+        <span class="s2">&quot;Returns digital data. Each bit will be&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;D</span><span class="si">{</span><span class="n">channel</span><span class="si">:</span><span class="s2">d</span><span class="si">}</span><span class="s2">:WF? DAT2&quot;</span><span class="p">)</span>
+        <span class="n">len_prefix</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;D</span><span class="si">{</span><span class="n">channel</span><span class="si">:</span><span class="s2">d</span><span class="si">}</span><span class="s2">:WF ALL,&quot;</span><span class="p">)</span>
+        <span class="n">response_part1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">visa_handle</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">(</span><span class="n">count</span><span class="o">=</span><span class="n">len_prefix</span><span class="p">)</span>  <span class="c1"># noqa: F841</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">visa_handle</span><span class="o">.</span><span class="n">read_binary_values</span><span class="p">(</span>
+            <span class="s2">&quot;B&quot;</span><span class="p">,</span>
+            <span class="n">header_fmt</span><span class="o">=</span><span class="s2">&quot;ieee&quot;</span><span class="p">,</span>
+            <span class="n">container</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span>  <span class="c1"># type: ignore</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Siglent_SDS_120NxE.get_channel_waveform_data">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Siglent.html#qcodes_contrib_drivers.drivers.Siglent.sds.Siglent_SDS_120NxE.get_channel_waveform_data">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_channel_waveform_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">:</span>
+        <span class="n">Vdiv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_vdiv</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
+        <span class="n">Vofs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_ofst</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Vdiv</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_raw_analog_waveform_data</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span> <span class="o">/</span> <span class="mi">25</span> <span class="o">+</span> <span class="n">Vofs</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_get_waveform_axis</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">sample_rate</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">wfsu</span><span class="p">:</span> <span class="n">WaveformSetup</span><span class="p">,</span>
+        <span class="n">get_num_samples</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[],</span> <span class="nb">int</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">:</span>
+        <span class="n">num_points</span> <span class="o">=</span> <span class="n">wfsu</span><span class="o">.</span><span class="n">num_points</span> <span class="k">if</span> <span class="n">wfsu</span><span class="o">.</span><span class="n">num_points</span> <span class="o">!=</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">get_num_samples</span><span class="p">()</span>
+        <span class="n">spacing</span> <span class="o">=</span> <span class="n">wfsu</span><span class="o">.</span><span class="n">spacing</span> <span class="k">if</span> <span class="n">wfsu</span><span class="o">.</span><span class="n">spacing</span> <span class="o">!=</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">1</span>
+        <span class="n">start_idx</span> <span class="o">=</span> <span class="n">wfsu</span><span class="o">.</span><span class="n">start_idx</span>
+
+        <span class="k">return</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">num_points</span><span class="p">)</span> <span class="o">*</span> <span class="n">spacing</span> <span class="o">+</span> <span class="n">start_idx</span><span class="p">)</span> <span class="o">/</span> <span class="n">sample_rate</span>
+
+<div class="viewcode-block" id="Siglent_SDS_120NxE.get_channel_waveform">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Siglent.html#qcodes_contrib_drivers.drivers.Siglent.sds.Siglent_SDS_120NxE.get_channel_waveform">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_channel_waveform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">]:</span>
+        <span class="n">sample_rate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_sample_rate</span><span class="p">()</span>
+        <span class="n">wfsu</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_waveform_setup</span><span class="p">()</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_channel_waveform_data</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
+        <span class="n">axis</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_waveform_axis</span><span class="p">(</span>
+            <span class="n">sample_rate</span><span class="p">,</span> <span class="n">wfsu</span><span class="p">,</span> <span class="n">get_num_samples</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">axis</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Siglent_SDS_120NxE.get_math_waveform">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Siglent.html#qcodes_contrib_drivers.drivers.Siglent.sds.Siglent_SDS_120NxE.get_math_waveform">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_math_waveform</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">:</span>
+        <span class="n">MtDiv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_math_vdiv</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">MtDiv</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_raw_math_waveform_data</span><span class="p">()</span> <span class="o">/</span> <span class="mi">25</span></div>
+
+
+    <span class="c1"># don&#39;t use this. fft data can&#39;t be downloaded</span>
+<div class="viewcode-block" id="Siglent_SDS_120NxE.set_to_fft">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Siglent.html#qcodes_contrib_drivers.drivers.Siglent.sds.Siglent_SDS_120NxE.set_to_fft">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_to_fft</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;DEFINE EQN,&#39;FFTC</span><span class="si">{</span><span class="n">channel</span><span class="si">:</span><span class="s2">d</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Siglent_SDS_120NxE.get_trig_mode">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Siglent.html#qcodes_contrib_drivers.drivers.Siglent.sds.Siglent_SDS_120NxE.get_trig_mode">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_trig_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TriggerMode</span><span class="p">:</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s2">&quot;TRIG_MODE?&quot;</span><span class="p">)</span>
+        <span class="n">tail</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="s2">&quot;TRMD &quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">TriggerMode</span><span class="p">(</span><span class="n">response</span><span class="p">[</span><span class="n">tail</span><span class="p">:])</span></div>
+
+
+<div class="viewcode-block" id="Siglent_SDS_120NxE.set_trig_mode">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Siglent.html#qcodes_contrib_drivers.drivers.Siglent.sds.Siglent_SDS_120NxE.set_trig_mode">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_trig_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="n">TriggerMode</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;TRIG_MODE </span><span class="si">{</span><span class="n">mode</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Siglent_SDS_120NxE.get_waveform_setup">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Siglent.html#qcodes_contrib_drivers.drivers.Siglent.sds.Siglent_SDS_120NxE.get_waveform_setup">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_waveform_setup</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">_RE</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
+            <span class="s2">&quot;WFSU [ ]*SP[ ]*,[ ]*([0-9]+),[ ]*NP[ ]*,[ ]*([0-9]+),[ ]*FP[ ]*,[ ]*([0-9]+)&quot;</span><span class="p">,</span>  <span class="c1"># noqa: E501</span>
+            <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">,</span>
+        <span class="p">),</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">WaveformSetup</span><span class="p">:</span>  <span class="c1"># (SP, NP, FP)</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s2">&quot;WFSU?&quot;</span><span class="p">)</span>
+        <span class="n">groups</span> <span class="o">=</span> <span class="n">_RE</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">groups</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="n">WaveformSetup</span><span class="p">(</span>
+            <span class="n">spacing</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">groups</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">num_points</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">groups</span><span class="p">[</span><span class="mi">2</span><span class="p">]),</span> <span class="n">start_idx</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">groups</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Siglent_SDS_120NxE.set_waveform_setup">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Siglent.html#qcodes_contrib_drivers.drivers.Siglent.sds.Siglent_SDS_120NxE.set_waveform_setup">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_waveform_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wfsu</span><span class="p">:</span> <span class="n">WaveformSetup</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;WFSU SP,</span><span class="si">{</span><span class="n">wfsu</span><span class="o">.</span><span class="n">spacing</span><span class="si">}</span><span class="s2">,NP,</span><span class="si">{</span><span class="n">wfsu</span><span class="o">.</span><span class="n">num_points</span><span class="si">}</span><span class="s2">,FP,</span><span class="si">{</span><span class="n">wfsu</span><span class="o">.</span><span class="n">start_idx</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, QCoDeS Users.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

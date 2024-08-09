@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844 &mdash; qcodes_contrib_drivers 0.23.0.dev36+main.g4e2ee8f documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../_static/documentation_options.js?v=fc3c8481"></script>
+        <script src="../../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            qcodes_contrib_drivers
+          </a>
+              <div class="version">
+                0.23.0.dev36+main.g4e2ee8f
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples/index.html">Examples of how to use drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/generated/qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">qcodes_contrib_drivers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span> <span class="nn">numpy.typing</span> <span class="kn">import</span> <span class="n">NDArray</span>
+<span class="kn">from</span> <span class="nn">qcodes</span> <span class="kn">import</span> <span class="n">VisaInstrument</span>
+<span class="kn">from</span> <span class="nn">qcodes.instrument.parameter</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">Parameter</span><span class="p">,</span>
+    <span class="n">ParamRawDataType</span><span class="p">,</span>
+    <span class="n">ParameterWithSetpoints</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">qcodes.utils.validators</span> <span class="kn">import</span> <span class="n">Numbers</span><span class="p">,</span> <span class="n">Enum</span><span class="p">,</span> <span class="n">Strings</span><span class="p">,</span> <span class="n">Arrays</span><span class="p">,</span> <span class="n">ComplexNumbers</span>
+
+
+<div class="viewcode-block" id="SR844">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.StanfordResearchSystems.html#qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844.SR844">[docs]</a>
+<span class="k">class</span> <span class="nc">SR844</span><span class="p">(</span><span class="n">VisaInstrument</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This is the qcodes driver for the Stanford Research Systems SR844</span>
+<span class="sd">    Lock-in Amplifier</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">sensitivity_value_map</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="mf">100e-9</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="mf">300e-9</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="mf">1e-6</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="mf">3e-6</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="mf">10e-6</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+        <span class="mf">30e-6</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
+        <span class="mf">100e-6</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span>
+        <span class="mf">300e-6</span><span class="p">:</span> <span class="mi">7</span><span class="p">,</span>
+        <span class="mf">1e-3</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
+        <span class="mf">3e-3</span><span class="p">:</span> <span class="mi">9</span><span class="p">,</span>
+        <span class="mf">10e-3</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+        <span class="mf">30e-3</span><span class="p">:</span> <span class="mi">11</span><span class="p">,</span>
+        <span class="mf">100e-3</span><span class="p">:</span> <span class="mi">12</span><span class="p">,</span>
+        <span class="mf">300e-3</span><span class="p">:</span> <span class="mi">13</span><span class="p">,</span>
+        <span class="mi">1</span><span class="p">:</span> <span class="mi">14</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">value_sensitivity_map</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="p">:</span> <span class="n">k</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">sensitivity_value_map</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">address</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">address</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="s2">&quot;phase_offset&quot;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Phase&quot;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="s2">&quot;PHAS?&quot;</span><span class="p">,</span>
+            <span class="n">get_parser</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s2">&quot;PHAS </span><span class="si">{:.2f}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;deg&quot;</span><span class="p">,</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">Numbers</span><span class="p">(</span><span class="n">min_value</span><span class="o">=-</span><span class="mi">360</span><span class="p">,</span> <span class="n">max_value</span><span class="o">=</span><span class="mi">360</span><span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="s2">&quot;reference_source&quot;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Reference source&quot;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="s2">&quot;FMOD?&quot;</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s2">&quot;FMOD </span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">val_mapping</span><span class="o">=</span><span class="p">{</span>
+                <span class="s2">&quot;external&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="s2">&quot;internal&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">Enum</span><span class="p">(</span><span class="s2">&quot;external&quot;</span><span class="p">,</span> <span class="s2">&quot;internal&quot;</span><span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="s2">&quot;frequency&quot;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Frequency&quot;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="s2">&quot;FREQ?&quot;</span><span class="p">,</span>
+            <span class="n">get_parser</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_freq</span><span class="p">,</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;Hz&quot;</span><span class="p">,</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">Numbers</span><span class="p">(</span><span class="n">min_value</span><span class="o">=</span><span class="mf">2.5e4</span><span class="p">,</span> <span class="n">max_value</span><span class="o">=</span><span class="mf">2e8</span><span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="s2">&quot;harmonic&quot;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Harmonic&quot;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="s2">&quot;HARM?&quot;</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_harmonic</span><span class="p">,</span>
+            <span class="n">val_mapping</span><span class="o">=</span><span class="p">{</span>
+                <span class="s2">&quot;f&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="s2">&quot;2f&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="s2">&quot;input_impedance&quot;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Input impedance&quot;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="s2">&quot;REFZ?&quot;</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s2">&quot;REFZ </span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">val_mapping</span><span class="o">=</span><span class="p">{</span>
+                <span class="s2">&quot;I 50&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="s2">&quot;I 10k&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;sensitivity&quot;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Sensitivity&quot;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="s2">&quot;SENS?&quot;</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s2">&quot;SENS </span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">val_mapping</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sensitivity_value_map</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="s2">&quot;reserve&quot;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Reserve&quot;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="s2">&quot;WRSV?&quot;</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s2">&quot;WRSV </span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">val_mapping</span><span class="o">=</span><span class="p">{</span>
+                <span class="s2">&quot;high reserve&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="s2">&quot;normal&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                <span class="s2">&quot;low noise&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="s2">&quot;time_constant&quot;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Time constant&quot;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="s2">&quot;OFLT?&quot;</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s2">&quot;OFLT </span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;s&quot;</span><span class="p">,</span>
+            <span class="n">val_mapping</span><span class="o">=</span><span class="p">{</span>
+                <span class="mf">100e-6</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="mf">300e-6</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                <span class="mf">1e-3</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+                <span class="mf">3e-3</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+                <span class="mf">10e-3</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+                <span class="mf">30e-3</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
+                <span class="mf">100e-3</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span>
+                <span class="mf">300e-3</span><span class="p">:</span> <span class="mi">7</span><span class="p">,</span>
+                <span class="mi">1</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
+                <span class="mi">3</span><span class="p">:</span> <span class="mi">9</span><span class="p">,</span>
+                <span class="mi">10</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+                <span class="mi">30</span><span class="p">:</span> <span class="mi">11</span><span class="p">,</span>
+                <span class="mi">100</span><span class="p">:</span> <span class="mi">12</span><span class="p">,</span>
+                <span class="mi">300</span><span class="p">:</span> <span class="mi">13</span><span class="p">,</span>
+                <span class="mf">1e3</span><span class="p">:</span> <span class="mi">14</span><span class="p">,</span>
+                <span class="mf">3e3</span><span class="p">:</span> <span class="mi">15</span><span class="p">,</span>
+                <span class="mf">10e3</span><span class="p">:</span> <span class="mi">16</span><span class="p">,</span>
+                <span class="mf">30e3</span><span class="p">:</span> <span class="mi">17</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="s2">&quot;filter_slope&quot;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Filter slope&quot;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="s2">&quot;OFSL?&quot;</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s2">&quot;OFSL </span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;dB/oct&quot;</span><span class="p">,</span>
+            <span class="n">val_mapping</span><span class="o">=</span><span class="p">{</span>
+                <span class="mi">0</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="mi">6</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                <span class="mi">12</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+                <span class="mi">18</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+                <span class="mi">24</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="s2">&quot;X_offset&quot;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="s2">&quot;DOFF? 1, 0&quot;</span><span class="p">,</span>
+            <span class="n">get_parser</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s2">&quot;DOFF 1, 0, </span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">% o</span><span class="s2">f full scale&quot;</span><span class="p">,</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">Numbers</span><span class="p">(</span><span class="n">min_value</span><span class="o">=-</span><span class="mi">110</span><span class="p">,</span> <span class="n">max_value</span><span class="o">=</span><span class="mi">110</span><span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="s2">&quot;R_V_offset&quot;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="s2">&quot;DOFF? 1, 1&quot;</span><span class="p">,</span>
+            <span class="n">get_parser</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s2">&quot;DOFF 1, 1, </span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">% o</span><span class="s2">f full scale&quot;</span><span class="p">,</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">Numbers</span><span class="p">(</span><span class="n">min_value</span><span class="o">=-</span><span class="mi">110</span><span class="p">,</span> <span class="n">max_value</span><span class="o">=</span><span class="mi">110</span><span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="s2">&quot;R_dBm_offset&quot;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="s2">&quot;DOFF? 1, 2&quot;</span><span class="p">,</span>
+            <span class="n">get_parser</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s2">&quot;DOFF 1, 2, </span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">% o</span><span class="s2">f 200 dBm scale&quot;</span><span class="p">,</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">Numbers</span><span class="p">(</span><span class="n">min_value</span><span class="o">=-</span><span class="mi">110</span><span class="p">,</span> <span class="n">max_value</span><span class="o">=</span><span class="mi">110</span><span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="s2">&quot;Y_offset&quot;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="s2">&quot;DOFF? 2, 0&quot;</span><span class="p">,</span>
+            <span class="n">get_parser</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s2">&quot;DOFF 2, 0, </span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">% o</span><span class="s2">f full scale&quot;</span><span class="p">,</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">Numbers</span><span class="p">(</span><span class="n">min_value</span><span class="o">=-</span><span class="mi">110</span><span class="p">,</span> <span class="n">max_value</span><span class="o">=</span><span class="mi">110</span><span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="s2">&quot;complex_voltage&quot;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Voltage&quot;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_complex_voltage</span><span class="p">,</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;V&quot;</span><span class="p">,</span>
+            <span class="n">docstring</span><span class="o">=</span><span class="s2">&quot;Complex voltage parameter &quot;</span>
+            <span class="s2">&quot;calculated from X, Y phase using &quot;</span>
+            <span class="s2">&quot;Z = X +j*Y&quot;</span><span class="p">,</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">ComplexNumbers</span><span class="p">(),</span>
+        <span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;aux_in</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Aux input </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="n">get_cmd</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;AUXI? </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="n">get_parser</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+                <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;V&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;aux_out</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Aux output </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="n">get_cmd</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;AUXO? </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="n">get_parser</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+                <span class="n">set_cmd</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;AUXO </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">, </span><span class="se">{{}}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;V&quot;</span><span class="p">,</span>
+                <span class="n">vals</span><span class="o">=</span><span class="n">Numbers</span><span class="p">(</span><span class="n">min_value</span><span class="o">=-</span><span class="mf">10.5</span><span class="p">,</span> <span class="n">max_value</span><span class="o">=</span><span class="mf">10.5</span><span class="p">),</span>
+            <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="s2">&quot;output_interface&quot;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Output interface&quot;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="s2">&quot;OUTX?&quot;</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s2">&quot;OUTX </span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">val_mapping</span><span class="o">=</span><span class="p">{</span>
+                <span class="s2">&quot;RS232&quot;</span><span class="p">:</span> <span class="s2">&quot;0</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;GPIB&quot;</span><span class="p">:</span> <span class="s2">&quot;1</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="s2">&quot;ratio_mode&quot;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Ratio mode&quot;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="s2">&quot;DRAT?&quot;</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_ratio</span><span class="p">,</span>
+            <span class="n">val_mapping</span><span class="o">=</span><span class="p">{</span>
+                <span class="s2">&quot;none&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="s2">&quot;AuxIn1&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                <span class="s2">&quot;AuxIn2&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="s2">&quot;buffer_SR&quot;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Buffer sample rate&quot;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="s2">&quot;SRAT?&quot;</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_buffer_SR</span><span class="p">,</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;Hz&quot;</span><span class="p">,</span>
+            <span class="n">val_mapping</span><span class="o">=</span><span class="p">{</span>
+                <span class="mf">62.5e-3</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="mf">0.125</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                <span class="mf">0.250</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+                <span class="mf">0.5</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+                <span class="mi">1</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+                <span class="mi">2</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
+                <span class="mi">4</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span>
+                <span class="mi">8</span><span class="p">:</span> <span class="mi">7</span><span class="p">,</span>
+                <span class="mi">16</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
+                <span class="mi">32</span><span class="p">:</span> <span class="mi">9</span><span class="p">,</span>
+                <span class="mi">64</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+                <span class="mi">128</span><span class="p">:</span> <span class="mi">11</span><span class="p">,</span>
+                <span class="mi">256</span><span class="p">:</span> <span class="mi">12</span><span class="p">,</span>
+                <span class="mi">512</span><span class="p">:</span> <span class="mi">13</span><span class="p">,</span>
+                <span class="s2">&quot;Trigger&quot;</span><span class="p">:</span> <span class="mi">14</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="n">get_parser</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="s2">&quot;buffer_acq_mode&quot;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Buffer acquistion mode&quot;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="s2">&quot;SEND ?&quot;</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s2">&quot;SEND </span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">val_mapping</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;single shot&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;loop&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
+            <span class="n">get_parser</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="s2">&quot;buffer_trig_mode&quot;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Buffer trigger start mode&quot;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="s2">&quot;TSTR ?&quot;</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s2">&quot;TSTR </span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">val_mapping</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;ON&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;OFF&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">},</span>
+            <span class="n">get_parser</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="s2">&quot;buffer_npts&quot;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Buffer number of stored points&quot;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="s2">&quot;SPTS ?&quot;</span><span class="p">,</span>
+            <span class="n">get_parser</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="s2">&quot;sweep_setpoints&quot;</span><span class="p">,</span>
+            <span class="n">parameter_class</span><span class="o">=</span><span class="n">GeneratedSetPoints</span><span class="p">,</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">Arrays</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">buffer_npts</span><span class="o">.</span><span class="n">get</span><span class="p">,)),</span>
+        <span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]:</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;ch</span><span class="si">{</span><span class="n">ch</span><span class="si">}</span><span class="s2">_display&quot;</span><span class="p">,</span>
+                <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Channel </span><span class="si">{</span><span class="n">ch</span><span class="si">}</span><span class="s2"> display&quot;</span><span class="p">,</span>
+                <span class="n">get_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_ch_display</span><span class="p">,</span> <span class="n">ch</span><span class="p">),</span>
+                <span class="n">set_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_ch_display</span><span class="p">,</span> <span class="n">ch</span><span class="p">),</span>
+                <span class="n">vals</span><span class="o">=</span><span class="n">Strings</span><span class="p">(),</span>
+            <span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;ch</span><span class="si">{</span><span class="n">ch</span><span class="si">}</span><span class="s2">_datatrace&quot;</span><span class="p">,</span>
+                <span class="n">channel</span><span class="o">=</span><span class="n">ch</span><span class="p">,</span>
+                <span class="n">vals</span><span class="o">=</span><span class="n">Arrays</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">buffer_npts</span><span class="o">.</span><span class="n">get</span><span class="p">,)),</span>
+                <span class="n">setpoints</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sweep_setpoints</span><span class="p">,),</span>
+                <span class="n">parameter_class</span><span class="o">=</span><span class="n">ChannelTrace</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="s2">&quot;X&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;X&quot;</span><span class="p">,</span> <span class="n">get_cmd</span><span class="o">=</span><span class="s2">&quot;OUTP? 1&quot;</span><span class="p">,</span> <span class="n">get_parser</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;V&quot;</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="s2">&quot;Y&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Y&quot;</span><span class="p">,</span> <span class="n">get_cmd</span><span class="o">=</span><span class="s2">&quot;OUTP? 2&quot;</span><span class="p">,</span> <span class="n">get_parser</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;V&quot;</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="s2">&quot;R_V&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;R_V&quot;</span><span class="p">,</span> <span class="n">get_cmd</span><span class="o">=</span><span class="s2">&quot;OUTP? 3&quot;</span><span class="p">,</span> <span class="n">get_parser</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;V&quot;</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="s2">&quot;R_dBm&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;R_dBm&quot;</span><span class="p">,</span> <span class="n">get_cmd</span><span class="o">=</span><span class="s2">&quot;OUTP? 4&quot;</span><span class="p">,</span> <span class="n">get_parser</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;dBm&quot;</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="s2">&quot;phase&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;phase&quot;</span><span class="p">,</span> <span class="n">get_cmd</span><span class="o">=</span><span class="s2">&quot;OUTP? 5&quot;</span><span class="p">,</span> <span class="n">get_parser</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;deg&quot;</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="s2">&quot;ch1&quot;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s2">&quot;display channel 1&quot;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="s2">&quot;OUTR? 1&quot;</span><span class="p">,</span>
+            <span class="n">get_parser</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;V&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="s2">&quot;ch2&quot;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s2">&quot;display channel 2&quot;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="s2">&quot;OUTR? 2&quot;</span><span class="p">,</span>
+            <span class="n">get_parser</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;V&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_function</span><span class="p">(</span><span class="s2">&quot;auto_gain&quot;</span><span class="p">,</span> <span class="n">call_cmd</span><span class="o">=</span><span class="s2">&quot;AGAN&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_function</span><span class="p">(</span><span class="s2">&quot;auto_wideband_reserve&quot;</span><span class="p">,</span> <span class="n">call_cmd</span><span class="o">=</span><span class="s2">&quot;AWRS&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_function</span><span class="p">(</span><span class="s2">&quot;auto_close_in_reserve&quot;</span><span class="p">,</span> <span class="n">call_cmd</span><span class="o">=</span><span class="s2">&quot;ACRS&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_function</span><span class="p">(</span><span class="s2">&quot;auto_phase&quot;</span><span class="p">,</span> <span class="n">call_cmd</span><span class="o">=</span><span class="s2">&quot;APHS&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_function</span><span class="p">(</span>
+            <span class="s2">&quot;auto_offset_ch1&quot;</span><span class="p">,</span> <span class="n">call_cmd</span><span class="o">=</span><span class="s2">&quot;AOFF 1, </span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="n">Enum</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)]</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_function</span><span class="p">(</span><span class="s2">&quot;auto_offset_ch2&quot;</span><span class="p">,</span> <span class="n">call_cmd</span><span class="o">=</span><span class="s2">&quot;AOFF 2, </span><span class="si">{0}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="n">Enum</span><span class="p">(</span><span class="mi">0</span><span class="p">)])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_function</span><span class="p">(</span><span class="s2">&quot;reset&quot;</span><span class="p">,</span> <span class="n">call_cmd</span><span class="o">=</span><span class="s2">&quot;*RST&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_function</span><span class="p">(</span><span class="s2">&quot;disable_front_panel&quot;</span><span class="p">,</span> <span class="n">call_cmd</span><span class="o">=</span><span class="s2">&quot;OVRM 0&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_function</span><span class="p">(</span><span class="s2">&quot;enable_front_panel&quot;</span><span class="p">,</span> <span class="n">call_cmd</span><span class="o">=</span><span class="s2">&quot;OVRM 1&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_function</span><span class="p">(</span>
+            <span class="s2">&quot;send_trigger&quot;</span><span class="p">,</span>
+            <span class="n">call_cmd</span><span class="o">=</span><span class="s2">&quot;TRIG&quot;</span><span class="p">,</span>
+            <span class="n">docstring</span><span class="o">=</span><span class="p">(</span>
+                <span class="s2">&quot;Send a software trigger. &quot;</span>
+                <span class="s2">&quot;This command has the same effect as a &quot;</span>
+                <span class="s2">&quot;trigger at the rear panel trigger&quot;</span>
+                <span class="s2">&quot; input.&quot;</span>
+            <span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_function</span><span class="p">(</span>
+            <span class="s2">&quot;buffer_start&quot;</span><span class="p">,</span>
+            <span class="n">call_cmd</span><span class="o">=</span><span class="s2">&quot;STRT&quot;</span><span class="p">,</span>
+            <span class="n">docstring</span><span class="o">=</span><span class="p">(</span>
+                <span class="s2">&quot;The buffer_start command starts or &quot;</span>
+                <span class="s2">&quot;resumes data storage. buffer_start&quot;</span>
+                <span class="s2">&quot; is ignored if storage is already in&quot;</span>
+                <span class="s2">&quot; progress.&quot;</span>
+            <span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_function</span><span class="p">(</span>
+            <span class="s2">&quot;buffer_pause&quot;</span><span class="p">,</span>
+            <span class="n">call_cmd</span><span class="o">=</span><span class="s2">&quot;PAUS&quot;</span><span class="p">,</span>
+            <span class="n">docstring</span><span class="o">=</span><span class="p">(</span>
+                <span class="s2">&quot;The buffer_pause command pauses data &quot;</span>
+                <span class="s2">&quot;storage. If storage is already paused &quot;</span>
+                <span class="s2">&quot;or reset then this command is ignored.&quot;</span>
+            <span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_function</span><span class="p">(</span>
+            <span class="s2">&quot;buffer_reset&quot;</span><span class="p">,</span>
+            <span class="n">call_cmd</span><span class="o">=</span><span class="s2">&quot;REST&quot;</span><span class="p">,</span>
+            <span class="n">docstring</span><span class="o">=</span><span class="p">(</span>
+                <span class="s2">&quot;The buffer_reset command resets the data&quot;</span>
+                <span class="s2">&quot; buffers. The buffer_reset command can &quot;</span>
+                <span class="s2">&quot;be sent at any time - any storage in &quot;</span>
+                <span class="s2">&quot;progress, paused or not, will be reset.&quot;</span>
+                <span class="s2">&quot; This command will erase the data &quot;</span>
+                <span class="s2">&quot;buffer.&quot;</span>
+            <span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect_message</span><span class="p">()</span>
+
+    <span class="n">SNAP_PARAMETERS</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="s2">&quot;2&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;r_v&quot;</span><span class="p">:</span> <span class="s2">&quot;3&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;r_dbm&quot;</span><span class="p">:</span> <span class="s2">&quot;4&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;p&quot;</span><span class="p">:</span> <span class="s2">&quot;5&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;phase&quot;</span><span class="p">:</span> <span class="s2">&quot;5&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;θ&quot;</span><span class="p">:</span> <span class="s2">&quot;5&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;aux1&quot;</span><span class="p">:</span> <span class="s2">&quot;6&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;aux2&quot;</span><span class="p">:</span> <span class="s2">&quot;7&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;freq&quot;</span><span class="p">:</span> <span class="s2">&quot;8&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;ch1&quot;</span><span class="p">:</span> <span class="s2">&quot;9&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;ch2&quot;</span><span class="p">:</span> <span class="s2">&quot;10&quot;</span><span class="p">,</span>
+    <span class="p">}</span>
+
+<div class="viewcode-block" id="SR844.snap">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.StanfordResearchSystems.html#qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844.SR844.snap">[docs]</a>
+    <span class="k">def</span> <span class="nf">snap</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">parameters</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get between 2 and 6 parameters at a single instant. This provides a</span>
+<span class="sd">        coherent snapshot of measured signals. Pick up to 6 from: X, Y, R, θ,</span>
+<span class="sd">        the aux inputs 1-2, frequency, or what is currently displayed on</span>
+<span class="sd">        channels 1 and 2.</span>
+
+<span class="sd">        Reading X and Y (or R and θ) gives a coherent snapshot of the signal.</span>
+<span class="sd">        Snap is important when the time constant is very short, a time constant</span>
+<span class="sd">        less than 100 ms.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            *parameters: From 2 to 6 strings of names of parameters for which</span>
+<span class="sd">                the values are requested. including: &#39;x&#39;, &#39;y&#39;, &#39;r&#39;, &#39;p&#39;,</span>
+<span class="sd">                &#39;phase&#39; or &#39;θ&#39;, &#39;aux1&#39;, &#39;aux2&#39;, &#39;freq&#39;,</span>
+<span class="sd">                &#39;ch1&#39;, and &#39;ch2&#39;.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A tuple of floating point values in the same order as requested.</span>
+
+<span class="sd">        Examples:</span>
+<span class="sd">            &gt;&gt;&gt; lockin.snap(&#39;x&#39;,&#39;y&#39;) -&gt; tuple(x,y)</span>
+
+<span class="sd">            &gt;&gt;&gt; lockin.snap(&#39;aux1&#39;,&#39;aux2&#39;,&#39;freq&#39;,&#39;phase&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; -&gt; tuple(aux1,aux2,freq,phase)</span>
+
+<span class="sd">        Note:</span>
+<span class="sd">            Volts for x, y, r, and aux 1-4</span>
+<span class="sd">            Degrees for θ</span>
+<span class="sd">            Hertz for freq</span>
+<span class="sd">            Unknown for ch1 and ch2. It will depend on what was set.</span>
+
+<span class="sd">             - If X,Y,R and θ are all read, then the values of X,Y are recorded</span>
+<span class="sd">               approximately 10 µs apart from R,θ. Thus, the values of X and Y</span>
+<span class="sd">               may not yield the exact values of R and θ from a single snap.</span>
+<span class="sd">             - The values of the Aux Inputs may have an uncertainty of</span>
+<span class="sd">               up to 32 µs.</span>
+<span class="sd">             - The frequency is computed only every other period or 40 ms,</span>
+<span class="sd">               whichever is longer.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="mi">2</span> <span class="o">&lt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">parameters</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">6</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span>
+                <span class="s2">&quot;It is only possible to request values of 2 to 6 parameters&quot;</span>
+                <span class="s2">&quot; at a time.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">parameters</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">SNAP_PARAMETERS</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> is an unknown parameter. Refer&quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot; to `SNAP_PARAMETERS` for a list of valid&quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot; parameter names&quot;</span>
+                <span class="p">)</span>
+
+        <span class="n">p_ids</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">SNAP_PARAMETERS</span><span class="p">[</span><span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">()]</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">parameters</span><span class="p">]</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;SNAP? </span><span class="si">{</span><span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">p_ids</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">output</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="SR844.increment_sensitivity">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.StanfordResearchSystems.html#qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844.SR844.increment_sensitivity">[docs]</a>
+    <span class="k">def</span> <span class="nf">increment_sensitivity</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Increment the sensitivity setting of the lock-in. This is equivalent</span>
+<span class="sd">        to pushing the sensitivity up button on the front panel. This has no</span>
+<span class="sd">        effect if the sensitivity is already at the maximum.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Whether or not the sensitivity was actually changed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_change_sensitivity</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SR844.decrement_sensitivity">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.StanfordResearchSystems.html#qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844.SR844.decrement_sensitivity">[docs]</a>
+    <span class="k">def</span> <span class="nf">decrement_sensitivity</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Decrement the sensitivity setting of the lock-in. This is equivalent</span>
+<span class="sd">        to pushing the sensitivity down button on the front panel. This has no</span>
+<span class="sd">        effect if the sensitivity is already at the minimum.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Whether or not the sensitivity was actually changed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_change_sensitivity</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_set_harmonic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">harm</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">harm</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;HARM 0&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">freq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;frequency&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">freq</span> <span class="o">&lt;</span> <span class="mi">50000</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;Frequency must be 50kHz or greater to enable second harmonics&quot;</span>
+                <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;HARM 1&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_set_freq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">freq</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span>
+        <span class="k">if</span> <span class="n">params</span><span class="p">[</span><span class="s2">&quot;reference_source&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">!=</span> <span class="s2">&quot;internal&quot;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Cannot set frequency, since the frequency reference_source is not internal&quot;</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">freq</span> <span class="o">&lt;</span> <span class="mi">50000</span><span class="p">:</span>
+            <span class="n">harm</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s2">&quot;harmonic&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">harm</span> <span class="o">==</span> <span class="s2">&quot;2f&quot;</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;Frequency must be 50kHz or greater when lockin is in second harmonics configuration&quot;</span>
+                <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;FREQ </span><span class="si">{</span><span class="n">freq</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_change_sensitivity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dn</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="n">n_to</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value_sensitivity_map</span>
+        <span class="n">to_n</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sensitivity_value_map</span>
+
+        <span class="n">n</span> <span class="o">=</span> <span class="n">to_n</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">sensitivity</span><span class="p">()]</span>
+
+        <span class="k">if</span> <span class="n">n</span> <span class="o">+</span> <span class="n">dn</span> <span class="o">&gt;</span> <span class="nb">max</span><span class="p">(</span><span class="n">n_to</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="ow">or</span> <span class="n">n</span> <span class="o">+</span> <span class="n">dn</span> <span class="o">&lt;</span> <span class="nb">min</span><span class="p">(</span><span class="n">n_to</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">sensitivity</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">n_to</span><span class="p">[</span><span class="n">n</span> <span class="o">+</span> <span class="n">dn</span><span class="p">])</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+<div class="viewcode-block" id="SR844.update_ch_unit">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.StanfordResearchSystems.html#qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844.SR844.update_ch_unit">[docs]</a>
+    <span class="k">def</span> <span class="nf">update_ch_unit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span>
+        <span class="n">dataparam</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;ch</span><span class="si">{</span><span class="n">channel</span><span class="si">}</span><span class="s2">_datatrace&quot;</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dataparam</span><span class="p">,</span> <span class="n">ChannelTrace</span><span class="p">)</span>
+        <span class="n">dataparam</span><span class="o">.</span><span class="n">update_unit</span><span class="p">()</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_set_ratio</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ratio_int</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;DRAT </span><span class="si">{</span><span class="n">ratio_int</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">update_ch_unit</span><span class="p">(</span><span class="n">ch</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_ch_display</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">val_mapping</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="mi">1</span><span class="p">:</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="s2">&quot;X&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span> <span class="s2">&quot;R_V&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span> <span class="s2">&quot;R_dBm&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">:</span> <span class="s2">&quot;X Noise&quot;</span><span class="p">,</span> <span class="mi">4</span><span class="p">:</span> <span class="s2">&quot;AuxIn1&quot;</span><span class="p">},</span>
+            <span class="mi">2</span><span class="p">:</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="s2">&quot;Y&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span> <span class="s2">&quot;Phase&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span> <span class="s2">&quot;Y Noise&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">:</span> <span class="s2">&quot;Y_dBm Noise&quot;</span><span class="p">,</span> <span class="mi">4</span><span class="p">:</span> <span class="s2">&quot;AuxIn2&quot;</span><span class="p">},</span>
+        <span class="p">}</span>
+        <span class="n">resp</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;DDEF ? </span><span class="si">{</span><span class="n">channel</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">val_mapping</span><span class="p">[</span><span class="n">channel</span><span class="p">][</span><span class="n">resp</span><span class="p">]</span>
+
+<div class="viewcode-block" id="SR844.get_display_value">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.StanfordResearchSystems.html#qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844.SR844.get_display_value">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_display_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">disp</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="n">val_mapping</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="mi">1</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;X&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;R_V&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;R_dBm&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;X Noise&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;AuxIn1&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">},</span>
+            <span class="mi">2</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;Y&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;Phase&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;Y Noise&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;Y_dBm Noise&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;AuxIn2&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">},</span>
+        <span class="p">}</span>
+        <span class="n">vals</span> <span class="o">=</span> <span class="n">val_mapping</span><span class="p">[</span><span class="n">channel</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">disp</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">vals</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">disp</span><span class="si">}</span><span class="s2"> not in </span><span class="si">{</span><span class="n">vals</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">val_mapping</span><span class="p">[</span><span class="n">channel</span><span class="p">][</span><span class="n">disp</span><span class="p">]</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_set_ch_display</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">disp</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">disp_int</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_display_value</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="n">disp</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;DDEF </span><span class="si">{</span><span class="n">channel</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">disp_int</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_ch_unit</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_set_buffer_SR</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">SR</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SRAT </span><span class="si">{</span><span class="n">SR</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sweep_setpoints</span><span class="o">.</span><span class="n">update_units_if_constant_sample_rate</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_get_complex_voltage</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">complex</span><span class="p">:</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">snap</span><span class="p">(</span><span class="s2">&quot;X&quot;</span><span class="p">,</span> <span class="s2">&quot;Y&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">x</span> <span class="o">+</span> <span class="mf">1.0</span><span class="n">j</span> <span class="o">*</span> <span class="n">y</span>
+
+<div class="viewcode-block" id="SR844.set_sweep_parameters">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.StanfordResearchSystems.html#qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844.SR844.set_sweep_parameters">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_sweep_parameters</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">sweep_param</span><span class="p">:</span> <span class="n">Parameter</span><span class="p">,</span>
+        <span class="n">start</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">stop</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">n_points</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
+        <span class="n">label</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">sweep_setpoints</span><span class="o">.</span><span class="n">sweep_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">n_points</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sweep_setpoints</span><span class="o">.</span><span class="n">unit</span> <span class="o">=</span> <span class="n">sweep_param</span><span class="o">.</span><span class="n">unit</span>
+        <span class="k">if</span> <span class="n">label</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sweep_setpoints</span><span class="o">.</span><span class="n">label</span> <span class="o">=</span> <span class="n">label</span>
+        <span class="k">elif</span> <span class="n">sweep_param</span><span class="o">.</span><span class="n">label</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sweep_setpoints</span><span class="o">.</span><span class="n">label</span> <span class="o">=</span> <span class="n">sweep_param</span><span class="o">.</span><span class="n">label</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="GeneratedSetPoints">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.StanfordResearchSystems.html#qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844.GeneratedSetPoints">[docs]</a>
+<span class="k">class</span> <span class="nc">GeneratedSetPoints</span><span class="p">(</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A parameter that generates a setpoint array from start, stop and num points</span>
+<span class="sd">    parameters.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">sweep_array</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span>
+        <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sweep_array</span> <span class="o">=</span> <span class="n">sweep_array</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_units_if_constant_sample_rate</span><span class="p">()</span>
+
+<div class="viewcode-block" id="GeneratedSetPoints.update_units_if_constant_sample_rate">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.StanfordResearchSystems.html#qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844.GeneratedSetPoints.update_units_if_constant_sample_rate">[docs]</a>
+    <span class="k">def</span> <span class="nf">update_units_if_constant_sample_rate</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        If the buffer is filled at a constant sample rate,</span>
+<span class="sd">        update the unit to &quot;s&quot; and label to &quot;Time&quot;;</span>
+<span class="sd">        otherwise do nothing</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root_instrument</span><span class="p">,</span> <span class="n">SR844</span><span class="p">)</span>
+        <span class="n">SR</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">root_instrument</span><span class="o">.</span><span class="n">buffer_SR</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">SR</span> <span class="o">!=</span> <span class="s2">&quot;Trigger&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">unit</span> <span class="o">=</span> <span class="s2">&quot;s&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">label</span> <span class="o">=</span> <span class="s2">&quot;Time&quot;</span></div>
+
+
+<div class="viewcode-block" id="GeneratedSetPoints.set_raw">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.StanfordResearchSystems.html#qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844.GeneratedSetPoints.set_raw">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_raw</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sweep_array</span> <span class="o">=</span> <span class="n">value</span></div>
+
+
+<div class="viewcode-block" id="GeneratedSetPoints.get_raw">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.StanfordResearchSystems.html#qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844.GeneratedSetPoints.get_raw">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_raw</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ParamRawDataType</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root_instrument</span><span class="p">,</span> <span class="n">SR844</span><span class="p">)</span>
+        <span class="n">SR</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">root_instrument</span><span class="o">.</span><span class="n">buffer_SR</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">SR</span> <span class="o">==</span> <span class="s2">&quot;Trigger&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">sweep_array</span>
+        <span class="n">N</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">root_instrument</span><span class="o">.</span><span class="n">buffer_npts</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="n">dt</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">SR</span>
+
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">N</span> <span class="o">*</span> <span class="n">dt</span><span class="p">,</span> <span class="n">N</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ChannelTrace">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.StanfordResearchSystems.html#qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844.ChannelTrace">[docs]</a>
+<span class="k">class</span> <span class="nc">ChannelTrace</span><span class="p">(</span><span class="n">ParameterWithSetpoints</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parameter class for the two channel buffers</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ChannelTrace.__init__">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.StanfordResearchSystems.html#qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844.ChannelTrace.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">channel</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            name: The name of the parameter</span>
+<span class="sd">            channel: The relevant channel (1 or 2). The name should</span>
+<span class="sd">                match this.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_valid_channels</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">channel</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_valid_channels</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Invalid channel specifier. SR844 only has &quot;</span> <span class="s2">&quot;channels 1 and 2.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root_instrument</span><span class="p">,</span> <span class="n">SR844</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Invalid parent instrument. ChannelTrace &quot;</span> <span class="s2">&quot;can only live on an SR844.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">channel</span> <span class="o">=</span> <span class="n">channel</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_unit</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="ChannelTrace.update_unit">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.StanfordResearchSystems.html#qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844.ChannelTrace.update_unit">[docs]</a>
+    <span class="k">def</span> <span class="nf">update_unit</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root_instrument</span><span class="p">,</span> <span class="n">SR844</span><span class="p">)</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">root_instrument</span><span class="o">.</span><span class="n">parameters</span>
+        <span class="k">if</span> <span class="n">params</span><span class="p">[</span><span class="s2">&quot;ratio_mode&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">!=</span> <span class="s2">&quot;none&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">unit</span> <span class="o">=</span> <span class="s2">&quot;%&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">disp</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;ch</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">channel</span><span class="si">}</span><span class="s2">_display&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+            <span class="k">if</span> <span class="s2">&quot;Phase&quot;</span> <span class="ow">in</span> <span class="n">disp</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">unit</span> <span class="o">=</span> <span class="s2">&quot;deg&quot;</span>
+            <span class="k">elif</span> <span class="s2">&quot;dBm&quot;</span> <span class="ow">in</span> <span class="n">disp</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">unit</span> <span class="o">=</span> <span class="s2">&quot;dBm&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">unit</span> <span class="o">=</span> <span class="s2">&quot;V&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">label</span> <span class="o">=</span> <span class="n">disp</span></div>
+
+
+<div class="viewcode-block" id="ChannelTrace.get_raw">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.StanfordResearchSystems.html#qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844.ChannelTrace.get_raw">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_raw</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ParamRawDataType</span><span class="p">:</span>
+        <span class="n">N</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_buffer_length</span><span class="p">()</span>
+        <span class="n">rawdata</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">poll_raw_binary_data</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_binary</span><span class="p">(</span><span class="n">rawdata</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ChannelTrace.parse_binary">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.StanfordResearchSystems.html#qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844.ChannelTrace.parse_binary">[docs]</a>
+    <span class="k">def</span> <span class="nf">parse_binary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rawdata</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NDArray</span><span class="p">:</span>
+        <span class="n">realdata</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">frombuffer</span><span class="p">(</span><span class="n">rawdata</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;&lt;i2&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">realdata</span><span class="p">[::</span><span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="mf">2.0</span> <span class="o">**</span> <span class="p">(</span><span class="n">realdata</span><span class="p">[</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="mi">124</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ChannelTrace.poll_raw_binary_data">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.StanfordResearchSystems.html#qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844.ChannelTrace.poll_raw_binary_data">[docs]</a>
+    <span class="k">def</span> <span class="nf">poll_raw_binary_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">N</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root_instrument</span><span class="p">,</span> <span class="n">SR844</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root_instrument</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;TRCL ? </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">channel</span><span class="si">}</span><span class="s2">, 0, </span><span class="si">{</span><span class="n">N</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">root_instrument</span><span class="o">.</span><span class="n">visa_handle</span><span class="o">.</span><span class="n">read_raw</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="ChannelTrace.get_buffer_length">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.StanfordResearchSystems.html#qcodes_contrib_drivers.drivers.StanfordResearchSystems.SR844.ChannelTrace.get_buffer_length">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_buffer_length</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root_instrument</span><span class="p">,</span> <span class="n">SR844</span><span class="p">)</span>
+        <span class="n">N</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">root_instrument</span><span class="o">.</span><span class="n">buffer_npts</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">N</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;No points stored in SR844 data buffer.&quot;</span> <span class="s2">&quot; Cannot poll anything.&quot;</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">N</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, QCoDeS Users.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>qcodes_contrib_drivers.drivers.SingleQuantum.SingleQuantum &mdash; qcodes_contrib_drivers 0.23.0.dev36+main.g4e2ee8f documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../_static/documentation_options.js?v=fc3c8481"></script>
+        <script src="../../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            qcodes_contrib_drivers
+          </a>
+              <div class="version">
+                0.23.0.dev36+main.g4e2ee8f
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples/index.html">Examples of how to use drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/generated/qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">qcodes_contrib_drivers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">qcodes_contrib_drivers.drivers.SingleQuantum.SingleQuantum</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for qcodes_contrib_drivers.drivers.SingleQuantum.SingleQuantum</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">The MIT License (MIT)</span>
+
+<span class="sd">Copyright (c) 2020 Single Quantum B. V.</span>
+
+<span class="sd">Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the &quot;Software&quot;), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:</span>
+
+<span class="sd">The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.</span>
+
+<span class="sd">THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">socket</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">threading</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="kn">from</span> <span class="nn">qcodes.instrument.ip</span> <span class="kn">import</span> <span class="n">Instrument</span>
+<span class="kn">from</span> <span class="nn">qcodes.instrument.base</span> <span class="kn">import</span> <span class="n">Parameter</span>
+<span class="kn">from</span> <span class="nn">qcodes.instrument.parameter</span> <span class="kn">import</span> <span class="n">ParameterWithSetpoints</span><span class="p">,</span> <span class="n">MultiParameter</span>
+<span class="kn">from</span> <span class="nn">qcodes.utils.validators</span> <span class="kn">import</span> <span class="n">Arrays</span>
+
+
+<div class="viewcode-block" id="SQTalk">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.SingleQuantum.html#qcodes_contrib_drivers.drivers.SingleQuantum.SingleQuantum.SQTalk">[docs]</a>
+<span class="k">class</span> <span class="nc">SQTalk</span><span class="p">(</span><span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">TCP_IP_ADR</span><span class="o">=</span><span class="s1">&#39;localhost&#39;</span><span class="p">,</span> <span class="n">TCP_IP_PORT</span><span class="o">=</span><span class="mi">12000</span><span class="p">,</span>
+                 <span class="n">error_callback</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">TCP_IP_ADR</span> <span class="o">=</span> <span class="n">TCP_IP_ADR</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">TCP_IP_PORT</span> <span class="o">=</span> <span class="n">TCP_IP_PORT</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">socket</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">socket</span><span class="p">(</span>
+            <span class="n">socket</span><span class="o">.</span><span class="n">AF_INET</span><span class="p">,</span> <span class="n">socket</span><span class="o">.</span><span class="n">SOCK_STREAM</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">socket</span><span class="o">.</span><span class="n">connect</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">TCP_IP_ADR</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">TCP_IP_PORT</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">socket</span><span class="o">.</span><span class="n">settimeout</span><span class="p">(</span><span class="mf">.1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">BUFFER</span> <span class="o">=</span> <span class="mi">10000000</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shutdown</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">labelProps</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_callback</span> <span class="o">=</span> <span class="n">error_callback</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">lock</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Lock</span><span class="p">()</span>
+
+<div class="viewcode-block" id="SQTalk.close">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.SingleQuantum.html#qcodes_contrib_drivers.drivers.SingleQuantum.SingleQuantum.SQTalk.close">[docs]</a>
+    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Print(&quot;Closing Socket&quot;)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">socket</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shutdown</span> <span class="o">=</span> <span class="kc">True</span></div>
+
+
+<div class="viewcode-block" id="SQTalk.send">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.SingleQuantum.html#qcodes_contrib_drivers.drivers.SingleQuantum.SingleQuantum.SQTalk.send">[docs]</a>
+    <span class="k">def</span> <span class="nf">send</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">socket</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="nb">bytes</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="s2">&quot;utf-8&quot;</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="SQTalk.sub_jsons">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.SingleQuantum.html#qcodes_contrib_drivers.drivers.SingleQuantum.SingleQuantum.SQTalk.sub_jsons">[docs]</a>
+    <span class="k">def</span> <span class="nf">sub_jsons</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return sub json strings.</span>
+<span class="sd">        {}{} will be returned as [{},{}]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">split_msg</span> <span class="o">=</span> <span class="n">msg</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;}{&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">split_msg</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">split_msg</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">split_msg</span><span class="p">[</span><span class="n">s</span><span class="p">])</span>
+            <span class="k">elif</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">split_msg</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">split_msg</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;}&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">i</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">split_msg</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">split_msg</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;{&quot;</span> <span class="o">+</span> <span class="n">split_msg</span><span class="p">[</span><span class="n">s</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;{&quot;</span> <span class="o">+</span> <span class="n">split_msg</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;}&quot;</span><span class="p">)</span>
+            <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="n">result</span></div>
+
+
+<div class="viewcode-block" id="SQTalk.add_labelProps">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.SingleQuantum.html#qcodes_contrib_drivers.drivers.SingleQuantum.SingleQuantum.SQTalk.add_labelProps">[docs]</a>
+    <span class="k">def</span> <span class="nf">add_labelProps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="k">if</span> <span class="s2">&quot;label&quot;</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="c1"># After get labelProps, queries also bounds, units etc...</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">],</span> <span class="p">(</span><span class="nb">dict</span><span class="p">)):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">labelProps</span><span class="p">[</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span>
+            <span class="c1"># General label communication, for example from broadcasts</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">labelProps</span><span class="p">[</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">]</span>
+                                    <span class="p">][</span><span class="s2">&quot;value&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                    <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="SQTalk.check_error">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.SingleQuantum.html#qcodes_contrib_drivers.drivers.SingleQuantum.SingleQuantum.SQTalk.check_error">[docs]</a>
+    <span class="k">def</span> <span class="nf">check_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="k">if</span> <span class="s2">&quot;label&quot;</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">if</span> <span class="s2">&quot;Error&quot;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">error_callback</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="SQTalk.get_label">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.SingleQuantum.html#qcodes_contrib_drivers.drivers.SingleQuantum.SingleQuantum.SQTalk.get_label">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_label</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
+        <span class="n">timeout</span> <span class="o">=</span> <span class="mi">10</span>
+        <span class="n">dt</span> <span class="o">=</span> <span class="mf">.1</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">*</span> <span class="n">dt</span> <span class="o">&gt;</span> <span class="n">timeout</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;Could not acquire label&quot;</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">labelProps</span><span class="p">[</span><span class="n">label</span><span class="p">]</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span>
+                    <span class="p">{</span><span class="s2">&quot;request&quot;</span><span class="p">:</span> <span class="s2">&quot;labelProps&quot;</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;None&quot;</span><span class="p">}))</span>
+                <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">dt</span><span class="p">)</span>
+            <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span></div>
+
+
+<div class="viewcode-block" id="SQTalk.get_all_labels">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.SingleQuantum.html#qcodes_contrib_drivers.drivers.SingleQuantum.SingleQuantum.SQTalk.get_all_labels">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_all_labels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">labelProps</span></div>
+
+
+<div class="viewcode-block" id="SQTalk.run">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.SingleQuantum.html#qcodes_contrib_drivers.drivers.SingleQuantum.SingleQuantum.SQTalk.run">[docs]</a>
+    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span>
+            <span class="p">{</span><span class="s2">&quot;request&quot;</span><span class="p">:</span> <span class="s2">&quot;labelProps&quot;</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;None&quot;</span><span class="p">}))</span>
+        <span class="n">rcv_msg</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">shutdown</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">rcv</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span> <span class="o">+</span> <span class="n">rcv_msg</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="n">rcv</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+            <span class="k">while</span> <span class="s2">&quot;</span><span class="se">\x17</span><span class="s2">&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">rcv</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">r</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">socket</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">BUFFER</span><span class="p">),</span> <span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                    <span class="kc">None</span>
+                <span class="n">rcv</span> <span class="o">=</span> <span class="n">rcv</span> <span class="o">+</span> <span class="n">r</span>
+
+            <span class="n">rcv_msg</span> <span class="o">=</span> <span class="n">rcv</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\x17</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">rcv_line</span> <span class="ow">in</span> <span class="n">rcv_msg</span><span class="p">:</span>
+                <span class="n">rcv_split</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sub_jsons</span><span class="p">(</span><span class="n">rcv_line</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">msg</span> <span class="ow">in</span> <span class="n">rcv_split</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                        <span class="kc">None</span>
+
+                    <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">lock</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">add_labelProps</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">check_error</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="SQCounts">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.SingleQuantum.html#qcodes_contrib_drivers.drivers.SingleQuantum.SingleQuantum.SQCounts">[docs]</a>
+<span class="k">class</span> <span class="nc">SQCounts</span><span class="p">(</span><span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">TCP_IP_ADR</span><span class="o">=</span><span class="s1">&#39;localhost&#39;</span><span class="p">,</span>
+            <span class="n">TCP_IP_PORT</span><span class="o">=</span><span class="mi">12345</span><span class="p">,</span>
+            <span class="n">CNTS_BUFFER</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
+        <span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lock</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Lock</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rlock</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">RLock</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">TCP_IP_ADR</span> <span class="o">=</span> <span class="n">TCP_IP_ADR</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">TCP_IP_PORT</span> <span class="o">=</span> <span class="n">TCP_IP_PORT</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">socket</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">socket</span><span class="p">(</span>
+            <span class="n">socket</span><span class="o">.</span><span class="n">AF_INET</span><span class="p">,</span> <span class="n">socket</span><span class="o">.</span><span class="n">SOCK_STREAM</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">socket</span><span class="o">.</span><span class="n">connect</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">TCP_IP_ADR</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">TCP_IP_PORT</span><span class="p">))</span>
+        <span class="c1"># self.socket.settimeout(.1)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">BUFFER</span> <span class="o">=</span> <span class="mi">1000000</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shutdown</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">cnts</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">CNTS_BUFFER</span> <span class="o">=</span> <span class="n">CNTS_BUFFER</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n</span> <span class="o">=</span> <span class="mi">0</span>
+
+<div class="viewcode-block" id="SQCounts.close">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.SingleQuantum.html#qcodes_contrib_drivers.drivers.SingleQuantum.SingleQuantum.SQCounts.close">[docs]</a>
+    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># print(&quot;Closing Socket&quot;)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">socket</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shutdown</span> <span class="o">=</span> <span class="kc">True</span></div>
+
+
+<div class="viewcode-block" id="SQCounts.get_n">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.SingleQuantum.html#qcodes_contrib_drivers.drivers.SingleQuantum.SingleQuantum.SQCounts.get_n">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_n</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+        <span class="n">n0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">n</span> <span class="o">&lt;</span> <span class="n">n0</span> <span class="o">+</span> <span class="n">n</span><span class="p">:</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.001</span><span class="p">)</span>
+        <span class="n">cnts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cnts</span>
+        <span class="k">return</span> <span class="n">cnts</span><span class="p">[</span><span class="o">-</span><span class="n">n</span><span class="p">:]</span></div>
+
+
+<div class="viewcode-block" id="SQCounts.run">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.SingleQuantum.html#qcodes_contrib_drivers.drivers.SingleQuantum.SingleQuantum.SQCounts.run">[docs]</a>
+    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">shutdown</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+            <span class="n">data_raw</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">socket</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">BUFFER</span><span class="p">),</span> <span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+
+            <span class="n">data_newline</span> <span class="o">=</span> <span class="n">data_raw</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+
+            <span class="n">v</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">data_newline</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">):</span>
+                <span class="n">v</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">d</span><span class="p">))</span>
+
+            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">lock</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">cnts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+                <span class="c1"># Keep Size of self.cnts</span>
+                <span class="n">len_</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cnts</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">len_</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">CNTS_BUFFER</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">cnts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cnts</span><span class="p">[</span><span class="n">len_</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">CNTS_BUFFER</span><span class="p">:]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">n</span> <span class="o">+=</span> <span class="mi">1</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ChannelArray">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.SingleQuantum.html#qcodes_contrib_drivers.drivers.SingleQuantum.SingleQuantum.ChannelArray">[docs]</a>
+<span class="k">class</span> <span class="nc">ChannelArray</span><span class="p">(</span><span class="n">ParameterWithSetpoints</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Fetches the correct row from the matrix counters,  based on the channel</span>
+<span class="sd">    This is a parameter with setpoints, where the setpoints are the time stamps</span>
+<span class="sd">    Args:</span>
+<span class="sd">        channel (int): the channel number to select the row from the counters matrix</span>
+<span class="sd">    Return (numpy_array): a numpy vector of length npts, containing the counts</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_channel</span> <span class="o">=</span> <span class="n">channel</span>
+
+<div class="viewcode-block" id="ChannelArray.get_raw">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.SingleQuantum.html#qcodes_contrib_drivers.drivers.SingleQuantum.SingleQuantum.ChannelArray.get_raw">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_raw</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">root_instrument</span><span class="o">.</span><span class="n">counters</span><span class="o">.</span><span class="n">get_latest</span><span class="p">()[</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_channel</span><span class="p">]</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="TimeArray">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.SingleQuantum.html#qcodes_contrib_drivers.drivers.SingleQuantum.SingleQuantum.TimeArray">[docs]</a>
+<span class="k">class</span> <span class="nc">TimeArray</span><span class="p">(</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Fetches the row with time stamps, currently channel 0</span>
+<span class="sd">    This parameter is used as the setpoints for the channelarray</span>
+<span class="sd">    Args:</span>
+<span class="sd">        channel (int): the channel number to select the row from the counters matrix (channel 0 is the timestamp)</span>
+<span class="sd">    Return (numpy_array): a numpy vector of length npts, containing the time stamps</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_channel</span> <span class="o">=</span> <span class="n">channel</span>
+
+<div class="viewcode-block" id="TimeArray.get_raw">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.SingleQuantum.html#qcodes_contrib_drivers.drivers.SingleQuantum.SingleQuantum.TimeArray.get_raw">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_raw</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root_instrument</span><span class="o">.</span><span class="n">counters</span><span class="o">.</span><span class="n">get_latest</span><span class="p">()[</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_channel</span><span class="p">])</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="CommunicationHandler">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.SingleQuantum.html#qcodes_contrib_drivers.drivers.SingleQuantum.SingleQuantum.CommunicationHandler">[docs]</a>
+<span class="k">class</span> <span class="nc">CommunicationHandler</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Handles the communication, creates JSON strings&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">root_instrument</span><span class="p">,</span>
+            <span class="n">log</span><span class="p">,</span>
+            <span class="n">TCP_IP_ADR</span><span class="o">=</span><span class="s1">&#39;localhost&#39;</span><span class="p">,</span>
+            <span class="n">CONTROL_PORT</span><span class="o">=</span><span class="mi">12000</span><span class="p">,</span>
+            <span class="n">COUNTS_PORT</span><span class="o">=</span><span class="mi">12345</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root_instrument</span> <span class="o">=</span> <span class="n">root_instrument</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span> <span class="o">=</span> <span class="n">log</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">TCP_IP_ADR</span> <span class="o">=</span> <span class="n">TCP_IP_ADR</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">CONTROL_PORT</span> <span class="o">=</span> <span class="n">CONTROL_PORT</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">COUNTS_PORT</span> <span class="o">=</span> <span class="n">COUNTS_PORT</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">NUMBER_OF_DETECTORS</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">talk</span> <span class="o">=</span> <span class="n">SQTalk</span><span class="p">(</span>
+            <span class="n">TCP_IP_ADR</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">TCP_IP_ADR</span><span class="p">,</span>
+            <span class="n">TCP_IP_PORT</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">CONTROL_PORT</span><span class="p">,</span>
+            <span class="n">error_callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">)</span>
+        <span class="c1"># Daemonic Thread close when main progam is closed</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">talk</span><span class="o">.</span><span class="n">daemon</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">talk</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">cnts</span> <span class="o">=</span> <span class="n">SQCounts</span><span class="p">(</span><span class="n">TCP_IP_ADR</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">TCP_IP_ADR</span><span class="p">,</span>
+                             <span class="n">TCP_IP_PORT</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">COUNTS_PORT</span><span class="p">)</span>
+        <span class="c1"># Daemonic Thread close when main progam is closed</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cnts</span><span class="o">.</span><span class="n">daemon</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cnts</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">NUMBER_OF_DETECTORS</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">talk</span><span class="o">.</span><span class="n">get_label</span><span class="p">(</span>
+            <span class="s2">&quot;NumberOfDetectors&quot;</span><span class="p">)[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span>
+
+<div class="viewcode-block" id="CommunicationHandler.acquire_cnts_t">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.SingleQuantum.html#qcodes_contrib_drivers.drivers.SingleQuantum.SingleQuantum.CommunicationHandler.acquire_cnts_t">[docs]</a>
+    <span class="k">def</span> <span class="nf">acquire_cnts_t</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Acquire n count measurments transposed.</span>
+<span class="sd">        Return (numpy_array): Acquired counts with timestamp in first row.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">root_instrument</span><span class="o">.</span><span class="n">npts</span><span class="p">()</span>
+        <span class="n">cnts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cnts</span><span class="o">.</span><span class="n">get_n</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">cnts</span><span class="p">)</span><span class="o">.</span><span class="n">T</span></div>
+
+
+<div class="viewcode-block" id="CommunicationHandler.set_measurement_periode">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.SingleQuantum.html#qcodes_contrib_drivers.drivers.SingleQuantum.SingleQuantum.CommunicationHandler.set_measurement_periode">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_measurement_periode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t_in_ms</span><span class="p">):</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span>
+            <span class="nb">dict</span><span class="p">(</span>
+                <span class="n">command</span><span class="o">=</span><span class="s2">&quot;SetMeasurementPeriod&quot;</span><span class="p">,</span>
+                <span class="n">label</span><span class="o">=</span><span class="s2">&quot;InptMeasurementPeriod&quot;</span><span class="p">,</span>
+                <span class="n">value</span><span class="o">=</span><span class="n">t_in_ms</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">talk</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="CommunicationHandler.get_number_of_detectors">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.SingleQuantum.html#qcodes_contrib_drivers.drivers.SingleQuantum.SingleQuantum.CommunicationHandler.get_number_of_detectors">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_number_of_detectors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">talk</span><span class="o">.</span><span class="n">get_label</span><span class="p">(</span><span class="s2">&quot;NumberOfDetectors&quot;</span><span class="p">)[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="CommunicationHandler.get_measurement_periode">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.SingleQuantum.html#qcodes_contrib_drivers.drivers.SingleQuantum.SingleQuantum.CommunicationHandler.get_measurement_periode">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_measurement_periode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get measurment periode in ms.</span>
+<span class="sd">        Return (float): time</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">talk</span><span class="o">.</span><span class="n">get_label</span><span class="p">(</span><span class="s2">&quot;InptMeasurementPeriod&quot;</span><span class="p">)[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="CommunicationHandler.get_bias_current">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.SingleQuantum.html#qcodes_contrib_drivers.drivers.SingleQuantum.SingleQuantum.CommunicationHandler.get_bias_current">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_bias_current</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">talk</span><span class="o">.</span><span class="n">get_label</span><span class="p">(</span><span class="s2">&quot;BiasCurrent&quot;</span><span class="p">)[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="CommunicationHandler.get_trigger_level">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.SingleQuantum.html#qcodes_contrib_drivers.drivers.SingleQuantum.SingleQuantum.CommunicationHandler.get_trigger_level">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_trigger_level</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">talk</span><span class="o">.</span><span class="n">get_label</span><span class="p">(</span><span class="s2">&quot;TriggerLevel&quot;</span><span class="p">)[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="CommunicationHandler.get_bias_voltage">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.SingleQuantum.html#qcodes_contrib_drivers.drivers.SingleQuantum.SingleQuantum.CommunicationHandler.get_bias_voltage">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_bias_voltage</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">request</span><span class="o">=</span><span class="s2">&quot;BiasVoltage&quot;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">talk</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">talk</span><span class="o">.</span><span class="n">get_label</span><span class="p">(</span><span class="s2">&quot;BiasVoltage&quot;</span><span class="p">)[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="CommunicationHandler.set_bias_current">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.SingleQuantum.html#qcodes_contrib_drivers.drivers.SingleQuantum.SingleQuantum.CommunicationHandler.set_bias_current">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_bias_current</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">current_in_uA</span><span class="p">):</span>
+        <span class="n">array</span> <span class="o">=</span> <span class="n">current_in_uA</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">command</span><span class="o">=</span><span class="s2">&quot;SetAllBiasCurrents&quot;</span><span class="p">,</span>
+                              <span class="n">label</span><span class="o">=</span><span class="s2">&quot;BiasCurrent&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">array</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">talk</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="CommunicationHandler.set_trigger_level">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.SingleQuantum.html#qcodes_contrib_drivers.drivers.SingleQuantum.SingleQuantum.CommunicationHandler.set_trigger_level">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_trigger_level</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trigger_level_mV</span><span class="p">):</span>
+        <span class="n">array</span> <span class="o">=</span> <span class="n">trigger_level_mV</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">command</span><span class="o">=</span><span class="s2">&quot;SetAllTriggerLevels&quot;</span><span class="p">,</span>
+                              <span class="n">label</span><span class="o">=</span><span class="s2">&quot;TriggerLevel&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">array</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">talk</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="CommunicationHandler.enable_detectors">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.SingleQuantum.html#qcodes_contrib_drivers.drivers.SingleQuantum.SingleQuantum.CommunicationHandler.enable_detectors">[docs]</a>
+    <span class="k">def</span> <span class="nf">enable_detectors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">command</span><span class="o">=</span><span class="s2">&quot;DetectorEnable&quot;</span><span class="p">,</span>
+                              <span class="n">label</span><span class="o">=</span><span class="s2">&quot;DetectorEnable&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">state</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">talk</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="CommunicationHandler.set_dark_counts_auto_iv">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.SingleQuantum.html#qcodes_contrib_drivers.drivers.SingleQuantum.SingleQuantum.CommunicationHandler.set_dark_counts_auto_iv">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_dark_counts_auto_iv</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dark_counts</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the dark counts for the automatic detector calibration.</span>
+<span class="sd">        After this command execute: self.auto_cali_bias_currents()</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">NUMBER_OF_DETECTORS</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">dark_counts</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s1">&#39;Dark counts not the same lenght as number of detectors&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span>
+                <span class="nb">dict</span><span class="p">(</span>
+                    <span class="n">command</span><span class="o">=</span><span class="s2">&quot;DarkCountsAutoIV&quot;</span><span class="p">,</span>
+                    <span class="n">label</span><span class="o">=</span><span class="s2">&quot;DarkCountsAutoIV&quot;</span><span class="p">,</span>
+                    <span class="n">value</span><span class="o">=</span><span class="n">dark_counts</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">talk</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="CommunicationHandler.auto_cali_bias_currents">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.SingleQuantum.html#qcodes_contrib_drivers.drivers.SingleQuantum.SingleQuantum.CommunicationHandler.auto_cali_bias_currents">[docs]</a>
+    <span class="k">def</span> <span class="nf">auto_cali_bias_currents</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Performs the automatic bias calibration. Make sure that no light reaches the detectors during this procedure.</span>
+<span class="sd">        To check if this function has finished use self.auto_cali_finished() which return true or false.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span>
+            <span class="nb">dict</span><span class="p">(</span>
+                <span class="n">command</span><span class="o">=</span><span class="s2">&quot;AutoCaliBiasCurrents&quot;</span><span class="p">,</span>
+                <span class="n">value</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">talk</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="CommunicationHandler.auto_cali_finished">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.SingleQuantum.html#qcodes_contrib_drivers.drivers.SingleQuantum.SingleQuantum.CommunicationHandler.auto_cali_finished">[docs]</a>
+    <span class="k">def</span> <span class="nf">auto_cali_finished</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Check if auto calibration of the bias currents to find a given dark count value has finished.</span>
+<span class="sd">        Returns: True if finished, False otherwise</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">request</span><span class="o">=</span><span class="s2">&quot;StartAutoIV&quot;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">talk</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="k">return</span> <span class="ow">not</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">talk</span><span class="o">.</span><span class="n">get_label</span><span class="p">(</span><span class="s2">&quot;StartAutoIV&quot;</span><span class="p">)[</span><span class="s2">&quot;value&quot;</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="CommunicationHandler.error">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.SingleQuantum.html#qcodes_contrib_drivers.drivers.SingleQuantum.SingleQuantum.CommunicationHandler.error">[docs]</a>
+    <span class="k">def</span> <span class="nf">error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">error_msg</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Called in case of an error&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;ERROR DETECTED&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">error_msg</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="WebSQControlqcode">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.SingleQuantum.html#qcodes_contrib_drivers.drivers.SingleQuantum.SingleQuantum.WebSQControlqcode">[docs]</a>
+<span class="k">class</span> <span class="nc">WebSQControlqcode</span><span class="p">(</span><span class="n">Instrument</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The instrument.</span>
+
+<span class="sd">    IMPORTANT: the QCoDeS parameter &#39;counters&#39; updates the time stamp and counters from the detectors.</span>
+<span class="sd">    Always call &#39;counters&#39; if you want to fetch the next &#39;npts&#39; counts.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">address</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="c1"># super().__init__(name, address, port, **kwargs)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">TCP_IP_ADR</span> <span class="o">=</span> <span class="n">address</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">CONTROL_PORT</span> <span class="o">=</span> <span class="n">port</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">COUNTS_PORT</span> <span class="o">=</span> <span class="mi">12345</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">NUMBER_OF_DETECTORS</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">comm</span> <span class="o">=</span> <span class="n">CommunicationHandler</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root_instrument</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">,</span>
+                                         <span class="bp">self</span><span class="o">.</span><span class="n">TCP_IP_ADR</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">CONTROL_PORT</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">COUNTS_PORT</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">NUMBER_OF_DETECTORS</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">comm</span><span class="o">.</span><span class="n">talk</span><span class="o">.</span><span class="n">get_label</span><span class="p">(</span>
+            <span class="s2">&quot;NumberOfDetectors&quot;</span><span class="p">)[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="s1">&#39;bias_current&#39;</span><span class="p">,</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;uA&#39;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">comm</span><span class="o">.</span><span class="n">get_bias_current</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">comm</span><span class="o">.</span><span class="n">set_bias_current</span><span class="p">,</span>
+            <span class="n">docstring</span><span class="o">=</span><span class="s1">&#39;Bias current setting&#39;</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;npts&#39;</span><span class="p">,</span>
+            <span class="n">initial_value</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Number of points&#39;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">docstring</span><span class="o">=</span><span class="s1">&#39;Number of points to acquire (see measurement_periode)&#39;</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="s1">&#39;detectors&#39;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">comm</span><span class="o">.</span><span class="n">enable_detectors</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">docstring</span><span class="o">=</span><span class="s1">&#39;Enables/disables the detectors&#39;</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="s1">&#39;number_of_detectors&#39;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">comm</span><span class="o">.</span><span class="n">get_number_of_detectors</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">docstring</span><span class="o">=</span><span class="s1">&#39;Gets the number of detectors in the instrument&#39;</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="s1">&#39;counters&#39;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">comm</span><span class="o">.</span><span class="n">acquire_cnts_t</span><span class="p">,</span>
+            <span class="n">docstring</span><span class="o">=</span><span class="s1">&#39;Acquire points&#39;</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="s1">&#39;measurement_periode&#39;</span><span class="p">,</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;ms&#39;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">comm</span><span class="o">.</span><span class="n">get_measurement_periode</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">comm</span><span class="o">.</span><span class="n">set_measurement_periode</span><span class="p">,</span>
+            <span class="n">docstring</span><span class="o">=</span><span class="s1">&#39;Measurement periode setting, determines the time that each point counts&#39;</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="s1">&#39;timing&#39;</span><span class="p">,</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;ms&#39;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Time&#39;</span><span class="p">,</span>
+            <span class="n">parameter_class</span><span class="o">=</span><span class="n">TimeArray</span><span class="p">,</span>
+            <span class="n">channel</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">Arrays</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">npts</span><span class="o">.</span><span class="n">get_latest</span><span class="p">,</span> <span class="p">)),</span>
+            <span class="n">docstring</span><span class="o">=</span><span class="s1">&#39;Parameter with timestamps for each point acquired&#39;</span>
+        <span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">NUMBER_OF_DETECTORS</span><span class="p">):</span>
+            <span class="n">channel</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;channel&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+                <span class="n">name</span><span class="p">,</span>
+                <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+                <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Counts&#39;</span><span class="p">,</span>
+                <span class="n">parameter_class</span><span class="o">=</span><span class="n">ChannelArray</span><span class="p">,</span>
+                <span class="n">channel</span><span class="o">=</span><span class="n">channel</span><span class="p">,</span>
+                <span class="n">setpoints</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">timing</span><span class="p">,),</span>
+                <span class="n">vals</span><span class="o">=</span><span class="n">Arrays</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">npts</span><span class="o">.</span><span class="n">get_latest</span><span class="p">,</span> <span class="p">)),</span>
+                <span class="n">snapshot_value</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">docstring</span><span class="o">=</span><span class="s1">&#39;Parameter with setpoints with the counts for each point acquired&#39;</span>
+            <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="s1">&#39;trigger_level&#39;</span><span class="p">,</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;mV&#39;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">comm</span><span class="o">.</span><span class="n">set_trigger_level</span><span class="p">,</span>
+            <span class="n">docstring</span><span class="o">=</span><span class="s1">&#39;Trigger level setting&#39;</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="s1">&#39;bias_voltage&#39;</span><span class="p">,</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;mV&#39;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">comm</span><span class="o">.</span><span class="n">get_bias_voltage</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">docstring</span><span class="o">=</span><span class="s1">&#39;Gets the bias voltage&#39;</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect_message</span><span class="p">()</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, QCoDeS Users.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>qcodes_contrib_drivers.drivers.Vaunix.LDA &mdash; qcodes_contrib_drivers 0.23.0.dev36+main.g4e2ee8f documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../_static/documentation_options.js?v=fc3c8481"></script>
+        <script src="../../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            qcodes_contrib_drivers
+          </a>
+              <div class="version">
+                0.23.0.dev36+main.g4e2ee8f
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples/index.html">Examples of how to use drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/generated/qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">qcodes_contrib_drivers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">qcodes_contrib_drivers.drivers.Vaunix.LDA</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for qcodes_contrib_drivers.drivers.Vaunix.LDA</h1><div class="highlight"><pre>
+<span></span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This is the QCoDeS driver for Vaunix LDA digital attenuators. It requires the</span>
+<span class="sd">DLL that comes with the instrument, ``VNX_atten64.dll`` and/or</span>
+<span class="sd">``VNX_atten.dll``, for 64-bit Windows and 32-bit Windows, respectively. If the</span>
+<span class="sd">instrument has more than one physical channel, ``InstrumentChannel`` s are</span>
+<span class="sd">created for each one. If the instrument has only one physical channel, no</span>
+<span class="sd">channels are created and the parameters will be assigned to this instrument</span>
+<span class="sd">instead. The sweep profiles available in the API are not implemented.</span>
+
+<span class="sd">Tested with 64-bit system and</span>
+
+<span class="sd">- LDA-133</span>
+<span class="sd">- LDA-802Q</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">cast</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+<span class="kn">from</span> <span class="nn">platform</span> <span class="kn">import</span> <span class="n">architecture</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">ctypes</span>
+<span class="kn">import</span> <span class="nn">time</span>
+
+<span class="kn">from</span> <span class="nn">qcodes</span> <span class="kn">import</span> <span class="n">Instrument</span><span class="p">,</span> <span class="n">InstrumentChannel</span><span class="p">,</span> <span class="n">Parameter</span>
+<span class="kn">from</span> <span class="nn">qcodes.utils.validators</span> <span class="kn">import</span> <span class="n">Numbers</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Vaunix_LDA">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Vaunix.html#qcodes_contrib_drivers.drivers.Vaunix.LDA.Vaunix_LDA">[docs]</a>
+<span class="k">class</span> <span class="nc">Vaunix_LDA</span><span class="p">(</span><span class="n">Instrument</span><span class="p">):</span>
+    <span class="n">dll_path</span> <span class="o">=</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="Vaunix_LDA.__init__">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Vaunix.html#qcodes_contrib_drivers.drivers.Vaunix.LDA.Vaunix_LDA.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                 <span class="n">serial_number</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                 <span class="n">dll_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">channel_names</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">test_mode</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+                 <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        QCoDeS Instrument for Vaunix LDA digital attenuators.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            name: Qcodes name for this instrument</span>
+<span class="sd">            serial_number: Serial number of the instrument, used to identify</span>
+<span class="sd">                it.</span>
+<span class="sd">            dll_path: Look for the LDA DLLs in this directory. Sets the dll</span>
+<span class="sd">                path as class attribute that is used for future instances for</span>
+<span class="sd">                which ``dll_path`` is not given.</span>
+<span class="sd">            channel_names: Optionally assign these names to the channels.</span>
+<span class="sd">            test_mode: If True, simulates communication with an LDA-102</span>
+<span class="sd">                (serial:55102). Does not communicate with physical devices. For</span>
+<span class="sd">                testing purposes.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">begin_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">serial_number</span> <span class="o">=</span> <span class="n">serial_number</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reference</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="n">channel_names</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">channel_names</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">dll</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_dll</span><span class="p">(</span><span class="n">dll_path</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">fnLDA_SetTestMode</span><span class="p">(</span><span class="n">test_mode</span><span class="p">)</span>  <span class="c1"># Test API without communication</span>
+
+        <span class="c1"># Find all Vaunix devices, init the one with matching serial number.</span>
+        <span class="n">num_devices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">fnLDA_GetNumDevices</span><span class="p">()</span>
+        <span class="n">device_IDs</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span> <span class="o">*</span> <span class="n">num_devices</span>
+        <span class="n">device_refs</span> <span class="o">=</span> <span class="n">device_IDs</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">fnLDA_GetDevInfo</span><span class="p">(</span><span class="n">device_refs</span><span class="p">)</span>
+        <span class="n">devices</span> <span class="o">=</span> <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">fnLDA_GetSerialNumber</span><span class="p">(</span><span class="n">ref</span><span class="p">):</span> <span class="n">ref</span>
+                   <span class="k">for</span> <span class="n">ref</span> <span class="ow">in</span> <span class="n">device_refs</span><span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reference</span> <span class="o">=</span> <span class="n">devices</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">serial_number</span><span class="p">,</span> <span class="s2">&quot;not found&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">reference</span> <span class="o">==</span> <span class="s2">&quot;not found&quot;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;LDA with serial number </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">serial_number</span><span class="si">}</span><span class="s2">&quot;</span>
+                             <span class="sa">f</span><span class="s2">&quot; was not found in the system. Found: </span><span class="si">{</span><span class="n">devices</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">fnLDA_InitDevice</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reference</span><span class="p">)</span>
+
+        <span class="c1"># call superclass init only after DLL has been successfully loaded</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="n">num_channels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">fnLDA_GetNumChannels</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reference</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">num_channels</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c1"># don&#39;t add Channel objects, add parameters directly instead</span>
+            <span class="n">_add_lda_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">num_channels</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="n">name</span> <span class="o">=</span> <span class="n">channel_names</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;ch</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">ch</span> <span class="o">=</span> <span class="n">LdaChannel</span><span class="p">(</span><span class="n">parent</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_number</span><span class="o">=</span><span class="n">i</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">add_submodule</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">ch</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect_message</span><span class="p">(</span><span class="n">begin_time</span><span class="o">=</span><span class="n">begin_time</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_get_dll</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dll_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">CDLL</span><span class="p">:</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Load correct DLL from ``dll_path`` based on bitness of the operating</span>
+<span class="sd">        system.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dll_path: path to the directory that contains the Vaunix LDA DLL.</span>
+<span class="sd">                By default, use class attribute ``Vaunix_LDA.dll_path``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">dll_path</span> <span class="ow">or</span> <span class="n">Vaunix_LDA</span><span class="o">.</span><span class="n">dll_path</span>
+        <span class="k">if</span> <span class="n">path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;DLL path for Vaunix LDA was not provided. &quot;</span>
+                             <span class="s2">&quot;Either set ``Vaunix_LDA.dll_path`` or provide &quot;</span>
+                             <span class="s2">&quot;it as an argument to the constructor.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span> <span class="o">!=</span> <span class="s2">&quot;win32&quot;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">OSError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;LDA is not supported on </span><span class="si">{</span><span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+        <span class="n">bitness</span> <span class="o">=</span> <span class="n">architecture</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="s2">&quot;64bit&quot;</span> <span class="ow">in</span> <span class="n">bitness</span><span class="p">:</span>
+            <span class="n">full_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;VNX_atten64&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="s2">&quot;32bit&quot;</span> <span class="ow">in</span> <span class="n">bitness</span><span class="p">:</span>
+            <span class="n">full_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;VNX_atten&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">OSError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown bitness of system: </span><span class="si">{</span><span class="n">bitness</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">dll</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">cdll</span><span class="o">.</span><span class="n">LoadLibrary</span><span class="p">(</span><span class="n">full_path</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">OSError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="c1"># typeshead seems to be unaware that winerror is an attribute</span>
+            <span class="c1"># under windows</span>
+            <span class="n">winerror</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="s2">&quot;winerror&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">winerror</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">winerror</span> <span class="o">==</span> <span class="mi">126</span><span class="p">:</span>
+                <span class="c1"># &#39;the specified module could not be found&#39;</span>
+                <span class="k">raise</span> <span class="ne">OSError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not find DLL at &#39;</span><span class="si">{</span><span class="n">full_path</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span>
+
+        <span class="k">return</span> <span class="n">dll</span>
+
+<div class="viewcode-block" id="Vaunix_LDA.get_idn">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Vaunix.html#qcodes_contrib_drivers.drivers.Vaunix.LDA.Vaunix_LDA.get_idn">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_idn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+
+        <span class="n">buf</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">create_string_buffer</span><span class="p">(</span><span class="mi">300</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">fnLDA_GetModelNameA</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reference</span><span class="p">,</span> <span class="n">buf</span><span class="p">)</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">buf</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">decode</span><span class="p">())</span>
+
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;vendor&quot;</span><span class="p">:</span> <span class="s2">&quot;Vaunix&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;model&quot;</span><span class="p">:</span> <span class="n">model</span><span class="p">,</span>
+                <span class="s2">&quot;serial&quot;</span><span class="p">:</span>  <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">fnLDA_GetSerialNumber</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reference</span><span class="p">),</span>
+                <span class="s2">&quot;firmware&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">fnLDA_GetDLLVersion</span><span class="p">(),</span>
+                <span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="Vaunix_LDA.close">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Vaunix.html#qcodes_contrib_drivers.drivers.Vaunix.LDA.Vaunix_LDA.close">[docs]</a>
+    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;dll&quot;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">fnLDA_CloseDevice</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reference</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Vaunix_LDA.save_settings">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Vaunix.html#qcodes_contrib_drivers.drivers.Vaunix.LDA.Vaunix_LDA.save_settings">[docs]</a>
+    <span class="k">def</span> <span class="nf">save_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Save current settings to memory. Settings are automatically loaded</span>
+<span class="sd">        during power on.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">fnLDA_SaveSettings</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reference</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="LdaChannel">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Vaunix.html#qcodes_contrib_drivers.drivers.Vaunix.LDA.LdaChannel">[docs]</a>
+<span class="k">class</span> <span class="nc">LdaChannel</span><span class="p">(</span><span class="n">InstrumentChannel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Channel corresponding to one input-output pair of the LDA digital</span>
+<span class="sd">    attenuator.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">:</span> <span class="n">Vaunix_LDA</span><span class="p">,</span>
+                 <span class="n">channel_number</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                 <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="o">=</span><span class="n">parent</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">channel_number</span> <span class="o">=</span> <span class="n">channel_number</span>
+        <span class="n">_add_lda_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+
+
+<span class="k">def</span> <span class="nf">_add_lda_parameters</span><span class="p">(</span><span class="n">inst</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Vaunix_LDA</span><span class="p">,</span> <span class="n">LdaChannel</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Helper function for adding parameters to either LDA root instrument,</span>
+<span class="sd">    or channels inside it.</span>
+<span class="sd">    Args:</span>
+<span class="sd">        inst: the instrument or channel to add the parameters to.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">root_instrument</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="n">Vaunix_LDA</span><span class="p">,</span> <span class="n">inst</span><span class="o">.</span><span class="n">root_instrument</span><span class="p">)</span>
+    <span class="n">inst</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s2">&quot;attenuation&quot;</span><span class="p">,</span>
+                       <span class="n">parameter_class</span><span class="o">=</span><span class="n">LdaAttenuation</span><span class="p">,</span>
+                       <span class="n">set_parser</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+                       <span class="p">)</span>
+    <span class="n">wf_vals</span> <span class="o">=</span> <span class="n">LdaWorkingFrequency</span><span class="o">.</span><span class="n">get_validator</span><span class="p">(</span><span class="n">root_instrument</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">wf_vals</span><span class="p">:</span>
+        <span class="n">inst</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s2">&quot;working_frequency&quot;</span><span class="p">,</span>
+                           <span class="n">parameter_class</span><span class="o">=</span><span class="n">LdaWorkingFrequency</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">wf_vals</span><span class="p">,</span>
+                           <span class="p">)</span>
+
+
+<div class="viewcode-block" id="LdaParameter">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Vaunix.html#qcodes_contrib_drivers.drivers.Vaunix.LDA.LdaParameter">[docs]</a>
+<span class="k">class</span> <span class="nc">LdaParameter</span><span class="p">(</span><span class="n">Parameter</span><span class="p">):</span>
+    <span class="n">scaling</span> <span class="o">=</span> <span class="mf">1.0</span>  <span class="c1"># Scaling from integers from API to physical quantities</span>
+
+<div class="viewcode-block" id="LdaParameter.__init__">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Vaunix.html#qcodes_contrib_drivers.drivers.Vaunix.LDA.LdaParameter.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                 <span class="n">instrument</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Vaunix_LDA</span><span class="p">,</span> <span class="n">LdaChannel</span><span class="p">],</span>
+                 <span class="n">dll_get_function</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">dll_set_function</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span>
+                 <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parameter associated with one channel of the LDA.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            name: parameter name</span>
+<span class="sd">            instrument: parent instrument, either LDA or LDA channel</span>
+<span class="sd">            dll_get_function: DLL function that gets the value</span>
+<span class="sd">            dll_get_function: DLL function that sets the value</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">instrument</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_reference</span> <span class="o">=</span> <span class="n">instrument</span><span class="o">.</span><span class="n">root_instrument</span><span class="o">.</span><span class="n">reference</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dll_get_function</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">dll_get_function</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reference</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dll_set_function</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">dll_set_function</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reference</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_switch_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Switch to this channel.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">instrument</span><span class="p">,</span> <span class="s2">&quot;channel_number&quot;</span><span class="p">):</span>
+            <span class="n">instr</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="n">Instrument</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">instrument</span><span class="p">)</span>
+            <span class="n">instr</span><span class="o">.</span><span class="n">root_instrument</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">fnLDA_SetChannel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_reference</span><span class="p">,</span>
+                                                       <span class="n">instr</span><span class="o">.</span><span class="n">channel_number</span><span class="p">)</span>
+
+<div class="viewcode-block" id="LdaParameter.get_raw">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Vaunix.html#qcodes_contrib_drivers.drivers.Vaunix.LDA.LdaParameter.get_raw">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_raw</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Switch to this channel and return current value.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_switch_channel</span><span class="p">()</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dll_get_function</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_dll_get_function</span><span class="o">.</span><span class="n">func</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s1"> &#39;</span>
+                               <span class="sa">f</span><span class="s1">&#39;returned error </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">value</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">scaling</span></div>
+
+
+<div class="viewcode-block" id="LdaParameter.set_raw">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Vaunix.html#qcodes_contrib_drivers.drivers.Vaunix.LDA.LdaParameter.set_raw">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_raw</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Switch to this channel and set to ``value`` .</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_switch_channel</span><span class="p">()</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">value</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">scaling</span><span class="p">)</span>
+        <span class="n">error_msg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dll_set_function</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">error_msg</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_dll_set_function</span><span class="o">.</span><span class="n">func</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s1"> &#39;</span>
+                               <span class="sa">f</span><span class="s1">&#39;returned error </span><span class="si">{</span><span class="n">error_msg</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="LdaAttenuation">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Vaunix.html#qcodes_contrib_drivers.drivers.Vaunix.LDA.LdaAttenuation">[docs]</a>
+<span class="k">class</span> <span class="nc">LdaAttenuation</span><span class="p">(</span><span class="n">LdaParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Attenuation of one channel in the LDA.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">scaling</span> <span class="o">=</span> <span class="mf">0.05</span>  <span class="c1"># integers returned by the API correspond to 0.05 dB</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                 <span class="n">instrument</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Vaunix_LDA</span><span class="p">,</span> <span class="n">LdaChannel</span><span class="p">],</span>
+                 <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">dll</span> <span class="o">=</span> <span class="n">instrument</span><span class="o">.</span><span class="n">root_instrument</span><span class="o">.</span><span class="n">dll</span>
+
+        <span class="n">ref</span> <span class="o">=</span> <span class="n">instrument</span><span class="o">.</span><span class="n">root_instrument</span><span class="o">.</span><span class="n">reference</span>
+        <span class="n">min_att</span> <span class="o">=</span> <span class="n">dll</span><span class="o">.</span><span class="n">fnLDA_GetMinAttenuationHR</span><span class="p">(</span><span class="n">ref</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">scaling</span>
+        <span class="n">max_att</span> <span class="o">=</span> <span class="n">dll</span><span class="o">.</span><span class="n">fnLDA_GetMaxAttenuationHR</span><span class="p">(</span><span class="n">ref</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">scaling</span>
+        <span class="n">vals</span> <span class="o">=</span> <span class="n">Numbers</span><span class="p">(</span><span class="n">min_att</span><span class="p">,</span> <span class="n">max_att</span><span class="p">)</span>
+
+        <span class="n">label</span> <span class="o">=</span> <span class="s2">&quot;Attenuation&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">instrument</span><span class="p">,</span> <span class="n">LdaChannel</span><span class="p">):</span>
+            <span class="c1"># prefix label to make channels more easily distinguishable in plots</span>
+            <span class="n">label</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">instrument</span><span class="o">.</span><span class="n">short_name</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">instrument</span><span class="p">,</span>
+                         <span class="n">dll_get_function</span><span class="o">=</span><span class="n">dll</span><span class="o">.</span><span class="n">fnLDA_GetAttenuationHR</span><span class="p">,</span>
+                         <span class="n">dll_set_function</span><span class="o">=</span><span class="n">dll</span><span class="o">.</span><span class="n">fnLDA_SetAttenuationHR</span><span class="p">,</span>
+                         <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="p">,</span>
+                         <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;dB&quot;</span><span class="p">,</span>
+                         <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span>
+                         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+                         <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="LdaWorkingFrequency">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Vaunix.html#qcodes_contrib_drivers.drivers.Vaunix.LDA.LdaWorkingFrequency">[docs]</a>
+<span class="k">class</span> <span class="nc">LdaWorkingFrequency</span><span class="p">(</span><span class="n">LdaParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Working frequency of one channel of the LDA. Not supported on all models.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">scaling</span> <span class="o">=</span> <span class="mi">100_000</span>  <span class="c1"># integers returned by the API correspond to 100kHz</span>
+
+<div class="viewcode-block" id="LdaWorkingFrequency.__init__">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Vaunix.html#qcodes_contrib_drivers.drivers.Vaunix.LDA.LdaWorkingFrequency.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                 <span class="n">instrument</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Vaunix_LDA</span><span class="p">,</span> <span class="n">LdaChannel</span><span class="p">],</span>
+                 <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Attenuation of one channel in the LDA.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            name: parameter name</span>
+<span class="sd">            instrument: parent instrument, either LDA or LDA channel</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">dll</span> <span class="o">=</span> <span class="n">instrument</span><span class="o">.</span><span class="n">root_instrument</span><span class="o">.</span><span class="n">dll</span>
+
+        <span class="n">label</span> <span class="o">=</span> <span class="s2">&quot;Working frequency&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">instrument</span><span class="p">,</span> <span class="n">LdaChannel</span><span class="p">):</span>
+            <span class="c1"># prefix label to make channels more easily distinguishable in plots</span>
+            <span class="n">label</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">instrument</span><span class="o">.</span><span class="n">short_name</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">instrument</span><span class="p">,</span>
+                         <span class="n">dll_get_function</span><span class="o">=</span><span class="n">dll</span><span class="o">.</span><span class="n">fnLDA_GetWorkingFrequency</span><span class="p">,</span>
+                         <span class="n">dll_set_function</span><span class="o">=</span><span class="n">dll</span><span class="o">.</span><span class="n">fnLDA_SetWorkingFrequency</span><span class="p">,</span>
+                         <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;Hz&quot;</span><span class="p">,</span>
+                         <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span>
+                         <span class="n">docstring</span><span class="o">=</span><span class="s2">&quot;Frequency at which the &quot;</span>
+                                   <span class="s2">&quot;attenuation is most accurate.&quot;</span><span class="p">,</span>
+                         <span class="o">**</span><span class="n">kwargs</span>
+                         <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="LdaWorkingFrequency.get_validator">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Vaunix.html#qcodes_contrib_drivers.drivers.Vaunix.LDA.LdaWorkingFrequency.get_validator">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">get_validator</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">root_instrument</span><span class="p">:</span> <span class="n">Vaunix_LDA</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Numbers</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns validator for working frequency, if ``root_instrument``</span>
+<span class="sd">        supports it. Else returns None.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">max_freq</span> <span class="o">=</span> <span class="n">root_instrument</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">fnLDA_GetMaxWorkingFrequency</span><span class="p">(</span>
+                    <span class="n">root_instrument</span><span class="o">.</span><span class="n">reference</span><span class="p">)</span> <span class="o">*</span> <span class="bp">cls</span><span class="o">.</span><span class="n">scaling</span>
+        <span class="n">min_freq</span> <span class="o">=</span> <span class="n">root_instrument</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">fnLDA_GetMinWorkingFrequency</span><span class="p">(</span>
+                    <span class="n">root_instrument</span><span class="o">.</span><span class="n">reference</span><span class="p">)</span> <span class="o">*</span> <span class="bp">cls</span><span class="o">.</span><span class="n">scaling</span>
+        <span class="c1"># if feature is not supported, these values will be equal</span>
+        <span class="k">if</span> <span class="n">max_freq</span> <span class="o">&gt;</span> <span class="n">min_freq</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">Numbers</span><span class="p">(</span><span class="n">min_freq</span><span class="p">,</span> <span class="n">max_freq</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span></div>
+</div>
+
+
+
+<span class="c1"># shorthand</span>
+<span class="n">LDA</span> <span class="o">=</span> <span class="n">Vaunix_LDA</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, QCoDeS Users.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

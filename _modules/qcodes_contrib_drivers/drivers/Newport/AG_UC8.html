@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>qcodes_contrib_drivers.drivers.Newport.AG_UC8 &mdash; qcodes_contrib_drivers 0.23.0.dev36+main.g4e2ee8f documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../_static/documentation_options.js?v=fc3c8481"></script>
+        <script src="../../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            qcodes_contrib_drivers
+          </a>
+              <div class="version">
+                0.23.0.dev36+main.g4e2ee8f
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples/index.html">Examples of how to use drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/generated/qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">qcodes_contrib_drivers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">qcodes_contrib_drivers.drivers.Newport.AG_UC8</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for qcodes_contrib_drivers.drivers.Newport.AG_UC8</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">QCoDeS driver for Newport AGILIS AG-UC8 Piezo Stepper Controller.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Callable</span>
+
+<span class="kn">from</span> <span class="nn">pyvisa.resources.serial</span> <span class="kn">import</span> <span class="n">SerialInstrument</span>
+
+<span class="kn">from</span> <span class="nn">qcodes</span> <span class="kn">import</span> <span class="n">VisaInstrument</span><span class="p">,</span> <span class="n">InstrumentChannel</span><span class="p">,</span> <span class="n">ChannelList</span>
+<span class="kn">from</span> <span class="nn">qcodes.utils.validators</span> <span class="kn">import</span> <span class="n">Ints</span>
+
+<span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<span class="c1"># Meaning of error codes returned by the device.</span>
+<span class="n">ERROR_CODES</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="mi">0</span><span class="p">:</span> <span class="s2">&quot;No error&quot;</span><span class="p">,</span>
+    <span class="o">-</span><span class="mi">1</span><span class="p">:</span> <span class="s2">&quot;Unknown command&quot;</span><span class="p">,</span>
+    <span class="o">-</span><span class="mi">2</span><span class="p">:</span> <span class="s2">&quot;Axis out of range&quot;</span><span class="p">,</span>
+    <span class="o">-</span><span class="mi">3</span><span class="p">:</span> <span class="s2">&quot;Wrong format for parameter&quot;</span><span class="p">,</span>
+    <span class="o">-</span><span class="mi">4</span><span class="p">:</span> <span class="s2">&quot;Parameter out of range&quot;</span><span class="p">,</span>
+    <span class="o">-</span><span class="mi">5</span><span class="p">:</span> <span class="s2">&quot;Not allowed in local mode&quot;</span><span class="p">,</span>
+    <span class="o">-</span><span class="mi">6</span><span class="p">:</span> <span class="s2">&quot;Not allowed in current state&quot;</span><span class="p">,</span>
+<span class="p">}</span>
+
+
+<span class="k">def</span> <span class="nf">_make_get_parser</span><span class="p">(</span><span class="n">cmd</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return a parser function which expects a line</span>
+<span class="sd">    starting with &lt;cmd&gt; followed by an integer, and returns</span>
+<span class="sd">    only the integer.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">get_parser</span><span class="p">(</span><span class="n">resp</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">resp</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">cmd</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">resp</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">cmd</span><span class="p">):]</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="c1"># Parsing return value failed.</span>
+                <span class="c1"># Ignore the error here, we will report it below.</span>
+                <span class="k">pass</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Unexpected response from </span><span class="si">%s</span><span class="s2">: </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">resp</span><span class="p">))</span>
+        <span class="k">raise</span> <span class="n">Newport_AG_UC8_Exception</span><span class="p">(</span><span class="s2">&quot;Unexpected response from </span><span class="si">%s</span><span class="s2">: </span><span class="si">%r</span><span class="s2">&quot;</span>
+                                       <span class="o">%</span> <span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">resp</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">get_parser</span>
+
+
+<div class="viewcode-block" id="Newport_AG_UC8_Exception">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Newport.html#qcodes_contrib_drivers.drivers.Newport.AG_UC8.Newport_AG_UC8_Exception">[docs]</a>
+<span class="k">class</span> <span class="nc">Newport_AG_UC8_Exception</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="k">pass</span></div>
+
+
+
+<div class="viewcode-block" id="Newport_AG_UC8_ErrorCode">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Newport.html#qcodes_contrib_drivers.drivers.Newport.AG_UC8.Newport_AG_UC8_ErrorCode">[docs]</a>
+<span class="k">class</span> <span class="nc">Newport_AG_UC8_ErrorCode</span><span class="p">(</span><span class="n">Newport_AG_UC8_Exception</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmd</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">err</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">failed_command</span> <span class="o">=</span> <span class="n">cmd</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_code</span> <span class="o">=</span> <span class="n">err</span>
+        <span class="n">error_string</span> <span class="o">=</span> <span class="n">ERROR_CODES</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">err</span><span class="p">,</span> <span class="s2">&quot;unknown error&quot;</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="s2">&quot;Command </span><span class="si">%s</span><span class="s2"> failed with error code </span><span class="si">%d</span><span class="s2"> (</span><span class="si">%s</span><span class="s2">)&quot;</span>
+                         <span class="o">%</span> <span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">err</span><span class="p">,</span> <span class="n">error_string</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="Newport_AG_UC8_Axis">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Newport.html#qcodes_contrib_drivers.drivers.Newport.AG_UC8.Newport_AG_UC8_Axis">[docs]</a>
+<span class="k">class</span> <span class="nc">Newport_AG_UC8_Axis</span><span class="p">(</span><span class="n">InstrumentChannel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Represents one of the 2 axes of one channel of an AG-UC8 controller.&quot;&quot;&quot;</span>
+
+    <span class="n">SPEED_TABLE</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="mi">1</span><span class="p">:</span> <span class="s2">&quot;5 steps/second at defined step amplitude&quot;</span><span class="p">,</span>
+        <span class="mi">2</span><span class="p">:</span> <span class="s2">&quot;100 steps/second at maximum step amplitude&quot;</span><span class="p">,</span>
+        <span class="mi">3</span><span class="p">:</span> <span class="s2">&quot;1700 steps/second at maximum step amplitude&quot;</span><span class="p">,</span>
+        <span class="mi">4</span><span class="p">:</span> <span class="s2">&quot;666 steps/second at defined step amplitude&quot;</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">:</span> <span class="s1">&#39;Newport_AG_UC8_Channel&#39;</span><span class="p">,</span> <span class="n">axis</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">axis</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="s2">&quot;axis_</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">axis</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">axis</span> <span class="o">=</span> <span class="n">axis</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s2">&quot;step_delay&quot;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Step delay in units of 10 us&quot;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%d</span><span class="s2">DL?&quot;</span> <span class="o">%</span> <span class="n">axis</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%d</span><span class="s2">DL</span><span class="si">{}</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">axis</span><span class="p">,</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="n">_make_get_parser</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%d</span><span class="s2">DL&quot;</span> <span class="o">%</span> <span class="n">axis</span><span class="p">),</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">Ints</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">200000</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s2">&quot;step_amplitude_pos&quot;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Step amplitude in positive direction&quot;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%d</span><span class="s2">SU+?&quot;</span> <span class="o">%</span> <span class="n">axis</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%d</span><span class="s2">SU+</span><span class="si">{}</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">axis</span><span class="p">,</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="n">_make_get_parser</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%d</span><span class="s2">SU+&quot;</span> <span class="o">%</span> <span class="n">axis</span><span class="p">),</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">Ints</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">50</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s2">&quot;step_amplitude_neg&quot;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Step amplitude in negative direction&quot;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%d</span><span class="s2">SU-?&quot;</span> <span class="o">%</span> <span class="n">axis</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%d</span><span class="s2">SU-</span><span class="si">{}</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">axis</span><span class="p">,</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="n">_make_get_parser</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%d</span><span class="s2">SU-&quot;</span> <span class="o">%</span> <span class="n">axis</span><span class="p">),</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">Ints</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">50</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s2">&quot;steps&quot;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Accumulated number of steps since last &quot;</span>
+                                 <span class="o">+</span> <span class="s2">&quot;reset of the step counter&quot;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%d</span><span class="s2">TP&quot;</span> <span class="o">%</span> <span class="n">axis</span><span class="p">,</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="n">_make_get_parser</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%d</span><span class="s2">TP&quot;</span> <span class="o">%</span> <span class="n">axis</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s2">&quot;status&quot;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Status of the axis&quot;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%d</span><span class="s2">TS&quot;</span> <span class="o">%</span> <span class="n">axis</span><span class="p">,</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="n">_make_get_parser</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%d</span><span class="s2">TS&quot;</span> <span class="o">%</span> <span class="n">axis</span><span class="p">),</span>
+                           <span class="n">val_mapping</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;ready&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                                        <span class="s2">&quot;stepping&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                                        <span class="s2">&quot;jogging&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+                                        <span class="s2">&quot;moving_to_limit&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">})</span>
+
+<div class="viewcode-block" id="Newport_AG_UC8_Axis.jog">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Newport.html#qcodes_contrib_drivers.drivers.Newport.AG_UC8.Newport_AG_UC8_Axis.jog">[docs]</a>
+    <span class="k">def</span> <span class="nf">jog</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">speed</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Start moving in positive (speed &gt; 0) or negative (speed &lt; 0)</span>
+<span class="sd">        direction.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            speed (int): speed and direction of movement.</span>
+<span class="sd">                Negative values (-1 .. -4) start moving in negative direction.</span>
+<span class="sd">                Positive values (1 .. 4) start moving in positive direction.</span>
+<span class="sd">                Magnitude determines speed according to</span>
+<span class="sd">                Newport_AG_UC8_Axis.SPEED_TABLE.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="n">speed</span> <span class="o">&gt;=</span> <span class="o">-</span><span class="mi">4</span> <span class="ow">and</span> <span class="n">speed</span> <span class="o">&lt;=</span> <span class="mi">4</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%d</span><span class="s2">JA</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">axis</span><span class="p">,</span> <span class="n">speed</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="Newport_AG_UC8_Axis.move_limit">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Newport.html#qcodes_contrib_drivers.drivers.Newport.AG_UC8.Newport_AG_UC8_Axis.move_limit">[docs]</a>
+    <span class="k">def</span> <span class="nf">move_limit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">speed</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Start moving to positive (speed &gt; 0) or negative (speed &lt; 0) limit.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            speed (int): speed and direction of movement.</span>
+<span class="sd">                Negative values (-1 .. -4) start moving in negative direction.</span>
+<span class="sd">                Positive values (1 .. 4) start moving in positive direction.</span>
+<span class="sd">                Magnitude determines speed according to</span>
+<span class="sd">                Newport_AG_UC8_Axis.SPEED_TABLE.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="n">speed</span> <span class="o">&gt;=</span> <span class="o">-</span><span class="mi">4</span> <span class="ow">and</span> <span class="n">speed</span> <span class="o">&lt;=</span> <span class="mi">4</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%d</span><span class="s2">MV</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">axis</span><span class="p">,</span> <span class="n">speed</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="Newport_AG_UC8_Axis.measure_position">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Newport.html#qcodes_contrib_drivers.drivers.Newport.AG_UC8.Newport_AG_UC8_Axis.measure_position">[docs]</a>
+    <span class="k">def</span> <span class="nf">measure_position</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Measure current position.</span>
+
+<span class="sd">        This is a slow command which may take up to 2 minutes to finish.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            int: Current position in range 0 .. 1000 representing</span>
+<span class="sd">            steps of 1/1000 of total travel.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_slow_command</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%d</span><span class="s2">MA&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">axis</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Newport_AG_UC8_Axis.move_abs">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Newport.html#qcodes_contrib_drivers.drivers.Newport.AG_UC8.Newport_AG_UC8_Axis.move_abs">[docs]</a>
+    <span class="k">def</span> <span class="nf">move_abs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Move to absolute position.</span>
+
+<span class="sd">        This is a slow command which may take up to 2 minutes to finish.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            position (int): Target position in range 0 .. 1000 representing</span>
+<span class="sd">                steps of 1/1000 of total travel.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="n">position</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">position</span> <span class="o">&lt;=</span> <span class="mi">1000</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_slow_command</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%d</span><span class="s2">PA&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">axis</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">position</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Newport_AG_UC8_Axis.move_rel">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Newport.html#qcodes_contrib_drivers.drivers.Newport.AG_UC8.Newport_AG_UC8_Axis.move_rel">[docs]</a>
+    <span class="k">def</span> <span class="nf">move_rel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">steps</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Start a relative move to current position.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            steps (int): Number of steps to move relative to current position.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="n">steps</span> <span class="o">&gt;=</span> <span class="o">-</span><span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="mi">31</span><span class="p">)</span> <span class="ow">and</span> <span class="n">steps</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="o">**</span><span class="mi">31</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%d</span><span class="s2">PR</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">axis</span><span class="p">,</span> <span class="n">steps</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="Newport_AG_UC8_Axis.stop">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Newport.html#qcodes_contrib_drivers.drivers.Newport.AG_UC8.Newport_AG_UC8_Axis.stop">[docs]</a>
+    <span class="k">def</span> <span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Stop current movement.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%d</span><span class="s2">ST&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">axis</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Newport_AG_UC8_Axis.zero_position">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Newport.html#qcodes_contrib_drivers.drivers.Newport.AG_UC8.Newport_AG_UC8_Axis.zero_position">[docs]</a>
+    <span class="k">def</span> <span class="nf">zero_position</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Reset the step counter to zero.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%d</span><span class="s2">ZP&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">axis</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_slow_command</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmd</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">arg</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Execute a slow command with longer timeout and parse</span>
+<span class="sd">        return value.&quot;&quot;&quot;</span>
+
+        <span class="c1"># Temporarily set long timeout to support slow command.</span>
+        <span class="n">tmo</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">root_instrument</span><span class="o">.</span><span class="n">slow_command_timeout</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root_instrument</span><span class="o">.</span><span class="n">timeout</span><span class="p">(</span><span class="n">tmo</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># Execute command.</span>
+            <span class="n">resp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="n">cmd</span> <span class="o">+</span> <span class="n">arg</span><span class="p">)</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="c1"># Restore normal timeout.</span>
+            <span class="n">tmo</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">root_instrument</span><span class="o">.</span><span class="n">default_timeout</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">root_instrument</span><span class="o">.</span><span class="n">timeout</span><span class="p">(</span><span class="n">tmo</span><span class="p">)</span>
+
+        <span class="c1"># Parse response.</span>
+        <span class="k">if</span> <span class="n">resp</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">cmd</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">resp</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">cmd</span><span class="p">):]</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="c1"># Parsing return value failed.</span>
+                <span class="c1"># Ignore the error here, we will report it below.</span>
+                <span class="k">pass</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Unexpected response from </span><span class="si">%s</span><span class="s2">: </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">resp</span><span class="p">))</span>
+        <span class="k">raise</span> <span class="n">Newport_AG_UC8_Exception</span><span class="p">(</span><span class="s2">&quot;Unexpected response from </span><span class="si">%s</span><span class="s2">: </span><span class="si">%r</span><span class="s2">&quot;</span>
+                                       <span class="o">%</span> <span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">resp</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="Newport_AG_UC8_Channel">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Newport.html#qcodes_contrib_drivers.drivers.Newport.AG_UC8.Newport_AG_UC8_Channel">[docs]</a>
+<span class="k">class</span> <span class="nc">Newport_AG_UC8_Channel</span><span class="p">(</span><span class="n">InstrumentChannel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Represents one of the 4 channels of an AG-UC8 controller.</span>
+
+<span class="sd">    Each channel drives 2 axes of an optical mount.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">:</span> <span class="s1">&#39;Newport_AG_UC8&#39;</span><span class="p">,</span> <span class="n">channel_number</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">channel_number</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="s2">&quot;channel_</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">channel_number</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_channel_number</span> <span class="o">=</span> <span class="n">channel_number</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_submodule</span><span class="p">(</span><span class="s2">&quot;axis1&quot;</span><span class="p">,</span> <span class="n">Newport_AG_UC8_Axis</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_submodule</span><span class="p">(</span><span class="s2">&quot;axis2&quot;</span><span class="p">,</span> <span class="n">Newport_AG_UC8_Axis</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s2">&quot;limit_status&quot;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Limit switch status&quot;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="s2">&quot;PH&quot;</span><span class="p">,</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="n">_make_get_parser</span><span class="p">(</span><span class="s1">&#39;PH&#39;</span><span class="p">),</span>
+                           <span class="n">val_mapping</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;not_active&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                                        <span class="s2">&quot;active_on_axis_1&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                                        <span class="s2">&quot;active_on_axis_2&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+                                        <span class="s2">&quot;active_on_both_axes&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">})</span>
+
+<div class="viewcode-block" id="Newport_AG_UC8_Channel.write">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Newport.html#qcodes_contrib_drivers.drivers.Newport.AG_UC8.Newport_AG_UC8_Channel.write">[docs]</a>
+    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmd</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">write_channel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_channel_number</span><span class="p">,</span> <span class="n">cmd</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Newport_AG_UC8_Channel.ask">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Newport.html#qcodes_contrib_drivers.drivers.Newport.AG_UC8.Newport_AG_UC8_Channel.ask">[docs]</a>
+    <span class="k">def</span> <span class="nf">ask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmd</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">ask_channel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_channel_number</span><span class="p">,</span> <span class="n">cmd</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="Newport_AG_UC8">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Newport.html#qcodes_contrib_drivers.drivers.Newport.AG_UC8.Newport_AG_UC8">[docs]</a>
+<span class="k">class</span> <span class="nc">Newport_AG_UC8</span><span class="p">(</span><span class="n">VisaInstrument</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    QCoDeS driver for the Newport AGILIS AG-UC8 Piezo Stepper Controller.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        name (str): name of the instrument.</span>
+
+<span class="sd">        address (str): VISA string describing the serial port,</span>
+<span class="sd">            for example &quot;ASRL3&quot; for COM3.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># By default, expect response to command within 1 second.</span>
+    <span class="n">default_timeout</span> <span class="o">=</span> <span class="mf">1.0</span>
+
+    <span class="c1"># Some commands (position measurement and absolute move) can take</span>
+    <span class="c1"># up to 2 minutes to complete.</span>
+    <span class="n">slow_command_timeout</span> <span class="o">=</span> <span class="mf">120.0</span>
+
+    <span class="c1"># After a command which does not generate a response, a short</span>
+    <span class="c1"># delay is needed before we can send the following command.</span>
+    <span class="n">command_delay</span> <span class="o">=</span> <span class="mf">0.002</span>
+
+    <span class="c1"># After a reset command, a longer delay is needed before</span>
+    <span class="c1"># we can send the following command.</span>
+    <span class="n">reset_delay</span> <span class="o">=</span> <span class="mf">0.05</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">address</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Opening Newport_AG_UC8 at </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">address</span><span class="p">)</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span>
+                         <span class="n">address</span><span class="p">,</span>
+                         <span class="n">timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">default_timeout</span><span class="p">,</span>
+                         <span class="n">terminator</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\r\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">visa_handle</span><span class="p">,</span> <span class="n">SerialInstrument</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">visa_handle</span><span class="o">.</span><span class="n">baud_rate</span> <span class="o">=</span> <span class="mi">912600</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_current_channel</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="n">channels</span> <span class="o">=</span> <span class="p">[</span><span class="n">Newport_AG_UC8_Channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_number</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">channel_number</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="o">+</span><span class="mi">1</span><span class="p">)]</span>
+
+        <span class="n">channel_list</span> <span class="o">=</span> <span class="n">ChannelList</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                   <span class="s2">&quot;channels&quot;</span><span class="p">,</span>
+                                   <span class="n">Newport_AG_UC8_Channel</span><span class="p">,</span>
+                                   <span class="n">channels</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_submodule</span><span class="p">(</span><span class="s2">&quot;channels&quot;</span><span class="p">,</span> <span class="n">channel_list</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_function</span><span class="p">(</span><span class="s2">&quot;reset&quot;</span><span class="p">,</span>
+                          <span class="n">call_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">reset</span><span class="p">,</span>
+                          <span class="n">args</span><span class="o">=</span><span class="p">())</span>
+
+        <span class="c1"># Set controller in remote mode (otherwise many commands don&#39;t work).</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;MR&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Newport_AG_UC8.get_last_error">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Newport.html#qcodes_contrib_drivers.drivers.Newport.AG_UC8.Newport_AG_UC8.get_last_error">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_last_error</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Send a TE command (get error of previous command) and return</span>
+<span class="sd">        a numerical error code.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            int: Error code for previous command.</span>
+<span class="sd">            Value 0 means no error (success).</span>
+<span class="sd">            See global table ERROR_CODES for the meaning of the codes.</span>
+
+<span class="sd">        This function is called automatically after each command sent</span>
+<span class="sd">        to the device. When a command results in error, exception</span>
+<span class="sd">        Newport_AG_UC8_ErrorCode is raised.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">resp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s1">&#39;TE&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">resp</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;TE&quot;</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">resp</span><span class="o">.</span><span class="n">strip</span><span class="p">()[</span><span class="mi">2</span><span class="p">:])</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="c1"># Parsing error code failed.</span>
+                <span class="c1"># Ignore the error here, we will report it below.</span>
+                <span class="k">pass</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Unexpected response to TE command: </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">resp</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">Newport_AG_UC8_Exception</span><span class="p">(</span><span class="s2">&quot;Unexpected response to TE command: </span><span class="si">%r</span><span class="s2">&quot;</span>
+                                       <span class="o">%</span> <span class="n">resp</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Newport_AG_UC8.reset">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Newport.html#qcodes_contrib_drivers.drivers.Newport.AG_UC8.Newport_AG_UC8.reset">[docs]</a>
+    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Reset the motor controller.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_current_channel</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="c1"># Send reset command.</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;RS&quot;</span><span class="p">)</span>
+        <span class="c1"># Sleep until reset completed.</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reset_delay</span><span class="p">)</span>
+        <span class="c1"># Switch controller to remote mode (many commands require remote mode).</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;MR&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Newport_AG_UC8.get_idn">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Newport.html#qcodes_contrib_drivers.drivers.Newport.AG_UC8.Newport_AG_UC8.get_idn">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_idn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+        <span class="n">resp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s2">&quot;VE&quot;</span><span class="p">)</span>
+        <span class="n">words</span> <span class="o">=</span> <span class="n">resp</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">words</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">model</span> <span class="o">=</span> <span class="n">words</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">version</span> <span class="o">=</span> <span class="n">words</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Unexpected response to VE command: </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">resp</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">Newport_AG_UC8_Exception</span><span class="p">(</span>
+                <span class="s2">&quot;Unexpected response to VE command: </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">resp</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;vendor&quot;</span><span class="p">:</span> <span class="s2">&quot;Newport&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;model&quot;</span><span class="p">:</span> <span class="n">model</span><span class="p">,</span>
+                <span class="s2">&quot;firmware&quot;</span><span class="p">:</span> <span class="n">version</span><span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="Newport_AG_UC8.write">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Newport.html#qcodes_contrib_drivers.drivers.Newport.AG_UC8.Newport_AG_UC8.write">[docs]</a>
+    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmd</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Send command.</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+        <span class="c1"># Sleep until command completed.</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">command_delay</span><span class="p">)</span>
+        <span class="c1"># Check if command produced an error.</span>
+        <span class="n">err</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_last_error</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">err</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Command </span><span class="si">%s</span><span class="s2"> failed with error </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">err</span><span class="p">))</span>
+            <span class="k">raise</span> <span class="n">Newport_AG_UC8_ErrorCode</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">err</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_select_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_number</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Make sure the specified channel is selected.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_current_channel</span> <span class="o">!=</span> <span class="n">channel_number</span><span class="p">:</span>
+            <span class="c1"># Switch to channel.</span>
+            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;CC</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">channel_number</span><span class="p">)</span>
+            <span class="c1"># Sleep until change channel command completed.</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">command_delay</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_current_channel</span> <span class="o">=</span> <span class="n">channel_number</span>
+
+<div class="viewcode-block" id="Newport_AG_UC8.write_channel">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Newport.html#qcodes_contrib_drivers.drivers.Newport.AG_UC8.Newport_AG_UC8.write_channel">[docs]</a>
+    <span class="k">def</span> <span class="nf">write_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_number</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">cmd</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Select specified channel, then apply specified command.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_select_channel</span><span class="p">(</span><span class="n">channel_number</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Newport_AG_UC8.ask_channel">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Newport.html#qcodes_contrib_drivers.drivers.Newport.AG_UC8.Newport_AG_UC8.ask_channel">[docs]</a>
+    <span class="k">def</span> <span class="nf">ask_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_number</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">cmd</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Select specified channel, then apply specified query</span>
+<span class="sd">        and return response.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_select_channel</span><span class="p">(</span><span class="n">channel_number</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, QCoDeS Users.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

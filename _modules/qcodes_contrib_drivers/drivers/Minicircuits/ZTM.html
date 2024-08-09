@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>qcodes_contrib_drivers.drivers.Minicircuits.ZTM &mdash; qcodes_contrib_drivers 0.23.0.dev36+main.g4e2ee8f documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../_static/documentation_options.js?v=fc3c8481"></script>
+        <script src="../../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            qcodes_contrib_drivers
+          </a>
+              <div class="version">
+                0.23.0.dev36+main.g4e2ee8f
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples/index.html">Examples of how to use drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/generated/qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">qcodes_contrib_drivers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">qcodes_contrib_drivers.drivers.Minicircuits.ZTM</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for qcodes_contrib_drivers.drivers.Minicircuits.ZTM</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
+
+<span class="kn">from</span> <span class="nn">qcodes</span> <span class="kn">import</span> <span class="n">validators</span> <span class="k">as</span> <span class="n">vals</span>
+<span class="kn">from</span> <span class="nn">qcodes.instrument</span> <span class="kn">import</span> <span class="n">ChannelList</span><span class="p">,</span> <span class="n">InstrumentChannel</span><span class="p">,</span> <span class="n">IPInstrument</span>
+
+<div class="viewcode-block" id="MiniCircuitsModule">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Minicircuits.html#qcodes_contrib_drivers.drivers.Minicircuits.ZTM.MiniCircuitsModule">[docs]</a>
+<span class="k">class</span> <span class="nc">MiniCircuitsModule</span><span class="p">(</span><span class="n">InstrumentChannel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The `MiniCircuitsModule` class is a parent class for all the MiniCircuits modules. It provides the basic functionality for the modules.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">:</span> <span class="n">IPInstrument</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">module_address</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">module_address</span> <span class="o">=</span> <span class="n">module_address</span>
+        <span class="c1"># Additional initialization code and parameters for individual modules go here</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_parse_response</span><span class="p">(</span><span class="n">response</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parse the response string from the instrument to an integer.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            response: response string from the instrument</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Parsed integer value</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span></div>
+
+
+
+<div class="viewcode-block" id="SPDTModule">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Minicircuits.html#qcodes_contrib_drivers.drivers.Minicircuits.ZTM.SPDTModule">[docs]</a>
+<span class="k">class</span> <span class="nc">SPDTModule</span><span class="p">(</span><span class="n">MiniCircuitsModule</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The `SPDTModule` class represents a single-pole double-throw (SPDT) switch module. It provides the functionality to get and set the state of the SPDT switch.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">:</span> <span class="n">IPInstrument</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">module_address</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">module_address</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="s2">&quot;state&quot;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="s2">&quot;:SPDT:</span><span class="si">{}</span><span class="s2">:STATE?&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">module_address</span><span class="p">),</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s2">&quot;:SPDT:</span><span class="si">{}</span><span class="s2">:STATE:</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">module_address</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">),</span>
+            <span class="n">get_parser</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_parse_response</span><span class="p">,</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Ints</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+            <span class="n">docstring</span><span class="o">=</span><span class="s2">&quot;State of the SPDT switch&quot;</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SP4TModule">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Minicircuits.html#qcodes_contrib_drivers.drivers.Minicircuits.ZTM.SP4TModule">[docs]</a>
+<span class="k">class</span> <span class="nc">SP4TModule</span><span class="p">(</span><span class="n">MiniCircuitsModule</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The `SP4TModule` class represents a single-pole four-throw (SP4T) switch module. It provides the functionality to get and set the state of the SP4T switch.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">:</span> <span class="n">IPInstrument</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">module_address</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">module_address</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="s2">&quot;state&quot;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="s2">&quot;:SP4T:</span><span class="si">{}</span><span class="s2">:STATE?&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">module_address</span><span class="p">),</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s2">&quot;:SP4T:</span><span class="si">{}</span><span class="s2">:STATE:</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">module_address</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">),</span>
+            <span class="n">get_parser</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_parse_response</span><span class="p">,</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Ints</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span>
+            <span class="n">docstring</span><span class="o">=</span><span class="s2">&quot;State of the SP4T switch&quot;</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SP6TModule">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Minicircuits.html#qcodes_contrib_drivers.drivers.Minicircuits.ZTM.SP6TModule">[docs]</a>
+<span class="k">class</span> <span class="nc">SP6TModule</span><span class="p">(</span><span class="n">MiniCircuitsModule</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The `SP6TModule` class represents a single-pole six-throw (SP6T) switch module. It provides the functionality to get and set the state of the SP6T switch.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">:</span> <span class="n">IPInstrument</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">module_address</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">module_address</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="s2">&quot;state&quot;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="s2">&quot;:SP6T:</span><span class="si">{}</span><span class="s2">:STATE?&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">module_address</span><span class="p">),</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s2">&quot;:SP6T:</span><span class="si">{}</span><span class="s2">:STATE:</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">module_address</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">),</span>
+            <span class="n">get_parser</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_parse_response</span><span class="p">,</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Ints</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span>
+            <span class="n">docstring</span><span class="o">=</span><span class="s2">&quot;State of the SP6T switch&quot;</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SP8TModule">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Minicircuits.html#qcodes_contrib_drivers.drivers.Minicircuits.ZTM.SP8TModule">[docs]</a>
+<span class="k">class</span> <span class="nc">SP8TModule</span><span class="p">(</span><span class="n">MiniCircuitsModule</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The `SP8TModule` class represents a single-pole eight-throw (SP8T) switch module. It provides the functionality to get and set the state of the SP8T switch.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">:</span> <span class="n">IPInstrument</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">module_address</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">module_address</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="s2">&quot;state&quot;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="s2">&quot;:SP8T:</span><span class="si">{}</span><span class="s2">:STATE?&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">module_address</span><span class="p">),</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s2">&quot;:SP8T:</span><span class="si">{}</span><span class="s2">:STATE:</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">module_address</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">),</span>
+            <span class="n">get_parser</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_parse_response</span><span class="p">,</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Ints</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span>
+            <span class="n">docstring</span><span class="o">=</span><span class="s2">&quot;State of the SP8T switch&quot;</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DualSPDTModule">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Minicircuits.html#qcodes_contrib_drivers.drivers.Minicircuits.ZTM.DualSPDTModule">[docs]</a>
+<span class="k">class</span> <span class="nc">DualSPDTModule</span><span class="p">(</span><span class="n">MiniCircuitsModule</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The `DualSPDTModule` class represents a dual single-pole double-throw (SPDT) switch module. It provides the functionality to get and set the state of both SPDT switches.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">:</span> <span class="n">IPInstrument</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">module_address</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">module_address</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">switch</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;A&#39;</span><span class="p">,</span> <span class="s1">&#39;B&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;state_</span><span class="si">{</span><span class="n">switch</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="n">get_cmd</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;:SPDT:</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">module_address</span><span class="si">}{</span><span class="n">switch</span><span class="si">}</span><span class="s2">:STATE?&quot;</span><span class="p">,</span>
+                <span class="n">set_cmd</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;:SPDT:</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">module_address</span><span class="si">}{</span><span class="n">switch</span><span class="si">}</span><span class="s2">:STATE:</span><span class="se">{{}}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="n">get_parser</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_parse_response</span><span class="p">,</span>
+                <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Ints</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+                <span class="n">docstring</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;State of the Dual SPDT switch </span><span class="si">{</span><span class="n">switch</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="MTSModule">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Minicircuits.html#qcodes_contrib_drivers.drivers.Minicircuits.ZTM.MTSModule">[docs]</a>
+<span class="k">class</span> <span class="nc">MTSModule</span><span class="p">(</span><span class="n">MiniCircuitsModule</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The `MTSModule` class represents a multi-throw switch (MTS) module. It provides the functionality to get and set the state of the MTS switch.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">:</span> <span class="n">IPInstrument</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">module_address</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">module_address</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="s2">&quot;state&quot;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="s2">&quot;:MTS:</span><span class="si">{}</span><span class="s2">:STATE?&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">module_address</span><span class="p">),</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s2">&quot;:MTS:</span><span class="si">{}</span><span class="s2">:STATE:</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">module_address</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">),</span>
+            <span class="n">get_parser</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_parse_response</span><span class="p">,</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Ints</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+            <span class="n">docstring</span><span class="o">=</span><span class="s2">&quot;State of the MTS switch&quot;</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DualMTSModule">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Minicircuits.html#qcodes_contrib_drivers.drivers.Minicircuits.ZTM.DualMTSModule">[docs]</a>
+<span class="k">class</span> <span class="nc">DualMTSModule</span><span class="p">(</span><span class="n">MiniCircuitsModule</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The `DualMTSModule` class represents a dual multi-throw switch (MTS) module. It provides the functionality to get and set the state of both MTS switches.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">:</span> <span class="n">IPInstrument</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">module_address</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">module_address</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">switch</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;A&#39;</span><span class="p">,</span> <span class="s1">&#39;B&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;state_</span><span class="si">{</span><span class="n">switch</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="n">get_cmd</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;:MTS:</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">module_address</span><span class="si">}{</span><span class="n">switch</span><span class="si">}</span><span class="s2">:STATE?&quot;</span><span class="p">,</span>
+                <span class="n">set_cmd</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;:MTS:</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">module_address</span><span class="si">}{</span><span class="n">switch</span><span class="si">}</span><span class="s2">:STATE:</span><span class="se">{{}}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="n">get_parser</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_parse_response</span><span class="p">,</span>
+                <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Ints</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+                <span class="n">docstring</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;State of the Dual MTS switch </span><span class="si">{</span><span class="n">switch</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="AmplifierModule">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Minicircuits.html#qcodes_contrib_drivers.drivers.Minicircuits.ZTM.AmplifierModule">[docs]</a>
+<span class="k">class</span> <span class="nc">AmplifierModule</span><span class="p">(</span><span class="n">MiniCircuitsModule</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The `AmplifierModule` class represents an amplifier module. It provides the functionality to get and set the state of the amplifier.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">:</span> <span class="n">IPInstrument</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">module_address</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">module_address</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+            <span class="s2">&quot;state&quot;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;:AMP:</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">module_address</span><span class="si">}</span><span class="s2">:STATE?&quot;</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;:AMP:</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">module_address</span><span class="si">}</span><span class="s2">:STATE:</span><span class="se">{{}}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">get_parser</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_parse_response</span><span class="p">,</span>
+            <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Ints</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="n">docstring</span><span class="o">=</span><span class="s2">&quot;State of the amplifier&quot;</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="MiniCircuitsModularSystem">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Minicircuits.html#qcodes_contrib_drivers.drivers.Minicircuits.ZTM.MiniCircuitsModularSystem">[docs]</a>
+<span class="k">class</span> <span class="nc">MiniCircuitsModularSystem</span><span class="p">(</span><span class="n">IPInstrument</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The `MiniCircuitsModularSystem` class represents a MiniCircuits modular system connected via ethernet. It provides the functionality to initialize the modules based on the configuration received from the instrument.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        name: the name of the instrument</span>
+<span class="sd">        address: ip address ie &quot;10.0.0.1&quot;</span>
+<span class="sd">        port: port to connect to default Telnet:23</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        # Import the required module</span>
+<span class="sd">        from qcodes.instrument_drivers.MiniCircuitsModularSystem import MiniCircuitsModularSystem</span>
+
+<span class="sd">        # Initialize the MiniCircuitsModularSystem</span>
+<span class="sd">        mini_circuits = MiniCircuitsModularSystem(&#39;MiniCircuits&#39;, &#39;10.0.0.1&#39;, 23)</span>
+
+<span class="sd">        # Access the SP6T module</span>
+<span class="sd">        sp6t_module = mini_circuits.module_1  # assuming the SP6T module is the first module</span>
+
+<span class="sd">        # Set the state of the SP6T module</span>
+<span class="sd">        sp6t_module.state(3)  # set the state to 3</span>
+
+<span class="sd">        # Get the state of the SP6T module</span>
+<span class="sd">        print(sp6t_module.state())  # prints the current state of the SP6T module</span>
+
+<span class="sd">        # Access the DualMTSModule</span>
+<span class="sd">        dual_mts_module = mini_circuits.module_2  # assuming the DualMTSModule is the second module</span>
+
+<span class="sd">        # Set the state of the DualMTSModule</span>
+<span class="sd">        dual_mts_module.state_A(1)  # set the state of switch A to 1</span>
+<span class="sd">        dual_mts_module.state_B(2)  # set the state of switch B to 2</span>
+
+<span class="sd">        # Get the state of the DualMTSModule</span>
+<span class="sd">        print(dual_mts_module.state_A())  # prints the current state of switch A</span>
+<span class="sd">        print(dual_mts_module.state_B())  # prints the current state of switch B</span>
+
+<span class="sd">        # Access the AmplifierModule</span>
+<span class="sd">        amplifier_module = mini_circuits.module_3  # assuming the AmplifierModule is the third module</span>
+
+<span class="sd">        # Set the state of the AmplifierModule</span>
+<span class="sd">        amplifier_module.state(1)  # turn on the amplifier</span>
+
+<span class="sd">        # Get the state of the AmplifierModule</span>
+<span class="sd">        print(amplifier_module.state())  # prints the current state of the amplifier</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">address</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">port</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">23</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">address</span><span class="p">,</span> <span class="n">port</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flush_connection</span><span class="p">()</span>
+
+        <span class="n">modules</span> <span class="o">=</span> <span class="n">ChannelList</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;Modules&quot;</span><span class="p">,</span> <span class="n">MiniCircuitsModule</span><span class="p">,</span> <span class="n">snapshotable</span><span class="o">=</span><span class="kc">False</span>
+        <span class="p">)</span>
+
+        <span class="n">config</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s2">&quot;:CONFIG:APP?&quot;</span><span class="p">)</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;=&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+        <span class="n">module_codes</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">code</span><span class="p">)</span> <span class="k">for</span> <span class="n">code</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;;&quot;</span><span class="p">)]</span>
+
+        <span class="n">module</span><span class="p">:</span> <span class="n">MiniCircuitsModule</span>  <span class="c1"># Declare module variable as MiniCircuitsModule type</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">module_code</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">module_codes</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">module_code</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">module</span> <span class="o">=</span> <span class="n">SPDTModule</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;module_</span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">module_code</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+                <span class="n">module</span> <span class="o">=</span> <span class="n">DualSPDTModule</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;module_</span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">module_code</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+                <span class="n">module</span> <span class="o">=</span> <span class="n">SP4TModule</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;module_</span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">module_code</span> <span class="o">==</span> <span class="mi">5</span> <span class="ow">or</span> <span class="n">module_code</span> <span class="o">==</span> <span class="mi">55</span><span class="p">:</span>
+                <span class="n">module</span> <span class="o">=</span> <span class="n">MTSModule</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;module_</span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">module_code</span> <span class="o">==</span> <span class="mi">7</span> <span class="ow">or</span> <span class="n">module_code</span> <span class="o">==</span> <span class="mi">57</span><span class="p">:</span>
+                <span class="n">module</span> <span class="o">=</span> <span class="n">DualMTSModule</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;module_</span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">module_code</span> <span class="o">==</span> <span class="mi">11</span> <span class="ow">or</span> <span class="n">module_code</span> <span class="o">==</span> <span class="mi">13</span><span class="p">:</span>
+                <span class="n">module</span> <span class="o">=</span> <span class="n">SP6TModule</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;module_</span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">module_code</span> <span class="o">==</span> <span class="mi">12</span><span class="p">:</span>
+                <span class="n">module</span> <span class="o">=</span> <span class="n">SP8TModule</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;module_</span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">module_code</span> <span class="o">==</span> <span class="mi">20</span><span class="p">:</span>
+                <span class="n">module</span> <span class="o">=</span> <span class="n">AmplifierModule</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;module_</span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Module type with a code </span><span class="si">{module_codes}</span><span class="s1"> is not implemented.&#39;</span><span class="p">)</span>
+                <span class="k">continue</span>
+                <span class="n">module</span> <span class="o">=</span> <span class="n">MiniCircuitsModule</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;module_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+
+            <span class="n">modules</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">module</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_submodule</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;module_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">module</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_submodule</span><span class="p">(</span><span class="s2">&quot;modules&quot;</span><span class="p">,</span> <span class="n">modules</span><span class="o">.</span><span class="n">to_channel_tuple</span><span class="p">())</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect_message</span><span class="p">()</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, QCoDeS Users.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

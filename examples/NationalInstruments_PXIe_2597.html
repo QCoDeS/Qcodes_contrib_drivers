@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Qcodes example for National Instruments PXIe-2597 RF Switch &mdash; qcodes_contrib_drivers 0.23.0.dev36+main.g4e2ee8f documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/documentation_options.js?v=fc3c8481"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+        <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Qcodes example with the NI RFSG signal generator driver" href="NationalInstruments_RFSG.html" />
+    <link rel="prev" title="National Instruments Multifunction DAQ example" href="NationalInstruments_DAQ.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            qcodes_contrib_drivers
+          </a>
+              <div class="version">
+                0.23.0.dev36+main.g4e2ee8f
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Examples of how to use drivers</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Agilent_N9000A.html">Example with the Agilent N9000A</a></li>
+<li class="toctree-l2"><a class="reference internal" href="AimTTi_EL320P.html">Example notebook for AimTTi EL320P</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Andor_DU401.html">Qcodes example with Andor DU401 BU2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Attocube_ANC300.html">QCoDeS example with Attocube ANC300</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Aviosys_IP_Power_9258S.html">Qcodes example with Aviosys IP Power 9258S</a></li>
+<li class="toctree-l2"><a class="reference internal" href="BlueFors.html">Example with the BlueFors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CopperMountain_M5180.html">Example with CopperMountain Model M5180 vector network analyzer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CopperMountain_M5180.html#Setup-db-and-station-for-test-measurerment">Setup db and station for test measurerment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CopperMountain_M5180.html#Look-at-the-names-and-the-labels-of-the-Sxx-parameters">Look at the names and the labels of the Sxx parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ERASynth.html">Example with ERASynth</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Gentec_Maestro.html">QCoDeS Example with Gentec Maestro</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Holzworth_HS900.html">Example notebook for the Holzworth HS900B RF synthesizer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Horiba_FHR.html">Example for Horiba FHR</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ITest.html">Example with the iTest from Bilt</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Keithley_6430.html">Example notebook for Keithley 6430 SMU</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Keithley_6430.html#Measure-resistance-of-a-~100k\Omega-resistor">Measure resistance of a ~100k<span class="math notranslate nohighlight">\(\Omega\)</span> resistor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Keysight_M3202A.html">Keysight M3202A AWG</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Keysight_M3202A%20with%20digitizer.html">Keysight M3202A AWG example with digitizer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Lakeshore_311.html">Qcodes example with Lakeshore 311</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Lakeshore_625.html">Example with Lakeshore Model 625 Superconducting Magnet power supply</a></li>
+<li class="toctree-l2"><a class="reference internal" href="NationalInstruments_DAQ.html">National Instruments Multifunction DAQ example</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Qcodes example for National Instruments PXIe-2597 RF Switch</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#Connect-different-channels-on-the-switch">Connect different channels on the switch</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Aliasing-channel-names">Aliasing channel names</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Print-a-snapshot">Print a snapshot</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="NationalInstruments_RFSG.html">Qcodes example with the NI RFSG signal generator driver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Newport_AG-UC8.html">QCoDeS Example with Newport AG-UC8 Piezo Motion Controller</a></li>
+<li class="toctree-l2"><a class="reference internal" href="OxfordTriton.html">Example of the oxford triton driver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Rohde_Schwarz_HMC8043.html">QCoDeS Example with R&amp;S HMC 8043 Power Supply</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Rohde_Schwarz_HMP4040.html">QCoDeS Example with R&amp;S HMP4040 Power Supply</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Rohde_Schwarz_SMW200A.html">QCoDeS example with Rohe&amp;Schwarz SMW200A</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SR844.html">Changing the Sensitivity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SR844.html#Preparing-for-reading-the-buffer-and-measurement">Preparing for reading the buffer and measurement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Shamrock_SR750.html">Qcodes example with Shamrock SR750</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SignalCore.html">Example with the microwave source SC5521A from Signal Core</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SignalCore.html#Device-connection">Device connection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SignalCore.html#Set-parameters">Set parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SignalRecovery_7270.html">Example of Signal Recovery 7270 driver usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SingleQuantum.html">Example for Single Quantum SNSPD</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Standa_10MWA168.html">Qcodes example with Standa 10MWA168</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Tektronix_AFG3000_series.html">Tektronix AFG3000 series arbitrary function generator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Tektronix_FCA3100.html">overview over all parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Tektronix_FCA3100.html#Usage-of-the-two-main-parameters">Usage of the two main parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Tektronix_Keithley_6500.html">QCoDeS Example with Tektronix Keithley Digital Multimeter DMM6500</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Thorlabs_K10CR1.html">Qcodes example with Thorlabs K10CR1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Thorlabs_KLS1550.html">QCoDeS example with Thorlabs KLS1550 laser source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Thorlabs_MFF10x.html">Qcodes example with Thorlabs MFF10x</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Thorlabs_PRM1Z8.html">Qcodes example with Thorlabs PRM1Z8</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Valon_5015.html">QCoDeS example with Valon 5015</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Vaunix_LDA.html">Qcodes example for Vaunix LDA step attenuator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Vaunix_LDA.html#Model-with-many-channels">Model with many channels</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ZVL13.html">Rohde &amp; Schwarz ZVL13 Vector Network Analyzer example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ZVL13.html#Parameters-definition">Parameters definition</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ZurichInstruments_HF2LI.html">Zurich Instruments HF2LI example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="QDevil/index.html">QDevil drivers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HP/HP8594E.html">QCoDeS Example with HP8594E</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../api/generated/qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">qcodes_contrib_drivers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Examples of how to use drivers</a></li>
+      <li class="breadcrumb-item active">Qcodes example for National Instruments PXIe-2597 RF Switch</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/examples/NationalInstruments_PXIe_2597.ipynb.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="Qcodes-example-for-National-Instruments-PXIe-2597-RF-Switch">
+<h1>Qcodes example for National Instruments PXIe-2597 RF Switch<a class="headerlink" href="#Qcodes-example-for-National-Instruments-PXIe-2597-RF-Switch" title="Link to this heading">¶</a></h1>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">qcodes_contrib_drivers.drivers.NationalInstruments.PXIe_2597</span> <span class="kn">import</span> <span class="n">NI_PXIe_2597</span>
+</pre></div>
+</div>
+</div>
+<p>The PXIe-2597 has a multiplexer configuration. It connects the common <code class="docutils literal notranslate"><span class="pre">com</span></code> port to one of 6 ports. Default channel names are <code class="docutils literal notranslate"><span class="pre">&quot;ch#&quot;</span></code>. We connect to the device using the VISA alias <code class="docutils literal notranslate"><span class="pre">RF_switch</span></code> assigned in NI MAX.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">dev</span> <span class="o">=</span> <span class="n">NI_PXIe_2597</span><span class="p">(</span><span class="s2">&quot;Switch&quot;</span><span class="p">,</span> <span class="n">resource</span><span class="o">=</span><span class="s2">&quot;RF_switch&quot;</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;All channels:&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">ch</span><span class="o">.</span><span class="n">short_name</span> <span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="n">dev</span><span class="o">.</span><span class="n">channels</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Initially connected to:&#39;</span><span class="p">,</span>  <span class="n">dev</span><span class="o">.</span><span class="n">channel</span><span class="p">())</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Connected to: National Instruments PXI-2597 (serial:1DBFD38, firmware:Not Available) in 6.85s
+All channels: [&#39;ch1&#39;, &#39;ch2&#39;, &#39;ch3&#39;, &#39;ch4&#39;, &#39;ch5&#39;, &#39;ch6&#39;, &#39;com&#39;]
+Initially connected to: ch3
+</pre></div></div>
+</div>
+<section id="Connect-different-channels-on-the-switch">
+<h2>Connect different channels on the switch<a class="headerlink" href="#Connect-different-channels-on-the-switch" title="Link to this heading">¶</a></h2>
+<p>The main way of connecting channels is the <code class="docutils literal notranslate"><span class="pre">channel</span></code> parameter.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">dev</span><span class="o">.</span><span class="n">channel</span><span class="p">(</span><span class="s2">&quot;ch3&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Now connected to:&#39;</span><span class="p">,</span> <span class="n">dev</span><span class="o">.</span><span class="n">channel</span><span class="p">())</span>
+
+<span class="c1"># disconnect by setting to None</span>
+<span class="n">dev</span><span class="o">.</span><span class="n">channel</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Now connected to:&#39;</span><span class="p">,</span> <span class="n">dev</span><span class="o">.</span><span class="n">channel</span><span class="p">())</span>
+
+<span class="n">dev</span><span class="o">.</span><span class="n">channel</span><span class="p">(</span><span class="s2">&quot;ch1&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Now connected to:&#39;</span><span class="p">,</span> <span class="n">dev</span><span class="o">.</span><span class="n">channel</span><span class="p">())</span>
+
+<span class="c1"># or by using disconnect_all</span>
+<span class="n">dev</span><span class="o">.</span><span class="n">disconnect_all</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Now connected to:&#39;</span><span class="p">,</span> <span class="n">dev</span><span class="o">.</span><span class="n">channel</span><span class="p">())</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Now connected to: ch3
+Now connected to: None
+Now connected to: ch1
+Now connected to: None
+</pre></div></div>
+</div>
+<p>Channels may be also connected using their <code class="docutils literal notranslate"><span class="pre">connect_to</span></code> method, although it doesn’t make much sense for the PXI-2597, which can have one connection at a time anyway.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">dev</span><span class="o">.</span><span class="n">channels</span><span class="o">.</span><span class="n">ch1</span><span class="o">.</span><span class="n">connect_to</span><span class="p">(</span><span class="n">dev</span><span class="o">.</span><span class="n">channels</span><span class="o">.</span><span class="n">com</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Connected to:&quot;</span><span class="p">,</span> <span class="n">dev</span><span class="o">.</span><span class="n">channel</span><span class="p">())</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Connected to: ch1
+</pre></div></div>
+</div>
+<p>You can check which channels are connected to which using the <code class="docutils literal notranslate"><span class="pre">connections</span></code> parameter of a channel. Disconnected channels return an empty list.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">dev</span><span class="o">.</span><span class="n">channel</span><span class="p">(</span><span class="s2">&quot;ch1&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;ch1 is connected to&quot;</span><span class="p">,</span> <span class="n">dev</span><span class="o">.</span><span class="n">channels</span><span class="o">.</span><span class="n">ch1</span><span class="o">.</span><span class="n">connections</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;com is connected to&quot;</span><span class="p">,</span> <span class="n">dev</span><span class="o">.</span><span class="n">channels</span><span class="o">.</span><span class="n">com</span><span class="o">.</span><span class="n">connections</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;ch2 is connected to&quot;</span><span class="p">,</span> <span class="n">dev</span><span class="o">.</span><span class="n">channels</span><span class="o">.</span><span class="n">ch2</span><span class="o">.</span><span class="n">connections</span><span class="p">())</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+ch1 is connected to [&#39;com&#39;]
+com is connected to [&#39;ch1&#39;]
+ch2 is connected to []
+</pre></div></div>
+</div>
+</section>
+<section id="Aliasing-channel-names">
+<h2>Aliasing channel names<a class="headerlink" href="#Aliasing-channel-names" title="Link to this heading">¶</a></h2>
+<p>You may also provide a dict of aliases for more memorable channel names. This can be also set up in the station YAML file. Note that if you want to use the channel as a setpoint in a measurement, it should be a valid Python identifier (unlike in the example below). The <code class="docutils literal notranslate"><span class="pre">com</span></code> port cannot be aliased.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">name_mapping</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;ch1&#39;</span><span class="p">:</span> <span class="s1">&#39;Main channel&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;ch3&#39;</span><span class="p">:</span> <span class="s1">&#39;Qubit channel&#39;</span><span class="p">}</span>
+
+<span class="n">dev</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+<span class="n">dev</span> <span class="o">=</span> <span class="n">NI_PXIe_2597</span><span class="p">(</span><span class="s2">&quot;Switch&quot;</span><span class="p">,</span> <span class="n">resource</span><span class="o">=</span><span class="s2">&quot;RF_switch&quot;</span><span class="p">,</span>
+                   <span class="n">name_mapping</span><span class="o">=</span><span class="n">name_mapping</span><span class="p">)</span>
+
+<span class="n">dev</span><span class="o">.</span><span class="n">channel</span><span class="p">(</span><span class="s1">&#39;Main channel&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Now connected to:&#39;</span><span class="p">,</span> <span class="n">dev</span><span class="o">.</span><span class="n">channel</span><span class="p">())</span>
+
+<span class="n">dev</span><span class="o">.</span><span class="n">channel</span><span class="p">(</span><span class="s1">&#39;Qubit channel&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Now connected to:&#39;</span><span class="p">,</span> <span class="n">dev</span><span class="o">.</span><span class="n">channel</span><span class="p">())</span>
+
+<span class="c1"># non-existent channel throws an error</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">dev</span><span class="o">.</span><span class="n">channel</span><span class="p">(</span><span class="s1">&#39;Undefined channel&#39;</span><span class="p">)</span>
+<span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Connected to: National Instruments PXI-2597 (serial:1DBFD38, firmware:Not Available) in 2.28s
+Now connected to: Main channel
+Now connected to: Qubit channel
+(&#34;&#39;Undefined channel&#39; is not in {&#39;ch5&#39;, &#39;ch2&#39;, &#39;ch4&#39;, &#39;Qubit channel&#39;, None, &#39;ch6&#39;, &#39;Main channel&#39;}; Parameter: Switch.channel&#34;, &#39;setting Switch_channel to Undefined channel&#39;)
+</pre></div></div>
+</div>
+</section>
+<section id="Print-a-snapshot">
+<h2>Print a snapshot<a class="headerlink" href="#Print-a-snapshot" title="Link to this heading">¶</a></h2>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">dev</span><span class="o">.</span><span class="n">print_readable_snapshot</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Switch:
+        parameter value
+--------------------------------------------------------------------------------
+IDN     :       {&#39;vendor&#39;: &#39;National Instruments&#39;, &#39;model&#39;: &#39;PXI-2597&#39;, &#39;serial&#39;: &#39;...
+channel :       Qubit channel
+Switch_Main channel:
+        parameter  value
+--------------------------------------------------------------------------------
+connections :   [&#39;com&#39;]
+Switch_ch2:
+        parameter  value
+--------------------------------------------------------------------------------
+connections :   []
+Switch_Qubit channel:
+        parameter  value
+--------------------------------------------------------------------------------
+connections :   []
+Switch_ch4:
+        parameter  value
+--------------------------------------------------------------------------------
+connections :   []
+Switch_ch5:
+        parameter  value
+--------------------------------------------------------------------------------
+connections :   []
+Switch_ch6:
+        parameter  value
+--------------------------------------------------------------------------------
+connections :   []
+Switch_com:
+        parameter  value
+--------------------------------------------------------------------------------
+connections :   [&#39;Main channel&#39;]
+</pre></div></div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">dev</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="NationalInstruments_DAQ.html" class="btn btn-neutral float-left" title="National Instruments Multifunction DAQ example" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="NationalInstruments_RFSG.html" class="btn btn-neutral float-right" title="Qcodes example with the NI RFSG signal generator driver" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, QCoDeS Users.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

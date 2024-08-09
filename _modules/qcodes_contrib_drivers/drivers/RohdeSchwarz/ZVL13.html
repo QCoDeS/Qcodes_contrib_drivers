@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>qcodes_contrib_drivers.drivers.RohdeSchwarz.ZVL13 &mdash; qcodes_contrib_drivers 0.23.0.dev36+main.g4e2ee8f documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../_static/documentation_options.js?v=fc3c8481"></script>
+        <script src="../../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            qcodes_contrib_drivers
+          </a>
+              <div class="version">
+                0.23.0.dev36+main.g4e2ee8f
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples/index.html">Examples of how to use drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/generated/qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">qcodes_contrib_drivers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">qcodes_contrib_drivers.drivers.RohdeSchwarz.ZVL13</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for qcodes_contrib_drivers.drivers.RohdeSchwarz.ZVL13</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">qcodes.utils.validators</span> <span class="kn">import</span> <span class="n">Enum</span><span class="p">,</span> <span class="n">Strings</span><span class="p">,</span> <span class="n">Ints</span>
+<span class="kn">from</span> <span class="nn">qcodes</span> <span class="kn">import</span> <span class="n">VisaInstrument</span><span class="p">,</span> <span class="n">Instrument</span>
+<span class="kn">from</span> <span class="nn">qcodes</span> <span class="kn">import</span> <span class="n">MultiParameter</span><span class="p">,</span> <span class="n">ArrayParameter</span>
+
+
+<span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="FrequencySweepMagPhase">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.RohdeSchwarz.html#qcodes_contrib_drivers.drivers.RohdeSchwarz.ZVL13.FrequencySweepMagPhase">[docs]</a>
+<span class="k">class</span> <span class="nc">FrequencySweepMagPhase</span><span class="p">(</span><span class="n">MultiParameter</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">instrument</span><span class="p">:</span> <span class="n">Instrument</span><span class="p">,</span>
+                 <span class="n">start</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">stop</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">npts</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">channel</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">names</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">),</span> <span class="n">shapes</span><span class="o">=</span><span class="p">((),</span> <span class="p">()),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_instrument</span> <span class="o">=</span> <span class="n">instrument</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_sweep</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">npts</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_channel</span> <span class="o">=</span> <span class="n">channel</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">names</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;magnitude&#39;</span><span class="p">,</span>
+                      <span class="s1">&#39;phase&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">labels</span> <span class="o">=</span> <span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">instrument</span><span class="o">.</span><span class="n">short_name</span><span class="si">}</span><span class="s1"> magnitude&#39;</span><span class="p">,</span>
+                       <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">instrument</span><span class="o">.</span><span class="n">short_name</span><span class="si">}</span><span class="s1"> phase&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;rad&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setpoint_units</span> <span class="o">=</span> <span class="p">((</span><span class="s1">&#39;Hz&#39;</span><span class="p">,),</span> <span class="p">(</span><span class="s1">&#39;Hz&#39;</span><span class="p">,))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setpoint_labels</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">instrument</span><span class="o">.</span><span class="n">short_name</span><span class="si">}</span><span class="s1"> frequency&#39;</span><span class="p">,),</span>
+            <span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">instrument</span><span class="o">.</span><span class="n">short_name</span><span class="si">}</span><span class="s1"> frequency&#39;</span><span class="p">,)</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setpoint_names</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">instrument</span><span class="o">.</span><span class="n">short_name</span><span class="si">}</span><span class="s1">_frequency&#39;</span><span class="p">,),</span>
+            <span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">instrument</span><span class="o">.</span><span class="n">short_name</span><span class="si">}</span><span class="s1">_frequency&#39;</span><span class="p">,)</span>
+        <span class="p">)</span>
+
+
+<div class="viewcode-block" id="FrequencySweepMagPhase.set_sweep">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.RohdeSchwarz.html#qcodes_contrib_drivers.drivers.RohdeSchwarz.ZVL13.FrequencySweepMagPhase.set_sweep">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_sweep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">stop</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">npts</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">start</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">stop</span><span class="p">),</span> <span class="n">num</span><span class="o">=</span><span class="n">npts</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setpoints</span> <span class="o">=</span> <span class="p">((</span><span class="n">f</span><span class="p">,),</span> <span class="p">(</span><span class="n">f</span><span class="p">,))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shapes</span> <span class="o">=</span> <span class="p">((</span><span class="n">npts</span><span class="p">,),</span> <span class="p">(</span><span class="n">npts</span><span class="p">,))</span></div>
+
+
+<div class="viewcode-block" id="FrequencySweepMagPhase.get_raw">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.RohdeSchwarz.html#qcodes_contrib_drivers.drivers.RohdeSchwarz.ZVL13.FrequencySweepMagPhase.get_raw">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_raw</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">old_format</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_instrument</span><span class="o">.</span><span class="n">format</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_instrument</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">&#39;Complex&#39;</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_instrument</span><span class="o">.</span><span class="n">_get_sweep_data</span><span class="p">(</span><span class="n">force_polar</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_instrument</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">old_format</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">abs</span><span class="p">(</span><span class="n">data</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">angle</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="FrequencySweep">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.RohdeSchwarz.html#qcodes_contrib_drivers.drivers.RohdeSchwarz.ZVL13.FrequencySweep">[docs]</a>
+<span class="k">class</span> <span class="nc">FrequencySweep</span><span class="p">(</span><span class="n">ArrayParameter</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">instrument</span><span class="p">:</span> <span class="n">Instrument</span><span class="p">,</span>
+                 <span class="n">start</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">stop</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">npts</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">channel</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">npts</span><span class="p">,),</span>
+                         <span class="n">instrument</span><span class="o">=</span><span class="n">instrument</span><span class="p">,</span>
+                         <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;dB&#39;</span><span class="p">,</span>
+                         <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">instrument</span><span class="o">.</span><span class="n">short_name</span><span class="si">}</span><span class="s1"> magnitude&#39;</span><span class="p">,</span>
+                         <span class="n">setpoint_units</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;Hz&#39;</span><span class="p">,),</span>
+                         <span class="n">setpoint_labels</span><span class="o">=</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">instrument</span><span class="o">.</span><span class="n">short_name</span><span class="si">}</span><span class="s1">&#39;</span>
+                                          <span class="s1">&#39; frequency&#39;</span><span class="p">,),</span>
+                         <span class="n">setpoint_names</span><span class="o">=</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">instrument</span><span class="o">.</span><span class="n">short_name</span><span class="si">}</span><span class="s1">_frequency&#39;</span><span class="p">,),</span>
+                         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+                         <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_sweep</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">npts</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_channel</span> <span class="o">=</span> <span class="n">channel</span>
+
+<div class="viewcode-block" id="FrequencySweep.set_sweep">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.RohdeSchwarz.html#qcodes_contrib_drivers.drivers.RohdeSchwarz.ZVL13.FrequencySweep.set_sweep">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_sweep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">stop</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">npts</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+
+        <span class="n">f</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">start</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">stop</span><span class="p">),</span> <span class="n">num</span><span class="o">=</span><span class="n">npts</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setpoints</span> <span class="o">=</span> <span class="p">(</span><span class="n">f</span><span class="p">,)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="n">npts</span><span class="p">,)</span></div>
+
+
+<div class="viewcode-block" id="FrequencySweep.get_raw">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.RohdeSchwarz.html#qcodes_contrib_drivers.drivers.RohdeSchwarz.ZVL13.FrequencySweep.get_raw">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_raw</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_instrument</span><span class="o">.</span><span class="n">_get_sweep_data</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_instrument</span><span class="o">.</span><span class="n">format</span><span class="p">()</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;Polar&#39;</span><span class="p">,</span> <span class="s1">&#39;Complex&#39;</span><span class="p">,</span>
+                                         <span class="s1">&#39;Smith&#39;</span><span class="p">,</span> <span class="s1">&#39;Inverse Smith&#39;</span><span class="p">]:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;QCoDeS Dataset does not currently support Complex &quot;</span>
+                        <span class="s2">&quot;values. Will discard the imaginary part. In order to &quot;</span>
+                        <span class="s2">&quot;acquire phase and amplitude use the &quot;</span>
+                        <span class="s2">&quot;FrequencySweepMagPhase parameter.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">data</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ComplexSweep">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.RohdeSchwarz.html#qcodes_contrib_drivers.drivers.RohdeSchwarz.ZVL13.ComplexSweep">[docs]</a>
+<span class="k">class</span> <span class="nc">ComplexSweep</span><span class="p">(</span><span class="n">ArrayParameter</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">instrument</span><span class="p">:</span> <span class="n">Instrument</span><span class="p">,</span>
+                 <span class="n">start</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">stop</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">npts</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">channel</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">npts</span><span class="p">,),</span>
+                         <span class="n">instrument</span><span class="o">=</span><span class="n">instrument</span><span class="p">,</span>
+                         <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;dB&#39;</span><span class="p">,</span>
+                         <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">instrument</span><span class="o">.</span><span class="n">short_name</span><span class="si">}</span><span class="s1"> magnitude&#39;</span><span class="p">,</span>
+                         <span class="n">setpoint_units</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;Hz&#39;</span><span class="p">,),</span>
+                         <span class="n">setpoint_labels</span><span class="o">=</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">instrument</span><span class="o">.</span><span class="n">short_name</span><span class="si">}</span><span class="s1">&#39;</span>
+                                          <span class="s1">&#39; frequency&#39;</span><span class="p">,),</span>
+                         <span class="n">setpoint_names</span><span class="o">=</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">instrument</span><span class="o">.</span><span class="n">short_name</span><span class="si">}</span><span class="s1">_frequency&#39;</span><span class="p">,),</span>
+                         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+                         <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_sweep</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">npts</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_channel</span> <span class="o">=</span> <span class="n">channel</span>
+
+<div class="viewcode-block" id="ComplexSweep.set_sweep">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.RohdeSchwarz.html#qcodes_contrib_drivers.drivers.RohdeSchwarz.ZVL13.ComplexSweep.set_sweep">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_sweep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">stop</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">npts</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">start</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">stop</span><span class="p">),</span> <span class="n">num</span><span class="o">=</span><span class="mi">2</span><span class="o">*</span><span class="n">npts</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setpoints</span> <span class="o">=</span> <span class="p">(</span><span class="n">f</span><span class="p">,)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">npts</span><span class="p">,)</span></div>
+
+
+<div class="viewcode-block" id="ComplexSweep.get_raw">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.RohdeSchwarz.html#qcodes_contrib_drivers.drivers.RohdeSchwarz.ZVL13.ComplexSweep.get_raw">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_raw</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_instrument</span><span class="o">.</span><span class="n">_get_sweep_data</span><span class="p">(</span><span class="n">force_polar</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_instrument</span><span class="o">.</span><span class="n">format</span><span class="p">()</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;Polar&#39;</span><span class="p">,</span> <span class="s1">&#39;Complex&#39;</span><span class="p">,</span>
+                                         <span class="s1">&#39;Smith&#39;</span><span class="p">,</span> <span class="s1">&#39;Inverse Smith&#39;</span><span class="p">]:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;QCoDeS Dataset does not currently support Complex &quot;</span>
+                        <span class="s2">&quot;values. Will discard the imaginary part. In order to &quot;</span>
+                        <span class="s2">&quot;acquire phase and amplitude use the &quot;</span>
+                        <span class="s2">&quot;FrequencySweepMagPhase parameter.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">data</span></div>
+</div>
+
+    
+
+<div class="viewcode-block" id="SAFrequencySweep">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.RohdeSchwarz.html#qcodes_contrib_drivers.drivers.RohdeSchwarz.ZVL13.SAFrequencySweep">[docs]</a>
+<span class="k">class</span> <span class="nc">SAFrequencySweep</span><span class="p">(</span><span class="n">ArrayParameter</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">instrument</span><span class="p">:</span> <span class="n">Instrument</span><span class="p">,</span>
+                 <span class="n">start</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">stop</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">npts</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">channel</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">npts</span><span class="p">,),</span>
+                         <span class="n">instrument</span><span class="o">=</span><span class="n">instrument</span><span class="p">,</span>
+                         <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;dBm&#39;</span><span class="p">,</span>
+                         <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">instrument</span><span class="o">.</span><span class="n">short_name</span><span class="si">}</span><span class="s1"> magnitude&#39;</span><span class="p">,</span>
+                         <span class="n">setpoint_units</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;Hz&#39;</span><span class="p">,),</span>
+                         <span class="n">setpoint_labels</span><span class="o">=</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">instrument</span><span class="o">.</span><span class="n">short_name</span><span class="si">}</span><span class="s1">&#39;</span>
+                                          <span class="s1">&#39; frequency&#39;</span><span class="p">,),</span>
+                         <span class="n">setpoint_names</span><span class="o">=</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">instrument</span><span class="o">.</span><span class="n">short_name</span><span class="si">}</span><span class="s1">_frequency&#39;</span><span class="p">,),</span>
+                         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+                         <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_sweep</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">npts</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_channel</span> <span class="o">=</span> <span class="n">channel</span>
+
+<div class="viewcode-block" id="SAFrequencySweep.set_sweep">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.RohdeSchwarz.html#qcodes_contrib_drivers.drivers.RohdeSchwarz.ZVL13.SAFrequencySweep.set_sweep">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_sweep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">stop</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">npts</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+
+        <span class="n">f</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">start</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">stop</span><span class="p">),</span> <span class="n">num</span><span class="o">=</span><span class="n">npts</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setpoints</span> <span class="o">=</span> <span class="p">(</span><span class="n">f</span><span class="p">,)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="n">npts</span><span class="p">,)</span></div>
+
+
+<div class="viewcode-block" id="SAFrequencySweep.get_raw">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.RohdeSchwarz.html#qcodes_contrib_drivers.drivers.RohdeSchwarz.ZVL13.SAFrequencySweep.get_raw">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_raw</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_instrument</span><span class="o">.</span><span class="n">_get_sweep_data_SA</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">data</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ZVL13">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.RohdeSchwarz.html#qcodes_contrib_drivers.drivers.RohdeSchwarz.ZVL13.ZVL13">[docs]</a>
+<span class="k">class</span> <span class="nc">ZVL13</span><span class="p">(</span><span class="n">VisaInstrument</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+            <span class="n">address</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+            <span class="n">terminator</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">address</span><span class="p">,</span> <span class="n">terminator</span><span class="o">=</span><span class="n">terminator</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;mode&#39;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;VNA Mode&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_mode</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_mode</span><span class="p">,</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span>
+
+        <span class="n">mode</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;SAN&#39;</span><span class="p">:</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_tracename</span> <span class="o">=</span> <span class="s1">&#39;Trc1&#39;</span>
+        <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;NWA&#39;</span><span class="p">:</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">trace_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_trace_name</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_tracename</span> <span class="o">=</span> <span class="n">trace_name</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">inf_lim</span> <span class="o">=</span> <span class="mf">9e+3</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">sup_lim</span> <span class="o">=</span> <span class="mf">13.6e+9</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">timeout_sweep</span> <span class="o">=</span> <span class="mi">40</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">timeout_sa</span> <span class="o">=</span> <span class="mi">40</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;start&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;FREQ:STAR?&#39;</span><span class="p">,</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_start</span><span class="p">,</span>
+                           <span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;Hz&#39;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Start Frequency&#39;</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;stop&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;FREQ:STOP?&#39;</span><span class="p">,</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_stop</span><span class="p">,</span>
+                           <span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;Hz&#39;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Stop Frequency&#39;</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;center&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;FREQ:CENT?&#39;</span><span class="p">,</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_center</span><span class="p">,</span>
+                           <span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;Hz&#39;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Center Frequency&#39;</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;span&#39;</span><span class="p">,</span>
+                            <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;FREQ:SPAN?&#39;</span><span class="p">,</span>
+                            <span class="n">get_parser</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+                            <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_span</span><span class="p">,</span>
+                            <span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;Hz&#39;</span><span class="p">,</span>
+                            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Center Frequency&#39;</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;npts&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;SWE:POIN?&#39;</span><span class="p">,</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_npts</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Number of points&#39;</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;power&#39;</span><span class="p">,</span>
+                            <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;SOUR:POW?&#39;</span><span class="p">,</span>
+                            <span class="n">get_parser</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+                            <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_power</span><span class="p">,</span>
+                            <span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;dBm&#39;</span><span class="p">,</span>
+                            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Power&#39;</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;format&#39;</span><span class="p">,</span>
+                            <span class="n">vals</span><span class="o">=</span><span class="n">Strings</span><span class="p">(),</span>
+                            <span class="n">get_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_format</span><span class="p">,</span>
+                                            <span class="n">tracename</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_tracename</span><span class="p">),</span>
+                            <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_form</span><span class="p">,</span>
+                            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Format&#39;</span><span class="p">)</span>        
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;avg&#39;</span><span class="p">,</span>
+                            <span class="n">get_parser</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+                            <span class="n">vals</span><span class="o">=</span><span class="n">Ints</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">5000</span><span class="p">),</span>
+                            <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;AVER:COUN?&#39;</span><span class="p">,</span>
+                            <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_average</span><span class="p">,</span>
+                            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Averages&#39;</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;num_ports&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;INST:PORT:COUN?&#39;</span><span class="p">,</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;S_parameter&#39;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;S parameter&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;CALC:PAR:MEAS? &#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_tracename</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_s_parameter</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">Strings</span><span class="p">())</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;trace_mag_phase&#39;</span><span class="p">,</span>
+                           <span class="n">start</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">(),</span>
+                           <span class="n">stop</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">stop</span><span class="p">(),</span>
+                           <span class="n">npts</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">npts</span><span class="p">(),</span>
+                           <span class="n">channel</span> <span class="o">=</span> <span class="n">n</span><span class="p">,</span>
+                           <span class="n">parameter_class</span><span class="o">=</span><span class="n">FrequencySweepMagPhase</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;trace&#39;</span><span class="p">,</span>
+                           <span class="n">start</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">(),</span>
+                           <span class="n">stop</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">stop</span><span class="p">(),</span>
+                           <span class="n">npts</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">npts</span><span class="p">(),</span>
+                           <span class="n">channel</span> <span class="o">=</span> <span class="n">n</span><span class="p">,</span>
+                           <span class="n">parameter_class</span><span class="o">=</span><span class="n">FrequencySweep</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;S_trace&#39;</span><span class="p">,</span>
+                           <span class="n">start</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">(),</span>
+                           <span class="n">stop</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">stop</span><span class="p">(),</span>
+                           <span class="n">npts</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">npts</span><span class="p">(),</span>
+                           <span class="n">channel</span> <span class="o">=</span> <span class="n">n</span><span class="p">,</span>
+                           <span class="n">parameter_class</span><span class="o">=</span><span class="n">ComplexSweep</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;spectrum&#39;</span><span class="p">,</span>
+                           <span class="n">start</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">(),</span>
+                           <span class="n">stop</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">stop</span><span class="p">(),</span>
+                           <span class="n">npts</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">npts</span><span class="p">(),</span>
+                           <span class="n">channel</span> <span class="o">=</span> <span class="n">n</span><span class="p">,</span>
+                           <span class="n">parameter_class</span><span class="o">=</span><span class="n">SAFrequencySweep</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;status&#39;</span><span class="p">,</span>
+                            <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;CONF:CHAN1:STAT?&#39;</span><span class="p">,</span>
+                            <span class="n">set_cmd</span><span class="o">=</span><span class="s1">&#39;CONF:CHAN1:STAT {{}}&#39;</span><span class="p">,</span>
+                            <span class="n">get_parser</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;rf_power&#39;</span><span class="p">,</span>
+                            <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;OUTP?&#39;</span><span class="p">,</span>
+                            <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_rf_power</span><span class="p">,</span>
+                            <span class="n">get_parser</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;bandwidth&#39;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Bandwidth&#39;</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;Hz&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;SENS:BAND?&#39;</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_bandwidth</span><span class="p">,</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;freq_step&#39;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Frequency step size&#39;</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;Hz&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;SENS:SWE:STEP?&#39;</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_freq_step</span><span class="p">,</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">calibration_file</span> <span class="o">=</span> <span class="s1">&#39;Cal_17_11_2021.cal&#39;</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_function</span><span class="p">(</span><span class="s1">&#39;autoscale&#39;</span><span class="p">,</span> <span class="n">call_cmd</span> <span class="o">=</span> <span class="s1">&#39;DISP:WIND:TRAC:Y:AUTO ONCE&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_function</span><span class="p">(</span><span class="s1">&#39;electrical_delay_auto&#39;</span><span class="p">,</span>
+                          <span class="n">call_cmd</span><span class="o">=</span><span class="s1">&#39;CORR:EDEL:AUTO ONCE&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_function</span><span class="p">(</span><span class="s1">&#39;data_to_mem&#39;</span><span class="p">,</span>
+                          <span class="n">call_cmd</span><span class="o">=</span><span class="s1">&#39;CALC:MATH:MEM&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_function</span><span class="p">(</span><span class="s1">&#39;cont_meas_on&#39;</span><span class="p">,</span>
+                          <span class="n">call_cmd</span><span class="o">=</span><span class="s1">&#39;INIT:CONT:ALL ON&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_function</span><span class="p">(</span><span class="s1">&#39;cont_meas_off&#39;</span><span class="p">,</span>
+                          <span class="n">call_cmd</span><span class="o">=</span><span class="s1">&#39;INIT:CONT:ALL OFF&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ZVL13.reset">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.RohdeSchwarz.html#qcodes_contrib_drivers.drivers.RohdeSchwarz.ZVL13.ZVL13.reset">[docs]</a>
+    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;*RST&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ZVL13.calibration">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.RohdeSchwarz.html#qcodes_contrib_drivers.drivers.RohdeSchwarz.ZVL13.ZVL13.calibration">[docs]</a>
+    <span class="k">def</span> <span class="nf">calibration</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Loads calibration file as specified by ``self.calibration_file``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;MMEMory:LOAD:CORRection 1, &#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">calibration_file</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_get_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">mode_raw</span> <span class="o">=</span> <span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s1">&#39;INST?&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="n">mode_mapping</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;SAN&quot;</span><span class="p">:</span> <span class="s2">&quot;sa&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;NWA&quot;</span><span class="p">:</span> <span class="s2">&quot;na&quot;</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="n">mode_mapping</span><span class="p">[</span><span class="n">mode_raw</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">_set_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;sa&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sa_mode</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;na&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">na_mode</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span>
+                <span class="s1">&#39;Wrong string. To set in Spectrum Analyzer mode write &quot;sa&quot;, to set in Network Analyzer mode write &quot;na&quot;.&#39;</span>
+            <span class="p">)</span>
+
+<div class="viewcode-block" id="ZVL13.sa_mode">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.RohdeSchwarz.html#qcodes_contrib_drivers.drivers.RohdeSchwarz.ZVL13.ZVL13.sa_mode">[docs]</a>
+    <span class="k">def</span> <span class="nf">sa_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;INST SAN&#39;</span><span class="p">)</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_tracename</span> <span class="o">=</span> <span class="s1">&#39;Trc1&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mode</span><span class="o">.</span><span class="n">cache</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;sa&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ZVL13.na_mode">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.RohdeSchwarz.html#qcodes_contrib_drivers.drivers.RohdeSchwarz.ZVL13.ZVL13.na_mode">[docs]</a>
+    <span class="k">def</span> <span class="nf">na_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;INST NWA&#39;</span><span class="p">)</span>
+
+        <span class="n">_</span><span class="p">,</span> <span class="n">trace_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_trace_name</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_tracename</span> <span class="o">=</span> <span class="n">trace_name</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">mode</span><span class="o">.</span><span class="n">cache</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;na&quot;</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_get_trace_catalog</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s2">&quot;CONFigure:TRACe:CATalog?&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_trace_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">trace_catalog</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_trace_catalog</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">trace_catalog</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>            
+            <span class="n">ch</span><span class="p">,</span> <span class="n">trace_name</span> <span class="o">=</span> <span class="n">trace_catalog</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="n">ch</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">trace_name</span> <span class="o">=</span> <span class="n">trace_name</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="n">trace_catalog</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">trace_name</span> <span class="o">=</span> <span class="n">trace_catalog</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">n</span><span class="p">,</span> <span class="n">trace_name</span>
+
+    <span class="k">def</span> <span class="nf">_set_freq_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="n">min_step</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stop_f</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_f</span><span class="p">())</span><span class="o">/</span><span class="p">(</span><span class="mi">4001</span><span class="p">)</span>
+        <span class="n">max_step</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stop_f</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_f</span><span class="p">())</span><span class="o">/</span><span class="mi">1</span> 
+
+        <span class="k">if</span> <span class="n">n</span><span class="o">&gt;</span><span class="n">min_step</span> <span class="ow">and</span> <span class="n">n</span><span class="o">&lt;</span><span class="n">max_step</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;SENS:SWE:STEP &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">n</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">update_traces</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s1">&#39;Step size must be in the range between&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">min_step</span><span class="p">)</span> <span class="o">+</span><span class="s1">&#39; Hz and &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">max_step</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; Hz.&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_set_npts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;SWE:POIN &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">n</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_traces</span><span class="p">()</span>
+        
+    <span class="k">def</span> <span class="nf">_set_s_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">S_params</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;S11&#39;</span><span class="p">,</span><span class="s1">&#39;S12&#39;</span><span class="p">,</span><span class="s1">&#39;S21&#39;</span><span class="p">,</span><span class="s1">&#39;S22&#39;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">msg</span> <span class="ow">in</span> <span class="n">S_params</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;CALC:PAR:MEAS &#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_tracename</span><span class="si">}</span><span class="s2">&#39;, &#39;</span><span class="si">{</span><span class="n">msg</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span> 
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s1">&#39;Illegal string. Allowed S parameters: S11, S12, S21, S22&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_set_bandwidth</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">:</span><span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">val</span> <span class="o">&lt;=</span> <span class="mf">10e6</span> <span class="ow">and</span> <span class="n">val</span> <span class="o">&gt;</span> <span class="mi">10</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;SENS:BAND &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">val</span><span class="p">)))</span>
+        <span class="k">else</span><span class="p">:</span> 
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s1">&#39;Bandwidth value out of range&#39;</span><span class="p">)</span>
+        
+    <span class="k">def</span> <span class="nf">_set_rf_power</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">val</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;OUTP OFF&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">val</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span> 
+            <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;OUTP ON&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s1">&#39;Write 1 to switch on and 0 to switch off&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_format</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tracename</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s2">&quot;CALC:FORM?&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_form</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">:</span><span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">msg</span> <span class="o">==</span> <span class="s1">&#39;phase&#39;</span><span class="p">:</span>                
+            <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;CALC:FORM PHAS&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">msg</span> <span class="o">==</span> <span class="s1">&#39;dbm&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;CALC:FORM MLOG&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">msg</span> <span class="o">==</span> <span class="s1">&#39;polar&#39;</span><span class="p">:</span>                
+            <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;CALC:FORM POL&#39;</span><span class="p">)</span>          
+        <span class="k">elif</span> <span class="n">msg</span> <span class="o">==</span> <span class="s1">&#39;swr&#39;</span><span class="p">:</span>                
+            <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;CALC:FORM SWR&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">msg</span> <span class="o">==</span> <span class="s1">&#39;magnitude&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;CALC:FORM MLIN&#39;</span><span class="p">)</span>            
+        <span class="k">elif</span> <span class="n">msg</span> <span class="o">==</span> <span class="s1">&#39;real&#39;</span><span class="p">:</span>                
+            <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;CALC:FORM REAL&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">msg</span> <span class="o">==</span> <span class="s1">&#39;img&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;CALC:FORM IMAG&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">msg</span> <span class="o">==</span> <span class="s1">&#39;unwrapped phase&#39;</span><span class="p">:</span>                
+            <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;CALC:FORM UPH&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">msg</span> <span class="o">==</span> <span class="s1">&#39;smith&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;CALC:FORM SMIT&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">msg</span> <span class="o">==</span> <span class="s1">&#39;data/mem&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data_to_mem</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;CALC:MATH:FUNC DIV&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span>
+                <span class="s1">&#39;Format does not exist. Choose one of the following: &#39;</span>
+                <span class="s1">&#39;dbm, phase, polar, swr, magnitude, real, img, unwrapped phase, smith, data/mem&#39;</span>
+            <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_average</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num</span><span class="p">:</span><span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;AVER:STAT OFF&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;AVER:COUN &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">num</span><span class="p">)))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;AVER:STAT ON&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;AVER:CLE&#39;</span><span class="p">)</span>
+            
+    <span class="k">def</span> <span class="nf">_set_start</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="n">val</span>
+        <span class="n">stop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">start</span> <span class="o">&gt;=</span> <span class="n">stop</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Stop frequency must be larger than start frequency.&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;FREQ:STAR &#39;</span><span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">start</span><span class="p">)))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_traces</span><span class="p">()</span>
+                
+    <span class="k">def</span> <span class="nf">_set_stop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+        <span class="n">stop</span> <span class="o">=</span> <span class="n">val</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">stop</span> <span class="o">&lt;=</span> <span class="n">start</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Stop frequency must be larger than start frequency.&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;FREQ:STOP &#39;</span><span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">stop</span><span class="p">)))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_traces</span><span class="p">()</span>
+                
+    <span class="k">def</span> <span class="nf">_set_center</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+        <span class="n">center</span> <span class="o">=</span> <span class="n">val</span>
+
+        <span class="k">if</span> <span class="n">center</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inf_lim</span> <span class="ow">or</span> <span class="n">center</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sup_lim</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Out of the VNA limit.&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;FREQ:CENT &#39;</span><span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">center</span><span class="p">)))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_traces</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_set_span</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+        <span class="n">span</span> <span class="o">=</span> <span class="n">val</span>   
+        <span class="n">center</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">center</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">center</span> <span class="o">+</span> <span class="n">span</span> <span class="o">*</span> <span class="mf">0.5</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sup_lim</span> <span class="ow">or</span> <span class="n">center</span> <span class="o">-</span> <span class="n">span</span> <span class="o">*</span> <span class="mf">0.5</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inf_lim</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Out of the VNA limit.&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>        
+            <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;FREQ:SPAN &#39;</span><span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">span</span><span class="p">)))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_traces</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_set_power</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>        
+        <span class="k">if</span> <span class="n">val</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Attenuation cannot be positive.&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">val</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mi">40</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unleveled power&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;SOUR:POW &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">val</span><span class="p">)))</span>
+
+    <span class="k">def</span> <span class="nf">_get_sweep_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">force_polar</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">force_polar</span><span class="p">:</span>
+            <span class="n">data_format_command</span> <span class="o">=</span> <span class="s1">&#39;SDAT&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">data_format_command</span> <span class="o">=</span> <span class="s1">&#39;FDAT&#39;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;SENS:AVER:STAT ON&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;SENS:AVER:CLE&#39;</span><span class="p">)</span>
+
+        <span class="c1"># preserve original state of the znb</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="o">.</span><span class="n">set_to</span><span class="p">(</span><span class="mi">1</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">root_instrument</span><span class="o">.</span><span class="n">cont_meas_off</span><span class="p">()</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">root_instrument</span><span class="o">.</span><span class="n">timeout</span><span class="o">.</span><span class="n">set_to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">timeout_sweep</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;SENS:SWEEP:COUNT &#39;</span><span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">avg</span><span class="p">()))</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;INIT:IMMEDIATE:SCOPE:SINGLE&#39;</span><span class="p">)</span>                        
+                    <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;INIT:CONT OFF&#39;</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;INIT:IMM; *WAI&#39;</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;CALC:PAR:SEL &#39;</span><span class="si">{self._tracename}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+                    <span class="n">data_str</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;CALC:DATA? </span><span class="si">{</span><span class="n">data_format_command</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+                <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data_str</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;float64&#39;</span><span class="p">)</span>
+            <span class="k">finally</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">root_instrument</span><span class="o">.</span><span class="n">cont_meas_on</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">data</span>
+
+    <span class="k">def</span> <span class="nf">_get_sweep_data_SA</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;SENS:AVER:STAT ON&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;SENS:AVER:CLE&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">root_instrument</span><span class="o">.</span><span class="n">cont_meas_off</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">root_instrument</span><span class="o">.</span><span class="n">timeout</span><span class="o">.</span><span class="n">set_to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">timeout_sa</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;SENS:SWEEP:COUNT &#39;</span><span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">avg</span><span class="p">()))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;INIT:IMMEDIATE:SCOPE:SINGLE&#39;</span><span class="p">)</span>                        
+                <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;INIT:CONT OFF&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;INIT:IMM; *WAI&#39;</span><span class="p">)</span>
+                <span class="n">data_str</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s1">&#39;FORM ASC;TRAC? TRACE1&#39;</span><span class="p">)</span>
+
+            <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data_str</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;float64&#39;</span><span class="p">)</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">root_instrument</span><span class="o">.</span><span class="n">cont_meas_on</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">data</span>
+
+<div class="viewcode-block" id="ZVL13.update_traces">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.RohdeSchwarz.html#qcodes_contrib_drivers.drivers.RohdeSchwarz.ZVL13.ZVL13.update_traces">[docs]</a>
+    <span class="k">def</span> <span class="nf">update_traces</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+        <span class="n">stop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+        <span class="n">npts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">npts</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">parameter</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">parameter</span><span class="p">,</span> <span class="p">(</span><span class="n">ArrayParameter</span><span class="p">,</span> <span class="n">MultiParameter</span><span class="p">)):</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">parameter</span><span class="o">.</span><span class="n">set_sweep</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">npts</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                    <span class="k">pass</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, QCoDeS Users.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

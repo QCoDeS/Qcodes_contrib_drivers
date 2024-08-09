@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>qcodes_contrib_drivers.drivers.NationalInstruments package &mdash; qcodes_contrib_drivers 0.23.0.dev36+main.g4e2ee8f documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/documentation_options.js?v=fc3c8481"></script>
+        <script src="../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="qcodes_contrib_drivers.drivers.Newport package" href="qcodes_contrib_drivers.drivers.Newport.html" />
+    <link rel="prev" title="qcodes_contrib_drivers.drivers.MontanaInstruments package" href="qcodes_contrib_drivers.drivers.MontanaInstruments.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            qcodes_contrib_drivers
+          </a>
+              <div class="version">
+                0.23.0.dev36+main.g4e2ee8f
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../examples/index.html">Examples of how to use drivers</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="qcodes_contrib_drivers.drivers.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Advantech.html">qcodes_contrib_drivers.drivers.Advantech package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Agilent.html">qcodes_contrib_drivers.drivers.Agilent package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.AimTTi.html">qcodes_contrib_drivers.drivers.AimTTi package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Ametek.html">qcodes_contrib_drivers.drivers.Ametek package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Andor.html">qcodes_contrib_drivers.drivers.Andor package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Attocube.html">qcodes_contrib_drivers.drivers.Attocube package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Aviosys.html">qcodes_contrib_drivers.drivers.Aviosys package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Bilt.html">qcodes_contrib_drivers.drivers.Bilt package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.BlueFors.html">qcodes_contrib_drivers.drivers.BlueFors package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.CopperMountain.html">qcodes_contrib_drivers.drivers.CopperMountain package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Cryocon.html">qcodes_contrib_drivers.drivers.Cryocon package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Cryogenic.html">qcodes_contrib_drivers.drivers.Cryogenic package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.DaylightSolutions.html">qcodes_contrib_drivers.drivers.DaylightSolutions package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.ERAInstruments.html">qcodes_contrib_drivers.drivers.ERAInstruments package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.GeneralMicrowave.html">qcodes_contrib_drivers.drivers.GeneralMicrowave package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Gentec.html">qcodes_contrib_drivers.drivers.Gentec package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Holzworth.html">qcodes_contrib_drivers.drivers.Holzworth package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Horiba.html">qcodes_contrib_drivers.drivers.Horiba package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.html">qcodes_contrib_drivers.drivers.Keysight package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Lakeshore.html">qcodes_contrib_drivers.drivers.Lakeshore package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.LighthousePhotonics.html">qcodes_contrib_drivers.drivers.LighthousePhotonics package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.M2.html">qcodes_contrib_drivers.drivers.M2 package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Minicircuits.html">qcodes_contrib_drivers.drivers.Minicircuits package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.MontanaInstruments.html">qcodes_contrib_drivers.drivers.MontanaInstruments package</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">qcodes_contrib_drivers.drivers.NationalInstruments package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-qcodes_contrib_drivers.drivers.NationalInstruments.DAQ">qcodes_contrib_drivers.drivers.NationalInstruments.DAQ module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-qcodes_contrib_drivers.drivers.NationalInstruments.PXIe_2597">qcodes_contrib_drivers.drivers.NationalInstruments.PXIe_2597 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-qcodes_contrib_drivers.drivers.NationalInstruments.PXIe_5654">qcodes_contrib_drivers.drivers.NationalInstruments.PXIe_5654 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-qcodes_contrib_drivers.drivers.NationalInstruments.RFSG">qcodes_contrib_drivers.drivers.NationalInstruments.RFSG module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-qcodes_contrib_drivers.drivers.NationalInstruments.Switch">qcodes_contrib_drivers.drivers.NationalInstruments.Switch module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-qcodes_contrib_drivers.drivers.NationalInstruments.dll_wrapper">qcodes_contrib_drivers.drivers.NationalInstruments.dll_wrapper module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-qcodes_contrib_drivers.drivers.NationalInstruments.ni_dll_instrument">qcodes_contrib_drivers.drivers.NationalInstruments.ni_dll_instrument module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-qcodes_contrib_drivers.drivers.NationalInstruments.visa_types">qcodes_contrib_drivers.drivers.NationalInstruments.visa_types module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-qcodes_contrib_drivers.drivers.NationalInstruments">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Newport.html">qcodes_contrib_drivers.drivers.Newport package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Oxford.html">qcodes_contrib_drivers.drivers.Oxford package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.QDevil.html">qcodes_contrib_drivers.drivers.QDevil package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.QuTech.html">qcodes_contrib_drivers.drivers.QuTech package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.RohdeSchwarz.html">qcodes_contrib_drivers.drivers.RohdeSchwarz package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Shamrock.html">qcodes_contrib_drivers.drivers.Shamrock package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Siglent.html">qcodes_contrib_drivers.drivers.Siglent package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.SignalCore.html">qcodes_contrib_drivers.drivers.SignalCore package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.SingleQuantum.html">qcodes_contrib_drivers.drivers.SingleQuantum package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Spectrum.html">qcodes_contrib_drivers.drivers.Spectrum package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Standa.html">qcodes_contrib_drivers.drivers.Standa package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.StanfordResearchSystems.html">qcodes_contrib_drivers.drivers.StanfordResearchSystems package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Tektronix.html">qcodes_contrib_drivers.drivers.Tektronix package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Thermotek.html">qcodes_contrib_drivers.drivers.Thermotek package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Thorlabs.html">qcodes_contrib_drivers.drivers.Thorlabs package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Valon.html">qcodes_contrib_drivers.drivers.Valon package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Vaunix.html">qcodes_contrib_drivers.drivers.Vaunix package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.ZurichInstruments.html">qcodes_contrib_drivers.drivers.ZurichInstruments package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.html#module-qcodes_contrib_drivers.drivers.CMTS5048">qcodes_contrib_drivers.drivers.CMTS5048 module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.html#module-qcodes_contrib_drivers.drivers">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">qcodes_contrib_drivers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a></li>
+      <li class="breadcrumb-item active">qcodes_contrib_drivers.drivers.NationalInstruments package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/api/generated/qcodes_contrib_drivers.drivers.NationalInstruments.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="qcodes-contrib-drivers-drivers-nationalinstruments-package">
+<h1>qcodes_contrib_drivers.drivers.NationalInstruments package<a class="headerlink" href="#qcodes-contrib-drivers-drivers-nationalinstruments-package" title="Link to this heading">¶</a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">¶</a></h2>
+</section>
+<section id="module-qcodes_contrib_drivers.drivers.NationalInstruments.DAQ">
+<span id="qcodes-contrib-drivers-drivers-nationalinstruments-daq-module"></span><h2>qcodes_contrib_drivers.drivers.NationalInstruments.DAQ module<a class="headerlink" href="#module-qcodes_contrib_drivers.drivers.NationalInstruments.DAQ" title="Link to this heading">¶</a></h2>
+<p>Qcodes drivers for National Instrument mutlifunction I/O devices (DAQs).</p>
+<p>Requires nidaqmx package: <a class="reference external" href="https://nidaqmx-python.readthedocs.io/en/latest/">https://nidaqmx-python.readthedocs.io/en/latest/</a></p>
+<p>This was written for/tested with National Instruments USB-6363 DAQ,
+but the nidaqmx API is pretty general, so I expect it will work with other devices
+with minimal changes.</p>
+<p>For an example of synchronously writing data to multiple analog outputs and
+acquiring data on multiple analog inputs, see
+<a class="reference external" href="https://scanning-squid.readthedocs.io/en/latest/_modules/microscope/susceptometer.html#SusceptometerMicroscope.scan_surface">https://scanning-squid.readthedocs.io/en/latest/_modules/microscope/susceptometer.html#SusceptometerMicroscope.scan_surface</a></p>
+<dl class="py class">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.NationalInstruments.DAQ.DAQAnalogInputVoltages">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.NationalInstruments.DAQ.</span></span><span class="sig-name descname"><span class="pre">DAQAnalogInputVoltages</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">task</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">samples_to_read</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Sequence" title="(in Python v3.10)"><span class="pre">Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#float" title="(in Python v3.10)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/NationalInstruments/DAQ.html#DAQAnalogInputVoltages"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.NationalInstruments.DAQ.DAQAnalogInputVoltages" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://microsoft.github.io/Qcodes/api/parameters/index.html#qcodes.parameters.ArrayParameter" title="(in QCoDeS v0.48.0.dev4+main.g7a593295a)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ArrayParameter</span></code></a></p>
+<p>Acquires data from one or several DAQ analog inputs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> – Name of parameter (usually ‘voltage’).</p></li>
+<li><p><strong>task</strong> – nidaqmx.Task with appropriate analog inputs channels.</p></li>
+<li><p><strong>samples_to_read</strong> – Number of samples to read. Will be averaged based on shape.</p></li>
+<li><p><strong>shape</strong> – Desired shape of averaged array, i.e. (nchannels, target_points).</p></li>
+<li><p><strong>timeout</strong> – Acquisition timeout in seconds.</p></li>
+<li><p><strong>kwargs</strong> – Keyword arguments to be passed to ArrayParameter constructor.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.NationalInstruments.DAQ.DAQAnalogInputVoltages.get_raw">
+<span class="sig-name descname"><span class="pre">get_raw</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/NationalInstruments/DAQ.html#DAQAnalogInputVoltages.get_raw"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.NationalInstruments.DAQ.DAQAnalogInputVoltages.get_raw" title="Link to this definition">¶</a></dt>
+<dd><p>Averages data to get <cite>self.target_points</cite> points per channel.
+If <cite>self.target_points</cite> == <cite>self.samples_to_read</cite>, no averaging is done.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.NationalInstruments.DAQ.DAQAnalogInputs">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.NationalInstruments.DAQ.</span></span><span class="sig-name descname"><span class="pre">DAQAnalogInputs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/NationalInstruments/DAQ.html#DAQAnalogInputs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.NationalInstruments.DAQ.DAQAnalogInputs" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://microsoft.github.io/Qcodes/api/instrument/index.html#qcodes.instrument.Instrument" title="(in QCoDeS v0.48.0.dev4+main.g7a593295a)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Instrument</span></code></a></p>
+<p>Instrument to acquire DAQ analog input data in a qcodes Loop or measurement.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> – Name of instrument (usually ‘daq_ai’).</p></li>
+<li><p><strong>dev_name</strong> – NI DAQ device name (e.g. ‘Dev1’).</p></li>
+<li><p><strong>rate</strong> – Desired DAQ sampling rate per channel in Hz.</p></li>
+<li><p><strong>channels</strong> – Dict of analog input channel configuration.</p></li>
+<li><p><strong>task</strong> – fresh nidaqmx.Task to be populated with ai_channels.</p></li>
+<li><p><strong>min_val</strong> – minimum of input voltage range (-0.1, -0.2, -0.5, -1, -2, -5 [default], or -10)</p></li>
+<li><p><strong>max_val</strong> – maximum of input voltage range (0.1, 0.2, 0.5, 1, 2, 5 [default], or 10)</p></li>
+<li><p><strong>clock_src</strong> – Sample clock source for analog inputs. Default: None</p></li>
+<li><p><strong>samples_to_read</strong> – Number of samples to acquire from the DAQ
+per channel per measurement/loop iteration.
+Default: 2 (minimum number of samples DAQ will acquire in this timing mode).</p></li>
+<li><p><strong>target_points</strong> – Number of points per channel we want in our final array.
+samples_to_read will be averaged down to target_points.</p></li>
+<li><p><strong>timeout</strong> – Acquisition timeout in seconds. Default: 60.</p></li>
+<li><p><strong>kwargs</strong> – Keyword arguments to be passed to Instrument constructor.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.NationalInstruments.DAQ.DAQAnalogOutputVoltage">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.NationalInstruments.DAQ.</span></span><span class="sig-name descname"><span class="pre">DAQAnalogOutputVoltage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">dev_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/NationalInstruments/DAQ.html#DAQAnalogOutputVoltage"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.NationalInstruments.DAQ.DAQAnalogOutputVoltage" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://microsoft.github.io/Qcodes/api/parameters/index.html#qcodes.parameters.Parameter" title="(in QCoDeS v0.48.0.dev4+main.g7a593295a)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code></a></p>
+<p>Writes data to one or several DAQ analog outputs. This only writes one channel at a time,
+since Qcodes ArrayParameters are not settable.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> – Name of parameter (usually ‘voltage’).</p></li>
+<li><p><strong>dev_name</strong> – DAQ device name (e.g. ‘Dev1’).</p></li>
+<li><p><strong>idx</strong> – AO channel index.</p></li>
+<li><p><strong>kwargs</strong> – Keyword arguments to be passed to ArrayParameter constructor.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.NationalInstruments.DAQ.DAQAnalogOutputVoltage.get_raw">
+<span class="sig-name descname"><span class="pre">get_raw</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/NationalInstruments/DAQ.html#DAQAnalogOutputVoltage.get_raw"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.NationalInstruments.DAQ.DAQAnalogOutputVoltage.get_raw" title="Link to this definition">¶</a></dt>
+<dd><p>Returns last voltage array written to outputs.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.NationalInstruments.DAQ.DAQAnalogOutputVoltage.set_raw">
+<span class="sig-name descname"><span class="pre">set_raw</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">voltage</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#float" title="(in Python v3.10)"><span class="pre">float</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/NationalInstruments/DAQ.html#DAQAnalogOutputVoltage.set_raw"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.NationalInstruments.DAQ.DAQAnalogOutputVoltage.set_raw" title="Link to this definition">¶</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">set_raw</span></code> is called to perform the actual setting of a parameter on
+the instrument. This method should either be overwritten to perform the
+desired operation or alternatively for <code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code> a
+suitable method is automatically generated if <code class="docutils literal notranslate"><span class="pre">set_cmd</span></code> is supplied
+to the parameter constructor. The method is automatically wrapped to
+provide a <code class="docutils literal notranslate"><span class="pre">set</span></code> method on the parameter instance.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.NationalInstruments.DAQ.DAQAnalogOutputs">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.NationalInstruments.DAQ.</span></span><span class="sig-name descname"><span class="pre">DAQAnalogOutputs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/NationalInstruments/DAQ.html#DAQAnalogOutputs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.NationalInstruments.DAQ.DAQAnalogOutputs" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://microsoft.github.io/Qcodes/api/instrument/index.html#qcodes.instrument.Instrument" title="(in QCoDeS v0.48.0.dev4+main.g7a593295a)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Instrument</span></code></a></p>
+<p>Instrument to write DAQ analog output data in a qcodes Loop or measurement.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> – Name of instrument (usually ‘daq_ao’).</p></li>
+<li><p><strong>dev_name</strong> – NI DAQ device name (e.g. ‘Dev1’).</p></li>
+<li><p><strong>channels</strong> – Dict of analog output channel configuration.</p></li>
+<li><p><strong>**kwargs</strong> – Keyword arguments to be passed to Instrument constructor.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.NationalInstruments.DAQ.DAQDigitalOutputState">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.NationalInstruments.DAQ.</span></span><span class="sig-name descname"><span class="pre">DAQDigitalOutputState</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">dev_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">lines</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#list" title="(in Python v3.10)"><span class="pre">list</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/NationalInstruments/DAQ.html#DAQDigitalOutputState"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.NationalInstruments.DAQ.DAQDigitalOutputState" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://microsoft.github.io/Qcodes/api/parameters/index.html#qcodes.parameters.Parameter" title="(in QCoDeS v0.48.0.dev4+main.g7a593295a)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code></a></p>
+<p>Writes data to one or several DAQ digital outputs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> – Name of parameter (usually ‘voltage’).</p></li>
+<li><p><strong>dev_name</strong> – DAQ device name (e.g. ‘Dev1’).</p></li>
+<li><p><strong>lines</strong> – DO lines.</p></li>
+<li><p><strong>kwargs</strong> – Keyword arguments to be passed to ParameterWithSetpoints constructor.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.NationalInstruments.DAQ.DAQDigitalOutputState.set_raw">
+<span class="sig-name descname"><span class="pre">set_raw</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#list" title="(in Python v3.10)"><span class="pre">list</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#bool" title="(in Python v3.10)"><span class="pre">bool</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/NationalInstruments/DAQ.html#DAQDigitalOutputState.set_raw"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.NationalInstruments.DAQ.DAQDigitalOutputState.set_raw" title="Link to this definition">¶</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">set_raw</span></code> is called to perform the actual setting of a parameter on
+the instrument. This method should either be overwritten to perform the
+desired operation or alternatively for <code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code> a
+suitable method is automatically generated if <code class="docutils literal notranslate"><span class="pre">set_cmd</span></code> is supplied
+to the parameter constructor. The method is automatically wrapped to
+provide a <code class="docutils literal notranslate"><span class="pre">set</span></code> method on the parameter instance.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.NationalInstruments.DAQ.DAQDigitalOutputs">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.NationalInstruments.DAQ.</span></span><span class="sig-name descname"><span class="pre">DAQDigitalOutputs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/NationalInstruments/DAQ.html#DAQDigitalOutputs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.NationalInstruments.DAQ.DAQDigitalOutputs" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://microsoft.github.io/Qcodes/api/instrument/index.html#qcodes.instrument.Instrument" title="(in QCoDeS v0.48.0.dev4+main.g7a593295a)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Instrument</span></code></a></p>
+<p>Instrument to write DAQ digital output data in a qcodes Loop or measurement.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> – Name of instrument (usually ‘daq_do’).</p></li>
+<li><p><strong>dev_name</strong> – NI DAQ device name (e.g. ‘PXI1Slot2’).</p></li>
+<li><p><strong>lines</strong> – DO lines.</p></li>
+<li><p><strong>**kwargs</strong> – Keyword arguments to be passed to Instrument constructor.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-qcodes_contrib_drivers.drivers.NationalInstruments.PXIe_2597">
+<span id="qcodes-contrib-drivers-drivers-nationalinstruments-pxie-2597-module"></span><h2>qcodes_contrib_drivers.drivers.NationalInstruments.PXIe_2597 module<a class="headerlink" href="#module-qcodes_contrib_drivers.drivers.NationalInstruments.PXIe_2597" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.NationalInstruments.PXIe_2597.NI_PXIe_2597">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.NationalInstruments.PXIe_2597.</span></span><span class="sig-name descname"><span class="pre">NI_PXIe_2597</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/NationalInstruments/PXIe_2597.html#NI_PXIe_2597"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.NationalInstruments.PXIe_2597.NI_PXIe_2597" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#qcodes_contrib_drivers.drivers.NationalInstruments.Switch.NI_Switch" title="qcodes_contrib_drivers.drivers.NationalInstruments.Switch.NI_Switch"><code class="xref py py-class docutils literal notranslate"><span class="pre">NI_Switch</span></code></a></p>
+<p>QCoDeS driver for National Instruments RF switch PXIe-2597. The device
+connects the common “com” port to any of the 6 other ports, labeled
+“ch1”…”ch6” by default. Use the <code class="docutils literal notranslate"><span class="pre">name_mapping</span></code> argument to alias the
+channel names.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> – Qcodes name for this instrument</p></li>
+<li><p><strong>resource</strong> – Network address or VISA alias for the instrument.</p></li>
+<li><p><strong>name_mapping</strong> – Optional mapping from default channel names to custom
+aliases</p></li>
+<li><p><strong>reset_device</strong> – whether to reset the device on initialization</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-qcodes_contrib_drivers.drivers.NationalInstruments.PXIe_5654">
+<span id="qcodes-contrib-drivers-drivers-nationalinstruments-pxie-5654-module"></span><h2>qcodes_contrib_drivers.drivers.NationalInstruments.PXIe_5654 module<a class="headerlink" href="#module-qcodes_contrib_drivers.drivers.NationalInstruments.PXIe_5654" title="Link to this heading">¶</a></h2>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.NationalInstruments.PXIe_5654.NI_PXIe_5654">
+<span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.NationalInstruments.PXIe_5654.</span></span><span class="sig-name descname"><span class="pre">NI_PXIe_5654</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.NationalInstruments.PXIe_5654.NI_PXIe_5654" title="Link to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="#qcodes_contrib_drivers.drivers.NationalInstruments.PXIe_5654.NationalInstruments_PXIe_5654" title="qcodes_contrib_drivers.drivers.NationalInstruments.PXIe_5654.NationalInstruments_PXIe_5654"><code class="xref py py-class docutils literal notranslate"><span class="pre">NationalInstruments_PXIe_5654</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.NationalInstruments.PXIe_5654.NationalInstruments_PXIe_5654">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.NationalInstruments.PXIe_5654.</span></span><span class="sig-name descname"><span class="pre">NationalInstruments_PXIe_5654</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/NationalInstruments/PXIe_5654.html#NationalInstruments_PXIe_5654"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.NationalInstruments.PXIe_5654.NationalInstruments_PXIe_5654" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#qcodes_contrib_drivers.drivers.NationalInstruments.RFSG.NationalInstruments_RFSG" title="qcodes_contrib_drivers.drivers.NationalInstruments.RFSG.NationalInstruments_RFSG"><code class="xref py py-class docutils literal notranslate"><span class="pre">NationalInstruments_RFSG</span></code></a></p>
+<p>Device-specific driver for the PXIe-5654 signal generator. See the NI_RFSG
+class for further details.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> – Name for this instrument</p></li>
+<li><p><strong>resource</strong> – Identifier for this instrument in NI MAX.</p></li>
+<li><p><strong>dll_path</strong> – path to the NI-RFSG library DLL. If not provided, use the
+default location,
+<code class="docutils literal notranslate"><span class="pre">C:\Program</span> <span class="pre">Files\IVI</span> <span class="pre">Foundation\IVI\bin\NiRFSG_64.dll</span></code>.</p></li>
+<li><p><strong>id_query</strong> – whether to perform an ID query on initialization</p></li>
+<li><p><strong>reset_device</strong> – whether to reset the device on initialization</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-qcodes_contrib_drivers.drivers.NationalInstruments.RFSG">
+<span id="qcodes-contrib-drivers-drivers-nationalinstruments-rfsg-module"></span><h2>qcodes_contrib_drivers.drivers.NationalInstruments.RFSG module<a class="headerlink" href="#module-qcodes_contrib_drivers.drivers.NationalInstruments.RFSG" title="Link to this heading">¶</a></h2>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.NationalInstruments.RFSG.NI_RFSG">
+<span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.NationalInstruments.RFSG.</span></span><span class="sig-name descname"><span class="pre">NI_RFSG</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.NationalInstruments.RFSG.NI_RFSG" title="Link to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="#qcodes_contrib_drivers.drivers.NationalInstruments.RFSG.NationalInstruments_RFSG" title="qcodes_contrib_drivers.drivers.NationalInstruments.RFSG.NationalInstruments_RFSG"><code class="xref py py-class docutils literal notranslate"><span class="pre">NationalInstruments_RFSG</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.NationalInstruments.RFSG.NationalInstruments_RFSG">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.NationalInstruments.RFSG.</span></span><span class="sig-name descname"><span class="pre">NationalInstruments_RFSG</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/NationalInstruments/RFSG.html#NationalInstruments_RFSG"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.NationalInstruments.RFSG.NationalInstruments_RFSG" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#qcodes_contrib_drivers.drivers.NationalInstruments.ni_dll_instrument.NIDLLInstrument" title="qcodes_contrib_drivers.drivers.NationalInstruments.ni_dll_instrument.NIDLLInstrument"><code class="xref py py-class docutils literal notranslate"><span class="pre">NIDLLInstrument</span></code></a></p>
+<p>This is the QCoDeS driver for National Instruments RF signal generator
+devices based on the NI-RFSG driver. As of NI-RFSG version 18.1, the
+supported devices are
+PXI-5610,  PXI-5650,  PXI-5651,  PXI-5652,  PXI-5670,  PXI-5671, PXIe-5611,
+PXIe-5644, PXIe-5645, PXIe-5646, PXIe-5650, PXIe-5651, PXIe-5652,
+PXIe-5653, PXIe-5654, PXIe-5672, PXIe-5673, PXIe-5673E, PXIe-5820,
+PXIe-5840.</p>
+<p>Documentation for the NI-RFSG C API can be found by default in the
+folder C:UsersPublicDocumentsNational InstrumentsNI-RFSGDocumentation</p>
+<p>Only very basic functionality is implemented.</p>
+<p>Tested with</p>
+<ul class="simple">
+<li><p>PXIe-5654</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> – Name for this instrument</p></li>
+<li><p><strong>resource</strong> – Identifier for this instrument in NI MAX.</p></li>
+<li><p><strong>dll_path</strong> – path to the NI-RFSG library DLL. If not provided, use the
+default location,
+<code class="docutils literal notranslate"><span class="pre">C:\Program</span> <span class="pre">Files\IVI</span> <span class="pre">Foundation\IVI\bin\NiRFSG_64.dll</span></code>.</p></li>
+<li><p><strong>id_query</strong> – whether to perform an ID query on initialization</p></li>
+<li><p><strong>reset_device</strong> – whether to reset the device on initialization</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.NationalInstruments.RFSG.NationalInstruments_RFSG.abort">
+<span class="sig-name descname"><span class="pre">abort</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/NationalInstruments/RFSG.html#NationalInstruments_RFSG.abort"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.NationalInstruments.RFSG.NationalInstruments_RFSG.abort" title="Link to this definition">¶</a></dt>
+<dd><p>Stop signal generation and return to the Configuration state.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.NationalInstruments.RFSG.NationalInstruments_RFSG.get_idn">
+<span class="sig-name descname"><span class="pre">get_idn</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/NationalInstruments/RFSG.html#NationalInstruments_RFSG.get_idn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.NationalInstruments.RFSG.NationalInstruments_RFSG.get_idn" title="Link to this definition">¶</a></dt>
+<dd><p>Parse a standard VISA <code class="docutils literal notranslate"><span class="pre">*IDN?</span></code> response into an ID dict.</p>
+<p>Even though this is the VISA standard, it applies to various other
+types as well, such as IPInstruments, so it is included here in the
+Instrument base class.</p>
+<p>Override this if your instrument does not support <code class="docutils literal notranslate"><span class="pre">*IDN?</span></code> or
+returns a nonstandard IDN string. This string is supposed to be a
+comma-separated list of vendor, model, serial, and firmware, but
+semicolon and colon are also common separators so we accept them here
+as well.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A dict containing vendor, model, serial, and firmware.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.NationalInstruments.RFSG.NationalInstruments_RFSG.initiate">
+<span class="sig-name descname"><span class="pre">initiate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/NationalInstruments/RFSG.html#NationalInstruments_RFSG.initiate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.NationalInstruments.RFSG.NationalInstruments_RFSG.initiate" title="Link to this definition">¶</a></dt>
+<dd><p>Initiate signal generation. This causes the NI-RFSG device to leave
+the Configuration state.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.NationalInstruments.RFSG.NationalInstruments_RFSG.dll_path">
+<span class="sig-name descname"><span class="pre">dll_path</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'C:\\Program</span> <span class="pre">Files\\IVI</span> <span class="pre">Foundation\\IVI\\bin\\NiRFSG_64.dll'</span></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.NationalInstruments.RFSG.NationalInstruments_RFSG.dll_path" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.NationalInstruments.RFSG.NationalInstruments_RFSG.firmware">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">firmware</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.NationalInstruments.RFSG.NationalInstruments_RFSG.firmware" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.NationalInstruments.RFSG.NationalInstruments_RFSG.model">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">model</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.NationalInstruments.RFSG.NationalInstruments_RFSG.model" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.NationalInstruments.RFSG.NationalInstruments_RFSG.serial">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">serial</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.NationalInstruments.RFSG.NationalInstruments_RFSG.serial" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.NationalInstruments.RFSG.NationalInstruments_RFSG.vendor">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">vendor</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.NationalInstruments.RFSG.NationalInstruments_RFSG.vendor" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-qcodes_contrib_drivers.drivers.NationalInstruments.Switch">
+<span id="qcodes-contrib-drivers-drivers-nationalinstruments-switch-module"></span><h2>qcodes_contrib_drivers.drivers.NationalInstruments.Switch module<a class="headerlink" href="#module-qcodes_contrib_drivers.drivers.NationalInstruments.Switch" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.NationalInstruments.Switch.NI_Switch">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.NationalInstruments.Switch.</span></span><span class="sig-name descname"><span class="pre">NI_Switch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/NationalInstruments/Switch.html#NI_Switch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.NationalInstruments.Switch.NI_Switch" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://microsoft.github.io/Qcodes/api/instrument/index.html#qcodes.instrument.Instrument" title="(in QCoDeS v0.48.0.dev4+main.g7a593295a)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Instrument</span></code></a></p>
+<p>This is the QCoDeS driver for National Instruments RF switch devices based
+on the NI-SWITCH driver, using the <code class="docutils literal notranslate"><span class="pre">niswitch</span></code> module. <code class="docutils literal notranslate"><span class="pre">Parameter</span></code> s for
+specific instruments should be defined in subclasses.</p>
+<p>This main class mostly just maintains a reference to a
+<code class="docutils literal notranslate"><span class="pre">niswitch.Session</span></code>, and  holds <code class="docutils literal notranslate"><span class="pre">ChannelList</span></code> of channels, or ports.
+Actually making connections between the channels is implemented by the
+<code class="docutils literal notranslate"><span class="pre">SwitchChannel</span></code> class.</p>
+<p>Tested with</p>
+<ul class="simple">
+<li><p>NI PXI-2597</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> – Qcodes name for this instrument</p></li>
+<li><p><strong>resource</strong> – Network address or VISA alias for the instrument.</p></li>
+<li><p><strong>name_mapping</strong> – Optional mapping from default (“raw”) channel names to
+custom aliases</p></li>
+<li><p><strong>reset_device</strong> – whether to reset the device on initialization</p></li>
+<li><p><strong>niswitch_kw</strong> – other keyword arguments passed to the <code class="docutils literal notranslate"><span class="pre">niswitch.Session</span></code>
+constructor</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.NationalInstruments.Switch.NI_Switch.close">
+<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/NationalInstruments/Switch.html#NI_Switch.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.NationalInstruments.Switch.NI_Switch.close" title="Link to this definition">¶</a></dt>
+<dd><p>Irreversibly stop this instrument and free its resources.</p>
+<p>Subclasses should override this if they have other specific
+resources to close.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.NationalInstruments.Switch.NI_Switch.disconnect_all">
+<span class="sig-name descname"><span class="pre">disconnect_all</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/NationalInstruments/Switch.html#NI_Switch.disconnect_all"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.NationalInstruments.Switch.NI_Switch.disconnect_all" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.NationalInstruments.Switch.NI_Switch.get_idn">
+<span class="sig-name descname"><span class="pre">get_idn</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/NationalInstruments/Switch.html#NI_Switch.get_idn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.NationalInstruments.Switch.NI_Switch.get_idn" title="Link to this definition">¶</a></dt>
+<dd><p>Parse a standard VISA <code class="docutils literal notranslate"><span class="pre">*IDN?</span></code> response into an ID dict.</p>
+<p>Even though this is the VISA standard, it applies to various other
+types as well, such as IPInstruments, so it is included here in the
+Instrument base class.</p>
+<p>Override this if your instrument does not support <code class="docutils literal notranslate"><span class="pre">*IDN?</span></code> or
+returns a nonstandard IDN string. This string is supposed to be a
+comma-separated list of vendor, model, serial, and firmware, but
+semicolon and colon are also common separators so we accept them here
+as well.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A dict containing vendor, model, serial, and firmware.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.NationalInstruments.Switch.SwitchChannel">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.NationalInstruments.Switch.</span></span><span class="sig-name descname"><span class="pre">SwitchChannel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">instrument</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#qcodes_contrib_drivers.drivers.NationalInstruments.Switch.NI_Switch" title="qcodes_contrib_drivers.drivers.NationalInstruments.Switch.NI_Switch"><span class="pre">NI_Switch</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">raw_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/NationalInstruments/Switch.html#SwitchChannel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.NationalInstruments.Switch.SwitchChannel" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://microsoft.github.io/Qcodes/api/instrument/index.html#qcodes.instrument.InstrumentChannel" title="(in QCoDeS v0.48.0.dev4+main.g7a593295a)"><code class="xref py py-class docutils literal notranslate"><span class="pre">InstrumentChannel</span></code></a></p>
+<p>This class represents one input or output port of a switch instrument.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>instrument</strong> – the instrument to which this port belongs to</p></li>
+<li><p><strong>name</strong> – name or alias of this port in the parent instrument’s
+ChannelList</p></li>
+<li><p><strong>raw_name</strong> – name of this port in the driver’s channel table, as given by
+<code class="docutils literal notranslate"><span class="pre">self._session.get_channel_name</span></code></p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.NationalInstruments.Switch.SwitchChannel.connect_to">
+<span class="sig-name descname"><span class="pre">connect_to</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#qcodes_contrib_drivers.drivers.NationalInstruments.Switch.SwitchChannel" title="qcodes_contrib_drivers.drivers.NationalInstruments.Switch.SwitchChannel"><span class="pre">SwitchChannel</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/NationalInstruments/Switch.html#SwitchChannel.connect_to"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.NationalInstruments.Switch.SwitchChannel.connect_to" title="Link to this definition">¶</a></dt>
+<dd><p>Connect this channel to another channel. If either of the channels is
+already connected to something else, disconnect both channels first. If
+the channels are already connected to each other, do nothing. If the
+two channels cannot be connected, raises a <code class="docutils literal notranslate"><span class="pre">DriverError</span></code>, see
+the <code class="docutils literal notranslate"><span class="pre">niswitch.Session.connect</span></code> documentation for further details.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.NationalInstruments.Switch.SwitchChannel.disconnect_from">
+<span class="sig-name descname"><span class="pre">disconnect_from</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#qcodes_contrib_drivers.drivers.NationalInstruments.Switch.SwitchChannel" title="qcodes_contrib_drivers.drivers.NationalInstruments.Switch.SwitchChannel"><span class="pre">SwitchChannel</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/NationalInstruments/Switch.html#SwitchChannel.disconnect_from"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.NationalInstruments.Switch.SwitchChannel.disconnect_from" title="Link to this definition">¶</a></dt>
+<dd><p>Disconnect this channel from another chanel. If the channels are not
+connected, raises a <code class="docutils literal notranslate"><span class="pre">DriverError</span></code>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.NationalInstruments.Switch.SwitchChannel.disconnect_from_all">
+<span class="sig-name descname"><span class="pre">disconnect_from_all</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/NationalInstruments/Switch.html#SwitchChannel.disconnect_from_all"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.NationalInstruments.Switch.SwitchChannel.disconnect_from_all" title="Link to this definition">¶</a></dt>
+<dd><p>Disconnect this channel from all channels it is connected to.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-qcodes_contrib_drivers.drivers.NationalInstruments.dll_wrapper">
+<span id="qcodes-contrib-drivers-drivers-nationalinstruments-dll-wrapper-module"></span><h2>qcodes_contrib_drivers.drivers.NationalInstruments.dll_wrapper module<a class="headerlink" href="#module-qcodes_contrib_drivers.drivers.NationalInstruments.dll_wrapper" title="Link to this heading">¶</a></h2>
+<p>This module has some convenience classes and functions for wrapping NI C API
+calls. Modeled after the DLL calls in the NIMI-python library, see e.g.
+<a class="reference external" href="https://github.com/ni/nimi-python/blob/master/generated/nitclk/nitclk/_library.py">https://github.com/ni/nimi-python/blob/master/generated/nitclk/nitclk/_library.py</a></p>
+<dl class="py class">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.NationalInstruments.dll_wrapper.AttributeWrapper">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.NationalInstruments.dll_wrapper.</span></span><span class="sig-name descname"><span class="pre">AttributeWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/ctypes.html#ctypes.c_long" title="(in Python v3.10)"><span class="pre">c_long</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/NationalInstruments/dll_wrapper.html#AttributeWrapper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.NationalInstruments.dll_wrapper.AttributeWrapper" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3.10/library/functions.html#object" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Struct to associate a data type to a numeric constant (i.e. attribute)
+defined in a NI DLL library. <code class="docutils literal notranslate"><span class="pre">dtype</span></code> should be one of the types defined
+in the <code class="docutils literal notranslate"><span class="pre">visa_types</span></code> module. Here, <code class="docutils literal notranslate"><span class="pre">value</span></code> means the same as the
+attributeID in the DLL documentation.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.NationalInstruments.dll_wrapper.AttributeWrapper.dtype">
+<span class="sig-name descname"><span class="pre">dtype</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.NationalInstruments.dll_wrapper.AttributeWrapper.dtype" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.NationalInstruments.dll_wrapper.AttributeWrapper.value">
+<span class="sig-name descname"><span class="pre">value</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.10/library/ctypes.html#ctypes.c_long" title="(in Python v3.10)"><span class="pre">c_long</span></a></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.NationalInstruments.dll_wrapper.AttributeWrapper.value" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.NationalInstruments.dll_wrapper.NIDLLWrapper">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.NationalInstruments.dll_wrapper.</span></span><span class="sig-name descname"><span class="pre">NIDLLWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dll_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">lib_prefix</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/NationalInstruments/dll_wrapper.html#NIDLLWrapper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.NationalInstruments.dll_wrapper.NIDLLWrapper" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3.10/library/functions.html#object" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>This class provides convenience functions for wrapping and checking a DLL
+function call, as well as some premade pythonic wrapper functinos for
+common library functions such as libName_error_message, libName_init/close
+and libName_GetAttribute (e.g. niRFSG_init or niSync_init). Other functions
+should be wrapped by a library-specific class by calling
+<code class="docutils literal notranslate"><span class="pre">wrap_dll_function_checked</span></code>. See the NI_RFSG driver for a concrete
+example.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dll_path</strong> – path to the DLL file containing the library</p></li>
+<li><p><strong>lib_prefix</strong> – All function names in the library start with this. For
+example, for NI-RFSG, where function names are of the form
+niRFSG_FunctionName, <code class="docutils literal notranslate"><span class="pre">lib_prefix</span></code> should be ‘niRFSG’.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.NationalInstruments.dll_wrapper.NIDLLWrapper.error_message">
+<span class="sig-name descname"><span class="pre">error_message</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">session</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/ctypes.html#ctypes.c_ulong" title="(in Python v3.10)"><span class="pre">c_ulong</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.10/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">error_code</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/ctypes.html#ctypes.c_long" title="(in Python v3.10)"><span class="pre">c_long</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">c_long(0)</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/NationalInstruments/dll_wrapper.html#NIDLLWrapper.error_message"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.NationalInstruments.dll_wrapper.NIDLLWrapper.error_message" title="Link to this definition">¶</a></dt>
+<dd><p>Convenience wrapper around libName_error_message (which is wrapped as
+self._error_message).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.NationalInstruments.dll_wrapper.NIDLLWrapper.get_attribute">
+<span class="sig-name descname"><span class="pre">get_attribute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">session</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/ctypes.html#ctypes.c_ulong" title="(in Python v3.10)"><span class="pre">c_ulong</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">attr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#qcodes_contrib_drivers.drivers.NationalInstruments.dll_wrapper.AttributeWrapper" title="qcodes_contrib_drivers.drivers.NationalInstruments.dll_wrapper.AttributeWrapper"><span class="pre">AttributeWrapper</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/NationalInstruments/dll_wrapper.html#NIDLLWrapper.get_attribute"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.NationalInstruments.dll_wrapper.NIDLLWrapper.get_attribute" title="Link to this definition">¶</a></dt>
+<dd><p>Get an attribute with data type “DataType” by calling the appropriate
+“libName_GetAttribute&lt;DataType&gt;” function (for example
+niRFSG_GetAttributeViReal64 when <code class="docutils literal notranslate"><span class="pre">lib_prefix</span></code> is “niRFSG” and
+<code class="docutils literal notranslate"><span class="pre">attr.dtype</span></code> is <code class="docutils literal notranslate"><span class="pre">ViReal64</span></code>).</p>
+<p>NOTE: channels are not implemented.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.NationalInstruments.dll_wrapper.NIDLLWrapper.init">
+<span class="sig-name descname"><span class="pre">init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">resource</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_query</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#bool" title="(in Python v3.10)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reset_device</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#bool" title="(in Python v3.10)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/ctypes.html#ctypes.c_ulong" title="(in Python v3.10)"><span class="pre">c_ulong</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/NationalInstruments/dll_wrapper.html#NIDLLWrapper.init"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.NationalInstruments.dll_wrapper.NIDLLWrapper.init" title="Link to this definition">¶</a></dt>
+<dd><p>Convenience wrapper around libName_init (e.g. niRFSG_init). Returns the
+ViSession handle of the initialized session. The wrapped version of the
+actual DLL function is registered as self._init, see __init__. Note
+that this class is not responsible for storing the handle, it should
+be managed by the function or class that calls the functions wrapped by
+this class.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>resource</strong> – the resource name of the device to initialize, as given
+by NI MAX.</p></li>
+<li><p><strong>id_query</strong> – whether to perform an ID query on initialization</p></li>
+<li><p><strong>reset_device</strong> – whether to reset the device during initialization</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the ViSession handle of the initialized device</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.NationalInstruments.dll_wrapper.NIDLLWrapper.set_attribute">
+<span class="sig-name descname"><span class="pre">set_attribute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">session</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/ctypes.html#ctypes.c_ulong" title="(in Python v3.10)"><span class="pre">c_ulong</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">attr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#qcodes_contrib_drivers.drivers.NationalInstruments.dll_wrapper.AttributeWrapper" title="qcodes_contrib_drivers.drivers.NationalInstruments.dll_wrapper.AttributeWrapper"><span class="pre">AttributeWrapper</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">set_value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/NationalInstruments/dll_wrapper.html#NIDLLWrapper.set_attribute"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.NationalInstruments.dll_wrapper.NIDLLWrapper.set_attribute" title="Link to this definition">¶</a></dt>
+<dd><p>Set an attribute with data type “DataType” by calling the appropriate
+“libName_SetAttribute&lt;DataType&gt;” function (for example
+niRFSG_SetAttributeViReal64 when <code class="docutils literal notranslate"><span class="pre">lib_prefix</span></code> is “niRFSG” and
+<code class="docutils literal notranslate"><span class="pre">attr.dtype</span></code> is <code class="docutils literal notranslate"><span class="pre">ViReal64</span></code>).</p>
+<p>NOTE: channels are not implemented.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.NationalInstruments.dll_wrapper.NIDLLWrapper.wrap_dll_function">
+<span class="sig-name descname"><span class="pre">wrap_dll_function</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">name_in_library:</span> <span class="pre">str,</span> <span class="pre">argtypes:</span> <span class="pre">~typing.List[~qcodes_contrib_drivers.drivers.NationalInstruments.dll_wrapper.NamedArgType],</span> <span class="pre">restype:</span> <span class="pre">~typing.Any</span> <span class="pre">=</span> <span class="pre">&lt;class</span> <span class="pre">'ctypes.c_long'&gt;</span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/NationalInstruments/dll_wrapper.html#NIDLLWrapper.wrap_dll_function"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.NationalInstruments.dll_wrapper.NIDLLWrapper.wrap_dll_function" title="Link to this definition">¶</a></dt>
+<dd><p>Convenience method for wrapping a function in a NI C API.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name_in_library</strong> – The name of the function in the library (e.g.
+“niRFSG_init”, or without the prefix, just “init”)</p></li>
+<li><p><strong>argtypes</strong> – list of <code class="docutils literal notranslate"><span class="pre">NamedArgType</span></code> tuples containing the names and
+types of the arguments of the function to be wrapped.</p></li>
+<li><p><strong>restype</strong> – The return type of the library function (most likely
+<code class="docutils literal notranslate"><span class="pre">ViStatus</span></code>).</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.NationalInstruments.dll_wrapper.NIDLLWrapper.wrap_dll_function_checked">
+<span class="sig-name descname"><span class="pre">wrap_dll_function_checked</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name_in_library</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">argtypes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.List" title="(in Python v3.10)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#qcodes_contrib_drivers.drivers.NationalInstruments.dll_wrapper.NamedArgType" title="qcodes_contrib_drivers.drivers.NationalInstruments.dll_wrapper.NamedArgType"><span class="pre">NamedArgType</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Callable" title="(in Python v3.10)"><span class="pre">Callable</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/NationalInstruments/dll_wrapper.html#NIDLLWrapper.wrap_dll_function_checked"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.NationalInstruments.dll_wrapper.NIDLLWrapper.wrap_dll_function_checked" title="Link to this definition">¶</a></dt>
+<dd><p>Same as <code class="docutils literal notranslate"><span class="pre">wrap_dll_function</span></code>, but check the return value and convert
+it to a Python exception or warning if it is nonzero using
+<code class="docutils literal notranslate"><span class="pre">self._check_error</span></code>. The arguments are the same as for
+<code class="docutils literal notranslate"><span class="pre">wrap_dll_function</span></code>, except that <code class="docutils literal notranslate"><span class="pre">restype</span></code> is always <code class="docutils literal notranslate"><span class="pre">ViStatus</span></code>.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.NationalInstruments.dll_wrapper.NamedArgType">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.NationalInstruments.dll_wrapper.</span></span><span class="sig-name descname"><span class="pre">NamedArgType</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">argtype</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/NationalInstruments/dll_wrapper.html#NamedArgType"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.NationalInstruments.dll_wrapper.NamedArgType" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.NamedTuple" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">NamedTuple</span></code></a></p>
+<p>Struct for associating a name with an argument type for DLL function
+signatures.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.NationalInstruments.dll_wrapper.NamedArgType.argtype">
+<span class="sig-name descname"><span class="pre">argtype</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.NationalInstruments.dll_wrapper.NamedArgType.argtype" title="Link to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.NationalInstruments.dll_wrapper.NamedArgType.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></em><a class="headerlink" href="#qcodes_contrib_drivers.drivers.NationalInstruments.dll_wrapper.NamedArgType.name" title="Link to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.NationalInstruments.dll_wrapper.c_str">
+<span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.NationalInstruments.dll_wrapper.</span></span><span class="sig-name descname"><span class="pre">c_str</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/stdtypes.html#bytes" title="(in Python v3.10)"><span class="pre">bytes</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/NationalInstruments/dll_wrapper.html#c_str"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.NationalInstruments.dll_wrapper.c_str" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-qcodes_contrib_drivers.drivers.NationalInstruments.ni_dll_instrument">
+<span id="qcodes-contrib-drivers-drivers-nationalinstruments-ni-dll-instrument-module"></span><h2>qcodes_contrib_drivers.drivers.NationalInstruments.ni_dll_instrument module<a class="headerlink" href="#module-qcodes_contrib_drivers.drivers.NationalInstruments.ni_dll_instrument" title="Link to this heading">¶</a></h2>
+<p>This module contains a small class that mixes features that are common to all
+libraries in the <code class="docutils literal notranslate"><span class="pre">NIDLLWrapper</span></code> class with <code class="docutils literal notranslate"><span class="pre">qcodes.Instrument</span></code>.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.NationalInstruments.ni_dll_instrument.NIDLLInstrument">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.NationalInstruments.ni_dll_instrument.</span></span><span class="sig-name descname"><span class="pre">NIDLLInstrument</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/NationalInstruments/ni_dll_instrument.html#NIDLLInstrument"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.NationalInstruments.ni_dll_instrument.NIDLLInstrument" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://microsoft.github.io/Qcodes/api/instrument/index.html#qcodes.instrument.Instrument" title="(in QCoDeS v0.48.0.dev4+main.g7a593295a)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Instrument</span></code></a></p>
+<p>Common base class for QCoDeS instruments based on NI DLL drivers, when an
+official NI Python driver (such as <code class="docutils literal notranslate"><span class="pre">nidaqmx</span></code> or <code class="docutils literal notranslate"><span class="pre">nifpga</span></code>) is not
+available. It holds a refence to an NI DLL wrapper object, as well as an
+instrument handle (<code class="docutils literal notranslate"><span class="pre">ViSession</span></code>). It handles calling the DLL methods and
+has some common methods implemented, such as <code class="docutils literal notranslate"><span class="pre">init</span></code>, <code class="docutils literal notranslate"><span class="pre">close</span></code> and
+<code class="docutils literal notranslate"><span class="pre">get_attribute</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> – Name for this instrument</p></li>
+<li><p><strong>resource</strong> – Identifier for this instrument in NI MAX.</p></li>
+<li><p><strong>dll_path</strong> – path to the library DLL.</p></li>
+<li><p><strong>lib_prefix</strong> – the prefix of the function names in the library (see
+<code class="docutils literal notranslate"><span class="pre">NIDLLWrapper</span></code>)</p></li>
+<li><p><strong>id_query</strong> – whether to perform an ID query on initialization</p></li>
+<li><p><strong>reset_device</strong> – whether to reset the device on initialization</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.NationalInstruments.ni_dll_instrument.NIDLLInstrument.close">
+<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/NationalInstruments/ni_dll_instrument.html#NIDLLInstrument.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.NationalInstruments.ni_dll_instrument.NIDLLInstrument.close" title="Link to this definition">¶</a></dt>
+<dd><p>Irreversibly stop this instrument and free its resources.</p>
+<p>Subclasses should override this if they have other specific
+resources to close.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.NationalInstruments.ni_dll_instrument.NIDLLInstrument.get_attribute">
+<span class="sig-name descname"><span class="pre">get_attribute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">attr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#qcodes_contrib_drivers.drivers.NationalInstruments.dll_wrapper.AttributeWrapper" title="qcodes_contrib_drivers.drivers.NationalInstruments.dll_wrapper.AttributeWrapper"><span class="pre">AttributeWrapper</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/NationalInstruments/ni_dll_instrument.html#NIDLLInstrument.get_attribute"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.NationalInstruments.ni_dll_instrument.NIDLLInstrument.get_attribute" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.NationalInstruments.ni_dll_instrument.NIDLLInstrument.init">
+<span class="sig-name descname"><span class="pre">init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id_query</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#bool" title="(in Python v3.10)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reset_device</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/functions.html#bool" title="(in Python v3.10)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3.10/library/ctypes.html#ctypes.c_ulong" title="(in Python v3.10)"><span class="pre">c_ulong</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/NationalInstruments/ni_dll_instrument.html#NIDLLInstrument.init"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.NationalInstruments.ni_dll_instrument.NIDLLInstrument.init" title="Link to this definition">¶</a></dt>
+<dd><p>Call the wrapped init function from the library</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id_query</strong> – whether to perform an ID query</p></li>
+<li><p><strong>reset_device</strong> – whether to reset the device</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the ViSession handle of the initialized device</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.NationalInstruments.ni_dll_instrument.NIDLLInstrument.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/NationalInstruments/ni_dll_instrument.html#NIDLLInstrument.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.NationalInstruments.ni_dll_instrument.NIDLLInstrument.reset" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.NationalInstruments.ni_dll_instrument.NIDLLInstrument.set_attribute">
+<span class="sig-name descname"><span class="pre">set_attribute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">attr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#qcodes_contrib_drivers.drivers.NationalInstruments.dll_wrapper.AttributeWrapper" title="qcodes_contrib_drivers.drivers.NationalInstruments.dll_wrapper.AttributeWrapper"><span class="pre">AttributeWrapper</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">set_value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3.10/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/NationalInstruments/ni_dll_instrument.html#NIDLLInstrument.set_attribute"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.NationalInstruments.ni_dll_instrument.NIDLLInstrument.set_attribute" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-qcodes_contrib_drivers.drivers.NationalInstruments.visa_types">
+<span id="qcodes-contrib-drivers-drivers-nationalinstruments-visa-types-module"></span><h2>qcodes_contrib_drivers.drivers.NationalInstruments.visa_types module<a class="headerlink" href="#module-qcodes_contrib_drivers.drivers.NationalInstruments.visa_types" title="Link to this heading">¶</a></h2>
+</section>
+<section id="module-qcodes_contrib_drivers.drivers.NationalInstruments">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-qcodes_contrib_drivers.drivers.NationalInstruments" title="Link to this heading">¶</a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="qcodes_contrib_drivers.drivers.MontanaInstruments.html" class="btn btn-neutral float-left" title="qcodes_contrib_drivers.drivers.MontanaInstruments package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="qcodes_contrib_drivers.drivers.Newport.html" class="btn btn-neutral float-right" title="qcodes_contrib_drivers.drivers.Newport package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, QCoDeS Users.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

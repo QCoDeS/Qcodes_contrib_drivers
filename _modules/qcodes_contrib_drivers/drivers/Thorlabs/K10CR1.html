@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>qcodes_contrib_drivers.drivers.Thorlabs.K10CR1 &mdash; qcodes_contrib_drivers 0.23.0.dev36+main.g4e2ee8f documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../_static/documentation_options.js?v=fc3c8481"></script>
+        <script src="../../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            qcodes_contrib_drivers
+          </a>
+              <div class="version">
+                0.23.0.dev36+main.g4e2ee8f
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples/index.html">Examples of how to use drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/generated/qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">qcodes_contrib_drivers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">qcodes_contrib_drivers.drivers.Thorlabs.K10CR1</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for qcodes_contrib_drivers.drivers.Thorlabs.K10CR1</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">enum</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Optional</span>
+
+<span class="kn">import</span> <span class="nn">qcodes.utils.validators</span> <span class="k">as</span> <span class="nn">vals</span>
+<span class="kn">from</span> <span class="nn">qcodes</span> <span class="kn">import</span> <span class="n">Instrument</span>
+
+<span class="kn">from</span> <span class="nn">.private.APT</span> <span class="kn">import</span> <span class="n">Thorlabs_APT</span><span class="p">,</span> <span class="n">ThorlabsHWType</span>
+
+
+<div class="viewcode-block" id="RotationDirection">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Thorlabs.html#qcodes_contrib_drivers.drivers.Thorlabs.K10CR1.RotationDirection">[docs]</a>
+<span class="k">class</span> <span class="nc">RotationDirection</span><span class="p">(</span><span class="n">enum</span><span class="o">.</span><span class="n">Enum</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Constants for the rotation direction of Thorlabs K10CR1 rotator&quot;&quot;&quot;</span>
+    <span class="n">FORWARD</span> <span class="o">=</span> <span class="s2">&quot;fwd&quot;</span>
+    <span class="n">REVERSE</span> <span class="o">=</span> <span class="s2">&quot;rev&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="HomeLimitSwitch">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Thorlabs.html#qcodes_contrib_drivers.drivers.Thorlabs.K10CR1.HomeLimitSwitch">[docs]</a>
+<span class="k">class</span> <span class="nc">HomeLimitSwitch</span><span class="p">(</span><span class="n">enum</span><span class="o">.</span><span class="n">Enum</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Constants for the home limit switch of Thorlabs K10CR1 rotator&quot;&quot;&quot;</span>
+    <span class="n">REVERSE</span> <span class="o">=</span> <span class="s2">&quot;rev&quot;</span>
+    <span class="n">FORWARD</span> <span class="o">=</span> <span class="s2">&quot;fwd&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="Thorlabs_K10CR1">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Thorlabs.html#qcodes_contrib_drivers.drivers.Thorlabs.K10CR1.Thorlabs_K10CR1">[docs]</a>
+<span class="k">class</span> <span class="nc">Thorlabs_K10CR1</span><span class="p">(</span><span class="n">Instrument</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Instrument driver for the Thorlabs K10CR1 rotator.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        name: Instrument name.</span>
+<span class="sd">        device_id: ID for the desired rotator.</span>
+<span class="sd">        apt: Thorlabs APT server.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        apt: Thorlabs APT server.</span>
+<span class="sd">        serial_number: Serial number of the device.</span>
+<span class="sd">        model: Model description.</span>
+<span class="sd">        version: Firmware version.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">device_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">apt</span><span class="p">:</span> <span class="n">Thorlabs_APT</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="c1"># Save APT server reference</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">apt</span> <span class="o">=</span> <span class="n">apt</span>
+
+        <span class="c1"># initialization</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">serial_number</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">apt</span><span class="o">.</span><span class="n">get_hw_serial_num_ex</span><span class="p">(</span><span class="n">ThorlabsHWType</span><span class="o">.</span><span class="n">K10CR1</span><span class="p">,</span> <span class="n">device_id</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">apt</span><span class="o">.</span><span class="n">init_hw_device</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">serial_number</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">apt</span><span class="o">.</span><span class="n">get_hw_info</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">serial_number</span><span class="p">)</span>
+
+        <span class="c1"># Set velocity and move-home parameters to previous values. Otherwise the velocity is very</span>
+        <span class="c1"># very low and it is not the velocity stored in the parameters... For whatever reason?</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_velocity_parameters</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_home_parameters</span><span class="p">()</span>
+
+        <span class="c1"># Helpers</span>
+        <span class="n">direction_val_mapping</span> <span class="o">=</span> <span class="p">{</span><span class="n">RotationDirection</span><span class="o">.</span><span class="n">FORWARD</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                                 <span class="n">RotationDirection</span><span class="o">.</span><span class="n">FORWARD</span><span class="o">.</span><span class="n">value</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                                 <span class="n">RotationDirection</span><span class="o">.</span><span class="n">REVERSE</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+                                 <span class="n">RotationDirection</span><span class="o">.</span><span class="n">REVERSE</span><span class="o">.</span><span class="n">value</span><span class="p">:</span> <span class="mi">2</span><span class="p">}</span>
+        <span class="n">lim_switch_val_mapping</span> <span class="o">=</span> <span class="p">{</span><span class="n">HomeLimitSwitch</span><span class="o">.</span><span class="n">REVERSE</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                                  <span class="n">HomeLimitSwitch</span><span class="o">.</span><span class="n">REVERSE</span><span class="o">.</span><span class="n">value</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                                  <span class="n">HomeLimitSwitch</span><span class="o">.</span><span class="n">FORWARD</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+                                  <span class="n">HomeLimitSwitch</span><span class="o">.</span><span class="n">FORWARD</span><span class="o">.</span><span class="n">value</span><span class="p">:</span> <span class="mi">4</span><span class="p">}</span>
+
+        <span class="c1"># PARAMETERS</span>
+        <span class="c1"># Position</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s2">&quot;position&quot;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_position</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_position</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">360</span><span class="p">),</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="sa">u</span><span class="s2">&quot;</span><span class="se">\u00b0</span><span class="s2">&quot;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Position&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s2">&quot;position_async&quot;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_position_async</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">360</span><span class="p">),</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="sa">u</span><span class="s2">&quot;</span><span class="se">\u00b0</span><span class="s2">&quot;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Position&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Velocity Parameters</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s2">&quot;velocity_min&quot;</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_velocity_min</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_velocity_min</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">25</span><span class="p">),</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="sa">u</span><span class="s2">&quot;</span><span class="se">\u00b0</span><span class="s2">/s&quot;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Minimum Velocity&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s2">&quot;velocity_acceleration&quot;</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_velocity_acceleration</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_velocity_acceleration</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">25</span><span class="p">),</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="sa">u</span><span class="s2">&quot;</span><span class="se">\u00b0</span><span class="s2">/s</span><span class="se">\u00b2</span><span class="s2">&quot;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Acceleration&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s2">&quot;velocity_max&quot;</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_velocity_max</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_velocity_max</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">25</span><span class="p">),</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="sa">u</span><span class="s2">&quot;</span><span class="se">\u00b0</span><span class="s2">/s&quot;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Maximum Velocity&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Move home parameters</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s2">&quot;move_home_direction&quot;</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_home_direction</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_home_direction</span><span class="p">,</span>
+                           <span class="n">val_mapping</span><span class="o">=</span><span class="n">direction_val_mapping</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Direction for Moving Home&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s2">&quot;move_home_limit_switch&quot;</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_home_lim_switch</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_home_lim_switch</span><span class="p">,</span>
+                           <span class="n">val_mapping</span><span class="o">=</span><span class="n">lim_switch_val_mapping</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Limit Switch for Moving Home&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s2">&quot;move_home_velocity&quot;</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_home_velocity</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_home_velocity</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">25</span><span class="p">),</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="sa">u</span><span class="s2">&quot;</span><span class="se">\u00b0</span><span class="s2">/s&quot;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Velocity for Moving Home&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s2">&quot;move_home_zero_offset&quot;</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_set_home_zero_offset</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_home_zero_offset</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">Numbers</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">360</span><span class="p">),</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="sa">u</span><span class="s2">&quot;</span><span class="se">\u00b0</span><span class="s2">&quot;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Zero Offset for Moving Home&quot;</span><span class="p">)</span>
+
+        <span class="c1"># FUNCTIONS</span>
+        <span class="c1"># Stop motor</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_function</span><span class="p">(</span><span class="s2">&quot;stop&quot;</span><span class="p">,</span>
+                          <span class="n">call_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_stop</span><span class="p">,</span>
+                          <span class="n">args</span><span class="o">=</span><span class="p">[])</span>
+
+        <span class="c1"># Moving direction</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_function</span><span class="p">(</span><span class="s2">&quot;move_direction&quot;</span><span class="p">,</span>
+                          <span class="n">call_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_move_direction</span><span class="p">,</span>
+                          <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="n">vals</span><span class="o">.</span><span class="n">Enum</span><span class="p">(</span><span class="o">*</span><span class="n">direction_val_mapping</span><span class="p">)],</span>
+                          <span class="n">arg_parser</span><span class="o">=</span><span class="k">lambda</span> <span class="n">val</span><span class="p">:</span> <span class="n">direction_val_mapping</span><span class="p">[</span><span class="n">val</span><span class="p">])</span>
+
+        <span class="c1"># Enable/disable</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_function</span><span class="p">(</span><span class="s2">&quot;enable&quot;</span><span class="p">,</span>
+                          <span class="n">call_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_enable</span><span class="p">,</span>
+                          <span class="n">args</span><span class="o">=</span><span class="p">[])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_function</span><span class="p">(</span><span class="s2">&quot;disable&quot;</span><span class="p">,</span>
+                          <span class="n">call_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_disable</span><span class="p">,</span>
+                          <span class="n">args</span><span class="o">=</span><span class="p">[])</span>
+
+        <span class="c1"># Move home</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_function</span><span class="p">(</span><span class="s2">&quot;move_home&quot;</span><span class="p">,</span>
+                          <span class="n">call_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_move_home</span><span class="p">,</span>
+                          <span class="n">args</span><span class="o">=</span><span class="p">[])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_function</span><span class="p">(</span><span class="s2">&quot;move_home_async&quot;</span><span class="p">,</span>
+                          <span class="n">call_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_move_home_async</span><span class="p">,</span>
+                          <span class="n">args</span><span class="o">=</span><span class="p">[])</span>
+
+        <span class="c1"># print connect message</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect_message</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Thorlabs_K10CR1.get_idn">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Thorlabs.html#qcodes_contrib_drivers.drivers.Thorlabs.K10CR1.Thorlabs_K10CR1.get_idn">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_idn</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns hardware information of the device.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;vendor&quot;</span><span class="p">:</span> <span class="s2">&quot;Thorlabs&quot;</span><span class="p">,</span> <span class="s2">&quot;model&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span>
+                <span class="s2">&quot;firmware&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="p">,</span> <span class="s2">&quot;serial&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">serial_number</span><span class="p">}</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_get_position</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">apt</span><span class="o">.</span><span class="n">mot_get_position</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">serial_number</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_set_position</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">apt</span><span class="o">.</span><span class="n">mot_move_absolute_ex</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">serial_number</span><span class="p">,</span> <span class="n">position</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_set_position_async</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">apt</span><span class="o">.</span><span class="n">mot_move_absolute_ex</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">serial_number</span><span class="p">,</span> <span class="n">position</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_velocity_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">apt</span><span class="o">.</span><span class="n">mot_get_velocity_parameters</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">serial_number</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_set_velocity_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                 <span class="n">min_vel</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">accn</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">max_vel</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">min_vel</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">accn</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">max_vel</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">old_min_vel</span><span class="p">,</span> <span class="n">old_accn</span><span class="p">,</span> <span class="n">old_max_vel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_velocity_parameters</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">min_vel</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">min_vel</span> <span class="o">=</span> <span class="n">old_min_vel</span>
+            <span class="k">if</span> <span class="n">accn</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">accn</span> <span class="o">=</span> <span class="n">old_accn</span>
+            <span class="k">if</span> <span class="n">max_vel</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">max_vel</span> <span class="o">=</span> <span class="n">old_max_vel</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">apt</span><span class="o">.</span><span class="n">mot_set_velocity_parameters</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">serial_number</span><span class="p">,</span> <span class="n">min_vel</span><span class="p">,</span> <span class="n">accn</span><span class="p">,</span> <span class="n">max_vel</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_velocity_min</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="n">min_vel</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_velocity_parameters</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">min_vel</span>
+
+    <span class="k">def</span> <span class="nf">_set_velocity_min</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_vel</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_velocity_parameters</span><span class="p">(</span><span class="n">min_vel</span><span class="o">=</span><span class="n">min_vel</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_velocity_acceleration</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">accn</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_velocity_parameters</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">accn</span>
+
+    <span class="k">def</span> <span class="nf">_set_velocity_acceleration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">accn</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_velocity_parameters</span><span class="p">(</span><span class="n">accn</span><span class="o">=</span><span class="n">accn</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_velocity_max</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">max_vel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_velocity_parameters</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">max_vel</span>
+
+    <span class="k">def</span> <span class="nf">_set_velocity_max</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_vel</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_velocity_parameters</span><span class="p">(</span><span class="n">max_vel</span><span class="o">=</span><span class="n">max_vel</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_home_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">apt</span><span class="o">.</span><span class="n">mot_get_home_parameters</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">serial_number</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_set_home_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">direction</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">lim_switch</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                             <span class="n">velocity</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">zero_offset</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">direction</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">lim_switch</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">velocity</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">zero_offset</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">old_direction</span><span class="p">,</span> <span class="n">old_lim_switch</span><span class="p">,</span> <span class="n">old_velocity</span><span class="p">,</span> <span class="n">old_zero_offset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_home_parameters</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">direction</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">direction</span> <span class="o">=</span> <span class="n">old_direction</span>
+            <span class="k">if</span> <span class="n">lim_switch</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">lim_switch</span> <span class="o">=</span> <span class="n">old_lim_switch</span>
+            <span class="k">if</span> <span class="n">velocity</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">velocity</span> <span class="o">=</span> <span class="n">old_velocity</span>
+            <span class="k">if</span> <span class="n">zero_offset</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">zero_offset</span> <span class="o">=</span> <span class="n">old_zero_offset</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">apt</span><span class="o">.</span><span class="n">mot_set_home_parameters</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">serial_number</span><span class="p">,</span>
+                                                <span class="n">direction</span><span class="p">,</span> <span class="n">lim_switch</span><span class="p">,</span> <span class="n">velocity</span><span class="p">,</span> <span class="n">zero_offset</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_home_direction</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="n">direction</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_home_parameters</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">direction</span>
+
+    <span class="k">def</span> <span class="nf">_set_home_direction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">direction</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_home_parameters</span><span class="p">(</span><span class="n">direction</span><span class="o">=</span><span class="n">direction</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_home_lim_switch</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">lim_switch</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_home_parameters</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">lim_switch</span>
+
+    <span class="k">def</span> <span class="nf">_set_home_lim_switch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lim_switch</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_home_parameters</span><span class="p">(</span><span class="n">lim_switch</span><span class="o">=</span><span class="n">lim_switch</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_home_velocity</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">velocity</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_home_parameters</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">velocity</span>
+
+    <span class="k">def</span> <span class="nf">_set_home_velocity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">velocity</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_home_parameters</span><span class="p">(</span><span class="n">velocity</span><span class="o">=</span><span class="n">velocity</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_home_zero_offset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">zero_offset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_home_parameters</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">zero_offset</span>
+
+    <span class="k">def</span> <span class="nf">_set_home_zero_offset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">zero_offset</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_home_parameters</span><span class="p">(</span><span class="n">zero_offset</span><span class="o">=</span><span class="n">zero_offset</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_stop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">apt</span><span class="o">.</span><span class="n">mot_stop_profiled</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">serial_number</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_move_direction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">direction</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">apt</span><span class="o">.</span><span class="n">mot_move_velocity</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">serial_number</span><span class="p">,</span> <span class="n">direction</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_enable</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">apt</span><span class="o">.</span><span class="n">enable_hw_channel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">serial_number</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_disable</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">apt</span><span class="o">.</span><span class="n">disable_hw_channel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">serial_number</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_move_home</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">apt</span><span class="o">.</span><span class="n">mot_move_home</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">serial_number</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_move_home_async</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">apt</span><span class="o">.</span><span class="n">mot_move_home</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">serial_number</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, QCoDeS Users.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

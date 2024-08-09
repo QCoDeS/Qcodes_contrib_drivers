@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>qcodes_contrib_drivers.drivers.ZurichInstruments.ZIHDAWG8 &mdash; qcodes_contrib_drivers 0.23.0.dev36+main.g4e2ee8f documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../_static/documentation_options.js?v=fc3c8481"></script>
+        <script src="../../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            qcodes_contrib_drivers
+          </a>
+              <div class="version">
+                0.23.0.dev36+main.g4e2ee8f
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples/index.html">Examples of how to use drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/generated/qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">qcodes_contrib_drivers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">qcodes_contrib_drivers.drivers.ZurichInstruments.ZIHDAWG8</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for qcodes_contrib_drivers.drivers.ZurichInstruments.ZIHDAWG8</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">csv</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">textwrap</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">zhinst.utils</span>
+
+<span class="kn">from</span> <span class="nn">qcodes</span> <span class="kn">import</span> <span class="n">Instrument</span>
+<span class="kn">from</span> <span class="nn">qcodes.utils</span> <span class="kn">import</span> <span class="n">validators</span> <span class="k">as</span> <span class="n">validators</span>
+
+<span class="n">WARNING_CLIPPING</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;^Warning \(line: [0-9]+\): [a-zA-Z0-9_]+ has a higher &quot;</span> \
+                   <span class="sa">r</span><span class="s2">&quot;amplitude than 1.0, waveform amplitude will be limited &quot;</span> \
+                   <span class="sa">r</span><span class="s2">&quot;to 1.0$&quot;</span>
+<span class="n">WARNING_TRUNCATING</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;^Warning \(line: [0-9]+\): waveform \S+ cut &quot;</span> \
+                     <span class="sa">r</span><span class="s2">&quot;down to playable length from [0-9]+ to [0-9]+ samples &quot;</span> \
+                     <span class="sa">r</span><span class="s2">&quot;\(should be a multiple of 8 samples for single channel&quot;</span> \
+                     <span class="sa">r</span><span class="s2">&quot; or 4 samples for dual channel waveforms\)$&quot;</span>
+<span class="n">WARNING_ANY</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;^Warning \(line: [0-9]+\):.*$&quot;</span>
+
+
+<div class="viewcode-block" id="CompilerError">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.ZurichInstruments.html#qcodes_contrib_drivers.drivers.ZurichInstruments.ZIHDAWG8.CompilerError">[docs]</a>
+<span class="k">class</span> <span class="nc">CompilerError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Errors that occur during compilation of sequence programs.&quot;&quot;&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="ZIHDAWG8">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.ZurichInstruments.html#qcodes_contrib_drivers.drivers.ZurichInstruments.ZIHDAWG8.ZIHDAWG8">[docs]</a>
+<span class="k">class</span> <span class="nc">ZIHDAWG8</span><span class="p">(</span><span class="n">Instrument</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    QCoDeS driver for ZI HDAWG8.</span>
+<span class="sd">    Requires ZI LabOne software to be installed on the computer running QCoDeS</span>
+<span class="sd">    (tested using LabOne 18.05.54618 and firmware 53866).</span>
+<span class="sd">    Furthermore, the Data Server and Web Server must be running and a connection</span>
+<span class="sd">    between the two must be made.</span>
+
+<span class="sd">    Compiler warnings, when uploading and compiling a sequence program, can</span>
+<span class="sd">    be treated as errors. This is desirable if the user of the driver does</span>
+<span class="sd">    not want clipping or truncating of waveform to happen silently by the</span>
+<span class="sd">    compiler. Warnings are constants on the module level and can be added to the</span>
+<span class="sd">    drivers attribute ``warnings_as_errors``. If warning are added, they</span>
+<span class="sd">    will raise a CompilerError.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ZIHDAWG8.__init__">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.ZurichInstruments.html#qcodes_contrib_drivers.drivers.ZurichInstruments.ZIHDAWG8.ZIHDAWG8.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">device_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create an instance of the instrument.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            name: The internal QCoDeS name of the instrument</span>
+<span class="sd">            device_ID: The device name as listed in the web server.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">api_level</span> <span class="o">=</span> <span class="mi">6</span>
+        <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">daq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">props</span><span class="p">)</span> <span class="o">=</span> <span class="n">zhinst</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">create_api_session</span><span class="p">(</span>
+            <span class="n">device_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">api_level</span><span class="p">,</span>
+            <span class="n">required_devtype</span><span class="o">=</span><span class="s1">&#39;HDAWG&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">awg_module</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">daq</span><span class="o">.</span><span class="n">awgModule</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">awg_module</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;awgModule/device&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">awg_module</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
+        <span class="n">node_tree</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">download_device_node_tree</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">create_parameters_from_node_tree</span><span class="p">(</span><span class="n">node_tree</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">warnings_as_errors</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_compiler_sleep_time</span> <span class="o">=</span> <span class="mf">0.01</span></div>
+
+
+<div class="viewcode-block" id="ZIHDAWG8.snapshot_base">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.ZurichInstruments.html#qcodes_contrib_drivers.drivers.ZurichInstruments.ZIHDAWG8.ZIHDAWG8.snapshot_base">[docs]</a>
+    <span class="k">def</span> <span class="nf">snapshot_base</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">update</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+                      <span class="n">params_to_skip_update</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
+                      <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Override the base method to ignore &#39;feature_code&#39; by default.&quot;&quot;&quot;</span>
+        <span class="n">params_to_skip</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;features_code&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">params_to_skip_update</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">params_to_skip</span> <span class="o">+=</span> <span class="nb">list</span><span class="p">(</span><span class="n">params_to_skip_update</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">ZIHDAWG8</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">snapshot_base</span><span class="p">(</span><span class="n">update</span><span class="o">=</span><span class="n">update</span><span class="p">,</span>
+                                                   <span class="n">params_to_skip_update</span><span class="o">=</span><span class="n">params_to_skip</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ZIHDAWG8.snapshot">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.ZurichInstruments.html#qcodes_contrib_drivers.drivers.ZurichInstruments.ZIHDAWG8.ZIHDAWG8.snapshot">[docs]</a>
+    <span class="k">def</span> <span class="nf">snapshot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">update</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>  <span class="c1"># type: ignore[misc]</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Override base method to make update default True.</span>
+<span class="sd">        This is a hack not supported by qcodes and not recommended</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">ZIHDAWG8</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">snapshot</span><span class="p">(</span><span class="n">update</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ZIHDAWG8.enable_channel">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.ZurichInstruments.html#qcodes_contrib_drivers.drivers.ZurichInstruments.ZIHDAWG8.ZIHDAWG8.enable_channel">[docs]</a>
+    <span class="k">def</span> <span class="nf">enable_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_number</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Enable a signal output, turns on a blue LED on the device.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            channel_number: Output channel that should be enabled.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;sigouts_</span><span class="si">{}</span><span class="s1">_on&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">channel_number</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ZIHDAWG8.disable_channel">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.ZurichInstruments.html#qcodes_contrib_drivers.drivers.ZurichInstruments.ZIHDAWG8.ZIHDAWG8.disable_channel">[docs]</a>
+    <span class="k">def</span> <span class="nf">disable_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_number</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Disable a signal output, turns off a blue LED on the device.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            channel_number: Output channel that should be disabled.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;sigouts_</span><span class="si">{}</span><span class="s1">_on&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">channel_number</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ZIHDAWG8.start_awg">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.ZurichInstruments.html#qcodes_contrib_drivers.drivers.ZurichInstruments.ZIHDAWG8.ZIHDAWG8.start_awg">[docs]</a>
+    <span class="k">def</span> <span class="nf">start_awg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">awg_number</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Activate an AWG</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            awg_number: The AWG that should be enabled.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;awgs_</span><span class="si">{}</span><span class="s1">_enable&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">awg_number</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ZIHDAWG8.stop_awg">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.ZurichInstruments.html#qcodes_contrib_drivers.drivers.ZurichInstruments.ZIHDAWG8.ZIHDAWG8.stop_awg">[docs]</a>
+    <span class="k">def</span> <span class="nf">stop_awg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">awg_number</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Deactivate an AWG</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            awg_number: The AWG that should be disabled.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;awgs_</span><span class="si">{}</span><span class="s1">_enable&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">awg_number</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ZIHDAWG8.waveform_to_wave">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.ZurichInstruments.html#qcodes_contrib_drivers.drivers.ZurichInstruments.ZIHDAWG8.ZIHDAWG8.waveform_to_wave">[docs]</a>
+    <span class="k">def</span> <span class="nf">waveform_to_wave</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wave_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">waveform</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Write waveforms to a .wave file in the modules data directory so that it</span>
+<span class="sd">        can be referenced and used in a sequence program.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            wave_name: Name of the wave file, is used by a sequence program.</span>
+<span class="sd">            waveforms: Waveforms that is to be written to a .wave file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">data_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">awg_module</span><span class="o">.</span><span class="n">getString</span><span class="p">(</span><span class="s1">&#39;awgModule/directory&#39;</span><span class="p">)</span>
+        <span class="n">wave_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data_dir</span><span class="p">,</span> <span class="s2">&quot;awg&quot;</span><span class="p">,</span> <span class="s2">&quot;waves&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">wave_dir</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;AWG module wave directory </span><span class="si">{</span><span class="n">wave_dir</span><span class="si">}</span><span class="s2"> does not exist or is not a directory&quot;</span><span class="p">)</span>
+        <span class="n">wave_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">wave_dir</span><span class="p">,</span> <span class="n">wave_name</span> <span class="o">+</span> <span class="s1">&#39;.wave&#39;</span><span class="p">)</span>
+
+        <span class="n">wave_array</span> <span class="o">=</span> <span class="n">zhinst</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">convert_awg_waveform</span><span class="p">(</span><span class="n">waveform</span><span class="p">)</span>
+        <span class="n">wave_array</span><span class="o">.</span><span class="n">tofile</span><span class="p">(</span><span class="n">wave_file</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ZIHDAWG8.waveform_to_csv">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.ZurichInstruments.html#qcodes_contrib_drivers.drivers.ZurichInstruments.ZIHDAWG8.ZIHDAWG8.waveform_to_csv">[docs]</a>
+    <span class="k">def</span> <span class="nf">waveform_to_csv</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wave_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="n">waveforms</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Write waveforms to a CSV file in the modules data directory so that it</span>
+<span class="sd">        can be referenced and used in a sequence program. If more than one</span>
+<span class="sd">        waveform is provided they will be played simultaneously but on separate</span>
+<span class="sd">        outputs.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            wave_name: Name of the CSV file, is used by a sequence program.</span>
+<span class="sd">            waveforms: One or more waveforms that are to be written to a</span>
+<span class="sd">                CSV file. Note if there are more than one waveforms then they</span>
+<span class="sd">                have to be of equal length, if not the longer ones will be</span>
+<span class="sd">                truncated.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">data_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">awg_module</span><span class="o">.</span><span class="n">getString</span><span class="p">(</span><span class="s1">&#39;awgModule/directory&#39;</span><span class="p">)</span>
+        <span class="n">wave_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data_dir</span><span class="p">,</span> <span class="s2">&quot;awg&quot;</span><span class="p">,</span> <span class="s2">&quot;waves&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">wave_dir</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span>
+                <span class="s2">&quot;AWG module wave directory </span><span class="si">{}</span><span class="s2"> does not exist or is not a &quot;</span>
+                <span class="s2">&quot;directory&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">wave_dir</span><span class="p">))</span>
+        <span class="n">csv_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">wave_dir</span><span class="p">,</span> <span class="n">wave_name</span> <span class="o">+</span> <span class="s1">&#39;.csv&#39;</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">csv_file</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">newline</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">writer</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">writer</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;;&#39;</span><span class="p">)</span>
+            <span class="n">writer</span><span class="o">.</span><span class="n">writerows</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">waveforms</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="ZIHDAWG8.generate_csv_sequence_program">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.ZurichInstruments.html#qcodes_contrib_drivers.drivers.ZurichInstruments.ZIHDAWG8.ZIHDAWG8.generate_csv_sequence_program">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">generate_csv_sequence_program</span><span class="p">(</span><span class="n">wave_info</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span>
+        <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">],</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]]])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        A method that generates a sequence program that plays waveforms from</span>
+<span class="sd">        csv files.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            wave_info: A list of tuples containing information about the waves</span>
+<span class="sd">                that are to be played. Every tuple should have a channel number</span>
+<span class="sd">                and wave, marker or both wave and marker.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A sequence program that can be compiled and uploaded.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">awg_program</span> <span class="o">=</span> <span class="n">textwrap</span><span class="o">.</span><span class="n">dedent</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">                HEADER</span>
+<span class="s2">                DECLARATIONS</span>
+<span class="s2">                while(true){</span>
+<span class="s2">                    playWave(WAVES);</span>
+<span class="s2">                }</span>
+<span class="s2">                &quot;&quot;&quot;</span><span class="p">)</span>
+        <span class="n">sequence_header</span> <span class="o">=</span> <span class="s1">&#39;// generated by </span><span class="si">{}</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+        <span class="n">awg_program</span> <span class="o">=</span> <span class="n">awg_program</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;HEADER&#39;</span><span class="p">,</span> <span class="n">sequence_header</span><span class="p">)</span>
+        <span class="n">declarations</span> <span class="o">=</span> <span class="n">ZIHDAWG8</span><span class="o">.</span><span class="n">_generate_declarations</span><span class="p">(</span><span class="n">wave_info</span><span class="p">)</span>
+        <span class="n">awg_program</span> <span class="o">=</span> <span class="n">awg_program</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;DECLARATIONS&#39;</span><span class="p">,</span> <span class="n">declarations</span><span class="p">)</span>
+        <span class="n">play_wave_arguments</span> <span class="o">=</span> <span class="n">ZIHDAWG8</span><span class="o">.</span><span class="n">_get_waveform_arguments</span><span class="p">(</span><span class="n">wave_info</span><span class="p">)</span>
+        <span class="n">awg_program</span> <span class="o">=</span> <span class="n">awg_program</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;WAVES&#39;</span><span class="p">,</span> <span class="n">play_wave_arguments</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">awg_program</span></div>
+
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_generate_declarations</span><span class="p">(</span><span class="n">wave_info</span><span class="p">):</span>
+        <span class="n">declarations</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">wave</span><span class="p">,</span> <span class="n">marker</span> <span class="ow">in</span> <span class="n">wave_info</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">wave</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">marker</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">declarations</span> <span class="o">+=</span> <span class="p">(</span><span class="s1">&#39;wave </span><span class="si">{0}</span><span class="s1"> = &quot;</span><span class="si">{0}</span><span class="s1">&quot;;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">wave</span><span class="p">))</span>
+                <span class="n">declarations</span> <span class="o">+=</span> <span class="p">(</span><span class="s1">&#39;wave </span><span class="si">{0}</span><span class="s1"> = &quot;</span><span class="si">{0}</span><span class="s1">&quot;;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">marker</span><span class="p">))</span>
+                <span class="n">declarations</span> <span class="o">+=</span> <span class="p">(</span><span class="s1">&#39;</span><span class="si">{0}</span><span class="s1"> = </span><span class="si">{0}</span><span class="s1"> + </span><span class="si">{1}</span><span class="s1">;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">wave</span><span class="p">,</span> <span class="n">marker</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="n">wave</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">declarations</span> <span class="o">+=</span> <span class="p">(</span><span class="s1">&#39;wave </span><span class="si">{0}</span><span class="s1"> = &quot;</span><span class="si">{0}</span><span class="s1">&quot;;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">wave</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="n">marker</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">declarations</span> <span class="o">+=</span> <span class="p">(</span><span class="s1">&#39;wave </span><span class="si">{0}</span><span class="s1"> = &quot;</span><span class="si">{0}</span><span class="s1">&quot;;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">marker</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">declarations</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_get_waveform_arguments</span><span class="p">(</span><span class="n">wave_info</span><span class="p">):</span>
+        <span class="n">argument_string</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">, </span><span class="si">{}</span><span class="s1">&#39;</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">wave_info</span><span class="p">))</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;}{&#39;</span><span class="p">,</span> <span class="s1">&#39;}, {&#39;</span><span class="p">)</span>
+        <span class="n">play_wave_arguments</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">channel</span><span class="p">,</span> <span class="n">wave</span><span class="p">,</span> <span class="n">marker</span> <span class="ow">in</span> <span class="n">wave_info</span><span class="p">:</span>
+            <span class="n">play_wave_arguments</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
+            <span class="n">wave</span> <span class="o">=</span> <span class="n">wave</span> <span class="k">if</span> <span class="n">wave</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">marker</span>
+            <span class="n">play_wave_arguments</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">wave</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">argument_string</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="n">play_wave_arguments</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ZIHDAWG8.upload_sequence_program">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.ZurichInstruments.html#qcodes_contrib_drivers.drivers.ZurichInstruments.ZIHDAWG8.ZIHDAWG8.upload_sequence_program">[docs]</a>
+    <span class="k">def</span> <span class="nf">upload_sequence_program</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">awg_number</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                                <span class="n">sequence_program</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Uploads a sequence program to the device equivalent to using the the</span>
+<span class="sd">        sequencer tab in the device&#39;s gui.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            awg_number: The AWG that the sequence program will be uploaded to.</span>
+<span class="sd">            sequence_program: A sequence program that should be played on the</span>
+<span class="sd">                device.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            0 is Compilation was successful with no warnings.</span>
+<span class="sd">            2 if Compilation was successful but with warnings.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            CompilerError: If error occurs during compilation of the sequence</span>
+<span class="sd">                program, or if a warning is elevated to an error.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">awg_module</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;awgModule/index&#39;</span><span class="p">,</span> <span class="n">awg_number</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">awg_module</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;awgModule/compiler/sourcestring&#39;</span><span class="p">,</span> <span class="n">sequence_program</span><span class="p">)</span>
+        <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">awg_module</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;awgModule/compiler/sourcestring&#39;</span><span class="p">)</span>
+                  <span class="p">[</span><span class="s1">&#39;compiler&#39;</span><span class="p">][</span><span class="s1">&#39;sourcestring&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_compiler_sleep_time</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">awg_module</span><span class="o">.</span><span class="n">getInt</span><span class="p">(</span><span class="s1">&#39;awgModule/compiler/status&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">CompilerError</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">awg_module</span><span class="o">.</span><span class="n">getString</span><span class="p">(</span><span class="s1">&#39;awgModule/compiler/statusstring&#39;</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">awg_module</span><span class="o">.</span><span class="n">getInt</span><span class="p">(</span><span class="s1">&#39;awgModule/compiler/status&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_handle_compiler_warnings</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">awg_module</span><span class="o">.</span><span class="n">getString</span><span class="p">(</span><span class="s1">&#39;awgModule/compiler/statusstring&#39;</span><span class="p">))</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">awg_module</span><span class="o">.</span><span class="n">getDouble</span><span class="p">(</span><span class="s1">&#39;awgModule/progress&#39;</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1.0</span><span class="p">:</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_compiler_sleep_time</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">awg_module</span><span class="o">.</span><span class="n">getInt</span><span class="p">(</span><span class="s1">&#39;awgModule/compiler/status&#39;</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_handle_compiler_warnings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">status_string</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">warnings</span> <span class="o">=</span> <span class="p">[</span><span class="n">warning</span> <span class="k">for</span> <span class="n">warning</span> <span class="ow">in</span> <span class="n">status_string</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span> <span class="k">if</span>
+                    <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">WARNING_ANY</span><span class="p">,</span> <span class="n">warning</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">]</span>
+        <span class="n">errors</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">warning</span> <span class="ow">in</span> <span class="n">warnings</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">warning_as_error</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">warnings_as_errors</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">warning_as_error</span><span class="p">,</span> <span class="n">warning</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">warning</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">warning</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">errors</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">warning</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">errors</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">CompilerError</span><span class="p">(</span><span class="s1">&#39;Warning treated as an error.&#39;</span><span class="p">,</span> <span class="o">*</span><span class="n">errors</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ZIHDAWG8.upload_waveform">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.ZurichInstruments.html#qcodes_contrib_drivers.drivers.ZurichInstruments.ZIHDAWG8.ZIHDAWG8.upload_waveform">[docs]</a>
+    <span class="k">def</span> <span class="nf">upload_waveform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">awg_number</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">waveform</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span>
+                        <span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Upload a waveform to the device memory at a given index.</span>
+
+<span class="sd">        Note:</span>
+<span class="sd">            There needs to be a place holder on the device as this only replaces</span>
+<span class="sd">            a data in the device memory but does not allocate new memory space.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            awg_number: The AWG where waveform should be uploaded to.</span>
+<span class="sd">            waveform: An array of floating point values from -1.0 to 1.0, or</span>
+<span class="sd">                integers in the range (-32768...+32768)</span>
+<span class="sd">            index: Index of the waveform that will be replaced. If there are</span>
+<span class="sd">                more than 1 waveforms used then the index corresponds to the</span>
+<span class="sd">                position of the waveform in the Waveforms sub-tab of the AWG tab</span>
+<span class="sd">                in the GUI.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;awgs_</span><span class="si">{}</span><span class="s1">_waveform_index&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">awg_number</span><span class="p">),</span> <span class="n">index</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">daq</span><span class="o">.</span><span class="n">sync</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;awgs_</span><span class="si">{}</span><span class="s1">_waveform_data&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">awg_number</span><span class="p">),</span> <span class="n">waveform</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ZIHDAWG8.set_channel_grouping">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.ZurichInstruments.html#qcodes_contrib_drivers.drivers.ZurichInstruments.ZIHDAWG8.ZIHDAWG8.set_channel_grouping">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_channel_grouping</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">group</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the channel grouping mode of the device.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            group: 0: groups of 2. 1: groups of 4. 2: groups of 8 i.e., one</span>
+<span class="sd">                sequencer program controls 8 outputs.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;system_awg_channelgrouping&#39;</span><span class="p">,</span> <span class="n">group</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ZIHDAWG8.create_parameters_from_node_tree">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.ZurichInstruments.html#qcodes_contrib_drivers.drivers.ZurichInstruments.ZIHDAWG8.ZIHDAWG8.create_parameters_from_node_tree">[docs]</a>
+    <span class="k">def</span> <span class="nf">create_parameters_from_node_tree</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create QuCoDeS parameters from the device node tree.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            parameters: A device node tree.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">parameter</span> <span class="ow">in</span> <span class="n">parameters</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="n">getter</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getter</span><span class="p">,</span> <span class="n">parameter</span><span class="p">[</span><span class="s1">&#39;Node&#39;</span><span class="p">],</span>
+                             <span class="n">parameter</span><span class="p">[</span><span class="s1">&#39;Type&#39;</span><span class="p">])</span> <span class="k">if</span> <span class="s1">&#39;Read&#39;</span> <span class="ow">in</span> <span class="n">parameter</span><span class="p">[</span>
+                <span class="s1">&#39;Properties&#39;</span><span class="p">]</span> <span class="k">else</span> <span class="kc">None</span>
+            <span class="n">setter</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_setter</span><span class="p">,</span> <span class="n">parameter</span><span class="p">[</span><span class="s1">&#39;Node&#39;</span><span class="p">],</span>
+                             <span class="n">parameter</span><span class="p">[</span><span class="s1">&#39;Type&#39;</span><span class="p">])</span> <span class="k">if</span> <span class="s1">&#39;Write&#39;</span> <span class="ow">in</span> <span class="n">parameter</span><span class="p">[</span>
+                <span class="s1">&#39;Properties&#39;</span><span class="p">]</span> <span class="k">else</span> <span class="kc">False</span>
+            <span class="n">options</span> <span class="o">=</span> <span class="n">validators</span><span class="o">.</span><span class="n">Enum</span><span class="p">(</span>
+                <span class="o">*</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">parameter</span><span class="p">[</span><span class="s1">&#39;Options&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()])</span> \
+                <span class="k">if</span> <span class="n">parameter</span><span class="p">[</span><span class="s1">&#39;Type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;Integer (enumerated)&#39;</span> <span class="k">else</span> <span class="kc">None</span>
+            <span class="n">parameter_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_generate_parameter_name</span><span class="p">(</span><span class="n">parameter</span><span class="p">[</span><span class="s1">&#39;Node&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">parameter_name</span><span class="p">,</span>
+                               <span class="n">set_cmd</span><span class="o">=</span><span class="n">setter</span><span class="p">,</span>
+                               <span class="n">get_cmd</span><span class="o">=</span><span class="n">getter</span><span class="p">,</span>
+                               <span class="n">vals</span><span class="o">=</span><span class="n">options</span><span class="p">,</span>
+                               <span class="n">docstring</span><span class="o">=</span><span class="n">parameter</span><span class="p">[</span><span class="s1">&#39;Description&#39;</span><span class="p">],</span>
+                               <span class="n">unit</span><span class="o">=</span><span class="n">parameter</span><span class="p">[</span><span class="s1">&#39;Unit&#39;</span><span class="p">]</span>
+                               <span class="p">)</span></div>
+
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_generate_parameter_name</span><span class="p">(</span><span class="n">node</span><span class="p">):</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s1">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="mi">2</span><span class="p">:])</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+
+<div class="viewcode-block" id="ZIHDAWG8.download_device_node_tree">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.ZurichInstruments.html#qcodes_contrib_drivers.drivers.ZurichInstruments.ZIHDAWG8.ZIHDAWG8.download_device_node_tree">[docs]</a>
+    <span class="k">def</span> <span class="nf">download_device_node_tree</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">flags</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            flags:</span>
+<span class="sd">                ziPython.ziListEnum.settingsonly (0x08): Returns only nodes</span>
+<span class="sd">                which are marked as setting</span>
+<span class="sd">                ziPython.ziListEnum.streamingonly (0x10): Returns only</span>
+<span class="sd">                streaming nodes</span>
+<span class="sd">                ziPython.ziListEnum.subscribedonly (0x20): Returns only</span>
+<span class="sd">                subscribed nodes</span>
+<span class="sd">                ziPython.ziListEnum.basechannel (0x40): Return only one instance</span>
+<span class="sd">                of a node in case of multiple channels</span>
+
+<span class="sd">                Or any combination of flags can be used.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A dictionary of the device node tree.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">node_tree</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">daq</span><span class="o">.</span><span class="n">listNodesJSON</span><span class="p">(</span><span class="s1">&#39;/</span><span class="si">{}</span><span class="s1">/&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">),</span> <span class="n">flags</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">node_tree</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_setter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">param_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">param_type</span> <span class="o">==</span> <span class="s2">&quot;Integer (64 bit)&quot;</span> <span class="ow">or</span> \
+                <span class="n">param_type</span> <span class="o">==</span> <span class="s1">&#39;Integer (enumerated)&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">daq</span><span class="o">.</span><span class="n">setInt</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">param_type</span> <span class="o">==</span> <span class="s2">&quot;Double&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">daq</span><span class="o">.</span><span class="n">setDouble</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">param_type</span> <span class="o">==</span> <span class="s2">&quot;String&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">daq</span><span class="o">.</span><span class="n">setString</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">param_type</span> <span class="o">==</span> <span class="s2">&quot;ZIVectorData&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">daq</span><span class="o">.</span><span class="n">vectorWrite</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_getter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">param_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">param_type</span> <span class="o">==</span> <span class="s2">&quot;Integer (64 bit)&quot;</span> <span class="ow">or</span> \
+                <span class="n">param_type</span> <span class="o">==</span> <span class="s1">&#39;Integer (enumerated)&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">daq</span><span class="o">.</span><span class="n">getInt</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">param_type</span> <span class="o">==</span> <span class="s2">&quot;Double&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">daq</span><span class="o">.</span><span class="n">getDouble</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">param_type</span> <span class="o">==</span> <span class="s2">&quot;String&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">daq</span><span class="o">.</span><span class="n">getString</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">param_type</span> <span class="o">==</span> <span class="s2">&quot;ZIVectorData&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">daq</span><span class="o">.</span><span class="n">getAsEvent</span><span class="p">(</span><span class="n">name</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, QCoDeS Users.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

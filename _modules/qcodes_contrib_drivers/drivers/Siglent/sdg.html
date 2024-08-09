@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>qcodes_contrib_drivers.drivers.Siglent.sdg &mdash; qcodes_contrib_drivers 0.23.0.dev36+main.g4e2ee8f documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../_static/documentation_options.js?v=fc3c8481"></script>
+        <script src="../../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            qcodes_contrib_drivers
+          </a>
+              <div class="version">
+                0.23.0.dev36+main.g4e2ee8f
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples/index.html">Examples of how to use drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/generated/qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">qcodes_contrib_drivers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">qcodes_contrib_drivers.drivers.Siglent.sdg</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for qcodes_contrib_drivers.drivers.Siglent.sdg</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">ChainMap</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span>
+
+<span class="c1"># import qcodes.validators as vals</span>
+<span class="kn">from</span> <span class="nn">qcodes.instrument.channel</span> <span class="kn">import</span> <span class="n">ChannelList</span>
+
+<span class="kn">from</span> <span class="nn">.sdg_channel</span> <span class="kn">import</span> <span class="n">SiglentSDGChannel</span>
+<span class="kn">from</span> <span class="nn">.sdx</span> <span class="kn">import</span> <span class="n">SiglentSDx</span>
+
+
+<div class="viewcode-block" id="SiglentSDGx">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Siglent.html#qcodes_contrib_drivers.drivers.Siglent.sdg.SiglentSDGx">[docs]</a>
+<span class="k">class</span> <span class="nc">SiglentSDGx</span><span class="p">(</span><span class="n">SiglentSDx</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">n_channels</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;n_channels&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">channel_type</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;channel_type&quot;</span><span class="p">,</span> <span class="n">SiglentSDGChannel</span><span class="p">)</span>
+        <span class="n">channel_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;n_channels&quot;</span><span class="p">:</span> <span class="n">n_channels</span><span class="p">}</span>
+        <span class="k">for</span> <span class="n">ch_param</span> <span class="ow">in</span> <span class="p">(</span>
+            <span class="s2">&quot;extra_outp_params&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;extra_bswv_params&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;extra_mdwv_params&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;extra_swwv_params&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;extra_btwv_params&quot;</span><span class="p">,</span>
+        <span class="p">):</span>
+            <span class="k">if</span> <span class="n">ch_param</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+                <span class="n">channel_kwargs</span><span class="p">[</span><span class="n">ch_param</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">ch_param</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ranges</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;ranges&quot;</span><span class="p">,</span> <span class="p">{})</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="n">channels</span> <span class="o">=</span> <span class="n">ChannelList</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;channels&quot;</span><span class="p">,</span> <span class="n">SiglentSDGChannel</span><span class="p">,</span> <span class="n">snapshotable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">channel_number</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_channels</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;channel</span><span class="si">{</span><span class="n">channel_number</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="n">channel</span> <span class="o">=</span> <span class="n">channel_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">channel_number</span><span class="p">,</span> <span class="o">**</span><span class="n">channel_kwargs</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_submodule</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">channel</span><span class="p">)</span>
+            <span class="n">channels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_submodule</span><span class="p">(</span><span class="s2">&quot;channels&quot;</span><span class="p">,</span> <span class="n">channels</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Siglent_SDG_60xx">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Siglent.html#qcodes_contrib_drivers.drivers.Siglent.sdg.Siglent_SDG_60xx">[docs]</a>
+<span class="k">class</span> <span class="nc">Siglent_SDG_60xx</span><span class="p">(</span><span class="n">SiglentSDGx</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">default_params</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;n_channels&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+            <span class="s2">&quot;extra_outp_params&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;POWERON_STATE&quot;</span><span class="p">},</span>
+            <span class="s2">&quot;extra_bswv_params&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;MAX_OUTPUT_AMP&quot;</span><span class="p">},</span>
+            <span class="s2">&quot;extra_mdwv_params&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;CARR,DLY&quot;</span><span class="p">,</span> <span class="s2">&quot;CARR,RISE&quot;</span><span class="p">,</span> <span class="s2">&quot;CARR,FALL&quot;</span><span class="p">},</span>
+            <span class="s2">&quot;extra_swwv_params&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;TRMD&quot;</span><span class="p">,</span> <span class="s2">&quot;EDGE&quot;</span><span class="p">},</span>
+            <span class="s2">&quot;extra_btwv_params&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;TRMD&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;EDGE&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;COUNTER&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;CARR,DLY&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;CARR,RISE&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;CARR,FALL&quot;</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">}</span>
+
+        <span class="n">default_ranges</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;vpp&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">2e-3</span><span class="p">,</span> <span class="mf">20.0</span><span class="p">),</span>
+            <span class="s2">&quot;vrms&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">2e-3</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">),</span>
+            <span class="s2">&quot;offset&quot;</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span>
+            <span class="s2">&quot;burst_period&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">1.0e-6</span><span class="p">,</span> <span class="mf">1000.0</span><span class="p">),</span>
+            <span class="s2">&quot;burst_phase&quot;</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mf">360.0</span><span class="p">,</span> <span class="mf">360.0</span><span class="p">),</span>
+            <span class="s2">&quot;burst_ncycles&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1000000</span><span class="p">),</span>
+            <span class="s2">&quot;burst_trigger_delay&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">),</span>
+            <span class="s2">&quot;arwv_index&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">198</span><span class="p">),</span>
+        <span class="p">}</span>
+
+        <span class="n">ranges_kwargs</span> <span class="o">=</span> <span class="n">_provide_defaults_to_dict_kwarg</span><span class="p">(</span>
+            <span class="n">kwargs</span><span class="p">,</span> <span class="s2">&quot;ranges&quot;</span><span class="p">,</span> <span class="n">default_ranges</span>
+        <span class="p">)</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="n">ChainMap</span><span class="p">(</span><span class="n">ranges_kwargs</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="n">default_params</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Siglent_SDG_20xx">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Siglent.html#qcodes_contrib_drivers.drivers.Siglent.sdg.Siglent_SDG_20xx">[docs]</a>
+<span class="k">class</span> <span class="nc">Siglent_SDG_20xx</span><span class="p">(</span><span class="n">SiglentSDGx</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">default_params</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;n_channels&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+            <span class="s2">&quot;extra_bswv_params&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;MAX_OUTPUT_AMP&quot;</span><span class="p">},</span>
+            <span class="s2">&quot;extra_mdwv_params&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;CARR,DLY&quot;</span><span class="p">,</span> <span class="s2">&quot;CARR,RISE&quot;</span><span class="p">,</span> <span class="s2">&quot;CARR,FALL&quot;</span><span class="p">},</span>
+            <span class="s2">&quot;extra_swwv_params&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;TRMD&quot;</span><span class="p">,</span> <span class="s2">&quot;EDGE&quot;</span><span class="p">},</span>
+            <span class="s2">&quot;extra_btwv_params&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;TRMD&quot;</span><span class="p">,</span> <span class="s2">&quot;EDGE&quot;</span><span class="p">,</span> <span class="s2">&quot;CARR,DLY&quot;</span><span class="p">,</span> <span class="s2">&quot;CARR,RISE&quot;</span><span class="p">,</span> <span class="s2">&quot;CARR,FALL&quot;</span><span class="p">},</span>
+        <span class="p">}</span>
+
+        <span class="n">default_ranges</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;vpp&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">2e-3</span><span class="p">,</span> <span class="mf">20.0</span><span class="p">),</span>
+            <span class="s2">&quot;vrms&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">2e-3</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">),</span>
+            <span class="s2">&quot;offset&quot;</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span>
+            <span class="s2">&quot;burst_period&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">1.0e-6</span><span class="p">,</span> <span class="mf">1000.0</span><span class="p">),</span>
+            <span class="s2">&quot;burst_phase&quot;</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mf">360.0</span><span class="p">,</span> <span class="mf">360.0</span><span class="p">),</span>
+            <span class="s2">&quot;burst_ncycles&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1000000</span><span class="p">),</span>
+            <span class="s2">&quot;burst_trigger_delay&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">),</span>
+            <span class="s2">&quot;arwv_index&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">198</span><span class="p">),</span>
+        <span class="p">}</span>
+
+        <span class="n">ranges_kwargs</span> <span class="o">=</span> <span class="n">_provide_defaults_to_dict_kwarg</span><span class="p">(</span>
+            <span class="n">kwargs</span><span class="p">,</span> <span class="s2">&quot;ranges&quot;</span><span class="p">,</span> <span class="n">default_ranges</span>
+        <span class="p">)</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="n">ChainMap</span><span class="p">(</span><span class="n">ranges_kwargs</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="n">default_params</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Siglent_SDG_6022X">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Siglent.html#qcodes_contrib_drivers.drivers.Siglent.sdg.Siglent_SDG_6022X">[docs]</a>
+<span class="k">class</span> <span class="nc">Siglent_SDG_6022X</span><span class="p">(</span><span class="n">Siglent_SDG_60xx</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">default_ranges</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;frequency&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">1e-3</span><span class="p">,</span> <span class="mf">200e6</span><span class="p">),</span>
+        <span class="p">}</span>
+        <span class="n">ranges_kwargs</span> <span class="o">=</span> <span class="n">_provide_defaults_to_dict_kwarg</span><span class="p">(</span>
+            <span class="n">kwargs</span><span class="p">,</span> <span class="s2">&quot;ranges&quot;</span><span class="p">,</span> <span class="n">default_ranges</span>
+        <span class="p">)</span>
+
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="n">ChainMap</span><span class="p">(</span><span class="n">ranges_kwargs</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Siglent_SDG_2042X">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Siglent.html#qcodes_contrib_drivers.drivers.Siglent.sdg.Siglent_SDG_2042X">[docs]</a>
+<span class="k">class</span> <span class="nc">Siglent_SDG_2042X</span><span class="p">(</span><span class="n">Siglent_SDG_20xx</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">default_ranges</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;frequency&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">1e-3</span><span class="p">,</span> <span class="mf">40e6</span><span class="p">),</span>
+        <span class="p">}</span>
+
+        <span class="n">ranges_kwargs</span> <span class="o">=</span> <span class="n">_provide_defaults_to_dict_kwarg</span><span class="p">(</span>
+            <span class="n">kwargs</span><span class="p">,</span> <span class="s2">&quot;ranges&quot;</span><span class="p">,</span> <span class="n">default_ranges</span>
+        <span class="p">)</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="n">ChainMap</span><span class="p">(</span><span class="n">ranges_kwargs</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+
+<span class="c1"># tricky</span>
+<span class="c1"># generate a dictionary which can be chained with the kwargs</span>
+<span class="c1"># to provide default values to items of the dictionary-type kwarg</span>
+<span class="c1"># with the given key</span>
+<span class="k">def</span> <span class="nf">_provide_defaults_to_dict_kwarg</span><span class="p">(</span>
+    <span class="n">kwargs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">kwarg_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">default_values</span><span class="p">:</span> <span class="nb">dict</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+    <span class="k">if</span> <span class="n">kwarg_name</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+        <span class="n">dict_item</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="n">kwarg_name</span><span class="p">]</span>
+        <span class="n">default_values</span> <span class="o">=</span> <span class="n">ChainMap</span><span class="p">(</span><span class="n">dict_item</span><span class="p">,</span> <span class="n">default_values</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+
+    <span class="k">return</span> <span class="p">{</span><span class="n">kwarg_name</span><span class="p">:</span> <span class="n">default_values</span><span class="p">}</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, QCoDeS Users.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

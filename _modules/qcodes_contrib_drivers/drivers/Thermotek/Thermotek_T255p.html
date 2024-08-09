@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>qcodes_contrib_drivers.drivers.Thermotek.Thermotek_T255p &mdash; qcodes_contrib_drivers 0.23.0.dev36+main.g4e2ee8f documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../_static/documentation_options.js?v=fc3c8481"></script>
+        <script src="../../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            qcodes_contrib_drivers
+          </a>
+              <div class="version">
+                0.23.0.dev36+main.g4e2ee8f
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples/index.html">Examples of how to use drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/generated/qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">qcodes_contrib_drivers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">qcodes_contrib_drivers.drivers.Thermotek.Thermotek_T255p</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for qcodes_contrib_drivers.drivers.Thermotek.Thermotek_T255p</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">wraps</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">TypeVar</span>
+
+<span class="kn">from</span> <span class="nn">qcodes</span> <span class="kn">import</span> <span class="n">Parameter</span><span class="p">,</span> <span class="n">VisaInstrument</span>
+<span class="kn">from</span> <span class="nn">qcodes.parameters</span> <span class="kn">import</span> <span class="n">Group</span><span class="p">,</span> <span class="n">GroupParameter</span><span class="p">,</span> <span class="n">create_on_off_val_mapping</span>
+
+<span class="n">_SOC</span> <span class="o">=</span> <span class="s1">&#39;.&#39;</span>
+<span class="sd">&quot;&quot;&quot;Start Of Command.&quot;&quot;&quot;</span>
+<span class="n">_SOR</span> <span class="o">=</span> <span class="s1">&#39;#&#39;</span>
+<span class="sd">&quot;&quot;&quot;Start Of Response.&quot;&quot;&quot;</span>
+<span class="n">_COMMAND_TIMEOUT</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="sd">&quot;&quot;&quot;The required timeout between commands.&quot;&quot;&quot;</span>
+<span class="n">_WATCHDOG_TIMEOUT</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="sd">&quot;&quot;&quot;The timeout after which another serial watchdog command needs to be</span>
+<span class="sd">sent to establish communication.&quot;&quot;&quot;</span>
+<span class="n">_ERROR_CODES</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;</span><span class="se">\x30</span><span class="s1">&#39;</span><span class="p">:</span> <span class="s1">&#39;No Error&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;</span><span class="se">\x31</span><span class="s1">&#39;</span><span class="p">:</span> <span class="s1">&#39;Checksum Error&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;</span><span class="se">\x32</span><span class="s1">&#39;</span><span class="p">:</span> <span class="s1">&#39;Bad Command&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;</span><span class="se">\x33</span><span class="s1">&#39;</span><span class="p">:</span> <span class="s1">&#39;Out of Bound Qualifier&#39;</span><span class="p">}</span>
+<span class="n">_MODE_STATUS</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;</span><span class="se">\x30</span><span class="s1">&#39;</span><span class="p">:</span> <span class="s1">&#39;Auto Start&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;</span><span class="se">\x31</span><span class="s1">&#39;</span><span class="p">:</span> <span class="s1">&#39;Stand By&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;</span><span class="se">\x32</span><span class="s1">&#39;</span><span class="p">:</span> <span class="s1">&#39;Chiller Run&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;</span><span class="se">\x33</span><span class="s1">&#39;</span><span class="p">:</span> <span class="s1">&#39;Safety Default&#39;</span><span class="p">}</span>
+<span class="n">_ALARM_STATUS</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;</span><span class="se">\x30</span><span class="s1">&#39;</span><span class="p">:</span> <span class="s1">&#39;No Alarms&#39;</span><span class="p">,</span>
+                 <span class="s1">&#39;</span><span class="se">\x31</span><span class="s1">&#39;</span><span class="p">:</span> <span class="s1">&#39;Alarm&#39;</span><span class="p">}</span>
+<span class="n">_CHILLER_STATUS</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;</span><span class="se">\x30</span><span class="s1">&#39;</span><span class="p">:</span> <span class="s1">&#39;OFF&#39;</span><span class="p">,</span>
+                   <span class="s1">&#39;</span><span class="se">\x31</span><span class="s1">&#39;</span><span class="p">:</span> <span class="s1">&#39;ON&#39;</span><span class="p">}</span>
+<span class="n">_DRYER_STATUS</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;</span><span class="se">\x30</span><span class="s1">&#39;</span><span class="p">:</span> <span class="s1">&#39;OFF&#39;</span><span class="p">,</span>
+                 <span class="s1">&#39;</span><span class="se">\x31</span><span class="s1">&#39;</span><span class="p">:</span> <span class="s1">&#39;ON&#39;</span><span class="p">}</span>
+
+<span class="n">_T</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s1">&#39;_T&#39;</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_ascii_checksum</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">sum</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;ascii&#39;</span><span class="p">))</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="mh">0xFF</span><span class="si">:</span><span class="s2">X</span><span class="si">}</span><span class="s2">&quot;</span>
+
+
+<span class="k">def</span> <span class="nf">_encode_cmd</span><span class="p">(</span><span class="n">fun</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">_T</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">_T</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Encodes a command into valid format by appending the checksum.&quot;&quot;&quot;</span>
+
+    <span class="nd">@wraps</span><span class="p">(</span><span class="n">fun</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">wrapped</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmd</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_T</span><span class="p">:</span>
+        <span class="n">cmd</span> <span class="o">=</span> <span class="n">cmd</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">cmd</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">_SOC</span><span class="p">):</span>
+            <span class="n">cmd</span> <span class="o">=</span> <span class="n">_SOC</span> <span class="o">+</span> <span class="n">cmd</span>
+        <span class="k">return</span> <span class="n">fun</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmd</span> <span class="o">+</span> <span class="n">_ascii_checksum</span><span class="p">(</span><span class="n">cmd</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">wrapped</span>
+
+
+<span class="k">def</span> <span class="nf">_command_timeout</span><span class="p">(</span><span class="n">fun</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">_T</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">_T</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Waits for the timeout before another command can be sent.&quot;&quot;&quot;</span>
+
+    <span class="nd">@wraps</span><span class="p">(</span><span class="n">fun</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">wrapped</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmd</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_T</span><span class="p">:</span>
+        <span class="n">target</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_command_timestamp</span> <span class="o">+</span> <span class="n">_COMMAND_TIMEOUT</span>
+        <span class="k">while</span> <span class="p">(</span><span class="n">now</span> <span class="o">:=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">())</span> <span class="o">&lt;</span> <span class="n">target</span><span class="p">:</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_command_timestamp</span> <span class="o">=</span> <span class="n">now</span>
+        <span class="k">return</span> <span class="n">fun</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmd</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">wrapped</span>
+
+
+<span class="k">def</span> <span class="nf">_watchdog_timeout</span><span class="p">(</span><span class="n">fun</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">_T</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">_T</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Ensures communication is established using watchdog signal.&quot;&quot;&quot;</span>
+
+    <span class="nd">@wraps</span><span class="p">(</span><span class="n">fun</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">wrapped</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmd</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_T</span><span class="p">:</span>
+        <span class="n">elapsed_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_command_timestamp</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">cmd</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;.U&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">elapsed_time</span> <span class="o">&gt;</span> <span class="n">_WATCHDOG_TIMEOUT</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_watchdog</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">fun</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmd</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">wrapped</span>
+
+
+<div class="viewcode-block" id="ThermotekT255p">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Thermotek.html#qcodes_contrib_drivers.drivers.Thermotek.Thermotek_T255p.ThermotekT255p">[docs]</a>
+<span class="k">class</span> <span class="nc">ThermotekT255p</span><span class="p">(</span><span class="n">VisaInstrument</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Driver for the Thermotek T255p laser chiller.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">address</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>
+                 <span class="n">device_clear</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">visalib</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">pyvisa_sim_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">address</span><span class="p">,</span> <span class="n">timeout</span><span class="p">,</span> <span class="n">terminator</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\r</span><span class="s1">&#39;</span><span class="p">,</span>
+                         <span class="n">device_clear</span><span class="o">=</span><span class="n">device_clear</span><span class="p">,</span> <span class="n">visalib</span><span class="o">=</span><span class="n">visalib</span><span class="p">,</span>
+                         <span class="n">pyvisa_sim_file</span><span class="o">=</span><span class="n">pyvisa_sim_file</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_command_timestamp</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">enabled</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="s1">&#39;enabled&#39;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Chiller running&#39;</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s1">&#39;G</span><span class="si">{}</span><span class="s1">&#39;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_watchdog</span><span class="p">()[</span><span class="mi">2</span><span class="p">],</span>
+            <span class="n">val_mapping</span><span class="o">=</span><span class="n">create_on_off_val_mapping</span><span class="p">(</span><span class="s1">&#39;1&#39;</span><span class="p">,</span> <span class="s1">&#39;0&#39;</span><span class="p">),</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span>
+        <span class="p">)</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Mode Select (0: Stand By, 1: Run Mode).&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">temperature_setpoint</span> <span class="o">=</span> <span class="n">GroupParameter</span><span class="p">(</span>
+            <span class="s1">&#39;temperature_setpoint&#39;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Set point Temperature&#39;</span><span class="p">,</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;°C&#39;</span><span class="p">,</span>
+            <span class="c1"># Drop first byte (command echo in this case). Need to check for</span>
+            <span class="c1"># type since for some reason group parameters pass the set value</span>
+            <span class="c1"># through the get_parser...</span>
+            <span class="n">get_parser</span><span class="o">=</span><span class="k">lambda</span> <span class="n">v</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">v</span><span class="p">)</span> <span class="o">/</span> <span class="mi">10</span><span class="p">,</span>
+            <span class="n">set_parser</span><span class="o">=</span><span class="k">lambda</span> <span class="n">v</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">v</span> <span class="o">*</span> <span class="mi">10</span><span class="p">),</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_power_setpoint</span> <span class="o">=</span> <span class="n">GroupParameter</span><span class="p">(</span>
+            <span class="s1">&#39;max_power_setpoint&#39;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Max Power Setting&#39;</span><span class="p">,</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;W&#39;</span><span class="p">,</span>
+            <span class="n">get_parser</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setpoints</span> <span class="o">=</span> <span class="n">Group</span><span class="p">(</span>
+            <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">temperature_setpoint</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_power_setpoint</span><span class="p">],</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s1">&#39;M</span><span class="si">{temperature_setpoint:+d}</span><span class="s1">&#39;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;H0&#39;</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">manifold_temperature</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="s1">&#39;manifold_temperature&#39;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Manifold temperature&#39;</span><span class="p">,</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;°C&#39;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;I&#39;</span><span class="p">,</span>
+            <span class="n">get_parser</span><span class="o">=</span><span class="k">lambda</span> <span class="n">v</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="o">/</span> <span class="mi">100</span><span class="p">,</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">temperature_sense_mode</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="s1">&#39;temperature_sense_mode&#39;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;External Temp Sense Mode&#39;</span><span class="p">,</span>
+            <span class="n">get_cmd</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">set_cmd</span><span class="o">=</span><span class="s1">&#39;O</span><span class="si">{}</span><span class="s1">&#39;</span><span class="p">,</span>
+            <span class="n">val_mapping</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;Internal&#39;</span><span class="p">:</span> <span class="s1">&#39;0&#39;</span><span class="p">,</span> <span class="s1">&#39;External&#39;</span><span class="p">:</span> <span class="s1">&#39;1&#39;</span><span class="p">},</span>
+            <span class="n">instrument</span><span class="o">=</span><span class="bp">self</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect_message</span><span class="p">()</span>
+
+<div class="viewcode-block" id="ThermotekT255p.write">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Thermotek.html#qcodes_contrib_drivers.drivers.Thermotek.Thermotek_T255p.ThermotekT255p.write">[docs]</a>
+    <span class="nd">@_encode_cmd</span>
+    <span class="nd">@_watchdog_timeout</span>
+    <span class="nd">@_command_timeout</span>
+    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmd</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+        <span class="c1"># Flush read buffer since otherwise the write response will be returned</span>
+        <span class="c1"># the next time ask() is called</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">visa_handle</span><span class="o">.</span><span class="n">read</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="ThermotekT255p.ask">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Thermotek.html#qcodes_contrib_drivers.drivers.Thermotek.Thermotek_T255p.ThermotekT255p.ask">[docs]</a>
+    <span class="nd">@_encode_cmd</span>
+    <span class="nd">@_watchdog_timeout</span>
+    <span class="nd">@_command_timeout</span>
+    <span class="k">def</span> <span class="nf">ask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmd</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="c1"># A command has the following structure:</span>
+        <span class="c1"># 1B    soc</span>
+        <span class="c1"># 1B    command code</span>
+        <span class="c1"># nB    n optional qualifier bytes (values passed to the device)</span>
+        <span class="c1"># 2B    checksum</span>
+        <span class="c1"># The response has the following structure:</span>
+        <span class="c1"># 1B    sor</span>
+        <span class="c1"># 1B    command echo</span>
+        <span class="c1"># 1B    comm error status</span>
+        <span class="c1"># mB    m optional response bytes</span>
+        <span class="c1"># 2B    checksum</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">response</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">_SOR</span> <span class="o">+</span> <span class="n">cmd</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Communication failed. Response was </span><span class="si">{</span><span class="n">response</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Communication failed. Try again.&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">response</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">:]</span> <span class="o">!=</span> <span class="n">_ascii_checksum</span><span class="p">(</span><span class="n">response</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Checksum does not match. Response was </span><span class="si">{</span><span class="n">response</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Checksum does not match.&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">status</span> <span class="o">:=</span> <span class="n">_ERROR_CODES</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">response</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span> <span class="o">!=</span> <span class="s1">&#39;No Error&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Error code </span><span class="si">{</span><span class="n">status</span><span class="si">}</span><span class="s1">. Response was </span><span class="si">{</span><span class="n">response</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="n">status</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">response</span><span class="p">[</span><span class="mi">3</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="ThermotekT255p.get_idn">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Thermotek.html#qcodes_contrib_drivers.drivers.Thermotek.Thermotek_T255p.ThermotekT255p.get_idn">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_idn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;vendor&#39;</span><span class="p">:</span> <span class="s1">&#39;Thermotek&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;model&#39;</span><span class="p">:</span> <span class="s1">&#39;T255p&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;serial&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s1">&#39;firmware&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_watchdog</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s1">&#39;U&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ThermotekT255p.status">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Thermotek.html#qcodes_contrib_drivers.drivers.Thermotek.Thermotek_T255p.ThermotekT255p.status">[docs]</a>
+    <span class="k">def</span> <span class="nf">status</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_watchdog</span><span class="p">()</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;Mode Status&#39;</span><span class="p">:</span> <span class="n">_MODE_STATUS</span><span class="p">[</span><span class="n">response</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span>
+                <span class="s1">&#39;Alarm Status&#39;</span><span class="p">:</span> <span class="n">_ALARM_STATUS</span><span class="p">[</span><span class="n">response</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span>
+                <span class="s1">&#39;Chiller Status&#39;</span><span class="p">:</span> <span class="n">_CHILLER_STATUS</span><span class="p">[</span><span class="n">response</span><span class="p">[</span><span class="mi">2</span><span class="p">]],</span>
+                <span class="s1">&#39;Dryer Status&#39;</span><span class="p">:</span> <span class="n">_DRYER_STATUS</span><span class="p">[</span><span class="n">response</span><span class="p">[</span><span class="mi">3</span><span class="p">]]}</span></div>
+
+
+<div class="viewcode-block" id="ThermotekT255p.alarm_state">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Thermotek.html#qcodes_contrib_drivers.drivers.Thermotek.Thermotek_T255p.ThermotekT255p.alarm_state">[docs]</a>
+    <span class="k">def</span> <span class="nf">alarm_state</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]:</span>
+        <span class="n">flags</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s1">&#39;J&#39;</span><span class="p">)</span>
+        <span class="n">alarms</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Float Switch&#39;</span><span class="p">,</span> <span class="s1">&#39;Hi Alarm&#39;</span><span class="p">,</span> <span class="s1">&#39;Lo Alarm&#39;</span><span class="p">,</span> <span class="s1">&#39;Sensor Alarm&#39;</span><span class="p">,</span>
+                  <span class="s1">&#39;EEPROM Fail&#39;</span><span class="p">,</span> <span class="s1">&#39;Watch dog&#39;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">alarm</span><span class="p">:</span> <span class="nb">bool</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">flag</span><span class="p">))</span> <span class="k">for</span> <span class="n">alarm</span><span class="p">,</span> <span class="n">flag</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">alarms</span><span class="p">,</span> <span class="n">flags</span><span class="p">)}</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, QCoDeS Users.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

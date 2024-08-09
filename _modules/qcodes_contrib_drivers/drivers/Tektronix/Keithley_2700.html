@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>qcodes_contrib_drivers.drivers.Tektronix.Keithley_2700 &mdash; qcodes_contrib_drivers 0.23.0.dev36+main.g4e2ee8f documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../_static/documentation_options.js?v=fc3c8481"></script>
+        <script src="../../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            qcodes_contrib_drivers
+          </a>
+              <div class="version">
+                0.23.0.dev36+main.g4e2ee8f
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples/index.html">Examples of how to use drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/generated/qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">qcodes_contrib_drivers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">qcodes_contrib_drivers.drivers.Tektronix.Keithley_2700</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for qcodes_contrib_drivers.drivers.Tektronix.Keithley_2700</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Keithley_2700.py driver for Keithley 2700 DMM</span>
+<span class="c1">#</span>
+<span class="c1"># Pieter Eendebak &lt;pieter.eendebak@gmail.com&gt;, 2016 (adapt to Qcodes framework)</span>
+<span class="c1"># Pieter de Groot &lt;pieterdegroot@gmail.com&gt;, 2008</span>
+<span class="c1"># Martijn Schaafsma &lt;qtlab@mcschaafsma.nl&gt;, 2008</span>
+<span class="c1"># Reinier Heeres &lt;reinier@heeres.eu&gt;, 2008</span>
+<span class="c1">#</span>
+<span class="c1"># Update december 2009:</span>
+<span class="c1"># Michiel Jol &lt;jelle@michieljol.nl&gt;</span>
+<span class="c1">#</span>
+<span class="c1"># This program is free software; you can redistribute it and/or modify</span>
+<span class="c1"># it under the terms of the GNU General Public License as published by</span>
+<span class="c1"># the Free Software Foundation; either version 2 of the License, or</span>
+<span class="c1"># (at your option) any later version.</span>
+<span class="c1">#</span>
+<span class="c1"># This program is distributed in the hope that it will be useful,</span>
+<span class="c1"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c1"># GNU General Public License for more details.</span>
+<span class="c1">#</span>
+<span class="c1"># You should have received a copy of the GNU General Public License</span>
+<span class="c1"># along with this program; if not, write to the Free Software</span>
+<span class="c1"># Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+
+<span class="kn">from</span> <span class="nn">qcodes.instrument.visa</span> <span class="kn">import</span> <span class="n">VisaInstrument</span>
+<span class="kn">from</span> <span class="nn">qcodes.utils.validators</span> <span class="kn">import</span> <span class="n">Strings</span> <span class="k">as</span> <span class="n">StringValidator</span>
+<span class="kn">from</span> <span class="nn">qcodes.utils.validators</span> <span class="kn">import</span> <span class="n">Ints</span> <span class="k">as</span> <span class="n">IntsValidator</span>
+<span class="kn">from</span> <span class="nn">qcodes.utils.validators</span> <span class="kn">import</span> <span class="n">Numbers</span> <span class="k">as</span> <span class="n">NumbersValidator</span>
+
+
+<span class="c1"># %% Helper functions</span>
+
+
+<div class="viewcode-block" id="bool_to_str">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Tektronix.html#qcodes_contrib_drivers.drivers.Tektronix.Keithley_2700.bool_to_str">[docs]</a>
+<span class="k">def</span> <span class="nf">bool_to_str</span><span class="p">(</span><span class="n">val</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Function to convert boolean to &#39;ON&#39; or &#39;OFF&#39;</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="n">val</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;ON&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;OFF&quot;</span></div>
+
+
+
+<span class="c1"># %% Driver for Keithley_2700</span>
+
+<div class="viewcode-block" id="parseint">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Tektronix.html#qcodes_contrib_drivers.drivers.Tektronix.Keithley_2700.parseint">[docs]</a>
+<span class="k">def</span> <span class="nf">parseint</span><span class="p">(</span><span class="n">v</span><span class="p">):</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;parseint: </span><span class="si">%s</span><span class="s1"> -&gt; </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">v</span><span class="p">)))</span>
+    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">v</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="parsebool">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Tektronix.html#qcodes_contrib_drivers.drivers.Tektronix.Keithley_2700.parsebool">[docs]</a>
+<span class="k">def</span> <span class="nf">parsebool</span><span class="p">(</span><span class="n">v</span><span class="p">):</span>
+    <span class="n">r</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">v</span><span class="p">))</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;parsetobool: </span><span class="si">%s</span><span class="s1"> -&gt; </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">r</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">r</span></div>
+
+
+
+<div class="viewcode-block" id="parsestr">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Tektronix.html#qcodes_contrib_drivers.drivers.Tektronix.Keithley_2700.parsestr">[docs]</a>
+<span class="k">def</span> <span class="nf">parsestr</span><span class="p">(</span><span class="n">v</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">v</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;&quot;&#39;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Keithley_2700">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Tektronix.html#qcodes_contrib_drivers.drivers.Tektronix.Keithley_2700.Keithley_2700">[docs]</a>
+<span class="k">class</span> <span class="nc">Keithley_2700</span><span class="p">(</span><span class="n">VisaInstrument</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    This is the qcodes driver for the Keithley_2700 Multimeter</span>
+
+<span class="sd">    Usage: Initialize with::</span>
+
+<span class="sd">        &lt;name&gt; =  = Keithley_2700(&lt;name&gt;, address=&#39;&lt;GPIB address&gt;&#39;, reset=&lt;bool&gt;,</span>
+<span class="sd">            change_display=&lt;bool&gt;, change_autozero=&lt;bool&gt;)</span>
+
+<span class="sd">    Status: beta-version.</span>
+
+<span class="sd">    This driver will most likely work for multiple Keithley SourceMeters.</span>
+
+<span class="sd">    This driver does not contain all commands available, but only the ones</span>
+<span class="sd">    most commonly used.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">address</span><span class="p">,</span> <span class="n">reset</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">address</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_modes</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;VOLT:AC&#39;</span><span class="p">,</span> <span class="s1">&#39;VOLT:DC&#39;</span><span class="p">,</span> <span class="s1">&#39;CURR:AC&#39;</span><span class="p">,</span> <span class="s1">&#39;CURR:DC&#39;</span><span class="p">,</span> <span class="s1">&#39;RES&#39;</span><span class="p">,</span>
+                       <span class="s1">&#39;FRES&#39;</span><span class="p">,</span> <span class="s1">&#39;TEMP&#39;</span><span class="p">,</span> <span class="s1">&#39;FREQ&#39;</span><span class="p">]</span>
+        <span class="c1"># self._change_display = change_display</span>
+        <span class="c1"># self._change_autozero = change_autozero</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_averaging_types</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;MOV&#39;</span><span class="p">,</span> <span class="s1">&#39;REP&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_trigger_sent</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="c1"># Add parameters to wrapper</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;mode&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;:CONF?&#39;</span><span class="p">,</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="n">parsestr</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="s1">&#39;:CONF:</span><span class="si">{}</span><span class="s1">&#39;</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">StringValidator</span><span class="p">())</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;trigger_count&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_mode_par</span><span class="p">(</span><span class="s1">&#39;INIT&#39;</span><span class="p">,</span> <span class="s1">&#39;CONT&#39;</span><span class="p">),</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_mode_par_value</span><span class="p">(</span><span class="s1">&#39;INIT&#39;</span><span class="p">,</span> <span class="s1">&#39;CONT&#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">&#39;</span><span class="p">),</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">IntsValidator</span><span class="p">(),</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;#&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;trigger_delay&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_mode_par</span><span class="p">(</span><span class="s1">&#39;TRIG&#39;</span><span class="p">,</span> <span class="s1">&#39;DEL&#39;</span><span class="p">),</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_mode_par_value</span><span class="p">(</span><span class="s1">&#39;TRIG&#39;</span><span class="p">,</span> <span class="s1">&#39;DEL&#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">&#39;</span><span class="p">),</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">NumbersValidator</span><span class="p">(</span><span class="n">min_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                                                 <span class="n">max_value</span><span class="o">=</span><span class="mf">999999.999</span><span class="p">),</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;s&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;trigger_continuous&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_mode_par</span><span class="p">(</span><span class="s1">&#39;INIT&#39;</span><span class="p">,</span> <span class="s1">&#39;CONT&#39;</span><span class="p">),</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="n">parsebool</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_mode_par_value</span><span class="p">(</span><span class="s1">&#39;INIT&#39;</span><span class="p">,</span> <span class="s1">&#39;CONT&#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">&#39;</span><span class="p">),</span>
+                           <span class="n">set_parser</span><span class="o">=</span><span class="n">bool_to_str</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;display&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_mode_par</span><span class="p">(</span><span class="s1">&#39;DISP&#39;</span><span class="p">,</span> <span class="s1">&#39;ENAB&#39;</span><span class="p">),</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="n">parsebool</span><span class="p">,</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_mode_par_value</span><span class="p">(</span><span class="s1">&#39;DISP&#39;</span><span class="p">,</span> <span class="s1">&#39;ENAB&#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">&#39;</span><span class="p">),</span>
+                           <span class="n">set_parser</span><span class="o">=</span><span class="n">bool_to_str</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;averaging&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_current_mode_get</span><span class="p">,</span> <span class="s1">&#39;AVER:STAT&#39;</span><span class="p">,</span>
+                                           <span class="n">parser</span><span class="o">=</span><span class="n">parsebool</span><span class="p">),</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_current_mode_set</span><span class="p">,</span>
+                                           <span class="n">par</span><span class="o">=</span><span class="s1">&#39;AVER:STAT&#39;</span><span class="p">),</span>
+                           <span class="n">set_parser</span><span class="o">=</span><span class="n">bool_to_str</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;digits&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_current_mode_get</span><span class="p">,</span> <span class="s1">&#39;DIG&#39;</span><span class="p">,</span>
+                                           <span class="n">parser</span><span class="o">=</span><span class="nb">int</span><span class="p">),</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_current_mode_set</span><span class="p">,</span> <span class="n">par</span><span class="o">=</span><span class="s1">&#39;DIG&#39;</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;nplc&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_current_mode_get</span><span class="p">,</span> <span class="s1">&#39;NPLC&#39;</span><span class="p">,</span>
+                                           <span class="n">parser</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_current_mode_set</span><span class="p">,</span> <span class="n">par</span><span class="o">=</span><span class="s1">&#39;NPLC&#39;</span><span class="p">,</span>
+                                           <span class="n">mode</span><span class="o">=</span><span class="kc">None</span><span class="p">),</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;APER&#39;</span><span class="p">,</span>
+                           <span class="n">docstring</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;Get integration time in Number of &#39;</span>
+                                      <span class="s1">&#39;PowerLine Cycles.</span><span class="se">\n</span><span class="s1">&#39;</span>
+                                      <span class="s1">&#39;To get the integrationtime in seconds, &#39;</span>
+                                      <span class="s1">&#39;use get_integrationtime().&#39;</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;range&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_current_mode_get</span><span class="p">,</span> <span class="s1">&#39;RANG&#39;</span><span class="p">,</span>
+                                           <span class="n">parser</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_current_mode_set</span><span class="p">,</span> <span class="n">par</span><span class="o">=</span><span class="s1">&#39;RANG&#39;</span><span class="p">),</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;RANG&#39;</span><span class="p">,</span>
+                           <span class="n">docstring</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;Sets the measurement range.</span><span class="se">\n</span><span class="s1">&#39;</span>
+                                      <span class="s1">&#39;Note that not only a discrete set of &#39;</span>
+                                      <span class="s1">&#39;ranges can be set (see the manual for &#39;</span>
+                                      <span class="s1">&#39;details).&#39;</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;integrationtime&#39;</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_current_mode_get</span><span class="p">,</span> <span class="s1">&#39;APER&#39;</span><span class="p">,</span>
+                                           <span class="n">parser</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span>
+                           <span class="n">set_cmd</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_current_mode_set</span><span class="p">,</span> <span class="n">par</span><span class="o">=</span><span class="s1">&#39;APER&#39;</span><span class="p">,</span>
+                                           <span class="n">mode</span><span class="o">=</span><span class="kc">None</span><span class="p">),</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;s&#39;</span><span class="p">,</span>
+                           <span class="n">vals</span><span class="o">=</span><span class="n">NumbersValidator</span><span class="p">(</span><span class="n">min_value</span><span class="o">=</span><span class="mf">2e-4</span><span class="p">,</span> <span class="n">max_value</span><span class="o">=</span><span class="mf">1.</span><span class="p">),</span>
+                           <span class="n">docstring</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;Get integration time in seconds.</span><span class="se">\n</span><span class="s1">&#39;</span>
+                                      <span class="s1">&#39;To get the integrationtime as a Number &#39;</span>
+                                      <span class="s1">&#39;of PowerLine Cycles, use get_nplc().&#39;</span><span class="p">))</span>
+
+        <span class="c1"># add functions</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;amplitude&#39;</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;arb.unit&#39;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;:DATA:FRESH?&#39;</span><span class="p">,</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;readnext&#39;</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;arb.unit&#39;</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+                           <span class="n">get_cmd</span><span class="o">=</span><span class="s1">&#39;:DATA:FRESH?&#39;</span><span class="p">,</span>
+                           <span class="n">get_parser</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">reset</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_all</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect_message</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Keithley_2700.get_all">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Tektronix.html#qcodes_contrib_drivers.drivers.Tektronix.Keithley_2700.Keithley_2700.get_all">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_all</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Reads all relevant parameters from instrument</span>
+
+<span class="sd">        Input:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        Output:</span>
+<span class="sd">            None</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Get all relevant data from device&#39;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;mode&#39;</span><span class="p">,</span> <span class="s1">&#39;trigger_count&#39;</span><span class="p">,</span> <span class="s1">&#39;trigger_continuous&#39;</span><span class="p">,</span> <span class="s1">&#39;averaging&#39;</span><span class="p">,</span>
+                  <span class="s1">&#39;digits&#39;</span><span class="p">,</span> <span class="s1">&#39;nplc&#39;</span><span class="p">,</span> <span class="s1">&#39;integrationtime&#39;</span><span class="p">,</span> <span class="s1">&#39;range&#39;</span><span class="p">,</span> <span class="s1">&#39;display&#39;</span><span class="p">]:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;get </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">p</span><span class="p">)</span>
+            <span class="n">par</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span>
+            <span class="n">par</span><span class="o">.</span><span class="n">get</span><span class="p">()</span></div>
+
+
+        <span class="c1"># self.get_trigger_delay()</span>
+        <span class="c1"># self.get_trigger_source()</span>
+        <span class="c1"># self.get_trigger_timer()</span>
+        <span class="c1"># self.get_autozero()</span>
+        <span class="c1"># self.get_averaging_window()</span>
+        <span class="c1"># self.get_averaging_count()</span>
+        <span class="c1"># self.get_averaging_type()</span>
+        <span class="c1"># self.get_autorange()</span>
+
+    <span class="k">def</span> <span class="nf">_current_mode_get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">par</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">parser</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">cmd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode_par</span><span class="p">(</span><span class="n">mode</span><span class="p">,</span> <span class="n">par</span><span class="p">)</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">parser</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="n">parser</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">r</span>
+
+    <span class="k">def</span> <span class="nf">_current_mode_set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">par</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">cmd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode_par_value</span><span class="p">(</span><span class="n">mode</span><span class="p">,</span> <span class="n">par</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+
+    <span class="c1"># --------------------------------------</span>
+    <span class="c1">#           functions</span>
+    <span class="c1"># --------------------------------------</span>
+
+<div class="viewcode-block" id="Keithley_2700.set_mode_volt_dc">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Tektronix.html#qcodes_contrib_drivers.drivers.Tektronix.Keithley_2700.Keithley_2700.set_mode_volt_dc">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_mode_volt_dc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Set mode to DC Voltage</span>
+
+<span class="sd">        Input:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        Output:</span>
+<span class="sd">            None</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Set mode to DC Voltage&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mode</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;VOLT:DC&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Keithley_2700.set_defaults">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Tektronix.html#qcodes_contrib_drivers.drivers.Tektronix.Keithley_2700.Keithley_2700.set_defaults">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_defaults</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Set to driver defaults:</span>
+<span class="sd">        Output=data only</span>
+<span class="sd">        Mode=Volt:DC</span>
+<span class="sd">        Digits=7</span>
+<span class="sd">        Trigger=Continous</span>
+<span class="sd">        Range=10 V</span>
+<span class="sd">        NPLC=1</span>
+<span class="sd">        Averaging=off</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;SYST:PRES&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;:FORM:ELEM READ&#39;</span><span class="p">)</span>
+        <span class="c1"># Sets the format to only the read out, all options are:</span>
+        <span class="c1"># READing = DMM reading, UNITs = Units,</span>
+        <span class="c1"># TSTamp = Timestamp, RNUMber = Reading number,</span>
+        <span class="c1"># CHANnel = Channel number, LIMits = Limits reading</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_mode_volt_dc</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">digits</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="mi">7</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">trigger_continuous</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">range</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nplc</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">averaging</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">return</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_determine_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Return the mode string to use.</span>
+<span class="sd">        If mode is None it will return the currently selected mode.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Determine mode with mode=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">mode</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">mode</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">mode</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span><span class="o">.</span><span class="n">get_latest</span><span class="p">()</span>  <span class="c1"># _mode(query=False)</span>
+        <span class="k">if</span> <span class="n">mode</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_modes</span> <span class="ow">and</span> <span class="n">mode</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;INIT&#39;</span><span class="p">,</span> <span class="s1">&#39;TRIG&#39;</span><span class="p">,</span> <span class="s1">&#39;SYST&#39;</span><span class="p">,</span>
+                                                    <span class="s1">&#39;DISP&#39;</span><span class="p">):</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Invalid mode </span><span class="si">%s</span><span class="s1">, assuming current&#39;</span> <span class="o">%</span> <span class="n">mode</span><span class="p">)</span>
+            <span class="n">mode</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span><span class="o">.</span><span class="n">get_latest</span><span class="p">()</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Determine mode: mode=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">mode</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">mode</span>
+
+<div class="viewcode-block" id="Keithley_2700.set_mode">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Tektronix.html#qcodes_contrib_drivers.drivers.Tektronix.Keithley_2700.Keithley_2700.set_mode">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Set the mode to the specified value</span>
+
+<span class="sd">        Input:</span>
+<span class="sd">            mode (string) : mode to be set. Choose from self._modes</span>
+
+<span class="sd">        Output:</span>
+<span class="sd">            None</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Set mode to </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">mode</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">mode</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_modes</span><span class="p">:</span>
+            <span class="n">string</span> <span class="o">=</span> <span class="s1">&#39;:CONF:</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">mode</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_visainstrument</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">string</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">mode</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;VOLT&#39;</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_change_units</span><span class="p">(</span><span class="s1">&#39;V&#39;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">mode</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;CURR&#39;</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_change_units</span><span class="p">(</span><span class="s1">&#39;A&#39;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">mode</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;RES&#39;</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_change_units</span><span class="p">(</span><span class="s1">&#39;Ohm&#39;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">mode</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;FREQ&#39;</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_change_units</span><span class="p">(</span><span class="s1">&#39;Hz&#39;</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;invalid mode </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">mode</span><span class="p">)</span>
+
+        <span class="c1"># Get all values again because some parameters depend on mode</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">get_all</span><span class="p">()</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_mode_par_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">par</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        For internal use only!!</span>
+<span class="sd">        Create command string based on current mode</span>
+
+<span class="sd">        Input:</span>
+<span class="sd">            mode (string) : The mode to use</span>
+<span class="sd">            par (string)  : Parameter</span>
+<span class="sd">            val (depends) : Value</span>
+
+<span class="sd">        Output:</span>
+<span class="sd">            None</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">mode</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_determine_mode</span><span class="p">(</span><span class="n">mode</span><span class="p">)</span>
+        <span class="n">string</span> <span class="o">=</span> <span class="s1">&#39;:</span><span class="si">%s</span><span class="s1">:</span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">mode</span><span class="p">,</span> <span class="n">par</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">string</span>
+
+    <span class="k">def</span> <span class="nf">_mode_par</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">par</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        For internal use only!!</span>
+<span class="sd">        Create command string based on current mode</span>
+
+<span class="sd">        Input:</span>
+<span class="sd">            mode (string) : The mode to use</span>
+<span class="sd">            par (string)  : Parameter</span>
+<span class="sd">            val (depends) : Value</span>
+
+<span class="sd">        Output:</span>
+<span class="sd">            None</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">mode</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_determine_mode</span><span class="p">(</span><span class="n">mode</span><span class="p">)</span>
+        <span class="n">string</span> <span class="o">=</span> <span class="s1">&#39;:</span><span class="si">%s</span><span class="s1">:</span><span class="si">%s</span><span class="s1">?&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">mode</span><span class="p">,</span> <span class="n">par</span><span class="p">,</span> <span class="p">)</span>
+        <span class="k">return</span> <span class="n">string</span>
+
+<div class="viewcode-block" id="Keithley_2700.reset">
+<a class="viewcode-back" href="../../../../api/generated/qcodes_contrib_drivers.drivers.Tektronix.html#qcodes_contrib_drivers.drivers.Tektronix.Keithley_2700.Keithley_2700.reset">[docs]</a>
+    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Resets instrument to default values</span>
+
+<span class="sd">        Input:</span>
+<span class="sd">            None</span>
+
+<span class="sd">        Output:</span>
+<span class="sd">            None</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Resetting instrument&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_visainstrument</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;*RST&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">get_all</span><span class="p">()</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, QCoDeS Users.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

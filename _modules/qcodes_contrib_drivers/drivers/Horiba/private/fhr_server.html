@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>qcodes_contrib_drivers.drivers.Horiba.private.fhr_server &mdash; qcodes_contrib_drivers 0.23.0.dev36+main.g4e2ee8f documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../../_static/documentation_options.js?v=fc3c8481"></script>
+        <script src="../../../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script src="../../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../../index.html" class="icon icon-home">
+            qcodes_contrib_drivers
+          </a>
+              <div class="version">
+                0.23.0.dev36+main.g4e2ee8f
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../examples/index.html">Examples of how to use drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../../index.html">qcodes_contrib_drivers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">qcodes_contrib_drivers.drivers.Horiba.private.fhr_server</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for qcodes_contrib_drivers.drivers.Horiba.private.fhr_server</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span>
+
+<span class="kn">from</span> <span class="nn">msl.loadlib</span> <span class="kn">import</span> <span class="n">Server32</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">ctypes.wintypes</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">ctypes</span>
+    <span class="kn">from</span> <span class="nn">types</span> <span class="kn">import</span> <span class="n">ModuleType</span>
+
+    <span class="n">ctypes</span><span class="o">.</span><span class="n">wintypes</span> <span class="o">=</span> <span class="n">ModuleType</span><span class="p">(</span><span class="s1">&#39;wintypes&#39;</span><span class="p">)</span>
+    <span class="n">ctypes</span><span class="o">.</span><span class="n">wintypes</span><span class="o">.</span><span class="n">DWORD</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_ulong</span>
+
+<span class="n">LOG</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<span class="c1"># Uncomment the line below to log (cannot control the logger from the</span>
+<span class="c1"># client since the server runs on a different executable).</span>
+<span class="c1"># logging.basicConfig(filename=&#39;path/to/log&#39;, level=logging.DEBUG)</span>
+
+
+<div class="viewcode-block" id="FHRServer">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Horiba.private.html#qcodes_contrib_drivers.drivers.Horiba.private.fhr_server.FHRServer">[docs]</a>
+<span class="k">class</span> <span class="nc">FHRServer</span><span class="p">(</span><span class="n">Server32</span><span class="p">):</span>
+    <span class="k">class</span> <span class="nc">_SpeSetup</span><span class="p">(</span><span class="n">ctypes</span><span class="o">.</span><span class="n">Structure</span><span class="p">):</span>
+        <span class="n">_fields_</span> <span class="o">=</span> <span class="p">[(</span><span class="s1">&#39;Size&#39;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">wintypes</span><span class="o">.</span><span class="n">DWORD</span><span class="p">),</span>
+                    <span class="p">(</span><span class="s1">&#39;MinSpeed&#39;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">),</span>
+                    <span class="p">(</span><span class="s1">&#39;MaxSpeed&#39;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">),</span>
+                    <span class="p">(</span><span class="s1">&#39;Ramp&#39;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">),</span>
+                    <span class="p">(</span><span class="s1">&#39;Backlash&#39;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">),</span>
+                    <span class="p">(</span><span class="s1">&#39;Step&#39;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">),</span>
+                    <span class="p">(</span><span class="s1">&#39;Revers&#39;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">)]</span>
+
+    <span class="k">class</span> <span class="nc">_SpeIniParams</span><span class="p">(</span><span class="n">ctypes</span><span class="o">.</span><span class="n">Structure</span><span class="p">):</span>
+        <span class="n">_fields_</span> <span class="o">=</span> <span class="p">[(</span><span class="s1">&#39;Size&#39;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">wintypes</span><span class="o">.</span><span class="n">DWORD</span><span class="p">),</span>
+                    <span class="p">(</span><span class="s1">&#39;Phase&#39;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">),</span>
+                    <span class="p">(</span><span class="s1">&#39;MinSpeed&#39;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">),</span>
+                    <span class="p">(</span><span class="s1">&#39;MaxSpeed&#39;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">),</span>
+                    <span class="p">(</span><span class="s1">&#39;Ramp&#39;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">)]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">dll_dir</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s1">&#39;SpeControl&#39;</span><span class="p">):</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">dll_dir</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span><span class="o">.</span><span class="n">with_suffix</span><span class="p">(</span><span class="s1">&#39;.dll&#39;</span><span class="p">))</span>
+
+        <span class="n">LOG</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Initializing FHRServer.&#39;</span><span class="p">)</span>
+        <span class="n">LOG</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;host = </span><span class="si">{</span><span class="n">host</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">LOG</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;port = </span><span class="si">{</span><span class="n">port</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">LOG</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;path = </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;cdll&#39;</span><span class="p">,</span> <span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">)</span>
+
+<div class="viewcode-block" id="FHRServer.CreateSpe">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Horiba.private.html#qcodes_contrib_drivers.drivers.Horiba.private.fhr_server.FHRServer.CreateSpe">[docs]</a>
+    <span class="k">def</span> <span class="nf">CreateSpe</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create new spectrometer handle.&quot;&quot;&quot;</span>
+        <span class="n">LOG</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Creating spe handle.&#39;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">lib</span><span class="o">.</span><span class="n">CreateSpe</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="FHRServer.DeleteSpe">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Horiba.private.html#qcodes_contrib_drivers.drivers.Horiba.private.fhr_server.FHRServer.DeleteSpe">[docs]</a>
+    <span class="k">def</span> <span class="nf">DeleteSpe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">h_spe</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Delete spectrometer handle h_spe.&quot;&quot;&quot;</span>
+        <span class="n">hSpe</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">(</span><span class="n">h_spe</span><span class="p">)</span>
+
+        <span class="n">LOG</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Deleting spe handle </span><span class="si">{</span><span class="n">hSpe</span><span class="si">}</span><span class="s1">.&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">lib</span><span class="o">.</span><span class="n">DeleteSpe</span><span class="p">(</span><span class="n">hSpe</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="FHRServer.SpeCommand">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Horiba.private.html#qcodes_contrib_drivers.drivers.Horiba.private.fhr_server.FHRServer.SpeCommand">[docs]</a>
+    <span class="k">def</span> <span class="nf">SpeCommand</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="n">h_spe</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">a_dsp</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">a_fun</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+            <span class="n">aPar</span><span class="p">:</span> <span class="n">_SpeSetup</span> <span class="o">|</span> <span class="n">_SpeIniParams</span> <span class="o">|</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Send command (execute a function) named &quot;a_fun&quot; for the</span>
+<span class="sd">        function dispatcher named &quot;a_dsp&quot; for the spectrometer handled</span>
+<span class="sd">        &quot;h_spe&quot;. &quot;a_par&quot; is a pointer to the function parameters.&quot;&quot;&quot;</span>
+        <span class="n">hSpe</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">(</span><span class="n">h_spe</span><span class="p">)</span>
+        <span class="n">aDsp</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_char_p</span><span class="p">(</span><span class="n">a_dsp</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span>
+        <span class="n">aFun</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_char_p</span><span class="p">(</span><span class="n">a_fun</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span>
+
+        <span class="n">LOG</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Calling SpeCommand.&#39;</span><span class="p">)</span>
+        <span class="n">LOG</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;hSpe = </span><span class="si">{</span><span class="n">hSpe</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">LOG</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;aDsp = </span><span class="si">{</span><span class="n">aDsp</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">LOG</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;aFun = </span><span class="si">{</span><span class="n">aFun</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">LOG</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;aPar = </span><span class="si">{</span><span class="n">aPar</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+        <span class="n">code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lib</span><span class="o">.</span><span class="n">SpeCommand</span><span class="p">(</span>
+            <span class="n">hSpe</span><span class="p">,</span> <span class="n">aDsp</span><span class="p">,</span> <span class="n">aFun</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">aPar</span><span class="p">)</span> <span class="k">if</span> <span class="n">aPar</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">aPar</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">_SimpleCData</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">code</span><span class="p">,</span> <span class="n">aPar</span><span class="o">.</span><span class="n">value</span>
+        <span class="k">return</span> <span class="n">code</span><span class="p">,</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="FHRServer.SpeCommandSetup">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Horiba.private.html#qcodes_contrib_drivers.drivers.Horiba.private.fhr_server.FHRServer.SpeCommandSetup">[docs]</a>
+    <span class="k">def</span> <span class="nf">SpeCommandSetup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">h_spe</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">a_dsp</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                        <span class="n">fields</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Send command to set up a motor.</span>
+
+<span class="sd">        Need to treat this separately since the SpeSetup structure</span>
+<span class="sd">        must be defined in the 32-bit module. Otherwise, the 32-bit</span>
+<span class="sd">        executable would need to know about qcodes_contrib_drivers.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">setup</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_SpeSetup</span><span class="p">(</span><span class="mi">28</span><span class="p">,</span> <span class="o">*</span><span class="n">fields</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">SpeCommand</span><span class="p">(</span><span class="n">h_spe</span><span class="p">,</span> <span class="n">a_dsp</span><span class="p">,</span> <span class="s1">&#39;SetSetup&#39;</span><span class="p">,</span> <span class="n">setup</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="FHRServer.SpeCommandIniParams">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Horiba.private.html#qcodes_contrib_drivers.drivers.Horiba.private.fhr_server.FHRServer.SpeCommandIniParams">[docs]</a>
+    <span class="k">def</span> <span class="nf">SpeCommandIniParams</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">h_spe</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">a_dsp</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                            <span class="n">fields</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Send command to initialize a grating motor.</span>
+
+<span class="sd">        Need to treat this separately since the SpeIniParams structure</span>
+<span class="sd">        must be defined in the 32-bit module. Otherwise, the 32-bit</span>
+<span class="sd">        executable would need to know about qcodes_contrib_drivers.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">iniParams</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_SpeIniParams</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="o">*</span><span class="n">fields</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">SpeCommand</span><span class="p">(</span><span class="n">h_spe</span><span class="p">,</span> <span class="n">a_dsp</span><span class="p">,</span> <span class="s1">&#39;SetIniParams&#39;</span><span class="p">,</span> <span class="n">iniParams</span><span class="p">)</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, QCoDeS Users.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
