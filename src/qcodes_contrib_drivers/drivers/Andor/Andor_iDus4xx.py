@@ -150,6 +150,7 @@ class _PostProcessingCallable(validators.Validator[Callable[[npt.NDArray[np.int3
 
 class DetectorPixelsParameter(MultiParameter):
     """Stores the detector size in pixels."""
+    instrument: AndorIDus4xx
 
     class DetectorPixels(NamedTuple):
         horizontal: int
@@ -164,6 +165,7 @@ class DetectorPixelsParameter(MultiParameter):
 
 class PixelSizeParameter(MultiParameter):
     """Stores the pixel size in microns."""
+    instrument: AndorIDus4xx
 
     class PixelSize(NamedTuple):
         horizontal: float
@@ -178,6 +180,7 @@ class PixelSizeParameter(MultiParameter):
 
 class DetectorSizeParameter(MultiParameter):
     """Stores the detector size in microns."""
+    instrument: AndorIDus4xx
 
     class DetectorSize(NamedTuple):
         horizontal: float
@@ -194,6 +197,7 @@ class DetectorSizeParameter(MultiParameter):
 
 class AcquiredPixelsParameter(MultiParameter):
     """Returns the shape of a single frame for the current settings."""
+    instrument: AndorIDus4xx
 
     class AcquiredPixels(NamedTuple):
         horizontal: int
@@ -221,6 +225,7 @@ class AcquiredPixelsParameter(MultiParameter):
 
 class SingleTrackSettingsParameter(MultiParameter):
     """Represents the settings for single-track acquisition."""
+    instrument: AndorIDus4xx
 
     class SingleTrackSettings(NamedTuple):
         centre: int
@@ -253,6 +258,7 @@ class MultiTrackSettingsParameter(MultiParameter):
     properties of the parameter, i.e., accessible through
     :property:`gap` and :property:`bottom`, respectively.
     """
+    instrument: AndorIDus4xx
 
     class MultiTrackSettings(NamedTuple):
         number: int
@@ -288,6 +294,7 @@ class MultiTrackSettingsParameter(MultiParameter):
 
 class RandomTrackSettingsParameter(MultiParameter):
     """Represents the settings for random-track acquisition."""
+    instrument: AndorIDus4xx
 
     class RandomTrackSettings(NamedTuple):
         number_tracks: int
@@ -309,6 +316,7 @@ class RandomTrackSettingsParameter(MultiParameter):
 
 class ImageSettingsParameter(MultiParameter):
     """Represents the settings for image acquisition."""
+    instrument: AndorIDus4xx
 
     class ImageSettings(NamedTuple):
         hbin: int
@@ -334,6 +342,7 @@ class ImageSettingsParameter(MultiParameter):
 
 class FastKineticsSettingsParameter(MultiParameter):
     """Represents fast kinetics settings."""
+    instrument: AndorIDus4xx
 
     class FastKineticsSettings(NamedTuple):
         exposed_rows: int
@@ -403,6 +412,7 @@ class PixelAxis(Parameter):
     spectrograph, wavelength at hand, set this parameter's get_parser
     and unit.
     """
+    instrument: AndorIDus4xx
 
     def __init__(self, name: str, dimension: Literal[0, 1], instrument: 'AndorIDus4xx',
                  **kwargs: Any) -> None:
@@ -434,6 +444,7 @@ class TimeAxis(Parameter):
     If the acquisition mode is a kinetic series, the size corresponds
     to number_kinetics(), otherwise it's always 1.
     """
+    instrument: AndorIDus4xx
 
     def get_raw(self) -> npt.NDArray[np.float64]:
         if self.instrument is None:
