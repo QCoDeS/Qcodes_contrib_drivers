@@ -1116,7 +1116,7 @@ class AndorIDus4xx(Instrument):
 
         shape = tuple(setpoints.get().size for setpoints in self.ccd_data.setpoints)
 
-        return _AcquisitionParams(timeout_ms, cycle_time, number_accumulations, number_frames,
+        return _AcquisitionParams(timeout_ms, cycle_time, number_accumulations,
                                   number_frames_acquired, buffer, shape, fetch_lazy)
 
     def get_idn(self) -> Dict[str, Optional[str]]:
