@@ -41,9 +41,9 @@ import itertools
 import operator
 import textwrap
 import time
-from collections import abc, namedtuple
+from collections.abc import Callable, Sequence
 from functools import partial, wraps
-from typing import Any, Callable, Dict, Literal, Optional, Sequence, Tuple, TypeVar
+from typing import Any, Dict, Literal, Optional, Tuple, TypeVar, NamedTuple
 
 import numpy as np
 import numpy.typing as npt
@@ -65,14 +65,26 @@ _ACQUISITION_TIMEOUT_FACTOR = 1.5
 _MINIMUM_ACQUISITION_TIMEOUT = 1.0
 """Minimum acquisition timeout in seconds."""
 
-AcquisitionTimings = namedtuple('AcquisitionTimings',
-                                ('exposure_time', 'accumulation_cycle_time', 'kinetic_cycle_time'))
-"""Timings computed by the SDK."""
-_AcquisitionParams = namedtuple('_AcquisitionParams',
-                                ('timeout_ms', 'cycle_time', 'number_accumulations',
-                                 'number_frames', 'number_frames_acquired', 'buffer', 'shape',
-                                 'fetch_lazy'))
-"""Data tuple defining acquisition parameters and objects."""
+
+class AcquisitionTimings(NamedTuple):
+    """Timings computed by the SDK."""
+    exposure_time: float
+    accumulation_cycle_time: float
+    kinetic_cycle_time: float
+
+
+class _AcquisitionParams(NamedTuple):
+    """Data tuple defining acquisition parameters and objects.
+
+    Used internally.
+    """
+    timeout_ms: int
+    cycle_time: float
+    number_accumulations: int
+    number_frames_acquired: int
+    buffer: npt.NDArray[np.int32]
+    shape: tuple[int, ...]
+    fetch_lazy: bool
 
 
 @wraps(textwrap.dedent)
@@ -131,14 +143,17 @@ class _PostProcessingCallable(validators.Validator[Callable[[npt.NDArray[np.int3
     def __repr__(self) -> str:
         return '<Callable[[npt.NDArray[np.int32]], npt.NDArray[np.int32]>'
 
-    def validate(self, value: abc.Callable[..., Any], context: str = "") -> None:
+    def validate(self, value: Callable[..., Any], context: str = "") -> None:
         if not callable(value) and isinstance(value, post_processing.PostProcessingFunction):
             raise TypeError(f"{value!r} is not a post-processing function; {context}")
 
 
 class DetectorPixelsParameter(MultiParameter):
     """Stores the detector size in pixels."""
-    DetectorPixels = namedtuple('DetectorPixels', ['horizontal', 'vertical'])
+
+    class DetectorPixels(NamedTuple):
+        horizontal: int
+        vertical: int
 
     def get_raw(self) -> DetectorPixels:
         if self.instrument is None:
@@ -149,7 +164,10 @@ class DetectorPixelsParameter(MultiParameter):
 
 class PixelSizeParameter(MultiParameter):
     """Stores the pixel size in microns."""
-    PixelSize = namedtuple('PixelSize', ['horizontal', 'vertical'])
+
+    class PixelSize(NamedTuple):
+        horizontal: float
+        vertical: float
 
     def get_raw(self) -> PixelSize:
         if self.instrument is None:
@@ -160,7 +178,10 @@ class PixelSizeParameter(MultiParameter):
 
 class DetectorSizeParameter(MultiParameter):
     """Stores the detector size in microns."""
-    DetectorSize = namedtuple('DetectorSize', ['horizontal', 'vertical'])
+
+    class DetectorSize(NamedTuple):
+        horizontal: float
+        vertical: float
 
     def get_raw(self) -> DetectorSize:
         if self.instrument is None:
@@ -173,7 +194,10 @@ class DetectorSizeParameter(MultiParameter):
 
 class AcquiredPixelsParameter(MultiParameter):
     """Returns the shape of a single frame for the current settings."""
-    AcquiredPixels = namedtuple('AcquiredPixels', ['horizontal', 'vertical'])
+
+    class AcquiredPixels(NamedTuple):
+        horizontal: int
+        vertical: int
 
     def get_raw(self) -> AcquiredPixels:
         if self.instrument is None:
@@ -197,7 +221,10 @@ class AcquiredPixelsParameter(MultiParameter):
 
 class SingleTrackSettingsParameter(MultiParameter):
     """Represents the settings for single-track acquisition."""
-    SingleTrackSettings = namedtuple('SingleTrackSettings', ['centre', 'height'])
+
+    class SingleTrackSettings(NamedTuple):
+        centre: int
+        height: int
 
     def get_raw(self) -> Optional[SingleTrackSettings]:
         if self.instrument is None:
@@ -226,7 +253,12 @@ class MultiTrackSettingsParameter(MultiParameter):
     properties of the parameter, i.e., accessible through
     :property:`gap` and :property:`bottom`, respectively.
     """
-    MultiTrackSettings = namedtuple('MultiTrackSettings', ['number', 'height', 'offset'])
+
+    class MultiTrackSettings(NamedTuple):
+        number: int
+        height: int
+        offset: int
+
     _bottom: int | None = None
     _gap: int | None = None
 
@@ -256,7 +288,10 @@ class MultiTrackSettingsParameter(MultiParameter):
 
 class RandomTrackSettingsParameter(MultiParameter):
     """Represents the settings for random-track acquisition."""
-    RandomTrackSettings = namedtuple('RandomTrackSettings', ['number_tracks', 'areas'])
+
+    class RandomTrackSettings(NamedTuple):
+        number_tracks: int
+        areas: Sequence[int]
 
     def get_raw(self) -> Optional[RandomTrackSettings]:
         if self.instrument is None:
@@ -274,8 +309,14 @@ class RandomTrackSettingsParameter(MultiParameter):
 
 class ImageSettingsParameter(MultiParameter):
     """Represents the settings for image acquisition."""
-    ImageSettings = namedtuple('ImageSettings',
-                               ['hbin', 'vbin', 'hstart', 'hend', 'vstart', 'vend'])
+
+    class ImageSettings(NamedTuple):
+        hbin: int
+        vbin: int
+        hstart: int
+        hend: int
+        vstart: int
+        vend: int
 
     def get_raw(self) -> Optional[ImageSettings]:
         if self.instrument is None:
@@ -293,9 +334,15 @@ class ImageSettingsParameter(MultiParameter):
 
 class FastKineticsSettingsParameter(MultiParameter):
     """Represents fast kinetics settings."""
-    FastKineticsSettings = namedtuple('FastKineticsSettings',
-                                      ['exposed_rows', 'series_length', 'time', 'mode', 'hbin',
-                                       'vbin', 'offset'])
+
+    class FastKineticsSettings(NamedTuple):
+        exposed_rows: int
+        series_length: int
+        time: float
+        mode: int
+        hbin: int
+        vbin: int
+        offset: int
 
     def get_raw(self) -> Optional[FastKineticsSettings]:
         if self.instrument is None:
