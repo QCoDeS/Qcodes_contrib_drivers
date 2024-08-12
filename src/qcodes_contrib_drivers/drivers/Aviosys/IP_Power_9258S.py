@@ -1,9 +1,16 @@
-import warnings
+import sys
 
 from qcodes import Instrument, InstrumentChannel, ChannelList
+from qcodes.utils import QCoDeSDeprecationWarning
 from qcodes.utils.validators import Enum
 from qcodes.utils.helpers import create_on_off_val_mapping
 import urllib.request
+
+# PEP 702
+if sys.version_info >= (3, 13):
+    from warnings import deprecated
+else:
+    from typing_extensions import deprecated
 
 
 class PowerChannel(InstrumentChannel):
@@ -97,11 +104,10 @@ class AviosysIPPower9258S(Instrument):
         return {'vendor': 'Aviosys', 'model': 'IP Power 9258S'}
 
 
+@deprecated(
+    'This class name is deprecated. Please use the AviosysIPPower9258S class instead',
+    category=QCoDeSDeprecationWarning,
+    stacklevel=2
+)
 class Aviosys_IP_Power_9258S(AviosysIPPower9258S):
-    def __init__(self, name: str, address: str, login_name: str,
-                 login_password: str, **kwargs):
-        warnings.warn('This class name is deprecated. Please use the '
-                      'AviosysIPPower9258S class instead',
-                      DeprecationWarning)
-        super().__init__(name, address, login_name, login_password,
-                         **kwargs)
+    pass
