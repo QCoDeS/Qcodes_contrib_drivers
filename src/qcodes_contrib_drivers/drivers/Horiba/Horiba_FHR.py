@@ -8,7 +8,8 @@ import pathlib
 import sys
 from typing import Any, Dict, Mapping, cast
 
-from qcodes import DelegateParameter, Parameter, validators
+from qcodes.parameters import DelegateParameter, Parameter
+from qcodes import validators
 from qcodes.instrument import (ChannelList, Instrument, InstrumentBase,
                                InstrumentChannel)
 from qcodes_contrib_drivers.drivers.Horiba.private.fhr_client import FHRClient
