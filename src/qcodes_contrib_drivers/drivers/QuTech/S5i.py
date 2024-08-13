@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, Optional
 from qcodes.instrument.base import Instrument
 from qcodes.utils.validators import Bool, Numbers
 
@@ -83,7 +83,7 @@ class S5i(Instrument):
     def _get_rf_frequency(self) -> float:
         return self.s5i.rf_frequency
 
-    def get_idn(self) -> Dict[str, str]:
+    def get_idn(self) -> Dict[str, Optional[str]]:
         return dict(vendor='QuTech',
                     model='S5i',
                     serial='',

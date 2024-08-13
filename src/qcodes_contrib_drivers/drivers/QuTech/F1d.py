@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, Optional
 from qcodes.instrument.base import Instrument
 from qcodes.utils.validators import Enum
 
@@ -76,7 +76,7 @@ class F1d(Instrument):
     def get_remote_settings(self) -> int:
         return self.f1d.remote_settings
 
-    def get_idn(self) -> Dict[str, str]:
+    def get_idn(self) -> Dict[str, Optional[str]]:
         return dict(vendor='QuTech',
                     model='F1d',
                     serial='',

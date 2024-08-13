@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, Optional
 from qcodes.instrument.base import Instrument
 
 try:
@@ -56,7 +56,7 @@ class D4(Instrument):
     def get_buffers_enabled(self) -> bool:
         return self.d4.buf_en
 
-    def get_idn(self) -> Dict[str, str]:
+    def get_idn(self) -> Dict[str, Optional[str]]:
         return dict(vendor='QuTech',
                     model='D4',
                     serial='',

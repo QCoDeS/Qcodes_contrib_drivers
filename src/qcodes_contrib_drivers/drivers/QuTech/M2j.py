@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, Optional
 from qcodes.instrument.base import Instrument
 from qcodes.utils.validators import Numbers
 import numpy as np
@@ -73,7 +73,7 @@ class M2j(Instrument):
         """
         return self.m2j.get_level()
 
-    def get_idn(self) -> Dict[str, str]:
+    def get_idn(self) -> Dict[str, Optional[str]]:
         return dict(vendor='QuTech',
                     model='M2j',
                     serial='',
