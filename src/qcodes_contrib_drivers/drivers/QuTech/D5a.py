@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, Optional
 from qcodes.instrument.base import Instrument
 from qcodes.utils.validators import Enum, Numbers
 
@@ -107,7 +107,7 @@ class D5a(Instrument):
                                vals=Enum(*self._span_set_map.keys()),
                                docstring='Change the output span of the DAC. This command also updates the validator.')
 
-    def get_idn(self) -> Dict[str, str]:
+    def get_idn(self) -> Dict[str, Optional[str]]:
         return dict(vendor='QuTech',
                     model='D5a',
                     serial='',
