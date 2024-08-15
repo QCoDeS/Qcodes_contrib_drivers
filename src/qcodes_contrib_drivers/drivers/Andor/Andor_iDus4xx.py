@@ -1209,7 +1209,7 @@ class AndorIDus4xx(Instrument):
     def _has_time_dimension(acquisition_mode) -> bool:
         return acquisition_mode not in (1, 2)
 
-    def _to_count_rate(self, val: npt.NDArray[np.int_]) -> npt.NDArray[np.float_]:
+    def _to_count_rate(self, val: npt.NDArray[np.int_]) -> npt.NDArray[np.float64]:
         """Parser to convert counts into count rate."""
         # Always get the exposure time since it's computed by the camera lazily.
         total_exposure_time = self.exposure_time.get()
