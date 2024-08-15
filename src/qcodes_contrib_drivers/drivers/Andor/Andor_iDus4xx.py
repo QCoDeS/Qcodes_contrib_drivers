@@ -255,8 +255,8 @@ class MultiTrackSettingsParameter(MultiParameter):
     When getting, a tuple of *three* numbers (number, height, offset) is
     again returned. In addition, the CCD calculates the gap between
     tracks and the offset from the bottom row. These are stored as
-    properties of the parameter, i.e., accessible through
-    :property:`gap` and :property:`bottom`, respectively.
+    properties of the parameter, i.e., accessible through :attr:`gap`
+    and :attr:`bottom`, respectively.
     """
     instrument: AndorIDus4xx
 
