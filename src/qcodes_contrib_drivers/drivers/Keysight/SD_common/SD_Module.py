@@ -1,6 +1,6 @@
 import warnings
 import os
-from typing import List, Union, Callable, Any
+from typing import Any, Callable, Dict, List, Optional, Union
 from qcodes.instrument.base import Instrument
 
 try:
@@ -125,10 +125,22 @@ class SD_Module(Instrument):
                            get_cmd=self.get_open,
                            docstring='Indicating if device is open, '
                                      'True (open) or False (closed)')
+        self.add_parameter('temperature',
+                           label='temperature',
+                           get_cmd=self.get_temperature,
+                           docstring='Module temperature')
 
     #
     # Get-commands
     #
+
+    def get_idn(self) -> Dict[str, Optional[str]]:
+        """Returns IDN of module"""
+        return dict(vendor='Keysight',
+                    model=self.get_product_name(),
+                    serial=self.get_serial_number(),
+                    firmware=self.get_firmware_version(),
+                    )
 
     def get_module_count(self, verbose: bool = False) -> int:
         """Returns the number of SD modules installed in the system"""
@@ -368,6 +380,9 @@ class SD_Module(Instrument):
         value = self.SD_module.getTypeByIndex(index)
         value_name = 'type'
         return result_parser(value, value_name, verbose)
+
+    def get_temperature(self) -> float:
+        return self.SD_module.getTemperature()
 
     #
     # The methods below are useful for controlling the device, but are not
