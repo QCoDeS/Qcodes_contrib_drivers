@@ -1314,6 +1314,11 @@ class AndorIDus4xx(Instrument):
         self.prepare_acquisition()
 
     # Some methods of the dll that we expose directly on the instrument
+    def cancel_wait(self):
+        self.atmcd64d.cancel_wait()
+
+    cancel_wait.__doc__ = atmcd64d.cancel_wait.__doc__
+
     def abort_acquisition(self) -> None:
         if self.status().startswith('DRV_ACQUIRING'):
             self.log.debug('Aborting acquisition.')

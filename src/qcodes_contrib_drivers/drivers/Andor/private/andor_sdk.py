@@ -394,8 +394,17 @@ class atmcd64d:
         code = self.dll.AbortAcquisition()
         self.error_check(code, 'AbortAcquisition')
 
-    def cancel_wait(self, *args, **kwargs) -> None:
-        raise NotImplementedError
+    def cancel_wait(self) -> None:
+        """
+        This function restarts a thread which is sleeping within the
+        :meth:`wait_for_acquisition` function.
+
+        The sleeping thread will return from
+        :meth:`wait_for_acquisition` with a value not equal to
+        DRV_SUCCESS.
+        """
+        code = self.dll.CancelWait()
+        self.error_check(code, 'CancelWait')
 
     def cooler_off(self) -> None:
         """
@@ -1864,8 +1873,9 @@ class atmcd64d:
         code = self.dll.SetCurrentCamera(c_camera_handle)
         self.error_check(code, 'SetCurrentCamera')
 
-    def set_driver_event(self, *args, **kwargs) -> None:
-        raise NotImplementedError
+    def set_driver_event(self, driver_event: ctypes.wintypes.HANDLE) -> None:
+        code = self.dll.SetDriverEvent(driver_event)
+        self.error_check(code, 'SetDriverEvent')
 
     def set_exposure_time(self, exposure_time: float) -> None:
         """
