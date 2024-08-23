@@ -1383,16 +1383,20 @@ class AndorIDus4xx(Instrument):
             data = self._get_acquisition_data()
             self.arm()
             self.start_acquisition()
-            self.log.debug('Starting acquisition in run-till-abort mode.')
+            self.log.debug('Started acquisition in run-till-abort mode.')
             t_start = time.perf_counter()
             taken = 0
 
             try:
                 while True:
-                    # data.cycle_time is a lower bound for the time to get a new image
-                    if (to_sleep := data.cycle_time - (time.perf_counter() - t_start)) > 0:
-                        time.sleep(to_sleep)
+                    try:
+                        self.atmcd64d.wait_for_acquisition_timeout(data.timeout_ms)
+                    except SDKError as error:
+                        # Most likely timeout before acquisition event.
+                        self.log.error(f'Error during wait_for_acquisition_timeout(): {error}')
+                        continue
 
+                    # Make absolutely sure a new image has arrived
                     while not (new := self.atmcd64d.get_acquisition_progress()[1] - taken):
                         continue
 
@@ -1408,6 +1412,7 @@ class AndorIDus4xx(Instrument):
                     yield data.buffer.reshape(data.shape)
             finally:
                 self.abort_acquisition()
+                self.log.debug('Stopped acquisition in run-till-abort mode')
 
     def cool_down(self, setpoint: int | None = None,
                   target: Literal['stabilized', 'reached'] = 'reached',
