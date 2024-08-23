@@ -56,7 +56,7 @@ from qcodes.utils.helpers import create_on_off_val_mapping
 from tqdm import tqdm
 
 from . import post_processing
-from .private.andor_sdk import atmcd64d
+from .private.andor_sdk import atmcd64d, SDKError
 
 _T = TypeVar('_T')
 
@@ -1373,6 +1373,12 @@ class AndorIDus4xx(Instrument):
                                                         atmcd64d.get_acquisition_timings)
 
     def yield_till_abort(self):
+        # Awkward. RLock does not have `Lock`s locked() method
+        if not self.atmcd64d.lock.acquire(blocking=False):
+            raise RuntimeError('Another thread is currently locking the CCD.')
+        else:
+            self.atmcd64d.lock.release()
+
         with self.acquisition_mode.set_to('run till abort'):
             data = self._get_acquisition_data()
             self.arm()
