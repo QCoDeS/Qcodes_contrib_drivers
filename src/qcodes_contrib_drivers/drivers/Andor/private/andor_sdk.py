@@ -1966,6 +1966,36 @@ class atmcd64d:
 
     # This method should *not* respect the lock as it would not do anything otherwise
     def set_driver_event(self, driver_event: ctypes.wintypes.HANDLE) -> None:
+        """
+        This function passes a Win32 Event handle to the SDK via which
+        the the user software can be informed that something has
+        occurred. For example the SDK can "set" the event when an
+        acquisition has completed thus relieving the user code of having
+        to continually pole to check on the status of the acquisition.
+
+        The event will be “set” under the follow conditions:
+
+            1) Acquisition completed or aborted.
+            2) As each scan during an acquisition is completed.
+            3) Temperature as stabilized, drifted from stabilization or
+               could not be reached.
+
+        When an event is triggered the user software can then use other
+        SDK functions to determine what actually happened.
+
+        Condition 1 and 2 can be tested via :meth:`get_status` function,
+        while condition 3 checked via :meth:`get_temperature` function.
+
+        You must reset the event after it has been handled in order to
+        receive additional triggers. Before deleting the event you must
+        call :meth:`set_driver_event` with NULL as the parameter.
+
+        Parameters
+        ----------
+        HANDLE driverEvent :
+            Win32 event handle.
+
+        """
         code = self.dll.SetDriverEvent(driver_event)
         self.error_check(code, 'SetDriverEvent')
 

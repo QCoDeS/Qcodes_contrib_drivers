@@ -41,7 +41,7 @@ import itertools
 import operator
 import textwrap
 import time
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Sequence, Iterator
 from functools import partial, wraps
 from typing import Any, Dict, Literal, Optional, Tuple, TypeVar, NamedTuple
 
@@ -600,7 +600,6 @@ class AndorIDus4xx(Instrument):
     _CHANNEL: int = 0
     _AMPLIFIER: int = 0
 
-    # TODO (SvenBo90): implement further acquisition modes
     # TODO (SvenBo90): implement further trigger modes
     # TODO (SvenBo90): handle shutter closing and opening timings
     # TODO (thangleiter): implement further real-time filter modes
@@ -1372,7 +1371,41 @@ class AndorIDus4xx(Instrument):
     get_acquisition_timings.__doc__ = _merge_docstrings(get_acquisition_timings,
                                                         atmcd64d.get_acquisition_timings)
 
-    def yield_till_abort(self):
+    def yield_till_abort(self) -> Iterator[npt.NDArray]:
+        """Yields data from the CCD until aborted.
+
+        This method uses 'run-till-abort' mode to continuously acquire
+        data. To use it in the main thread, simply iterate over it::
+
+            for data in ccd.yield_till_abort():
+                ...
+
+        A concurrent application could look something like this::
+
+            import queue
+            import threading
+
+            def put(queue: queue.Queue, stop_flag: threading.Event):
+                gen = ccd.yield_till_abort()
+                while not stop_flag.is_set():
+                    yield next(gen)
+
+            queue = queue.Queue()
+            stop_flag = threading.Event()
+            thread = threading.Thread(target=put, args=(queue, stop_flag))
+            thread.start()
+
+            # queue is continuously filled with data.
+            current_data = queue.get()
+
+            # Stop the data streaming:
+            stop_flag.set()
+
+            # Optionally cancel waiting for the next acquisition:
+            ccd.cancel_wait()
+
+        """
+
         # Awkward. RLock does not have `Lock`s locked() method
         if not self.atmcd64d.lock.acquire(blocking=False):
             raise RuntimeError('Another thread is currently locking the CCD.')
