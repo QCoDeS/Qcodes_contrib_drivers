@@ -210,13 +210,22 @@ class AcquiredPixelsParameter(MultiParameter):
         width, height = self.instrument.detector_pixels.get_latest()
         read_mode = self.instrument.read_mode.get_latest()
         if read_mode == 'image':
-            hbin, vbin, hstart, hend, vstart, vend = self.instrument.image_settings.get()
+            try:
+                hbin, vbin, hstart, hend, vstart, vend = self.instrument.image_settings.get()
+            except TypeError:
+                raise RuntimeError('Please set the image_settings parameter.') from None
             width = (hend - hstart + 1) // hbin
             height = (vend - vstart + 1) // vbin
         elif read_mode == 'multi track':
-            height, *_ = self.instrument.multi_track_settings.get()
+            try:
+                height, *_ = self.instrument.multi_track_settings.get()
+            except TypeError:
+                raise RuntimeError('Please set the multi_track_settings parameter.') from None
         elif read_mode == 'random track':
-            height, _ = self.instrument.random_track_settings.get()
+            try:
+                height, _ = self.instrument.random_track_settings.get()
+            except TypeError:
+                raise RuntimeError('Please set the random_track_settings parameter.') from None
         elif read_mode in ('single track', 'full vertical binning'):
             height = 1
 
@@ -424,7 +433,10 @@ class PixelAxis(Parameter):
             raise RuntimeError("No instrument attached to Parameter.")
 
         if self.instrument.read_mode.get_latest() == 'image':
-            hbin, vbin, hstart, hend, vstart, vend = self.instrument.image_settings.get()
+            try:
+                hbin, vbin, hstart, hend, vstart, vend = self.instrument.image_settings.get()
+            except TypeError:
+                raise RuntimeError('Please set the image_settings parameter.') from None
             bins = [hbin, vbin]
             starts = [hstart, vstart]
             ends = [hend, vend]
