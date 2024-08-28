@@ -85,7 +85,9 @@ module = [
     "zhinst.*",
     "ruamel.*",
     "msl.loadlib",
-    "TimeTagger"
+    "TimeTagger",
+    "AMC",
+    "ACS"
 ]
 ignore_missing_imports = true
 

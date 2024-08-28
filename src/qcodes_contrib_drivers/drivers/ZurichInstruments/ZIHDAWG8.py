@@ -74,8 +74,11 @@ class ZIHDAWG8(Instrument):
         return super(ZIHDAWG8, self).snapshot_base(update=update,
                                                    params_to_skip_update=params_to_skip)
 
-    def snapshot(self, update=True):
-        """ Override base method to make update default True."""
+    def snapshot(self, update=True):  # type: ignore[misc]
+        """
+        Override base method to make update default True.
+        This is a hack not supported by qcodes and not recommended
+        """
         return super(ZIHDAWG8, self).snapshot(update)
 
     def enable_channel(self, channel_number: int) -> None:
