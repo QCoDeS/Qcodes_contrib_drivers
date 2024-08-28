@@ -205,7 +205,7 @@ class CorrelationMeasurement(TimeTaggerMeasurement):
         self.data_normalized = ParameterWithSetpoints(
             'data_normalized',
             get_cmd=lambda: self.api.getDataNormalized(),
-            vals=vals.Arrays(shape=(self.n_bins.get_latest,), valid_types=(np.float_,)),
+            vals=vals.Arrays(shape=(self.n_bins.get_latest,), valid_types=(np.float64,)),
             setpoints=(self.time_bins,),
             instrument=self,
             label='Normalized data',
@@ -249,7 +249,7 @@ class CountRateMeasurement(TimeTaggerMeasurement):
         self.data = ParameterWithSetpoints(
             'data',
             get_cmd=lambda: self.api.getData(),
-            vals=vals.Arrays(shape=(number_of_channels,), valid_types=(np.float_,)),
+            vals=vals.Arrays(shape=(number_of_channels,), valid_types=(np.float64,)),
             setpoints=(self.__channels_proxy,),
             instrument=self,
             label='Data',
@@ -488,7 +488,7 @@ class HistogramLogBinsMeasurement(TimeTaggerMeasurement):
         self.g2 = ParameterWithSetpoints(
             'g2',
             get_cmd=lambda: self.api.getDataObject().getG2(),
-            vals=vals.Arrays(shape=(n_bins,), valid_types=(np.float_,)),
+            vals=vals.Arrays(shape=(n_bins,), valid_types=(np.float64,)),
             setpoints=(self.time_bins,),
             instrument=self,
             label=r'$g^{(2)}(\tau)$',
