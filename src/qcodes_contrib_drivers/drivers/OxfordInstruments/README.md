@@ -15,7 +15,7 @@ An alternative approach is to make `oi.DECS` *'look like'* a standard `VISA` ins
 
 1.  Setup the `decsvisa` simple TCP socket server. Follow the setup and configuration steps detailed in the `README.md` file included within the decsvisa directory. This decsvisa directory can be found at `qcodes/instrument_drivers/Oxford_Instruments/decsvisa`.
 
-2.  In the `QCoDeS` driver file `Proteox.py`, add the file path of `decs_visa.py` and append the `decsvisa` directory file path, as shown below:
+2.  In the `QCoDeS` driver file `Proteox.py`, add the file path of `decs_visa.py` as shown below:
 
     ````python
     #############################################
