@@ -25,14 +25,6 @@ An alternative approach is to make `oi.DECS` *'look like'* a standard `VISA` ins
     # supply the file path from your working directory to the decs_visa.py file
     decs_visa_path = "qcodes/instrument_drivers/OxfordInstruments/decsvisa/src/decs_visa.py"
 
-    # Append the file path from your working directory to the OxfordInstruments/decsvisa directory
-    path.append("qcodes/instrument_drivers/OxfordInstruments/decsvisa/")
-    # this allows you to retrieve the following 4 parameters below, required to establish a connection to decs_visa.py
-    from src.decs_visa_tools.decs_visa_settings import PORT
-    from src.decs_visa_tools.decs_visa_settings import HOST
-    from src.decs_visa_tools.decs_visa_settings import SHUTDOWN
-    from src.decs_visa_tools.decs_visa_settings import WRITE_DELIM
-
     #############################################
     ````
 
