@@ -65,7 +65,7 @@ An alternative approach is to make `oi.DECS` *'look like'* a standard `VISA` ins
 5.  Import the `QCoDeS` driver and connect to `oi.DECS` as follows:
 
     ````python
-    from Proteox import oiDECS
+    from qcodes_contrib_drivers.drivers.OxfordInstruments.Proteox import oiDECS
     Proteox = oiDECS('Proteox')
     ````
 Once connected, the driver can be used in the same way as any other `QCoDeS` driver. See the file `docs/examples/OxfordInstruments_Proteox.ipynb` for an example. When you close the connection, e.g. `Proteox.close()`, this will also close the WAMP connection established by `DECS<->VISA`, as well as the socket server it launches (see the `DECS<->VISA` README for further details). 
