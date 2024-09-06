@@ -245,6 +245,15 @@ class oiDECS(VisaInstrument):
         )
 
         self.add_parameter(
+            "Sample_Temperature",
+            unit="K",
+            label=name,
+            get_cmd="get_SAMPLE_T",
+            set_cmd=partial(self._param_setter, "set_SAMPLE_T"),
+            get_parser=float
+        )
+
+        self.add_parameter(
             "OVC_Pressure",
             unit="Pa",
             label=name,
