@@ -158,7 +158,7 @@ class HF2LI(Instrument):
         self.daq.setDouble(path, phase)
         
     def _get_gain(self, channel: str) -> float:
-        path = f'/{self.devid}/auxouts/{self.auxouts[channel]}/scale/'
+        path = f'/{self.dev_id}/auxouts/{self.auxouts[channel]}/scale/'
         return self.daq.getDouble(path)
 
     def _set_gain(self, gain: float, channel: str) -> None:

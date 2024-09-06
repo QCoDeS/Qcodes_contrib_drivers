@@ -1,3 +1,4 @@
+from typing import Dict, Optional
 from qcodes.instrument.base import Instrument
 from qcodes.utils.validators import Numbers
 import numpy as np
@@ -53,7 +54,7 @@ class M2j(Instrument):
         self.add_function('is_rf_clipped',
                           call_cmd=self.m2j.rf_clipped)
 
-    def _set_gain(self, gain):
+    def _set_gain(self, gain) -> None:
         ref_scale = int(self._gain_parameters['slope'] * np.log(
             gain - self._gain_parameters['db_offset']) + self._gain_parameters[
                             'offset'])
@@ -64,10 +65,16 @@ class M2j(Instrument):
 
         self.m2j.set_gain(ref_scale)
 
-    def _meas_rf_level(self):
+    def _meas_rf_level(self) -> int:
         """
         Measure the power in dBm. Calibrated using an R&S SMA100 source.
         Linear relation between set power and measured data.
         Measurement range -80 to -40 dBm.
         """
         return self.m2j.get_level()
+
+    def get_idn(self) -> Dict[str, Optional[str]]:
+        return dict(vendor='QuTech',
+                    model='M2j',
+                    serial='',
+                    firmware='')

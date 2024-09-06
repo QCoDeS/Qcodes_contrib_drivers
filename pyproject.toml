@@ -19,8 +19,8 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Topic :: Scientific/Engineering",]
-requires-python = ">=3.9"
-dependencies = [ "qcodes>=0.42.0", "versioningit>=2.2.1", "packaging", "pandas"]
+requires-python = ">=3.10"
+dependencies = [ "qcodes>=0.42.0", "versioningit>=2.2.1", "packaging", "pandas", "cffi"]
 dynamic = [ "version",]
 
 [[project.maintainers]]
@@ -85,7 +85,9 @@ module = [
     "spirack",
     "zhinst.*",
     "ruamel.*",
-    "msl.loadlib"
+    "msl.loadlib",
+    "AMC",
+    "ACS"
 ]
 ignore_missing_imports = true
 
