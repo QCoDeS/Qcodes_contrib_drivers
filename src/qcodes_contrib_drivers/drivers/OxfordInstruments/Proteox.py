@@ -363,14 +363,16 @@ class oiDECS(VisaInstrument):
         B_str = self.ask("get_MAG_VEC")
         B_str_r = B_str.replace(')','')
         B_str_r2 = B_str_r.replace('(','')
-        B_array = B_str_r2.split(',')
+        B_str_r3 = B_str_r2.replace("'", "")
+        B_array = B_str_r3.split(',')
         return float(B_array[0]), float(B_array[1]), float(B_array[2])
     
     def _get_field_current_data(self):
         I_str = self.ask("get_MAG_CURR_VEC")
         I_str_r = I_str.replace(')','')
         I_str_r2 = I_str_r.replace('(','')
-        I_array = I_str_r2.split(',')
+        I_str_r3 = I_str_r2.replace("'", "")
+        I_array = I_str_r3.split(',')
         return float(I_array[0]), float(I_array[1]), float(I_array[2])
 
     def mixing_chamber_heater_off(self):
