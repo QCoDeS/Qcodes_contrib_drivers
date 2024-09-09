@@ -1,3 +1,4 @@
+from typing import Dict, Optional
 from qcodes.instrument.base import Instrument
 from qcodes.utils.validators import Enum, Numbers
 
@@ -53,7 +54,16 @@ class D5a(Instrument):
         """
         super().__init__(name, **kwargs)
 
-        self.d5a = D5a_module(spi_rack, module, reset_voltages=reset_voltages)
+        try:
+            self.d5a = D5a_module(spi_rack, module, reset_voltages=reset_voltages)
+        except ValueError as ex:
+            # A Value error on D5a with a message starting with "Span " is
+            # almost always caused by swapped COM port numbers of 2 SPI racks.
+            # An attempt is made to access a D5a module where there is none.
+            if str(ex).startswith("Span "):
+                raise Exception("Error reading D5a module. Check COM port numbers")
+            raise
+
         self._number_dacs = number_dacs
 
         self._span_set_map = {
@@ -97,6 +107,12 @@ class D5a(Instrument):
                                vals=Enum(*self._span_set_map.keys()),
                                docstring='Change the output span of the DAC. This command also updates the validator.')
 
+    def get_idn(self) -> Dict[str, Optional[str]]:
+        return dict(vendor='QuTech',
+                    model='D5a',
+                    serial='',
+                    firmware='')
+
     def set_dac_unit(self, unit: str) -> None:
         """Set the unit of dac parameters"""
         allowed_values = Enum('mV', 'V')
@@ -106,25 +122,25 @@ class D5a(Instrument):
             setattr(self.parameters[f'dac{i}'], 'unit', unit)
             setattr(self.parameters[f'dac{i}'], 'vals', self._get_validator(i - 1))
 
-    def _set_dacs_zero(self):
+    def _set_dacs_zero(self) -> None:
         for i in range(self._number_dacs):
             self._set_dac(i, 0.0)
 
-    def _set_dac(self, dac, value):
-        return self.d5a.set_voltage(dac, value / self._gain)
+    def _set_dac(self, dac: int, value: float) -> None:
+        self.d5a.set_voltage(dac, value / self._gain)
 
-    def _get_dac(self, dac):
+    def _get_dac(self, dac: int) -> float:
         return self._gain * self.d5a.voltages[dac]
 
-    def _get_span(self, dac):
+    def _get_span(self, dac: int) -> str:
         return self._span_get_map[self.d5a.span[dac]]
 
-    def _set_span(self, dac, span_str):
+    def _set_span(self, dac: int, span_str: str) -> None:
         self.d5a.change_span_update(dac, self._span_set_map[span_str])
         self.parameters['dac{}'.format(
             dac + 1)].vals = self._get_validator(dac)
 
-    def _get_validator(self, dac):
+    def _get_validator(self, dac: int) -> Numbers:
         span = self.d5a.span[dac]
         if span == D5a_module.range_2V_bi:
             validator = Numbers(-2 * self._gain, 2 * self._gain)

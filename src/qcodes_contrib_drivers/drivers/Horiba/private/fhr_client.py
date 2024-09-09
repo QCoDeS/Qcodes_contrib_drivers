@@ -4,7 +4,9 @@ import ctypes
 import os
 import pathlib
 from pathlib import Path
-from typing import Tuple
+from typing import Any, Tuple
+
+from qcodes.utils import DelayedKeyboardInterrupt
 
 try:
     from msl.loadlib import Client64
@@ -20,6 +22,10 @@ class FHRClient(Client64):
                  filename: str = 'SpeControl'):
         module32 = str(Path(__file__).parent / 'fhr_server')
         super().__init__(module32=module32, dll_dir=dll_dir, filename=filename)
+
+    def request32(self, name: str, *args, **kwargs) -> Any:
+        with DelayedKeyboardInterrupt():
+            return super().request32(name, *args, **kwargs)
 
     def CreateSpe(self) -> int:
         """Create new spectrometer handle."""

@@ -1,10 +1,11 @@
-﻿from typing import Any, Callable, Dict, Optional, Union
+﻿import time
+from typing import Any, Callable, Dict, Optional, Union
 
 import qcodes.utils.validators as vals
 from qcodes.instrument.base import Instrument
 from qcodes.instrument.channel import InstrumentChannel, ChannelList
 
-from .ANC350Lib import ANC350LibActuatorType, ANC350v3Lib, ANC350v4Lib
+from qcodes_contrib_drivers.drivers.Attocube.ANC350Lib import ANC350LibActuatorType, ANC350v3Lib, ANC350v4Lib
 
 
 class Anc350Axis(InstrumentChannel):
@@ -46,6 +47,7 @@ class Anc350Axis(InstrumentChannel):
         self.add_parameter("position",
                            label="Position",
                            get_cmd=self._get_position,
+                           set_cmd=self._set_position,
                            unit="mm or m°")
 
         self.add_parameter("frequency",
@@ -147,7 +149,7 @@ class Anc350Axis(InstrumentChannel):
                    -: backward)
         """
         backward = (steps < 0)
-        
+
         for i in range(abs(steps)):
             self.single_step(backward)
 
@@ -220,7 +222,7 @@ class Anc350Axis(InstrumentChannel):
 
         if relative in cls._relative_mapping:
             return cls._relative_mapping[relative]
-        
+
         allowed_values = ", ".join(cls._relative_mapping.keys())
         raise ValueError(f"Unexpected value for argument `relative`. Allowed values are: None, "
                          f"False, True, {allowed_values}")
@@ -238,14 +240,20 @@ class Anc350Axis(InstrumentChannel):
         return self._parent._lib.get_position(self._parent._device_handle, self._axis) * 1e3
 
     def _set_position(self, position: float) -> None:
-        """(EXPERIMENTAL FUNCTION)
+        """
         The axis moves to the given position with the target range that is set before.
 
         Args:
             position: The position the axis moves to
         """
-        self._set_target_position(position)
-        self._set_output(2)  # 2 = "auto"
+        self.target_position(position)
+        try:
+            self.enable_auto_move(relative=False)
+            time.sleep(0.1)
+            while (status := self.status.get())['moving'] and not status['target']:
+                pass
+        finally:
+            self.disable_auto_move()
 
     def _get_frequency(self) -> float:
         """
@@ -460,10 +468,12 @@ class ANC350(Instrument):
         name: the name of the instrument itself
         library: library that fits to the version of the device and provides the appropriate dll
                  wrappers
-        inst_no: Sequence number of the device to connect to (default: 0, the first device found)
+        inst_no: Sequence number of the device to connect to (default: 0, the first device found).
+                 Note that the :meth:`discover` method of the library must be called before a
+                 device can be connected.
     """
 
-    def __init__(self, name: str, library: ANC350v3Lib, inst_no: int = 0):
+    def __init__(self, name: str, library: ANC350v3Lib, inst_no: Optional[int] = None):
         super().__init__(name)
 
         if isinstance(library, ANC350v4Lib):
@@ -475,8 +485,10 @@ class ANC350(Instrument):
                                       "supported")
 
         self._lib = library
-        self._device_no = inst_no
-        self._device_handle = self._lib.connect(inst_no)
+        self._device_no = inst_no or self._lib.discover() - 1
+        if self._device_no < 0:
+            raise ValueError('No free instrument discovered.')
+        self._device_handle = self._lib.connect(self._device_no)
 
         axischannels = ChannelList(self, "Anc350Axis", Anc350Axis)
         for nr, axis in enumerate(['x', 'y', 'z']):
