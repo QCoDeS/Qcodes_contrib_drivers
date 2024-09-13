@@ -88,6 +88,8 @@ module = [
     "msl.loadlib",
     "AMC",
     "ACS",
+    "autobahn",
+    "python-dotenv"
 ]
 ignore_missing_imports = true
 
