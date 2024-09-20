@@ -34,6 +34,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4.1.7
       with:
+        submodules: true
         fetch-depth: '0'
         # if we upload to ghpages we need the full
         # history to generate correct version info
