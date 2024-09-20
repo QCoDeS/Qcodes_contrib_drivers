@@ -51,7 +51,7 @@ test = [
     "types-tqdm>=4.64.6",
     "pandas-stubs",
 ]
-docs = [ "sphinx", "sphinx_rtd_theme", "nbsphinx", ]
+docs = [ "sphinx", "furo", "nbsphinx", ]
 
 [tool.mypy]
 strict_optional = true
