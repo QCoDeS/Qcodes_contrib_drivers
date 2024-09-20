@@ -40,6 +40,8 @@ jobs:
         # history to generate correct version info
       if: ${{ fromJSON(env.UPLOAD_TO_GHPAGES) }}
     - uses: actions/checkout@v4.1.7
+      with:
+        submodules: true
       if: ${{ !fromJSON(env.UPLOAD_TO_GHPAGES) }}
     - name: setup ubuntu-latest xvfb
       uses: ./.github/actions/setup-ubuntu-latest-xvfb
