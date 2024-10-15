@@ -7,6 +7,7 @@ import time
 import subprocess
 import platform
 import numpy as np
+from math import math.floor
 
 from qcodes.instrument import VisaInstrument
 from qcodes.parameters import MultiParameter
@@ -352,6 +353,33 @@ class oiDECS(VisaInstrument):
                 name = "Magnet_Current_Vector",
                 parameter_class=MagnetCurrentParameters,
             )
+            # qcodes can't use multiparameters as setpoint, this dummy bypasses it.  
+            self.add_parameter(
+                name='Bx',
+                unit='T',
+                label='Field X',
+                get_cmd=None,
+                set_cmd=None,
+                get_parser=None
+            )
+            self.add_parameter(
+                name='By',
+                unit='T',
+                label='Field Y',
+                get_cmd=None,
+                set_cmd=None,
+                get_parser=None
+            )
+            self.add_parameter(
+                name='Bz',
+                unit='T',
+                label='Field Z',
+                get_cmd=None,
+                set_cmd=None,
+                get_parser=None
+            )
+
+
 
             if MAGNET_HAS_SWITCH:
                 self.add_parameter(
@@ -498,6 +526,23 @@ class oiDECS(VisaInstrument):
         while status != 'Holding Not Persistent':
             status = self.Magnet_State()
             time.sleep(1)
+        print(f'Status: {self.Magnet_State()}.')
+
+    def wait_until_field_stable_timeout(self,timeout=600):
+        """VRM utility function.
+        Takes timeout in seconds, switches magnet to hold in timeout*1.1 +10s.
+        Default is 10min"""
+        start=time.time()
+        tout=timeout*1.1+10
+        status=self.Magnet_State()
+        while status != 'Holding Not Persistent':
+            status=self.Magnet_State()
+            time.sleep(1)
+            currenttime=time.time()
+            if ((currenttime-start)>tout):
+                self.set_magnet_state(0)
+                time.sleep(5)
+                status=self.Magnet_State()
         print(f'Status: {self.Magnet_State()}.')
 
     def wait_until_field_persistent(self):
