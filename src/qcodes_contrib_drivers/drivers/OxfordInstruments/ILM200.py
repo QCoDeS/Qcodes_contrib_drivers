@@ -10,8 +10,9 @@
 
 from time import sleep
 import pyvisa
+import pyvisa.constants
 import logging
-from qcodes import VisaInstrument
+from qcodes.instrument import VisaInstrument
 
 
 class OxfordInstruments_ILM200(VisaInstrument):
@@ -132,7 +133,7 @@ class OxfordInstruments_ILM200(VisaInstrument):
             if len(idparts) < 4:
                 idparts += [None] * (4 - len(idparts))
         except Exception as ex:
-            logging.warn('Error getting or interpreting *IDN?: ' + repr(idstr))
+            logging.warning('Error getting or interpreting *IDN?: ' + repr(idstr))
             logging.debug(ex)
             idparts = [None, None, None, None]
 
