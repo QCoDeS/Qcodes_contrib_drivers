@@ -220,8 +220,8 @@ class SIM928(VisaInstrument):
             maxsteps = 0
             deltav = {}
             for i in vdict:
-                deltav[i] = vdict[i]-self.get('volt_{}'.format(i))
-                stepsize = self.get('volt_{}_step'.format(i))
+                deltav[i] = vdict[i]-self.parameters['volt_{}'.format(i)]()
+                stepsize = self.parameters['volt_{}_step'.format(i)]()
                 steps = abs(int(np.ceil(deltav[i]/stepsize)))
                 if steps > maxsteps:
                     maxsteps = steps
@@ -234,13 +234,13 @@ class SIM928(VisaInstrument):
             done = []
             prevvals = {}
             for i in vdict:
-                prevvals[i] = self.get('volt_{}'.format(i))
+                prevvals[i] = self.parameters['volt_{}'.format(i)]()
             while len(done) != len(vdict):
                 intermediate.append({})
                 for i in vdict:
                     if i in done:
                         continue
-                    stepsize = self.get('volt_{}_step'.format(i))
+                    stepsize = self.parameters['volt_{}_step'.format(i)]()
                     deltav = vdict[i]-prevvals[i]
                     if abs(deltav) <= stepsize:
                         intermediate[-1][i] = vdict[i]
