@@ -21,10 +21,8 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest]
-        python-version: ["3.9", "3.10", "3.11", "3.12"]
+        python-version: ["3.10", "3.11", "3.12"]
         exclude:
-          - os: windows-latest
-            python-version: "3.10"
           - os: windows-latest
             python-version: "3.11"
           - os: windows-latest
@@ -34,13 +32,16 @@ jobs:
       OS: ${{ matrix.os }}
       UPLOAD_TO_GHPAGES: ${{ matrix.os == 'ubuntu-latest' && matrix.python-version == '3.10' && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     steps:
-    - uses: actions/checkout@v4.1.7
+    - uses: actions/checkout@v4.2.1
       with:
+        submodules: true
         fetch-depth: '0'
         # if we upload to ghpages we need the full
         # history to generate correct version info
       if: ${{ fromJSON(env.UPLOAD_TO_GHPAGES) }}
-    - uses: actions/checkout@v4.1.7
+    - uses: actions/checkout@v4.2.1
+      with:
+        submodules: true
       if: ${{ !fromJSON(env.UPLOAD_TO_GHPAGES) }}
     - name: setup ubuntu-latest xvfb
       uses: ./.github/actions/setup-ubuntu-latest-xvfb
@@ -54,7 +55,7 @@ jobs:
         args: install pandoc
       if: runner.os == 'Windows'
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5.1.1
+      uses: actions/setup-python@v5.2.0
       with:
         python-version: ${{ matrix.python-version }}
         cache: 'pip'
@@ -84,7 +85,7 @@ jobs:
         name: docs_${{ matrix.python-version }}_${{ matrix.os }}
         path: ${{ github.workspace }}/docs/_build/html
     - name: Deploy to gh pages
-      uses: JamesIves/github-pages-deploy-action@v4.6.3
+      uses: JamesIves/github-pages-deploy-action@v4.6.8
       with:
         branch: gh-pages
         folder: ${{ github.workspace }}/docs/_build/html
