@@ -732,7 +732,10 @@ class AndorIDus4xx(Instrument):
 
         self.add_parameter('fast_external_trigger',
                            set_cmd=self.atmcd64d.set_fast_ext_trigger,
-                           val_mapping=create_on_off_val_mapping(on_val=1, off_val=0),
+                           val_mapping=(
+                               create_on_off_val_mapping(on_val=1, off_val=0) | {'Unset': -1}
+                           ),
+                           initial_cache_value='Unset',
                            label='Fast external trigger mode',
                            docstring=dedent(self.atmcd64d.set_fast_ext_trigger.__doc__))
 
