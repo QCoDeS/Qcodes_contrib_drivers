@@ -543,7 +543,7 @@ class TimeTagger(TimeTaggerInstrumentBase, Instrument):
     def remove_all_measurements(self):
         """Remove all entries of TimeTaggerMeasurement instances from
         channel lists."""
-        for cls in filter(lambda x: isinstance(x, TimeTaggerMeasurement),
+        for cls in filter(lambda x: issubclass(x, TimeTaggerMeasurement),
                           TimeTaggerModule.implementations()):
             lst = getattr(self, _parse_time_tagger_module(cls)[1])
             for i in range(len(lst)):
@@ -552,7 +552,7 @@ class TimeTagger(TimeTaggerInstrumentBase, Instrument):
     def remove_all_virtual_channels(self):
         """Remove all entries of TimeTaggerVirtualChannel instances from
         channel lists."""
-        for cls in filter(lambda x: isinstance(x, TimeTaggerVirtualChannel),
+        for cls in filter(lambda x: issubclass(x, TimeTaggerVirtualChannel),
                           TimeTaggerModule.implementations()):
             lst = getattr(self, _parse_time_tagger_module(cls)[1])
             for i in range(len(lst)):
