@@ -10,8 +10,8 @@ from typing import Any, List, Tuple, Union, Sequence, Dict, Optional
 import numpy as np
 import zhinst.utils
 
-from qcodes import Instrument
-from qcodes.utils import validators as validators
+from qcodes.instrument import Instrument
+from qcodes import validators
 
 WARNING_CLIPPING = r"^Warning \(line: [0-9]+\): [a-zA-Z0-9_]+ has a higher " \
                    r"amplitude than 1.0, waveform amplitude will be limited " \
@@ -88,7 +88,7 @@ class ZIHDAWG8(Instrument):
         Args:
             channel_number: Output channel that should be enabled.
         """
-        self.set('sigouts_{}_on'.format(channel_number), 1)
+        self.parameters['sigouts_{}_on'.format(channel_number)](1)
 
     def disable_channel(self, channel_number: int) -> None:
         """
@@ -97,7 +97,7 @@ class ZIHDAWG8(Instrument):
         Args:
             channel_number: Output channel that should be disabled.
         """
-        self.set('sigouts_{}_on'.format(channel_number), 0)
+        self.parameters['sigouts_{}_on'.format(channel_number)](0)
 
     def start_awg(self, awg_number: int):
         """
@@ -106,7 +106,7 @@ class ZIHDAWG8(Instrument):
         Args:
             awg_number: The AWG that should be enabled.
         """
-        self.set('awgs_{}_enable'.format(awg_number), 1)
+        self.parameters['awgs_{}_enable'.format(awg_number)](1)
 
     def stop_awg(self, awg_number: int) -> None:
         """
@@ -115,7 +115,7 @@ class ZIHDAWG8(Instrument):
         Args:
             awg_number: The AWG that should be disabled.
         """
-        self.set('awgs_{}_enable'.format(awg_number), 0)
+        self.parameters['awgs_{}_enable'.format(awg_number)](0)
 
     def waveform_to_wave(self, wave_name: str, waveform: np.ndarray) -> None:
         """
@@ -283,9 +283,9 @@ class ZIHDAWG8(Instrument):
                 position of the waveform in the Waveforms sub-tab of the AWG tab
                 in the GUI.
         """
-        self.set('awgs_{}_waveform_index'.format(awg_number), index)
+        self.parameters['awgs_{}_waveform_index'.format(awg_number)](index)
         self.daq.sync()
-        self.set('awgs_{}_waveform_data'.format(awg_number), waveform)
+        self.parameters['awgs_{}_waveform_data'.format(awg_number)](waveform)
 
     def set_channel_grouping(self, group: int) -> None:
         """
@@ -295,7 +295,7 @@ class ZIHDAWG8(Instrument):
             group: 0: groups of 2. 1: groups of 4. 2: groups of 8 i.e., one
                 sequencer program controls 8 outputs.
         """
-        self.set('system_awg_channelgrouping', group)
+        self.system_awg_channelgrouping(group)
 
     def create_parameters_from_node_tree(self, parameters: dict) -> None:
         """

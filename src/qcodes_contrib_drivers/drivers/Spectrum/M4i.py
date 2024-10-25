@@ -622,7 +622,7 @@ class M4i(Instrument):
     # checks if requirements for the compensation get and set functions are met
     def _get_compensation(self, i):
         # if HF enabled
-        if self.get(f'input_path_{i}') == 1:
+        if self.parameters[f'input_path_{i}']() == 1:
             return self._param32bit(getattr(pyspcm, f'SPC_ACDC_OFFS_COMPENSATION{i}'))
         else:
             logging.info("M4i: HF path not set, ACDC offset compensation parameter will be ignored by the M4i card\n")
@@ -630,7 +630,7 @@ class M4i(Instrument):
 
     def _set_compensation(self, i, value):
         # if HF enabled
-        if self.get(f'input_path_{i}') == 1:
+        if self.parameters[f'input_path_{i}']() == 1:
             self._set_param32bit(
                 getattr(pyspcm, f'SPC_ACDC_OFFS_COMPENSATION{i}'), value)
         else:
@@ -723,7 +723,7 @@ class M4i(Instrument):
         if memsize is None:
             memsize = self._channel_memsize
         posttrigger_size = memsize - self._channel_pretrigger_memsize
-        mV_range = self.get(f'range_channel_{channel}')
+        mV_range = self.parameter[f'range_channel_{channel}']()
         cx = self._channel_mask()
         self.enable_channels(cx)
         data = self.single_software_trigger_acquisition(
@@ -753,17 +753,17 @@ class M4i(Instrument):
             lp_filter (Optional[int]): enable (1) or disable (0) the 20 MHz low pass filter
         """
         # initialize
-        self.set(f'input_path_{channel_index}', input_path)
+        self.parameters[f'input_path_{channel_index}'](input_path)
         if termination is not None:
-            self.set(f'termination_{channel_index}', termination)
+            self.parameters[f'termination_{channel_index}'](termination)
         if coupling is not None:
-            self.set(f'ACDC_coupling_{channel_index}', coupling)
+            self.parameters[f'ACDC_coupling_{channel_index}'](coupling)
         if lp_filter is not None:
-            self.set(f'anti_aliasing_filter_{channel_index}', lp_filter)
-        self.set(f'range_channel_{channel_index}', mV_range)  # note: set after voltage range
+            self.parameters[f'anti_aliasing_filter_{channel_index}'](lp_filter)
+        self.parameters[f'range_channel_{channel_index}'](mV_range)  # note: set after voltage range
         # can only be used with DC coupling and 50 Ohm path (hf)
         if compensation is not None:
-            self.set(f'ACDC_offs_compensation_{channel_index}', compensation)
+            self.parameters[f'ACDC_offs_compensation_{channel_index}'](compensation)
 
     def set_ext0_OR_trigger_settings(self, trig_mode, termination, coupling, level0, level1=None):
         """ Configures ext0 trigger
@@ -793,10 +793,10 @@ class M4i(Instrument):
         acquisition."""
         self.trigger_or_mask(0)
         self.channel_or_mask(getattr(pyspcm, f'SPC_TMASK0_CH{i}'))
-        self.set(f'trigger_channel_{i}_level_0', bitlevel0)
+        self.parameters[f'trigger_channel_{i}_level_0'](bitlevel0)
         if(bitlevel1 != None):
-            self.set(f'trigger_channel_{i}_level_1', bitlevel1)
-        self.set(f'trigger_mode_channel_{i}', trig_mode)  # trigger mode
+            self.parameters[f'trigger_channel_{i}_level_1'](bitlevel1)
+        self.parameters[f'trigger_mode_channel_{i}'](trig_mode)  # trigger mode
 
     def setup_multi_recording(self, posttrigger_size, n_triggers=1,
                               pretrigger_size=None, boxcar_average=False):
@@ -876,7 +876,7 @@ class M4i(Instrument):
         resolution = self.ADC_to_voltage.cache()
         voltages = np.zeros((numch, len(raw_data)//numch))
         for i,ch in enumerate(active_channels):
-            mV_range = self.get(f'range_channel_{ch}')
+            mV_range = self.parameters[f'range_channel_{ch}']()
             voltages[i,:] = raw_data[i::numch] * (mV_range / 1000 / resolution / box_averages)
         return voltages
 
