@@ -1449,7 +1449,7 @@ class AndorIDus4xx(Instrument):
                         continue
 
                     if new > 1:
-                        self.log.warning('Skipping {new-1} new frames.')
+                        self.log.warning(f'Skipping {new-1} new frames.')
 
                     self.atmcd64d.get_most_recent_image_by_reference(data.buffer)
 
