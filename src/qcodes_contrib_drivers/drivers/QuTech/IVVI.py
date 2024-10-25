@@ -2,12 +2,14 @@ import time
 import logging
 import numpy as np
 import pyvisa  # used for the parity constant
+import pyvisa.constants
 import traceback
 import threading
 import math
 
-from qcodes import VisaInstrument, validators as vals
-from qcodes.utils.validators import Bool, Numbers
+from qcodes import validators as vals
+from qcodes.validators import Bool, Numbers
+from qcodes.instrument import VisaInstrument
 
 
 class IVVI(VisaInstrument):
@@ -26,7 +28,7 @@ class IVVI(VisaInstrument):
     http://qtwork.tudelft.nl/~schouten/ivvi/doc-d5/rs232linkformat.txt
     A copy of this file can be found at the bottom of this file.
     '''
-    
+
     full_range = 4000.0
     half_range = full_range / 2
     resolution = 16
@@ -193,7 +195,7 @@ class IVVI(VisaInstrument):
 
     def set_dacs_zero(self):
         for i in range(self._numdacs):
-            self.set('dac{}'.format(i + 1), 0)
+            self.parameters['dac{}'.format(i + 1)](0)
 
     def linspace(self, start: float, end: float, samples: int, flexible: bool = False, bip: bool = True):
         """
@@ -222,7 +224,7 @@ class IVVI(VisaInstrument):
 
                 linspace(-100,100,8) -> [-99.88555733577478, .. 6 more ..
                                         , 99.64141298542764]
-            
+
                 linspace(-1000, 1000, 2000) ->
                     [-976.4858472571908, .. 1998 more .., 975.6923781185626 ]
 
@@ -241,12 +243,12 @@ class IVVI(VisaInstrument):
 
                 This prevents oversampling. Use flexable = True to adapt the number
                 of points.
-                                     
+
             Resolution limited sweep using the flexable option::
 
                 linspace(500, 502, 100, True) -> [500.0991836423285, .. 14 more ..
                                                  , 501.9302662699321]
-            
+
             A too narrow range::
 
                 linspace(0, 0.01, 100, True) # -> ValueError: No DAC values exist
@@ -357,7 +359,7 @@ class IVVI(VisaInstrument):
         proceed = True
 
         if self.check_setpoints():
-            cur_val = self.get('dac{}'.format(channel))
+            cur_val = self.parameters['dac{}'.format(channel)]()
             # dac range in mV / 16 bits FIXME make range depend on polarity
             byte_res = self.full_range / 2**16
             # eps is a magic number to correct for an offset in the values

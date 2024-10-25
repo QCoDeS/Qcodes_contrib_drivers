@@ -1,4 +1,6 @@
+from typing import Dict, Optional
 from qcodes.instrument.base import Instrument
+
 try:
     from spirack import D4_module
 except ImportError:
@@ -45,11 +47,18 @@ class D4(Instrument):
                                get_cmd=partial(self.d4.singleConversion, i),
                                units='V')
 
-    def get_mode(self):
+    def get_mode(self) -> int:
         return self.d4.mode
 
-    def get_filter_value(self):
+    def get_filter_value(self) -> int:
         return self.d4.filter_val
 
-    def get_buffers_enabled(self):
+    def get_buffers_enabled(self) -> bool:
         return self.d4.buf_en
+
+    def get_idn(self) -> Dict[str, Optional[str]]:
+        return dict(vendor='QuTech',
+                    model='D4',
+                    serial='',
+                    firmware='')
+
