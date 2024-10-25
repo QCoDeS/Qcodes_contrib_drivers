@@ -1,0 +1,3 @@
+[submodule "src/qcodes_contrib_drivers/drivers/OxfordInstruments/_decsvisa"]
+	path = src/qcodes_contrib_drivers/drivers/OxfordInstruments/_decsvisa
+	url = https://github.com/decs-visa/_decsvisa.git

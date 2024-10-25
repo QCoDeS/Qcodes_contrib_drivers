@@ -170,10 +170,10 @@ class BlueFors(Instrument):
             df.sort_index(inplace=True)
             return df.iloc[-1]["y"]
         except (PermissionError, OSError) as err:
-            self.log.warn('Cannot access log file: {}. Returning np.nan instead of the temperature value.'.format(err))
+            self.log.warning('Cannot access log file: {}. Returning np.nan instead of the temperature value.'.format(err))
             return np.nan
         except IndexError as err:
-            self.log.warn('Cannot parse log file: {}. Returning np.nan instead of the temperature value.'.format(err))
+            self.log.warning('Cannot parse log file: {}. Returning np.nan instead of the temperature value.'.format(err))
             return np.nan
 
 
@@ -211,8 +211,8 @@ class BlueFors(Instrument):
 
             return df.iloc[-1]['ch'+str(channel)+'_pressure']
         except (PermissionError, OSError) as err:
-            self.log.warn('Cannot access log file: {}. Returning np.nan instead of the pressure value.'.format(err))
+            self.log.warning('Cannot access log file: {}. Returning np.nan instead of the pressure value.'.format(err))
             return np.nan
         except IndexError as err:
-            self.log.warn('Cannot parse log file: {}. Returning np.nan instead of the pressure value.'.format(err))
+            self.log.warning('Cannot parse log file: {}. Returning np.nan instead of the pressure value.'.format(err))
             return np.nan

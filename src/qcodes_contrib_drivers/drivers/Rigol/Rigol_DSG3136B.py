@@ -2,48 +2,7 @@
 
 Written by Edward Laird (http://wp.lancs.ac.uk/laird-group/) based on another Rigol driver by Matthew Green.
 
-Examples:
-
-    ***Setting up and testing instrument control***
-
-    On Edward's PC, it seems to be necessary to run UltraSigma (Rigol's proprietary interface program), then unplug and replug USB, then run the Python commands below. After that you can shut down UltraSigma and Python will run happily.
-
-        $ from qcodes.instrument_drivers.rigol.Rigol_DSG3136B import RigolDSG3136B
-        $ sg_1 = RigolDSG3136B('r_3136B_1', 'USB0::0x1AB1::0x099C::DSG3E244600050::INSTR')
-        $ sg_1.identify()      # Should return the name of the instrument
-        $ sg_1.output('1')     # Turn output on
-        $ sg_1.frequency(1e9)  # Set the instrument frequency
-        $ sg_1.level(-20.57)   # Set the instrument power level
-
-    If you have set up QCoDes with dummy instruments (following
-    https://microsoft.github.io/Qcodes/examples/15_minutes_to_QCoDeS.html )  and have set up doND (following
-    https://microsoft.github.io/Qcodes/examples/DataSet/Using_doNd_functions_in_comparison_to_Measurement_context_manager_for_performing_measurements.html ) then you should also be able to execute:
-        $ station.add_component(sg_1)
-        $ do1d(sg_1.level, -50, -20, 11, 0, dmm.v1, dmm.v2, show_progress=True, do_plot=True)
-
-
-    ***Using sweep mode***
-
-    Sweep mode is a faster way of stepping through a series of data points than setting frequency or power at every step.
-    To sweep from 1 GHz to 2 GHz in 11 steps then do:
-        $ sg_1.sweep('FREQ')
-        $ sg_1.sweep_type('STEP')
-        $ sg_1.sweep_direction('FWD')
-        $ sg_1.sweep_shape('RAMP')
-        $ sg_1.sweep_frequency_start(1e9)
-        $ sg_1.sweep_frequency_stop(2e9)
-        $ sg_1.sweep_points(11)
-        $ sg_1.sweep_mode('SING')
-        $ sg_1.sweep_trigger('AUTO')
-        $ sg_1.point_trigger('BUS')
-    and then
-        $ sg_1.sweep_execute()
-    to begin the sweep, and
-        $ sg_1.trigger()
-    to step to each next point. To jump back to the beginning of the sweep, execute
-        $ sg_1.sweep_reset()
-    To go back from sweep to continuous output, execute
-        $ sg_1.sweep('OFF')
+A documentation notebook is in the docs/examples/ directory.
 """
 
 import logging
@@ -55,7 +14,6 @@ log = logging.getLogger(__name__)
 class RigolDSG3136B(VisaInstrument):
     """
     QCoDeS driver for the Rigol DSG3136B signal generator.
-    See end of file for example instantiation code and middle of the file for information about sweeping.
     """
 
     def __init__(self, name, address, **kwargs):
@@ -72,7 +30,7 @@ class RigolDSG3136B(VisaInstrument):
             get_parser=str.rstrip
             )
         """Send identification code"""
-
+        
         self.add_parameter('output',
             label='Output state',
             set_cmd=':OUTPut:STATe {}',
@@ -85,7 +43,7 @@ class RigolDSG3136B(VisaInstrument):
             vals=vals.Enum('OFF', 'ON')
             )
         """Turns on or off the RF output, e.g. sg_1.output('0') or sg_1.output('OFF')"""
-
+        
         self.add_parameter(name='frequency',
             label='Frequency',
             unit='Hz',
@@ -95,7 +53,7 @@ class RigolDSG3136B(VisaInstrument):
             vals=vals.Numbers(9e3, 13.6e9)
             )
         """Control the output frequency"""
-
+        
         self.add_parameter(name='level',
             label='Level',
             unit='dBm',
@@ -105,7 +63,7 @@ class RigolDSG3136B(VisaInstrument):
             vals=vals.Numbers(-130, 27)
             )
         """Control the output power level"""
-
+                      
         self.add_parameter('sweep_direction',
             label='Sweep direction',
             set_cmd=':SOURce:SWEep:DIRection {}',
@@ -139,7 +97,7 @@ class RigolDSG3136B(VisaInstrument):
             vals=vals.Enum('AUTO', 'KEY', 'BUS', 'EXT')
             )
         """Control the trigger mode of the sweep period (i.e. the trigger required to restart the sweep)"""
-
+        
         self.add_parameter('point_trigger',
             label='Point trigger',
             set_cmd=':SOURce:SWEep:POINt:TRIGger:TYPE {}',
@@ -215,7 +173,7 @@ class RigolDSG3136B(VisaInstrument):
             vals=vals.Numbers(9e3,3.6e9),
             unit='Hz'
             )
-
+        
         self.add_parameter('sweep_frequency_stop',
             label='Sweep start frequency',
             set_cmd=':SOURce:SWEep:STEP:STOP:FREQuency {}',
@@ -300,24 +258,28 @@ class RigolDSG3136B(VisaInstrument):
             get_parser=str.rstrip,
             vals=vals.Enum('LIST','STEP')
             )
-
+        
         # As recommended by QCoDeS, it's a good idea to call connect_message at the end of your constructor.
         self.connect_message()
-
+        
     def trigger(self) -> None:
         """
         Generates a trigger event. This is equivalent to pressing the Force Trigger button on front panel.
         """
         self.write('*TRG')
-
+        
     def sweep_reset(self) -> None:
         """
         Resets a sweep to the beginning of its range.
         """
         self.write(':SOURce:SWEep:RESet:ALL')
-
+        
     def sweep_execute(self) -> None:
         """
         Executes a sweep
         """
         self.write(':SOURce:SWEep:EXECute')
+        
+    
+
+
