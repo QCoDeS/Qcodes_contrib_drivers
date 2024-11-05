@@ -13,6 +13,8 @@ on:
     tags:
       - 'v*'
   pull_request:
+  merge_group:
+    branches: ['main']
 
 jobs:
   pytestmypy:
@@ -21,26 +23,26 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest]
-        python-version: ["3.8", "3.9", "3.10"]
+        python-version: ["3.9", "3.10", "3.11"]
         exclude:
           - os: windows-latest
-            python-version: "3.9"
-          - os: windows-latest
             python-version: "3.10"
+          - os: windows-latest
+            python-version: "3.11"
     env:
       DISPLAY: ':99.0'
       OS: ${{ matrix.os }}
       PYTHON: ${{ matrix.python-version }}
 
     steps:
-    - uses: actions/checkout@v3.3.0
+    - uses: actions/checkout@v4.1.1
       with:
         submodules: true
     - name: setup ubuntu-latest xvfb
       uses: ./.github/actions/setup-ubuntu-latest-xvfb
       if: runner.os == 'Linux'
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4.5.0
+      uses: actions/setup-python@v5.0.0
       with:
         python-version: ${{ matrix.python-version }}
         cache: 'pip'
@@ -57,9 +59,9 @@ jobs:
       run: mypy qcodes_contrib_drivers
     - name: Run tests
       run: |
-        pytest --cov=qcodes_contrib_drivers --cov-report xml --cov-config=setup.cfg qcodes_contrib_drivers
+        pytest --cov=qcodes_contrib_drivers --cov-report xml --cov-config=pyproject.toml qcodes_contrib_drivers
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3.1.1
+      uses: codecov/codecov-action@v3.1.4
       with:
         file: ./coverage.xml
         env_vars: OS,PYTHON

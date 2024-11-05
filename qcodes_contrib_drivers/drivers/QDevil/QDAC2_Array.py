@@ -121,15 +121,14 @@ class Array_Arrangement_Context:
             arrangement = self._arrangements[qdac]
             channels_suffix = arrangement._all_channels_as_suffix()
             arrangement._qdac.write(f'sens:rang {current_range},{channels_suffix}')
-            arrangement._qdac.write(f'sens:nplc {nplc},{channels_suffix}')
-        # Discard first reading because of possible output-capacitor effects, etc
-        slowest_line_freq_Hz = 50
-        sleep_s(1 / slowest_line_freq_Hz)
         for qdac in self.qdac_names():
             arrangement = self._arrangements[qdac]
             channels_suffix = arrangement._all_channels_as_suffix()
-            arrangement._qdac.ask(f'read? {channels_suffix}')
-        # Then make a proper reading on all instruments
+            # Wait for relays to finish switching by doing a query
+            arrangement._qdac.ask(f'*stb?')
+            arrangement._qdac.write(f'sens:nplc {nplc},{channels_suffix}')
+        # Wait for the current sensors to stabilize and then read
+        slowest_line_freq_Hz = 50
         sleep_s((nplc + 1) / slowest_line_freq_Hz)
         values: List[float] = list()
         for qdac in self.qdac_names():

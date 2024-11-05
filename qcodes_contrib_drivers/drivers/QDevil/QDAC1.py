@@ -1,6 +1,6 @@
 # QCoDeS driver for the QDevil QDAC using channels
 # Adapted by QDevil from the qdev QDac driver in qcodes
-# Version 2.1 QDevil 2020-02-10
+# Version 2.2 QDevil 2023-02-20
 
 import logging
 import time
@@ -82,7 +82,7 @@ class QDacChannel(InstrumentChannel):
                            label=f'Channel {channum} voltage',
                            unit='V',
                            set_cmd=partial(self._parent._set_voltage, channum),
-                           get_cmd=f'set {channum}',
+                           get_cmd=partial(self._parent._get_voltage, channum),
                            get_parser=float,
                            # Initial range. Updated on init and during
                            # operation:
@@ -444,6 +444,17 @@ class QDac(VisaInstrument):
     # Channel gets/sets
     #########################
 
+    def _get_voltage(self, chan: int) -> str:
+        """
+        Clear the output from the instrument and ask for the current voltage
+
+        Args:
+            chan (int): The 1-indexed channel number
+        """
+        self.clear_read_queue()
+        self.write(f'set {chan}')
+        return self._write_response
+
     def _set_voltage(self, chan: int, v_set: float) -> None:
         """
         set_cmd for the chXX_v parameter
@@ -455,25 +466,38 @@ class QDac(VisaInstrument):
         If a finite slope has been assigned, a function generator will
         ramp the voltage.
         """
-
         slope = self._slopes.get(chan, None)
-        if slope:
-            # We need .get and not cache/get_latest in case a ramp
-            # was interrupted
-            v_start = self.channels[chan-1].v.get()
-            duration = abs(v_set-v_start)/slope
-            LOG.info(f'Slope: {slope}, time: {duration}')
-            # SYNCing happens inside ramp_voltages
-            self.ramp_voltages([chan], [v_start], [v_set], duration)
-        else:  # Should not be necessary to wav here.
+        if not slope:
+            # Should not be necessary to wav here.
             self.write('wav {ch} 0 0 0;set {ch} {voltage:.6f}'
                        .format(ch=chan, voltage=v_set))
+            return
+        # We need .get and not cache/get_latest in case a ramp
+        # was interrupted
+        v_start = self.channels[chan-1].v.get()
+        v_span = v_set - v_start
+        v_amplitude = abs(v_span)
+        s_duration = v_amplitude / slope
+        LOG.info(f'Slope: {slope}, time: {s_duration}')
+        if v_amplitude <= 10:
+            # SYNCing happens inside ramp_voltages
+            self.ramp_voltages([chan], [v_start], [v_set], s_duration)
+            return
+        # Divide sweep into two parts
+        v_half_span = v_span / 2
+        s_half_duration = s_duration / 2
+        v_half_way = v_start + v_half_span
+        self.ramp_voltages([chan], [v_start], [v_half_way], s_half_duration)
+        LOG.warning('Trying to ramp more than 10 volts. '
+            'Waiting for first ramp to finish')
+        time.sleep(s_half_duration)
+        self.ramp_voltages([chan], [v_half_way], [v_set], s_half_duration)
 
     def _set_mode(self, chan: int, new_mode: Mode) -> None:
         """
         set_cmd for the QDAC's mode (combined voltage and current sense range).
         It is not possible to switch from voltage range without setting the
-        the volage to zero first or set the global mode_force parameter True.
+        the voltage to zero first or set the global mode_force parameter True.
         """
         def _clipto(value: float, min_: float, max_: float) -> float:
             errmsg = ("Voltage is outside the bounds of the new voltage range"
@@ -786,6 +810,8 @@ class QDac(VisaInstrument):
         self.visa_handle.write(cmd)
         for _ in range(cmd.count(';')+1):
             self._write_response = self.visa_handle.read()
+            if self._write_response.startswith('Error: '):
+                LOG.warning(self._write_response)
 
     def read(self) -> str:
         return self.visa_handle.read()
@@ -793,6 +819,26 @@ class QDac(VisaInstrument):
     def _wait_and_clear(self, delay: float = 0.5) -> None:
         time.sleep(delay)
         self.visa_handle.clear()
+
+    def clear_read_queue(self) -> Sequence[str]:
+        """
+        Flush the VISA message queue of the instrument
+
+        Waits 1 ms between each read.
+
+        Returns:
+            Sequence[str]: Messages lingering in queue
+        """
+        lingering = list()
+        with self.timeout.set_to(0.001):
+            while True:
+                try:
+                    message = self.visa_handle.read()
+                except pyvisa.VisaIOError:
+                    break
+                else:
+                    lingering.append(message)
+        return lingering
 
     def connect_message(self,
                         idn_param: str = 'IDN',
@@ -808,7 +854,7 @@ class QDac(VisaInstrument):
 
     def _get_firmware_version(self) -> float:
         """
-        Check if the "version" command reponds. If so we probbaly have a QDevil
+        Check if the "version" command reponds. If so we probably have a QDevil
         QDAC, and the version number is returned. Otherwise 0.0 is returned.
         """
         self.write('version')
@@ -1067,6 +1113,8 @@ class QDac(VisaInstrument):
         msg = ''
         for i in range(no_channels):
             amplitude = v_endlist[i]-v_startlist[i]
+            # TODO: if amplitute is too large, then split into two parts.
+            # if abs(amplitude) > 10: ...
             ch = channellist[i]
             fg = self._assigned_fgs[ch].fg
             if trigger > 0:  # Trigger 0 is not a trigger

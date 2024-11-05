@@ -1,7 +1,6 @@
 [build-system]
 requires = [
-    "setuptools >= 61.2",
-    "wheel >= 0.29.0",
+    "setuptools >= 68.1.2",
     "versioningit >= 2.0.1"
 ]
 build-backend = 'setuptools.build_meta'
@@ -9,9 +8,18 @@ build-backend = 'setuptools.build_meta'
 [project]
 name = "qcodes_contrib_drivers"
 description = "User contributed drivers for QCoDeS"
-classifiers = [ "Development Status :: 3 - Alpha", "Intended Audience :: Science/Research", "License :: OSI Approved :: MIT License", "License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)", "Programming Language :: Python :: 3 :: Only", "Programming Language :: Python :: 3.8", "Programming Language :: Python :: 3.9", "Programming Language :: Python :: 3.10", "Topic :: Scientific/Engineering",]
-requires-python = ">=3.8"
-dependencies = [ "qcodes>=0.37.0", "versioningit>=2.0.1", "packaging"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering",]
+requires-python = ">=3.9"
+dependencies = [ "qcodes>=0.42.0", "versioningit>=2.0.1", "packaging", "pandas"]
 dynamic = [ "version",]
 
 [[project.maintainers]]
@@ -32,8 +40,17 @@ Source = "https://github.com/qcodes/qcodes_contrib_drivers"
 Tracker = "https://github.com/QCoDeS/Qcodes_contrib_drivers/issues"
 
 [project.optional-dependencies]
-test = [ "pytest>=6.2.2", "pytest-mock", "mypy>=0.940", "pytest-cov>=3.0.0", "coverage[toml]>=6.2", "pyvisa-sim",]
-docs = [ "sphinx", "sphinx_rtd_theme", "nbsphinx",]
+test = [
+    "pytest>=6.2.2",
+    "pytest-mock",
+    "mypy>=0.940",
+    "pytest-cov>=3.0.0",
+    "coverage[toml]>=6.2",
+    "pyvisa-sim",
+    "types-tqdm>=4.64.6",
+    "pandas-stubs",
+]
+docs = [ "sphinx", "sphinx_rtd_theme", "nbsphinx", ]
 
 [tool.mypy]
 strict_optional = true
@@ -65,9 +82,21 @@ module = [
     "pyspcm",
     "spirack",
     "zhinst.*",
-    "ruamel.*"
+    "ruamel.*",
+    "msl.loadlib"
 ]
 ignore_missing_imports = true
+
+[tool.setuptools]
+zip-safe = false
+license-files = [
+    "LICENSE_TEKTRONIX_AWG520_KEITHLEY_2700",
+    "LICENSE",
+]
+include-package-data = false
+
+[tool.setuptools.packages]
+find = {namespaces = false}
 
 [tool.versioningit]
 default-version = "0.0"

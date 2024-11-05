@@ -7,10 +7,10 @@ from qcodes.instrument.visa import VisaInstrument
 from pyvisa.errors import VisaIOError
 from qcodes.utils import validators
 from typing import NewType, Tuple, Sequence, List, Dict, Optional
-from packaging.version import Version, parse
+from packaging.version import parse
 import abc
 
-# Version 1.2.0
+# Version 1.10.0
 #
 # Guiding principles for this driver for QDevil QDAC-II
 # -----------------------------------------------------
@@ -28,9 +28,9 @@ import abc
 #
 #        qdac.n_channels()
 #
-# 3. Allocation of resources should be automated as much as possible, preferably
-#    by python context managers that automatically clean up on exit.  Such
-#    context managers have a name with a '_Context' suffix.
+# 3. Allocation of resources should be automated as much as possible,
+#    preferably by python context managers that automatically clean up on exit.
+#    Such context managers have a name with a '_Context' suffix.
 #
 # 4. Any generator should by default be set to start on the BUS trigger
 #    (*TRG) so that it is possible to synchronise several generators without
@@ -44,6 +44,10 @@ import abc
 #
 # - Detect and handle mixing of internal and external triggers (_trigger).
 #
+
+
+pseudo_trigger_voltage = 5
+
 
 error_ambiguous_wave = 'Only one of frequency_Hz or period_s can be ' \
                        'specified for a wave form'
@@ -135,14 +139,12 @@ class QDac2ExternalTrigger(InstrumentChannel):
             name='source_from_input',
             # Route external input to external output
             set_cmd='outp:trig{0}:sour ext{1}'.format(external, '{}'),
-            get_parser=int
         )
         self.add_parameter(
             name='source_from_trigger',
             # Route internal trigger to external output
             set_parser=_trigger_context_to_value,
             set_cmd='outp:trig{0}:sour int{1}'.format(external, '{}'),
-            get_parser=int
         )
         self.add_parameter(
             name='width_s',
@@ -199,7 +201,15 @@ class _Channel_Context(metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
+    def start_once_on(self, trigger: QDac2Trigger_Context) -> None:
+        pass
+
+    @abc.abstractmethod
     def start_on_external(self, trigger: ExternalInput) -> None:
+        pass
+
+    @abc.abstractmethod
+    def start_once_on_external(self, trigger: ExternalInput) -> None:
         pass
 
     @abc.abstractmethod
@@ -230,6 +240,30 @@ class _Dc_Context(_Channel_Context):
         self._marker_step_start: Optional[QDac2Trigger_Context] = None
         self._marker_step_end: Optional[QDac2Trigger_Context] = None
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.abort()
+        if self._trigger:
+            self._channel._parent.free_trigger(self._trigger)
+        if self._marker_start:
+            self._channel._parent.free_trigger(self._marker_start)
+            self._write_channel(f'sour{"{0}"}:dc:mark:star 0')
+        if self._marker_end:
+            self._channel._parent.free_trigger(self._marker_end)
+            self._write_channel(f'sour{"{0}"}:dc:mark:end 0')
+        if self._marker_step_start:
+            self._channel._parent.free_trigger(self._marker_step_start)
+            self._write_channel(f'sour{"{0}"}:dc:mark:sst 0')
+        if self._marker_step_end:
+            self._channel._parent.free_trigger(self._marker_step_end)
+            self._write_channel(f'sour{"{0}"}:dc:mark:send 0')
+        # Always disable any triggering
+        self._write_channel(f'sour{"{0}"}:dc:trig:sour imm')
+        # Propagate exceptions
+        return False
+
     def start_on(self, trigger: QDac2Trigger_Context) -> None:
         """Attach internal trigger to DC generator
 
@@ -241,6 +275,17 @@ class _Dc_Context(_Channel_Context):
         self._write_channel(f'sour{"{0}"}:dc:trig:sour int{internal}')
         self._make_ready_to_start()
 
+    def start_once_on(self, trigger: QDac2Trigger_Context) -> None:
+        """Attach internal one-shot trigger to DC generator
+
+        Args:
+            trigger (QDac2Trigger_Context): trigger that will start DC
+        """
+        self._trigger = trigger
+        internal = _trigger_context_to_value(trigger)
+        self._write_channel(f'sour{"{0}"}:dc:trig:sour int{internal}')
+        self._make_ready_to_start_once()
+
     def start_on_external(self, trigger: ExternalInput) -> None:
         """Attach external trigger to DC generator
 
@@ -250,6 +295,16 @@ class _Dc_Context(_Channel_Context):
         self._trigger = None
         self._write_channel(f'sour{"{0}"}:dc:trig:sour ext{trigger}')
         self._make_ready_to_start()
+
+    def start_once_on_external(self, trigger: ExternalInput) -> None:
+        """Attach external one-shot trigger to DC generator
+
+        Args:
+            trigger (ExternalInput): trigger that will start DC generator
+        """
+        self._trigger = None
+        self._write_channel(f'sour{"{0}"}:dc:trig:sour ext{trigger}')
+        self._make_ready_to_start_once()
 
     def abort(self) -> None:
         """Abort any DC running generator on the channel
@@ -324,7 +379,9 @@ class _Dc_Context(_Channel_Context):
 
     def _make_ready_to_start(self) -> None:
         self._write_channel('sour{0}:dc:init:cont on')
-        self._write_channel('sour{0}:dc:init')
+
+    def _make_ready_to_start_once(self) -> None:
+        self._write_channel('sour{0}:dc:init:cont off')
 
     def _switch_to_immediate_trigger(self) -> None:
         self._write_channel('sour{0}:dc:init:cont off')
@@ -341,7 +398,7 @@ class Sweep_Context(_Dc_Context):
         channel.write_channel('sour{0}:volt:mode swe')
         self._set_voltages(start_V, stop_V)
         channel.write_channel(f'sour{"{0}"}:swe:poin {points}')
-        self._set_trigger_mode(stepped)
+        self._set_generation_mode(stepped)
         channel.write_channel(f'sour{"{0}"}:swe:dwel {dwell_s}')
         super()._set_delay(delay_s)
         self._set_direction(backwards)
@@ -352,10 +409,10 @@ class Sweep_Context(_Dc_Context):
         self._write_channel(f'sour{"{0}"}:swe:star {start_V}')
         self._write_channel(f'sour{"{0}"}:swe:stop {stop_V}')
 
-    def _set_trigger_mode(self, stepped: bool) -> None:
+    def _set_generation_mode(self, stepped: bool) -> None:
         if stepped:
             return self._write_channel('sour{0}:swe:gen step')
-        self._write_channel('sour{0}:swe:gen auto')
+        self._write_channel('sour{0}:swe:gen anal')
 
     def _set_direction(self, backwards: bool) -> None:
         if backwards:
@@ -500,6 +557,27 @@ class _Waveform_Context(_Channel_Context):
         self._marker_period_start: Optional[QDac2Trigger_Context] = None
         self._marker_period_end: Optional[QDac2Trigger_Context] = None
 
+    def __enter__(self):
+        return self
+
+    def _cleanup(self, wave_kind: str) -> None:
+        if self._trigger:
+            self._channel._parent.free_trigger(self._trigger)
+        if self._marker_start:
+            self._channel._parent.free_trigger(self._marker_start)
+            self._write_channel(f'sour{"{0}"}:{wave_kind}:mark:star 0')
+        if self._marker_end:
+            self._channel._parent.free_trigger(self._marker_end)
+            self._write_channel(f'sour{"{0}"}:{wave_kind}:mark:end 0')
+        if self._marker_period_start:
+            self._channel._parent.free_trigger(self._marker_period_start)
+            self._write_channel(f'sour{"{0}"}:{wave_kind}:mark:pstart 0')
+        if self._marker_period_end:
+            self._channel._parent.free_trigger(self._marker_period_end)
+            self._write_channel(f'sour{"{0}"}:{wave_kind}:mark:pend 0')
+        # Always disable any triggering
+        self._write_channel(f'sour{"{0}"}:{wave_kind}:trig:sour imm')
+
     def _start(self, wave_kind: str, description: str) -> None:
         if self._trigger:
             self._make_ready_to_start(wave_kind)
@@ -513,10 +591,21 @@ class _Waveform_Context(_Channel_Context):
         self._write_channel(f'sour{"{0}"}:{wave_kind}:trig:sour int{internal}')
         self._make_ready_to_start(wave_kind)
 
+    def _start_once_on(self, trigger: QDac2Trigger_Context, wave_kind: str) -> None:
+        self._trigger = trigger
+        internal = _trigger_context_to_value(trigger)
+        self._write_channel(f'sour{"{0}"}:{wave_kind}:trig:sour int{internal}')
+        self._make_ready_to_start_once(wave_kind)
+
     def _start_on_external(self, trigger: ExternalInput, wave_kind: str) -> None:
         self._trigger = None
         self._write_channel(f'sour{"{0}"}:{wave_kind}:trig:sour ext{trigger}')
         self._make_ready_to_start(wave_kind)
+
+    def _start_once_on_external(self, trigger: ExternalInput, wave_kind: str) -> None:
+        self._trigger = None
+        self._write_channel(f'sour{"{0}"}:{wave_kind}:trig:sour ext{trigger}')
+        self._make_ready_to_start_once(wave_kind)
 
     def _end_marker(self, wave_kind: str) -> QDac2Trigger_Context:
         if not self._marker_end:
@@ -544,7 +633,9 @@ class _Waveform_Context(_Channel_Context):
 
     def _make_ready_to_start(self, wave_kind: str) -> None:
         self._write_channel(f'sour{"{0}"}:{wave_kind}:init:cont on')
-        self._write_channel(f'sour{"{0}"}:{wave_kind}:init')
+
+    def _make_ready_to_start_once(self, wave_kind: str) -> None:
+        self._write_channel(f'sour{"{0}"}:{wave_kind}:init:cont off')
 
     def _switch_to_immediate_trigger(self, wave_kind: str):
         self._write_channel(f'sour{"{0}"}:{wave_kind}:init:cont off')
@@ -581,6 +672,12 @@ class Square_Context(_Waveform_Context):
         super()._set_delay('squ', delay_s)
         self._write_channel(f'sour{"{0}"}:squ:coun {repetitions}')
         self._set_triggering()
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.abort()
+        super()._cleanup('squ')
+        # Propagate exceptions
+        return False
 
     def start(self) -> None:
         """Start the square wave generator
@@ -672,6 +769,14 @@ class Square_Context(_Waveform_Context):
         """
         return super()._start_on(trigger, 'squ')
 
+    def start_once_on(self, trigger: QDac2Trigger_Context) -> None:
+        """Attach internal one-shot trigger to start the square wave generator
+
+        Args:
+            trigger (QDac2Trigger_Context): trigger that will start square wave
+        """
+        return super()._start_once_on(trigger, 'squ')
+
     def start_on_external(self, trigger: ExternalInput) -> None:
         """Attach external trigger to start the square wave generator
 
@@ -679,6 +784,14 @@ class Square_Context(_Waveform_Context):
             trigger (ExternalInput): external trigger that will start square wave
         """
         return super()._start_on_external(trigger, 'squ')
+
+    def start_once_on_external(self, trigger: ExternalInput) -> None:
+        """Attach external one-shot trigger to start the square wave generator
+
+        Args:
+            trigger (ExternalInput): external trigger that will start square wave
+        """
+        return super()._start_once_on_external(trigger, 'squ')
 
 
 class Sine_Context(_Waveform_Context):
@@ -698,6 +811,12 @@ class Sine_Context(_Waveform_Context):
         super()._set_delay('sine', delay_s)
         self._write_channel(f'sour{"{0}"}:sine:coun {repetitions}')
         self._set_triggering()
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.abort()
+        super()._cleanup('sine')
+        # Propagate exceptions
+        return False
 
     def start(self) -> None:
         """Start the sine wave generator
@@ -781,6 +900,14 @@ class Sine_Context(_Waveform_Context):
         """
         return super()._start_on(trigger, 'sine')
 
+    def start_once_on(self, trigger: QDac2Trigger_Context) -> None:
+        """Attach internal one-shot trigger to start the sine wave generator
+
+        Args:
+            trigger (QDac2Trigger_Context): trigger that will start sine wave
+        """
+        return super()._start_once_on(trigger, 'sin')
+
     def start_on_external(self, trigger: ExternalInput) -> None:
         """Attach external trigger to start the sine wave generator
 
@@ -788,6 +915,14 @@ class Sine_Context(_Waveform_Context):
             trigger (ExternalInput): external trigger that will start sine wave
         """
         return super()._start_on_external(trigger, 'sine')
+
+    def start_once_on_external(self, trigger: ExternalInput) -> None:
+        """Attach external one-shot trigger to start the sine wave generator
+
+        Args:
+            trigger (ExternalInput): external trigger that will start sine wave
+        """
+        return super()._start_once_on_external(trigger, 'sin')
 
 
 class Triangle_Context(_Waveform_Context):
@@ -808,6 +943,12 @@ class Triangle_Context(_Waveform_Context):
         super()._set_delay('tri', delay_s)
         self._write_channel(f'sour{"{0}"}:tri:coun {repetitions}')
         self._set_triggering()
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.abort()
+        super()._cleanup('tri')
+        # Propagate exceptions
+        return False
 
     def start(self) -> None:
         """Start the triangle wave generator
@@ -899,6 +1040,14 @@ class Triangle_Context(_Waveform_Context):
         """
         return super()._start_on(trigger, 'tri')
 
+    def start_once_on(self, trigger: QDac2Trigger_Context) -> None:
+        """Attach internal one-shot trigger to start the triangle wave generator
+
+        Args:
+            trigger (QDac2Trigger_Context): trigger that will start triangle wave
+        """
+        return super()._start_once_on(trigger, 'tri')
+
     def start_on_external(self, trigger: ExternalInput) -> None:
         """Attach external trigger to start the triangle wave generator
 
@@ -906,6 +1055,14 @@ class Triangle_Context(_Waveform_Context):
             trigger (ExternalInput): external trigger that will start triangle
         """
         return super()._start_on_external(trigger, 'tri')
+
+    def start_once_on_external(self, trigger: ExternalInput) -> None:
+        """Attach external one-shot trigger to start the triangle wave generator
+
+        Args:
+            trigger (ExternalInput): external trigger that will start triangle wave
+        """
+        return super()._start_once_on_external(trigger, 'tri')
 
 
 class Awg_Context(_Waveform_Context):
@@ -922,6 +1079,12 @@ class Awg_Context(_Waveform_Context):
         self._set_slew('awg', slew_V_s)
         self._write_channel(f'sour{"{0}"}:awg:coun {repetitions}')
         self._set_triggering()
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.abort()
+        super()._cleanup('awg')
+        # Propagate exceptions
+        return False
 
     def start(self) -> None:
         """Start the AWG
@@ -992,6 +1155,14 @@ class Awg_Context(_Waveform_Context):
         """
         return super()._start_on(trigger, 'awg')
 
+    def start_once_on(self, trigger: QDac2Trigger_Context) -> None:
+        """Attach internal one-shot trigger to start the AWG
+
+        Args:
+            trigger (QDac2Trigger_Context): trigger that will start AWG
+        """
+        return super()._start_once_on(trigger, 'awg')
+
     def start_on_external(self, trigger: ExternalInput) -> None:
         """Attach external trigger to start the AWG
 
@@ -999,6 +1170,14 @@ class Awg_Context(_Waveform_Context):
             trigger (ExternalInput): external trigger that will start AWG
         """
         return super()._start_on_external(trigger, 'awg')
+
+    def start_once_on_external(self, trigger: ExternalInput) -> None:
+        """Attach external one-shot trigger to start the AWG
+
+        Args:
+            trigger (ExternalInput): external trigger that will start AWG
+        """
+        return super()._start_once_on_external(trigger, 'awg')
 
 
 class Measurement_Context(_Channel_Context):
@@ -1036,7 +1215,17 @@ class Measurement_Context(_Channel_Context):
         internal = _trigger_context_to_value(trigger)
         self._write_channel(f'sens{"{0}"}:trig:sour int{internal}')
         self._write_channel(f'sens{"{0}"}:init:cont on')
-        self._write_channel(f'sens{"{0}"}:init')
+
+    def start_once_on(self, trigger: QDac2Trigger_Context) -> None:
+        """Attach internal once-shot trigger to start the current measurement
+
+        Args:
+            trigger (QDac2Trigger_Context): trigger that will start measurement
+        """
+        self._trigger = trigger
+        internal = _trigger_context_to_value(trigger)
+        self._write_channel(f'sens{"{0}"}:trig:sour int{internal}')
+        self._write_channel(f'sens{"{0}"}:init:cont off')
 
     def start_on_external(self, trigger: ExternalInput) -> None:
         """Attach external trigger to start the current measurement
@@ -1046,7 +1235,15 @@ class Measurement_Context(_Channel_Context):
         """
         self._write_channel(f'sens{"{0}"}:trig:sour ext{trigger}')
         self._write_channel(f'sens{"{0}"}:init:cont on')
-        self._write_channel(f'sens{"{0}"}:init')
+
+    def start_once_on_external(self, trigger: ExternalInput) -> None:
+        """Attach external one-shot trigger to start the current measurement
+
+        Args:
+            trigger (ExternalInput): trigger that will start measurement
+        """
+        self._write_channel(f'sens{"{0}"}:trig:sour ext{trigger}')
+        self._write_channel(f'sens{"{0}"}:init:cont off')
 
     def abort(self) -> None:
         """Abort current measurement
@@ -1379,7 +1576,7 @@ class QDac2Channel(InstrumentChannel):
             dwell_s (float, optional): Seconds between each voltage (default 1ms)
             delay_s (float, optional): Seconds of delay after receiving a trigger (default 0)
             backwards (bool, optional): Sweep in reverse (default is forward)
-            stepped (bool, optional): True means that each step needs to be triggered (default False)
+            stepped (bool, optional): True means discrete steps (default True)
 
         Returns:
             Sweep_Context: context manager
@@ -1676,10 +1873,12 @@ class Virtual_Sweep_Context:
 class Arrangement_Context:
     def __init__(self, qdac: 'QDac2', contacts: Dict[str, int],
                  output_triggers: Optional[Dict[str, int]],
-                 internal_triggers: Optional[Sequence[str]]):
+                 internal_triggers: Optional[Sequence[str]],
+                 outer_trigger_channel: Optional[int]):
         self._qdac = qdac
         self._fix_contact_order(contacts)
         self._allocate_triggers(internal_triggers, output_triggers)
+        self._outer_trigger_channel = outer_trigger_channel
         self._correction = np.identity(self.shape)
 
     def __enter__(self):
@@ -1856,12 +2055,11 @@ class Arrangement_Context:
         """
         channels_suffix = self._all_channels_as_suffix()
         self._qdac.write(f'sens:rang {current_range},{channels_suffix}')
+        # Wait for relays to finish switching by doing a query
+        self._qdac.ask('*stb?')
         self._qdac.write(f'sens:nplc {nplc},{channels_suffix}')
-        # Discard first reading because of possible output-capacitor effects, etc
+        # Wait for the current sensors to stabilize and then read
         slowest_line_freq_Hz = 50
-        sleep_s(1 / slowest_line_freq_Hz)
-        self._qdac.ask(f'read? {channels_suffix}')
-        # Then make a proper reading
         sleep_s((nplc + 1) / slowest_line_freq_Hz)
         currents = self._qdac.ask(f'read? {channels_suffix}')
         return comma_sequence_to_list_of_floats(currents)
@@ -1905,6 +2103,7 @@ class Arrangement_Context:
                         start_sweep_trigger: Optional[str] = None,
                         inner_step_time_s: float = 1e-5,
                         inner_step_trigger: Optional[str] = None,
+                        outer_step_trigger: Optional[str] = None,
                         repetitions: int = 1) -> Virtual_Sweep_Context:
         """Sweep two contacts to create a 2D sweep
 
@@ -1916,15 +2115,41 @@ class Arrangement_Context:
             start_sweep_trigger (None, optional): Trigger that starts sweep
             inner_step_time_s (float, optional): Delay between voltage changes
             inner_step_trigger (None, optional): Trigger that marks each step
+            outer_step_trigger (None, optional): Name of trigger that marks outer step
             repetitions (int, Optional): Number of back-and-forth sweeps, or -1 for infinite
 
         Returns:
             Virtual_Sweep_Context: context manager
         """
+        if not start_sweep_trigger:
+            # Use a random, unique name
+            start_sweep_trigger = uuid.uuid4().hex
         sweep = self._calculate_2d_values(inner_contact, inner_voltages,
                                           outer_contact, outer_voltages)
-        return Virtual_Sweep_Context(self, sweep, start_sweep_trigger,
-                                     inner_step_time_s, inner_step_trigger, repetitions)
+        ctx = Virtual_Sweep_Context(self, sweep, start_sweep_trigger,
+                                    inner_step_time_s, inner_step_trigger,
+                                    repetitions)
+        if outer_step_trigger:
+            self._setup_outer_trigger(outer_step_trigger, start_sweep_trigger,
+                                      len(inner_voltages)*inner_step_time_s,
+                                      len(outer_voltages))
+        return ctx
+
+    def _setup_outer_trigger(self, outer_step_trigger: str,
+                             start_sweep_trigger: str,
+                             period_s: float, outer_cycles: int) -> None:
+        if not self._outer_trigger_channel:
+            raise ValueError("Arrangement needs an outer_trigger_channel when"
+                             " using outer_step_trigger")
+            return
+        helper_ch = self._qdac.channel(self._outer_trigger_channel)
+        helper_ctx = helper_ch.sine_wave(
+            period_s=period_s, repetitions=outer_cycles, span_V=0)
+        helper_ctx.start_on(self.get_trigger_by_name(start_sweep_trigger))
+        trigger = self.get_trigger_by_name(outer_step_trigger)
+        helper_ctx._marker_period_start = trigger
+        helper_ctx.period_start_marker()
+        self._outer_trigger_context = helper_ctx
 
     def _calculate_2d_values(self, inner_contact: str,
                              inner_voltages: Sequence[float],
@@ -1992,9 +2217,9 @@ class Arrangement_Context:
     def leakage(self, modulation_V: float, nplc: int = 2) -> np.ndarray:
         """Run a simple leakage test between the contacts
 
-        Each contact is changed in turn and the resulting change in current from
-        steady-state is recorded.  The resulting resistance matrix is calculated
-        as modulation_voltage divided by current_change.
+        Each contact is changed in turn and the resulting change in current
+        from steady-state is recorded.  The resulting resistance matrix is
+        calculated as modulation_voltage divided by current_change.
 
         Args:
             modulation_V (float): Virtual voltage added to each contact
@@ -2240,7 +2465,8 @@ class QDac2(VisaInstrument):
 
     def arrange(self, contacts: Dict[str, int],
                 output_triggers: Optional[Dict[str, int]] = None,
-                internal_triggers: Optional[Sequence[str]] = None
+                internal_triggers: Optional[Sequence[str]] = None,
+                outer_trigger_channel: Optional[int] = None
                 ) -> Arrangement_Context:
         """An arrangement of contacts and triggers for virtual gates
 
@@ -2261,12 +2487,13 @@ class QDac2(VisaInstrument):
             contacts (Dict[str, int]): Name/channel pairs
             output_triggers (Sequence[Tuple[str,int]], optional): Name/number pairs of output triggers
             internal_triggers (Sequence[str], optional): List of names of internal triggers to allocate
+            outer_trigger_channel (int, optional): Additional channel if outer trigger is needed
 
         Returns:
             Arrangement_Context: context manager
         """
         return Arrangement_Context(self, contacts, output_triggers,
-                                   internal_triggers)
+                                   internal_triggers, outer_trigger_channel)
 
     # -----------------------------------------------------------------------
     # Instrument-wide functions
