@@ -2090,7 +2090,7 @@ class RohdeSchwarz_SMW200A(VisaInstrument):
         amchannels.lock()
         self.add_submodule('am_channels', amchannels)
 
-        if 'SMW-B22' or 'SMW-B20' in self.options:
+        if 'SMW-B22' in self.options or 'SMW-B20' in self.options:
             #Frequency Modulation submodules
             fmchannels = ChannelList(self, "FMChannels", FrequencyModulation,
                                      snapshotable=False)
