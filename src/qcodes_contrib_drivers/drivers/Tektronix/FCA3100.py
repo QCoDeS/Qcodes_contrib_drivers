@@ -77,7 +77,7 @@ class CompleteTimeStatistics(ParameterWithSetpoints):
         data_str=self.root_instrument.ask("READ:ARRay? {}".format(self.root_instrument.samples_number.get_latest()))
         data = np.array(data_str.rstrip().split(",")).astype("float64")
         return data
-    
+
 class GeneratedSetPoints(Parameter):
     """
     A parameter that generates a setpoint array from start, stop and num points
@@ -134,7 +134,7 @@ class FCA3100(VisaInstrument):
                            vals=Ints(2, int(2e9)),
                            docstring='Number of samples in the current statistics sampling'
                            )
-        
+
         self.add_parameter('counter_axis',
                            unit='#',
                            label='Counter Axis',
@@ -173,7 +173,7 @@ class FCA3100(VisaInstrument):
                           get_parser=str,
                           unit='',
                           docstring='trigger slope @ threshold channel A'
-                          )        
+                          )
 
         self.add_parameter(name='threshold_slope_B',
                           label='threshold_slope_B',
