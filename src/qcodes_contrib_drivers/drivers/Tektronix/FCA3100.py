@@ -3,7 +3,7 @@ import numpy as np
 from typing import Any, Tuple
 from qcodes.instrument import VisaInstrument
 from qcodes.parameters import MultiParameter, Parameter, ParameterWithSetpoints
-from qcodes.validators import Arrays, Ints
+from qcodes.utils.validators import Arrays, Ints
 
 log = logging.getLogger(__name__)
 
@@ -20,8 +20,8 @@ class TimeStatistics(MultiParameter):
         Statistical values of a timing statistics.
 
         Args:
-            name: name of the timing statistics
-            instrument: Instrument to which the timing statistic is bound to.
+            name (str): name of the timing statistics
+            instrument (FCA3100): Instrument to which the timing statistic is bound to.
         """
 
         super().__init__(name=name,
@@ -46,7 +46,7 @@ class TimeStatistics(MultiParameter):
         Gets data from the instrument
 
         Returns:
-            Tuple: Statistical values of the time statistic
+            Tuple[float, float, float, float]: Statistical values of the time statistic
         """
         assert isinstance(self.instrument, FCA3100)
         self.instrument.write('CALCulate:AVERage:STAT 1')
@@ -63,13 +63,6 @@ class CompleteTimeStatistics(ParameterWithSetpoints):
                  instrument:"FCA3100",
                  **kwargs: Any
                  ) -> None:
-        """
-        Parameter for a complete time statistics containing all measured switching times.
-
-        Args:
-            name: name of the complete time statistics
-            instrument: Instrument to which the complete time statistic is bound to.
-        """
         super().__init__(name=name,
                          instrument=instrument,
                          label='Times till switching',
@@ -77,20 +70,14 @@ class CompleteTimeStatistics(ParameterWithSetpoints):
                          docstring='Arrays of switching times',
                          **kwargs)
 
-    def get_raw(self) -> np.ndarray:
-        """
-        Gets the data from the instrument.
-
-        Returns:
-            np.ndarray: Array of swithing times
-        """
+    def get_raw(self):
         assert isinstance(self.instrument, FCA3100)
         self.instrument.write('CALCulate:AVERage:STATe 0')
-        self.instrument.write('ARM:COUN {}'.format(self.instrument.samples_number.get_latest()))
-        data_str=self.instrument.ask("READ:ARRay? {}".format(self.instrument.samples_number.get_latest()))
+        self._instrument.write('ARM:COUN {}'.format(self._instrument.samples_number.get_latest()))
+        data_str=self.root_instrument.ask("READ:ARRay? {}".format(self.root_instrument.samples_number.get_latest()))
         data = np.array(data_str.rstrip().split(",")).astype("float64")
         return data
-
+    
 class GeneratedSetPoints(Parameter):
     """
     A parameter that generates a setpoint array from start, stop and num points
@@ -119,11 +106,11 @@ class FCA3100(VisaInstrument):
         Qcodes driver for the Textronix FCA3100 frequency counter.
 
         Args:
-            name: Name of the instrument
-            address: Address of the instrument
-            terminator (optional): Terminator character of
-                the string reply. Defaults to "\\n".
-            timeout (optional): VISA timeout is set purposely
+            name (str): Name of the instrument
+            address (str): Address of the instrument
+            terminator (str, optional): Terminator character of
+                the string reply. Defaults to "\n".
+            timeout (int, optional): VISA timeout is set purposely
                 to a long time to allow long measurements. Defaults to 10.
         """
 
@@ -147,7 +134,7 @@ class FCA3100(VisaInstrument):
                            vals=Ints(2, int(2e9)),
                            docstring='Number of samples in the current statistics sampling'
                            )
-
+        
         self.add_parameter('counter_axis',
                            unit='#',
                            label='Counter Axis',
@@ -179,4 +166,26 @@ class FCA3100(VisaInstrument):
                            vals=Arrays(shape=(self.samples_number.get_latest,))
                            )
 
+        self.add_parameter(name='threshold_slope_A',
+                          label='threshold_slope_A',
+                          get_cmd='INPut1:SLOPe?',
+                          set_cmd='INPut1:SLOPe {}',
+                          get_parser=str,
+                          unit='',
+                          docstring='trigger slope @ threshold channel A'
+                          )        
+
+        self.add_parameter(name='threshold_slope_B',
+                          label='threshold_slope_B',
+                          get_cmd='INPut2:SLOPe?',
+                          set_cmd='INPut2:SLOPe {}',
+                          get_parser=str,
+                          unit='',
+                          docstring='trigger slope @ threshold channel B'
+                          )
+
         self.connect_message()
+
+    def startread(self):
+        self.ask("Read?")
+        return
