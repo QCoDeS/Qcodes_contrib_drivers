@@ -1,4 +1,6 @@
 import time
+
+from qcodes import DelegateParameter
 from tqdm import tqdm
 
 from qcodes.instrument import VisaInstrument
@@ -96,12 +98,15 @@ class LighthousePhotonicsSproutG(VisaInstrument):
         """Status messages for output mode, warnings, shutter, and
         interlock."""
 
-        self.enabled = Parameter('enabled',
-                                 get_cmd=self.output_mode,
-                                 set_cmd=self.output_mode,
-                                 val_mapping=create_on_off_val_mapping('on',
-                                                                       'off'),
-                                 instrument=self)
+        val_mapping = create_on_off_val_mapping('on', 'off')
+        self.enabled = DelegateParameter(
+            'enabled',
+            source=self.output_mode,
+            get_parser=lambda x: x == 'on',
+            set_parser=lambda x: val_mapping[x],
+            bind_to_instrument=True,
+            instrument=self
+        )
         """Enable/disable the output."""
         self.output_power = Parameter('output_power', get_cmd='POWER?',
                                       set_cmd='POWER SET={:.2f}',
@@ -162,7 +167,7 @@ class LighthousePhotonicsSproutG(VisaInstrument):
             self.enabled(True)
         with tqdm(
                 total=self.output_setpoint(),
-                desc=f'Laser {self.name} ramping up',
+                desc=f'{self.label} ramping up',
                 unit=self.output_power.unit,
                 disable=not show_progress
         ) as pbar:
