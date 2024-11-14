@@ -166,6 +166,24 @@ class FCA3100(VisaInstrument):
                            vals=Arrays(shape=(self.samples_number.get_latest,))
                            )
 
+        self.add_parameter(name='threshold_slope_A',
+                          label='threshold_slope_A',
+                          get_cmd='INPut1:SLOPe?',
+                          set_cmd='INPut1:SLOPe {}',
+                          get_parser=str,
+                          unit='',
+                          docstring='trigger slope @ threshold channel A'
+                          )        
+
+        self.add_parameter(name='threshold_slope_B',
+                          label='threshold_slope_B',
+                          get_cmd='INPut2:SLOPe?',
+                          set_cmd='INPut2:SLOPe {}',
+                          get_parser=str,
+                          unit='',
+                          docstring='trigger slope @ threshold channel B'
+                          )
+
         self.connect_message()
 
     def startread(self):
