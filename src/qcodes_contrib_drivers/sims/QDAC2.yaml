@@ -1,0 +1,811 @@
+spec: "1.1"
+devices:
+
+  qdac_after_rst:
+    eom:
+      GPIB INSTR:
+        q: "\n"
+        r: "\n"
+    error: "-113, \"Undefined header\""
+    dialogues:
+      - q: "*IDN?"
+        r: "QDevil, QDAC-II, A001234, 11-1.14"
+      - q: "*idn?"
+        r: "QDevil, QDAC-II, A001234, 11-1.14"
+      - q: "syst:comm:lan:mac?"
+        r: "\"049162C01016\""
+      - q: "syst:err:all?"
+        r: "0, \"No error\""
+      - q: "syst:err?"
+        r: "0, \"No error\""
+      - q: "syst:err:coun?"
+        r: 0
+      - q: "syst:cloc:send on"
+      - q: "syst:cloc:sour ext"
+      - q: "syst:cloc:sync"
+      - q: "outp:sync:sign"
+      - q: "*rst"
+      - q: "abor"
+      - q: "*trg"
+      - q: "trac:rem:all"
+      - q: "trac:cat?"
+        r: ""
+      - q: "sens2:data:rem?"
+        r: "0.01,0.02"
+      - q: "fetc2?"
+        r: "0.01,0.02"
+      - q: "sens:rang low,(@1,2,3)"
+      - q: "sens:nplc 1,(@1,2,3)"
+      - q: "sens:nplc 2,(@1,2,3)"
+      - q: "read? (@1,2,3)"
+        r: "0.1,0.2,0.3"
+      - q: "sens:rang low,(@1,2)"
+      - q: "sens:nplc 1,(@1,2)"
+      - q: "sens:nplc 2,(@1,2)"
+      - q: "read? (@1,2)"
+        r: "0.1,0.2"
+      - q: "sens:rang low,(@2,1)"
+      - q: "sens:nplc 1,(@2,1)"
+      - q: "sens:nplc 2,(@2,1)"
+      - q: "read? (@2,1)"
+        r: "0.2,0.1"
+      - q: "sens:rang low,(@3)"
+      - q: "sens:nplc 1,(@3)"
+      - q: "sens:nplc 2,(@3)"
+      - q: "read? (@3)"
+        r: "0.3"
+
+    properties:
+      manual_trigger:
+        setter:
+          q: "tint {:d}"
+      trace_define:
+        setter:
+          q: "trac:def \"{:s}\",{:d}"
+      trace_data:
+        setter:
+          q: "trac:data \"{:s}\",{:s}"
+
+    channels:
+      trigger:
+        ids: [1, 2, 3, 4, 5]
+        can_select: True
+        dialogues:
+          - q: "outp:trig{ch_id}:sign"
+        properties:
+          route:
+            default: "hold"
+            setter:
+              q: "outp:trig{ch_id}:sour {}"
+            specs:
+              valid: ["bus", "hold", "int1", "int2", "int3", "int4", "int5", "int6", "int7", "int8", "int9", "int10", "int11", "int12", "int13", "int14", "int15", "int16", "ext1", "ext2", "ext3", "ext4"]
+              type: str
+          trigger_width:
+            default: 10e-6
+            setter:
+              q: "outp:trig{ch_id}:widt {}"
+            getter:
+              q: "outp:trig{ch_id}:widt?"
+              r: "{}"
+            spec:
+              type: float
+          polarity:
+            default: "norm"
+            setter:
+              q: "outp:trig{ch_id}:pol {}"
+            getter:
+              q: "outp:trig{ch_id}:pol?"
+              r: "{}"
+            specs:
+              valid: ["norm", "inv"]
+              type: str
+          trigger_delay:
+            default: 0
+            setter:
+              q: "outp:trig{ch_id}:del {}"
+            getter:
+              q: "outp:trig{ch_id}:del?"
+              r: "{}"
+            spec:
+              type: float
+      analog:
+        ids: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]
+        can_select: True
+        dialogues:
+          - q: "sens{ch_id}:init"
+          - q: "sens{ch_id}:abor"
+          - q: "sour{ch_id}:dc:init"
+          - q: "sour{ch_id}:dc:abor"
+          - q: "sour{ch_id}:squ:init"
+          - q: "sour{ch_id}:squ:abor"
+          - q: "sour{ch_id}:sine:init"
+          - q: "sour{ch_id}:sine:abor"
+          - q: "sour{ch_id}:tri:init"
+          - q: "sour{ch_id}:tri:abor"
+          - q: "sour{ch_id}:awg:init"
+          - q: "sour{ch_id}:awg:abor"
+          - q: "sour{ch_id}:all:abor"
+        properties:
+          voltage_last:
+            default: 0
+            getter:
+              q: "sour{ch_id}:volt:last?"
+              r: "{}"
+          voltage_trig:
+            default: 0
+            setter:
+              q: "sour{ch_id}:volt:trig {:f}"
+            getter:
+              q: "sour{ch_id}:volt:trig?"
+              r: "{}"
+          voltage_slew:
+            default: -1
+            setter:
+              q: "sour{ch_id}:volt:slew {}"
+            getter:
+              q: "sour{ch_id}:volt:slew?"
+              r: "{}"
+          voltage_mode:
+            default: "fix"
+            setter:
+              q: "sour{ch_id}:volt:mode {}"
+            getter:
+              q: "sour{ch_id}:volt:mode?"
+              r: "{}"
+            specs:
+              valid: ["fix", "fixed", "swe", "sweep", "list"]
+              type: str
+          voltage_range:
+            default: "low"
+            setter:
+              q: "sour{ch_id}:rang {}"
+            getter:
+              q: "sour{ch_id}:rang?"
+              r: "{}"
+            specs:
+              valid: ["low", "high"]
+              type: str
+          voltage_low_min:
+            default: 0.0
+            getter:
+              q: "sour{ch_id}:rang:low:min?"
+              r: "{}"
+          voltage_low_max:
+            default: 0.0
+            getter:
+              q: "sour{ch_id}:rang:low:max?"
+              r: "{}"
+          voltage_high_min:
+            default: 0.0
+            getter:
+              q: "sour{ch_id}:rang:high:min?"
+              r: "{}"
+          voltage_high_max:
+            default: 0.0
+            getter:
+              q: "sour{ch_id}:rang:high:max?"
+              r: "{}"
+          filter:
+            default: "high"
+            setter:
+              q: "sour{ch_id}:filt {}"
+            getter:
+              q: "sour{ch_id}:filt?"
+              r: "{}"
+            specs:
+              valid: ["dc", "med", "high"]
+              type: str
+          current_count:
+            default: 1
+            setter:
+              q: "sens{ch_id}:coun {}"
+            getter:
+              q: "sens{ch_id}:coun?"
+              r: "{}"
+            specs:
+              type: int
+          current_remaining:
+            default: 0
+            getter:
+              q: "sens{ch_id}:ncl?"
+              r: "{}"
+            specs:
+              type: int
+          current_last:
+            default: 0.0
+            getter:
+              q: "sens{ch_id}:data:last?"
+              r: "{}"
+          current_points:
+            default: 2
+            getter:
+              q: "sens{ch_id}:data:poin?"
+              r: "{}"
+            specs:
+              type: int
+          dc_delay:
+            default: 0.0
+            setter:
+              q: "sour{ch_id}:dc:del {}"
+            getter:
+              q: "sour{ch_id}:dc:del?"
+              r: "{}"
+          dc_trigger_source:
+            default: "imm"
+            setter:
+              q: "sour{ch_id}:dc:trig:sour {}"
+            getter:
+              q: "sour{ch_id}:dc:trig:sour?"
+              r: "{}"
+            specs:
+              valid: ["bus", "hold", "int1", "int2", "int3", "int4", "int5", "int6", "int7", "int8", "int9", "int10", "int11", "int12", "int13", "int14", "int15", "int16", "ext1", "ext2", "ext3", "ext4", "ext5", "imm"]
+              type: str
+          voltage:
+            default: 0.0
+            setter:
+              q: "sour{ch_id}:volt {}"
+            getter:
+              q: "sour{ch_id}:volt?"
+              r: "{}"
+          square_trigger_source:
+            default: "imm"
+            setter:
+              q: "sour{ch_id}:squ:trig:sour {}"
+            getter:
+              q: "sour{ch_id}:squ:trig:sour?"
+              r: "{}"
+            specs:
+              valid: ["bus", "hold", "int1", "int2", "int3", "int4", "int5", "int6", "int7", "int8", "int9", "int10", "int11", "int12", "int13", "int14", "int15", "int16", "ext1", "ext2", "ext3", "ext4", "ext5", "imm"]
+              type: str
+          sine_trigger_source:
+            default: "imm"
+            setter:
+              q: "sour{ch_id}:sine:trig:sour {}"
+            getter:
+              q: "sour{ch_id}:sine:trig:sour?"
+              r: "{}"
+            specs:
+              valid: ["bus", "hold", "int1", "int2", "int3", "int4", "int5", "int6", "int7", "int8", "int9", "int10", "int11", "int12", "int13", "int14", "int15", "int16", "ext1", "ext2", "ext3", "ext4", "ext5", "imm"]
+              type: str
+          triangle_trigger_source:
+            default: "imm"
+            setter:
+              q: "sour{ch_id}:tri:trig:sour {}"
+            getter:
+              q: "sour{ch_id}:tri:trig:sour?"
+              r: "{}"
+            specs:
+              valid: ["bus", "hold", "int1", "int2", "int3", "int4", "int5", "int6", "int7", "int8", "int9", "int10", "int11", "int12", "int13", "int14", "int15", "int16", "ext1", "ext2", "ext3", "ext4", "ext5", "imm"]
+              type: str
+          awg_trigger_source:
+            default: "imm"
+            setter:
+              q: "sour{ch_id}:awg:trig:sour {}"
+            getter:
+              q: "sour{ch_id}:awg:trig:sour?"
+              r: "{}"
+            specs:
+              valid: ["bus", "hold", "int1", "int2", "int3", "int4", "int5", "int6", "int7", "int8", "int9", "int10", "int11", "int12", "int13", "int14", "int15", "int16", "ext1", "ext2", "ext3", "ext4", "ext5", "imm"]
+              type: str
+          current_aperture:
+            default: 0.02
+            setter:
+              q: "sens{ch_id}:aper {}"
+            getter:
+              q: "sens{ch_id}:aper?"
+              r: "{}"
+            specs:
+              type: float
+          current_nplc:
+            default: 1
+            setter:
+              q: "sens{ch_id}:nplc {}"
+            getter:
+              q: "sens{ch_id}:nplc?"
+              r: "{}"
+            specs:
+              type: int
+          current_delay:
+            default: 0.0
+            setter:
+              q: "sens{ch_id}:del {}"
+            getter:
+              q: "sens{ch_id}:del?"
+              r: "{}"
+            specs:
+              type: float
+          current_trigger_arm_continuous:
+            default: "on"
+            setter:
+              q: "sens{ch_id}:init:cont {}"
+            specs:
+              valid: ["on", "off"]
+              type: str
+          current_trigger_source:
+            default: "imm"
+            setter:
+              q: "sens{ch_id}:trig:sour {}"
+            specs:
+              valid: ["bus", "hold", "int1", "int2", "int3", "int4", "int5", "int6", "int7", "int8", "int9", "int10", "int11", "int12", "int13", "int14", "int15", "int16", "ext1", "ext2", "ext3", "ext4", "ext5", "imm"]
+              type: str
+          current_range:
+            default: "low"
+            setter:
+              q: "sens{ch_id}:rang {}"
+            getter:
+              q: "sens{ch_id}:rang?"
+              r: "{}"
+            specs:
+              valid: ["low", "high"]
+              type: str
+          current:
+            default: 0.001
+            getter:
+              q: "read{ch_id}?"
+              r: "{}"
+          list_direction:
+            default: "up"
+            setter:
+              q: "sour{ch_id}:list:dir {}"
+            specs:
+              valid: ["up", "down"]
+              type: str
+          list_count:
+            default: 1
+            setter:
+              q: "sour{ch_id}:list:coun {}"
+          list_tmode:
+            default: "auto"
+            setter:
+              q: "sour{ch_id}:list:tmod {}"
+            getter:
+              q: "sour{ch_id}:list:tmod?"
+              r: "{}"
+            specs:
+              valid: ["auto", "step"]
+              type: str
+          list_points:
+            default: 0
+            getter:
+              q: "sour{ch_id}:list:poin?"
+              r: "{}"
+            specs:
+              type: int
+          list_cycles_left:
+            default: 0
+            getter:
+              q: "sour{ch_id}:list:ncl?"
+              r: "{}"
+            specs:
+              type: int
+          list_dwell:
+            default: 0.0
+            setter:
+              q: "sour{ch_id}:list:dwel {}"
+          list_voltages:
+            default: "0"
+            setter:
+              q: "sour{ch_id}:list:volt {}"
+            getter:
+              q: "sour{ch_id}:list:volt?"
+              r: "-0.123,0,1.234"
+            specs:
+              type: str
+          list_append:
+            setter:
+              q: "sour{ch_id}:list:volt:app {}"
+          swe_direction:
+            default: "up"
+            setter:
+              q: "sour{ch_id}:swe:dir {}"
+            specs:
+              valid: ["up", "down"]
+              type: str
+          swe_count:
+            default: 1
+            setter:
+              q: "sour{ch_id}:swe:coun {}"
+          swe_tmode:
+            default: "auto"
+            setter:
+              q: "sour{ch_id}:swe:gen {}"
+            getter:
+              q: "sour{ch_id}:swe:gen?"
+              r: "{}"
+            specs:
+              valid: ["auto", "step"]
+              type: str
+          swe_points:
+            default: 0
+            setter:
+              q: "sour{ch_id}:swe:poin {}"
+            getter:
+              q: "sour{ch_id}:swe:poin?"
+              r: "{}"
+            specs:
+              type: int
+          swe_time:
+            default: 0.0
+            getter:
+              q: "sour{ch_id}:swe:time?"
+              r: "{}"
+            specs:
+              type: float
+          swe_cycles_left:
+            default: 0
+            getter:
+              q: "sour{ch_id}:swe:ncl?"
+              r: "{}"
+            specs:
+              type: int
+          swe_dwell:
+            default: 0.0
+            setter:
+              q: "sour{ch_id}:swe:dwel {}"
+          swe_start:
+            default: 0.0
+            setter:
+              q: "sour{ch_id}:swe:star {}"
+            getter:
+              q: "sour{ch_id}:swe:star?"
+              r: "{}"
+          swe_stop:
+            default: 0.0
+            setter:
+              q: "sour{ch_id}:swe:stop {}"
+            getter:
+              q: "sour{ch_id}:swe:stop?"
+              r: "{}"
+          dc_init_continuous:
+            default: "on"
+            setter:
+              q: "sour{ch_id}:dc:init:cont {}"
+            specs:
+              valid: ["on", "off"]
+              type: str
+          dc_mark_end:
+            default: 1
+            setter:
+              q: "sour{ch_id}:dc:mark:end {}"
+            specs:
+              valid: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+              type: int
+          dc_mark_start:
+            default: 1
+            setter:
+              q: "sour{ch_id}:dc:mark:star {}"
+            specs:
+              valid: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+              type: int
+          dc_mark_pend:
+            default: 1
+            setter:
+              q: "sour{ch_id}:dc:mark:send {}"
+            specs:
+              valid: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+              type: int
+          dc_mark_pstart:
+            default: 1
+            setter:
+              q: "sour{ch_id}:dc:mark:sst {}"
+            specs:
+              valid: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+              type: int
+          square_mark_end:
+            default: 1
+            setter:
+              q: "sour{ch_id}:squ:mark:end {}"
+            specs:
+              valid: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+              type: int
+          square_mark_start:
+            default: 1
+            setter:
+              q: "sour{ch_id}:squ:mark:star {}"
+            specs:
+              valid: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+              type: int
+          square_mark_pend:
+            default: 1
+            setter:
+              q: "sour{ch_id}:squ:mark:pend {}"
+            specs:
+              valid: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+              type: int
+          square_mark_pstart:
+            default: 1
+            setter:
+              q: "sour{ch_id}:squ:mark:pstart {}"
+            specs:
+              valid: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+              type: int
+          square_init_continuous:
+            default: "on"
+            setter:
+              q: "sour{ch_id}:squ:init:cont {}"
+            specs:
+              valid: ["on", "off"]
+              type: str
+          sine_mark_end:
+            default: 1
+            setter:
+              q: "sour{ch_id}:sine:mark:end {}"
+            specs:
+              valid: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+              type: int
+          sine_mark_start:
+            default: 1
+            setter:
+              q: "sour{ch_id}:sine:mark:star {}"
+            specs:
+              valid: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+              type: int
+          sine_mark_pend:
+            default: 1
+            setter:
+              q: "sour{ch_id}:sine:mark:pend {}"
+            specs:
+              valid: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+              type: int
+          sine_mark_pstart:
+            default: 1
+            setter:
+              q: "sour{ch_id}:sine:mark:pstart {}"
+            specs:
+              valid: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+              type: int
+          sine_init_continuous:
+            default: "on"
+            setter:
+              q: "sour{ch_id}:sine:init:cont {}"
+            specs:
+              valid: ["on", "off"]
+              type: str
+          triangle_mark_end:
+            default: 1
+            setter:
+              q: "sour{ch_id}:tri:mark:end {}"
+            specs:
+              valid: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+              type: int
+          triangle_mark_start:
+            default: 1
+            setter:
+              q: "sour{ch_id}:tri:mark:star {}"
+            specs:
+              valid: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+              type: int
+          triangle_mark_pend:
+            default: 1
+            setter:
+              q: "sour{ch_id}:tri:mark:pend {}"
+            specs:
+              valid: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+              type: int
+          triangle_mark_pstart:
+            default: 1
+            setter:
+              q: "sour{ch_id}:tri:mark:pstart {}"
+            specs:
+              valid: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+              type: int
+          triangle_init_continuous:
+            default: "on"
+            setter:
+              q: "sour{ch_id}:tri:init:cont {}"
+            specs:
+              valid: ["on", "off"]
+              type: str
+          awg_mark_end:
+            default: 1
+            setter:
+              q: "sour{ch_id}:awg:mark:end {}"
+            specs:
+              valid: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+              type: int
+          awg_mark_start:
+            default: 1
+            setter:
+              q: "sour{ch_id}:awg:mark:star {}"
+            specs:
+              valid: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+              type: int
+          awg_mark_pend:
+            default: 1
+            setter:
+              q: "sour{ch_id}:awg:mark:pend {}"
+            specs:
+              valid: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+              type: int
+          awg_mark_pstart:
+            default: 1
+            setter:
+              q: "sour{ch_id}:awg:mark:pstart {}"
+            specs:
+              valid: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+              type: int
+          awg_init_continuous:
+            default: "on"
+            setter:
+              q: "sour{ch_id}:awg:init:cont {}"
+            specs:
+              valid: ["on", "off"]
+              type: str
+
+          internal_trigger:
+            default: 1
+            setter:
+              q: "sour{ch_id}:dc:trig:sour int{}"
+            specs:
+              valid: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+              type: int
+          sine_frequency:
+            setter:
+              q: "sour{ch_id}:sine:freq {}"
+          sine_period:
+            setter:
+              q: "sour{ch_id}:sine:per {}"
+          sine_count:
+            setter:
+              q: "sour{ch_id}:sine:coun {}"
+          sine_polarity:
+            default: "norm"
+            setter:
+              q: "sour{ch_id}:sine:pol {}"
+            specs:
+              valid: ["norm", "inv"]
+              type: str
+          sine_span:
+            setter:
+              q: "sour{ch_id}:sine:span {}"
+          sine_offset:
+            setter:
+              q: "sour{ch_id}:sine:offs {}"
+          sine_slew:
+            setter:
+              q: "sour{ch_id}:sine:slew {}"
+          sine_delay:
+            setter:
+              q: "sour{ch_id}:sine:del {}"
+          sine_cycles_left:
+            default: 0
+            getter:
+              q: "sour{ch_id}:sine:ncl?"
+              r: "{}"
+            specs:
+              type: int
+          square_frequency:
+            setter:
+              q: "sour{ch_id}:squ:freq {}"
+          square_period:
+            setter:
+              q: "sour{ch_id}:squ:per {}"
+          square_duty_cycle:
+            setter:
+              q: "sour{ch_id}:squ:dcyc {}"
+          square_count:
+            setter:
+              q: "sour{ch_id}:squ:coun {}"
+          square_type:
+            default: "symm"
+            setter:
+              q: "sour{ch_id}:squ:typ {}"
+            specs:
+              valid: ["symm", "pos", "neg"]
+              type: str
+          square_polarity:
+            default: "norm"
+            setter:
+              q: "sour{ch_id}:squ:pol {}"
+            specs:
+              valid: ["norm", "inv"]
+              type: str
+          square_span:
+            setter:
+              q: "sour{ch_id}:squ:span {}"
+          square_offset:
+            setter:
+              q: "sour{ch_id}:squ:offs {}"
+          square_slew:
+            setter:
+              q: "sour{ch_id}:squ:slew {}"
+          square_delay:
+            setter:
+              q: "sour{ch_id}:squ:del {}"
+          square_cycles_left:
+            default: 0
+            getter:
+              q: "sour{ch_id}:squ:ncl?"
+              r: "{}"
+            specs:
+              type: int
+          triangle_frequency:
+            setter:
+              q: "sour{ch_id}:tri:freq {}"
+          triangle_period:
+            setter:
+              q: "sour{ch_id}:tri:per {}"
+          triangle_duty_cycle:
+            setter:
+              q: "sour{ch_id}:tri:dcyc {}"
+          triangle_count:
+            setter:
+              q: "sour{ch_id}:tri:coun {}"
+          triangle_polarity:
+            default: "norm"
+            setter:
+              q: "sour{ch_id}:tri:pol {}"
+            specs:
+              valid: ["norm", "inv"]
+              type: str
+          triangle_span:
+            setter:
+              q: "sour{ch_id}:tri:span {}"
+          triangle_offset:
+            setter:
+              q: "sour{ch_id}:tri:offs {}"
+          triangle_slew:
+            setter:
+              q: "sour{ch_id}:tri:slew {}"
+          triangle_delay:
+            setter:
+              q: "sour{ch_id}:tri:del {}"
+          triangle_cycles_left:
+            default: 0
+            getter:
+              q: "sour{ch_id}:tri:ncl?"
+              r: "{}"
+            specs:
+              type: int
+          awg_define:
+            default: ""
+            setter:
+              q: "sour{ch_id}:awg:def \"{}\""
+            getter:
+              q: "sour{ch_id}:awg:def?"
+              r: "\"{}\""
+          awg_scale:
+            setter:
+              q: "sour{ch_id}:awg:scal {}"
+          awg_count:
+            setter:
+              q: "sour{ch_id}:awg:coun {}"
+          awg_offset:
+            setter:
+              q: "sour{ch_id}:awg:offs {}"
+          awg_slew:
+            setter:
+              q: "sour{ch_id}:awg:slew {}"
+          awg_cycles_left:
+            default: 0
+            getter:
+              q: "sour{ch_id}:awg:ncl?"
+              r: "{}"
+            specs:
+              type: int
+
+  wrong_model:
+    eom:
+      GPIB INSTR:
+        q: "\n"
+        r: "\n"
+    dialogues:
+      - q: "*IDN?"
+        r: "QDevil, QAJAX, B009876, 0.0.1"
+
+  incompatible_firmware:
+    eom:
+      GPIB INSTR:
+        q: "\n"
+        r: "\n"
+    dialogues:
+      - q: "*IDN?"
+        r: "QDevil, QDAC-II, 1234, 3-0.9.6"
+
+resources:
+  GPIB::1::INSTR:
+    device: qdac_after_rst
+  GPIB::2::INSTR:
+    device: wrong_model
+  GPIB::3::INSTR:
+    device: incompatible_firmware
