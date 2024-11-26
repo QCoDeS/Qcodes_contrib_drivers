@@ -98,7 +98,7 @@ class GenericMotorCLI(IGenericDeviceCLI):
                 the move completes or the timeout elapses, whichever comes first. 
         """
 
-        self._api_interface.Home(timeout)
+        self._api_interface.Home(timeout_ms)
 
 """
     self.addParameter(
