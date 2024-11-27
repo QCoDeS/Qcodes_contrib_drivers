@@ -380,6 +380,10 @@ self.add_submodule('motor_position_limits', motor_position_limits)
 
 This examples aims to show how [Thorlabs KDC101 pythonnet expamle](https://github.com/Thorlabs/Motion_Control_Examples/blob/main/Python/KCube/KDC101/kdc101_pythonnet.py) is transformed to a Qcodes instrument.
 
+## Template
+
+Copy and modify Template located under: qcodes_contrib_drivers\drivers\Thorlabs\Thorlabs_Template_DotNet.py
+
 ## Naming
 
 First, the relevant class in the Thorlabs .Net API Documentation has to be identified.
@@ -499,11 +503,24 @@ from .private.DotNetAPI.qcodes_thorlabs_integration import ThorlabsQcodesInstrum
 class ThorlabsKDC101(IDCPIDParameters, IDeviceScanning, GenericKCubeMotorCLI, ThorlabsQcodesInstrument):
 ```
 
-Now, following the [ThorlabsQcodesInstrument](#ThorlabsQcodesInstrument) documentation and looking through [Thorlabs KDC101 pythonnet expamle](https://github.com/Thorlabs/Motion_Control_Examples/blob/main/Python/KCube/KDC101/kdc101_pythonnet.py):
+Now, following the [ThorlabsQcodesInstrument](#ThorlabsQcodesInstrument) documentation and looking through [Thorlabs KDC101 pythonnet example](https://github.com/Thorlabs/Motion_Control_Examples/blob/main/Python/KCube/KDC101/kdc101_pythonnet.py):
 
 ## [DLL Handling](DLL-Handling)
 
-line 6 to 11 translate to:
+line 6 to 11 (respecting line 27):
+
+```python
+ 6: clr.AddReference("C:\\Program Files\\Thorlabs\\Kinesis\\Thorlabs.MotionControl.DeviceManagerCLI.dll")
+ 7: clr.AddReference("C:\\Program Files\\Thorlabs\\Kinesis\\Thorlabs.MotionControl.GenericMotorCLI.dll")
+ 8: clr.AddReference("C:\\Program Files\\Thorlabs\\Kinesis\\ThorLabs.MotionControl.KCube.DCServoCLI.dll")
+ 9: from Thorlabs.MotionControl.DeviceManagerCLI import *
+10: from Thorlabs.MotionControl.GenericMotorCLI import *
+11: from Thorlabs.MotionControl.KCube.DCServoCLI import *
+
+27:        device = KCubeDCServo.CreateKCubeDCServo(serial_no)
+```
+
+translate to:
 
 ```python
 def _import_device_dll(self):
@@ -512,8 +529,6 @@ def _import_device_dll(self):
     self._add_dll('Thorlabs.MotionControl.KCube.DCServoCLI.dll')
     self._import_dll_class('Thorlabs.MotionControl.KCube.DCServoCLI', 'KCubeDCServo')
 ```
-
-(respecting line 27)
 
 ## [API Interface initialization](#API-Interface-initialization)
 
@@ -543,7 +558,21 @@ def _post_connection(self) -> None:
 
 ## [Post Enable Method](#Post-Enable-Method)
 
-line 47 to 55 translate to:
+line 47 to 55:
+
+```python
+47:        # Before homing or moving device, ensure the motor's configuration is loaded
+48:        m_config = device.LoadMotorConfiguration(serial_no,
+49:                                                 DeviceConfiguration.DeviceSettingsUseOptionType.UseFileSettings)
+50:
+51:        m_config.DeviceSettingsName = "PRMTZ8"
+52:
+53:        m_config.UpdateCurrentConfiguration()
+54:
+55:        device.SetSettings(device.MotorDeviceSettings, True, False)
+```
+
+translate to:
 
 ```python
 def _post_enable(self):
@@ -563,35 +592,3 @@ def _post_enable(self):
     self._api_interface.SetSettings(self._api_interface.MotorDeviceSettings, True, False)
     sleep(0.5)
 ```
-## Template
-
-```python
-	def _import_device_dll(self):
-	    """Import the device-specific DLLs and classes from the .NET API."""
-        self._add_dll('Thorlabs.MotionControl.<name>.dll')
-        self._import_dll_class('Thorlabs.MotionControl.<namespace>', '<class_name>')
-
-    def _get_api_interface_from_dll(self, serial_number: str):
-        """Retrieve the API interface for the Thorlabs device using its serial number."""
-        return self._dll.<class_name>.<>(serial_number)
-
-    def _post_connection(self):
-        """
-        Will run after after establishing a connection, updating 'get_idn'
-        and adding parameters 'model', 'serial_number' and 'firmware_version'.
-        """
-        knownmodels = [
-            '<model>'
-        ]
-        if self.model() not in knownmodels:
-            raise ValueError(f"'{model}' is an unknown model.")
-
-    def _post_enable(self):
-        """
-        This method can be overwritten by a subclass.
-        Will run after polling has started and the device/channel is enabled.
-        """
-        # Load any configuration settings needed by the device/channel
-        pass
-```
-
