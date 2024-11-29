@@ -480,7 +480,7 @@ If all functionality of all classes is needed the resulting names and locations 
             |-- DeviceManagerCLI.py
                 |-- class IDeviceScanning
                 |-- class ILocakableDeviceCLI
-            |-- GenericMotorCLI_AdvancedMotor.py.py
+            |-- GenericMotorCLI_AdvancedMotor.py
                 |-- class GenericAdvancedMotorCLI
             |-- GenericMotorCLI_ControlParameters.py
                 |-- class IDCPIDParameters
