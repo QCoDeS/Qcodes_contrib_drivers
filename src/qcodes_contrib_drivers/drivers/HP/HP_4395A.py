@@ -470,8 +470,8 @@ class HP4395A(VisaInstrument):
             set_cmd='AVERFACT {}',
             get_parser=lambda x: int(float(x)),
             vals=Ints(1, 999),
-            docstring='Turns the averaging function ON or OFF for the active'
-                      ' channel. ([AVERAGING ON off] under [Bw/Avg])'
+            docstring='Makes the averaging factor for the active function.'
+                      '([AVERAGING FACTOR] under [Bw/Avg])'
         )
 
         self.add_parameter(  # p323
