@@ -61,6 +61,8 @@ class PeakTech15xx(VisaInstrument):
             **kwargs
         )
 
+        self._simulated = 'pyvisa_sim' in type(self.visa_handle.visalib).__module__
+
         self.visa_handle.baud_rate = 9600
         self.visa_handle.data_bits = 8
         self.visa_handle.stop_bits = pyvisa.constants.StopBits.one
@@ -195,7 +197,10 @@ class PeakTech15xx(VisaInstrument):
             The instrument does not support the standard '*IDN?' command.
             This method returns predefined identification information.
         """
-        idparts: list[Optional[str]] = ["PeakTech", "15xx", None, None]
+        if self._simulated:
+            idparts: list[Optional[str]] = ["PeakTech", "15xx (Simulated)", None, None]
+        else:
+            idparts: list[Optional[str]] = ["PeakTech", "15xx", None, None]
         return dict(zip(("vendor", "model", "serial", "firmware"), idparts))
 
     def _check_and_flush_buffer(self) -> None:
@@ -203,6 +208,9 @@ class PeakTech15xx(VisaInstrument):
         Check if the serial read buffer is empty. If not, log a warning and
         flush the buffer.
         """
+        if self._simulated:
+            return
+
         available_bytes = self.visa_handle.get_visa_attribute(
             pyvisa.constants.VI_ATTR_ASRL_AVAIL_NUM
         )
