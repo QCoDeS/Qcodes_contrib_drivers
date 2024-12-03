@@ -2,7 +2,7 @@ from typing import Any, Optional
 
 import pyvisa
 
-from qcodes.instrument import VisaInstrument
+from qcodes.instrument import VisaInstrument, VisaInstrumentKWArgs
 from qcodes.parameters import create_on_off_val_mapping
 from qcodes.utils import DelayedKeyboardInterrupt
 from qcodes.validators import Numbers
@@ -38,7 +38,7 @@ class PeakTech15xx(VisaInstrument):
         name: str,
         address: str,
         gmax: Optional[str] = None,
-        **kwargs: Any
+        **kwargs: "Unpack[VisaInstrumentKWArgs]"
     ) -> None:
         """
         Initialize the PeakTech 15xx instrument.
