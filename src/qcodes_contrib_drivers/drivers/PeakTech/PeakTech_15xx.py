@@ -2,11 +2,10 @@ from typing import Any, Optional
 
 import pyvisa
 
-from qcodes.instrument.visa import VisaInstrument
+from qcodes.instrument import VisaInstrument
+from qcodes.parameters import create_on_off_val_mapping
 from qcodes.utils import DelayedKeyboardInterrupt
-from qcodes.utils.helpers import create_on_off_val_mapping
-from qcodes.utils.validators import Numbers
-
+from qcodes.validators import Numbers
 
 class PeakTech15xx(VisaInstrument):
     """
