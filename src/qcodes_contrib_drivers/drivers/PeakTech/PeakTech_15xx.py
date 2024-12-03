@@ -362,7 +362,6 @@ class PeakTech15xx(VisaInstrument):
                     "Input float must be non-negative and smaller than 100."
                 )
             scaled_value = int(input_float * 10)
-            #return f"{scaled_value}"
             return f"{scaled_value:03}"
         except Exception as e:
             raise ValueError(f"Error converting float to string: {e}")
