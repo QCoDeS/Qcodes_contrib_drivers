@@ -1,6 +1,7 @@
-from typing import Any, Optional
-
+import textwrap
 import pyvisa
+
+from typing import Any, Optional
 
 from qcodes.instrument import VisaInstrument, VisaInstrumentKWArgs
 from qcodes.parameters import create_on_off_val_mapping
@@ -78,7 +79,7 @@ class PeakTech15xx(VisaInstrument):
         self._max_current: Optional[float] = None
         self._get_max_values(gmax)
 
-        self.add_parameter(
+        self.set_voltage: Parameter = self.add_parameter(
             "set_voltage",
             label="Set Voltage",
             unit="V",
@@ -87,12 +88,13 @@ class PeakTech15xx(VisaInstrument):
             get_parser=lambda x: self._get_parser(x[:3]),
             set_parser=self._set_parser,
             vals=Numbers(0, self._max_voltage if self._max_voltage else 99.9),
-            docstring="""
-            Set or get the preset voltage value of the power supply.
-            """
+            docstring="Set or get the preset voltage value of the power supply."
         )
+        """
+        Set or get the preset voltage value of the power supply.
+        """
 
-        self.add_parameter(
+        self.set_current: Parameter = self.add_parameter(
             "set_current",
             label="Set Current",
             unit="A",
@@ -101,23 +103,25 @@ class PeakTech15xx(VisaInstrument):
             get_parser=lambda x: self._get_parser(x[3:]),
             set_parser=self._set_parser,
             vals=Numbers(0, self._max_current if self._max_current else 99.9),
-            docstring="""
-            Set or get the preset current value of the power supply.
-            """
+            docstring="Set or get the preset current value of the power supply."
         )
+        """
+        Set or get the preset current value of the power supply.
+        """
 
-        self.add_parameter(
+        self.output_enabled: Parameter = self.add_parameter(
             "output_enabled",
             label="Output Enabled",
             get_cmd="GOUT",
             set_cmd="SOUT{}",
             val_mapping=create_on_off_val_mapping(on_val='0', off_val='1'),
-            docstring="""
-            Enable or disable the output of the power supply.
-            """
+            docstring="Enable or disable the output of the power supply."
         )
+        """
+        Enable or disable the output of the power supply.
+        """
 
-        self.add_parameter(
+        self.voltage_limit: Parameter = self.add_parameter(
             "voltage_limit",
             label="Voltage Limit",
             unit="V",
@@ -126,12 +130,13 @@ class PeakTech15xx(VisaInstrument):
             get_parser=self._get_parser,
             set_parser=self._set_parser,
             vals=Numbers(0, self._max_voltage if self._max_voltage else 99.9),
-            docstring="""
-            Set or get the preset upper limit of voltage.
-            """
+            docstring="Set or get the preset upper limit of voltage."
         )
+        """
+        Set or get the preset upper limit of voltage.
+        """
 
-        self.add_parameter(
+        self.current_limit: Parameter = self.add_parameter(
             "current_limit",
             label="Current Limit",
             unit="A",
@@ -140,34 +145,37 @@ class PeakTech15xx(VisaInstrument):
             get_parser=self._get_parser,
             set_parser=self._set_parser,
             vals=Numbers(0, self._max_current if self._max_current else 99.9),
-            docstring="""
-            Set or get the preset upper limit of current.
-            """
+            docstring="Set or get the preset upper limit of current."
         )
+        """
+        Set or get the preset upper limit of current.
+        """
 
-        self.add_parameter(
+        self.voltage: Parameter = self.add_parameter(
             "voltage",
             label="Measured Voltage",
             unit="V",
             get_cmd="GETD",
             get_parser=lambda x: self._get_parser(x[:4], 4),
-            docstring="""
-            Get the measured voltage from the power supply.
-            """
+            docstring="Get the measured voltage from the power supply."
         )
+        """
+        Get the measured voltage from the power supply.
+        """
 
-        self.add_parameter(
+        self.current: Parameter = self.add_parameter(
             "current",
             label="Measured Current",
             unit="A",
             get_cmd="GETD",
             get_parser=lambda x: self._get_parser(x[4:8], 4),
-            docstring="""
-            Get the measured current from the power supply.
-            """
+            docstring="Get the measured current from the power supply."
         )
+        """
+        Get the measured current from the power supply.
+        """
 
-        self.add_parameter(
+        self.mode: Parameter = self.add_parameter(
             "mode",
             label="Mode",
             get_cmd="GETD",
@@ -176,14 +184,23 @@ class PeakTech15xx(VisaInstrument):
                 'CV': '0',
                 'CC': '1'
             },
-            docstring="""
+            docstring=textwrap.dedent(
+            """
             Get the mode of the power supply.
 
             Values:
                 'CV': Constant Voltage mode
                 'CC': Constant Current mode
             """
+            )
         )
+        """
+        Get the mode of the power supply.
+
+        Values:
+            'CV': Constant Voltage mode
+            'CC': Constant Current mode
+        """
 
     def get_idn(self) -> dict[str, Optional[str]]:
         """
