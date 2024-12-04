@@ -3,7 +3,7 @@ import numpy as np
 from typing import Any, Tuple
 from qcodes.instrument import VisaInstrument
 from qcodes.parameters import MultiParameter, Parameter, ParameterWithSetpoints
-from qcodes.validators import Arrays, Ints
+from qcodes.utils.validators import Arrays, Ints
 
 log = logging.getLogger(__name__)
 
@@ -63,13 +63,6 @@ class CompleteTimeStatistics(ParameterWithSetpoints):
                  instrument:"FCA3100",
                  **kwargs: Any
                  ) -> None:
-        """
-        Parameter for a complete time statistics containing all measured switching times.
-
-        Args:
-            name: name of the complete time statistics
-            instrument: Instrument to which the complete time statistic is bound to.
-        """
         super().__init__(name=name,
                          instrument=instrument,
                          label='Times till switching',
@@ -86,8 +79,8 @@ class CompleteTimeStatistics(ParameterWithSetpoints):
         """
         assert isinstance(self.instrument, FCA3100)
         self.instrument.write('CALCulate:AVERage:STATe 0')
-        self.instrument.write('ARM:COUN {}'.format(self.instrument.samples_number.get_latest()))
-        data_str=self.instrument.ask("READ:ARRay? {}".format(self.instrument.samples_number.get_latest()))
+        self._instrument.write('ARM:COUN {}'.format(self._instrument.samples_number.get_latest()))
+        data_str=self.root_instrument.ask("READ:ARRay? {}".format(self.root_instrument.samples_number.get_latest()))
         data = np.array(data_str.rstrip().split(",")).astype("float64")
         return data
 
@@ -179,4 +172,26 @@ class FCA3100(VisaInstrument):
                            vals=Arrays(shape=(self.samples_number.get_latest,))
                            )
 
+        self.add_parameter(name='threshold_slope_A',
+                          label='threshold_slope_A',
+                          get_cmd='INPut1:SLOPe?',
+                          set_cmd='INPut1:SLOPe {}',
+                          get_parser=str,
+                          unit='',
+                          docstring='trigger slope @ threshold channel A'
+                          )
+
+        self.add_parameter(name='threshold_slope_B',
+                          label='threshold_slope_B',
+                          get_cmd='INPut2:SLOPe?',
+                          set_cmd='INPut2:SLOPe {}',
+                          get_parser=str,
+                          unit='',
+                          docstring='trigger slope @ threshold channel B'
+                          )
+
         self.connect_message()
+
+    def startread(self):
+        self.ask("Read?")
+        return
