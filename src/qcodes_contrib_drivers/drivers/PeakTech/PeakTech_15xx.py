@@ -204,6 +204,12 @@ class PeakTech15xx(VisaInstrument):
             'CV': Constant Voltage mode
             'CC': Constant Current mode
         """
+        
+        if not self._simulated:
+            self.snapshot(True)
+
+        self.connect_message()
+
 
     def get_idn(self) -> dict[str, Optional[str]]:
         """
