@@ -1,10 +1,11 @@
 import textwrap
 import pyvisa
-
-from typing import Any, Optional
+from pyvisa.resources.serial import SerialInstrument
+from pyvisa.constants import StopBits, Parity
+from typing import Any, Optional, Unpack, cast
 
 from qcodes.instrument import VisaInstrument, VisaInstrumentKWArgs
-from qcodes.parameters import create_on_off_val_mapping
+from qcodes.parameters import Parameter, create_on_off_val_mapping
 from qcodes.utils import DelayedKeyboardInterrupt
 from qcodes.validators import Numbers
 
@@ -61,15 +62,17 @@ class PeakTech15xx(VisaInstrument):
             address=address,
             **kwargs
         )
-
+        
         self._simulated = 'pyvisa_sim' in type(self.visa_handle.visalib).__module__
 
-        self.visa_handle.baud_rate = 9600
-        self.visa_handle.data_bits = 8
-        self.visa_handle.stop_bits = pyvisa.constants.StopBits.one
-        self.visa_handle.parity    = pyvisa.constants.Parity.none
-        self.visa_handle.read_termination  = None
-        self.visa_handle.write_termination = '\r'
+        self.serial_handle: SerialInstrument = cast(SerialInstrument, self.visa_handle)
+
+        self.serial_handle.baud_rate = 9600
+        self.serial_handle.data_bits = 8
+        self.serial_handle.stop_bits = StopBits.one
+        self.serial_handle.parity    = Parity.none
+        self.serial_handle.read_termination  = None
+        self.serial_handle.write_termination = '\r'
 
         self._write_acknowledge = 'OK\r'
         self._ask_answer_end    = '\rOK\r'
@@ -214,11 +217,20 @@ class PeakTech15xx(VisaInstrument):
             The instrument does not support the standard '*IDN?' command.
             This method returns predefined identification information.
         """
+        vendor: str = "PeakTech"
+        model: str = "15xx"
+        serial: Optional[str] = None
+        firmware: Optional[str] = None
+
         if self._simulated:
-            idparts: list[Optional[str]] = ["PeakTech", "15xx (Simulated)", None, None]
-        else:
-            idparts: list[Optional[str]] = ["PeakTech", "15xx", None, None]
-        return dict(zip(("vendor", "model", "serial", "firmware"), idparts))
+            model += " (Simulated)"
+
+        return {
+            "vendor": vendor,
+            "model": model,
+            "serial": serial,
+            "firmware": firmware
+        }        
 
     def _check_and_flush_buffer(self) -> None:
         """
@@ -228,11 +240,9 @@ class PeakTech15xx(VisaInstrument):
         if self._simulated:
             return
 
-        available_bytes = self.visa_handle.get_visa_attribute(
-            pyvisa.constants.VI_ATTR_ASRL_AVAIL_NUM
-        )
+        available_bytes = self.serial_handle.bytes_in_buffer
         if available_bytes > 0:
-            read_bytes = self.visa_handle.read_bytes(available_bytes)
+            read_bytes = self.serial_handle.read_bytes(available_bytes)
             read_ascii = read_bytes.decode('ascii', errors='backslashreplace')
             self.log.warning(
                 f"{available_bytes} bytes in serial read buffer. "
@@ -267,7 +277,7 @@ class PeakTech15xx(VisaInstrument):
         buf = ''
         term_len = len(termination)
         while True:
-            byte = self.visa_handle.read_bytes(1, break_on_termchar=False)
+            byte = self.serial_handle.read_bytes(1, break_on_termchar=False)
             if not byte:
                 continue
             char = byte.decode('ascii', errors='ignore')
@@ -300,7 +310,7 @@ class PeakTech15xx(VisaInstrument):
             context={"instrument": self.name, "reason": "Visa Instrument write"}
         ):
             self.visa_log.debug(f"Writing: {cmd}")
-            self.visa_handle.write(cmd)
+            self.serial_handle.write(cmd)
             response = self.read_until(self._write_acknowledge)
             self.visa_log.debug(f"Response: {response}")
             if response != self._write_acknowledge:
@@ -332,7 +342,7 @@ class PeakTech15xx(VisaInstrument):
             context={"instrument": self.name, "reason": "Visa Instrument ask"}
         ):
             self.visa_log.debug(f"Querying: {cmd}")
-            self.visa_handle.write(cmd)
+            self.serial_handle.write(cmd)
             response = self.read_until(self._ask_answer_end)
             self.visa_log.debug(f"Response: {response}")
             return response.rstrip(self._ask_answer_end)
