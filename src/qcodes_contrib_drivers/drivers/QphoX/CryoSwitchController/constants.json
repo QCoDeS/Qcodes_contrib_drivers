@@ -1,0 +1,130 @@
+{  "HW_Ver. 0": {
+    "ADC_12B_res": 4095,
+    "ADC_8B_res": 255,
+    "ADC_cal_ref": false,
+
+    "bv_R1": 68000,
+    "bv_R2": 100000,
+    "bv_ADC": 3,
+
+    "converter_divider": 11,
+    "converter_ADC": 10,
+    "converter_VREF": 1.23,
+    "converter_R1": 500000,
+    "converter_R2": 500000,
+    "converter_Rf": 15000,
+    "converter_DAC_lower_bound": 550,
+    "converter_DAC_upper_bound": 1500,
+    "converter_correction_codes": [1, 0],
+    "converter_output_voltage_range": [5, 29],
+
+    "OCP_gain": 2,
+    "OCP_range": [1, 300],
+
+    "pulse_duration_range": [1, 100],
+    "sampling_frequency_range": [10, 100],
+
+    "current_sense_R": 1,
+    "current_gain": 20,
+
+    "calibrate_ADC": 0,
+    "polarization_params": [4700, 3000, 4700]
+  },
+  "HW_Ver. 2": {
+    "ADC_12B_res": 4095,
+    "ADC_8B_res": 255,
+    "ADC_cal_ref": false,
+
+    "bv_R1": 68000,
+    "bv_R2": 100000,
+    "bv_ADC": 3,
+
+    "converter_divider": 11,
+    "converter_ADC": 10,
+    "converter_VREF": 1.23,
+    "converter_R1": 500000,
+    "converter_R2": 500000,
+    "converter_Rf": 15000,
+    "converter_DAC_lower_bound": 500,
+    "converter_DAC_upper_bound": 1500,
+    "converter_correction_codes": [1, 0],
+    "converter_output_voltage_range": [5, 29],
+
+    "OCP_gain": 2,
+    "OCP_range": [1, 300],
+
+    "pulse_duration_range": [1, 100],
+    "sampling_frequency_range": [10, 100],
+
+    "current_sense_R": 1,
+    "current_gain": 20,
+
+    "calibrate_ADC": 0,
+    "polarization_params": [4700, 3000, 4700]
+  },
+    "HW_Ver. 3": {
+    "ADC_12B_res": 4095,
+    "ADC_8B_res": 255,
+    "ADC_cal_ref": 2.5,
+
+    "bv_R1": 68000,
+    "bv_R2": 100000,
+    "bv_ADC": 3,
+
+    "converter_divider": 11,
+    "converter_ADC": 10,
+    "converter_VREF": 1.23,
+    "converter_R1": 500000,
+    "converter_R2": 33000,
+    "converter_Rf": 56000,
+    "converter_DAC_lower_bound": 0,
+    "converter_DAC_upper_bound": 4095,
+    "converter_correction_codes": [1, 0],
+    "converter_output_voltage_range": [5, 29],
+
+    "OCP_gain": 2,
+    "OCP_range": [1, 300],
+
+    "pulse_duration_range": [1, 100],
+    "sampling_frequency_range": [10, 100],
+
+    "current_sense_R": 0.5,
+    "current_gain": 20,
+
+    "calibrate_ADC": 1,
+    "polarization_params": [4700, 3000, 4700]
+
+  },
+    "HW_Ver. 4": {
+    "ADC_12B_res": 4095,
+    "ADC_8B_res": 255,
+    "ADC_cal_ref": 2.5,
+
+    "bv_R1": 68000,
+    "bv_R2": 100000,
+    "bv_ADC": 3,
+
+    "converter_divider": 11,
+    "converter_ADC": 10,
+    "converter_VREF": 1.24,
+    "converter_R1": 500000,
+    "converter_R2": 33000,
+    "converter_Rf": 56000,
+    "converter_DAC_lower_bound": 0,
+    "converter_DAC_upper_bound": 4095,
+    "converter_correction_codes": [1.03491, -169],
+    "converter_output_voltage_range": [5, 29],
+
+    "OCP_gain": 2,
+    "OCP_range": [1, 300],
+
+    "pulse_duration_range": [1, 100],
+    "sampling_frequency_range": [10, 100],
+
+    "current_sense_R": 0.5,
+    "current_gain": 20,
+
+    "calibrate_ADC": 1,
+    "polarization_params": [10000, 3000, 4700]
+  }
+}
