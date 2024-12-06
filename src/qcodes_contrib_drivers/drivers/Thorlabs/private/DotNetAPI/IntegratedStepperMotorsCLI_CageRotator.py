@@ -5,7 +5,7 @@ from .IntegratedStepperMotorsCLI_IntegratedStepperMotor import IntegratedStepper
 log = logging.getLogger(__name__)
 
 
-class CageRotor(IntegratedStepperMotor):
+class CageRotator(IntegratedStepperMotor):
     """
     Represents a generic interface for Thorlabs Cage Rotator motor controllers.
     

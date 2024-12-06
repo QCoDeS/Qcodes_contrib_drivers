@@ -62,8 +62,8 @@ class K10CR1(CageRotator, ThorlabsQcodesInstrument):
     def _import_device_dll(self):
         """Import the device-specific DLLs and classes from the .NET API."""
         self._add_dll('Thorlabs.MotionControl.GenericMotorCLI.dll')
-        self._add_dll('ThorLabs.MotionControl.IntegratedStepperMotorsCLI.dll')
-        self._import_dll_class('ThorLabs.MotionControl.IntegratedStepperMotorsCLI', 'CageRotator')
+        self._add_dll('Thorlabs.MotionControl.IntegratedStepperMotorsCLI.dll')
+        self._import_dll_class('Thorlabs.MotionControl.IntegratedStepperMotorsCLI', 'CageRotator')
 
     def _get_api_interface_from_dll(self, serial_number: str):
         """Retrieve the API interface for the Thorlabs device using its serial number."""
