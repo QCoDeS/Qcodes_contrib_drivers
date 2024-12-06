@@ -2,12 +2,12 @@ import logging
 from typing import Optional
 # from time import sleep
 
-from .private.DotNetAPI.IntegratedStepperMotorsCLI_CageRotor import CageRotor
+from .private.DotNetAPI.IntegratedStepperMotorsCLI_CageRotator import CageRotator
 from .private.DotNetAPI.qcodes_thorlabs_integration import ThorlabsQcodesInstrument
 
 log = logging.getLogger(__name__)
 
-class K10CR1(CageRotor, ThorlabsQcodesInstrument):
+class K10CR1(CageRotator, ThorlabsQcodesInstrument):
     """
     Driver for interfacing with the Thorlabs K10CR1 Motorised Rotation Mount
     via the QCoDeS framework and the .NET API.
@@ -21,7 +21,7 @@ class K10CR1(CageRotor, ThorlabsQcodesInstrument):
     Args:
         name (str): Name of the instrument.
         serial_number (str): The serial number of the Thorlabs device.
-        startup_mode_value: .Net Enum value to be stored in '_startup_mode' and used as 
+        startup_mode_value: .Net Enum value to be stored in '_startup_mode' and used as
                             'startupSettingsMode' in 'LoadMotorConfiguration'
             Valid startup modes:
                 UseDeviceSettings: Use settings from device
@@ -63,7 +63,7 @@ class K10CR1(CageRotor, ThorlabsQcodesInstrument):
         """Import the device-specific DLLs and classes from the .NET API."""
         self._add_dll('Thorlabs.MotionControl.GenericMotorCLI.dll')
         self._add_dll('ThorLabs.MotionControl.IntegratedStepperMotorsCLI.dll')
-        self._import_dll_class('ThorLabs.MotionControl.IntegratedStepperMotorsCLI', 'CageRotor')
+        self._import_dll_class('ThorLabs.MotionControl.IntegratedStepperMotorsCLI', 'CageRotator')
 
     def _get_api_interface_from_dll(self, serial_number: str):
         """Retrieve the API interface for the Thorlabs device using its serial number."""
@@ -79,7 +79,7 @@ class K10CR1(CageRotor, ThorlabsQcodesInstrument):
             #'K10CR1 (Simulated)'
         ]
         if self.model() not in knownmodels:
-            raise ValueError(f"'{model}' is an unknown model.")
+            raise ValueError(f"'{self.model()}' is an unknown model.")
 
     def _post_enable(self):
         """
