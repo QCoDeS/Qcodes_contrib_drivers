@@ -103,7 +103,7 @@ class ThorlabsBSCxxx(IGenericRackDevice, ThorlabsQcodesInstrument):
             #'BSC203 (Simulated)'
         ]
         if self.model() not in knownmodels:
-            raise ValueError(f"'{model}' is an unknown model.")
+            raise ValueError(f"'{self.model()}' is an unknown model.")
 
 
 class ThorlabsBSCxxxChannel(GenericAdvancedMotorCLI, ThorlabsMixin, InstrumentChannel):
