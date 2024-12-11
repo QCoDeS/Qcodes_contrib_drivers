@@ -80,7 +80,7 @@ class CompleteTimeStatistics(ParameterWithSetpoints):
         assert isinstance(self.instrument, FCA3100)
         self.instrument.write('CALCulate:AVERage:STATe 0')
         self.instrument.write('ARM:COUN {}'.format(self.instrument.samples_number.get_latest()))
-        data_str=self.root_instrument.ask("READ:ARRay? {}".format(self.root_instrument.samples_number.get_latest()))
+        data_str=self.instrument.ask("READ:ARRay? {}".format(self.instrument.samples_number.get_latest()))
         data = np.array(data_str.rstrip().split(",")).astype("float64")
         return data
 
