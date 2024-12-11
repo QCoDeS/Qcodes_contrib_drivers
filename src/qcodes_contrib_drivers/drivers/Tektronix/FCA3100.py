@@ -3,7 +3,7 @@ import numpy as np
 from typing import Any, Tuple
 from qcodes.instrument import VisaInstrument
 from qcodes.parameters import MultiParameter, Parameter, ParameterWithSetpoints
-from qcodes.utils.validators import Arrays, Ints
+from qcodes.validators import Arrays, Ints
 
 log = logging.getLogger(__name__)
 
@@ -79,7 +79,7 @@ class CompleteTimeStatistics(ParameterWithSetpoints):
         """
         assert isinstance(self.instrument, FCA3100)
         self.instrument.write('CALCulate:AVERage:STATe 0')
-        self._instrument.write('ARM:COUN {}'.format(self._instrument.samples_number.get_latest()))
+        self.instrument.write('ARM:COUN {}'.format(self.instrument.samples_number.get_latest()))
         data_str=self.root_instrument.ask("READ:ARRay? {}".format(self.root_instrument.samples_number.get_latest()))
         data = np.array(data_str.rstrip().split(",")).astype("float64")
         return data
@@ -191,7 +191,3 @@ class FCA3100(VisaInstrument):
                           )
 
         self.connect_message()
-
-    def startread(self):
-        self.ask("Read?")
-        return
