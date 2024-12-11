@@ -63,13 +63,6 @@ class CompleteTimeStatistics(ParameterWithSetpoints):
                  instrument:"FCA3100",
                  **kwargs: Any
                  ) -> None:
-        """
-        Parameter for a complete time statistics containing all measured switching times.
-
-        Args:
-            name: name of the complete time statistics
-            instrument: Instrument to which the complete time statistic is bound to.
-        """
         super().__init__(name=name,
                          instrument=instrument,
                          label='Times till switching',
@@ -178,5 +171,23 @@ class FCA3100(VisaInstrument):
                            setpoints=(self.counter_axis,),
                            vals=Arrays(shape=(self.samples_number.get_latest,))
                            )
+
+        self.add_parameter(name='threshold_slope_A',
+                          label='threshold_slope_A',
+                          get_cmd='INPut1:SLOPe?',
+                          set_cmd='INPut1:SLOPe {}',
+                          get_parser=str,
+                          unit='',
+                          docstring='trigger slope @ threshold channel A'
+                          )
+
+        self.add_parameter(name='threshold_slope_B',
+                          label='threshold_slope_B',
+                          get_cmd='INPut2:SLOPe?',
+                          set_cmd='INPut2:SLOPe {}',
+                          get_parser=str,
+                          unit='',
+                          docstring='trigger slope @ threshold channel B'
+                          )
 
         self.connect_message()
