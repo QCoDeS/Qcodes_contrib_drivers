@@ -8,7 +8,7 @@ log = logging.getLogger(__name__)
 
 class <model>(<class_name>, ThorlabsQcodesInstrument):
     """
-    Driver for interfacing with the Thorlabs <model> Motorised Rotation Mount
+    Driver for interfacing with the Thorlabs <model>
     via the QCoDeS framework and the .NET API.
 
     This class allows for control and management of the <model>.
