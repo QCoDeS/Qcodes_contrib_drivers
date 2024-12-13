@@ -92,10 +92,10 @@ class CombinerVirtualChannel(TimeTaggerVirtualChannel):
                  api_tagger: tt.TimeTaggerBase | None = None, **kwargs: Any):
         super().__init__(parent, name, api_tagger, **kwargs)
 
-        self.channels = ParameterWithSetSideEffect(
+        self.channels = self.add_parameter(
             'channels',
+            ParameterWithSetSideEffect,
             set_side_effect=self._invalidate_api,
-            instrument=self,
             label='Channels',
             vals=vals.Sequence(vals.Ints())
         )
@@ -112,18 +112,18 @@ class CoincidenceVirtualChannel(TimeTaggerVirtualChannel):
                  api_tagger: tt.TimeTaggerBase | None = None, **kwargs: Any):
         super().__init__(parent, name, api_tagger, **kwargs)
 
-        self.channels = ParameterWithSetSideEffect(
+        self.channels = self.add_parameter(
             'channels',
+            ParameterWithSetSideEffect,
             set_side_effect=self._invalidate_api,
-            instrument=self,
             label='Channels',
             vals=vals.Sequence(vals.Ints())
         )
 
-        self.coincidence_window = ParameterWithSetSideEffect(
+        self.coincidence_window = self.add_parameter(
             'coincidence_window',
+            ParameterWithSetSideEffect,
             set_side_effect=self._invalidate_api,
-            instrument=self,
             label='Coincidence window',
             unit='ps',
             initial_value=1000,
@@ -131,10 +131,10 @@ class CoincidenceVirtualChannel(TimeTaggerVirtualChannel):
             set_parser=int
         )
 
-        self.timestamp = ParameterWithSetSideEffect(
+        self.timestamp = self.add_parameter(
             'timestamp',
+            ParameterWithSetSideEffect,
             set_side_effect=self._invalidate_api,
-            instrument=self,
             label='Timestamp',
             initial_value=tt.CoincidenceTimestamp.Last,
             vals=vals.Enum(*tt.CoincidenceTimestamp)
@@ -152,19 +152,19 @@ class CorrelationMeasurement(TimeTaggerMeasurement):
                  api_tagger: tt.TimeTaggerBase | None = None, **kwargs: Any):
         super().__init__(parent, name, api_tagger, **kwargs)
 
-        self.channels = ParameterWithSetSideEffect(
+        self.channels = self.add_parameter(
             'channels',
+            ParameterWithSetSideEffect,
             set_side_effect=self._invalidate_api,
-            instrument=self,
             label='Channels',
             vals=vals.MultiType(vals.Sequence(vals.Ints(), length=1),
                                 vals.Sequence(vals.Ints(), length=2))
         )
 
-        self.binwidth = ParameterWithSetSideEffect(
+        self.binwidth = self.add_parameter(
             'binwidth',
+            ParameterWithSetSideEffect,
             set_side_effect=self._invalidate_api,
-            instrument=self,
             label='Binwidth',
             unit='ps',
             initial_value=1000,
@@ -172,42 +172,42 @@ class CorrelationMeasurement(TimeTaggerMeasurement):
             set_parser=int
         )
 
-        self.n_bins = ParameterWithSetSideEffect(
+        self.n_bins = self.add_parameter(
             'n_bins',
+            ParameterWithSetSideEffect,
             set_side_effect=self._invalidate_api,
-            instrument=self,
             label='Number of bins',
             initial_value=1000,
             vals=vals.Numbers(),
             set_parser=int
         )
 
-        self.time_bins = Parameter(
+        self.time_bins = self.add_parameter(
             'time_bins',
-            instrument=self,
+            Parameter,
             label='Time bins',
             unit='ps',
             get_cmd=lambda: self.api.getIndex(),
             vals=vals.Arrays(shape=(self.n_bins.get_latest,), valid_types=(np.int64,))
         )
 
-        self.data = ParameterWithSetpoints(
+        self.data = self.add_parameter(
             'data',
+            ParameterWithSetpoints,
             get_cmd=lambda: self.api.getData(),
             vals=vals.Arrays(shape=(self.n_bins.get_latest,), valid_types=(np.int32,)),
             setpoints=(self.time_bins,),
-            instrument=self,
             label='Data',
             unit='cts',
             max_val_age=0.0
         )
 
-        self.data_normalized = ParameterWithSetpoints(
+        self.data_normalized = self.add_parameter(
             'data_normalized',
+            ParameterWithSetpoints,
             get_cmd=lambda: self.api.getDataNormalized(),
             vals=vals.Arrays(shape=(self.n_bins.get_latest,), valid_types=(np.float64,)),
             setpoints=(self.time_bins,),
-            instrument=self,
             label='Normalized data',
             max_val_age=0.0
         )
@@ -230,15 +230,16 @@ class CountRateMeasurement(TimeTaggerMeasurement):
         def number_of_channels():
             return len(self.channels.get_latest())
 
-        self.channels = ParameterWithSetSideEffect(
+        self.channels = self.add_parameter(
             'channels',
+            ParameterWithSetSideEffect,
             set_side_effect=self._invalidate_api,
-            instrument=self,
             label='Channels',
             vals=vals.Sequence(vals.Ints())
         )
 
         # See CounterMeasurement for explanation
+        # Not using add_parameter (GH #6715)
         self.__channels_proxy = DelegateParameter(
             f'__{self.full_name}_channels_proxy',
             source=self.channels,
@@ -246,23 +247,23 @@ class CountRateMeasurement(TimeTaggerMeasurement):
             bind_to_instrument=False
         )
 
-        self.data = ParameterWithSetpoints(
+        self.data = self.add_parameter(
             'data',
+            ParameterWithSetpoints,
             get_cmd=lambda: self.api.getData(),
             vals=vals.Arrays(shape=(number_of_channels,), valid_types=(np.float64,)),
             setpoints=(self.__channels_proxy,),
-            instrument=self,
             label='Data',
             unit='Hz',
             max_val_age=0.0
         )
 
-        self.counts_total = ParameterWithSetpoints(
+        self.counts_total = self.add_parameter(
             'counts_total',
+            ParameterWithSetpoints,
             get_cmd=lambda: self.api.getCountsTotal(),
             vals=vals.Arrays(shape=(number_of_channels,), valid_types=(np.int32,)),
             setpoints=(self.__channels_proxy,),
-            instrument=self,
             label='Total counts',
             max_val_age=0.0
         )
@@ -282,10 +283,10 @@ class CounterMeasurement(TimeTaggerMeasurement):
         def number_of_channels():
             return len(self.channels.get_latest())
 
-        self.channels = ParameterWithSetSideEffect(
+        self.channels = self.add_parameter(
             'channels',
+            ParameterWithSetSideEffect,
             set_side_effect=self._invalidate_api,
-            instrument=self,
             label='Channels',
             vals=vals.Sequence(vals.Ints())
         )
@@ -294,6 +295,7 @@ class CounterMeasurement(TimeTaggerMeasurement):
         # not be validated using an Arrays validator with the shape parameter as is required by
         # ParameterWithSetpoints. Hence, we create a private dummy DelegateParameter to solve
         # the chicken-egg problem of validating on the length of the channels parameter.
+        # Not using add_parameter (GH #6715)
         self.__channels_proxy = DelegateParameter(
             # DANGER: needs unique name
             f'__{self.full_name}_channels_proxy',
@@ -304,10 +306,10 @@ class CounterMeasurement(TimeTaggerMeasurement):
             bind_to_instrument=False
         )
 
-        self.binwidth = ParameterWithSetSideEffect(
+        self.binwidth = self.add_parameter(
             'binwidth',
+            ParameterWithSetSideEffect,
             set_side_effect=self._invalidate_api,
-            instrument=self,
             label='Binwidth',
             unit='ps',
             initial_value=10 ** 9,
@@ -315,19 +317,19 @@ class CounterMeasurement(TimeTaggerMeasurement):
             set_parser=int
         )
 
-        self.n_values = ParameterWithSetSideEffect(
+        self.n_values = self.add_parameter(
             'n_values',
+            ParameterWithSetSideEffect,
             set_side_effect=self._invalidate_api,
-            instrument=self,
             label='Number of bins',
             initial_value=1,
             vals=vals.Numbers(),
             set_parser=int
         )
 
-        self.data_total_counts = Parameter(
+        self.data_total_counts = self.add_parameter(
             'data_total_counts',
-            instrument=self,
+            Parameter,
             label='Total number of events',
             get_cmd=lambda: self.api.getDataTotalCounts(),
             set_cmd=False,
@@ -335,43 +337,43 @@ class CounterMeasurement(TimeTaggerMeasurement):
             vals=vals.Arrays(shape=(number_of_channels,), valid_types=(np.uint64,))
         )
 
-        self.time_bins = Parameter(
+        self.time_bins = self.add_parameter(
             'time_bins',
-            instrument=self,
+            Parameter,
             label='Time bins',
             unit='ps',
             get_cmd=lambda: self.api.getIndex(),
             vals=vals.Arrays(shape=(self.n_values.get_latest,), valid_types=(np.int64,))
         )
 
-        self.rolling = Parameter(
+        self.rolling = self.add_parameter(
             'rolling',
-            instrument=self,
+            Parameter,
             label='Rolling buffer',
             set_cmd=None,
             initial_value=True,
             vals=vals.Bool()
         )
 
-        self.data = ParameterWithSetpoints(
+        self.data = self.add_parameter(
             'data',
+            ParameterWithSetpoints,
             get_cmd=lambda: self.api.getData(self.rolling()),
             vals=vals.Arrays(shape=(number_of_channels, self.n_values.get_latest),
                              valid_types=(np.int32,)),
             setpoints=(self.__channels_proxy, self.time_bins),
-            instrument=self,
             label='Data',
             unit='cts',
             max_val_age=0.0
         )
 
-        self.data_normalized = ParameterWithSetpoints(
+        self.data_normalized = self.add_parameter(
             'data_normalized',
+            ParameterWithSetpoints,
             get_cmd=lambda: self.api.getDataNormalized(self.rolling()),
             vals=vals.Arrays(shape=(number_of_channels, self.n_values.get_latest),
                              valid_types=(np.float64,)),
             setpoints=(self.__channels_proxy, self.time_bins,),
-            instrument=self,
             label='Normalized data',
             unit='Hz',
             max_val_age=0.0
@@ -392,60 +394,60 @@ class HistogramLogBinsMeasurement(TimeTaggerMeasurement):
                  api_tagger: tt.TimeTaggerBase | None = None, **kwargs: Any):
         super().__init__(parent, name, api_tagger, **kwargs)
 
-        self.click_channel = ParameterWithSetSideEffect(
+        self.click_channel = self.add_parameter(
             'click_channel',
+            ParameterWithSetSideEffect,
             set_side_effect=self._invalidate_api,
-            instrument=self,
             label='Click channel',
             vals=vals.Ints()
         )
 
-        self.start_channel = ParameterWithSetSideEffect(
+        self.start_channel = self.add_parameter(
             'start_channel',
+            ParameterWithSetSideEffect,
             set_side_effect=self._invalidate_api,
-            instrument=self,
             label='Start channel',
             vals=vals.Ints()
         )
 
-        self.exp_start = ParameterWithSetSideEffect(
+        self.exp_start = self.add_parameter(
             'exp_start',
+            ParameterWithSetSideEffect,
             set_side_effect=self._invalidate_api,
-            instrument=self,
             label='Start exponent',
             vals=vals.Numbers(),
             set_parser=float
         )
 
-        self.exp_stop = ParameterWithSetSideEffect(
+        self.exp_stop = self.add_parameter(
             'exp_stop',
+            ParameterWithSetSideEffect,
             set_side_effect=self._invalidate_api,
-            instrument=self,
             label='Stop exponent',
             vals=vals.Numbers(),
             set_parser=float
         )
 
-        self.n_bins = ParameterWithSetSideEffect(
+        self.n_bins = self.add_parameter(
             'n_bins',
+            ParameterWithSetSideEffect,
             set_side_effect=self._invalidate_api,
-            instrument=self,
             label='Number of bins',
             vals=vals.Numbers(),
         )
 
-        self.click_gate = ParameterWithSetSideEffect(
+        self.click_gate = self.add_parameter(
             'click_gate',
+            ParameterWithSetSideEffect,
             set_side_effect=self._invalidate_api,
-            instrument=self,
             label='Evaluation gate for click channel',
             vals=vals.MultiType(vals.Enum(None), TypeValidator(tt.ChannelGate))
         )
 
-        self.start_gate = ParameterWithSetSideEffect(
+        self.start_gate = self.add_parameter(
             'start_gate',
+            ParameterWithSetSideEffect,
             set_side_effect=self._invalidate_api,
-            instrument=self,
             label='Evaluation gate for start channel',
             vals=vals.MultiType(vals.Enum(None), TypeValidator(tt.ChannelGate))
         )
@@ -456,17 +458,18 @@ class HistogramLogBinsMeasurement(TimeTaggerMeasurement):
         def n_bin_edges():
             return n_bins() - 1
 
-        self.time_bin_edges = Parameter(
+        self.time_bin_edges = self.add_parameter(
             'time_bin_edges',
-            instrument=self,
+            Parameter,
             label='Time bin edges',
             unit='ps',
             get_cmd=lambda: self.api.getBinEdges(),
             vals=vals.Arrays(shape=(n_bin_edges,), valid_types=(np.int64,))
         )
 
-        self.time_bins = DelegateParameter(
+        self.time_bins = self.add_parameter(
             'time_bins',
+            DelegateParameter,
             source=self.time_bin_edges,
             label='Time bins',
             get_parser=lambda val: val[:-1] + np.diff(val) // 2,
@@ -474,23 +477,23 @@ class HistogramLogBinsMeasurement(TimeTaggerMeasurement):
             bind_to_instrument=True
         )
 
-        self.counts = ParameterWithSetpoints(
+        self.counts = self.add_parameter(
             'counts',
+            ParameterWithSetpoints,
             get_cmd=lambda: self.api.getDataObject().getCounts(),
             vals=vals.Arrays(shape=(n_bins,), valid_types=(np.uint64,)),
             setpoints=(self.time_bins,),
-            instrument=self,
             label='Counts',
             unit='cts',
             max_val_age=0.0
         )
 
-        self.g2 = ParameterWithSetpoints(
+        self.g2 = self.add_parameter(
             'g2',
+            ParameterWithSetpoints,
             get_cmd=lambda: self.api.getDataObject().getG2(),
             vals=vals.Arrays(shape=(n_bins,), valid_types=(np.float64,)),
             setpoints=(self.time_bins,),
-            instrument=self,
             label=r'$g^{(2)}(\tau)$',
             max_val_age=0.0
         )
