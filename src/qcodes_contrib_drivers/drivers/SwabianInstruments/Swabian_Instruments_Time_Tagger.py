@@ -99,6 +99,7 @@ class CombinerVirtualChannel(TimeTaggerVirtualChannel):
             label='Channels',
             vals=vals.Sequence(vals.Ints())
         )
+        """List of channels to be combined into a single virtual channel."""
 
     @cached_api_object(required_parameters={'channels'})  # type: ignore[misc]
     def api(self) -> tt.Combiner:
@@ -119,6 +120,8 @@ class CoincidenceVirtualChannel(TimeTaggerVirtualChannel):
             label='Channels',
             vals=vals.Sequence(vals.Ints())
         )
+        """List of channels on which coincidence will be detected in the 
+        virtual channel."""
 
         self.coincidence_window = self.add_parameter(
             'coincidence_window',
@@ -130,6 +133,7 @@ class CoincidenceVirtualChannel(TimeTaggerVirtualChannel):
             vals=vals.PermissiveInts(),
             set_parser=int
         )
+        """Maximum time between all events for a coincidence."""
 
         self.timestamp = self.add_parameter(
             'timestamp',
@@ -139,6 +143,7 @@ class CoincidenceVirtualChannel(TimeTaggerVirtualChannel):
             initial_value=tt.CoincidenceTimestamp.Last,
             vals=vals.Enum(*tt.CoincidenceTimestamp)
         )
+        """Type of timestamp for virtual channel."""
 
     @cached_api_object(required_parameters={'channels'})  # type: ignore[misc]
     def api(self) -> tt.Coincidence:
@@ -160,6 +165,10 @@ class CorrelationMeasurement(TimeTaggerMeasurement):
             vals=vals.MultiType(vals.Sequence(vals.Ints(), length=1),
                                 vals.Sequence(vals.Ints(), length=2))
         )
+        """Channel on which (stop) clicks are received and channel on which 
+        reference clicks (start) are received (when left empty or set to 
+        :class:`TimeTagger:CHANNEL_UNUSED` -> an auto-correlation measurement 
+        is performed, which is the same as setting channel_1 = channel_2)."""
 
         self.binwidth = self.add_parameter(
             'binwidth',
@@ -171,6 +180,7 @@ class CorrelationMeasurement(TimeTaggerMeasurement):
             vals=vals.Numbers(),
             set_parser=int
         )
+        """Bin width in ps."""
 
         self.n_bins = self.add_parameter(
             'n_bins',
@@ -181,6 +191,7 @@ class CorrelationMeasurement(TimeTaggerMeasurement):
             vals=vals.Numbers(),
             set_parser=int
         )
+        """The number of bins in the resulting histogram."""
 
         self.time_bins = self.add_parameter(
             'time_bins',
@@ -190,6 +201,7 @@ class CorrelationMeasurement(TimeTaggerMeasurement):
             get_cmd=lambda: self.api.getIndex(),
             vals=vals.Arrays(shape=(self.n_bins.get_latest,), valid_types=(np.int64,))
         )
+        """A vector of size n_bins containing the time bins in ps."""
 
         self.data = self.add_parameter(
             'data',
@@ -201,6 +213,7 @@ class CorrelationMeasurement(TimeTaggerMeasurement):
             unit='cts',
             max_val_age=0.0
         )
+        """A one-dimensional array of size n_bins containing the histogram."""
 
         self.data_normalized = self.add_parameter(
             'data_normalized',
@@ -211,6 +224,7 @@ class CorrelationMeasurement(TimeTaggerMeasurement):
             label='Normalized data',
             max_val_age=0.0
         )
+        """Data normalized by the binwidth and the average count rate."""
 
     @cached_api_object(required_parameters={'channels', 'binwidth', 'n_bins'})  # type: ignore[misc]
     def api(self) -> tt.Correlation:
@@ -237,6 +251,7 @@ class CountRateMeasurement(TimeTaggerMeasurement):
             label='Channels',
             vals=vals.Sequence(vals.Ints())
         )
+        """Channels for which the average count rate is measured."""
 
         # See CounterMeasurement for explanation
         # Not using add_parameter (GH #6715)
@@ -257,6 +272,7 @@ class CountRateMeasurement(TimeTaggerMeasurement):
             unit='Hz',
             max_val_age=0.0
         )
+        """Average count rate in counts per second."""
 
         self.counts_total = self.add_parameter(
             'counts_total',
@@ -267,6 +283,7 @@ class CountRateMeasurement(TimeTaggerMeasurement):
             label='Total counts',
             max_val_age=0.0
         )
+        """The total number of events since the instantiation of this object."""
 
     @cached_api_object(required_parameters={'channels'})
     def api(self):
@@ -290,6 +307,7 @@ class CounterMeasurement(TimeTaggerMeasurement):
             label='Channels',
             vals=vals.Sequence(vals.Ints())
         )
+        """Channels used for counting tags."""
 
         # channels are setpoints for data parameters, but have a variable length and can therefore
         # not be validated using an Arrays validator with the shape parameter as is required by
@@ -316,6 +334,7 @@ class CounterMeasurement(TimeTaggerMeasurement):
             vals=vals.Numbers(),
             set_parser=int
         )
+        """Bin width in ps."""
 
         self.n_values = self.add_parameter(
             'n_values',
@@ -326,6 +345,7 @@ class CounterMeasurement(TimeTaggerMeasurement):
             vals=vals.Numbers(),
             set_parser=int
         )
+        """Number of bins."""
 
         self.data_total_counts = self.add_parameter(
             'data_total_counts',
@@ -336,6 +356,13 @@ class CounterMeasurement(TimeTaggerMeasurement):
             max_val_age=0.0,
             vals=vals.Arrays(shape=(number_of_channels,), valid_types=(np.uint64,))
         )
+        """Number of events per channel.
+        
+        Returns total number of events per channel since the last call to 
+        :meth:`clear`, including the currently integrating bin. This method 
+        works correctly even when the USB transfer rate or backend processing 
+        capabilities are exceeded.
+        """
 
         self.time_bins = self.add_parameter(
             'time_bins',
@@ -345,6 +372,10 @@ class CounterMeasurement(TimeTaggerMeasurement):
             get_cmd=lambda: self.api.getIndex(),
             vals=vals.Arrays(shape=(self.n_values.get_latest,), valid_types=(np.int64,))
         )
+        """Returns the relative time of the bins in ps. 
+        
+        The first entry of the returned vector is always 0.
+        """
 
         self.rolling = self.add_parameter(
             'rolling',
@@ -354,6 +385,7 @@ class CounterMeasurement(TimeTaggerMeasurement):
             initial_value=True,
             vals=vals.Bool()
         )
+        """Controls how the counter array is filled."""
 
         self.data = self.add_parameter(
             'data',
@@ -366,6 +398,8 @@ class CounterMeasurement(TimeTaggerMeasurement):
             unit='cts',
             max_val_age=0.0
         )
+        """An array of size ‘number of channels’ by n_values containing the 
+        counts in each fully integrated bin."""
 
         self.data_normalized = self.add_parameter(
             'data_normalized',
@@ -378,6 +412,10 @@ class CounterMeasurement(TimeTaggerMeasurement):
             unit='Hz',
             max_val_age=0.0
         )
+        """Does the same as :attr:`data` but returns the count rate in Hz as a 
+        float. 
+        
+        Not integrated bins and bins in overflow mode are marked as NaN."""
 
     @cached_api_object(required_parameters={'channels', 'binwidth', 'n_values'})  # type: ignore[misc]
     def api(self) -> tt.Counter:
@@ -401,6 +439,7 @@ class HistogramLogBinsMeasurement(TimeTaggerMeasurement):
             label='Click channel',
             vals=vals.Ints()
         )
+        """Channel on which clicks are received."""
 
         self.start_channel = self.add_parameter(
             'start_channel',
@@ -409,6 +448,7 @@ class HistogramLogBinsMeasurement(TimeTaggerMeasurement):
             label='Start channel',
             vals=vals.Ints()
         )
+        """Channel on which start clicks are received."""
 
         self.exp_start = self.add_parameter(
             'exp_start',
@@ -418,6 +458,7 @@ class HistogramLogBinsMeasurement(TimeTaggerMeasurement):
             vals=vals.Numbers(),
             set_parser=float
         )
+        """Exponent ``10^exp_start`` in seconds where the very first bin begins."""
 
         self.exp_stop = self.add_parameter(
             'exp_stop',
@@ -427,6 +468,7 @@ class HistogramLogBinsMeasurement(TimeTaggerMeasurement):
             vals=vals.Numbers(),
             set_parser=float
         )
+        """Exponent ``10^exp_stop`` in seconds where the very last bin ends."""
 
         self.n_bins = self.add_parameter(
             'n_bins',
@@ -435,6 +477,7 @@ class HistogramLogBinsMeasurement(TimeTaggerMeasurement):
             label='Number of bins',
             vals=vals.Numbers(),
         )
+        """The number of bins in the histogram."""
 
         self.click_gate = self.add_parameter(
             'click_gate',
@@ -443,6 +486,7 @@ class HistogramLogBinsMeasurement(TimeTaggerMeasurement):
             label='Evaluation gate for click channel',
             vals=vals.MultiType(vals.Enum(None), TypeValidator(tt.ChannelGate))
         )
+        """Optional evaluation gate for the :attr:`click_channel`."""
 
         self.start_gate = self.add_parameter(
             'start_gate',
@@ -451,6 +495,7 @@ class HistogramLogBinsMeasurement(TimeTaggerMeasurement):
             label='Evaluation gate for start channel',
             vals=vals.MultiType(vals.Enum(None), TypeValidator(tt.ChannelGate))
         )
+        """Optional evaluation gate for the :attr:`start_channel`."""
 
         def n_bins():
             return self.n_bins.get_latest()
@@ -466,6 +511,7 @@ class HistogramLogBinsMeasurement(TimeTaggerMeasurement):
             get_cmd=lambda: self.api.getBinEdges(),
             vals=vals.Arrays(shape=(n_bin_edges,), valid_types=(np.int64,))
         )
+        """A vector of size `n_bins+1` containing the bin edges in picoseconds."""
 
         self.time_bins = self.add_parameter(
             'time_bins',
@@ -476,6 +522,7 @@ class HistogramLogBinsMeasurement(TimeTaggerMeasurement):
             vals=vals.Arrays(shape=(n_bins,), valid_types=(np.int64,)),
             bind_to_instrument=True
         )
+        """A vector of size `n_bins` containing the bin centers in picoseconds."""
 
         self.counts = self.add_parameter(
             'counts',
@@ -487,6 +534,7 @@ class HistogramLogBinsMeasurement(TimeTaggerMeasurement):
             unit='cts',
             max_val_age=0.0
         )
+        """A one-dimensional array of size `n_bins` containing the histogram."""
 
         self.g2 = self.add_parameter(
             'g2',
@@ -497,6 +545,8 @@ class HistogramLogBinsMeasurement(TimeTaggerMeasurement):
             label=r'$g^{(2)}(\tau)$',
             max_val_age=0.0
         )
+        """The counts normalized by the binwidth of each bin and the average 
+        count rate."""
 
     @cached_api_object(required_parameters={
         'click_channel', 'start_channel', 'exp_start', 'exp_stop', 'n_bins'
