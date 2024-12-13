@@ -83,6 +83,9 @@ from .private.time_tagger import (tt, TypeValidator, ParameterWithSetSideEffect,
 
 _T = TypeVar('_T', bound=ParamRawDataType)
 _TimeTaggerModuleT = TypeVar('_TimeTaggerModuleT', bound=type[TimeTaggerModule])
+_TimeTaggerMeasurementT = TypeVar('_TimeTaggerMeasurementT', bound=type[TimeTaggerMeasurement])
+_TimeTaggerVirtualChannelT = TypeVar('_TimeTaggerVirtualChannelT',
+                                     bound=type[TimeTaggerVirtualChannel])
 
 
 class CombinerVirtualChannel(TimeTaggerVirtualChannel):
@@ -593,23 +596,37 @@ class TimeTagger(TimeTaggerInstrumentBase, Instrument):
     def api(self) -> tt.TimeTaggerBase:
         return self._api
 
+    @property
+    def virtual_channel_lists(self) -> list[ChannelList[_TimeTaggerVirtualChannelT]]:
+        """All submodules that implement a :class:`TimeTaggerVirtualChannel`."""
+        channel_lists = []
+        for cls in filter(lambda x: issubclass(x, TimeTaggerVirtualChannel),
+                          TimeTaggerModule.implementations()):
+            channel_lists.append(getattr(self, _parse_time_tagger_module(cls)[1]))
+        return channel_lists
+
+    @property
+    def measurement_lists(self) -> list[ChannelList[_TimeTaggerMeasurementT]]:
+        """All submodules that implement a :class:`TimeTaggerMeasurement`."""
+        channel_lists = []
+        for cls in filter(lambda x: issubclass(x, TimeTaggerMeasurement),
+                          TimeTaggerModule.implementations()):
+            channel_lists.append(getattr(self, _parse_time_tagger_module(cls)[1]))
+        return channel_lists
+
     def remove_all_measurements(self):
         """Remove all entries of TimeTaggerMeasurement instances from
         channel lists."""
-        for cls in filter(lambda x: issubclass(x, TimeTaggerMeasurement),
-                          TimeTaggerModule.implementations()):
-            lst = getattr(self, _parse_time_tagger_module(cls)[1])
-            for i in range(len(lst)):
-                lst.pop()
+        for channel_list in self.measurement_lists:
+            for channel in channel_list:
+                channel_list.remove(channel)
 
     def remove_all_virtual_channels(self):
         """Remove all entries of TimeTaggerVirtualChannel instances from
         channel lists."""
-        for cls in filter(lambda x: issubclass(x, TimeTaggerVirtualChannel),
-                          TimeTaggerModule.implementations()):
-            lst = getattr(self, _parse_time_tagger_module(cls)[1])
-            for i in range(len(lst)):
-                lst.pop()
+        for channel_list in self.virtual_channel_lists:
+            for channel in channel_list:
+                channel_list.remove(channel)
 
     @refer_to_api_doc('TimeTagger')
     def set_trigger_level(self, channel: int, level: float):
