@@ -78,7 +78,7 @@ class <model>(<class_name>, ThorlabsQcodesInstrument):
             #'<model> (Simulated)'
         ]
         if self.model() not in knownmodels:
-            raise ValueError(f"'{model}' is an unknown model.")
+            raise ValueError(f"'{self.model}' is an unknown model.")
 
     def _post_enable(self):
         """
