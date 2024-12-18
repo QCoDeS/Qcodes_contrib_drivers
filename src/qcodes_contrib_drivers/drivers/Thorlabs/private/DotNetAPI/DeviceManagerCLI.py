@@ -19,7 +19,7 @@ class IGenericCoreDeviceCLI():
     def __init__(self, *args, serial_number: str, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self._serial_number = kwargs.pop('serial_number', serial_number)
+        self._serial_number = str(kwargs.pop('serial_number', serial_number))
 
         self.add_parameter(
             'busy',
