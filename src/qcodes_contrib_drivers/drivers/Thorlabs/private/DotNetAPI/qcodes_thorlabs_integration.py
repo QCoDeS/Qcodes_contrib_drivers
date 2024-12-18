@@ -384,7 +384,7 @@ class ThorlabsDLLMixin:
 
     Methods:
         __init__: Constructor to initialize the mixin and set up DLL references.
-        _get_default_dll_directory: Determines the default directory for Thorlabs Kinesis DLLs.
+        _set_dll_directory: Sets the DLL directory based on user input or default.
         _add_dll: Adds a reference to a .NET assembly DLL.
         _import_dll_class: Imports a .NET class from a namespace into the DLL container.
 
@@ -397,20 +397,25 @@ class ThorlabsDLLMixin:
             self._dll: Optional[DLLContainer] = None
             raise OSError("Thorlabs .Net API Instrument only works on Windows")
 
+        self._set_dll_directory(kwargs.pop('dll_directory', dll_directory))
+
         super().__init__(*args, **kwargs)
 
         self._dll = DLLContainer()
-        self._dll_directory = dll_directory or self._get_default_dll_directory()
 
-    def _get_default_dll_directory(self) -> str:
+    def _set_dll_directory(self, dll_directory: Optional[str]) -> None:
         """
-        Retrieves the default directory where Thorlabs Kinesis DLLs are located.
+        Sets the directory where Thorlabs Kinesis DLLs are located.
 
-        Returns:
-            str: The default directory path for Thorlabs Kinesis DLLs.
+        Args:
+            dll_directory (Optional[str]): The directory path provided by the user.
+                If None, the default directory is used.
         """
-        program_files_path = os.environ.get("ProgramFiles", "C:\\Program Files")
-        return os.path.join(program_files_path, "Thorlabs", "Kinesis")
+        if dll_directory:
+            self._dll_directory = dll_directory
+        else:
+            program_files_path = os.environ.get("ProgramFiles", "C:\\Program Files")
+            self._dll_directory = os.path.join(program_files_path, "Thorlabs", "Kinesis")
 
     def _add_dll(self, dll_filename: str) -> None:
         """
@@ -592,6 +597,10 @@ class ThorlabsQcodesInstrument(IGenericCoreDeviceCLI, ThorlabsDLLMixin, Thorlabs
         idparts = [vendor, model, serial, firmware]
 
         return dict(zip(("vendor", "model", "serial", "firmware"), idparts))
+
+    def close(self) -> None:
+        self.shut_down()
+        super().close()
 
 
 numbertypes = Union[float, int, np.floating, np.integer, PyDecimal]
