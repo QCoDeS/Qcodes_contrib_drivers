@@ -51,12 +51,12 @@ class ThorlabsKDC101(IDCPIDParameters, IDeviceScanning, GenericKCubeMotorCLI, Th
         self._actuator_name = actuator_name
 
         super().__init__(
-            name,                             # Instrument (Qcodes)
-            serial_number=serial_number,      # ThorlabsQcodesInstrument
-            startup_mode_value=startup_mode_value,
-            simulation=simulation,            # ThorlabsQcodesInstrument
-            polling_rate_ms=polling_rate_ms,  # GenericMotoCLI
-            dll_directory=dll_directory,      # ThorlabsDLLMixin
+            name,                                   # Instrument (Qcodes
+            serial_number=serial_number,            # IGenericCoreDeviceCLI
+            startup_mode_value=startup_mode_value,  # IGenericDeviceCLI
+            simulation=simulation,                  # ThorlabsQcodesInstrument
+            polling_rate_ms=polling_rate_ms,        # IGenericDeviceCLI
+            dll_directory=dll_directory,            # ThorlabsDLLMixin
             **kwargs)
 
         if '(Simulated)' not in self.model():

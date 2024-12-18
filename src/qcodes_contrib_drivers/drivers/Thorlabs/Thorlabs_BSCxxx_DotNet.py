@@ -53,11 +53,10 @@ class ThorlabsBSCxxx(IGenericRackDevice, ThorlabsQcodesInstrument):
     ):
         super().__init__(
             name,                         # Instrument (Qcodes)
-            serial_number=serial_number,  # ThorlabsQcodesInstrument
+            serial_number=serial_number,  # IGenericCoreDeviceCLI
             simulation=simulation,        # ThorlabsQcodesInstrument
             dll_directory=dll_directory,  # ThorlabsDLLMixin
             **kwargs)
-
 
         # Initialize channels 
         for channel_number in range(1, self.channel_count() + 1):
