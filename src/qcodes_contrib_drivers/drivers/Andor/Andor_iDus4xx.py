@@ -29,7 +29,6 @@ like this::
 
 TODO (thangleiter, 23/11/11):
 
- - Live monitor using 'run till abort' mode and async event queue
  - Triggering
  - Handle shutter modes
  - Multiple cameras
