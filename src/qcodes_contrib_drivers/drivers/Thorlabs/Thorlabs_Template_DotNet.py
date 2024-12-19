@@ -6,7 +6,7 @@ from .private.DotNetAPI.qcodes_thorlabs_integration import ThorlabsQcodesInstrum
 
 log = logging.getLogger(__name__)
 
-class <model>(<class_name>, ThorlabsQcodesInstrument):
+class Thorlabs<model>(<class_name>, ThorlabsQcodesInstrument):
     """
     Driver for interfacing with the Thorlabs <model>
     via the QCoDeS framework and the .NET API.
