@@ -218,12 +218,17 @@ class LimitSwitchParameters(LimitSwitchParametersBase):
             if length_max is None:
                 length_max = advanced_limits.length_max()
 
+        if length_max > length_min:
+            vals = PyDecimalNumbers(length_min, length_max)
+        else:
+            vals = None
+
         self.add_parameter(
             "position_ccw",
             get_cmd=lambda: self._get_thorlabs_decimal('AnticlockwisePosition'),
             set_cmd=lambda x: self._set_thorlabs_decimal(x, 'AnticlockwisePosition'),
             unit=length_unit,
-            vals=PyDecimalNumbers(length_min, length_max)
+            vals=vals,
         )
 
         self.add_parameter(
@@ -231,7 +236,7 @@ class LimitSwitchParameters(LimitSwitchParametersBase):
             get_cmd=lambda: self._get_thorlabs_decimal('ClockwisePosition'),
             set_cmd=lambda x: self._set_thorlabs_decimal(x, 'ClockwisePosition'),
             unit=length_unit,
-            vals=PyDecimalNumbers(length_min, length_max)
+            vals=vals,
         )
 
 

@@ -134,10 +134,13 @@ class GenericAdvancedMotorCLI(GenericMotorCLI):
         position_min = self.advanced_limits.length_min()
         position_max = self.advanced_limits.length_max()
 
-        if self.motor_position_limits.mode() == 'RotationalRange':
-            return RotationalStageValidator(position_min, position_max)
+        if position_max > position_min:
+            if self.motor_position_limits.mode() == 'RotationalRange':
+                return RotationalStageValidator(position_min, position_max)
+            else:
+                return PyDecimalNumbers(position_min, position_max)
         else:
-            return PyDecimalNumbers(position_min, position_max)
+            return None
 
     def _status_class(self):
         """
