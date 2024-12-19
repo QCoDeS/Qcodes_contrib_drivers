@@ -7,7 +7,7 @@ from .private.DotNetAPI.qcodes_thorlabs_integration import ThorlabsQcodesInstrum
 
 log = logging.getLogger(__name__)
 
-class K10CR1(CageRotator, ThorlabsQcodesInstrument):
+class ThorlabsK10CR1(CageRotator, ThorlabsQcodesInstrument):
     """
     Driver for interfacing with the Thorlabs K10CR1 Motorised Rotation Mount
     via the QCoDeS framework and the .NET API.
@@ -46,12 +46,12 @@ class K10CR1(CageRotator, ThorlabsQcodesInstrument):
     ):
 
         super().__init__(
-            name,                             # Instrument (Qcodes)
-            serial_number=serial_number,      # ThorlabsQcodesInstrument
-            startup_mode_value=startup_mode_value,
-            simulation=simulation,            # ThorlabsQcodesInstrument
-            polling_rate_ms=polling_rate_ms,  # GenericMotoCLI
-            dll_directory=dll_directory,      # ThorlabsDLLMixin
+            name,                                  # Instrument (Qcodes
+            serial_number=serial_number,           # IGenericCoreDeviceCLI
+            startup_mode_value=startup_mode_value, # IGenericDeviceCLI
+            simulation=simulation,                 # ThorlabsQcodesInstrument
+            polling_rate_ms=polling_rate_ms,       # IGenericDeviceCLI
+            dll_directory=dll_directory,           # ThorlabsDLLMixin
             **kwargs)
 
         if '(Simulated)' not in self.model():
