@@ -1,4 +1,3 @@
-import atexit
 import importlib
 import logging
 import math
@@ -491,8 +490,6 @@ class ThorlabsQcodesInstrument(IGenericCoreDeviceCLI, ThorlabsDLLMixin, Thorlabs
         self._simulation = kwargs.pop('simulation', simulation)
         super().__init__(*args, **kwargs)
 
-        atexit.register(self._exit_generic_device)
-
         # Import common DLLs.
         try:
             self._add_dll('Thorlabs.MotionControl.DeviceManagerCLI.dll')
@@ -537,16 +534,6 @@ class ThorlabsQcodesInstrument(IGenericCoreDeviceCLI, ThorlabsDLLMixin, Thorlabs
         except Exception as e:
             self.log.error(f"Failed to initialize Thorlabs {self._model()} with serial number {self._serial_number}")
             raise
-
-    def _exit_generic_device(self) -> None:
-        """
-        Safely terminate operations at exit by:
-        * disconnect the device
-        * stop the simulation if needed
-        """
-        self.disconnect()
-        if self._simulation:
-            self._dll.SimulationManager.Instance.UninitializeSimulations()
 
     def _import_device_dll(self):
         """Import the device-specific DLLs and classes from the .NET API."""
@@ -599,7 +586,12 @@ class ThorlabsQcodesInstrument(IGenericCoreDeviceCLI, ThorlabsDLLMixin, Thorlabs
         return dict(zip(("vendor", "model", "serial", "firmware"), idparts))
 
     def close(self) -> None:
+        self.disconnect()
         self.shut_down()
+        
+        if self._simulation:
+            self._dll.SimulationManager.Instance.UninitializeSimulations()
+
         super().close()
 
 
