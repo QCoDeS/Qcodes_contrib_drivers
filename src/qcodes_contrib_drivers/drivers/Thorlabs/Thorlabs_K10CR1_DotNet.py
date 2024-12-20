@@ -2,7 +2,7 @@ import logging
 from typing import Optional
 # from time import sleep
 
-from .private.DotNetAPI.IntegratedStepperMotorsCLI_CageRotator import CageRotator
+from .private.DotNetAPI.IntegratedStepperMotorsCLI import CageRotator
 from .private.DotNetAPI.qcodes_thorlabs_integration import ThorlabsQcodesInstrument
 
 log = logging.getLogger(__name__)
