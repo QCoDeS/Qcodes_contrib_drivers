@@ -37,7 +37,7 @@ class Thorlabs<model>(<class_name>, ThorlabsQcodesInstrument):
         self,
         name: str,
         serial_number: str,
-        startup_mode_value: str = '<compare_thorlabs_code_value>', # UseConfiguredSettings, UseDeviceSettings
+        startup_mode_value: str = '<compare_thorlabs_code_value>', # UseDeviceSettings, UseFileSettings, UseConfiguredSettings
         simulation: Optional[bool] = False,
         polling_rate_ms: int = 250,
         dll_directory: Optional[str] = None,
@@ -45,10 +45,10 @@ class Thorlabs<model>(<class_name>, ThorlabsQcodesInstrument):
     ):
         super().__init__(
             name,                                  # Instrument (Qcodes)
-            serial_number=serial_number,           # IGenericCoreDeviceCLI / ThorlabsQcodesInstrument
+            serial_number=serial_number,           # IGenericCoreDeviceCLI
             startup_mode_value=startup_mode_value, # IGenericDeviceCLI
             simulation=simulation,                 # ThorlabsQcodesInstrument
-            polling_rate_ms=polling_rate_ms,       # IGenericDeviceCLI / GenericMotoCLI
+            polling_rate_ms=polling_rate_ms,       # IGenericDeviceCLI
             dll_directory=dll_directory,           # ThorlabsDLLMixin
             **kwargs)
 
@@ -59,7 +59,6 @@ class Thorlabs<model>(<class_name>, ThorlabsQcodesInstrument):
 
     def _import_device_dll(self):
         """Import the device-specific DLLs and classes from the .NET API."""
-        # self._add_dll('Thorlabs.MotionControl.GenericMotorCLI.dll')
         self._add_dll('Thorlabs.MotionControl.<name>.dll')
         self._import_dll_class('Thorlabs.MotionControl.<namespace>', '<class_name>')
 
@@ -73,8 +72,7 @@ class Thorlabs<model>(<class_name>, ThorlabsQcodesInstrument):
         and adding parameters 'model', 'serial_number' and 'firmware_version'.
         """
         knownmodels = [
-            '<model>'#,
-            #'<model> (Simulated)'
+            '<model>',
         ]
         if self.model() not in knownmodels:
             raise ValueError(f"'{self.model}' is an unknown model.")

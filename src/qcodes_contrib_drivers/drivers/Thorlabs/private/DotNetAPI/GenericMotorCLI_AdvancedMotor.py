@@ -93,7 +93,7 @@ class GenericAdvancedMotorCLI(GenericMotorCLI):
             vals=self._get_position_vals(),
             unit=self.advanced_limits.length_unit(),
             docstring='Position of the stage. '
-                      'The operation will use the current value of "movement_timeout" for the move operation.'
+                      'TODO: The operation will use the current value of "movement_timeout" for the move operation.'
         )
 
         self.add_parameter(
