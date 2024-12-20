@@ -73,6 +73,7 @@ class ThorlabsMFF10x(FilterFlipper, ThorlabsQcodesInstrument):
         and adding parameters 'model', 'serial_number' and 'firmware_version'.
         """
         knownmodels = [
+            'MFF002',
             'MFF101',
         ]
         if self.model() not in knownmodels:
