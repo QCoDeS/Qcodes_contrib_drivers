@@ -40,6 +40,14 @@ class GenericMotorCLI(IGenericDeviceCLI):
         self.add_parameter(
             'state',
             get_cmd=lambda: self._get_thorlabs_enum('State'),
+            val_mapping={
+                'Idle': 0,
+                'Moving': 1,
+                'Homing': 3,
+                'Initializing': 32,
+                'Stopping': 64,
+                'Terminated': 16384
+            },
             docstring='Current motor state. One of the following: '
                       'Idle, Moving, Homing, Initializing, Stopping, or Terminated.'
         )
@@ -136,6 +144,11 @@ class LimitsData(ThorlabsObjectWrapper):
         self.add_parameter(
             "direction",
             get_cmd=lambda: self._get_thorlabs_enum('Direction'),
+            val_mapping={
+                'Quickest': 0,
+                'Forwards': 1,
+                'Reverse': 2
+            },
             docstring='Gets the rotation travel direction. Can be Quickest, Forward, Reverse'
                       'Quickest: Motor will travel in the shortest direction to reach target.'
         )
@@ -143,6 +156,11 @@ class LimitsData(ThorlabsObjectWrapper):
         self.add_parameter(
             "mode",
             get_cmd=lambda: self._get_thorlabs_enum('Mode'),
+            val_mapping={
+                'LinearRange': 0,
+                'RotationalUnlimited': 1,
+                'RotationalRange': 2
+            },
             docstring='Gets the travel mode, Linear or Rotational.'
                       ''
                       '  LinearRange - The rotation has a fixed range of travel.'

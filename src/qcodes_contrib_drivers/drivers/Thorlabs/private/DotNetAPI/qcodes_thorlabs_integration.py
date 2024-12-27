@@ -50,6 +50,7 @@ class ThorlabsMixin:
         _set_thorlabs_enum: Sets a Thorlabs .NET Enum value using its integer representation.
         _get_thorlabs_enum_dict: Creates a dictionary mapping enum names to integer values for use 
                                  with QCoDeS val_mapping.
+        _validate_thorlabs_enum: Validates that a .NET type is an Enum with an allowed underlying type.
 
     Raises:
         ValueError: If invalid arguments are provided for API interface methods or attribute operations.
@@ -483,6 +484,28 @@ class ThorlabsMixin:
 
         self._set_thorlabs_attribute(dot_net_decimal, attribute_key, setter_name)
 
+    def _validate_thorlabs_enum(self, dotnet_type: Any) -> None:
+        """
+        Validates that the provided .NET type is an Enum and that its underlying type is allowed.
+
+        Args:
+            dotnet_type (Any): The .NET type to validate.
+
+        Raises:
+            ValueError: If `dotnet_type` is not a .NET Enum or if its underlying type is not allowed.
+        """
+        if not dotnet_type.IsEnum:
+            raise ValueError("The retrieved property is not a .NET enum.")
+
+        underlying_type = DotNetEnum.GetUnderlyingType(dotnet_type).FullName
+        allowed_underlying_types = (
+            'System.Int16', 
+            'System.Int32'
+        )
+
+        if underlying_type not in allowed_underlying_types:
+            raise ValueError(f"Enum '{dotnet_type}' is not an Int-based enum.")
+
     def _get_thorlabs_enum(
         self,
         attribute_key: Optional[str] = None,
@@ -490,7 +513,7 @@ class ThorlabsMixin:
     ) -> Optional[int]:
         """
         Retrieve a .NET enum as an integer, verifying that the enum's underlying
-        type is actually Int32.
+        type is actually Int.
 
         Returns:
             int or None
@@ -500,12 +523,7 @@ class ThorlabsMixin:
             return None
 
         dotnet_type = raw_value.GetType()
-        if not dotnet_type.IsEnum:
-            raise ValueError("The retrieved property is not a .NET enum.")
-        # Verify underlying type is int
-        underlying_type = DotNetEnum.GetUnderlyingType(dotnet_type)
-        if underlying_type.FullName != "System.Int32":
-            raise ValueError(f"Enum '{dotnet_type}' is not an Int32-based enum.")
+        self._validate_thorlabs_enum(dotnet_type)
 
         numeric_value = int(raw_value)
         log.debug(f"_get_thorlabs_enum: returning int={numeric_value} for '{dotnet_type}'")
@@ -532,18 +550,11 @@ class ThorlabsMixin:
             attribute_key=attribute_key,
             setter_name=setter_name
         )
-        if not dotnet_type.IsEnum:
-            raise ValueError("The target property is not a .NET enum.")
-        # Verify underlying type is int
-        underlying_type = DotNetEnum.GetUnderlyingType(dotnet_type)
-        if underlying_type.FullName != "System.Int32":
-            raise ValueError(f"Enum '{dotnet_type}' is not an Int32-based enum.")
+        self._validate_thorlabs_enum(dotnet_type)
 
-        # Convert the Python int to a proper .NET enum object
         enum_object = DotNetEnum.ToObject(dotnet_type, value)
 
         log.debug(f"_set_thorlabs_enum: setting int={value} for '{dotnet_type}'")
-        # Use our internal method to set
         self._set_thorlabs_attribute(enum_object, attribute_key, setter_name, (api_object, access_mode))
 
     def _get_thorlabs_enum_dict(
@@ -598,14 +609,8 @@ class ThorlabsMixin:
                 attribute_key=attribute_key,
                 setter_name=setter_name
             )
-    
-        if not dotnet_type.IsEnum:
-            raise ValueError("The target property/method return type is not a .NET enum.")
-    
-        underlying_type = DotNetEnum.GetUnderlyingType(dotnet_type)
-        if underlying_type.FullName != "System.Int32":
-            raise ValueError(f"Enum '{dotnet_type}' is not an Int32-based enum.")
-    
+        self._validate_thorlabs_enum(dotnet_type)
+
         enum_names = list(DotNetEnum.GetNames(dotnet_type))
         enum_dict = {}
         for name in enum_names:
