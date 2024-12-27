@@ -645,7 +645,12 @@ class ThorlabsObjectWrapper(ThorlabsMixin, InstrumentModule):
         setter_name: Optional[str] = None,
         **kwargs
     ) -> None:
-        super().__init__(parent, name, **kwargs)
+        super().__init__(
+            parent, 
+            name, 
+            decimal_as_float=parent.decimal_as_float,
+            **kwargs
+        )
 
         if not isinstance(self.parent, ThorlabsMixin):
             raise ValueError("The parent of this isinstance should be a ThorlabsMixin")
