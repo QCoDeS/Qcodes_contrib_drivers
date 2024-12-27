@@ -459,7 +459,7 @@ class ThorlabsMixin:
 
         if isinstance(value, PyDecimal):
             try:
-                dot_net_decimal = DotNetDecimal(str(value))
+                dot_net_decimal = DotNetDecimal.Parse(str(value), CultureInfo.InvariantCulture)
                 log.debug(f"Converted Python Decimal {value} to .NET Decimal: {dot_net_decimal}")
             except OverflowError:
                 raise ValueError(f"Cannot convert {value} to .NET Decimal; value out of range.")
@@ -472,7 +472,7 @@ class ThorlabsMixin:
         elif not isinstance(value, PyDecimal):
             if isinstance(value, (float, int)):
                 try:
-                    dot_net_decimal = DotNetDecimal(str(value))
+                    dot_net_decimal = DotNetDecimal.Parse(str(value), CultureInfo.InvariantCulture)
                     log.debug(f"Converted {type(value).__name__} {value} to .NET Decimal: {dot_net_decimal}")
                 except OverflowError:
                     raise ValueError(f"Cannot convert {value} to .NET Decimal; value out of range.")
