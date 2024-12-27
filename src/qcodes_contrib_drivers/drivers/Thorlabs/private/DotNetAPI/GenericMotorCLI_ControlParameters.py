@@ -52,16 +52,23 @@ class HomeParameters(ThorlabsObjectWrapper):
             "direction",
             get_cmd=lambda: self._get_thorlabs_enum('Direction'),
             set_cmd=lambda x: self._set_thorlabs_enum(x, 'Direction'),
+            val_mapping={
+                'Clockwise': 1,
+                'CounterClockwise': 2
+            },
             docstring="Direction to travel to find the home position.",
-            vals=Enum('Clockwise', 'CounterClockwise')
         )
 
         self.add_parameter(
             "limit_switch",
             get_cmd=lambda: self._get_thorlabs_enum('LimitSwitch'),
             set_cmd=lambda x: self._set_thorlabs_enum(x, 'LimitSwitch'),
+            val_mapping={
+                'Ignore': 0,
+                'ClockwiseHard': 1,
+                'CounterClockwiseHard': 4
+            },
             docstring="Limit switch direction parameter.",
-            vals=Enum('Ignore', 'ClockwiseHard', 'CounterClockwiseHard')
         )
 
         self.add_parameter(
@@ -168,21 +175,57 @@ class LimitSwitchParametersBase(ThorlabsObjectWrapper):
             "hard_limit_action_ccw",
             get_cmd=lambda: self._get_thorlabs_enum('AnticlockwiseHardwareLimit'),
             set_cmd=lambda x: self._set_thorlabs_enum(x, 'AnticlockwiseHardwareLimit'),
-            vals=Enum('Ignore', 'Make', 'Break', 'Home_Make', 'Home_Break', 'PMD_Index')
+            val_mapping={
+                'Ignore': 1,
+                'Make': 2,
+                'Break': 3,
+                'Home_Make': 4,
+                'Home_Break': 5,
+                'PMD_Index': 6,
+                'Ignore_Swapped': 129,
+                'Make_Swapped': 130,
+                'Break_Swapped': 131,
+                'Home_Make_Swapped': 132,
+                'Home_Break_Swapped': 133
+            },
         )
 
         self.add_parameter(
             "hard_limit_action_cw",
             get_cmd=lambda: self._get_thorlabs_enum('ClockwiseHardwareLimit'),
             set_cmd=lambda x: self._set_thorlabs_enum(x, 'ClockwiseHardwareLimit'),
-            vals=Enum('Ignore', 'Make', 'Break', 'Home_Make', 'Home_Break', 'PMD_Index')
+            val_mapping={
+                'Ignore': 1,
+                'Make': 2,
+                'Break': 3,
+                'Home_Make': 4,
+                'Home_Break': 5,
+                'PMD_Index': 6,
+                'Ignore_Swapped': 129,
+                'Make_Swapped': 130,
+                'Break_Swapped': 131,
+                'Home_Make_Swapped': 132,
+                'Home_Break_Swapped': 133
+            },
         )
 
         self.add_parameter(
             "soft_limit_action",
             get_cmd=lambda: self._get_thorlabs_enum('SoftLimitModes'),
             set_cmd=lambda x: self._set_thorlabs_enum(x, 'SoftLimitModes'),
-            vals=Enum('Ignore', 'Make', 'Break', 'Home_Make', 'Home_Break', 'PMD_Index')
+            val_mapping={
+                'Ignore': 1,
+                'Make': 2,
+                'Break': 3,
+                'Home_Make': 4,
+                'Home_Break': 5,
+                'PMD_Index': 6,
+                'Ignore_Swapped': 129,
+                'Make_Swapped': 130,
+                'Break_Swapped': 131,
+                'Home_Make_Swapped': 132,
+                'Home_Break_Swapped': 133
+            },
         )
 
 
@@ -262,19 +305,23 @@ class JogParametersBase(ThorlabsObjectWrapper):
             "jog_mode",
             get_cmd=lambda: self._get_thorlabs_enum('JogMode'),
             set_cmd=lambda x: self._set_thorlabs_enum(x, 'JogMode'),
+            val_mapping={
+                'ContinuousHeld': 1,
+                'SingleStep': 2,
+                'ContinuousUnheld': 3
+            },
             docstring="Jog Mode",
-            # vals=Enum('Continuous', 'SingleStep')
-            vals=Enum('ContinuousHeld', 'SingleStep', 'ContinuousUnheld')
-
         )
 
         self.add_parameter(
             "stop_mode",
             get_cmd=lambda: self._get_thorlabs_enum('StopMode'),
             set_cmd=lambda x: self._set_thorlabs_enum(x, 'StopMode'),
+            val_mapping={
+                'Immediate': 1,
+                'Profiled': 2
+            },
             docstring="Stop Mode",
-            vals=Enum('Immediate', 'Profiled')
-
         )
 
 
