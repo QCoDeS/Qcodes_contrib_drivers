@@ -64,7 +64,7 @@ class Thorlabs<model>(<class_name>, ThorlabsQcodesInstrument):
 
     def _get_api_interface_from_dll(self, serial_number: str):
         """Retrieve the API interface for the Thorlabs device using its serial number."""
-        return self._dll.<class_name>.<create_method>(serial_number)
+        return self._dll.<class_name>.Create<class_name>(serial_number) # verify: <create_method>
 
     def _post_connection(self):
         """
