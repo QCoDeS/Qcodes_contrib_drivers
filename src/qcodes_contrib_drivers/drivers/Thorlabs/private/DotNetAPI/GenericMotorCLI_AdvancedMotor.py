@@ -500,31 +500,25 @@ class DCStatus(StatusBase):
 
         self.add_parameter(
             'error_current_limit',
-            get_cmd=lambda: self._get_thorlabs_attribute(IsCurrentLimitError),
+            get_cmd=lambda: self._get_thorlabs_attribute('IsCurrentLimitError'),
             docstring = 'Has current Limit error been triggered.'
         )
 
         self.add_parameter(
-            'error',
-            get_cmd=lambda: self._get_thorlabs_attribute(IsError),
-            docstring = 'Is the stage in an error state.'
-        )
-
-        self.add_parameter(
             'error_position',
-            get_cmd=lambda: self._get_thorlabs_attribute(IsPositionError),
+            get_cmd=lambda: self._get_thorlabs_attribute('IsPositionError'),
             docstring = 'Is position error active.'
         )
 
         self.add_parameter(
             'settled',
-            get_cmd=lambda: self._get_thorlabs_attribute(IsSettled),
+            get_cmd=lambda: self._get_thorlabs_attribute('IsSettled'),
             docstring = 'Is stage in a settled state.'
         )
 
         self.add_parameter(
             'tracking',
-            get_cmd=lambda: self._get_thorlabs_attribute(IsTracking),
+            get_cmd=lambda: self._get_thorlabs_attribute('IsTracking'),
             docstring = 'Is tracking enabled for this stage.'
         )
 
