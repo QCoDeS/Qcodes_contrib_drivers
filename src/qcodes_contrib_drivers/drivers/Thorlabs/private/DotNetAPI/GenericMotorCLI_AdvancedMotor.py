@@ -1,5 +1,6 @@
 import logging
-from typing import Optional
+from decimal import Decimal as PyDecimal
+from typing import Optional, Union
 
 from qcodes.instrument.channel import InstrumentBase
 from qcodes.utils.helpers import create_on_off_val_mapping
@@ -8,7 +9,7 @@ from System import Decimal as DotNetDecimal
 
 from .GenericMotorCLI import GenericMotorCLI, StatusBase
 from .GenericMotorCLI_ControlParameters import (
-    HomeParameters, IDCPIDParameters, LimitSwitchParameters, VelocityParameters, JogParameters)
+    HomeParameters, LimitSwitchParameters, VelocityParameters, JogParameters)
 from .qcodes_thorlabs_integration import PyDecimalNumbers, ThorlabsObjectWrapper
 
 
@@ -285,9 +286,9 @@ class GenericAdvancedMotorCLI(GenericMotorCLI):
 
     def _compute_move_time_ms(
         self, 
-        distance: float, 
-        acceleration: float, 
-        velocity_max: float
+        distance: Union[PyDecimal, float, int], 
+        acceleration: Union[PyDecimal, float, int], 
+        velocity_max: Union[PyDecimal, float, int]
     ) -> int:
         """
         Compute the time required for the motor to move a given distance.
@@ -297,9 +298,9 @@ class GenericAdvancedMotorCLI(GenericMotorCLI):
         in milliseconds.
 
         Args:
-            distance (float): Distance the motor needs to cover.
-            acceleration (float): Acceleration of the motor.
-            velocity_max (float): Maximum velocity the motor can attain.
+            distance (PyDecimal | float | int): Distance the motor needs to cover.
+            acceleration (PyDecimal | float | int): Acceleration of the motor.
+            velocity_max (PyDecimal | float | int): Maximum velocity the motor can attain.
 
         Returns:
             int: Time required in milliseconds to cover the given distance.
@@ -307,6 +308,11 @@ class GenericAdvancedMotorCLI(GenericMotorCLI):
         Raises:
             NotImplementedError: Raised if the units are not supported.
         """
+    
+        # Convert all inputs to float for calculations
+        distance = float(distance)
+        acceleration = float(acceleration)
+        velocity_max = float(velocity_max)
 
         # Check if the units are in "/s" and "/s²" to determine the time factor
         unit_s = (
