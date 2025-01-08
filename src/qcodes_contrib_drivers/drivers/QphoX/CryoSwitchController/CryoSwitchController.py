@@ -59,6 +59,9 @@ class Cryoswitch:
             self.log_wav_init()
 
     def tracking_init(self):
+        if not os.path.isfile(self.track_states_file):
+            with open(self.track_states_file, 'w') as fp:
+                json.dump(STATES_DEFAULT, fp, indent=4)
         file = open(self.track_states_file)
         states = json.load(file)
         file.close()
@@ -77,6 +80,9 @@ class Cryoswitch:
             os.mkdir(self.log_wav_dir)
 
     def __constants(self):
+        if not os.path.isfile(self.constants_file_name):
+            with open(self.constants_file_name, 'w') as fp:
+                json.dump(CONSTANTS, fp, indent=4)
         file = open(self.constants_file_name)
         constants = json.load(file)
         file.close()
@@ -793,3 +799,543 @@ if __name__ == "__main__":
 
 
 
+
+CONSTANTS = {  "HW_Ver. 0": {
+    "ADC_12B_res": 4095,
+    "ADC_8B_res": 255,
+    "ADC_cal_ref": False,
+
+    "bv_R1": 68000,
+    "bv_R2": 100000,
+    "bv_ADC": 3,
+
+    "converter_divider": 11,
+    "converter_ADC": 10,
+    "converter_VREF": 1.23,
+    "converter_R1": 500000,
+    "converter_R2": 500000,
+    "converter_Rf": 15000,
+    "converter_DAC_lower_bound": 550,
+    "converter_DAC_upper_bound": 1500,
+    "converter_correction_codes": [1, 0],
+    "converter_output_voltage_range": [5, 29],
+
+    "OCP_gain": 2,
+    "OCP_range": [1, 300],
+
+    "pulse_duration_range": [1, 100],
+    "sampling_frequency_range": [10, 100],
+
+    "current_sense_R": 1,
+    "current_gain": 20,
+
+    "calibrate_ADC": 0,
+    "polarization_params": [4700, 3000, 4700]
+  },
+   "HW_Ver. 2": {
+    "ADC_12B_res": 4095,
+    "ADC_8B_res": 255,
+    "ADC_cal_ref": False,
+
+    "bv_R1": 68000,
+    "bv_R2": 100000,
+    "bv_ADC": 3,
+
+    "converter_divider": 11,
+    "converter_ADC": 10,
+    "converter_VREF": 1.23,
+    "converter_R1": 500000,
+    "converter_R2": 500000,
+    "converter_Rf": 15000,
+    "converter_DAC_lower_bound": 500,
+    "converter_DAC_upper_bound": 1500,
+    "converter_correction_codes": [1, 0],
+    "converter_output_voltage_range": [5, 29],
+
+    "OCP_gain": 2,
+    "OCP_range": [1, 300],
+
+    "pulse_duration_range": [1, 100],
+    "sampling_frequency_range": [10, 100],
+
+    "current_sense_R": 1,
+    "current_gain": 20,
+
+    "calibrate_ADC": 0,
+    "polarization_params": [4700, 3000, 4700]
+  },
+   "HW_Ver. 3": {
+    "ADC_12B_res": 4095,
+    "ADC_8B_res": 255,
+    "ADC_cal_ref": 2.5,
+
+    "bv_R1": 68000,
+    "bv_R2": 100000,
+    "bv_ADC": 3,
+
+    "converter_divider": 11,
+    "converter_ADC": 10,
+    "converter_VREF": 1.23,
+    "converter_R1": 500000,
+    "converter_R2": 33000,
+    "converter_Rf": 56000,
+    "converter_DAC_lower_bound": 0,
+    "converter_DAC_upper_bound": 4095,
+    "converter_correction_codes": [1.01722519, 0.01721413],
+    "converter_output_voltage_range": [5, 29],
+
+    "OCP_gain": 2,
+    "OCP_range": [1, 300],
+
+    "pulse_duration_range": [1, 100],
+    "sampling_frequency_range": [10, 100],
+
+    "current_sense_R": 0.5,
+    "current_gain": 20,
+
+    "calibrate_ADC": 1,
+    "polarization_params": [4700, 3000, 4700]
+
+  },
+   "HW_Ver. 4": {
+    "ADC_12B_res": 4095,
+    "ADC_8B_res": 255,
+    "ADC_cal_ref": 2.5,
+
+    "bv_R1": 68000,
+    "bv_R2": 100000,
+    "bv_ADC": 3,
+
+    "converter_divider": 11,
+    "converter_ADC": 10,
+    "converter_VREF": 1.24,
+    "converter_R1": 500000,
+    "converter_R2": 33000,
+    "converter_Rf": 56000,
+    "converter_DAC_lower_bound": 0,
+    "converter_DAC_upper_bound": 4095,
+    "converter_correction_codes": [1.03418631, 0.11739705],
+    "converter_output_voltage_range": [5, 29],
+
+    "OCP_gain": 2,
+    "OCP_range": [1, 300],
+
+    "pulse_duration_range": [1, 100],
+    "sampling_frequency_range": [10, 100],
+
+    "current_sense_R": 0.5,
+    "current_gain": 20,
+
+    "calibrate_ADC": 1,
+    "polarization_params": [10000, 3000, 4700]
+  },
+   "HW_Ver. 5": {
+    "ADC_12B_res": 4095,
+    "ADC_8B_res": 255,
+    "ADC_cal_ref": 2.5,
+
+    "bv_R1": 68000,
+    "bv_R2": 100000,
+    "bv_ADC": 3,
+
+    "converter_divider": 11,
+    "converter_ADC": 10,
+    "converter_VREF": 1.24,
+    "converter_R1": 500000,
+    "converter_R2": 33000,
+    "converter_Rf": 56000,
+    "converter_DAC_lower_bound": 0,
+    "converter_DAC_upper_bound": 4095,
+    "converter_correction_codes": [1.03418631, 0.11739705],
+    "converter_output_voltage_range": [5, 29],
+
+    "OCP_gain": 2,
+    "OCP_range": [1, 300],
+
+    "pulse_duration_range": [1, 100],
+    "sampling_frequency_range": [10, 100],
+
+    "current_sense_R": 0.5,
+    "current_gain": 20,
+
+    "calibrate_ADC": 1,
+    "polarization_params": [10000, 3000, 4700]
+  }
+}
+
+STATES_DEFAULT = {
+    "SN": {
+        "port_A": {
+            "contact_1": 0,
+            "contact_2": 0,
+            "contact_3": 0,
+            "contact_4": 0,
+            "contact_5": 0,
+            "contact_6": 0
+        },
+        "port_B": {
+            "contact_1": 0,
+            "contact_2": 0,
+            "contact_3": 0,
+            "contact_4": 0,
+            "contact_5": 0,
+            "contact_6": 0
+        },
+        "port_C": {
+            "contact_1": 0,
+            "contact_2": 0,
+            "contact_3": 0,
+            "contact_4": 0,
+            "contact_5": 0,
+            "contact_6": 0
+        },
+        "port_D": {
+            "contact_1": 0,
+            "contact_2": 0,
+            "contact_3": 0,
+            "contact_4": 0,
+            "contact_5": 0,
+            "contact_6": 0
+        }
+    },
+    "SN0": {
+        "port_A": {
+            "contact_1": 0,
+            "contact_2": 0,
+            "contact_3": 0,
+            "contact_4": 0,
+            "contact_5": 0,
+            "contact_6": 0
+        },
+        "port_B": {
+            "contact_1": 0,
+            "contact_2": 0,
+            "contact_3": 0,
+            "contact_4": 0,
+            "contact_5": 0,
+            "contact_6": 0
+        },
+        "port_C": {
+            "contact_1": 0,
+            "contact_2": 0,
+            "contact_3": 0,
+            "contact_4": 0,
+            "contact_5": 0,
+            "contact_6": 0
+        },
+        "port_D": {
+            "contact_1": 0,
+            "contact_2": 0,
+            "contact_3": 0,
+            "contact_4": 0,
+            "contact_5": 0,
+            "contact_6": 0
+        }
+    },
+    "SN12": {
+        "port_A": {
+            "contact_1": 0,
+            "contact_2": 0,
+            "contact_3": 0,
+            "contact_4": 0,
+            "contact_5": 0,
+            "contact_6": 0
+        },
+        "port_B": {
+            "contact_1": 0,
+            "contact_2": 0,
+            "contact_3": 0,
+            "contact_4": 0,
+            "contact_5": 0,
+            "contact_6": 0
+        },
+        "port_C": {
+            "contact_1": 0,
+            "contact_2": 0,
+            "contact_3": 0,
+            "contact_4": 0,
+            "contact_5": 0,
+            "contact_6": 0
+        },
+        "port_D": {
+            "contact_1": 0,
+            "contact_2": 0,
+            "contact_3": 0,
+            "contact_4": 0,
+            "contact_5": 0,
+            "contact_6": 0
+        }
+    },
+    "SN22": {
+        "port_A": {
+            "contact_1": 0,
+            "contact_2": 0,
+            "contact_3": 0,
+            "contact_4": 0,
+            "contact_5": 0,
+            "contact_6": 0
+        },
+        "port_B": {
+            "contact_1": 0,
+            "contact_2": 0,
+            "contact_3": 0,
+            "contact_4": 0,
+            "contact_5": 0,
+            "contact_6": 0
+        },
+        "port_C": {
+            "contact_1": 0,
+            "contact_2": 0,
+            "contact_3": 0,
+            "contact_4": 0,
+            "contact_5": 0,
+            "contact_6": 0
+        },
+        "port_D": {
+            "contact_1": 0,
+            "contact_2": 0,
+            "contact_3": 0,
+            "contact_4": 0,
+            "contact_5": 0,
+            "contact_6": 0
+        }
+    },
+    "SN23": {
+        "port_A": {
+            "contact_1": 0,
+            "contact_2": 0,
+            "contact_3": 0,
+            "contact_4": 0,
+            "contact_5": 0,
+            "contact_6": 0
+        },
+        "port_B": {
+            "contact_1": 0,
+            "contact_2": 0,
+            "contact_3": 0,
+            "contact_4": 0,
+            "contact_5": 0,
+            "contact_6": 0
+        },
+        "port_C": {
+            "contact_1": 0,
+            "contact_2": 0,
+            "contact_3": 0,
+            "contact_4": 0,
+            "contact_5": 0,
+            "contact_6": 0
+        },
+        "port_D": {
+            "contact_1": 0,
+            "contact_2": 0,
+            "contact_3": 0,
+            "contact_4": 0,
+            "contact_5": 0,
+            "contact_6": 0
+        }
+    },
+    "SN24": {
+        "port_A": {
+            "contact_1": 0,
+            "contact_2": 0,
+            "contact_3": 0,
+            "contact_4": 0,
+            "contact_5": 0,
+            "contact_6": 0
+        },
+        "port_B": {
+            "contact_1": 1,
+            "contact_2": 0,
+            "contact_3": 1,
+            "contact_4": 1,
+            "contact_5": 1,
+            "contact_6": 1
+        },
+        "port_C": {
+            "contact_1": 0,
+            "contact_2": 0,
+            "contact_3": 0,
+            "contact_4": 0,
+            "contact_5": 0,
+            "contact_6": 0
+        },
+        "port_D": {
+            "contact_1": 0,
+            "contact_2": 0,
+            "contact_3": 0,
+            "contact_4": 0,
+            "contact_5": 0,
+            "contact_6": 0
+        }
+    },
+    "SN25": {
+        "port_A": {
+            "contact_1": 0,
+            "contact_2": 0,
+            "contact_3": 0,
+            "contact_4": 0,
+            "contact_5": 0,
+            "contact_6": 0
+        },
+        "port_B": {
+            "contact_1": 0,
+            "contact_2": 0,
+            "contact_3": 0,
+            "contact_4": 0,
+            "contact_5": 0,
+            "contact_6": 0
+        },
+        "port_C": {
+            "contact_1": 0,
+            "contact_2": 0,
+            "contact_3": 0,
+            "contact_4": 0,
+            "contact_5": 0,
+            "contact_6": 0
+        },
+        "port_D": {
+            "contact_1": 0,
+            "contact_2": 0,
+            "contact_3": 0,
+            "contact_4": 0,
+            "contact_5": 0,
+            "contact_6": 0
+        }
+    },
+    "SN26": {
+        "port_A": {
+            "contact_1": 0,
+            "contact_2": 0,
+            "contact_3": 0,
+            "contact_4": 0,
+            "contact_5": 0,
+            "contact_6": 0
+        },
+        "port_B": {
+            "contact_1": 0,
+            "contact_2": 0,
+            "contact_3": 0,
+            "contact_4": 0,
+            "contact_5": 0,
+            "contact_6": 0
+        },
+        "port_C": {
+            "contact_1": 0,
+            "contact_2": 0,
+            "contact_3": 0,
+            "contact_4": 0,
+            "contact_5": 0,
+            "contact_6": 0
+        },
+        "port_D": {
+            "contact_1": 0,
+            "contact_2": 0,
+            "contact_3": 0,
+            "contact_4": 0,
+            "contact_5": 0,
+            "contact_6": 0
+        }
+    },
+    "SN300": {
+        "port_A": {
+            "contact_1": 0,
+            "contact_2": 0,
+            "contact_3": 0,
+            "contact_4": 0,
+            "contact_5": 0,
+            "contact_6": 0
+        },
+        "port_B": {
+            "contact_1": 0,
+            "contact_2": 0,
+            "contact_3": 0,
+            "contact_4": 0,
+            "contact_5": 0,
+            "contact_6": 0
+        },
+        "port_C": {
+            "contact_1": 0,
+            "contact_2": 0,
+            "contact_3": 0,
+            "contact_4": 0,
+            "contact_5": 0,
+            "contact_6": 0
+        },
+        "port_D": {
+            "contact_1": 0,
+            "contact_2": 0,
+            "contact_3": 0,
+            "contact_4": 0,
+            "contact_5": 0,
+            "contact_6": 0
+        }
+    },
+    "SN6": {
+        "port_A": {
+            "contact_1": 0,
+            "contact_2": 0,
+            "contact_3": 0,
+            "contact_4": 0,
+            "contact_5": 0,
+            "contact_6": 0
+        },
+        "port_B": {
+            "contact_1": 0,
+            "contact_2": 0,
+            "contact_3": 0,
+            "contact_4": 0,
+            "contact_5": 0,
+            "contact_6": 0
+        },
+        "port_C": {
+            "contact_1": 0,
+            "contact_2": 0,
+            "contact_3": 0,
+            "contact_4": 0,
+            "contact_5": 0,
+            "contact_6": 0
+        },
+        "port_D": {
+            "contact_1": 0,
+            "contact_2": 0,
+            "contact_3": 0,
+            "contact_4": 0,
+            "contact_5": 0,
+            "contact_6": 0
+        }
+    },
+    "SN65535": {
+        "port_A": {
+            "contact_1": 0,
+            "contact_2": 0,
+            "contact_3": 0,
+            "contact_4": 0,
+            "contact_5": 0,
+            "contact_6": 0
+        },
+        "port_B": {
+            "contact_1": 0,
+            "contact_2": 0,
+            "contact_3": 0,
+            "contact_4": 0,
+            "contact_5": 0,
+            "contact_6": 0
+        },
+        "port_C": {
+            "contact_1": 0,
+            "contact_2": 0,
+            "contact_3": 0,
+            "contact_4": 0,
+            "contact_5": 0,
+            "contact_6": 0
+        },
+        "port_D": {
+            "contact_1": 0,
+            "contact_2": 0,
+            "contact_3": 0,
+            "contact_4": 0,
+            "contact_5": 0,
+            "contact_6": 0
+        }
+    }
+}

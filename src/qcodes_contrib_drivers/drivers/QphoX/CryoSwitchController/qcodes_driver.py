@@ -135,16 +135,6 @@ class CryoSwitchControllerDriver(Instrument):
         """
         super().__init__(name, **kwargs)
 
-        # create an empty states file if it does not exist
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        target_file = os.path.join(current_dir, 'states.json')
-        source_file = os.path.join(current_dir, 'states_empty.json')
-        if not os.path.exists(target_file):
-            with open(source_file, 'r') as src:
-                contents = src.read()
-            with open(target_file, 'w') as tgt:
-                tgt.write(contents)
-
         self._controller = Cryoswitch()
         self._switch_model = None
 
