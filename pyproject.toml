@@ -50,6 +50,7 @@ test = [
     "pyvisa-sim",
     "types-tqdm>=4.64.6",
     "pandas-stubs",
+    "pyserial",
 ]
 docs = [ "sphinx", "furo", "nbsphinx", ]
 
