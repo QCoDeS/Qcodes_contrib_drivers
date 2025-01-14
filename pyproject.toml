@@ -51,6 +51,7 @@ test = [
     "types-tqdm>=4.64.6",
     "pandas-stubs",
     "pyserial",
+    "windfreak>=0.3.0"
 ]
 docs = [ "sphinx", "furo", "nbsphinx", ]
 
