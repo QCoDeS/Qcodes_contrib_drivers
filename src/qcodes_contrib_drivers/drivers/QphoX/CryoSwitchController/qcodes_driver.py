@@ -136,7 +136,7 @@ class CryoSwitchControllerDriver(Instrument):
         super().__init__(name, **kwargs)
 
         self._controller = Cryoswitch()
-        self._switch_model = None
+        self._switch_model: Optional[str] = None
 
         self.add_parameter(
             'output_voltage',
@@ -186,7 +186,7 @@ class CryoSwitchControllerDriver(Instrument):
         channels.lock()
         self.add_submodule("channels", channels)
 
-    def _select_switch_model(self, switch_type: str = None):
+    def _select_switch_model(self, switch_type: Optional[str] = None):
         if switch_type in ['R583423141', 'CRYO']:
             self._controller.select_switch_model('R583423141')
             self._switch_model = 'R583423141'
@@ -201,7 +201,7 @@ class CryoSwitchControllerDriver(Instrument):
     def _get_switch_model(self):
         return self._switch_model
 
-    def get_switches_state(self, port: str = None):
+    def get_switches_state(self, port: Optional[str] = None):
         """
         Read and return the state of the contacts as recorded in the states.json
 
