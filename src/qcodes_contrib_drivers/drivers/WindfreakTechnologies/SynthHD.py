@@ -1,7 +1,9 @@
 from qcodes import Instrument, InstrumentChannel
+import qcodes.parameters
 from qcodes.utils.validators import Numbers, Enum, Ints
 from windfreak import SynthHD
 
+LETTERS = '-ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
 class SynthHDChannel(InstrumentChannel):
     def __init__(self, parent: Instrument, name: str, index: int, **kwargs):
@@ -45,12 +47,24 @@ class SynthHDChannel(InstrumentChannel):
             docstring="Phase in degrees"
         )
 
+        # Enable output parameter
+        self.add_parameter(
+            "enable",
+            label="Output Enable",
+            get_cmd= lambda: self._synth.enable,
+            set_cmd= lambda value: setattr(self._channel, 'enable', value),
+            val_mapping= qcodes.parameters.create_on_off_val_mapping(),
+            vals=Enum(True, False),
+            docstring="Output enable"
+        )
+
         # RF Enable parameter
         self.add_parameter(
             "rf_enable",
             label="RF Enable",
             get_cmd=lambda: self._channel.rf_enable,
             set_cmd=lambda value: setattr(self._channel, 'rf_enable', value),
+            val_mapping= qcodes.parameters.create_on_off_val_mapping(),
             vals=Enum(True, False),
             docstring="RF output enable"
         )
@@ -61,6 +75,7 @@ class SynthHDChannel(InstrumentChannel):
             label="PA Enable",
             get_cmd=lambda: self._channel.pa_enable,
             set_cmd=lambda value: setattr(self._channel, 'pa_enable', value),
+            val_mapping= qcodes.parameters.create_on_off_val_mapping(),
             vals=Enum(True, False),
             docstring="PA enable"
         )
@@ -71,6 +86,7 @@ class SynthHDChannel(InstrumentChannel):
             label="PLL Enable",
             get_cmd=lambda: self._channel.pll_enable,
             set_cmd=lambda value: setattr(self._channel, 'pll_enable', value),
+            val_mapping= qcodes.parameters.create_on_off_val_mapping(),
             vals=Enum(True, False),
             docstring="PLL enable"
         )
@@ -118,9 +134,10 @@ class SynthHDInstrument(Instrument):
         self._synth = SynthHD(devpath)
 
         # Add channels
+
         for i in range(1, len(self._synth)+1):
-            channel = SynthHDChannel(self, f"channel_{i}", i)
-            self.add_submodule(f"channel_{i}", channel)
+            channel = SynthHDChannel(self, f"channel_{LETTERS[i]}", i)
+            self.add_submodule(f"channel_{LETTERS[i]}", channel)
 
         # Reference Mode parameter
         self.add_parameter(
@@ -169,6 +186,7 @@ class SynthHDInstrument(Instrument):
             label="Sweep Enable",
             get_cmd= lambda: self._synth.sweep_enable,
             set_cmd= lambda value: setattr(self._synth, 'sweep_enable', value),
+            val_mapping= qcodes.parameters.create_on_off_val_mapping(),
             vals=Enum(True, False),
             docstring="Sweep continuously enable"
         )
@@ -179,6 +197,7 @@ class SynthHDInstrument(Instrument):
             label="AM Enable",
             get_cmd= lambda: self._synth.am_enable,
             set_cmd= lambda value: setattr(self._synth, 'am_enable', value),
+            val_mapping= qcodes.parameters.create_on_off_val_mapping(),
             vals=Enum(True, False),
             docstring="AM continuously enable"
         )
@@ -189,6 +208,7 @@ class SynthHDInstrument(Instrument):
             label="Pulse Modulation Enable",
             get_cmd= lambda: self._synth.pulse_mod_enable,
             set_cmd= lambda value: setattr(self._synth, 'pulse_mod_enable', value),
+            val_mapping= qcodes.parameters.create_on_off_val_mapping(),
             vals=Enum(True, False),
             docstring="Pulse modulation continuously enable"
         )
@@ -199,6 +219,7 @@ class SynthHDInstrument(Instrument):
             label="Dual Pulse Modulation Enable",
             get_cmd= lambda: self._synth.dual_pulse_mod_enable,
             set_cmd= lambda value: setattr(self._synth, 'dual_pulse_mod_enable', value),
+            val_mapping= qcodes.parameters.create_on_off_val_mapping(),
             vals=Enum(True, False),
             docstring="Dual pulse modulation enable"
         )
@@ -209,6 +230,7 @@ class SynthHDInstrument(Instrument):
             label="FM Enable",
             get_cmd= lambda: self._synth.fm_enable,
             set_cmd= lambda value: setattr(self._synth, 'fm_enable', value),
+            val_mapping= qcodes.parameters.create_on_off_val_mapping(),
             vals=Enum(True, False),
             docstring="FM continuously enable"
         )
