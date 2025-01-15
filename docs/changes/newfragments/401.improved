@@ -1,0 +1,2 @@
+Added the bounds of the dc_slew_rate_V_per_s parameter of the QDAC #401
+The QDAC has a limitation in the bounds of the slew rate (0.01 V/s to 2e7 V/s), this change sets these bounds in the parameter of the QDAC.
