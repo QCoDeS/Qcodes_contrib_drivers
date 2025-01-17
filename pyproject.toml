@@ -92,7 +92,8 @@ module = [
     "ACS",
     "autobahn",
     "python-dotenv",
-    "serial"
+    "serial.*",
+    "scipy.*"
 ]
 ignore_missing_imports = true
 
