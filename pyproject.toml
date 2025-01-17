@@ -91,7 +91,8 @@ module = [
     "AMC",
     "ACS",
     "autobahn",
-    "python-dotenv"
+    "python-dotenv",
+    "serial"
 ]
 ignore_missing_imports = true
 
