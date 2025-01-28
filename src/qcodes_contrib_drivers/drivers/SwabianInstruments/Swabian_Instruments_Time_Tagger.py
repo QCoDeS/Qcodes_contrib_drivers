@@ -618,15 +618,13 @@ class TimeTagger(TimeTaggerInstrumentBase, Instrument):
         """Remove all entries of TimeTaggerMeasurement instances from
         channel lists."""
         for channel_list in self.measurement_lists:
-            for channel in channel_list:
-                channel_list.remove(channel)
+            channel_list.clear()
 
     def remove_all_virtual_channels(self):
         """Remove all entries of TimeTaggerVirtualChannel instances from
         channel lists."""
         for channel_list in self.virtual_channel_lists:
-            for channel in channel_list:
-                channel_list.remove(channel)
+            channel_list.clear()
 
     @refer_to_api_doc('TimeTagger')
     def set_trigger_level(self, channel: int, level: float):
