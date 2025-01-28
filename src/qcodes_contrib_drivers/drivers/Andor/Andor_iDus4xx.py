@@ -1402,7 +1402,7 @@ class AndorIDus4xx(Instrument):
             def put(queue: queue.Queue, stop_flag: threading.Event):
                 gen = ccd.yield_till_abort()
                 while not stop_flag.is_set():
-                    yield next(gen)
+                    queue.put(next(gen))
 
             queue = queue.Queue()
             stop_flag = threading.Event()
@@ -1417,6 +1417,13 @@ class AndorIDus4xx(Instrument):
 
             # Optionally cancel waiting for the next acquisition:
             ccd.cancel_wait()
+
+        .. note::
+            Each iteration of this method yields a single frame of
+            data. However, since it is technically a time-series,
+            the yielded data has a time axis of size 1 so that for
+            ``read_mode('full vertical binning')`` for example the
+            shape is ``(1, horizontal_pixels)``.
 
         """
 
