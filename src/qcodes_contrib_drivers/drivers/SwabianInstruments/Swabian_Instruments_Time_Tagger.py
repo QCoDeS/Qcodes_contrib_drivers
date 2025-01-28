@@ -19,7 +19,7 @@ into QCoDeS Instruments and Parameters. It is organized as follows:
 
  * If properly initialized, each QCoDeS instrument or channel has a
    cached :meth:`api` property that gives access to the TimeTagger API
-   object. The cache is automatically invalidated if a Paramaeter is
+   object. The cache is automatically invalidated if a Parameter is
    changed that was used to instantiate the object (e.g., the binwidth).
 
  * :class:`~.private.time_tagger.TimeTaggerVirtualChannel` and
@@ -123,7 +123,7 @@ class CoincidenceVirtualChannel(TimeTaggerVirtualChannel):
             label='Channels',
             vals=vals.Sequence(vals.Ints())
         )
-        """List of channels on which coincidence will be detected in the 
+        """List of channels on which coincidence will be detected in the
         virtual channel."""
 
         self.coincidence_window = self.add_parameter(
@@ -168,9 +168,9 @@ class CorrelationMeasurement(TimeTaggerMeasurement):
             vals=vals.MultiType(vals.Sequence(vals.Ints(), length=1),
                                 vals.Sequence(vals.Ints(), length=2))
         )
-        """Channel on which (stop) clicks are received and channel on which 
-        reference clicks (start) are received (when left empty or set to 
-        :class:`TimeTagger:CHANNEL_UNUSED` -> an auto-correlation measurement 
+        """Channel on which (stop) clicks are received and channel on which
+        reference clicks (start) are received (when left empty or set to
+        :class:`TimeTagger:CHANNEL_UNUSED` -> an auto-correlation measurement
         is performed, which is the same as setting channel_1 = channel_2)."""
 
         self.binwidth = self.add_parameter(
@@ -360,10 +360,10 @@ class CounterMeasurement(TimeTaggerMeasurement):
             vals=vals.Arrays(shape=(number_of_channels,), valid_types=(np.uint64,))
         )
         """Number of events per channel.
-        
-        Returns total number of events per channel since the last call to 
-        :meth:`clear`, including the currently integrating bin. This method 
-        works correctly even when the USB transfer rate or backend processing 
+
+        Returns total number of events per channel since the last call to
+        :meth:`clear`, including the currently integrating bin. This method
+        works correctly even when the USB transfer rate or backend processing
         capabilities are exceeded.
         """
 
@@ -375,8 +375,8 @@ class CounterMeasurement(TimeTaggerMeasurement):
             get_cmd=lambda: self.api.getIndex(),
             vals=vals.Arrays(shape=(self.n_values.get_latest,), valid_types=(np.int64,))
         )
-        """Returns the relative time of the bins in ps. 
-        
+        """Returns the relative time of the bins in ps.
+
         The first entry of the returned vector is always 0.
         """
 
@@ -401,7 +401,7 @@ class CounterMeasurement(TimeTaggerMeasurement):
             unit='cts',
             max_val_age=0.0
         )
-        """An array of size ‘number of channels’ by n_values containing the 
+        """An array of size ‘number of channels’ by n_values containing the
         counts in each fully integrated bin."""
 
         self.data_normalized = self.add_parameter(
@@ -415,9 +415,9 @@ class CounterMeasurement(TimeTaggerMeasurement):
             unit='Hz',
             max_val_age=0.0
         )
-        """Does the same as :attr:`data` but returns the count rate in Hz as a 
-        float. 
-        
+        """Does the same as :attr:`data` but returns the count rate in Hz as a
+        float.
+
         Not integrated bins and bins in overflow mode are marked as NaN."""
 
     @cached_api_object(required_parameters={'channels', 'binwidth', 'n_values'})  # type: ignore[misc]
@@ -548,7 +548,7 @@ class HistogramLogBinsMeasurement(TimeTaggerMeasurement):
             label=r'$g^{(2)}(\tau)$',
             max_val_age=0.0
         )
-        """The counts normalized by the binwidth of each bin and the average 
+        """The counts normalized by the binwidth of each bin and the average
         count rate."""
 
     @cached_api_object(required_parameters={
