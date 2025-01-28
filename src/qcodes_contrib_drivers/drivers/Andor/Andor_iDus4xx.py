@@ -1489,8 +1489,7 @@ class AndorIDus4xx(Instrument):
 
         # bar does not show for negative totals, but ok
         with tqdm(
-                initial=(initial := self.temperature.get()),
-                total=initial - setpoint,
+                total=(initial := self.temperature.get()) - setpoint,
                 desc=f'{self.label} cooling down from {initial}{self.temperature.unit} '
                      f'to {setpoint}{self.temperature.unit}. |Delta|',
                 unit=self.temperature.unit,
@@ -1522,7 +1521,6 @@ class AndorIDus4xx(Instrument):
 
         # bar does not show for negative totals, but ok
         with tqdm(
-                initial=0,
                 total=target - (initial := self.temperature.get()),
                 desc=f'{self.name} warming up from {initial}{self.temperature.unit} '
                      f'to {target}{self.temperature.unit}. Delta',
