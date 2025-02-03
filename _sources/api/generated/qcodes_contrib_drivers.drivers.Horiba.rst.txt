@@ -1,0 +1,29 @@
+qcodes\_contrib\_drivers.drivers.Horiba package
+===============================================
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 10
+
+   qcodes_contrib_drivers.drivers.Horiba.private
+
+Submodules
+----------
+
+qcodes\_contrib\_drivers.drivers.Horiba.Horiba\_FHR module
+----------------------------------------------------------
+
+.. automodule:: qcodes_contrib_drivers.drivers.Horiba.Horiba_FHR
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: qcodes_contrib_drivers.drivers.Horiba
+   :members:
+   :undoc-members:
+   :show-inheritance:
