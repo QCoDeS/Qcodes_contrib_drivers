@@ -1319,6 +1319,15 @@ class AndorIDus4xx(Instrument):
         super().close()
 
     def arm(self) -> None:
+        """Arm the CCD for acquisition.
+
+        This method ensures the camera is not yet acquiring, frees the
+        internal memory, and finally prepares it for acquisition using
+        the current acquisition timings.
+
+        While not required, calling this method ahead of acquisition
+        reduces the overhead when actually starting it.
+        """
         status = self.status.get()
         if not (status.startswith('DRV_IDLE') or status.startswith('DRV_ACQUIRING')):
             raise RuntimeError(f'Device not ready to acquire data. {status}')
