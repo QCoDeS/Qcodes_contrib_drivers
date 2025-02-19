@@ -7,7 +7,6 @@ import time
 import subprocess
 import platform
 import numpy as np
-from math import math.floor
 
 from qcodes.instrument import VisaInstrument
 from qcodes.parameters import MultiParameter
