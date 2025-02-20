@@ -8,12 +8,12 @@ into QCoDeS Instruments and Parameters. It is organized as follows:
    :class:`TimeTagger:TimeTagger` object.
 
  * Measurements and Virtual Channels are implemented as
-   :class:`~qcodes:qcodes.instrument.channel.InstrumentChannel` s, which
+   :class:`~qcodes:qcodes.instrument.channel.InstrumentChannel`\ s, which
    should dynamically be added and removed from the :class:`TimeTagger`
    instrument's corresponding
    :class:`~qcodes:qcodes.instrument.channel.ChannelList` as needed.
    These channels own
-   :class:`~qcodes:qcodes.parameters.parameter.Parameter` s
+   :class:`~qcodes:qcodes.parameters.parameter.Parameter`\ s
    which may be required to be initialized to instantiate the API object
    of the TimeTagger library that actually controls the measurement.
 
@@ -705,7 +705,7 @@ class TimeTagger(TimeTaggerInstrumentBase, Instrument):
             Returns
             -------
             {functionality}_{type_snake} :
-                The newly added {cls.__qualname__} object.
+                The newly added :class:`{cls.__qualname__}` object.
             """
         )
         fun.__name__ = f"add_{listname.rstrip('s')}"
