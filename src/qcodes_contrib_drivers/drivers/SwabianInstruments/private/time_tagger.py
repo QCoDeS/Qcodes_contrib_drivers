@@ -22,7 +22,7 @@ try:
 except (KeyError, ImportError):
     tt = None
 
-_F = TypeVar('_F', bound=Callable[..., Any])
+_O = TypeVar('_O', bound=Callable[..., Any] | type[Any])
 
 
 def _snake_to_camel(name: str) -> str:
@@ -30,16 +30,31 @@ def _snake_to_camel(name: str) -> str:
     return humps[0] + ''.join(hump.title() for hump in humps[1:])
 
 
-def refer_to_api_doc(api_obj: str) -> Callable[[_F], _F]:
+def refer_to_api_doc(api_obj: str = '') -> Callable[[_O], _O]:
     """Decorator factory to link a method to its TT API documentation."""
 
-    def decorator(func: _F) -> _F:
-        api_name = '.'.join([api_obj, _snake_to_camel(func.__name__)])
-        func.__doc__ = textwrap.dedent(
-            f"""Forwards API method :meth:`TimeTagger:{api_name}`. See
-            documentation there."""
-        )
-        return func
+    def decorator(obj: _O) -> _O:
+        if inspect.isclass(obj) and obj.__name__.endswith('Measurement'):
+            # A Measurement class
+            api_name = obj.__name__.removesuffix('Measurement')
+            typ = 'class'
+        elif inspect.isclass(obj) and obj.__name__.endswith('VirtualChannel'):
+            # A VirtualChannel class
+            api_name = obj.__name__.removesuffix('VirtualChannel')
+            typ = 'class'
+        elif inspect.isfunction(obj):
+            # A method, probably
+            api_name = '.'.join([api_obj, _snake_to_camel(obj.__name__)])
+            typ = 'meth'
+        else:
+            raise NotImplementedError(f'decorator not implemented for {obj}')
+
+        if obj.__doc__ is not None:
+            warnings.warn(f'Overwriting docstring of {obj}', RuntimeWarning,  stacklevel=2)
+
+        obj.__doc__ = (f"Implements API object :{typ}:`TimeTagger:{api_name}` -- see the "
+                       "documentation there.")
+        return obj
 
     return decorator
 

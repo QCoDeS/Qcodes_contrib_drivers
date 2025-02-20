@@ -88,8 +88,8 @@ _TimeTaggerVirtualChannelT = TypeVar('_TimeTaggerVirtualChannelT',
                                      bound=type[TimeTaggerVirtualChannel])
 
 
+@refer_to_api_doc()
 class CombinerVirtualChannel(TimeTaggerVirtualChannel):
-    """Virtual channel combining physical ones."""
 
     def __init__(self, parent: InstrumentBase, name: str,
                  api_tagger: tt.TimeTaggerBase | None = None, **kwargs: Any):
@@ -109,8 +109,8 @@ class CombinerVirtualChannel(TimeTaggerVirtualChannel):
         return tt.Combiner(self.api_tagger, self.channels.get())
 
 
+@refer_to_api_doc()
 class CoincidenceVirtualChannel(TimeTaggerVirtualChannel):
-    """Virtual channel clicking on coincidence of physical clicks."""
 
     def __init__(self, parent: InstrumentBase, name: str,
                  api_tagger: tt.TimeTaggerBase | None = None, **kwargs: Any):
@@ -153,8 +153,8 @@ class CoincidenceVirtualChannel(TimeTaggerVirtualChannel):
         return tt.Coincidence(self.api_tagger, self.channels.get())
 
 
+@refer_to_api_doc()
 class CorrelationMeasurement(TimeTaggerMeasurement):
-    """Measurement of the time-delay between clicks on channels."""
 
     def __init__(self, parent: InstrumentBase, name: str,
                  api_tagger: tt.TimeTaggerBase | None = None, **kwargs: Any):
@@ -237,8 +237,8 @@ class CorrelationMeasurement(TimeTaggerMeasurement):
                               n_bins=self.n_bins.get())
 
 
+@refer_to_api_doc()
 class CountRateMeasurement(TimeTaggerMeasurement):
-    """Measurement of the click rate on channels."""
 
     def __init__(self, parent: InstrumentBase, name: str,
                  api_tagger: tt.TimeTaggerBase | None = None, **kwargs: Any):
@@ -293,8 +293,8 @@ class CountRateMeasurement(TimeTaggerMeasurement):
         return tt.Countrate(self.api_tagger, self.channels.get())
 
 
+@refer_to_api_doc()
 class CounterMeasurement(TimeTaggerMeasurement):
-    """Measurement of the clicks on channels."""
 
     def __init__(self, parent: InstrumentBase, name: str,
                  api_tagger: tt.TimeTaggerBase | None = None, **kwargs: Any):
@@ -430,8 +430,8 @@ class CounterMeasurement(TimeTaggerMeasurement):
                           n_values=self.n_values.get())
 
 
+@refer_to_api_doc()
 class HistogramLogBinsMeasurement(TimeTaggerMeasurement):
-    """Log-spaced measurement of the time-delay between clicks on channels."""
 
     def __init__(self, parent: InstrumentBase, name: str,
                  api_tagger: tt.TimeTaggerBase | None = None, **kwargs: Any):
