@@ -1,0 +1,14 @@
+spec: "1.1"
+devices:
+  PeakTech15xx:
+    eom:
+      ASRL INSTR:
+        q: "\r"
+        r: "\r"
+    dialogues:
+      - q: "GMAX"
+        r: "162430\rOK"
+
+resources:
+  ASRL1::INSTR:
+    device: PeakTech15xx
