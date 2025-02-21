@@ -50,6 +50,7 @@ test = [
     "pyvisa-sim",
     "types-tqdm>=4.64.6",
     "pandas-stubs",
+    "pyserial",
 ]
 docs = [ "sphinx", "furo", "nbsphinx", ]
 
@@ -90,7 +91,9 @@ module = [
     "AMC",
     "ACS",
     "autobahn",
-    "python-dotenv"
+    "python-dotenv",
+    "serial.*",
+    "scipy.*"
 ]
 ignore_missing_imports = true
 
