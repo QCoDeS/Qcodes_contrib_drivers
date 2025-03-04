@@ -14,13 +14,20 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)",
     "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Scientific/Engineering",]
-requires-python = ">=3.10"
-dependencies = [ "qcodes>=0.42.0", "versioningit>=2.2.1", "packaging", "pandas", "cffi", "python-dotenv", "autobahn"]
+requires-python = ">=3.11"
+dependencies = [
+    "qcodes>=0.42.0",
+    "versioningit>=2.2.1",
+    "packaging>=20.0",
+    "pandas>=1.4.0",
+    "cffi>=1.17.1",
+    "python-dotenv>=1.0.1",
+    "autobahn>=24.4.2",
+]
 dynamic = [ "version",]
 
 [[project.maintainers]]
@@ -43,15 +50,19 @@ Tracker = "https://github.com/QCoDeS/Qcodes_contrib_drivers/issues"
 [project.optional-dependencies]
 test = [
     "pytest>=6.2.2",
-    "pytest-mock",
+    "pytest-mock>=3.0.0",
     "mypy>=0.940",
     "pytest-cov>=3.0.0",
     "coverage[toml]>=6.2",
-    "pyvisa-sim",
+    "PyVisa-sim>=0.6.0",
     "types-tqdm>=4.64.6",
-    "pandas-stubs",
+    "pandas-stubs>=1.2.0.1",
 ]
-docs = [ "sphinx", "furo", "nbsphinx", ]
+docs = [
+    "sphinx>=8.1.3,<8.2.0",
+    "furo>=2024.8.6",
+    "nbsphinx>=0.8.9",
+]
 
 [tool.mypy]
 strict_optional = true
