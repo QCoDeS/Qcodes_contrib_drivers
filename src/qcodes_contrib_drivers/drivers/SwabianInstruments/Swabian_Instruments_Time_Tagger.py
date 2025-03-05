@@ -79,7 +79,9 @@ from .private.time_tagger import (tt, TypeValidator, ParameterWithSetSideEffect,
                                   TimeTaggerMeasurement, TimeTaggerSynchronizedMeasurements,
                                   TimeTaggerInstrumentBase, TimeTaggerVirtualChannel,
                                   cached_api_object, ArrayLikeValidator, TimeTaggerModule,
-                                  DelegateParameterWithoutParentValidator, refer_to_api_doc)
+                                  DelegateParameterWithoutParentValidator, refer_to_api_doc,
+                                  LogspaceStartValidator, LogspaceStopValidator,
+                                  LogspaceNumValidator)
 
 _T = TypeVar('_T', bound=ParamRawDataType)
 _TimeTaggerModuleT = TypeVar('_TimeTaggerModuleT', bound=type[TimeTaggerModule])
@@ -483,6 +485,11 @@ class HistogramLogBinsMeasurement(TimeTaggerMeasurement):
             vals=vals.Numbers(),
         )
         """The number of bins in the histogram."""
+
+        # Add cross-validators to catch redundant bin edges early
+        self.exp_start.add_validator(LogspaceStartValidator(self.exp_stop, self.n_bins))
+        self.exp_stop.add_validator(LogspaceStopValidator(self.exp_start, self.n_bins))
+        self.n_bins.add_validator(LogspaceNumValidator(self.exp_start, self.exp_stop))
 
         self.click_gate = self.add_parameter(
             'click_gate',

@@ -114,6 +114,11 @@ def cached_api_object(__func: Callable[..., Any] | None = None,
         return CachedProperty
 
 
+def _count_bins(start: float, stop: float, num: int) -> int:
+    bins = np.logspace(start + 12, stop + 12, int(num), dtype=np.int64)
+    return np.unique(bins).size
+
+
 class TypeValidator(vals.Validator[type]):
     """A validator for specific types."""
 
@@ -156,6 +161,54 @@ class DelegateParameterWithoutParentValidator(DelegateParameter):
         :getter: All validators associated with the parameter.
         """
         return tuple(self._vals)
+
+
+class LogspaceStartValidator(vals.Validator[float]):
+    """Validates the exp_start parameter of a :class:`HistogramLogBinsMeasurement`."""
+
+    def __init__(self, stop_param: ParameterBase, num_param: ParameterBase):
+        self.stop_param = stop_param
+        self.num_param = num_param
+
+    def validate(self, value: float, context: str = "") -> None:
+        if (stop := self.stop_param.cache.get(False)) is None:
+            return
+        if (num := self.num_param.cache.get(False)) is None:
+            return
+        if _count_bins(value, stop, num) != int(num):
+           raise ValueError(f'{value!r} is invalid: results in redundant bin edges; {context}')
+
+
+class LogspaceStopValidator(vals.Validator[float]):
+    """Validates the exp_stop parameter of a :class:`HistogramLogBinsMeasurement`."""
+
+    def __init__(self, start_param: ParameterBase, num_param: ParameterBase):
+        self.start_param = start_param
+        self.num_param = num_param
+
+    def validate(self, value: float, context: str = "") -> None:
+        if (start := self.start_param.cache.get(False)) is None:
+            return
+        if (num := self.num_param.cache.get(False)) is None:
+            return
+        if _count_bins(start, value, num) != int(num):
+           raise ValueError(f'{value!r} is invalid: results in redundant bin edges; {context}')
+
+
+class LogspaceNumValidator(vals.Validator[int]):
+    """Validates the n_bins parameter of a :class:`HistogramLogBinsMeasurement`."""
+
+    def __init__(self, start_param: ParameterBase, stop_param: ParameterBase):
+        self.start_param = start_param
+        self.stop_param = stop_param
+
+    def validate(self, value: int, context: str = "") -> None:
+        if (start := self.start_param.cache.get(False)) is None:
+            return
+        if (stop := self.stop_param.cache.get(False)) is None:
+            return
+        if _count_bins(start, stop, value) != int(value):
+           raise ValueError(f'{value!r} is invalid: results in redundant bin edges; {context}')
 
 
 class ParameterWithSetSideEffect(Parameter):
