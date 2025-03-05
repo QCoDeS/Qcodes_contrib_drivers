@@ -4,7 +4,6 @@ import abc
 import inspect
 import os
 import sys
-import textwrap
 import warnings
 from collections.abc import Callable, Sequence, Collection
 from pathlib import Path

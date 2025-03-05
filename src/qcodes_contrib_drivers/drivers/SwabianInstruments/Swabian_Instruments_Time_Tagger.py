@@ -1,4 +1,4 @@
-"""QCoDeS driver for the Swabian Instruments Time Tagger series.
+r"""QCoDeS driver for the Swabian Instruments Time Tagger series.
 
 Since the `Swabian Instruments Python driver`_ is already excellent,
 this driver is mostly concerned with wrapping its object-oriented API
@@ -135,7 +135,7 @@ class CoincidenceVirtualChannel(TimeTaggerVirtualChannel):
             label='Coincidence window',
             unit='ps',
             initial_value=1000,
-            vals=vals.PermissiveInts(),
+            vals=vals.Numbers(min_value=1),
             set_parser=int
         )
         """Maximum time between all events for a coincidence."""
@@ -182,7 +182,7 @@ class CorrelationMeasurement(TimeTaggerMeasurement):
             label='Binwidth',
             unit='ps',
             initial_value=1000,
-            vals=vals.Numbers(),
+            vals=vals.Numbers(min_value=1),
             set_parser=int
         )
         """Bin width in ps."""
@@ -193,7 +193,7 @@ class CorrelationMeasurement(TimeTaggerMeasurement):
             set_side_effect=self._invalidate_api,
             label='Number of bins',
             initial_value=1000,
-            vals=vals.Numbers(),
+            vals=vals.Numbers(min_value=1),
             set_parser=int
         )
         """The number of bins in the resulting histogram."""
@@ -338,7 +338,7 @@ class CounterMeasurement(TimeTaggerMeasurement):
             label='Binwidth',
             unit='ps',
             initial_value=10 ** 9,
-            vals=vals.Numbers(),
+            vals=vals.Numbers(min_value=1),
             set_parser=int
         )
         """Bin width in ps."""
@@ -349,7 +349,7 @@ class CounterMeasurement(TimeTaggerMeasurement):
             set_side_effect=self._invalidate_api,
             label='Number of bins',
             initial_value=1,
-            vals=vals.Numbers(),
+            vals=vals.Numbers(min_value=1),
             set_parser=int
         )
         """Number of bins."""
@@ -462,7 +462,7 @@ class HistogramLogBinsMeasurement(TimeTaggerMeasurement):
             ParameterWithSetSideEffect,
             set_side_effect=self._invalidate_api,
             label='Start exponent',
-            vals=vals.Numbers(),
+            vals=vals.Numbers(min_value=-12),
             set_parser=float
         )
         """Exponent ``10^exp_start`` in seconds where the very first bin begins."""
@@ -472,7 +472,7 @@ class HistogramLogBinsMeasurement(TimeTaggerMeasurement):
             ParameterWithSetSideEffect,
             set_side_effect=self._invalidate_api,
             label='Stop exponent',
-            vals=vals.Numbers(),
+            vals=vals.Numbers(min_value=-12),
             set_parser=float
         )
         """Exponent ``10^exp_stop`` in seconds where the very last bin ends."""
@@ -482,7 +482,8 @@ class HistogramLogBinsMeasurement(TimeTaggerMeasurement):
             ParameterWithSetSideEffect,
             set_side_effect=self._invalidate_api,
             label='Number of bins',
-            vals=vals.Numbers(),
+            vals=vals.Numbers(min_value=1),
+            set_parser=int
         )
         """The number of bins in the histogram."""
 
