@@ -721,4 +721,3 @@ class Labphox:
 
 if __name__ == "__main__":
     labphox = Labphox(debug=True, IP='192.168.1.101')
-

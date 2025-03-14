@@ -373,4 +373,3 @@ class HS9008B(VisaInstrument):
         if read_str == '1 PLL Locked, 0 errors':
             locked = True
         return locked
-
