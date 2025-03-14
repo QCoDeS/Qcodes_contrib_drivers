@@ -26,4 +26,3 @@ jobs:
       run: pip install twine
     - name: Publish to pypi
       uses: pypa/gh-action-pypi-publish@release/v1
-
