@@ -113,24 +113,23 @@ def _state_diff(before: State, after: State) -> Tuple[State, State, State]:
 
 class QSwitch(Instrument):
 
-    def __init__(self, name: str, connection: str, address: str, **kwargs: "Unpack[InstrumentBaseKWArgs]") -> None:
+    def __init__(self, name: str, address: str, **kwargs: "Unpack[InstrumentBaseKWArgs]") -> None:
         """Connect to a QSwitch
 
         Args:
             name (str): Name for instrument
-            connection (str): Type of connection, choose from 'serial', 'TCP/IP' (fw 1.3 and below), or 'UDP' (fw 2.0 and above)
-            address (str): Address identification string, either a serial port ('ASRL::5') or IP address ('192.89.88.1')
+            address (str): Address identification string, either a visa identification address (for USB or TCP/IP (fw<=1.3)) or IP address (for UDP (fw>=2.0))
         """
         super().__init__(name, **kwargs)
         self._check_instrument_name(name)
-        if connection == 'serial':
+        if 'ASRL' in address:
             self._udp_mode = False
             self._switch = visa.ResourceManager('@py').open_resource(address)
             self._set_up_serial()
-        elif connection == 'TCP/IP':
+        elif 'TCPIP' in address: #(TCP/IP connection for fw 1.3 and below)
             self._udp_mode = False
             self._switch = visa.ResourceManager('@py').open_resource(address)
-        elif connection == 'UDP':
+        else: #(UDP connection for fw 2.0 and above)
             self._udp_mode = True
             self._max_udp_writes = 5
             self._max_udp_queries = 5
