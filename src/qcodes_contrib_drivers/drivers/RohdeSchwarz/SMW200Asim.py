@@ -29,13 +29,13 @@ class MockVisaHandle:
     '''
     Simulate the API needed for a visa handle.
     '''
-    
+
     # List of possible commands asked the instrument to give a realistic answer.
     cmddef = {'*IDN?': 'Rohde&Schwarz,SMW200A,1412.0000K02/105578,04.30.005.29 SP2',
               '*OPT?': 'SMW-B13T,SMW-B22,SMW-B120,SMW-K22,SMW-K23',
-              
+
               'STAT?': '0',
-              
+
               'SOUR1:FREQ?': '20000000000.0',
               'SOUR1:POW:POW?': '-145.0',
               'OUTP1:STAT?': '0',
@@ -48,7 +48,7 @@ class MockVisaHandle:
               'SOUR1:FREQ:LOSC:MODE?': 'INT',
               'SOUR1:FREQ:LOSC:OUTP:FREQ?': '0',
               'SOUR1:FREQ:LOSC:OUTP:STAT?': '0',
-              
+
               'SOUR1:SWE:POW:AMOD?': 'AUTO',
               'SOUR1:SWE:POW:DWEL?': '0.01',
               'SOUR1:SWE:POW:MODE?': 'AUTO',
@@ -66,26 +66,26 @@ class MockVisaHandle:
               'SOUR1:SWE:RUNN?': '0',
               'SOUR1:SWE:STEP:LOG?': '1.0',
               'SOUR1:SWE:STEP?': '1000000.0',
-              
+
               'SOUR:LFO1:BAND?': 'BW10',
               'SOUR:LFO1:STAT?': '0',
               'SOUR:LFO1:OFFS?': '0',
               'SOUR:LFO1:SOUR?': 'LF1',
               'SOUR:LFO1:VOLT?': '1.0',
               'SOUR:LFO1:PER?': '0.001',
-              
+
               'SOUR1:LFO1:FREQ?': '1000.0',
               'SOUR1:LFO:FREQ:MAN?': '1000.0',
               'SOUR1:LFO:FREQ:STAR?': '1000.0',
               'SOUR1:LFO:FREQ:STOP?': '50000.0',
               'SOUR1:LFO:FREQ:MODE?': 'CW',
-              
+
               'SOUR:LFO2:BAND?': 'BW10',
               'SOUR:LFO2:STAT?': '0',
               'SOUR:LFO2:OFFS?': '0',
               'SOUR:LFO2:SOUR?': 'EXT1',
               'SOUR:LFO2:VOLT?': '1.0',
-              
+
               'SOUR1:LFO:SWE:DWEL?': '0.01',
               'SOUR1:LFO:SWE:MODE?': 'AUTO',
               'SOUR1:LFO:SWE:POIN?': '50',
@@ -95,40 +95,40 @@ class MockVisaHandle:
               'SOUR1:LFO:SWE:SPAC?': 'LIN',
               'SOUR1:LFO:SWE:STEP:LOG?': '1.0',
               'SOUR1:LFO:SWE:STEP?': '1000.0',
-              
+
               'SOUR1:AM1:STAT?': '0',
               'SOUR1:AM1:SOUR?': 'LF1',
               'SOUR1:AM1:DEPT?': '50.0',
               'SOUR1:AM:RAT?': '50.0', # Ratio Path2 to Path1
               'SOUR1:AM:SENS?': '50.0', # Sensitivity for EXT
-              
+
               'SOUR1:AM2:STAT?': '0',
               'SOUR1:AM2:SOUR?': 'LF1',
-              'SOUR1:AM2:DEPT?': '50.0',        
-              
+              'SOUR1:AM2:DEPT?': '50.0',
+
               'SOUR1:FM1:STAT?': '0',
               'SOUR1:FM1:DEV?': '1000.0',
               'SOUR1:FM1:SOUR?': 'LF1',
               'SOUR1:FM:RAT?': '100.0',
               'SOUR1:FM:MODE?': 'NORM',
               'SOUR1:FM:SENS?': '1000.0',
-              
+
               'SOUR1:FM2:STAT?': '0',
               'SOUR1:FM2:DEV?': '1000.0',
               'SOUR1:FM2:SOUR?': 'EXT1',
-              
+
               'SOUR1:PM1:STAT?': '0',
               'SOUR:PM1:DEV?': '1',
               'SOUR1:PM1:SOUR?': 'LF1',
               'SOUR1:PM:MODE?': 'HBAN',
               'SOUR1:PM:RAT?': '100',
               'SOUR1:PM:SENS?': '1',
-              
+
               'SOUR1:PM2:STAT?': '0',
               'SOUR:PM2:DEV?': '1',
               'SOUR1:PM2:SOUR?': 'EXT1',
               'SOUR1:PM:MODE?': 'HBAN',
-              
+
               'SOUR1:PULM:MODE?': '0',
               'SOUR1:PULM:DOUB:DEL?': '0',
               'SOUR1:PULM:DOUB:WID?': '0',
@@ -143,18 +143,18 @@ class MockVisaHandle:
               'SOUR1:PULM:POL?': 'NORM',
               'SOUR1:PULM:IMP?': 'G1K',
               'SOUR1:PULM:TRIG:EXT:IMP?': 'G50',
-              
+
               'SOUR1:PGEN:OUTP:POL?': 'NORM',
               'SOUR1:PGEN:OUTP:STAT': 'OFF',
               'SOUR1:PGEN:STAT': 'OFF',
-              
+
               'SOUR1:IQ:SOUR?': 'BAS',
               'SOUR1:IQ:STAT?': '0',
               'SOUR1:IQ:GAIN?': 'DB4',
               'SOUR1:IQ:CRES?': '0.0',
               'SOUR1:IQ:SWAP:STAT?': '0',
               'SOUR1:IQ:WBST?': '0',
-              
+
               'SOUR1:IQ:OUTP:ANAL:STAT?': '0',
               'SOUR1:IQ:OUTP:ANAL:TYPE?': 'SING',
               'SOUR1:IQ:OUTP:ANAL:MODE?': 'FIX',
@@ -175,7 +175,7 @@ class MockVisaHandle:
               'SOUR2:IQ:OUTP:ANAL:OFFS:I?': '0',
               'SOUR2:IQ:OUTP:ANAL:OFFS:Q?': '0'
               }
-    
+
     def __init__(self):
         self.state = 0
         self.closed = False

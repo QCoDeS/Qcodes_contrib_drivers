@@ -39,14 +39,14 @@ class DAQAnalogInputVoltages(ArrayParameter):
         self.nchannels, self.target_points = shape
         self.samples_to_read = samples_to_read
         self.timeout = timeout
-        
+
     def get_raw(self):
         """Averages data to get `self.target_points` points per channel.
         If `self.target_points` == `self.samples_to_read`, no averaging is done.
         """
         data_raw = np.array(self.task.read(number_of_samples_per_channel=self.samples_to_read, timeout=self.timeout))
         return np.mean(np.reshape(data_raw, (self.nchannels, self.target_points, -1)), 2)
-    
+
 class DAQAnalogInputs(Instrument):
     """Instrument to acquire DAQ analog input data in a qcodes Loop or measurement.
 
@@ -112,7 +112,7 @@ class DAQAnalogInputs(Instrument):
             timeout=timeout,
             label='Voltage',
             unit='V'
-        ) 
+        )
 
 class DAQAnalogOutputVoltage(Parameter):
     """Writes data to one or several DAQ analog outputs. This only writes one channel at a time,
@@ -129,7 +129,7 @@ class DAQAnalogOutputVoltage(Parameter):
         self.dev_name = dev_name
         self.idx = idx
         self._voltage = np.nan
-     
+
     def set_raw(self, voltage: Union[int, float]) -> None:
         with nidaqmx.Task('daq_ao_task') as ao_task:
             channel = f'{self.dev_name}/ao{self.idx}'
@@ -166,7 +166,7 @@ class DAQAnalogOutputs(Instrument):
                 label='Voltage',
                 unit='V'
             )
-            
+
 class DAQDigitalOutputState(Parameter):
     """Writes data to one or several DAQ digital outputs.
 
@@ -212,9 +212,9 @@ class DAQDigitalOutputs(Instrument):
         self.metadata.update({
             'dev_name': dev_name,
             'lines': lines})
-        
+
         self.lines = lines
-        
+
         self.add_parameter(
                 name='state',
                 dev_name=dev_name,

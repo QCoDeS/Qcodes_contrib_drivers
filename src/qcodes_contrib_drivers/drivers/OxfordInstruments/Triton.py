@@ -53,9 +53,9 @@ class Triton(Instrument):
 
         if not os.path.isfile(file_path):
             raise ValueError('file_path is not a valid file path.')
-        
+
         super().__init__(name=name, **kwargs)
-        
+
         self.file_path = os.path.abspath(file_path)
         self.threshold_temperature = threshold_temperature
         self.converter_path = os.path.abspath(converter_path)
@@ -116,7 +116,7 @@ class Triton(Instrument):
                            get_parser=float,
                            get_cmd=lambda: self.get_temperature('mc'),
                            docstring='Temperature of the mixing chamber',)
-        
+
         self.connect_message()
 
     def vcl2csv(self) -> Optional[str]:
@@ -129,7 +129,7 @@ class Triton(Instrument):
         Returns:
             str: The output of the bash command
         """
-        
+
         conversion = False
         if self._timer+self.conversion_timer <= time.time():
             conversion = True
@@ -138,13 +138,13 @@ class Triton(Instrument):
 
         if conversion:
             self._timer = time.time()
-            
+
             # Run a bash command to convert vcl into csv
             cp = subprocess.run([self.converter_path, self.file_path],
                                 stdout=subprocess.PIPE,
                                 universal_newlines=True,
                                 shell=True)
-    
+
             return cp.stdout
         else:
             return None
@@ -152,7 +152,7 @@ class Triton(Instrument):
     def get_temperature(self, channel: str) -> float:
         """
         Return the last registered temperature of the channel.
-        
+
         Args:
             channel: Channel from which the temperature is extracted.
 
@@ -162,7 +162,7 @@ class Triton(Instrument):
 
         # Convert the vcl file into csv file
         self.vcl2csv()
-        
+
         df = pd.read_csv(self.file_path[:-3]+'txt', delimiter="\t")
 
         if channel == '50k':
@@ -179,7 +179,7 @@ class Triton(Instrument):
             # There are two thermometers for the mixing chamber.
             # Depending of the threshold temperature we return one or the other
             temp = df.iloc[-1]['MC cernox T(K)']
-            
+
             if temp > self.threshold_temperature:
                 return temp
             else:
@@ -190,19 +190,19 @@ class Triton(Instrument):
     def get_pressure(self, channel: str) -> float:
         """
         Return the last registered pressure of the channel.
-        
+
         Args:
             channel: Channel from which the pressure is extracted.
 
         Returns:
             pressure: Pressure of the channel in Bar.
         """
-        
+
         # Convert the vcl file into csv file
         self.vcl2csv()
-        
+
         df = pd.read_csv(self.file_path[:-3]+'txt', delimiter="\t")
-        
+
         if channel == 'condensation':
             return df.iloc[-1]['P2 Condense (Bar)']
         elif channel == 'tank':

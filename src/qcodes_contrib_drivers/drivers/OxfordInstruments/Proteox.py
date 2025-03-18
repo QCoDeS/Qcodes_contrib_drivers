@@ -56,7 +56,7 @@ HE3_FLOW_METER_FITTED=False
 
 class MagneticFieldParameters(MultiParameter):
     """
-    Parameter for retrieving X, Y, and Z components of the magnetic field. 
+    Parameter for retrieving X, Y, and Z components of the magnetic field.
 
     To Retrieve all three parameters via `instrument.Magnetic_Field_Vector()`
     """
@@ -97,7 +97,7 @@ class MagneticFieldParameters(MultiParameter):
 
 class MagnetCurrentParameters(MultiParameter):
     """
-    Parameter for retrieving X, Y, and Z components of the magnet current. 
+    Parameter for retrieving X, Y, and Z components of the magnet current.
 
     Retrieve all three parameters via `instrument.Magnet_Current_Vector()`
     """
@@ -372,7 +372,7 @@ class oiDECS(VisaInstrument):
         B_str = self.ask("get_MAG_VEC")
         B_array = B_str.split(',')
         return float(B_array[0]), float(B_array[1]), float(B_array[2])
-    
+
     def _get_field_current_data(self):
         I_str = self.ask("get_MAG_CURR_VEC")
         I_array = I_str.split(',')
@@ -527,20 +527,20 @@ class oiDECS(VisaInstrument):
             stable_mean: float - difference between the mean and target value to be achieved by the last 30 temperature readings
             stable_std: float - standard deviation to be achieved by the last 30 temperature readings
             time_between_readings: float - time between taking temperature readings
-        
+
         """
         target_temp = self.Mixing_Chamber_Temperature_Target()
 
         print(f'Waiting for temperature to stablilise at {target_temp} K.')
-        
-        #take 30 temperature readings 
+
+        #take 30 temperature readings
         t1 = time.time()
         t_array = np.zeros(30)
         for n in range(0,30):
             time.sleep(time_between_readings)
             temp = self.Mixing_Chamber_Temperature()
             t_array[n] = float(temp)
-            
+
         stab = False
         while stab is False:
             time.sleep(time_between_readings)
@@ -550,10 +550,10 @@ class oiDECS(VisaInstrument):
             t_array = t_array[1:]
             s = np.std(t_array)
             m = np.abs(np.mean(t_array) - target_temp)
-            
+
             if (s < stable_std) and (m < stable_mean):
                 stab = True
-                
+
         t2 = time.time()
         tt = t2-t1
         print(f'Temperature = {t_array[-1]} K')
@@ -585,4 +585,3 @@ class oiDECS(VisaInstrument):
         # Kill off the WAMP and socket connections
         self.write(SHUTDOWN)
         return super().close()
-
