@@ -143,7 +143,8 @@ class M81_SSM(VisaInstrument):
         # pull data
         string_bytes = base64.b64decode(self.ask('TRACe:DATA:ALL?')).hex()
 
-        data_format = f"<{self.ask('TRACe:FORMat:ENCOding:B64:BFORmat?').strip('\"')}"
+        format_val = self.ask('TRACe:FORMat:ENCOding:B64:BFORmat?').strip('\"')
+        data_format = f"<{format_val}"
 
         data_list = [] 
         for data in struct.iter_unpack(data_format, bytes.fromhex(string_bytes)):
