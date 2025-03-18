@@ -125,11 +125,12 @@ class QSwitch(Instrument):
         if 'ASRL' in address:
             self._udp_mode = False
             self._switch = visa.ResourceManager('@py').open_resource(address)
-            self._set_up_serial()
+            self._set_up_visa()
         elif 'TCPIP' in address: #(TCP/IP connection for fw 1.3 and below)
             self._udp_mode = False
             self._switch = visa.ResourceManager('@py').open_resource(address)
-        else: #(UDP connection for fw 2.0 and above)
+            self._set_up_visa()
+        elif address.count(":") == 0: #(UDP connection for fw 2.0 and above)
             self._udp_mode = True
             self._max_udp_writes = 5
             self._max_udp_queries = 5
@@ -137,7 +138,7 @@ class QSwitch(Instrument):
             self._sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             self._sock.settimeout(2)  # time_out in seconds
         else:
-            raise ValueError(f'Unknown connection type {connection}')
+            raise ValueError(f'Unknown connection type')
           
         self._set_up_debug_settings()
         self._set_up_simple_functions()
@@ -481,7 +482,7 @@ class QSwitch(Instrument):
         self._message_flush_timeout_ms = 1
         self._round_off = None
 
-    def _set_up_serial(self) -> None:
+    def _set_up_visa(self) -> None:
         # No harm in setting the speed even if the connection is not serial.
         self._switch.write_termination = '\n'
         self._switch.read_termination = '\n'
@@ -491,7 +492,7 @@ class QSwitch(Instrument):
 
     def _check_for_wrong_model(self) -> None:
         model = self.IDN()['model']
-        if model != 'QSwitch':
+        if model.lower() != 'qswitch':
             raise ValueError(f'Unknown model {model}. Are you using the right'
                              ' driver for your instrument?')
 
