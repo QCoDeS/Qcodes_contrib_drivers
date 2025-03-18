@@ -27,7 +27,7 @@ control the output frequency. In both cases, this selection also activates the s
 This choice is available with Option 007 only.
 
 *LIST* This choice selects the swept frequency mode. If sweep triggering is set to
-immediate along with continuous sweep mode, executing the command starts the LIST or STEP frequency sweep. 
+immediate along with continuous sweep mode, executing the command starts the LIST or STEP frequency sweep.
 """
 
 IQsource_docstring = """

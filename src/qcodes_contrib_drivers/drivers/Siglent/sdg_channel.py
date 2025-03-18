@@ -1759,7 +1759,7 @@ class SiglentSDGChannel(SiglentChannel):
                 Copy parameters from other channel.
 
                 Args:
-                    channel: 
+                    channel:
                         1-based index of source channel.
                         Must be different than current channel.
             """,

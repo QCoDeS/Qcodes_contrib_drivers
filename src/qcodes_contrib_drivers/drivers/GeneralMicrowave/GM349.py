@@ -34,7 +34,7 @@ class GM349Attenuation(Parameter):
         super().__init__(name, **kwargs)
         self._attenuation = np.nan
         self._driver_dev = driver_dev
-    
+
     def set_raw(self, attenuation: float):
         """Communicate with the driver device and change attenuation.
 
@@ -60,7 +60,7 @@ class GM349Attenuation(Parameter):
             The last set attenuation.
         """
         return self._attenuation
-        
+
 
 class GM349(Instrument):
     """_summary_
@@ -92,7 +92,7 @@ class GM349(Instrument):
             vals=Numbers(min_value=-63.97,
                          max_value=0)
         )
-    
+
     def pin_map(self):
         """Mapping between GM349 J3 connector pins and physical lines of the driver device.
 

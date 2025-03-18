@@ -15,7 +15,7 @@ class Lakeshore625(VisaInstrument):
 
     Args:
         name (str): a name for the instrument
-        coil_constant (float | None): Coil contant of magnet, in untis of T/A 
+        coil_constant (float | None): Coil contant of magnet, in untis of T/A
         - if passed `None`, value already set in instrument will be read and used
         field_ramp_rate (float | None): Magnetic field ramp rate, in units of T/min
         - if passed `None`, value already set in instrument will be read and used
@@ -31,7 +31,7 @@ class Lakeshore625(VisaInstrument):
                  ramp_segments_enabled: Optional[bool] = False, **kwargs) -> None:
 
         super().__init__(name, address, terminator=terminator, **kwargs)
-    
+
         # Add reset function
         self.add_function('reset', call_cmd='*RST')
         if reset:
@@ -48,7 +48,7 @@ class Lakeshore625(VisaInstrument):
                            vals=Numbers(0, 60.1),
                            docstring="Maximum output current"
                            )
-        
+
         self.add_parameter(name='voltage_limit',
                            unit="V",
                            set_cmd=self._set_voltage_limit,
@@ -57,7 +57,7 @@ class Lakeshore625(VisaInstrument):
                            vals=Numbers(0, 5),
                            docstring="Maximum compliance voltage"
                            )
-        
+
         self.add_parameter(name='current_rate_limit',
                            unit="A/s",
                            set_cmd=self._set_current_rate_limit,
@@ -66,7 +66,7 @@ class Lakeshore625(VisaInstrument):
                            vals=Numbers( 0.0001, 99.999),
                            docstring="Maximum current ramp rate"
                            )
-        
+
         self.add_parameter(name='voltage',
                            unit = 'V',
                            set_cmd="SETV {}",
@@ -74,7 +74,7 @@ class Lakeshore625(VisaInstrument):
                            get_parser=float,
                            vals=Numbers(-5, 5)
                            )
-        
+
         self.add_parameter(name='current',
                            unit = 'A',
                            set_cmd="SETI {}",
@@ -82,14 +82,14 @@ class Lakeshore625(VisaInstrument):
                            get_parser=float,
                            vals=Numbers(-60, 60)
                            )
-        
+
         self.add_parameter(name='current_ramp_rate',
                            unit = 'A/s',
                            set_cmd="RATE {}",
                            get_cmd='RATE?',
                            get_parser=float
                            )
-        
+
         self.add_parameter(name='ramp_segments',
                            set_cmd="RSEG {}",
                            get_cmd='RSEG?',
@@ -97,7 +97,7 @@ class Lakeshore625(VisaInstrument):
                            val_mapping={'disabled': 0,
                                         'enabled': 1}
                            )
-        
+
         self.add_parameter(name='persistent_switch_heater',
                            set_cmd=self._set_persistent_switch_heater_status,
                            get_cmd=self._get_persistent_switch_heater_status,
@@ -105,7 +105,7 @@ class Lakeshore625(VisaInstrument):
                            val_mapping={'disabled': 0,
                                         'enabled': 1}
                            )
-    
+
         self.add_parameter(name='quench_detection',
                            set_cmd=self._set_quench_detection_status,
                            get_cmd=self._get_quench_detection_status,
@@ -113,7 +113,7 @@ class Lakeshore625(VisaInstrument):
                            val_mapping={'disabled': 0,
                                         'enabled': 1}
                            )
-    
+
         self.add_parameter(name='quench_current_step_limit',
                            unit = 'A/s',
                            set_cmd=self._set_quench_current_step_limit,
@@ -126,12 +126,12 @@ class Lakeshore625(VisaInstrument):
                            get_cmd=self._get_ramping_state,
                            vals=Enum('ramping', 'not ramping')
                            )
-        
+
         self.add_parameter(name='operational_error_status',
                            get_cmd=self._get_operational_errors,
                            get_parser=str
                            )
-        
+
         self.add_parameter(name='oer_quench',
                            get_cmd=self._get_oer_quench_bit,
                            get_parser=int,
@@ -149,7 +149,7 @@ class Lakeshore625(VisaInstrument):
                                         'kG/A': 1},
                            docstring="unit of the coil constant, either T/A (default) or kG/A"
                            )
-    
+
         self.add_parameter(name='coil_constant',
                            unit = self.coil_constant_unit,
                            set_cmd=self._update_coil_constant,
@@ -157,14 +157,14 @@ class Lakeshore625(VisaInstrument):
                            get_parser=float,
                            vals=Numbers(0.001, 999.99999)  # what are good numbers here?
                            )
-        
+
         self.add_parameter(name='field',
                            unit = 'T',
                            set_cmd=self.set_field,
                            get_cmd='RDGF?',
                            get_parser=float
                            )
-        
+
         self.add_parameter(name='field_ramp_rate',
                            unit = 'T/min',
                            set_cmd=self._set_field_ramp_rate,
@@ -193,10 +193,10 @@ class Lakeshore625(VisaInstrument):
                                is returned, then the output current when the PSH was turned off last is unknown.
                            """)
 
-   
+
         # Add clear function
         self.add_function('clear', call_cmd='*CLS')
-        
+
         # disable persistent switch heater if parameters calls for it (the default)
         if persistent_switch_heater_enabled is not None:
             if persistent_switch_heater_enabled is True:
@@ -302,7 +302,7 @@ class Lakeshore625(VisaInstrument):
         """
         raw_string = self.ask('FLDS?')
         unit, coil_constant = raw_string.split(',')
-        return str(unit), float(coil_constant)    
+        return str(unit), float(coil_constant)
 
 
     # get functions for parameters
@@ -321,7 +321,7 @@ class Lakeshore625(VisaInstrument):
     def _get_voltage_limit(self) -> float:
         """
         Gets maximum allowed compliance voltage setting
-        
+
         Returns
         -------
             <voltage>
@@ -467,7 +467,7 @@ class Lakeshore625(VisaInstrument):
         error_status_register = self.ask('ERST?')
         # three bytes are read at the same time, the middle one is the operational error status
         operational_error_registor = error_status_register.split(',')[1]
-        
+
         #prepend zeros to bit-string such that it always has length 9
         oer_bit_str = bin(int(operational_error_registor))[2:].zfill(9)
         return oer_bit_str
@@ -552,7 +552,7 @@ class Lakeshore625(VisaInstrument):
         KILOGAUSS_PER_TESLA = 10
         coil_constant_setpoint = {
             (0, 0): lambda tesla_per_amp: tesla_per_amp,
-            (0, 1): lambda tesla_per_amp: tesla_per_amp * KILOGAUSS_PER_TESLA, 
+            (0, 1): lambda tesla_per_amp: tesla_per_amp * KILOGAUSS_PER_TESLA,
             (1, 0): lambda kilogauss_per_amp: kilogauss_per_amp / KILOGAUSS_PER_TESLA,
             (1, 1): lambda kilogauss_per_amp: kilogauss_per_amp,
         } [

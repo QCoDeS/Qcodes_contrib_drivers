@@ -93,7 +93,7 @@ class DRSDaylightSolutions_MIRcat(Instrument):
                  dll_path: Optional[str] = None,
                  **kwargs: Any) -> None:
         super().__init__(name, **kwargs)
-        
+
 
         if sys.platform != 'win32':
             self._dll: Any = None
@@ -312,7 +312,7 @@ class DRSDaylightSolutions_MIRcat(Instrument):
             unit='A',
             instrument=self
         )
-        
+
         self.connect_message()
 
     def get_pulse_parameters(self, chip: int = 0) -> tuple:
@@ -418,7 +418,7 @@ class DRSDaylightSolutions_MIRcat(Instrument):
             self._execute('MIRcatSDK_AreTECsAtSetTemperature',
                           [ctypes.byref(at_temperature)])
             time.sleep(.1)
-            
+
     def disarm(self) -> None:
         """Disarm the MIRcat QCL system.
         """
@@ -609,7 +609,7 @@ class DRSDaylightSolutions_MIRcat(Instrument):
         self._execute('MIRcatSDK_GetQCLTemperature',
                       [chip, ctypes.byref(temp)])
         return temp.value
-    
+
     def _get_pulse_rate(self, chip: int = 0) -> float:
         if chip == 0:
             units = ctypes.c_uint8()
@@ -779,7 +779,7 @@ class DRSDaylightSolutions_MIRcat(Instrument):
                        ctypes.c_ubyte(1),
                        ctypes.c_uint8(chip)])
         self._get_wavenumber()
-        
+
     def _set_wavenumber(self, wavenumber: float, chip: int = 0) -> None:
         if chip == 0:
             if wavenumber >= 1/self._range_chip4[1]/100:

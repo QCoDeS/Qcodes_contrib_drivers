@@ -30,7 +30,7 @@ class RigolDSG3136B(VisaInstrument):
             get_parser=str.rstrip
             )
         """Send identification code"""
-        
+
         self.add_parameter('output',
             label='Output state',
             set_cmd=':OUTPut:STATe {}',
@@ -43,7 +43,7 @@ class RigolDSG3136B(VisaInstrument):
             vals=vals.Enum('OFF', 'ON')
             )
         """Turns on or off the RF output, e.g. sg_1.output('0') or sg_1.output('OFF')"""
-        
+
         self.add_parameter(name='frequency',
             label='Frequency',
             unit='Hz',
@@ -53,7 +53,7 @@ class RigolDSG3136B(VisaInstrument):
             vals=vals.Numbers(9e3, 13.6e9)
             )
         """Control the output frequency"""
-        
+
         self.add_parameter(name='level',
             label='Level',
             unit='dBm',
@@ -63,7 +63,7 @@ class RigolDSG3136B(VisaInstrument):
             vals=vals.Numbers(-130, 27)
             )
         """Control the output power level"""
-                      
+
         self.add_parameter('sweep_direction',
             label='Sweep direction',
             set_cmd=':SOURce:SWEep:DIRection {}',
@@ -97,7 +97,7 @@ class RigolDSG3136B(VisaInstrument):
             vals=vals.Enum('AUTO', 'KEY', 'BUS', 'EXT')
             )
         """Control the trigger mode of the sweep period (i.e. the trigger required to restart the sweep)"""
-        
+
         self.add_parameter('point_trigger',
             label='Point trigger',
             set_cmd=':SOURce:SWEep:POINt:TRIGger:TYPE {}',
@@ -173,7 +173,7 @@ class RigolDSG3136B(VisaInstrument):
             vals=vals.Numbers(9e3,3.6e9),
             unit='Hz'
             )
-        
+
         self.add_parameter('sweep_frequency_stop',
             label='Sweep start frequency',
             set_cmd=':SOURce:SWEep:STEP:STOP:FREQuency {}',
@@ -258,28 +258,24 @@ class RigolDSG3136B(VisaInstrument):
             get_parser=str.rstrip,
             vals=vals.Enum('LIST','STEP')
             )
-        
+
         # As recommended by QCoDeS, it's a good idea to call connect_message at the end of your constructor.
         self.connect_message()
-        
+
     def trigger(self) -> None:
         """
         Generates a trigger event. This is equivalent to pressing the Force Trigger button on front panel.
         """
         self.write('*TRG')
-        
+
     def sweep_reset(self) -> None:
         """
         Resets a sweep to the beginning of its range.
         """
         self.write(':SOURce:SWEep:RESet:ALL')
-        
+
     def sweep_execute(self) -> None:
         """
         Executes a sweep
         """
         self.write(':SOURce:SWEep:EXECute')
-        
-    
-
-

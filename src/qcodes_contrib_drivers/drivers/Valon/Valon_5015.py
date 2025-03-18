@@ -37,7 +37,7 @@ class Valon5015(VisaInstrument):
                            label='Status',
                            get_cmd=self._get_status,
                            docstring="Get the manufacturer's name, model, serial number, firmware version, firmware build date and time, uP clock rate, power supply voltage (VBAT), internal temperature, LM, and UID.")
-        
+
         self.add_parameter(name='id',
                            label='ID',
                            get_cmd=self._get_id,
@@ -52,7 +52,7 @@ class Valon5015(VisaInstrument):
                            set_cmd=self._set_frequency,
                            vals=Numbers(10e6, 15e9),
                            docstring="Get/set the frequency of the single tone. The allowed range is from 10 MHz to 15 GHz and the value is expressed in Hz.")
-        
+
         self.add_parameter(name='offset',
                            label='Offset',
                            unit='Hz',
@@ -60,14 +60,14 @@ class Valon5015(VisaInstrument):
                            set_cmd=self._set_offset,
                            vals=Numbers(-4295e3, 4295e3),
                            docstring="Get/set the offset to be added or substracted from the frequency. The allowed range is from -4.295 GHz to 4295 GHz and the value is expressed in Hz.")
-        
+
         self.add_parameter(name='power',
                            label='Power',
                            unit='dBm',
                            get_cmd=self._get_power,
                            set_cmd=self._set_power,
                            docstring="Get/Set the power level in dBm.")
-        
+
         self.add_parameter(name='modulation_db',
                            label='Modulation_dB',
                            unit='dB',
@@ -75,7 +75,7 @@ class Valon5015(VisaInstrument):
                            set_cmd=self._set_modulation_db,
                            vals=Numbers(0.0),
                            docstring="Get/Set the AM modulation in dB. A value of 0 dB disables the AM modulation.")
-        
+
         self.add_parameter(name='modulation_frequency',
                            label='Modulation_Frequency',
                            unit='Hz',
@@ -90,7 +90,7 @@ class Valon5015(VisaInstrument):
                            set_cmd=self._set_low_power_mode_enabled,
                            vals=Bool(),
                            docstring="Enables or disables the low power mode.")
-        
+
         self.add_parameter(name='buffer_amplifiers_enabled',
                            label='Buffer Amplifiers Enabled',
                            get_cmd=self._get_buffer_amplifiers_enabled,
@@ -109,7 +109,7 @@ class Valon5015(VisaInstrument):
         responses = "\n".join(responses[1:])
         self._flush()
         return responses
-    
+
     def _set_id(self, n):
         self.ask(f"id {n}")
         self._flush()

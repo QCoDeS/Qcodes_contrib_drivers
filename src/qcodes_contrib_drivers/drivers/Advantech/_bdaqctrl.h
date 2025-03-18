@@ -2738,4 +2738,3 @@ typedef enum tagControlState
          int32 UdCounterCtrl_getResetTimesByIndex(UdCounterCtrl *_this);
          ErrorCode UdCounterCtrl_setResetTimesByIndex(UdCounterCtrl *_this, int32 value);
 # 5046 "bdaqctrl.h"
-

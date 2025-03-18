@@ -61,4 +61,3 @@ class D4(Instrument):
                     model='D4',
                     serial='',
                     firmware='')
-

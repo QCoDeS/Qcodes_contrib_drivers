@@ -114,7 +114,7 @@ class ComplexSweep(ArrayParameter):
                         "acquire phase and amplitude use the "
                         "FrequencySweepMagPhase parameter.")
         return data
-    
+
 
 class SAFrequencySweep(ArrayParameter):
     def __init__(self, name: str, instrument: Instrument,
@@ -167,7 +167,7 @@ class ZVL13(VisaInstrument):
             self._tracename = trace_name
 
         self.inf_lim = 9e+3
-        
+
         self.sup_lim = 13.6e+9
 
         self.timeout_sweep = 40
@@ -179,110 +179,110 @@ class ZVL13(VisaInstrument):
                            set_cmd=self._set_start,
                            unit = 'Hz',
                            label='Start Frequency')
-        
+
         self.add_parameter('stop',
                            get_cmd='FREQ:STOP?',
                            get_parser=float,
                            set_cmd=self._set_stop,
                            unit = 'Hz',
                            label='Stop Frequency')
-        
+
         self.add_parameter('center',
                            get_cmd='FREQ:CENT?',
                            get_parser=float,
                            set_cmd=self._set_center,
                            unit = 'Hz',
                            label='Center Frequency')
-        
+
         self.add_parameter('span',
                             get_cmd='FREQ:SPAN?',
                             get_parser=float,
                             set_cmd=self._set_span,
                             unit = 'Hz',
                             label='Center Frequency')
-        
+
         self.add_parameter('npts',
                            get_cmd='SWE:POIN?',
                            get_parser=int,
                            set_cmd=self._set_npts,
                            label='Number of points')
-        
+
         self.add_parameter('power',
                             get_cmd='SOUR:POW?',
                             get_parser=float,
                             set_cmd=self._set_power,
                             unit = 'dBm',
                             label='Power')
-        
+
         self.add_parameter('format',
                             vals=Strings(),
                             get_cmd=partial(self._get_format,
                                             tracename=self._tracename),
                             set_cmd=self._form,
-                            label='Format')        
-        
+                            label='Format')
+
         self.add_parameter('avg',
                             get_parser=int,
                             vals=Ints(1, 5000),
                             get_cmd='AVER:COUN?',
                             set_cmd=self._average,
                             label='Averages')
-        
+
         self.add_parameter(name='num_ports',
                            get_cmd='INST:PORT:COUN?',
                            get_parser=int)
-        
+
         self.add_parameter(name='S_parameter',
                            label='S parameter',
                            get_cmd=f"CALC:PAR:MEAS? '{self._tracename}'",
                            set_cmd=self._set_s_parameter,
                            vals=Strings())
-        
+
         self.add_parameter(name='trace_mag_phase',
                            start=self.start(),
                            stop=self.stop(),
                            npts=self.npts(),
                            channel = n,
                            parameter_class=FrequencySweepMagPhase)
-        
+
         self.add_parameter(name='trace',
                            start=self.start(),
                            stop=self.stop(),
                            npts=self.npts(),
                            channel = n,
                            parameter_class=FrequencySweep)
-        
+
         self.add_parameter(name='S_trace',
                            start=self.start(),
                            stop=self.stop(),
                            npts=self.npts(),
                            channel = n,
                            parameter_class=ComplexSweep)
-        
+
         self.add_parameter(name='spectrum',
                            start=self.start(),
                            stop=self.stop(),
                            npts=self.npts(),
                            channel = n,
                            parameter_class=SAFrequencySweep)
-        
+
         self.add_parameter(name='status',
                             get_cmd='CONF:CHAN1:STAT?',
                             set_cmd='CONF:CHAN1:STAT {{}}',
                             get_parser=int)
-        
+
         self.add_parameter(name='rf_power',
                             get_cmd='OUTP?',
                             set_cmd=self._set_rf_power,
                             get_parser=int)
-        
+
         self.add_parameter(name='bandwidth',
                            label='Bandwidth',
                            unit='Hz',
                            get_cmd='SENS:BAND?',
                            set_cmd=self._set_bandwidth,
                            get_parser=int)
-        
+
         self.add_parameter(name='freq_step',
                            label='Frequency step size',
                            unit='Hz',
@@ -291,7 +291,7 @@ class ZVL13(VisaInstrument):
                            get_parser=int)
 
         self.calibration_file = 'Cal_17_11_2021.cal'
-        
+
         self.add_function('autoscale', call_cmd = 'DISP:WIND:TRAC:Y:AUTO ONCE')
 
         self.add_function('electrical_delay_auto',
@@ -349,7 +349,7 @@ class ZVL13(VisaInstrument):
 
     def _get_trace_name(self):
         trace_catalog = self._get_trace_catalog()
-        if len(trace_catalog) == 2:            
+        if len(trace_catalog) == 2:
             ch, trace_name = trace_catalog
             n = ch[1]
             trace_name = trace_name[:-1]
@@ -360,7 +360,7 @@ class ZVL13(VisaInstrument):
 
     def _set_freq_step(self, n: int):
         min_step = (self.stop_f() - self.start_f())/(4001)
-        max_step = (self.stop_f() - self.start_f())/1 
+        max_step = (self.stop_f() - self.start_f())/1
 
         if n>min_step and n<max_step:
             self.write("SENS:SWE:STEP " + str(n))
@@ -371,25 +371,25 @@ class ZVL13(VisaInstrument):
     def _set_npts(self, n: int) -> None:
         self.write("SWE:POIN " + str(n))
         self.update_traces()
-        
+
     def _set_s_parameter(self, msg: str) -> None:
         S_params = ['S11','S12','S21','S22']
 
         if msg in S_params:
             self.write(f"CALC:PAR:MEAS '{self._tracename}', '{msg}'")
-        else: 
+        else:
             raise AttributeError('Illegal string. Allowed S parameters: S11, S12, S21, S22')
 
     def _set_bandwidth(self, val:int) -> None:
         if val <= 10e6 and val > 10:
             self.write('SENS:BAND '+str(int(val)))
-        else: 
+        else:
             raise AttributeError('Bandwidth value out of range')
-        
+
     def _set_rf_power(self, val: int) -> None:
         if val == 0:
             self.write('OUTP OFF')
-        elif val == 1: 
+        elif val == 1:
             self.write('OUTP ON')
         else:
             raise AttributeError('Write 1 to switch on and 0 to switch off')
@@ -398,21 +398,21 @@ class ZVL13(VisaInstrument):
         return self.ask("CALC:FORM?")
 
     def _form(self, msg:str) -> None:
-        if msg == 'phase':                
+        if msg == 'phase':
             self.write('CALC:FORM PHAS')
         elif msg == 'dbm':
             self.write('CALC:FORM MLOG')
-        elif msg == 'polar':                
-            self.write('CALC:FORM POL')          
-        elif msg == 'swr':                
+        elif msg == 'polar':
+            self.write('CALC:FORM POL')
+        elif msg == 'swr':
             self.write('CALC:FORM SWR')
         elif msg == 'magnitude':
-            self.write('CALC:FORM MLIN')            
-        elif msg == 'real':                
+            self.write('CALC:FORM MLIN')
+        elif msg == 'real':
             self.write('CALC:FORM REAL')
         elif msg == 'img':
             self.write('CALC:FORM IMAG')
-        elif msg == 'unwrapped phase':                
+        elif msg == 'unwrapped phase':
             self.write('CALC:FORM UPH')
         elif msg == 'smith':
             self.write('CALC:FORM SMIT')
@@ -430,7 +430,7 @@ class ZVL13(VisaInstrument):
         self.write('AVER:COUN ' + str(int(num)))
         self.write('AVER:STAT ON')
         self.write('AVER:CLE')
-            
+
     def _set_start(self, val: float):
         start = val
         stop = self.stop()
@@ -440,7 +440,7 @@ class ZVL13(VisaInstrument):
             self.write('FREQ:STAR '+ str(int(start)))
 
         self.update_traces()
-                
+
     def _set_stop(self, val: float):
         stop = val
         start = self.start()
@@ -450,7 +450,7 @@ class ZVL13(VisaInstrument):
             self.write('FREQ:STOP '+ str(int(stop)))
 
         self.update_traces()
-                
+
     def _set_center(self, val: float):
         center = val
 
@@ -462,17 +462,17 @@ class ZVL13(VisaInstrument):
         self.update_traces()
 
     def _set_span(self, val: float):
-        span = val   
+        span = val
         center = self.center()
 
         if center + span * 0.5 >= self.sup_lim or center - span * 0.5 <= self.inf_lim:
             raise ValueError("Out of the VNA limit.")
-        else:        
+        else:
             self.write('FREQ:SPAN '+ str(int(span)))
 
         self.update_traces()
 
-    def _set_power(self, val: float):        
+    def _set_power(self, val: float):
         if val > 0:
             raise ValueError(
                 "Attenuation cannot be positive.")
@@ -496,7 +496,7 @@ class ZVL13(VisaInstrument):
             try:
                 with self.root_instrument.timeout.set_to(self.timeout_sweep):
                     self.write('SENS:SWEEP:COUNT '+ str(self.avg()))
-                    self.write('INIT:IMMEDIATE:SCOPE:SINGLE')                        
+                    self.write('INIT:IMMEDIATE:SCOPE:SINGLE')
                     self.write('INIT:CONT OFF')
                     self.write('INIT:IMM; *WAI')
                     self.write("CALC:PAR:SEL '{self._tracename}'")
@@ -515,7 +515,7 @@ class ZVL13(VisaInstrument):
         try:
             with self.root_instrument.timeout.set_to(self.timeout_sa):
                 self.write('SENS:SWEEP:COUNT '+ str(self.avg()))
-                self.write('INIT:IMMEDIATE:SCOPE:SINGLE')                        
+                self.write('INIT:IMMEDIATE:SCOPE:SINGLE')
                 self.write('INIT:CONT OFF')
                 self.write('INIT:IMM; *WAI')
                 data_str = self.ask('FORM ASC;TRAC? TRACE1')

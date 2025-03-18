@@ -21,8 +21,8 @@ class M2Solstis3(IPInstrument):
 
     """
     _sleep_interval: float = 0.2
-    """Amount of time slept before querying for the status after a wavelength 
-    move. If 0, the status will often not be updated yet and the blocking 
+    """Amount of time slept before querying for the status after a wavelength
+    move. If 0, the status will often not be updated yet and the blocking
     mechanism will fail."""
 
     def __init__(self, name: str, address: str, port: int,
