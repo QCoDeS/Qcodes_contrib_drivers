@@ -120,15 +120,16 @@ class QSwitch(Instrument):
             name (str): Name for instrument
             address (str): Address identification string, either a visa identification address (for USB or TCP/IP (fw<=1.3)) or IP address (for UDP (fw>=2.0))
         """
+        visalib = kwargs.pop('visalib', '@py')
         super().__init__(name, **kwargs)
         self._check_instrument_name(name)
         if 'ASRL' in address:
             self._udp_mode = False
-            self._switch = visa.ResourceManager('@py').open_resource(address)
+            self._switch = visa.ResourceManager(visalib).open_resource(address)
             self._set_up_visa()
         elif 'TCPIP' in address: #(TCP/IP connection for fw 1.3 and below)
             self._udp_mode = False
-            self._switch = visa.ResourceManager('@py').open_resource(address)
+            self._switch = visa.ResourceManager(visalib).open_resource(address)
             self._set_up_visa()
         elif address.count(":") == 0: #(UDP connection for fw 2.0 and above)
             self._udp_mode = True
