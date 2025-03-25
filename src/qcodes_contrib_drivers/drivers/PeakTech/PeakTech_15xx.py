@@ -51,8 +51,8 @@ class PeakTech15xx(VisaInstrument):
             gmax: Optional. A string specifying the maximum voltage and
                   current in the format 'VVVAAA', where 'VVV' is the maximum
                   voltage (e.g., 162 for 16.2 V) and 'AAA' is the maximum
-                  current (e.g., 430 for 4.30 A). 
-                  If it doesn't match the response of `GMAX` from the 
+                  current (e.g., 430 for 4.30 A).
+                  If it doesn't match the response of `GMAX` from the
                   instrument, a error will be raised.
                   Use "ask('GMAX')" to retrieve it.
 
@@ -62,7 +62,7 @@ class PeakTech15xx(VisaInstrument):
             address=address,
             **kwargs
         )
-        
+
         self._simulated = 'pyvisa_sim' in type(self.visa_handle.visalib).__module__
 
         self.serial_handle: SerialInstrument = cast(SerialInstrument, self.visa_handle)
@@ -204,7 +204,7 @@ class PeakTech15xx(VisaInstrument):
             'CV': Constant Voltage mode
             'CC': Constant Current mode
         """
-        
+
         if not self._simulated:
             self.snapshot(True)
 
@@ -236,7 +236,7 @@ class PeakTech15xx(VisaInstrument):
             "model": model,
             "serial": serial,
             "firmware": firmware
-        }        
+        }
 
     def _check_and_flush_buffer(self) -> None:
         """
@@ -391,7 +391,7 @@ class PeakTech15xx(VisaInstrument):
             input_float: A float value (e.g., 12.7).
 
         Returns:
-            A 3-character string with the decimal point removed and 
+            A 3-character string with the decimal point removed and
             leading zeros if necessary (e.g., '127', '005').
 
         Raises:
@@ -411,12 +411,12 @@ class PeakTech15xx(VisaInstrument):
         """
         Get the maximum voltage and current from the instrument or validate
         against the provided `gmax` parameter.
-    
+
         Args:
             gmax: Optional string specifying the maximum voltage and
                   current in the format 'VVVAAA'. If provided, this method
                   validates it against the instrument's response.
-    
+
         Raises:
             ValueError: If the instrument's `GMAX` response does not match
                         the provided `gmax`.
@@ -445,4 +445,3 @@ class PeakTech15xx(VisaInstrument):
                 f"Failed to validate instrument: {e}. Ensure the instrument "
                 f"is connected and responds to the 'GMAX' command."
             )
-    
