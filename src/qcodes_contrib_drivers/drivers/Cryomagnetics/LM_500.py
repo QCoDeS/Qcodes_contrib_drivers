@@ -55,4 +55,3 @@ class LM_500(VisaInstrument):
         """Gets units of measurements to add to parameter.
         """
         return self.visa_handle.query('UNITS?')
-
