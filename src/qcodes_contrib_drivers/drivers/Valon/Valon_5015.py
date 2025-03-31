@@ -3,6 +3,8 @@ Driver for Valon 5015 Frequency Synthesizer.
 
 Please refer to Valon's 5015 Frequency Synthesizer manual for further
 details and functionality. This model is not SCPI compliant.
+
+Working with FW 2.0a
 """
 import re
 import logging
@@ -12,9 +14,7 @@ from qcodes.utils.validators import Ints, Numbers, Bool
 from qcodes import VisaInstrument
 import pyvisa.constants as vi_const
 
-
 log = logging.getLogger(__name__)
-
 
 class Valon5015(VisaInstrument):
     """Driver for Valon 5015 Frequency Synthesizer.
@@ -22,11 +22,11 @@ class Valon5015(VisaInstrument):
     This driver does not contain all commands available for the Valon 5015 but
     only the ones most commonly used.
     """
-    __frequency_regex = re.compile(r"F (?P<frequency>\d+([.]\d+)?) MHz")
-    __offset_regex = re.compile(r"OFFSET (?P<offset>\d+([.]\d+)?) MHz")
-    __power_regex = re.compile(r"PWR (?P<power>\d+[.]\d+)")
-    __modulation_db_regex = re.compile(r"AMD (?P<modulation_db>\d+[.]\d+) dB")
-    __modulation_frequency_regex = re.compile(r"AMF (?P<modulation_frequency>\d+([.]\d+)?) kHz")
+    __frequency_regex = re.compile(r"F (?P<frequency>-?\d+([.]\d+)?) MHz")
+    __offset_regex = re.compile(r"OFFSET (?P<offset>-?\d+([.]\d+)?) MHz")
+    __power_regex = re.compile(r"PWR (?P<power>-?\d+[.]\d+)")
+    __modulation_db_regex = re.compile(r"AMD (?P<modulation_db>-?\d+[.]\d+) dB")
+    __modulation_frequency_regex = re.compile(r"AMF (?P<modulation_frequency>-?\d+([.]\d+)?) kHz")
     __low_power_mode_enabled_regex = re.compile(r"PDN (?P<low_power_mode_enabled>[01])")
     __buffer_amplifiers_enabled_regex = re.compile(r"OEN (?P<buffer_amplifiers_enabled>[01])")
 
@@ -58,7 +58,7 @@ class Valon5015(VisaInstrument):
                            unit='Hz',
                            get_cmd=self._get_offset,
                            set_cmd=self._set_offset,
-                           vals=Numbers(-4295e3, 4295e3),
+                           vals=Numbers(-4295e6, 4295e6),
                            docstring="Get/set the offset to be added or substracted from the frequency. The allowed range is from -4.295 GHz to 4295 GHz and the value is expressed in Hz.")
 
         self.add_parameter(name='power',
@@ -80,7 +80,7 @@ class Valon5015(VisaInstrument):
                            label='Modulation_Frequency',
                            unit='Hz',
                            get_cmd=self._get_modulation_frequency,
-                           set_cmd=self._set_modulation_frequency,
+                           set_cmd=self._set_modulation_frequency, # Doesn't appear to work
                            vals=Numbers(1, 2e3),
                            docstring="Get/Set the AM modulation frequency. The allowed range is from 1 Hz to 2 kHz and the value is expressed in Hz.")
 
@@ -98,100 +98,88 @@ class Valon5015(VisaInstrument):
                            vals=Bool(),
                            docstring="Enables or disables the RF output buffer amplifiers.")
 
-    def _get_status(self):
-        responses = [self.ask("stat") for _ in range(14)]
-        responses = "\n".join(responses[1:])
+    def askv(self, cmd: str, ltr: int = 1):
         self._flush()
+        self.write(cmd)
+        return [self.visa_handle.read() for _ in range(ltr)]
+
+    def _get_status(self):
+        responses = self.askv('stat', 14)
+        responses = "\n".join(responses[1:])
         return responses
 
     def _get_id(self):
-        responses = [self.ask("id") for _ in range(2)]
+        responses = self.askv("id", 2)
         responses = "\n".join(responses[1:])
-        self._flush()
         return responses
 
     def _set_id(self, n):
-        self.ask(f"id {n}")
-        self._flush()
+        self.askv(f"id {n}")
 
     def _get_frequency(self):
-        response = [self.ask("frequency") for _ in range(2)][1]
+        response = self.askv("frequency", 2)[1]
         match = self.__frequency_regex.match(response)
         frequency = match.group("frequency")
-        self._flush()
         return float(frequency) * 1e6
 
     def _set_frequency(self, frequency):
-        self.ask(f"frequency {int(frequency)} Hz")
-        self._flush()
+        self.askv(f"frequency {int(frequency)} Hz")
 
     def _get_offset(self):
-        response = [self.ask("offset") for _ in range(2)][1]
+        response = self.askv("offset", 2)[1]
         match = self.__offset_regex.match(response)
         offset = match.group("offset")
-        self._flush()
         return float(offset) * 1e6
 
     def _set_offset(self, offset):
-        self.ask(f"offset {int(offset)} Hz")
-        self._flush()
+        self.askv(f"offset {int(offset)} Hz")
 
     def _get_power(self):
-        response = [self.ask("power") for _ in range(2)][1]
+        response = self.askv("power", 2)[1]
         match = self.__power_regex.match(response)
         power = match.group("power")
-        self._flush()
         return float(power)
 
     def _set_power(self, power):
-        self.ask(f"power {power}")
-        self._flush()
+        self.askv(f"power {power}")
 
     def _get_modulation_db(self):
-        response = [self.ask("amd") for _ in range(2)][1]
+        response = self.askv("amd", 2)[1]
         match = self.__modulation_db_regex.match(response)
         modulation_db = match.group("modulation_db")
-        self._flush()
         return float(modulation_db)
 
     def _set_modulation_db(self, modulation_db):
-        self.ask(f"amd {modulation_db}")
-        self._flush()
+        self.askv(f"amd {modulation_db}")
 
     def _get_modulation_frequency(self):
-        response = [self.ask("amf") for _ in range(2)][1]
+        response = self.askv("amf", 2)[1]
         match = self.__modulation_frequency_regex.match(response)
         modulation_frequency = match.group("modulation_frequency")
-        self._flush()
         return float(modulation_frequency) * 1e3
 
     def _set_modulation_frequency(self, modulation_frequency):
-        self.ask(f"amd {int(modulation_frequency)}")
-        self._flush()
+        self.askv(f"amf {int(modulation_frequency)}")
 
     def _get_low_power_mode_enabled(self):
-        response = [self.ask("pdn") for _ in range(2)][1]
+        response = self.askv("pdn", 2)[1]
         match = self.__low_power_mode_enabled_regex.match(response)
         low_power_mode_enabled = match.group("low_power_mode_enabled")
-        self._flush()
         return True if low_power_mode_enabled == "1" else False
 
     def _set_low_power_mode_enabled(self, low_power_mode_enabled):
         low_power_mode_enabled = "1" if low_power_mode_enabled else "0"
-        self.ask(f"pdn {low_power_mode_enabled}")
-        self._flush()
+        self.askv(f"pdn {low_power_mode_enabled}")
 
     def _get_buffer_amplifiers_enabled(self):
-        response = [self.ask("oen") for _ in range(2)][1]
+        response = self.askv("oen", 2)[1]
         match = self.__buffer_amplifiers_enabled_regex.match(response)
         buffer_amplifiers_enabled = match.group("buffer_amplifiers_enabled")
-        self._flush()
         return True if buffer_amplifiers_enabled == "1" else False
 
     def _set_buffer_amplifiers_enabled(self, buffer_amplifiers_enabled):
         buffer_amplifiers_enabled = "1" if buffer_amplifiers_enabled else "0"
-        self.ask(f"oen {buffer_amplifiers_enabled}")
-        self._flush()
+        self.askv(f"oen {buffer_amplifiers_enabled}")
 
     def _flush(self):
-        self.visa_handle.flush(vi_const.VI_READ_BUF | vi_const.VI_READ_BUF_DISCARD)
+        self.visa_handle.flush(vi_const.VI_IO_IN_BUF_DISCARD)
