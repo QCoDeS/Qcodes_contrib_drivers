@@ -45,7 +45,7 @@ class WindfreakSynthUSB3(VisaInstrument):
             vals=vals.Enum('OFF', 'ON')
             )
         """Turn the output on or off. Be careful using this command; communication sometimes hangs up if you set parameters with the output off, or set the ouptut on twice in a row."""
-        
+
         self.frequency = Parameter(
             "frequency",
             unit="MHz",
