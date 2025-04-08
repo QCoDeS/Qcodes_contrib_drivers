@@ -1,0 +1,21 @@
+qcodes\_contrib\_drivers.drivers.M2 package
+===========================================
+
+Submodules
+----------
+
+qcodes\_contrib\_drivers.drivers.M2.M2\_Solstis\_3 module
+---------------------------------------------------------
+
+.. automodule:: qcodes_contrib_drivers.drivers.M2.M2_Solstis_3
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: qcodes_contrib_drivers.drivers.M2
+   :members:
+   :undoc-members:
+   :show-inheritance:
