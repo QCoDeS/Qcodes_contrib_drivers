@@ -9,7 +9,7 @@ by the developers of the individual drivers.
 Default branch is now main
 ##########################
 
-The default branch in qcodes_contrib_drivers has been remamed to main.
+The default branch in qcodes_contrib_drivers has been renamed to main.
 If you are working with a local clone of qcodes_contrib_drivers you should update it as follows.
 
 * Run ``git fetch origin`` and ``git checkout main``
