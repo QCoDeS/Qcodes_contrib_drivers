@@ -1508,7 +1508,8 @@ class QDac2Channel(InstrumentChannel):
             unit='V/s',
             set_cmd='sour{1}:volt:slew {0}'.format('{}', channum),
             get_cmd=f'sour{channum}:volt:slew?',
-            get_parser=float
+            get_parser=float,
+            vals=validators.Numbers(0.01, 2e7)
         )
         self.add_parameter(
             name='read_current_A',
