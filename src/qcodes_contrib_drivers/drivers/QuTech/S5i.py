@@ -1,3 +1,4 @@
+from typing import Dict, Optional
 from qcodes.instrument.base import Instrument
 from qcodes.utils.validators import Bool, Numbers
 
@@ -64,7 +65,7 @@ class S5i(Instrument):
                            vals=Numbers(-14, 20),
                            docstring='Set output power')
 
-    def optimize_for_frequency(self):
+    def optimize_for_frequency(self) -> None:
         """
         This method finds the optimum stepsize for the set frequency.
 
@@ -76,8 +77,14 @@ class S5i(Instrument):
         stepsize = self.s5i.get_optimal_stepsize(self.s5i.rf_frequency)
         self.s5i.set_stepsize(stepsize)
 
-    def _get_stepsize(self):
+    def _get_stepsize(self) -> float:
         return self.s5i.stepsize
 
-    def _get_rf_frequency(self):
+    def _get_rf_frequency(self) -> float:
         return self.s5i.rf_frequency
+
+    def get_idn(self) -> Dict[str, Optional[str]]:
+        return dict(vendor='QuTech',
+                    model='S5i',
+                    serial='',
+                    firmware='')

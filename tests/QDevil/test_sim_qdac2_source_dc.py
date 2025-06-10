@@ -176,3 +176,11 @@ def test_dc_abort(qdac):  # noqa
     qdac.ch02.dc_abort()
     # -----------------------------------------------------------------------
     assert qdac.get_recorded_scpi_commands() == ['sour2:dc:abor']
+
+@pytest.mark.parametrize('u', [0.001, 2e8])
+def test_invalid_dc_slew_rate(u, qdac):  # noqa
+    # -----------------------------------------------------------------------
+    with pytest.raises(ValueError) as error:
+        qdac.ch01.dc_slew_rate_V_per_s(u)
+    # -----------------------------------------------------------------------
+    assert f'{u} is invalid' in repr(error)

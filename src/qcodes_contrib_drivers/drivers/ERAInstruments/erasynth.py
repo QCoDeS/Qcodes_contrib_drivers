@@ -20,7 +20,9 @@ import time
 import json
 import logging
 
-from qcodes import VisaInstrument, Parameter, validators
+from qcodes import validators
+from qcodes.instrument import VisaInstrument
+from qcodes.parameters import Parameter
 
 try:
     import pyvisa
@@ -674,7 +676,7 @@ class ERASynthBase(VisaInstrument):
         num_tests = len(par_values)
         for i, (name, val) in enumerate(par_values):
             print(f"\r[{i+1:2d}/{num_tests}] Running...", end="")
-            self.set(name, val)
+            self.parameters[name].set(val)
 
         print("\nDone!")
 

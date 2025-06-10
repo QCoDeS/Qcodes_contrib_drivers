@@ -379,7 +379,7 @@ class FrequencyModulation(InstrumentChannel):
             name  : the internal QCoDeS name of this channel
             hwchan: the internal number of the hardware channel used in the communication
             chnum : the internal number of the channel used for the communication
-    
+
         Attributes:
             state: actives/deactivates the frequency modulation. Values are 'ON' and 'OFF'.
             deviation: Sets the modulation deviation of the frequency modulation in Hz.
@@ -1209,11 +1209,11 @@ class LFOutputChannel(InstrumentChannel):
 
         Attributes:
             bandwidth: (ReadOnly) Requests the current bandwidth.
-    
+
             state: (hwchan=1) The state of the output. Values are 'ON' or 'OFF'.
             offset: (hwchan=1) DC offset voltage in the range from -3.6V to +3.6V.
             source: (hwchan=1) Determines the LF signal to be synchronized if monitoring is enabled.
-    
+
                 - 'LF1', 'LF2', 'LF1A', 'LF2A', 'LF1B', 'LF2B': Selects an internally generated
                   LF signal.
                 - 'NOISE', 'NOISA', 'NOISB': Selects an internally generated noise signal.
@@ -1221,11 +1221,11 @@ class LFOutputChannel(InstrumentChannel):
                 - 'AM', 'AMA', 'AMB': Selects the AM signal.
                 - 'FMPM', 'FMPMA', 'FMPMB': Selects the signal also used by the frequency or phase
                   modulations.
-    
+
             source_path: (hwchan=1) Path of the LF output source. Values are 'A' or 'B'.
             voltage: (hwchan=1) Output voltage of the LF output. The valid range will be dynamic
             as shown in the datasheet.
-    
+
             period: (lfchan=1, ReadOnly). Queries the repetition frequency of the sine signal.
             frequency: (lfchan=1) The Frequency of the LF signal when the mode() is 'FIX'. Valid range is from 0.1Hz and ends
             depending on the installed options.
@@ -1233,10 +1233,10 @@ class LFOutputChannel(InstrumentChannel):
             freq_min: (lfchan=1) Set minimum for manual frequency from 0.1Hz to 1MHz.
             freq_max: (lfchan=1) Set maximum for manual frequency from 0.1Hz to 1MHz.
             mode: (lfchan=1) Set the used mode:
-    
+
                 - 'FIX': fixed frequency mode (CW is a synonym)
                 - 'SWE': set sweep mode (use LFOutputSweep class)
-    
+
             shape: (SMW-K24) Define the shape of the signal.
             Valid values: 'SINE','SQUARE','TRIANGLE','TRAPEZE'.
             shape_duty_cycle: (SMW-K24) Duty cycle for shape pulse (range 1e-6 to 100)
@@ -1988,7 +1988,7 @@ class RohdeSchwarz_SMW200A(VisaInstrument):
 #class RohdeSchwarz_SMW200A(MockVisa):
     """This is the qcodes driver for the Rohde & Schwarz SMW200A vector signal
     generator.
-    
+
     Do not forget to change the class for real / simulation mode.
 
     Status:
@@ -2090,7 +2090,7 @@ class RohdeSchwarz_SMW200A(VisaInstrument):
         amchannels.lock()
         self.add_submodule('am_channels', amchannels)
 
-        if 'SMW-B22' or 'SMW-B20' in self.options:
+        if 'SMW-B22' in self.options or 'SMW-B20' in self.options:
             #Frequency Modulation submodules
             fmchannels = ChannelList(self, "FMChannels", FrequencyModulation,
                                      snapshotable=False)
