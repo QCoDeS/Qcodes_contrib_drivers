@@ -133,5 +133,5 @@ autodoc_mock_imports = [
     "msl",
     "serial",
     "scipy",
-    "nanonis_tramea_specs"
+    "nanonis_tramea"
 ]
