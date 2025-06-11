@@ -2,6 +2,7 @@ from functools import partial
 from typing import Optional
 
 from qcodes import Instrument
+import numpy as np
 import socket, nanonis_tramea
 """
 IMPORTANT
