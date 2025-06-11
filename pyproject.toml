@@ -104,7 +104,8 @@ module = [
     "autobahn",
     "python-dotenv",
     "serial.*",
-    "scipy.*"
+    "scipy.*",
+    "nanonis_tramea"
 ]
 ignore_missing_imports = true
 
