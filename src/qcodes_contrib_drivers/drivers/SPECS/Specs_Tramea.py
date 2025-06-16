@@ -55,12 +55,11 @@ class NanonisTramea(Instrument):
     def ThreeDSwp_SwpSaveOptionsGet(self):
         return self.n.ThreeDSwp_SaveOptionsGet()[2]
     
-    def ThreeDSwp_SwpSaveOptionsSet(self, seriesName: str, createDateandTimeFolder: np.int32, comment: str,
-                                    moduleNamesSize: np.int32, moduleNames: np.ndarray[str]):
-        return self.n.ThreeDSwp_SaveOptionsSet(seriesName, createDateandTimeFolder, comment, moduleNamesSize, moduleNames)[2]
+    def ThreeDSwp_SwpSaveOptionsSet(self, seriesName: str, createDateandTimeFolder: np.int32, comment: str, moduleNames: np.ndarray[str]):
+        return self.n.ThreeDSwp_SaveOptionsSet(seriesName, createDateandTimeFolder, comment, moduleNames)[2]
     
-    def ThreeDSwpStart(self):
-        return self.n.ThreeDSwp_Start()[2]
+    def ThreeDSwpStart(self, WaitUntilWinished):
+        return self.n.ThreeDSwp_Start(WaitUntilWinished)[2]
     
     def ThreeDSwpStop(self):
         return self.n.ThreeDSwp_Stop()[2]
@@ -338,11 +337,11 @@ class NanonisTramea(Instrument):
     def LockInFreqSwp_PropsGet(self):
         return self.n.LockInFreqSwp_PropsGet()[2]
     
-    def Script_Load(self, Script_file_path, Load_session):
-        return self.n.Script_Load(Script_file_path, Load_session)[2]
+    def Script_Load(self, Script_index, Script_file_path, Load_session):
+        return self.n.Script_Load(Script_index, Script_file_path, Load_session)[2]
     
-    def Script_Save(self, Script_file_path, Save_session):
-        return self.n.Script_Save(Script_file_path, Save_session)[2]
+    def Script_Save(self, Script_index, Script_file_path, Save_session):
+        return self.n.Script_Save(Script_index, Script_file_path, Save_session)[2]
     
     def Script_Deploy(self, Script_index):
         return self.n.Script_Deploy(Script_index)[2]
@@ -359,8 +358,8 @@ class NanonisTramea(Instrument):
     def Script_ChsGet(self, Acquire_buffer):
         return self.n.Script_ChsGet(Acquire_buffer)[2]
     
-    def Script_ChsSet(self, Acquire_buffer, Number_of_channels, Channel_indexes):
-        return self.n.Script_ChsSet(Acquire_buffer, Number_of_channels, Channel_indexes)[2]
+    def Script_ChsSet(self, Acquire_buffer, Channel_indexes):
+        return self.n.Script_ChsSet(Acquire_buffer, Channel_indexes)[2]
     
     def Script_DataGet(self, Acquire_buffer, Sweep_number):
         return self.n.Script_DataGet(Acquire_buffer, Sweep_number)[2]
@@ -483,11 +482,11 @@ class NanonisTramea(Instrument):
     def TCPLog_StatusGet(self):
         return self.n.TCPLog_StatusGet()[2]
     
-    def OsciHR_ChSet(self, Channel_index):
-        return self.n.OsciHR_ChSet(Channel_index)[2]
+    def OsciHR_ChSet(self, Channel_index, Signal_index):
+        return self.n.OsciHR_ChSet(Channel_index, Signal_index)[2]
     
-    def OsciHR_ChGet(self):
-        return self.n.OsciHR_ChGet()[2]
+    def OsciHR_ChGet(self, Osci_index):
+        return self.n.OsciHR_ChGet(Osci_index)[2]
     
     def OsciHR_OversamplSet(self, Oversampling_index):
         return self.n.OsciHR_OversamplSet(Oversampling_index)[2]
@@ -495,11 +494,11 @@ class NanonisTramea(Instrument):
     def OsciHR_OversamplGet(self):
         return self.n.OsciHR_OversamplGet()[2]
     
-    def OsciHR_CalibrModeSet(self, Calibration_mode):
-        return self.n.OsciHR_CalibrModeSet(Calibration_mode)[2]
+    def OsciHR_CalibrModeSet(self, Osci_index, Calibration_mode):
+        return self.n.OsciHR_CalibrModeSet(Osci_index, Calibration_mode)[2]
     
-    def OsciHR_CalibrModeGet(self):
-        return self.n.OsciHR_CalibrModeGet()[2]
+    def OsciHR_CalibrModeGet(self, Osci_index):
+        return self.n.OsciHR_CalibrModeGet(Osci_index)[2]
     
     def OsciHR_SamplesSet(self, Number_of_samples):
         return self.n.OsciHR_SamplesSet(Number_of_samples)[2]
@@ -516,8 +515,8 @@ class NanonisTramea(Instrument):
     def OsciHR_Run(self):
         return self.n.OsciHR_Run()[2]
     
-    def OsciHR_OsciDataGet(self, Data_to_get, Timeout_s):
-        return self.n.OsciHR_OsciDataGet(Data_to_get, Timeout_s)[2]
+    def OsciHR_OsciDataGet(self, Osci_index, Data_to_get, Timeout_s):
+        return self.n.OsciHR_OsciDataGet(Osci_index, Data_to_get, Timeout_s)[2]
     
     def OsciHR_TrigModeSet(self, Trigger_mode):
         return self.n.OsciHR_TrigModeSet(Trigger_mode)[2]
@@ -648,8 +647,106 @@ class NanonisTramea(Instrument):
     def ReturnDebugInfo(self, returnInfo):
         self.n.returnDebugInfo(returnInfo)
     
-    def OneDSwpOpen(self):
-        return self.n.OneDSwp_Open()[2]
-    
-    def OneDSwpStart(self, GetData: np.uint32, SweepDirection: np.uint32, SaveBaseName: str, ResetSignal: np.uint32):
-        return self.n.OneDSwp_Start(GetData, SweepDirection, SaveBaseName, ResetSignal)[2]
+    def HSSwp_AcqChsSet(self, channelIndexes: np.ndarray[np.integer]):
+        return self.n.HSSwp_AcqChsSet(channelIndexes)[2]
+		
+    def HSSwp_AcqChsGet(self):
+        return self.n.HSSwp_AcqChsGet()[2]
+		
+    def HSSwp_AutoReverseSet(self, OnOff, Condition, Signal, Threshold, LinkToOne, Condition2, Signal2, Threshold2):
+            return self.n.HSSwp_AutoReverseSet(OnOff, Condition, Signal, Threshold, LinkToOne, Condition2, Signal2, Threshold2)[2]
+
+    def HSSwp_AutoReverseGet(self):
+            return self.n.HSSwp_AutoReverseGet()[2]
+
+    def HSSwp_EndSettlSet(self, Threshold):
+            return self.n.HSSwp_EndSettlSet(Threshold)[2]
+
+    def HSSwp_EndSettlGet(self):
+            return self.n.HSSwp_EndSettlGet()[2]
+
+    def HSSwp_NumSweepsSet(self, Number_Of_Sweeps, Continuous):
+            return self.n.HSSwp_NumSweepsSet(Number_Of_Sweeps, Continuous)[2]
+
+    def HSSwp_NumSweepsGet(self):
+            return self.n.HSSwp_NumSweepsGet()[2]
+
+    def HSSwp_ResetSignalsSet(self, ResetSignals):
+            return self.n.HSSwp_ResetSignalsSet(ResetSignals)[2]
+
+    def HSSwp_ResetSignalsGet(self):
+            return seld.n.HSSwp_ResetSignalsGet()[2]
+
+    def HSSwp_SaveBasenameSet(self, Basename, Path):
+            return self.n.HSSwp_SaveBasenameSet(Basename, Path)[2]
+
+    def HSSwp_SaveBasenameGet(self):
+            return self.n.HSSwp_SaveBasenameGet()[2]
+
+    def HSSwp_SaveDataSet(self, SaveData):
+            return self.n.HSSwp_SaveDataSet(SaveData)[2]
+
+    def HSSwp_SaveDataGet(self):
+            return self.n.HSSwp_SaveDataGet()[2]
+
+    def HSSwp_SaveOptionsSet(self, Comment, ModulesNames:np.ndarray[str]):
+            return self.n.HSSwp_SaveOptionsSet(Comment, ModulesNames)[2]
+
+    def HSSwp_SaveOptionsGet(self):
+            return self.n.HSSwp_SaveOptionsGet()[2]
+
+    def HSSwp_Start(self, Wait_Until_Done, Timeout):
+            return self.n.HSSwp_Start(Wait_Until_Done, Timeout)[2]
+
+    def HSSwp_Stop(self):
+            return self.n.HSSwp_Stop()[2]
+
+    def HSSwp_StatusGet(self):
+            return self.n.HSSwp_StatusGet()[2]
+
+    def HSSwp_SwpChSigListGet(self):
+            return self.n.HSSwp_SwpChSigListGet()[2]
+
+    def HSSwp_SwpChSignalSet(self, Sweep_Signal_Index, Timed_Sweep):
+            return self.n.HSSwp_SwpChSignalSet(Sweep_Signal_Index, Timed_Sweep)[2]
+
+    def HSSwp_SwpChSignalGet(self):
+            return self.n.HSSwp_SwpChSignalGet()[2]
+
+    def HSSwp_SwpChLimitsSet(self, Relative_Limits, Start, Stop):
+            return self.n.HSSwp_SwpChLimitsSet(Relative_Limits, Start, Stop)[2]
+
+    def HSSwp_SwpChLimitsGet(self):
+            return self.n.HSSwp_SwpChLimitsGet()[2]
+
+    def HSSwp_SwpChNumPtsSet(self, Number_Of_Points):
+            return self.n.HSSwp_SwpChNumPtsSet(Number_Of_Points)[2]
+
+    def HSSwp_SwpChNumPtsGet(self):
+            return self.n.HSSwp_SwpChNumPtsGet()[2]
+
+    def HSSwp_SwpChTimingSet(self, Initial_Settling_Time, Settling_Time, Integration_Time, Max_Slew_Time):
+            return self.n.HSSwp_SwpChTimingSet(Initial_Settling_Time, Settling_Time, Integration_Time, Max_Slew_Time)[2]
+
+    def HSSwp_SwpChTimingGet(self):
+            return self.n.HSSwp_SwpChTimingGet()[2]
+
+    def HSSwp_SwpChBwdSwSet(self, Bwd_Sweep):
+            return self.n.HSSwp_SwpChBwdSwSet(Bwd_Sweep)[2]
+
+    def HSSwp_SwpChBwdSwGet(self):
+            return self.n.HSSwp_SwpChBwdSwGet()[2]
+
+    def HSSwp_SwpChBwdDelaySet(self, Bwd_Delay):
+            return self.n.HSSwp_SwpChBwdDelaySet(Bwd_Delay)[2]
+
+    def HSSwp_SwpChBwdDelayGet(self):
+            return self.n.HSSwp_SwpChBwdDelayGet()[2]
+
+    def HSSwp_ZCtrlOffSet(self, Z_Controller_Off, Z_Controller_Index, Z_Averaging_Time, Z_Offset, Z_Control_Time):
+            return self.n.HSSwp_ZCtrlOffSet(Z_Controller_Off, Z_Controller_Index, Z_Averaging_Time, Z_Offset, Z_Control_Time)[2]
+
+    def HSSwp_ZCtrlOffGet(self):
+            return self.n.HSSwp_ZCtrlOffGet()[2]
+
+		
