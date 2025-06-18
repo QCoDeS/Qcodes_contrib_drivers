@@ -675,7 +675,7 @@ class NanonisTramea(Instrument):
             return self.n.HSSwp_ResetSignalsSet(ResetSignals)[2]
 
     def HSSwp_ResetSignalsGet(self):
-            return seld.n.HSSwp_ResetSignalsGet()[2]
+            return self.n.HSSwp_ResetSignalsGet()[2]
 
     def HSSwp_SaveBasenameSet(self, Basename, Path):
             return self.n.HSSwp_SaveBasenameSet(Basename, Path)[2]
