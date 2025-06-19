@@ -395,7 +395,7 @@ class QSwitch(Instrument):
                     self._sock.settimeout(2)
                     # Send command
                     self._sock.sendto(f"{cmd}\n".encode(), (self._udp_ip, 5025))
-                    sleep_s(0.5)
+                    sleep_s(0.01)
                     # Wait for response
                     data, _ = self._sock.recvfrom(1024)
                     answer = data.decode().strip()
