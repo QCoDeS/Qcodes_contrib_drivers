@@ -139,7 +139,7 @@ class QSwitch(Instrument):
             self._sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             self._sock.settimeout(2)  # time_out in seconds
         else:
-            raise ValueError(f'Unknown connection type')
+            raise ValueError(f'Unknown connection type for address: {address}')
           
         self._set_up_debug_settings()
         self._set_up_simple_functions()
