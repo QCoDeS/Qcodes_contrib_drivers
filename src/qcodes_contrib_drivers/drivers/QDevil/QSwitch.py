@@ -336,20 +336,20 @@ class QSwitch(Instrument):
         """
         if self._udp_mode: # UDP (ethernet) commands
             cmd_lower = cmd.lower()
-            is_open_close_cmd = cmd_lower.find("clos ",0,12) != -1 or (cmd_lower.find("close ",0,12) != -1) or (cmd_lower.find("open ",0,12)  != -1) 
+            is_open_close_cmd = cmd_lower.find("clos ",0,12) != -1 or (cmd_lower.find("close ",0,12) != -1) or (cmd_lower.find("open ",0,12)  != -1)
             is_rst_cmd = (cmd_lower == "*rst")
             counter = 0
-            while True: 
+            while True:
                 self._write(cmd)
                 # Check that relay command was well received
-                if (is_open_close_cmd or is_rst_cmd): 
+                if (is_open_close_cmd or is_rst_cmd):
                     if is_open_close_cmd:
                         splitcmd = cmd.split(" ") # split command name and channel representation
                         reply = self.ask(splitcmd[0]+"? "+splitcmd[1] if len(splitcmd)==2 else "") # use the written command as a query to verify state 
                         if (len(reply) > 0) and (reply.find("0") == -1):  # verify that the relays have switched
                             return
                     elif is_rst_cmd:
-                        reply = self.ask("clos:stat?")  
+                        reply = self.ask("clos:stat?")
                         if (reply == "(@1!0:24!0)"):  # verify that the relays are in the default state
                             return
                     counter += 1
