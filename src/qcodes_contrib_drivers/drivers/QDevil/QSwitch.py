@@ -75,7 +75,10 @@ def state_to_compressed_list(state: State) -> str:
                 start_line = line
                 end_line = line
                 continue
-            if line == end_line + 1:
+            # since start_line is initialized to None, and bool(not None) == True
+            # the block above will always be executed at least once
+            # so we can safely assume that end_line is not None here
+            if line == end_line + 1:  # type: ignore[operator]
                 end_line = line
                 continue
             if start_line == end_line:

@@ -41,6 +41,21 @@ class Dispatcher:
         if code != 0:
             raise SpeError(self._ERROR_CODES.get(code))
 
+def _get_int_or_raise(section: configparser.SectionProxy, attr: str) -> int:
+    """Get an int from a value or raise a TypeError."""
+    val = section.getint(attr)
+    if val is None:
+        raise TypeError(f"Value for '{attr}' in section '{section.name}' "
+                        "is not an integer.")
+    return val
+
+def _get_bool_or_raise(section: configparser.SectionProxy, attr: str) -> bool:
+    """Get an int from a value or raise a TypeError."""
+    val = section.getboolean(attr)
+    if val is None:
+        raise TypeError(f"Value for '{attr}' in section '{section.name}' "
+                        "is not an boolean.")
+    return val
 
 class PortChannel(Dispatcher, InstrumentChannel):
     """Manages instrument communication."""
@@ -419,10 +434,10 @@ class HoribaFHR(Instrument):
                 # This relies on Port being the first section because otherwise
                 # communication with the device will fail.
                 port = PortChannel(self, 'port', self.cli, self.handle,
-                                   section.getint('ComPort'))
+                                   _get_int_or_raise(section, 'ComPort'))
                 port.open.set(True)
-                port.set_baud_rate(section.getint('Baudrate'))
-                port.set_timeout(section.getint('Timeout'))
+                port.set_baud_rate(_get_int_or_raise(section,'Baudrate'))
+                port.set_timeout(_get_int_or_raise(section, 'Timeout'))
                 port.config = dict(section)
             elif name.startswith('Grating'):
                 # Grating1, Grating2, etc
@@ -435,24 +450,28 @@ class HoribaFHR(Instrument):
                     self.handle,
                     motor=int(name[-1]),
                     # TODO: this assumes MotorStepUnit to be != 1
-                    min_value=section.getint('MinNm')*1000,  # pm
-                    max_value=section.getint('MaxNm')*1000,
-                    offset=section.getint('Offset'),  # motor steps
+                    min_value=_get_int_or_raise(section, 'MinNm')*1000,  # pm
+                    max_value=_get_int_or_raise(section, 'MaxNm')*1000,
+                    offset=_get_int_or_raise(section, 'Offset'),  # motor steps
                     label=section['Name'],
                     metadata={'Coefficient of linearity': section.getfloat(
                         'CoefficientOfLinearity'
                     )}
                 )
-                grating.set_id(section.getint('AddrAxe'))
+                grating.set_id(_get_int_or_raise(section, 'AddrAxe'))
+
+                # For whatever reason these parameters are in the
+                # Spectrometer section...
+                spectrometer_config = self.config['Spectrometer']
+
                 grating.set_setup(
-                    # For whatever reason these parameters are in the
-                    # Spectrometer section...
-                    min_speed=self.config['Spectrometer'].getint('SpeedMin'),
-                    max_speed=self.config['Spectrometer'].getint('SpeedMax'),
-                    ramp=self.config['Spectrometer'].getint('Acceleration'),
-                    backlash=self.config['Spectrometer'].getint('Backlash'),
-                    step=self.config['Spectrometer'].getint('MotorStepUnit'),
-                    reverse=self.config['Spectrometer'].getboolean('Reverse')
+
+                    min_speed=_get_int_or_raise(spectrometer_config, 'SpeedMin'),
+                    max_speed=_get_int_or_raise(spectrometer_config, 'SpeedMax'),
+                    ramp=_get_int_or_raise(spectrometer_config, 'Acceleration'),
+                    backlash=_get_int_or_raise(spectrometer_config, 'Backlash'),
+                    step=_get_int_or_raise(spectrometer_config, 'MotorStepUnit'),
+                    reverse=_get_bool_or_raise(spectrometer_config,'Reverse')
                 )
                 # Hardcoded since it is not present in my ini file.
                 # Taken from 'SDK FHR Express -additional informations-.pdf'
@@ -475,21 +494,21 @@ class HoribaFHR(Instrument):
                     motor=int(name[-1]),
                     # min_value and max_value are used for the slit width,
                     # not absolute position.
-                    min_value=section.getint('Minum'),
-                    max_value=section.getint('Maxum'),
-                    offset=section.getint('Offset'),
+                    min_value=_get_int_or_raise(section,'Minum'),
+                    max_value=_get_int_or_raise(section,'Maxum'),
+                    offset=_get_int_or_raise(section,'Offset'),
                     label=section['Name'],
                     metadata={'Coefficient of linearity': section.getfloat(
                         'CoefficientOfLinearity'
                     )}
                 )
-                slit.set_id(section.getint('AddrAxe'))
-                slit.set_setup(min_speed=section.getint('SpeedMin'),
-                               max_speed=section.getint('SpeedMax'),
-                               ramp=section.getint('Acceleration'),
-                               backlash=section.getint('Backlash'),
-                               step=section.getint('MotorStepUnit'),
-                               reverse=section.getboolean('Reverse'))
+                slit.set_id(_get_int_or_raise(section,'AddrAxe'))
+                slit.set_setup(min_speed=_get_int_or_raise(section,'SpeedMin'),
+                               max_speed=_get_int_or_raise(section,'SpeedMax'),
+                               ramp=_get_int_or_raise(section,'Acceleration'),
+                               backlash=_get_int_or_raise(section,'Backlash'),
+                               step=_get_int_or_raise(section,'MotorStepUnit'),
+                               reverse=_get_bool_or_raise(section, 'Reverse'))
                 slit.config = dict(section)
                 slits.append(slit)
             elif name.startswith('Mirror'):
@@ -505,7 +524,7 @@ class HoribaFHR(Instrument):
                     metadata={'Delay (ms)': section.getint('Delayms'),
                               'Duty cycle (%)': section.getint('DutyCycle%')}
                 )
-                mirror.set_id(section.getint('AddrAxe'))
+                mirror.set_id(_get_int_or_raise(section,'AddrAxe'))
                 mirror.config = dict(section)
                 mirrors.append(mirror)
 
