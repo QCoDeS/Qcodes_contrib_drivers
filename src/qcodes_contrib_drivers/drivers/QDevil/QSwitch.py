@@ -140,7 +140,7 @@ class QSwitch(Instrument):
             self._sock.settimeout(2)  # time_out in seconds
         else:
             raise ValueError(f'Unknown connection type for address: {address}')
-          
+
         self._set_up_debug_settings()
         self._set_up_simple_functions()
         self.connect_message()
@@ -345,7 +345,7 @@ class QSwitch(Instrument):
                 if (is_open_close_cmd or is_rst_cmd):
                     if is_open_close_cmd:
                         splitcmd = cmd.split(" ") # split command name and channel representation
-                        reply = self.ask(splitcmd[0]+"? "+splitcmd[1] if len(splitcmd)==2 else "") # use the written command as a query to verify state 
+                        reply = self.ask(splitcmd[0]+"? "+splitcmd[1] if len(splitcmd)==2 else "") # use the written command as a query to verify state
                         if (len(reply) > 0) and (reply.find("0") == -1):  # verify that the relays have switched
                             return
                     elif is_rst_cmd:
