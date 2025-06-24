@@ -676,7 +676,7 @@ class Labphox:
     def FLASH_utils(self, path=None):
         DFU_name = '0483:df11'
         found = False
-        process = subprocess.Popen(['.\Firmware\dfu-util', '-l'], shell=True,
+        process = subprocess.Popen([r'.\Firmware\dfu-util', '-l'], shell=True,
                                    stdout=subprocess.PIPE,
                                    universal_newlines=True)
 
@@ -697,7 +697,7 @@ class Labphox:
 
             if not path:
                 path = '.'
-            process = subprocess.Popen('.\Firmware\dfu-util -d ' + DFU_name + ' -a 0 -s 0x08000000:leave -D ' + path + '\Firmware\Labphox.bin', shell=True,
+            process = subprocess.Popen(r'.\Firmware\dfu-util -d ' + DFU_name + ' -a 0 -s 0x08000000:leave -D ' + path + r'\Firmware\Labphox.bin', shell=True,
                                        stdout=subprocess.PIPE,
                                        universal_newlines=True)
 
