@@ -3,6 +3,7 @@ from typing import Optional
 
 from qcodes import Instrument
 import numpy as np
+import numpy.typing as npt
 import socket
 import nanonis_tramea
 """
@@ -46,7 +47,7 @@ class NanonisTramea(Instrument):
             )
 
 
-    def ThreeDSwp_SwpAcqChsSet(self, channelIndexes: np.ndarray[np.integer]):
+    def ThreeDSwp_SwpAcqChsSet(self, channelIndexes: npt.NDArray[np.integer]):
         return self.n.ThreeDSwp_AcqChsSet(channelIndexes)[2]
 
     def ThreeDSwp_SwpAcqChsGet(self):
@@ -55,7 +56,7 @@ class NanonisTramea(Instrument):
     def ThreeDSwp_SwpSaveOptionsGet(self):
         return self.n.ThreeDSwp_SaveOptionsGet()[2]
 
-    def ThreeDSwp_SwpSaveOptionsSet(self, seriesName: str, createDateandTimeFolder: np.int32, comment: str, moduleNames: np.ndarray[str]):
+    def ThreeDSwp_SwpSaveOptionsSet(self, seriesName: str, createDateandTimeFolder: np.int32, comment: str, moduleNames: npt.NDArray[str]):
         return self.n.ThreeDSwp_SaveOptionsSet(seriesName, createDateandTimeFolder, comment, moduleNames)[2]
 
     def ThreeDSwpStart(self, WaitUntilWinished):
@@ -187,8 +188,8 @@ class NanonisTramea(Instrument):
     def ThreeDSwp_FilePathsGet(self):
         return self.n.ThreeDSwp_FilePathsGet()[2]
 
-    def OneDSwp_AcqChsSet(self, ChannelIndexes):
-        return self.n.OneDSwp_AcqChsSet(ChannelIndexes)[2]
+    def OneDSwp_AcqChsSet(self, ChannelIndexes, ChannelNames):
+        return self.n.OneDSwp_AcqChsSet(ChannelIndexes, ChannelNames)[2]
 
     def OneDSwp_AcqChsGet(self):
         return self.n.OneDSwp_AcqChsGet()[2]
@@ -211,8 +212,8 @@ class NanonisTramea(Instrument):
     def OneDSwp_PropsGet(self):
         return self.n.OneDSwp_PropsGet()[2]
 
-    def OneDSwp_Start(self, GetData, SweepDirection, SaveBaseName, ResetSignal):
-        return self.n.OneDSwp_Start(GetData, SweepDirection, SaveBaseName, ResetSignal)[2]
+    def OneDSwp_Start(self, GetData, SweepDirection, SaveBaseName, ResetSignal, DummyValue):
+        return self.n.OneDSwp_Start(GetData, SweepDirection, SaveBaseName, ResetSignal, DummyValue)[2]
 
     def OneDSwp_Stop(self):
         return self.n.OneDSwp_Stop()[2]
@@ -647,7 +648,7 @@ class NanonisTramea(Instrument):
     def ReturnDebugInfo(self, returnInfo):
         self.n.returnDebugInfo(returnInfo)
 
-    def HSSwp_AcqChsSet(self, channelIndexes: np.ndarray[np.integer]):
+    def HSSwp_AcqChsSet(self, channelIndexes: npt.NDArray[np.integer]):
         return self.n.HSSwp_AcqChsSet(channelIndexes)[2]
 
     def HSSwp_AcqChsGet(self):
@@ -675,7 +676,7 @@ class NanonisTramea(Instrument):
             return self.n.HSSwp_ResetSignalsSet(ResetSignals)[2]
 
     def HSSwp_ResetSignalsGet(self):
-            return self.n.HSSwp_ResetSignalsGet()[2]
+            return seld.n.HSSwp_ResetSignalsGet()[2]
 
     def HSSwp_SaveBasenameSet(self, Basename, Path):
             return self.n.HSSwp_SaveBasenameSet(Basename, Path)[2]
@@ -689,7 +690,7 @@ class NanonisTramea(Instrument):
     def HSSwp_SaveDataGet(self):
             return self.n.HSSwp_SaveDataGet()[2]
 
-    def HSSwp_SaveOptionsSet(self, Comment, ModulesNames:np.ndarray[str]):
+    def HSSwp_SaveOptionsSet(self, Comment, ModulesNames:npt.NDArray[str]):
             return self.n.HSSwp_SaveOptionsSet(Comment, ModulesNames)[2]
 
     def HSSwp_SaveOptionsGet(self):
@@ -748,3 +749,5 @@ class NanonisTramea(Instrument):
 
     def HSSwp_ZCtrlOffGet(self):
             return self.n.HSSwp_ZCtrlOffGet()[2]
+
+
