@@ -748,5 +748,3 @@ class NanonisTramea(Instrument):
 
     def HSSwp_ZCtrlOffGet(self):
             return self.n.HSSwp_ZCtrlOffGet()[2]
-
-
