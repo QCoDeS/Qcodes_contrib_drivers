@@ -2,14 +2,16 @@ import re
 import itertools
 from time import sleep as sleep_s
 from qcodes.instrument.parameter import DelegateParameter
-from qcodes.instrument.visa import VisaInstrument
+from qcodes.instrument.visa import Instrument
 from qcodes.utils import validators
 from pyvisa.errors import VisaIOError
 from typing import (
     Tuple, Sequence, List, Dict, Set, Union, Optional)
 from packaging.version import parse
+import socket
+import pyvisa as visa
 
-# Version 0.5.0
+# Version 1.1.0
 
 State = Sequence[Tuple[int, int]]
 
@@ -27,12 +29,12 @@ def _line_tap_split(input: str) -> Tuple[int, int]:
 
 def channel_list_to_state(channel_list: str) -> State:
     outer = re.match(r'\(@([0-9,:! ]*)\)', channel_list)
-    if not outer:
-        raise ValueError(f'Expected channel list, got {channel_list}')
     result: List[Tuple[int, int]] = []
-    sequences = outer[1].split(',')
-    if sequences == ['']:
+    if len(channel_list)==0:
         return result
+    elif not outer:
+        raise ValueError(f'Expected channel list, got {channel_list}')
+    sequences = outer[1].split(',')
     for sequence in sequences:
         limits = sequence.split(':')
         if limits == ['']:
@@ -112,19 +114,36 @@ def _state_diff(before: State, after: State) -> Tuple[State, State, State]:
     return list(target - initial), list(initial - target), list(target)
 
 
-class QSwitch(VisaInstrument):
+class QSwitch(Instrument):
 
-    def __init__(self, name: str, address: str, **kwargs) -> None:
+    def __init__(self, name: str, address: str, **kwargs: "Unpack[InstrumentBaseKWArgs]") -> None:
         """Connect to a QSwitch
 
         Args:
             name (str): Name for instrument
-            address (str): Visa identification string
-            **kwargs: additional argument to the Visa driver
+            address (str): Address identification string, either a visa identification address (for USB or TCP/IP (fw<=1.3)) or IP address (for UDP (fw>=2.0))
         """
+        visalib = kwargs.pop('visalib', '@py')
+        super().__init__(name, **kwargs)
         self._check_instrument_name(name)
-        super().__init__(name, address, terminator='\n', **kwargs)
-        self._set_up_serial()
+        if 'ASRL' in address:
+            self._udp_mode = False
+            self._switch = visa.ResourceManager(visalib).open_resource(address)
+            self._set_up_visa()
+        elif 'TCPIP' in address: #(TCP/IP connection for fw 1.3 and below)
+            self._udp_mode = False
+            self._switch = visa.ResourceManager(visalib).open_resource(address)
+            self._set_up_visa()
+        elif address.count(":") == 0: #(UDP connection for fw 2.0 and above)
+            self._udp_mode = True
+            self._max_udp_writes = 5
+            self._max_udp_queries = 5
+            self._udp_ip = address
+            self._sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            self._sock.settimeout(2)  # time_out in seconds
+        else:
+            raise ValueError(f'Unknown connection type for address: {address}')
+
         self._set_up_debug_settings()
         self._set_up_simple_functions()
         self.connect_message()
@@ -318,15 +337,40 @@ class QSwitch(VisaInstrument):
         Args:
             cmd (str): SCPI command
         """
-        try:
-            self._write(cmd)
-            self.ask('*opc?')
-            errors = super().ask('all?')
-        except Exception as error:
-            raise ValueError(f'Error: {repr(error)} after executing {cmd}')
-        if errors == '0,"No error"':
-            return
-        raise ValueError(f'Error: {errors} after executing {cmd}')
+        if self._udp_mode: # UDP (ethernet) commands
+            cmd_lower = cmd.lower()
+            is_open_close_cmd = cmd_lower.find("clos ",0,12) != -1 or (cmd_lower.find("close ",0,12) != -1) or (cmd_lower.find("open ",0,12)  != -1)
+            is_rst_cmd = (cmd_lower == "*rst")
+            counter = 0
+            while True:
+                self._write(cmd)
+                # Check that relay command was well received
+                if (is_open_close_cmd or is_rst_cmd):
+                    if is_open_close_cmd:
+                        splitcmd = cmd.split(" ") # split command name and channel representation
+                        reply = self.ask(splitcmd[0]+"? "+splitcmd[1] if len(splitcmd)==2 else "") # use the written command as a query to verify state
+                        if (len(reply) > 0) and (reply.find("0") == -1):  # verify that the relays have switched
+                            return
+                    elif is_rst_cmd:
+                        reply = self.ask("clos:stat?")
+                        if (reply == "(@1!0:24!0)"):  # verify that the relays are in the default state
+                            return
+                    counter += 1
+                    if (counter >= self._max_udp_writes):  # throw error when max attempts is reached
+                        raise ValueError(f'QSwitch {self._udp_ip} (UDP): Command check failure [{cmd_lower}] after {self._max_udp_writes} attempts')
+                else:
+                    self.ask('*opc?')
+                    return
+        else:
+            try:
+                self._write(cmd)
+                self.ask('*opc?')
+                errors = self._switch.query('all?')
+            except Exception as error:
+                raise ValueError(f'Error: {repr(error)} after executing {cmd}')
+            if errors == '0,"No error"':
+                return
+            raise ValueError(f'Error: {errors} after executing {cmd}')
 
     def ask(self, cmd: str) -> str:
         """Send SCPI query to instrument
@@ -338,16 +382,49 @@ class QSwitch(VisaInstrument):
             str: SCPI answer
         """
         if self._record_commands:
-            self._scpi_sent.append(cmd)
-        answer = super().ask(cmd)
-        return answer
+                self._scpi_sent.append(cmd)
+        if self._udp_mode: # UDP (ethernet) queries
+            counter = 0
+            time_before_next = 0.1
+            while True:
+                try:
+                    # Clear input buffer
+                    self._sock.settimeout(0.0001)
+                    while True:
+                        try:
+                            data,_ = self._sock.recvfrom(1024)
+                        except:
+                            break
+                    self._sock.settimeout(2)
+                    # Send command
+                    self._sock.sendto(f"{cmd}\n".encode(), (self._udp_ip, 5025))
+                    sleep_s(0.01)
+                    # Wait for response
+                    data, _ = self._sock.recvfrom(1024)
+                    answer = data.decode().strip()
+                    return answer
+                except Exception:
+                    counter += 1
+                    if (counter >= self._max_udp_queries):
+                        raise ValueError(f'QSwitch {self._udp_ip} (UDP): Query timeout [{cmd}] after {self._max_udp_queries} attempts')
+                    sleep_s(time_before_next)
+                    time_before_next += 0.5
+        else:
+            answer = self._switch.query(cmd)
+            return answer
 
     # -----------------------------------------------------------------------
 
     def _write(self, cmd: str) -> None:
         if self._record_commands:
             self._scpi_sent.append(cmd)
-        super().write(cmd)
+        if self._udp_mode:
+            try:
+                self._sock.sendto(f"{cmd}\n".encode(), (self._udp_ip, 5025))
+            except Exception as e:
+                raise ValueError(f'QSwitch {self._udp_ip} (UDP): Write Error [{cmd}]: {repr(e)}')
+        else:
+            self._switch.write(cmd)
 
     def _channel_list_to_overview(self, channel_list: str) -> dict[str, List[str]]:
         state = channel_list_to_state(channel_list)
@@ -409,13 +486,17 @@ class QSwitch(VisaInstrument):
         self._message_flush_timeout_ms = 1
         self._round_off = None
 
-    def _set_up_serial(self) -> None:
+    def _set_up_visa(self) -> None:
         # No harm in setting the speed even if the connection is not serial.
-        self.visa_handle.baud_rate = 9600  # type: ignore
+        self._switch.write_termination = '\n'
+        self._switch.read_termination = '\n'
+        self._switch.timeout = 5000
+        self._switch.query_delay = 0.01
+        self._switch.baud_rate = 9600
 
     def _check_for_wrong_model(self) -> None:
         model = self.IDN()['model']
-        if model != 'QSwitch':
+        if model.lower() != 'qswitch':
             raise ValueError(f'Unknown model {model}. Are you using the right'
                              ' driver for your instrument?')
 
