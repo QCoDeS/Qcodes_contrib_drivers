@@ -56,7 +56,7 @@ class NanonisTramea(Instrument):
     def ThreeDSwp_SwpSaveOptionsGet(self):
         return self.n.ThreeDSwp_SaveOptionsGet()[2]
 
-    def ThreeDSwp_SwpSaveOptionsSet(self, seriesName: str, createDateandTimeFolder: np.int32, comment: str, moduleNames: npt.NDArray[str]):
+    def ThreeDSwp_SwpSaveOptionsSet(self, seriesName: str, createDateandTimeFolder: np.int32, comment: str, moduleNames: npt.NDArray[np.str_]):
         return self.n.ThreeDSwp_SaveOptionsSet(seriesName, createDateandTimeFolder, comment, moduleNames)[2]
 
     def ThreeDSwpStart(self, WaitUntilWinished):
@@ -676,7 +676,7 @@ class NanonisTramea(Instrument):
             return self.n.HSSwp_ResetSignalsSet(ResetSignals)[2]
 
     def HSSwp_ResetSignalsGet(self):
-            return seld.n.HSSwp_ResetSignalsGet()[2]
+            return self.n.HSSwp_ResetSignalsGet()[2]
 
     def HSSwp_SaveBasenameSet(self, Basename, Path):
             return self.n.HSSwp_SaveBasenameSet(Basename, Path)[2]
@@ -690,7 +690,7 @@ class NanonisTramea(Instrument):
     def HSSwp_SaveDataGet(self):
             return self.n.HSSwp_SaveDataGet()[2]
 
-    def HSSwp_SaveOptionsSet(self, Comment, ModulesNames:npt.NDArray[str]):
+    def HSSwp_SaveOptionsSet(self, Comment, ModulesNames:npt.NDArray[np.str_]):
             return self.n.HSSwp_SaveOptionsSet(Comment, ModulesNames)[2]
 
     def HSSwp_SaveOptionsGet(self):
