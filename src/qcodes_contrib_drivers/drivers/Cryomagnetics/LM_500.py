@@ -8,7 +8,8 @@ Updated by Elyjah <elyjah.kiyooka@cea.fr>, June 2022
 """
 
 import time
-from qcodes import VisaInstrument, validators as vals
+from qcodes import validators as vals
+from qcodes.instrument import VisaInstrument
 
 class LM_500(VisaInstrument):
     """

@@ -1,4 +1,4 @@
-from qcodes import Instrument
+from qcodes.instrument import Instrument
 from .private.APT import Thorlabs_APT, ThorlabsHWType
 
 

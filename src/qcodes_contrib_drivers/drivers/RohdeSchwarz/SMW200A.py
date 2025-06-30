@@ -21,8 +21,8 @@ from functools import partial
 import time
 from typing import Union
 
-from qcodes import VisaInstrument
-from qcodes.instrument.channel import InstrumentChannel, ChannelList
+from qcodes.instrument import VisaInstrument
+from qcodes.instrument import InstrumentChannel, ChannelList
 from qcodes import validators as vals
 
 log = logging.getLogger(__name__)

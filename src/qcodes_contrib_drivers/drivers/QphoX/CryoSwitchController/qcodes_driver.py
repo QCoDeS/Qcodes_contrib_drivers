@@ -1,4 +1,4 @@
-from qcodes import Instrument, ChannelList, InstrumentChannel
+from qcodes.instrument import Instrument, ChannelList, InstrumentChannel
 from qcodes.validators import Numbers,Bool,Enum
 from qcodes_contrib_drivers.drivers.QphoX.CryoSwitchController.CryoSwitchController import Cryoswitch
 import os

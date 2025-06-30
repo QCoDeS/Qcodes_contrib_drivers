@@ -1,4 +1,4 @@
-from qcodes import Instrument
+from qcodes.instrument import Instrument
 from qcodes.validators import Ints, Numbers
 import ctypes
 import os

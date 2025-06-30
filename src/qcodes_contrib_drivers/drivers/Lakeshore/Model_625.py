@@ -3,7 +3,7 @@ import time
 from typing import Union, Tuple, Optional
 
 
-from qcodes import VisaInstrument
+from qcodes.instrument import VisaInstrument
 from qcodes.validators import  Numbers, Enum
 
 

@@ -3,7 +3,7 @@ import ctypes.wintypes
 import os
 import sys
 from typing import Dict, Optional
-from qcodes import Instrument
+from qcodes.instrument import Instrument
 from qcodes.validators import Enum
 
 

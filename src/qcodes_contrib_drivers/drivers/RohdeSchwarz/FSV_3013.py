@@ -1,6 +1,6 @@
 import time
 import time
-from qcodes import VisaInstrument
+from qcodes.instrument import VisaInstrument
 from qcodes.validators import Numbers, Enum
 import numpy as np
 from scipy.signal import find_peaks

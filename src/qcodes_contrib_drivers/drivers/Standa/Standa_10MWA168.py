@@ -1,4 +1,4 @@
-from qcodes import Instrument
+from qcodes.instrument import Instrument
 import ctypes
 import numpy as np
 import os

@@ -16,7 +16,8 @@ import ctypes
 from typing import Optional, Any, Sequence
 from functools import partial
 
-from qcodes import Instrument, Parameter
+from qcodes.instrument import Instrument
+from qcodes.parameters import Parameter
 from qcodes import validators as vals
 
 log = logging.getLogger(__name__)

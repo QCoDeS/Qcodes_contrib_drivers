@@ -2,7 +2,7 @@
 # Etienne Dumur <etienne.dumur@gmail.com>, august 2020
 
 
-from qcodes import VisaInstrument
+from qcodes.instrument import VisaInstrument
 from qcodes.validators import Numbers
 
 

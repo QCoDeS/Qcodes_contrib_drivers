@@ -1,4 +1,4 @@
-from qcodes import VisaInstrument, InstrumentChannel, ChannelList
+from qcodes.instrument import VisaInstrument, InstrumentChannel, ChannelList
 from qcodes.validators import Enum
 
 
