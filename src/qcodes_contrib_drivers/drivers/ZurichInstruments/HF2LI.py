@@ -5,8 +5,8 @@ log = logging.getLogger(__name__)
 
 import zhinst.utils
 import qcodes as qc
-from qcodes.instrument.base import Instrument
-import qcodes.utils.validators as vals
+from qcodes.instrument import Instrument
+import qcodes.validators as vals
 
 class HF2LI(Instrument):
     """Qcodes driver for Zurich Instruments HF2LI lockin amplifier.

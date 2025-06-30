@@ -1,9 +1,9 @@
 from typing import Any, Tuple, Sequence, cast
 
 import numpy as np
-from qcodes import VisaInstrument
-import qcodes.utils.validators as vals
-from qcodes.utils.helpers import create_on_off_val_mapping
+from qcodes.instrument import VisaInstrument
+import qcodes.validators as vals
+from qcodes.parameters import create_on_off_val_mapping
 
 
 

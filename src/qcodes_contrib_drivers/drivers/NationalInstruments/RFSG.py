@@ -2,8 +2,8 @@ import logging
 from typing import Optional
 from functools import partial
 
-from qcodes.utils.helpers import create_on_off_val_mapping as on_off_map
-from qcodes.utils.validators import Numbers
+from qcodes.parameters import create_on_off_val_mapping as on_off_map
+from qcodes.validators import Numbers
 
 from .visa_types import (
         ViString, ViAttr, ViSession, ViReal64, ViBoolean, ViInt32,

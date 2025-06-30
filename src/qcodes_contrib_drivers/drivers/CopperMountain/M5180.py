@@ -6,11 +6,11 @@ import numpy as np
 import cmath, math
 from typing import Tuple, Any
 
-from qcodes import VisaInstrument
-from qcodes.utils.validators import Numbers, Enum, Ints, Bool
-from qcodes.utils.helpers import create_on_off_val_mapping
+from qcodes.instrument import VisaInstrument
+from qcodes.validators import Numbers, Enum, Ints, Bool
+from qcodes.parameters import create_on_off_val_mapping
 
-from qcodes.instrument.parameter import (
+from qcodes.parameters import (
     MultiParameter,
     ManualParameter,
     ParamRawDataType

@@ -1,5 +1,5 @@
-from qcodes import VisaInstrument
-from qcodes.utils.helpers import create_on_off_val_mapping
+from qcodes.instrument import VisaInstrument
+from qcodes.parameters import create_on_off_val_mapping
 
 
 class Gentec_Maestro(VisaInstrument):

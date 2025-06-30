@@ -6,7 +6,7 @@ import pandas as pd
 import numpy as np
 from datetime import date
 from typing import Optional
-from qcodes.instrument.base import Instrument
+from qcodes.instrument import Instrument
 
 class BlueFors(Instrument):
     """

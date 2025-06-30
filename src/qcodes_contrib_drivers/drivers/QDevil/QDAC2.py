@@ -2,10 +2,10 @@ import numpy as np
 import itertools
 import uuid
 from time import sleep as sleep_s
-from qcodes.instrument.channel import InstrumentChannel, ChannelList
-from qcodes.instrument.visa import VisaInstrument
+from qcodes.instrument import InstrumentChannel, ChannelList
+from qcodes.instrument import VisaInstrument
 from pyvisa.errors import VisaIOError
-from qcodes.utils import validators
+from qcodes import validators
 from typing import NewType, Tuple, Sequence, List, Dict, Optional
 from packaging.version import parse
 import abc

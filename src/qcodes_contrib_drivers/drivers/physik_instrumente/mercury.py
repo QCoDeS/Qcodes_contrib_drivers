@@ -5,19 +5,19 @@ import logging
 import ctypes  # only for DLL-based instrument
 import qcodes as qc
 from typing import Any, Callable, TypeVar, Union
-from qcodes.utils.validators import Bool, Enum, Ints, MultiType, Numbers
+from qcodes.validators import Bool, Enum, Ints, MultiType, Numbers
 
 from qcodes.instrument import (
     Instrument,
     VisaInstrument,
-    ManualParameter,
-    MultiParameter,
     InstrumentChannel,
     InstrumentModule,
 )
-from qcodes.utils import validators as vals
+from qcodes.parameters import (
+    ManualParameter, MultiParameter)
+from qcodes import validators as vals
 
-from qcodes.instrument.parameter import Parameter
+from qcodes.parameters import Parameter
 
 class mercury(VisaInstrument):
     """

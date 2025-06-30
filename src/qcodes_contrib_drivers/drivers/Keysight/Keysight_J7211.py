@@ -1,5 +1,5 @@
 from qcodes.instrument.visa import VisaInstrument
-from qcodes.utils.validators import Ints
+from qcodes.validators import Ints
 from typing import Optional
 
 

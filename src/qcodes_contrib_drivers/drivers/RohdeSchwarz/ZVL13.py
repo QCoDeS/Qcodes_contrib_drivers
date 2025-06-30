@@ -5,9 +5,9 @@ from typing import Optional
 
 import numpy as np
 
-from qcodes.utils.validators import Enum, Strings, Ints
-from qcodes import VisaInstrument, Instrument
-from qcodes import MultiParameter, ArrayParameter
+from qcodes.validators import Enum, Strings, Ints
+from qcodes.instrument import VisaInstrument, Instrument
+from qcodes.parameters import MultiParameter, ArrayParameter
 
 
 log = logging.getLogger(__name__)

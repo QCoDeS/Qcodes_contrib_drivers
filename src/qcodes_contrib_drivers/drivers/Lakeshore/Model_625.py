@@ -3,8 +3,8 @@ import time
 from typing import Union, Tuple, Optional
 
 
-from qcodes import VisaInstrument
-from qcodes.utils.validators import  Numbers, Enum
+from qcodes.instrument import VisaInstrument
+from qcodes.validators import  Numbers, Enum
 
 
 class Lakeshore625(VisaInstrument):

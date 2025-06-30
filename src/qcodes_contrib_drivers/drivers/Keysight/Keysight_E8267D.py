@@ -1,8 +1,9 @@
 import numpy as np
-from qcodes import VisaInstrument, validators as vals
-from qcodes.utils.validators import Numbers
-from qcodes.utils.helpers import create_on_off_val_mapping
-from qcodes.instrument.parameter import DelegateParameter
+from qcodes.instrument import VisaInstrument
+from qcodes import validators as vals
+from qcodes.validators import Numbers
+from qcodes.parameters import create_on_off_val_mapping
+from qcodes.parameters import DelegateParameter
 
 
 def parse_on_off(stat):

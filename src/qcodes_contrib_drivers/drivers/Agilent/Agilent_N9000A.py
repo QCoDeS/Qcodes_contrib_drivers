@@ -2,8 +2,8 @@
 # Etienne Dumur <etienne.dumur@gmail.com>, august 2020
 
 
-from qcodes import VisaInstrument
-from qcodes.utils.validators import Numbers
+from qcodes.instrument import VisaInstrument
+from qcodes.validators import Numbers
 
 
 class Agilent_N9000A(VisaInstrument):

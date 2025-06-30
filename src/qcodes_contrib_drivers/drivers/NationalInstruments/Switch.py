@@ -2,7 +2,7 @@ import logging
 from typing import Dict, List, Optional, cast
 
 from niswitch import PathCapability, Session
-from qcodes import ChannelList, Instrument, InstrumentChannel
+from qcodes.instrument import ChannelList, Instrument, InstrumentChannel
 
 logger = logging.getLogger(__name__)
 

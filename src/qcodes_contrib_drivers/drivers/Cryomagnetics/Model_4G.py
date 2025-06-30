@@ -8,8 +8,9 @@ Updated by Elyjah <elyjah.kiyooka@cea.fr>, June 2022
 """
 
 import time
-from qcodes import VisaInstrument, validators as vals
-from qcodes.utils.helpers import create_on_off_val_mapping
+from qcodes.instrument import VisaInstrument
+from qcodes import validators as vals
+from qcodes.parameters import create_on_off_val_mapping
 
 class Model_4G(VisaInstrument):
     """

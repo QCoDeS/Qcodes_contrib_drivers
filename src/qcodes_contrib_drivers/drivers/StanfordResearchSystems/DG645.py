@@ -1,8 +1,8 @@
 import logging
 log = logging.getLogger(__name__)
 
-from qcodes import VisaInstrument
-import qcodes.utils.validators as vals
+from qcodes.instrument import VisaInstrument
+import qcodes.validators as vals
 
 class DG645(VisaInstrument):
     """Qcodes driver for SRS DG645 digital delay generator.

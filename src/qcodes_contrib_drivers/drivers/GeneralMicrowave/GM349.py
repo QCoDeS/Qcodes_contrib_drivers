@@ -15,9 +15,9 @@ series-349-and-349h-octave-band-11-bit-digital-pin-diode-attenuators)
 
 import numpy as np
 
-from qcodes import Instrument
-from qcodes.instrument.parameter import Parameter
-from qcodes.utils.validators import Numbers
+from qcodes.instrument import Instrument
+from qcodes.parameters import Parameter
+from qcodes.validators import Numbers
 
 class GM349Attenuation(Parameter):
     """Attenuation of GM349 attenuator.

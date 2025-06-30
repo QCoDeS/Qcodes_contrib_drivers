@@ -1,7 +1,7 @@
 from functools import partial
 from typing import Optional
 
-from qcodes import Instrument
+from qcodes.instrument import Instrument
 import numpy as np
 import numpy.typing as npt
 import socket

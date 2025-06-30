@@ -2,13 +2,13 @@ from functools import partial
 import numpy as np
 from typing import Any, Iterable, Tuple, Union
 from numpy.typing import NDArray
-from qcodes import VisaInstrument
-from qcodes.instrument.parameter import (
+from qcodes.instrument import VisaInstrument
+from qcodes.parameters import (
     Parameter,
     ParamRawDataType,
     ParameterWithSetpoints,
 )
-from qcodes.utils.validators import Numbers, Enum, Strings, Arrays, ComplexNumbers
+from qcodes.validators import Numbers, Enum, Strings, Arrays, ComplexNumbers
 
 
 class SR844(VisaInstrument):

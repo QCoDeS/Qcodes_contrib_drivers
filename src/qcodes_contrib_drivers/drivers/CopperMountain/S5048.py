@@ -4,9 +4,9 @@ import logging
 
 import numpy as np
 
-from qcodes.instrument.visa import VisaInstrument
-from qcodes.instrument.parameter import ArrayParameter
-import qcodes.utils.validators as vals
+from qcodes.instrument import VisaInstrument
+from qcodes.parameters import ArrayParameter
+import qcodes.validators as vals
 
 log = logging.getLogger(__name__)
 

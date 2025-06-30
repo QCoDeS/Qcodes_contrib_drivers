@@ -6,7 +6,7 @@
 
 import logging
 
-from qcodes import VisaInstrument
+from qcodes.instrument import VisaInstrument
 from qcodes import validators as vals
 
 log = logging.getLogger(__name__)

@@ -16,9 +16,9 @@ import numpy as np
 
 import nidaqmx
 from nidaqmx.constants import AcquisitionType, TaskMode
-from qcodes.instrument.base import Instrument
-from qcodes.instrument.parameter import Parameter, ArrayParameter, ParameterWithSetpoints
-from qcodes.utils.helpers import create_on_off_val_mapping
+from qcodes.instrument import Instrument
+from qcodes.parameters import Parameter, ArrayParameter, ParameterWithSetpoints
+from qcodes.parameters import create_on_off_val_mapping
 from nidaqmx.constants import LineGrouping
 
 class DAQAnalogInputVoltages(ArrayParameter):
