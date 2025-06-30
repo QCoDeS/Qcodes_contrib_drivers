@@ -124,6 +124,7 @@ select = ["TID251"]
 "qcodes.utils.plotting".msg = "QCoDeS plotting utils should be imported from qcodes.plotting"
 "qcodes.utils.metadata".msg = "QCoDeS.utils.metadata should be avoided. Please consult qcodes api docs for new locations"
 "qcodes.utils.helpers".msg = "QCoDeS.utils.helpers should be avoided. Please consult qcodes api docs for new locations"
+"qcodes.utils.dataset.doNd".msg = "QCoDeS.utils.dataset.doNd should be avoided. Please consult qcodes api docs for new locations"
 
 [tool.setuptools]
 zip-safe = false
