@@ -1,5 +1,5 @@
 from typing import Dict, Optional
-from qcodes.instrument.base import Instrument
+from qcodes.instrument import Instrument
 from qcodes.validators import Numbers
 import numpy as np
 

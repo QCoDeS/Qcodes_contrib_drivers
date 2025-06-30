@@ -2,7 +2,7 @@ import pytest
 import uuid
 from qcodes_contrib_drivers.drivers.QDevil import QDAC2
 import qcodes_contrib_drivers.sims as sims
-from qcodes.instrument.base import Instrument
+from qcodes.instrument import Instrument
 
 # Use simulated instruments for the tests.
 visalib = sims.__file__.replace('__init__.py', 'QDAC2.yaml@sim')

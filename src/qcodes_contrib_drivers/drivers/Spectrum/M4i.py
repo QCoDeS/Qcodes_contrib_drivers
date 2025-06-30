@@ -20,7 +20,7 @@ from functools import partial
 from typing import Union, Type
 
 from qcodes.validators import Enum, Numbers, Anything, Ints
-from qcodes.instrument.base import Instrument
+from qcodes.instrument import Instrument
 
 log = logging.getLogger(__name__)
 

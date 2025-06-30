@@ -7,7 +7,7 @@ import subprocess
 import time
 
 
-from qcodes.instrument.base import Instrument
+from qcodes.instrument import Instrument
 
 
 class Triton(Instrument):

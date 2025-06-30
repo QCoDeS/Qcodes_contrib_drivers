@@ -1,5 +1,5 @@
 from typing import Dict, Optional
-from qcodes.instrument.base import Instrument
+from qcodes.instrument import Instrument
 
 try:
     from spirack import D4_module
