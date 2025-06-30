@@ -10,8 +10,8 @@ import re
 import logging
 from typing import Any
 
-from qcodes.utils.validators import Ints, Numbers, Bool
-from qcodes import VisaInstrument
+from qcodes.validators import Ints, Numbers, Bool
+from qcodes.instrument import VisaInstrument
 import pyvisa.constants as vi_const
 
 log = logging.getLogger(__name__)

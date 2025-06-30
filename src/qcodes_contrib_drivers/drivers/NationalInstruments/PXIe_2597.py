@@ -1,5 +1,5 @@
 from typing import Optional, Dict
-from qcodes.utils.validators import Enum
+from qcodes.validators import Enum
 from .Switch import NI_Switch
 
 

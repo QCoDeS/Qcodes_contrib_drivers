@@ -19,7 +19,7 @@ import ctypes as ct
 from functools import partial
 from typing import Union, Type
 
-from qcodes.utils.validators import Enum, Numbers, Anything, Ints
+from qcodes.validators import Enum, Numbers, Anything, Ints
 from qcodes.instrument.base import Instrument
 
 log = logging.getLogger(__name__)

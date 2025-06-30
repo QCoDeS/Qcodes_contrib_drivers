@@ -1,7 +1,7 @@
 ﻿import time
 from typing import Any, Callable, Dict, Optional, Union
 
-import qcodes.utils.validators as vals
+import qcodes.validators as vals
 from qcodes.instrument.base import Instrument
 from qcodes.instrument.channel import InstrumentChannel, ChannelList
 

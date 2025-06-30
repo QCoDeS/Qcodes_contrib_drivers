@@ -5,7 +5,7 @@ from typing import Optional
 
 import numpy as np
 
-from qcodes.utils.validators import Enum, Strings, Ints
+from qcodes.validators import Enum, Strings, Ints
 from qcodes import VisaInstrument, Instrument
 from qcodes import MultiParameter, ArrayParameter
 

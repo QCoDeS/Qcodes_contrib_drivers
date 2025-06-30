@@ -1,6 +1,6 @@
 from typing import Dict, Optional
 from qcodes.instrument.base import Instrument
-from qcodes.utils.validators import Numbers
+from qcodes.validators import Numbers
 import numpy as np
 
 try:

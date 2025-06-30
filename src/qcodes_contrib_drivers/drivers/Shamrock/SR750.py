@@ -1,5 +1,5 @@
 from qcodes import Instrument
-from qcodes.utils.validators import Ints, Numbers
+from qcodes.validators import Ints, Numbers
 import ctypes
 import os
 import sys

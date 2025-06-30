@@ -1,5 +1,5 @@
 from qcodes import VisaInstrument, InstrumentChannel, ChannelList
-from qcodes.utils.validators import Enum
+from qcodes.validators import Enum
 
 
 class SensorChannel(InstrumentChannel):

@@ -7,7 +7,7 @@ from typing import Any, Sequence
 
 from qcodes.instrument.ip import IPInstrument
 from qcodes.parameters import create_on_off_val_mapping
-from qcodes.utils.validators import Numbers
+from qcodes.validators import Numbers
 
 
 class M2Solstis3(IPInstrument):

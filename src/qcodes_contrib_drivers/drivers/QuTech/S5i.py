@@ -1,6 +1,6 @@
 from typing import Dict, Optional
 from qcodes.instrument.base import Instrument
-from qcodes.utils.validators import Bool, Numbers
+from qcodes.validators import Bool, Numbers
 
 try:
     from spirack import S5i_module

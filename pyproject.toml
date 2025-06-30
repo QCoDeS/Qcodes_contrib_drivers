@@ -110,7 +110,20 @@ module = [
 ignore_missing_imports = true
 
 [tool.ruff.lint]
-select = []
+select = ["TID251"]
+
+
+[tool.ruff.lint.flake8-tidy-imports.banned-api]
+"qcodes.utils.deprecate".msg = "Use typing_extensions.deprecated instead. QCoDeSDeprecationWarning should be imported from qcodes.utils"
+"qcodes.instrument.parameter".msg = "QCoDeS parameters should be imported from qcodes.parameters"
+"qcodes.instrument.group_parameter".msg = "QCoDeS parameters should be imported from qcodes.parameters"
+"qcodes.instrument.specialized_parameters".msg = "QCoDeS parameters should be imported from qcodes.parameters"
+"qcodes.instrument.sweep_values".msg = "QCoDeS parameters should be imported from qcodes.parameters"
+"qcodes.utils.validators".msg = "QCoDeS validators should be imported from qcodes.validators"
+"qcodes.utils.threading".msg = "QCoDeS.utils.threading should be avoided. Please consult qcodes api docs for new locations"
+"qcodes.utils.plotting".msg = "QCoDeS plotting utils should be imported from qcodes.plotting"
+"qcodes.utils.metadata".msg = "QCoDeS.utils.metadata should be avoided. Please consult qcodes api docs for new locations"
+"qcodes.utils.helpers".msg = "QCoDeS.utils.helpers should be avoided. Please consult qcodes api docs for new locations"
 
 [tool.setuptools]
 zip-safe = false

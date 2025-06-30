@@ -5,10 +5,10 @@
 import warnings
 import pyvisa as visa
 
-from qcodes import Instrument, VisaInstrument
-from qcodes.instrument.channel import InstrumentChannel
-from qcodes.utils.validators import Numbers, Enum
-from qcodes.utils.helpers import create_on_off_val_mapping
+from qcodes.instrument import Instrument, VisaInstrument
+from qcodes.instrument import InstrumentChannel
+from qcodes.validators import Numbers, Enum
+from qcodes.parameters import create_on_off_val_mapping
 
 
 class HS9008BChannel(InstrumentChannel):

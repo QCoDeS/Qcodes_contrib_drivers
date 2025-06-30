@@ -3,7 +3,7 @@
 
 
 from qcodes import VisaInstrument
-from qcodes.utils.validators import Numbers
+from qcodes.validators import Numbers
 
 
 class Agilent_N9000A(VisaInstrument):

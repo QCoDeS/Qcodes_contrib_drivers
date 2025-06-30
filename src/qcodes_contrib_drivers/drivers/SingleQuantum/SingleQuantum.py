@@ -17,10 +17,10 @@ import threading
 import time
 import sys
 
-from qcodes.instrument.ip import Instrument
-from qcodes.instrument.base import Parameter
-from qcodes.instrument.parameter import ParameterWithSetpoints, MultiParameter
-from qcodes.utils.validators import Arrays
+from qcodes.instrument import Instrument
+from qcodes.parameters import Parameter
+from qcodes.parameters import ParameterWithSetpoints, MultiParameter
+from qcodes.validators import Arrays
 
 
 class SQTalk(threading.Thread):

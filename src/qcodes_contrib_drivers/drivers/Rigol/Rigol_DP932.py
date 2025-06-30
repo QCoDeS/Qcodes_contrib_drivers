@@ -1,5 +1,5 @@
 from qcodes import VisaInstrument
-from qcodes.utils.validators import Numbers
+from qcodes.validators import Numbers
 
 class RigolDP932E(VisaInstrument):
     """

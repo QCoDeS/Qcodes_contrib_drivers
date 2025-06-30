@@ -25,10 +25,10 @@
 import logging
 from functools import partial
 
-from qcodes.instrument.visa import VisaInstrument
-from qcodes.utils.validators import Strings as StringValidator
-from qcodes.utils.validators import Ints as IntsValidator
-from qcodes.utils.validators import Numbers as NumbersValidator
+from qcodes.instrument import VisaInstrument
+from qcodes.validators import Strings as StringValidator
+from qcodes.validators import Ints as IntsValidator
+from qcodes.validators import Numbers as NumbersValidator
 
 
 # %% Helper functions

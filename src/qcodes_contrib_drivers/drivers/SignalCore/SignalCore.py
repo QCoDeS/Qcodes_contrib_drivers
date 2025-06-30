@@ -4,7 +4,7 @@ import os
 import sys
 from typing import Dict, Optional
 from qcodes import Instrument
-from qcodes.utils.validators import Enum
+from qcodes.validators import Enum
 
 
 MAXDEVICES = 50

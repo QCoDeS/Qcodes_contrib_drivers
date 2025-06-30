@@ -1,5 +1,5 @@
-from qcodes import VisaInstrument
-from qcodes.utils.validators import Numbers
+from qcodes.instrument import VisaInstrument
+from qcodes.validators import Numbers
 import numpy as np
 import time
 
