@@ -1,6 +1,6 @@
 [build-system]
 requires = [
-    "setuptools >= 68.1.2",
+    "setuptools >= 77.0.3",
     "versioningit >= 2.2.1"
 ]
 build-backend = 'setuptools.build_meta'
@@ -11,13 +11,16 @@ description = "User contributed drivers for QCoDeS"
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: MIT License",
-    "License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)",
     "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Topic :: Scientific/Engineering",]
+license = "MIT AND GPL-2.0-or-later"
+license-files = [
+    "LICENSE_TEKTRONIX_AWG520_KEITHLEY_2700",
+    "LICENSE",
+]
 requires-python = ">=3.11"
 dependencies = [
     "qcodes>=0.42.0",
@@ -37,9 +40,6 @@ email = "qcodes-support@microsoft.com"
 [project.readme]
 file = "README.rst"
 content-type = "text/x-rst"
-
-[project.license]
-text = "MIT"
 
 [project.urls]
 Homepage = "https://github.com/QCoDeS/Qcodes_contrib_drivers"
@@ -128,10 +128,7 @@ select = ["TID251"]
 
 [tool.setuptools]
 zip-safe = false
-license-files = [
-    "LICENSE_TEKTRONIX_AWG520_KEITHLEY_2700",
-    "LICENSE",
-]
+
 
 [tool.setuptools.cmdclass]
 sdist = "versioningit.cmdclass.sdist"
