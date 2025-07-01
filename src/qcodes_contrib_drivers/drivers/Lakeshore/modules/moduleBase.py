@@ -33,9 +33,9 @@ class moduleBase(InstrumentChannel):
 
     def _param_getter(self, get_cmd: str) -> str:
         return f"{self.command_prefix}:{get_cmd}"
-    
+
     def _param_setter(self, set_cmd: str, value: str) -> str:
         return f"{self.command_prefix}:{set_cmd} {value}"
-    
+
     def reset_to_default(self) -> None:
         self.write(f"{self.command_prefix}:PRESet")

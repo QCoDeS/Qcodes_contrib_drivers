@@ -12,7 +12,7 @@ from qcodes_contrib_drivers.drivers.Lakeshore.modules.cm10 import cm10
 class M81_SSM(VisaInstrument):
     """
     Driver class for the QCoDeS Lakeshore M81 *** Firmware version >= 2.1 ***
-    """      
+    """
     def __init__(self, name: str, address: str, **kwargs):
 
         super().__init__(name, address, terminator='\r\n')
@@ -24,7 +24,7 @@ class M81_SSM(VisaInstrument):
                         set_cmd='SYSTem:KLOCk {}',
                         val_mapping={True: 1, False: 0}
                         )
-        
+
         # Lock keypad at start up
         self.set('keypad_lock', True)
 
@@ -59,7 +59,7 @@ class M81_SSM(VisaInstrument):
         print("Sense  (M):")
         for module in self.sense_module_list:
             print(f"\t{module}")
-    
+
     def _get_source_module_list(self):
         full_source_list = []
         for i in range (1, self.n_chan+1):
@@ -97,14 +97,14 @@ class M81_SSM(VisaInstrument):
         'GPIStates': int,
         'GPOStates': int,
     }
-    
+
     def _configure_stream_elements(self, data_sources):
         """
         Sets the elements to include in the data stream. Takes a list of pairs of data source mnemonic and channel number. Up to 10 pairs.
         """
         elements = ','.join('{},{}'.format(mnemonic, index) for (mnemonic, index) in data_sources)
         self.write('TRACe:FORMat:ELEMents {}'.format(elements))
-        
+
     def stream_data(self, rate, num_points, *data_sources, transpose_data=True):
         """Generator object to stream data from the instrument.
 
@@ -136,20 +136,20 @@ class M81_SSM(VisaInstrument):
             time.sleep(1) # or what ever small value
             count = int(self.ask("TRACe:DATA:COUNt?"))
             print(f"\rBuffered points: {count}         ", end="", flush=True)
-    
+
         time.sleep(1)
         print('\r')
-        
+
         # pull data
         string_bytes = base64.b64decode(self.ask('TRACe:DATA:ALL?')).hex()
 
         format_val = self.ask('TRACe:FORMat:ENCOding:B64:BFORmat?').strip('\"')
         data_format = f"<{format_val}"
 
-        data_list = [] 
+        data_list = []
         for data in struct.iter_unpack(data_format, bytes.fromhex(string_bytes)):
             data_list.append(data)
-                
+
         if len(data_list)==num_points:
             print('All data collected.')
         elif len(data_list)!=num_points:
@@ -157,7 +157,7 @@ class M81_SSM(VisaInstrument):
 
         if transpose_data == True:
             data_list = [list(x) for x in zip(*data_list)]
-            
+
         return data_list
 
     def close(self) -> None:
@@ -169,4 +169,3 @@ class M81_SSM(VisaInstrument):
 
         super().close()
         print('Connection closed to M81.')
-        

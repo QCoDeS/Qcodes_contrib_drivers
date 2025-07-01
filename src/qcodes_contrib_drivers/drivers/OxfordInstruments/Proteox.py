@@ -352,7 +352,7 @@ class oiDECS(VisaInstrument):
                 name = "Magnet_Current_Vector",
                 parameter_class=MagnetCurrentParameters,
             )
-            # qcodes can't use multiparameters as setpoint, this dummy bypasses it.  
+            # qcodes can't use multiparameters as setpoint, this dummy bypasses it.
             self.add_parameter(
                 name='Bx',
                 unit='T',

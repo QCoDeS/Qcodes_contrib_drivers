@@ -20,7 +20,7 @@ class senseBase(moduleBase):
             set_cmd=lambda value: self._param_mode_setter(value),
             vals=Enum('DC', 'AC', 'LIA')
             )
-        
+
         # Attempt to read the current mode from the instrument
         self.target_mode = self.get('mode')
         # And now configure the instrument in-line with the current set up.
@@ -35,7 +35,7 @@ class senseBase(moduleBase):
             set_cmd=self._param_setter('FILTer', '{}'),
             val_mapping={True: '1', False: '0'}
             )
-        
+
         self.add_parameter(name='input_filter_highpass_rolloff',
             label='highpass filter rolloff',
             unit='dB/octave',
@@ -43,7 +43,7 @@ class senseBase(moduleBase):
             set_cmd=self._param_setter('FILTer:HPASs:ATTenuation', '{}'),
             val_mapping={6: 'R6', 12: 'R12'}
             )
-        
+
         self.add_parameter(name='input_filter_highpass_cutoff',
             label='highpass filter cutoff frequency',
             unit='Hz',
@@ -59,7 +59,7 @@ class senseBase(moduleBase):
                 3000     : 'F3000',
                 10000    : 'F10000'}
             )
-        
+
         self.add_parameter(name='input_filter_lowpass_rolloff',
             label='lowpass filter rolloff',
             unit='dB/octave',
@@ -67,7 +67,7 @@ class senseBase(moduleBase):
             set_cmd=self._param_setter('FILTer:LPASs:ATTenuation', '{}'),
             val_mapping={6: 'R6', 12: 'R12'}
             )
-        
+
         self.add_parameter(name='input_filter_lowpass_cutoff',
             label='lowpass filter cutoff frequency',
             unit='Hz',
@@ -83,7 +83,7 @@ class senseBase(moduleBase):
                 3000     : 'F3000',
                 10000    : 'F10000'}
             )
-        
+
         self.add_parameter(name='input_filter_optimization',
             label='filter_optimization',
             get_cmd=self._param_getter('FILTer:OPTimization?'),
@@ -91,7 +91,7 @@ class senseBase(moduleBase):
             vals=Enum('NOISE', 'RESERVE')
             )
 
-        self.add_parameter(name='calculated_resistance_source', 
+        self.add_parameter(name='calculated_resistance_source',
             label='calculated_resistance_source',
             get_cmd=f"CALCulate:{self._param_getter('RESistance:SOURce?')}",
             get_parser = str,
@@ -102,8 +102,8 @@ class senseBase(moduleBase):
     # ---------------------read parameter functions
     def read_DC(self) -> float:
         """
-        Acquires and returns the DC measurement for the specified module. 
-        The value is returned after waiting for the configured NPLC to complete. 
+        Acquires and returns the DC measurement for the specified module.
+        The value is returned after waiting for the configured NPLC to complete.
         The module must be in DC or AC mode.
         """
         try:
@@ -116,8 +116,8 @@ class senseBase(moduleBase):
 
     def read_DC_relative(self) -> float:
         """
-        Acquires and returns the relative DC measurement for the specified module. 
-        The value is returned after waiting for the configured NPLC to complete. 
+        Acquires and returns the relative DC measurement for the specified module.
+        The value is returned after waiting for the configured NPLC to complete.
         The module must be in DC mode.
         """
         try:
@@ -131,7 +131,7 @@ class senseBase(moduleBase):
     def read_RMS(self) -> float:
         """
         Acquires and returns the RMS measurement for the specified module.
-        The value is returned after waiting for the configured NPLC to complete. 
+        The value is returned after waiting for the configured NPLC to complete.
         The module must be in DC or AC mode.
         """
         try:
@@ -144,8 +144,8 @@ class senseBase(moduleBase):
 
     def read_RMS_relative(self) -> float:
         """
-        Acquires and returns the relative RMS measurement for the specified module. 
-        The value is returned after waiting for the configured NPLC to complete. 
+        Acquires and returns the relative RMS measurement for the specified module.
+        The value is returned after waiting for the configured NPLC to complete.
         The module must be in AC mode.
         """
         try:
@@ -184,7 +184,7 @@ class senseBase(moduleBase):
 
     def read_x(self) -> float:
         """
-        Returns the present X measurement from the lock-in for the specified module. 
+        Returns the present X measurement from the lock-in for the specified module.
         The module must be in lock-in mode.
         """
         try:
@@ -197,7 +197,7 @@ class senseBase(moduleBase):
 
     def read_y(self) -> float:
         """
-        Returns the present Y measurement from the lock-in for the specified module. 
+        Returns the present Y measurement from the lock-in for the specified module.
         The module must be in lock-in mode.
         """
         try:
@@ -223,7 +223,7 @@ class senseBase(moduleBase):
 
     def read_frequency(self) -> float:
         """
-        Returns the present lock-in frequency. 
+        Returns the present lock-in frequency.
         The module must be in lock-in mode.
         """
         try:
@@ -236,7 +236,7 @@ class senseBase(moduleBase):
 
     def read_npeak(self) -> float:
         """
-        Acquires and returns the negative peak measurement for the specified module. 
+        Acquires and returns the negative peak measurement for the specified module.
         The value is returned after waiting for the configured NPLC to complete.
         """
         try:
@@ -248,7 +248,7 @@ class senseBase(moduleBase):
 
     def read_ppeak(self) -> float:
         """
-        Acquires and returns the positive peak measurement for the specified module. 
+        Acquires and returns the positive peak measurement for the specified module.
         The value is returned after waiting for the configured NPLC to complete.
         """
         try:
@@ -260,7 +260,7 @@ class senseBase(moduleBase):
 
     def read_ptpeak(self) -> float:
         """
-        Acquires and returns the peak to peak measurement for the specified module. 
+        Acquires and returns the peak to peak measurement for the specified module.
         The value is returned after waiting for the configured NPLC to complete.
         """
         try:
@@ -270,13 +270,13 @@ class senseBase(moduleBase):
             print(f'Instrument error message: {err}')
         return value
 
-    
+
     # ---------------------read calculated value function
     def calculated_resistance(self) -> float:
         """
-        Immediately returns the resistance in Ohms. When in DC mode, this is the DC resistance. 
-        When in AC (lock-in) mode, this is the in-phase component of the resistance. 
-        May return a NaN if attempting to divide by zero, if the source is incompatible, 
+        Immediately returns the resistance in Ohms. When in DC mode, this is the DC resistance.
+        When in AC (lock-in) mode, this is the in-phase component of the resistance.
+        May return a NaN if attempting to divide by zero, if the source is incompatible,
         or if either measure module or its designated source have an error.
         """
         try:
@@ -319,14 +319,14 @@ class senseBase(moduleBase):
         self.get('phase')
         self.get('averaging_filter_enabled')
         self.get('averaging_filter_cycles')
-        self.get('traditional_lowpass_enabled') 
+        self.get('traditional_lowpass_enabled')
         self.get('output_filter_rolloff')
         self.get('reference_source')
         self.get('time_constant')
         self.get('digital_highpass_enabled')
         self.get('settling_time')
         self.get('ENBW')
-    
+
 
     def _configure_for_LIA(self) -> None:
         """
@@ -343,7 +343,7 @@ class senseBase(moduleBase):
             else:
                 # Remove AC/DC parameters
                 self._remove_ACDC_params()
-            
+
             # Now set LIA parameters
             self._add_LIA_params()
 
@@ -411,7 +411,7 @@ class senseBase(moduleBase):
             get_parser = float,
             set_cmd=self._param_setter('LIA:DPHase', '{}'),
             vals=Numbers(min_value=-360.0, max_value=360.0),
-            unit=unicodedata.lookup('DEGREE SIGN')                           
+            unit=unicodedata.lookup('DEGREE SIGN')
             )
 
         setattr(self, 'set_auto_phase', lambda: self.write(f"{self.command_prefix}:LIA:DPHase:AUTO"))
@@ -449,7 +449,7 @@ class senseBase(moduleBase):
                 18 : 'R18',
                 24 : 'R24'}
             )
-        
+
         self.add_parameter(name='reference_source',
             label='lock in reference source',
             get_cmd=self._param_getter('LIA:RSOurce?'),
@@ -464,7 +464,7 @@ class senseBase(moduleBase):
             set_cmd=self._param_setter('LIA:TIMEconstant', '{}'),
             vals=Numbers(min_value=0.0001, max_value=10000.0)
             )
-        
+
         self.add_parameter(name='digital_highpass_enabled',
             label='lock in digital highpass filter enabled',
             get_cmd=self._param_getter('DIGital:FILTer:HPASs?'),

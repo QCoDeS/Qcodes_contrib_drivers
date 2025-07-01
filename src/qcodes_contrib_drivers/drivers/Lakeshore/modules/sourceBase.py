@@ -39,10 +39,10 @@ class sourceBase(moduleBase):
 
     def output_on(self) -> None:
         self.set('output_enabled', True)
-        
+
     def output_off(self) -> None:
         self.set('output_enabled', False)
-        
+
     def _param_shape_setter(self, value: Any) -> None: # Not great having Any, but cant get mypy to work with str|None
         """ Function to configure the module based on the shape requested """
 
@@ -104,7 +104,7 @@ class sourceBase(moduleBase):
         del self.parameters['synchronize_enabled']
         del self.parameters['synchronize_phase']
         del self.parameters['synchronize_source']
-        
+
     def _configure_for_sine(self) -> None:
         """
         Function to add / remove parameters as required
@@ -133,7 +133,7 @@ class sourceBase(moduleBase):
                         get_parser = float,
                         set_cmd=self._param_setter('FREQuency', '{}')
                         )
-    
+
         self.add_parameter(name='synchronize_enabled',
                         label='Source synchronized',
                         get_cmd=self._param_getter('SYNChronize?'),
@@ -141,7 +141,7 @@ class sourceBase(moduleBase):
                         set_cmd=self._param_setter('SYNChronize', '{}'),
                         val_mapping={True: 1, False: 0}
                         )
-        
+
         self.add_parameter(name='synchronize_phase',
                         label='Source synchronize phase',
                         unit=unicodedata.lookup('DEGREE SIGN'),
@@ -150,14 +150,14 @@ class sourceBase(moduleBase):
                         set_cmd=self._param_setter('SYNChronize:PHASe', '{}'),
                         vals=Numbers(min_value=-360.0, max_value=360.0)
                         )
-        
+
         self.add_parameter(name='synchronize_source',
                         label='Source synchronize source',
                         get_cmd=self._param_getter('SYNChronize:SOURce?'),
                         set_cmd=self._param_setter('SYNChronize:SOURce', '{}')
                         )
 
-    
+
     def _read_new_tri_squ_params(self) -> None:
         self.get('frequency')
         self.get('synchronize_enabled')
@@ -171,7 +171,7 @@ class sourceBase(moduleBase):
         del self.parameters['synchronize_phase']
         del self.parameters['synchronize_source']
         del self.parameters['duty_cycle']
-        
+
     def _configure_for_tri_squ(self) -> None:
         """
         Function to add / remove parameters as required
@@ -188,7 +188,7 @@ class sourceBase(moduleBase):
                 self._add_tri_squ_params()
             elif self.set_shape == 'DC':
                 self._add_tri_squ_params()
-            
+
 
     def _add_tri_squ_params(self) -> None:
         self.add_parameter(name='frequency',
@@ -198,7 +198,7 @@ class sourceBase(moduleBase):
                         get_parser = float,
                         set_cmd=self._param_setter('FREQuency', '{}')
                         )
-    
+
         self.add_parameter(name='synchronize_enabled',
                         label='Source synchronized',
                         get_cmd=self._param_getter('SYNChronize?'),
@@ -206,7 +206,7 @@ class sourceBase(moduleBase):
                         set_cmd=self._param_setter('SYNChronize', '{}'),
                         val_mapping={True: 1, False: 0}
                         )
-        
+
         self.add_parameter(name='synchronize_phase',
                         label='Source synchronize phase',
                         unit=unicodedata.lookup('DEGREE SIGN'),
@@ -215,17 +215,17 @@ class sourceBase(moduleBase):
                         set_cmd=self._param_setter('SYNChronize:PHASe', '{}'),
                         vals=Numbers(min_value=-360.0, max_value=360.0)
                         )
-        
+
         self.add_parameter(name='synchronize_source',
                         label='Source synchronize source',
                         get_cmd=self._param_getter('SYNChronize:SOURce?'),
                         set_cmd=self._param_setter('SYNChronize:SOURce', '{}')
                         )
-        
+
         self.add_parameter(name='duty_cycle',
                         label='duty cycle',
                         get_cmd=self._param_getter('DCYCle?'),
                         get_parser = float,
                         set_cmd=self._param_setter('DCYCle', '{}'),
-                        vals=Numbers(min_value=0.0, max_value=1.0) 
+                        vals=Numbers(min_value=0.0, max_value=1.0)
                         )

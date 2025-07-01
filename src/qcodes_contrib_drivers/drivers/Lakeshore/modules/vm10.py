@@ -17,21 +17,21 @@ class vm10(senseBase):
             vals=Enum(10e-3, 100e-3, 1, 10),
             get_parser=float
             )
-        
+
         self.add_parameter(name='voltage_autorange_enabled',
             label='voltage autorange status',
             get_cmd=self._param_getter('VOLTage:RANGe:AUTO?'),
             set_cmd=self._param_setter('VOLTage:RANGe:AUTO', '{}'),
             val_mapping={True: '1', False: '0'}
             )
-        
+
         self.add_parameter(name='input_configuration',
             label='input configuration',
             get_cmd=self._param_getter('CONFiguration?'),
             set_cmd=self._param_setter('CONFiguration', '{}'),
             vals=Enum('AB', 'A', 'GROUND')
             )
-        
+
         self.add_parameter(name='coupling',
             label='coupling',
             get_cmd=self._param_getter('COUPling?'),
