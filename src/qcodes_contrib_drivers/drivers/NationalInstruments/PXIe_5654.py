@@ -1,6 +1,6 @@
 from typing import Optional
 from .RFSG import NI_RFSG
-from qcodes.utils.validators import Numbers
+from qcodes.validators import Numbers
 
 
 class NationalInstruments_PXIe_5654(NI_RFSG):

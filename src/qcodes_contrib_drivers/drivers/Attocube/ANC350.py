@@ -1,9 +1,9 @@
 ﻿import time
 from typing import Any, Callable, Dict, Optional, Union
 
-import qcodes.utils.validators as vals
-from qcodes.instrument.base import Instrument
-from qcodes.instrument.channel import InstrumentChannel, ChannelList
+import qcodes.validators as vals
+from qcodes.instrument import Instrument
+from qcodes.instrument import InstrumentChannel, ChannelList
 
 from qcodes_contrib_drivers.drivers.Attocube.ANC350Lib import ANC350LibActuatorType, ANC350v3Lib, ANC350v4Lib
 

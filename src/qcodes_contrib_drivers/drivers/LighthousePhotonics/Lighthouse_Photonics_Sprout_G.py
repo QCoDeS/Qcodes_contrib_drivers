@@ -1,6 +1,6 @@
 import time
 
-from qcodes import DelegateParameter
+from qcodes.parameters import DelegateParameter
 from tqdm import tqdm
 
 from qcodes.instrument import VisaInstrument

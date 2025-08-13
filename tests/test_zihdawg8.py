@@ -8,7 +8,7 @@ sys.modules['zhinst'] = MagicMock(name='zhinst')
 import zhinst.utils
 
 from qcodes_contrib_drivers.drivers.ZurichInstruments.ZIHDAWG8 import ZIHDAWG8
-from qcodes.utils import validators
+from qcodes import validators
 
 
 class TestZIHDAWG8(unittest.TestCase):

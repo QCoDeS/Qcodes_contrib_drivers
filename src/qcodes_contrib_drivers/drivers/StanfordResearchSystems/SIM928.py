@@ -3,8 +3,8 @@ import logging
 import numpy as np
 import time
 
-from qcodes.instrument.visa import VisaInstrument
-from qcodes.utils import validators as vals
+from qcodes.instrument import VisaInstrument
+from qcodes import validators as vals
 
 log = logging.getLogger(__name__)
 

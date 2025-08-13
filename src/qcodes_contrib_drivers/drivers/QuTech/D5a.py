@@ -1,6 +1,6 @@
 from typing import Dict, Optional
-from qcodes.instrument.base import Instrument
-from qcodes.utils.validators import Enum, Numbers
+from qcodes.instrument import Instrument
+from qcodes.validators import Enum, Numbers
 
 try:
     from spirack import D5a_module

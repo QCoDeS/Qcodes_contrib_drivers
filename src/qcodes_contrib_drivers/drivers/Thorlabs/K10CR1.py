@@ -1,8 +1,8 @@
 import enum
 from typing import Tuple, Optional
 
-import qcodes.utils.validators as vals
-from qcodes import Instrument
+import qcodes.validators as vals
+from qcodes.instrument import Instrument
 
 from .private.APT import Thorlabs_APT, ThorlabsHWType
 

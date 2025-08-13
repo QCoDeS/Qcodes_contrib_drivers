@@ -5,8 +5,8 @@ log = logging.getLogger(__name__)
 
 import zhinst.utils
 import qcodes as qc
-from qcodes.instrument.base import Instrument
-import qcodes.utils.validators as vals
+from qcodes.instrument import Instrument
+import qcodes.validators as vals
 
 class HF2LI(Instrument):
     """Qcodes driver for Zurich Instruments HF2LI lockin amplifier.
@@ -78,7 +78,7 @@ class HF2LI(Instrument):
             # Making output select only gettable, since we are
             # explicitly mapping auxouts to X, Y, R, Theta, etc.
             self._set_output_select(ch)
-            
+
         self.add_parameter(
             name='phase',
             label='Phase',
@@ -96,14 +96,14 @@ class HF2LI(Instrument):
             get_parser=float,
             set_cmd=self._set_time_constant,
             vals=vals.Numbers()
-        )  
+        )
         self.add_parameter(
             name='frequency',
             label='Frequency',
             unit='Hz',
             get_cmd=self._get_frequency,
             get_parser=float
-        ) 
+        )
         self.add_parameter(
             name='sigout_range',
             label='Signal output range',
@@ -156,7 +156,7 @@ class HF2LI(Instrument):
     def _set_phase(self, phase: float) -> None:
         path = f'/{self.dev_id}/demods/{self.demod}/phaseshift/'
         self.daq.setDouble(path, phase)
-        
+
     def _get_gain(self, channel: str) -> float:
         path = f'/{self.dev_id}/auxouts/{self.auxouts[channel]}/scale/'
         return self.daq.getDouble(path)
@@ -235,4 +235,3 @@ class HF2LI(Instrument):
     def sample(self) -> dict:
         path = f'/{self.dev_id}/demods/{self.demod}/sample/'
         return self.daq.getSample(path)
-        

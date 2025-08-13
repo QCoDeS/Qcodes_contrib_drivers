@@ -5,7 +5,7 @@ libraries in the ``NIDLLWrapper`` class with ``qcodes.Instrument``.
 
 from functools import partial
 from typing import Any
-from qcodes import Instrument
+from qcodes.instrument import Instrument
 from .dll_wrapper import NIDLLWrapper, AttributeWrapper
 from .visa_types import ViSession
 

@@ -19,8 +19,8 @@ import re
 import logging
 import time
 
-from qcodes.utils.validators import Numbers
-from qcodes import VisaInstrument
+from qcodes.validators import Numbers
+from qcodes.instrument import VisaInstrument
 import pyvisa.constants as vi_const
 
 

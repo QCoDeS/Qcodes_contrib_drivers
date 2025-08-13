@@ -2,10 +2,10 @@ import numpy as np
 import itertools
 import uuid
 from time import sleep as sleep_s
-from qcodes.instrument.channel import InstrumentChannel, ChannelList
-from qcodes.instrument.visa import VisaInstrument
+from qcodes.instrument import InstrumentChannel, ChannelList
+from qcodes.instrument import VisaInstrument
 from pyvisa.errors import VisaIOError
-from qcodes.utils import validators
+from qcodes import validators
 from typing import NewType, Tuple, Sequence, List, Dict, Optional
 from packaging.version import parse
 import abc
@@ -1508,7 +1508,8 @@ class QDac2Channel(InstrumentChannel):
             unit='V/s',
             set_cmd='sour{1}:volt:slew {0}'.format('{}', channum),
             get_cmd=f'sour{channum}:volt:slew?',
-            get_parser=float
+            get_parser=float,
+            vals=validators.Numbers(0.01, 2e7)
         )
         self.add_parameter(
             name='read_current_A',

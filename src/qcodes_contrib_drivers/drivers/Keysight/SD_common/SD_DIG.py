@@ -1,4 +1,4 @@
-from qcodes.utils.validators import Numbers, Enum, Ints
+from qcodes.validators import Numbers, Enum, Ints
 from functools import partial
 
 from .SD_Module import *

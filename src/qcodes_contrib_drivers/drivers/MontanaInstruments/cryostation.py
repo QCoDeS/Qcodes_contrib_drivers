@@ -21,9 +21,9 @@ log = logging.getLogger(__name__)
 class MontanaInstruments_Cryostation(IPInstrument):
     """
     Class to represent a Montana Instruments Cryostation.
-    
+
     status: beta-version
-    
+
     Args:
         name (str): name for the instrument
         address (str): IP address for the resource to connect
@@ -179,4 +179,3 @@ class MontanaInstruments_Cryostation(IPInstrument):
             return float(temp)
         except Exception as error:
             raise ValueError('output from Montana cannot be converted to float') from error
-        

@@ -35,6 +35,3 @@ devices:
 resources:
   GPIB::1::INSTR:
     device: HP8594E
-
-
-

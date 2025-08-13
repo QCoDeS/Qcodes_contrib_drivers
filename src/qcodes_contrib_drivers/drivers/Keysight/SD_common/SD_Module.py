@@ -1,7 +1,7 @@
 import warnings
 import os
 from typing import Any, Callable, Dict, List, Optional, Union
-from qcodes.instrument.base import Instrument
+from qcodes.instrument import Instrument
 
 try:
     import keysightSD1

@@ -21,25 +21,25 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest]
-        python-version: ["3.10", "3.11", "3.12"]
+        python-version: ["3.11", "3.12", "3.13"]
         exclude:
           - os: windows-latest
-            python-version: "3.11"
-          - os: windows-latest
             python-version: "3.12"
+          - os: windows-latest
+            python-version: "3.13"
     env:
       DISPLAY: ':99.0'
       OS: ${{ matrix.os }}
-      UPLOAD_TO_GHPAGES: ${{ matrix.os == 'ubuntu-latest' && matrix.python-version == '3.10' && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+      UPLOAD_TO_GHPAGES: ${{ matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11' && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     steps:
-    - uses: actions/checkout@v4.2.2
+    - uses: actions/checkout@v5.0.0
       with:
         submodules: true
         fetch-depth: '0'
         # if we upload to ghpages we need the full
         # history to generate correct version info
       if: ${{ fromJSON(env.UPLOAD_TO_GHPAGES) }}
-    - uses: actions/checkout@v4.2.2
+    - uses: actions/checkout@v5.0.0
       with:
         submodules: true
       if: ${{ !fromJSON(env.UPLOAD_TO_GHPAGES) }}
@@ -50,12 +50,12 @@ jobs:
       run: sudo apt install pandoc
       if: runner.os == 'Linux'
     - name: Install pandoc on windows
-      uses: crazy-max/ghaction-chocolatey@v3.2.0
+      uses: crazy-max/ghaction-chocolatey@v3.4.0
       with:
         args: install pandoc
       if: runner.os == 'Windows'
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5.3.0
+      uses: actions/setup-python@v5.6.0
       with:
         python-version: ${{ matrix.python-version }}
         cache: 'pip'
@@ -85,7 +85,7 @@ jobs:
         name: docs_${{ matrix.python-version }}_${{ matrix.os }}
         path: ${{ github.workspace }}/docs/_build/html
     - name: Deploy to gh pages
-      uses: JamesIves/github-pages-deploy-action@v4.7.2
+      uses: JamesIves/github-pages-deploy-action@v4.7.3
       with:
         branch: gh-pages
         folder: ${{ github.workspace }}/docs/_build/html

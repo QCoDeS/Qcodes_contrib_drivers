@@ -4,9 +4,9 @@ import logging
 
 import numpy as np
 
-from qcodes.instrument.visa import VisaInstrument
-from qcodes.instrument.parameter import ArrayParameter
-import qcodes.utils.validators as vals
+from qcodes.instrument import VisaInstrument
+from qcodes.parameters import ArrayParameter
+import qcodes.validators as vals
 
 log = logging.getLogger(__name__)
 
@@ -86,7 +86,7 @@ class CMTS5048Trace(ArrayParameter):
         if not inst._traceready:
             raise TraceNotReady('Trace not ready. Please run prepare_trace.')
 
-        inst.write('CALC:DATA:FDAT') 
+        inst.write('CALC:DATA:FDAT')
         old_read_termination = inst.visa_handle.read_termination
         try:
             inst.visa_handle.read_termination = ''
@@ -95,7 +95,7 @@ class CMTS5048Trace(ArrayParameter):
             inst.visa_handle.read_termination = old_read_termination
 
         first_points = B''
-        
+
         for n in range((len(raw_resp)-4)//4):
             first_points += raw_resp[4:][2*n*4:(2*n+1)*4]
 
@@ -171,7 +171,7 @@ class CMTS5048(VisaInstrument):
             get_cmd='SOUR:POW?',
             get_parser=float,
             vals=vals.Numbers(-80, 20))
-        
+
         self.add_parameter(
             's_parameter',
             label='S-parameter',
@@ -212,7 +212,7 @@ class CMTS5048(VisaInstrument):
         # Startup
         self.startup()
         self.connect_message()
-        
+
     def reset(self) -> None:
         """
         Resets the instrument to factory default state
@@ -298,10 +298,10 @@ class CMTS5048(VisaInstrument):
             raise ValueError(f"Cannot set display_format to {fmt}, should be one of {set(val_mapping.keys())}")
 
         self._traceready = False
-        
+
         self.display_reference.unit = _unit_map[fmt]
-        self.display_scale.unit = _unit_map[fmt] 
-        
+        self.display_scale.unit = _unit_map[fmt]
+
         self.write(f'CALC:FORM "{val_mapping[fmt]}"')
 
     def _display_format_getter(self) -> str:
