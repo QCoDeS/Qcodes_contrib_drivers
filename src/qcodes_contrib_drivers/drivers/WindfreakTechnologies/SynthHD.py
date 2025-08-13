@@ -1,6 +1,6 @@
 from qcodes import Instrument, InstrumentChannel
 import qcodes.parameters
-from qcodes.utils.validators import Numbers, Enum, Ints
+from qcodes.validators import Numbers, Enum, Ints
 from windfreak import SynthHD
 
 LETTERS = '-ABCDEFGHIJKLMNOPQRSTUVWXYZ'
