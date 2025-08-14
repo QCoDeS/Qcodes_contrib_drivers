@@ -106,7 +106,8 @@ module = [
     "python-dotenv",
     "serial.*",
     "scipy.*",
-    "nanonis_tramea"
+    "nanonis_tramea",
+    "windfreak"
 ]
 ignore_missing_imports = true
 
