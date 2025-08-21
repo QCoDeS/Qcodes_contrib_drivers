@@ -31,7 +31,9 @@ class CryoSwitchChannel(InstrumentChannel):
         self.add_parameter(
             'active_contact',
             get_cmd=self._get_active_contact,
-            vals=Numbers(0, 6)
+            vals=Numbers(0, 6),
+            docstring="Number of the active channel, based on the json file tracking the changes. "
+                "Value 0 indicates no contact is connected."
         )
 
         self._channel = channel
@@ -142,19 +144,22 @@ class CryoSwitchControllerDriver(Instrument):
         self.add_parameter(
             'output_voltage',
             set_cmd=self._controller.set_output_voltage,
-            vals=Numbers(5, 28)
+            vals=Numbers(5, 28),
+            docstring="Magnitude of the voltage pulse used to control the switch"
         )
 
         self.add_parameter(
             'pulse_duration',
             set_cmd=self._controller.set_pulse_duration_ms,
-            vals=Numbers(1, 100)
+            vals=Numbers(1, 100),
+            docstring="Duration of the voltage pulse used to control the switch in ms"
         )
 
         self.add_parameter(
             'OCP_value',
             set_cmd=self._controller.set_OCP_mA,
-            vals=Numbers(1, 150)
+            vals=Numbers(1, 150),
+            docstring="OVercurrent protection level in mA"
         )
 
         self.add_parameter(
@@ -167,13 +172,16 @@ class CryoSwitchControllerDriver(Instrument):
             'switch_model',
             set_cmd=self._select_switch_model,
             get_cmd=self._get_switch_model,
-            vals=Enum('R583423141', 'R573423600', 'CRYO', 'RT')
+            vals=Enum('R583423141', 'R573423600', 'CRYO', 'RT'),
+            docstring="Selection between the configurations for control of room-temperature "
+                    "and cryogenic version of the switch. Permitted values: 'R583423141', 'R573423600', 'CRYO', 'RT'"
         )
 
         self.add_parameter(
             'power_status',
             get_cmd=self._controller.get_power_status,
-            vals=Enum(0, 1)
+            vals=Enum(0, 1),
+            docstring="On (1) or Off (0) status of the switch controller."
         )
 
         self.add_function('start', call_cmd=self._controller.start)

@@ -58,6 +58,7 @@ test = [
     "types-tqdm>=4.64.6",
     "pandas-stubs>=1.2.0.1",
     "pyserial",
+    "windfreak>=0.3.0"
 ]
 docs = [
     "sphinx>=8.1.3,<8.3.0",
@@ -105,7 +106,8 @@ module = [
     "python-dotenv",
     "serial.*",
     "scipy.*",
-    "nanonis_tramea"
+    "nanonis_tramea",
+    "windfreak"
 ]
 ignore_missing_imports = true
 
