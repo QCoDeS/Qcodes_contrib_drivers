@@ -13,8 +13,8 @@ from typing import Any, TypeVar
 import numpy as np
 import numpy.typing as npt
 from qcodes.instrument import InstrumentBase, InstrumentChannel, InstrumentModule
-from qcodes.parameters import ParamRawDataType, Parameter, ParameterBase
-from qcodes.validators import validators as vals
+from qcodes.parameters import DelegateParameter, ParamRawDataType, Parameter, ParameterBase
+from qcodes.validators import Validator, validators as vals
 
 try:
     sys.path.append(str(Path(os.environ['TIMETAGGER_INSTALL_PATH'], 'driver', 'python')))
@@ -127,6 +127,20 @@ class ArrayLikeValidator(vals.Arrays):
         except ValueError as err:
             raise ValueError(f'{value!r} is invalid: cannot convert to array; {context}') from err
         super().validate(array, context)
+
+
+class DelegateParameterWithoutParentValidator(DelegateParameter):
+    """A :class:`DelegateParameter` with a validator that does not
+    validate on the parent's validators."""
+    # Reverts behavior introduced in GH #6865 / 0000926
+
+    @property
+    def validators(self) -> tuple[Validator, ...]:
+        """Tuple of all validators associated with the parameter.
+
+        :getter: All validators associated with the parameter.
+        """
+        return tuple(self._vals)
 
 
 class ParameterWithSetSideEffect(Parameter):
