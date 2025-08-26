@@ -1,0 +1,18 @@
+qcodes\_contrib\_drivers.drivers.QphoX package
+==============================================
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 10
+
+   qcodes_contrib_drivers.drivers.QphoX.CryoSwitchController
+
+Module contents
+---------------
+
+.. automodule:: qcodes_contrib_drivers.drivers.QphoX
+   :members:
+   :undoc-members:
+   :show-inheritance:
