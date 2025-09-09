@@ -7,27 +7,17 @@ import time
 import subprocess
 import platform
 import numpy as np
+import pathlib
+import sys
 
 from qcodes.instrument import VisaInstrument
 from qcodes.parameters import MultiParameter
-
-from qcodes_contrib_drivers.drivers.OxfordInstruments._decsvisa.src.decs_visa_tools.decs_visa_settings import PORT
-from qcodes_contrib_drivers.drivers.OxfordInstruments._decsvisa.src.decs_visa_tools.decs_visa_settings import HOST
-from qcodes_contrib_drivers.drivers.OxfordInstruments._decsvisa.src.decs_visa_tools.decs_visa_settings import SHUTDOWN
-from qcodes_contrib_drivers.drivers.OxfordInstruments._decsvisa.src.decs_visa_tools.decs_visa_settings import WRITE_DELIM
 
 '''
 
     Please see the README.md file in this directory for setup instructions.
 
 '''
-
-#############################################
-#    Configuration settings required     #
-#############################################
-
-# supply the file path from your working directory to the decs_visa.py file
-decs_visa_path = "../../src/qcodes_contrib_drivers/drivers/OxfordInstruments/_decsvisa/src/decs_visa.py"
 
 #############################################
 #    System configuration settings     #
@@ -138,15 +128,27 @@ class MagnetCurrentParameters(MultiParameter):
 
 class oiDECS(VisaInstrument):
     """ Main implementation of the oi.DECS driver """
-    def __init__(self, name, **kwargs):
+    def __init__(self, name, decsvisa_path, **kwargs):
+        """
+        name (str): instrument name e.g. 'Proteox'
+        decsvisa_path (str): supply the file path from your working directory to the decs_visa.py file
+        """
+
+        path = pathlib.Path(decsvisa_path)
+        decsvisa_parent = path.parent 
+        sys.path.append(decsvisa_parent)
+        
+        from _decsvisa.src.decs_visa_tools.decs_visa_settings import PORT
+        from _decsvisa.src.decs_visa_tools.decs_visa_settings import HOST
+        from _decsvisa.src.decs_visa_tools.decs_visa_settings import WRITE_DELIM
 
         running_on = platform.platform()
         if running_on.startswith("Windows"):
             print(f"Running on {running_on} - start subprocess without PIPEd output")
-            subprocess.Popen(["python", decs_visa_path])
+            subprocess.Popen(["python", decsvisa_path])
         else:
             print(f"Running on {running_on} - start subprocess with PIPEd output")
-            subprocess.Popen(["python3", decs_visa_path], stdout=subprocess.PIPE)
+            subprocess.Popen(["python3", decsvisa_path], stdout=subprocess.PIPE)
 
         time.sleep(1)
 
@@ -625,5 +627,6 @@ class oiDECS(VisaInstrument):
 
     def close(self) -> None:
         # Kill off the WAMP and socket connections
+        from _decsvisa.src.decs_visa_tools.decs_visa_settings import SHUTDOWN
         self.write(SHUTDOWN)
         return super().close()

@@ -15,20 +15,7 @@ An alternative approach is to make `oi.DECS` *'look like'* a standard `VISA` ins
 
 1.  Setup the `decsvisa` simple TCP socket server. Follow the setup and configuration steps detailed in the `README.md` file included within the decsvisa directory. This decsvisa directory can be found at `qcodes/instrument_drivers/Oxford_Instruments/decsvisa`.
 
-2.  In the `QCoDeS` driver file `Proteox.py`, add the file path of `decs_visa.py` as shown below:
-
-    ````python
-    #############################################
-    #    Configuration settings required     #
-    #############################################
-
-    # supply the file path from your working directory to the decs_visa.py file
-    decs_visa_path = "qcodes/instrument_drivers/OxfordInstruments/decsvisa/src/decs_visa.py"
-
-    #############################################
-    ````
-
-3. In the `QCoDeS` driver file `Proteox.py`, configure the system settings to be correct for your system.
+2. In the `QCoDeS` driver file `Proteox.py`, configure the system settings to be correct for your system.
 
     ````python
     #############################################
@@ -56,17 +43,17 @@ An alternative approach is to make `oi.DECS` *'look like'* a standard `VISA` ins
     #############################################
     ````
 
-4.  Ensure that `oi.DECS` is in remote mode, and that there is no current controlling session.
+3.  Ensure that `oi.DECS` is in remote mode, and that there is no current controlling session.
 
     ![Remote mode](../../../../docs/examples/OI_images/remote_mode.png)
 
     **NB** - You will need to be logged in as `Admin_Controller` to change from ‘local’ to ‘remote’ modes.
 
-5.  Import the `QCoDeS` driver and connect to `oi.DECS` as follows:
+4.  Import the `QCoDeS` driver and supply the `decs_visa.py` file path to connect to `oi.DECS` as follows:
 
     ````python
     from qcodes_contrib_drivers.drivers.OxfordInstruments.Proteox import oiDECS
-    Proteox = oiDECS('Proteox')
+    Proteox = oiDECS('Proteox', decsvisa_path='../../src/qcodes_contrib_drivers/drivers/OxfordInstruments/_decsvisa/src/decs_visa.py')
     ````
 Once connected, the driver can be used in the same way as any other `QCoDeS` driver. See the file `docs/examples/OxfordInstruments_Proteox.ipynb` for an example. When you close the connection, e.g. `Proteox.close()`, this will also close the WAMP connection established by `DECS<->VISA`, as well as the socket server it launches (see the `DECS<->VISA` README for further details).
 
