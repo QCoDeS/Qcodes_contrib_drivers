@@ -135,9 +135,9 @@ class oiDECS(VisaInstrument):
         """
 
         path = pathlib.Path(decsvisa_path)
-        decsvisa_parent = path.parent 
+        decsvisa_parent = path.parent
         sys.path.append(decsvisa_parent)
-        
+
         from _decsvisa.src.decs_visa_tools.decs_visa_settings import PORT
         from _decsvisa.src.decs_visa_tools.decs_visa_settings import HOST
         from _decsvisa.src.decs_visa_tools.decs_visa_settings import WRITE_DELIM
