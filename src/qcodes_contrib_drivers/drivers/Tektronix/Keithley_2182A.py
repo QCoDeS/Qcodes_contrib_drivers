@@ -136,6 +136,29 @@ class Keithley2182A(VisaInstrument):
             docstring="Enable/disable auto ranging"
         )
 
+        # Line frequency parameter for NPLC calculations
+        self.line_frequency: Parameter = self.add_parameter(
+            "line_frequency",
+            label="Line Frequency",
+            unit="Hz",
+            get_cmd="SYST:LFR?",
+            set_cmd="SYST:LFR {}",
+            get_parser=float,
+            vals=Enum(50, 60),
+            docstring="Set/get the power line frequency (50 or 60 Hz)"
+        )
+
+        # Measurement aperture time (alternative to NPLC)
+        self.aperture_time: Parameter = self.add_parameter(
+            "aperture_time",
+            label="Aperture Time",
+            unit="s",
+            get_cmd=partial(self._get_mode_param, "APER", float),
+            set_cmd=partial(self._set_mode_param, "APER"),
+            vals=Numbers(min_value=0.0002, max_value=0.2),
+            docstring="Set/get the measurement aperture time in seconds"
+        )
+
         # Temperature measurement parameters
         self.temperature: Parameter = self.add_parameter(
             "temperature",
@@ -210,6 +233,36 @@ class Keithley2182A(VisaInstrument):
             set_cmd="DISP:ENAB {}",
             val_mapping={True: "ON", False: "OFF"},
             docstring="Enable/disable the front panel display"
+        )
+
+        # Input impedance parameter (specific to nanovoltmeter)
+        self.input_impedance: Parameter = self.add_parameter(
+            "input_impedance",
+            label="Input Impedance",
+            get_cmd="SENS:VOLT:DC:IMP:AUTO?",
+            set_cmd="SENS:VOLT:DC:IMP:AUTO {}",
+            val_mapping={True: "ON", False: "OFF"},
+            docstring="Enable/disable automatic input impedance selection"
+        )
+
+        # Analog filter for noise reduction
+        self.analog_filter: Parameter = self.add_parameter(
+            "analog_filter",
+            label="Analog Filter",
+            get_cmd="SENS:VOLT:DC:LPAS?",
+            set_cmd="SENS:VOLT:DC:LPAS {}",
+            val_mapping={True: "ON", False: "OFF"},
+            docstring="Enable/disable analog low-pass filter for noise reduction"
+        )
+
+        # Digital filter for additional noise reduction
+        self.digital_filter: Parameter = self.add_parameter(
+            "digital_filter",
+            label="Digital Filter",
+            get_cmd="SENS:VOLT:DC:DFIL?",
+            set_cmd="SENS:VOLT:DC:DFIL {}",
+            val_mapping={True: "ON", False: "OFF"},
+            docstring="Enable/disable digital filter for noise reduction"
         )
 
         # Initialize instrument settings
@@ -464,3 +517,99 @@ class Keithley2182A(VisaInstrument):
         Clear all errors from the error queue.
         """
         self.write("*CLS")
+
+    def set_measurement_speed(self, speed: str) -> None:
+        """
+        Set measurement speed preset (affects NPLC and filtering).
+        
+        Args:
+            speed: Speed setting ("fast", "medium", "slow")
+        """
+        speed_settings = {
+            "fast": {"nplc": 0.1, "analog_filter": False, "digital_filter": False},
+            "medium": {"nplc": 1.0, "analog_filter": True, "digital_filter": False}, 
+            "slow": {"nplc": 10.0, "analog_filter": True, "digital_filter": True}
+        }
+        
+        if speed not in speed_settings:
+            raise ValueError(f"Invalid speed setting. Choose from: {list(speed_settings.keys())}")
+        
+        settings = speed_settings[speed]
+        self.nplc(settings["nplc"])
+        self.analog_filter(settings["analog_filter"])
+        self.digital_filter(settings["digital_filter"])
+
+    def measure_voltage_statistics(self, num_measurements: int = 10) -> dict:
+        """
+        Take multiple voltage measurements and return statistics.
+        
+        Args:
+            num_measurements: Number of measurements to take
+            
+        Returns:
+            Dictionary with mean, std, min, max values
+        """
+        import statistics
+        
+        measurements = []
+        for _ in range(num_measurements):
+            measurements.append(self._measure_voltage())
+        
+        return {
+            "mean": statistics.mean(measurements),
+            "stdev": statistics.stdev(measurements) if len(measurements) > 1 else 0,
+            "min": min(measurements),
+            "max": max(measurements),
+            "count": len(measurements),
+            "measurements": measurements
+        }
+
+    def optimize_for_low_noise(self) -> None:
+        """
+        Configure the instrument for lowest noise measurements.
+        
+        This enables all noise reduction features and sets slow integration time.
+        """
+        self.set_measurement_speed("slow")
+        self.auto_zero(True)
+        self.averaging_enabled(True)
+        self.averaging_count(10)
+        self.input_impedance(True)  # Auto impedance selection
+        
+    def optimize_for_speed(self) -> None:
+        """
+        Configure the instrument for fastest measurements.
+        
+        This disables noise reduction features for maximum speed.
+        """
+        self.set_measurement_speed("fast")
+        self.auto_zero(False)
+        self.averaging_enabled(False)
+        self.analog_filter(False)
+        self.digital_filter(False)
+
+    def check_ranges(self) -> dict:
+        """
+        Get available measurement ranges for the current mode.
+        
+        Returns:
+            Dictionary with range information
+        """
+        mode = self.mode()
+        
+        if mode == "dc voltage":
+            ranges = {
+                "available_ranges": [0.1, 1.0, 10.0, 100.0],  # Volts
+                "current_range": self.range(),
+                "auto_range": self.auto_range_enabled()
+            }
+        elif mode == "temperature":
+            ranges = {
+                "available_ranges": "Depends on probe type",
+                "current_units": self.temperature_units(),
+                "auto_range": "N/A for temperature"
+            }
+        else:
+            ranges = {"error": "Unknown measurement mode"}
+            
+        return ranges
