@@ -1,0 +1,21 @@
+qcodes\_contrib\_drivers.drivers.BlueFors package
+=================================================
+
+Submodules
+----------
+
+qcodes\_contrib\_drivers.drivers.BlueFors.BlueFors module
+---------------------------------------------------------
+
+.. automodule:: qcodes_contrib_drivers.drivers.BlueFors.BlueFors
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: qcodes_contrib_drivers.drivers.BlueFors
+   :members:
+   :undoc-members:
+   :show-inheritance:
