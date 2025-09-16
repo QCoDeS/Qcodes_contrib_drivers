@@ -49,11 +49,11 @@ def _parse_output_bool(value: str) -> bool:
 class Keithley2182A(VisaInstrument):
     """
     QCoDeS driver for the Keithley 2182A nanovoltmeter.
-    
+
     This driver provides comprehensive functionality for the Keithley 2182A,
     including voltage measurements, temperature readings, and various
     configuration options as specified in the user manual sections 12-15.
-    
+
     The driver implements the MEASure and FETCh commands along with all
     related measurement and configuration functionality.
     """
@@ -69,10 +69,10 @@ class Keithley2182A(VisaInstrument):
     ):
         """
         Initialize the Keithley 2182A nanovoltmeter.
-        
+
         Args:
             name: Name of the instrument
-            address: VISA address of the instrument  
+            address: VISA address of the instrument
             reset: Whether to reset the instrument upon initialization
             **kwargs: Additional arguments passed to VisaInstrument
         """
@@ -93,7 +93,7 @@ class Keithley2182A(VisaInstrument):
             get_cmd="SENS:FUNC?",
             set_cmd="SENS:FUNC {}",
             val_mapping=self._mode_map,
-            docstring="Set/get the measurement function (DC voltage or temperature)"
+            docstring="Set/get the measurement function (DC voltage or temperature)",
         )
 
         # Voltage measurement parameters
@@ -102,7 +102,7 @@ class Keithley2182A(VisaInstrument):
             label="DC Voltage",
             unit="V",
             get_cmd=self._measure_voltage,
-            docstring="Measure DC voltage using the MEASure command"
+            docstring="Measure DC voltage using the MEASure command",
         )
 
         # NPLC (Number of Power Line Cycles) parameter
@@ -112,7 +112,7 @@ class Keithley2182A(VisaInstrument):
             get_cmd=partial(self._get_mode_param, "NPLC", float),
             set_cmd=partial(self._set_mode_param, "NPLC"),
             vals=Numbers(min_value=0.01, max_value=10),
-            docstring="Set/get the integration time in number of power line cycles"
+            docstring="Set/get the integration time in number of power line cycles",
         )
 
         # Voltage range parameter
@@ -123,7 +123,7 @@ class Keithley2182A(VisaInstrument):
             get_cmd=partial(self._get_mode_param, "RANG", float),
             set_cmd=partial(self._set_mode_param, "RANG"),
             vals=Numbers(min_value=1e-6, max_value=120),
-            docstring="Set/get the measurement range"
+            docstring="Set/get the measurement range",
         )
 
         # Auto range parameter
@@ -133,7 +133,7 @@ class Keithley2182A(VisaInstrument):
             get_cmd=partial(self._get_mode_param, "RANG:AUTO", _parse_output_bool),
             set_cmd=partial(self._set_mode_param, "RANG:AUTO", bool),
             vals=Bool(),
-            docstring="Enable/disable auto ranging"
+            docstring="Enable/disable auto ranging",
         )
 
         # Line frequency parameter for NPLC calculations
@@ -145,7 +145,7 @@ class Keithley2182A(VisaInstrument):
             set_cmd="SYST:LFR {}",
             get_parser=float,
             vals=Enum(50, 60),
-            docstring="Set/get the power line frequency (50 or 60 Hz)"
+            docstring="Set/get the power line frequency (50 or 60 Hz)",
         )
 
         # Measurement aperture time (alternative to NPLC)
@@ -156,7 +156,7 @@ class Keithley2182A(VisaInstrument):
             get_cmd=partial(self._get_mode_param, "APER", float),
             set_cmd=partial(self._set_mode_param, "APER"),
             vals=Numbers(min_value=0.0002, max_value=0.2),
-            docstring="Set/get the measurement aperture time in seconds"
+            docstring="Set/get the measurement aperture time in seconds",
         )
 
         # Temperature measurement parameters
@@ -165,7 +165,7 @@ class Keithley2182A(VisaInstrument):
             label="Temperature",
             unit="K",
             get_cmd=self._measure_temperature,
-            docstring="Measure temperature (requires appropriate probe)"
+            docstring="Measure temperature (requires appropriate probe)",
         )
 
         # Temperature units parameter
@@ -175,7 +175,7 @@ class Keithley2182A(VisaInstrument):
             get_cmd="UNIT:TEMP?",
             set_cmd="UNIT:TEMP {}",
             val_mapping={"kelvin": "K", "celsius": "C", "fahrenheit": "F"},
-            docstring="Set/get temperature measurement units"
+            docstring="Set/get temperature measurement units",
         )
 
         # Averaging parameters
@@ -185,7 +185,7 @@ class Keithley2182A(VisaInstrument):
             get_cmd="SENS:AVER?",
             set_cmd="SENS:AVER {}",
             val_mapping={True: "ON", False: "OFF"},
-            docstring="Enable/disable measurement averaging"
+            docstring="Enable/disable measurement averaging",
         )
 
         self.averaging_count: Parameter = self.add_parameter(
@@ -195,7 +195,7 @@ class Keithley2182A(VisaInstrument):
             set_cmd="SENS:AVER:COUN {}",
             get_parser=int,
             vals=Ints(min_value=1, max_value=100),
-            docstring="Set/get the number of measurements to average"
+            docstring="Set/get the number of measurements to average",
         )
 
         # Trigger parameters
@@ -206,12 +206,12 @@ class Keithley2182A(VisaInstrument):
             set_cmd="TRIG:SOUR {}",
             val_mapping={
                 "immediate": "IMM",
-                "external": "EXT", 
+                "external": "EXT",
                 "timer": "TIM",
                 "manual": "MAN",
-                "bus": "BUS"
+                "bus": "BUS",
             },
-            docstring="Set/get the trigger source"
+            docstring="Set/get the trigger source",
         )
 
         self.trigger_delay: Parameter = self.add_parameter(
@@ -222,7 +222,7 @@ class Keithley2182A(VisaInstrument):
             set_cmd="TRIG:DEL {}",
             get_parser=float,
             vals=Numbers(min_value=0, max_value=999999.999),
-            docstring="Set/get trigger delay in seconds"
+            docstring="Set/get trigger delay in seconds",
         )
 
         # Display parameters
@@ -232,7 +232,7 @@ class Keithley2182A(VisaInstrument):
             get_cmd="DISP:ENAB?",
             set_cmd="DISP:ENAB {}",
             val_mapping={True: "ON", False: "OFF"},
-            docstring="Enable/disable the front panel display"
+            docstring="Enable/disable the front panel display",
         )
 
         # Input impedance parameter (specific to nanovoltmeter)
@@ -242,7 +242,7 @@ class Keithley2182A(VisaInstrument):
             get_cmd="SENS:VOLT:DC:IMP:AUTO?",
             set_cmd="SENS:VOLT:DC:IMP:AUTO {}",
             val_mapping={True: "ON", False: "OFF"},
-            docstring="Enable/disable automatic input impedance selection"
+            docstring="Enable/disable automatic input impedance selection",
         )
 
         # Analog filter for noise reduction
@@ -252,7 +252,7 @@ class Keithley2182A(VisaInstrument):
             get_cmd="SENS:VOLT:DC:LPAS?",
             set_cmd="SENS:VOLT:DC:LPAS {}",
             val_mapping={True: "ON", False: "OFF"},
-            docstring="Enable/disable analog low-pass filter for noise reduction"
+            docstring="Enable/disable analog low-pass filter for noise reduction",
         )
 
         # Digital filter for additional noise reduction
@@ -262,23 +262,23 @@ class Keithley2182A(VisaInstrument):
             get_cmd="SENS:VOLT:DC:DFIL?",
             set_cmd="SENS:VOLT:DC:DFIL {}",
             val_mapping={True: "ON", False: "OFF"},
-            docstring="Enable/disable digital filter for noise reduction"
+            docstring="Enable/disable digital filter for noise reduction",
         )
 
         # Initialize instrument settings
         if reset:
             self.reset()
-            
+
         self.connect_message()
 
     def _get_mode_param(self, param: str, parser: "Callable[[str], Any]") -> Any:
         """
         Get a parameter value for the current measurement mode.
-        
+
         Args:
             param: Parameter name to query
             parser: Function to parse the response
-            
+
         Returns:
             Parsed parameter value
         """
@@ -289,7 +289,7 @@ class Keithley2182A(VisaInstrument):
     def _set_mode_param(self, param: str, value: Any, val_type: type = None) -> None:
         """
         Set a parameter value for the current measurement mode.
-        
+
         Args:
             param: Parameter name to set
             value: Value to set
@@ -303,10 +303,10 @@ class Keithley2182A(VisaInstrument):
     def _measure_voltage(self) -> float:
         """
         Measure DC voltage using the MEASure command.
-        
+
         The MEASure command automatically configures the instrument
         for voltage measurement and returns the result.
-        
+
         Returns:
             Measured voltage in volts
         """
@@ -316,7 +316,7 @@ class Keithley2182A(VisaInstrument):
     def _measure_temperature(self) -> float:
         """
         Measure temperature using the MEASure command.
-        
+
         Returns:
             Measured temperature in the currently selected units
         """
@@ -326,10 +326,10 @@ class Keithley2182A(VisaInstrument):
     def fetch(self) -> float:
         """
         Fetch the last measurement from the instrument buffer.
-        
+
         The FETCh command retrieves the most recent measurement
         without triggering a new measurement.
-        
+
         Returns:
             Last measured value
         """
@@ -339,9 +339,9 @@ class Keithley2182A(VisaInstrument):
     def read(self) -> float:
         """
         Trigger and fetch a measurement.
-        
+
         The READ command combines INIT and FETC operations.
-        
+
         Returns:
             Measured value
         """
@@ -351,7 +351,7 @@ class Keithley2182A(VisaInstrument):
     def initiate_measurement(self) -> None:
         """
         Initiate a measurement.
-        
+
         This command moves the instrument from the idle state
         to the wait-for-trigger state.
         """
@@ -376,7 +376,7 @@ class Keithley2182A(VisaInstrument):
     def auto_zero(self, enabled: bool = True) -> None:
         """
         Enable or disable auto-zero functionality.
-        
+
         Args:
             enabled: True to enable auto-zero, False to disable
         """
@@ -385,7 +385,7 @@ class Keithley2182A(VisaInstrument):
     def get_auto_zero(self) -> bool:
         """
         Get the current auto-zero setting.
-        
+
         Returns:
             True if auto-zero is enabled, False otherwise
         """
@@ -393,15 +393,15 @@ class Keithley2182A(VisaInstrument):
         return _parse_output_bool(response)
 
     def configure_voltage_measurement(
-        self, 
+        self,
         voltage_range: float = None,
         auto_range: bool = True,
         nplc: float = 1.0,
-        auto_zero: bool = True
+        auto_zero: bool = True,
     ) -> None:
         """
         Configure the instrument for voltage measurements.
-        
+
         Args:
             voltage_range: Measurement range in volts (if auto_range is False)
             auto_range: Enable auto-ranging
@@ -410,7 +410,7 @@ class Keithley2182A(VisaInstrument):
         """
         # Set measurement function to DC voltage
         self.mode("dc voltage")
-        
+
         # Configure ranging
         if auto_range:
             self.auto_range_enabled(True)
@@ -418,66 +418,64 @@ class Keithley2182A(VisaInstrument):
             self.auto_range_enabled(False)
             if voltage_range is not None:
                 self.range(voltage_range)
-        
+
         # Set integration time
         self.nplc(nplc)
-        
+
         # Configure auto-zero
         self.auto_zero(auto_zero)
 
     def configure_temperature_measurement(
-        self,
-        units: str = "kelvin",
-        nplc: float = 1.0
+        self, units: str = "kelvin", nplc: float = 1.0
     ) -> None:
         """
         Configure the instrument for temperature measurements.
-        
+
         Args:
             units: Temperature units ("kelvin", "celsius", or "fahrenheit")
             nplc: Integration time in power line cycles
         """
         # Set measurement function to temperature
         self.mode("temperature")
-        
+
         # Set temperature units
         self.temperature_units(units)
-        
+
         # Set integration time
         self.nplc(nplc)
 
     def get_measurement_status(self) -> dict:
         """
         Get comprehensive measurement status information.
-        
+
         Returns:
             Dictionary containing measurement configuration and status
         """
         status = {}
-        
+
         # Basic configuration
         status["mode"] = self.mode()
         status["range"] = self.range()
         status["auto_range"] = self.auto_range_enabled()
         status["nplc"] = self.nplc()
-        
+
         # Averaging configuration
         status["averaging_enabled"] = self.averaging_enabled()
         if status["averaging_enabled"]:
             status["averaging_count"] = self.averaging_count()
-        
+
         # Trigger configuration
         status["trigger_source"] = self.trigger_source()
         status["trigger_delay"] = self.trigger_delay()
-        
+
         # Temperature specific settings (if applicable)
         if status["mode"] == "temperature":
             status["temperature_units"] = self.temperature_units()
-        
+
         # Auto-zero setting (voltage mode)
         if status["mode"] == "dc voltage":
             status["auto_zero"] = self.get_auto_zero()
-        
+
         return status
 
     def reset(self) -> None:
@@ -492,7 +490,7 @@ class Keithley2182A(VisaInstrument):
     def self_test(self) -> bool:
         """
         Perform instrument self-test.
-        
+
         Returns:
             True if self-test passed, False otherwise
         """
@@ -502,7 +500,7 @@ class Keithley2182A(VisaInstrument):
     def get_error(self) -> tuple[int, str]:
         """
         Get the oldest error from the error queue.
-        
+
         Returns:
             Tuple of (error_code, error_message)
         """
@@ -521,19 +519,21 @@ class Keithley2182A(VisaInstrument):
     def set_measurement_speed(self, speed: str) -> None:
         """
         Set measurement speed preset (affects NPLC and filtering).
-        
+
         Args:
             speed: Speed setting ("fast", "medium", "slow")
         """
         speed_settings = {
             "fast": {"nplc": 0.1, "analog_filter": False, "digital_filter": False},
-            "medium": {"nplc": 1.0, "analog_filter": True, "digital_filter": False}, 
-            "slow": {"nplc": 10.0, "analog_filter": True, "digital_filter": True}
+            "medium": {"nplc": 1.0, "analog_filter": False, "digital_filter": False},
+            "slow": {"nplc": 10.0, "analog_filter": True, "digital_filter": True},
         }
-        
+
         if speed not in speed_settings:
-            raise ValueError(f"Invalid speed setting. Choose from: {list(speed_settings.keys())}")
-        
+            raise ValueError(
+                f"Invalid speed setting. Choose from: {list(speed_settings.keys())}"
+            )
+
         settings = speed_settings[speed]
         self.nplc(settings["nplc"])
         self.analog_filter(settings["analog_filter"])
@@ -542,32 +542,32 @@ class Keithley2182A(VisaInstrument):
     def measure_voltage_statistics(self, num_measurements: int = 10) -> dict:
         """
         Take multiple voltage measurements and return statistics.
-        
+
         Args:
             num_measurements: Number of measurements to take
-            
+
         Returns:
             Dictionary with mean, std, min, max values
         """
         import statistics
-        
+
         measurements = []
         for _ in range(num_measurements):
             measurements.append(self._measure_voltage())
-        
+
         return {
             "mean": statistics.mean(measurements),
             "stdev": statistics.stdev(measurements) if len(measurements) > 1 else 0,
             "min": min(measurements),
             "max": max(measurements),
             "count": len(measurements),
-            "measurements": measurements
+            "measurements": measurements,
         }
 
     def optimize_for_low_noise(self) -> None:
         """
         Configure the instrument for lowest noise measurements.
-        
+
         This enables all noise reduction features and sets slow integration time.
         """
         self.set_measurement_speed("slow")
@@ -575,11 +575,11 @@ class Keithley2182A(VisaInstrument):
         self.averaging_enabled(True)
         self.averaging_count(10)
         self.input_impedance(True)  # Auto impedance selection
-        
+
     def optimize_for_speed(self) -> None:
         """
         Configure the instrument for fastest measurements.
-        
+
         This disables noise reduction features for maximum speed.
         """
         self.set_measurement_speed("fast")
@@ -591,25 +591,25 @@ class Keithley2182A(VisaInstrument):
     def check_ranges(self) -> dict:
         """
         Get available measurement ranges for the current mode.
-        
+
         Returns:
             Dictionary with range information
         """
         mode = self.mode()
-        
+
         if mode == "dc voltage":
             ranges = {
                 "available_ranges": [0.1, 1.0, 10.0, 100.0],  # Volts
                 "current_range": self.range(),
-                "auto_range": self.auto_range_enabled()
+                "auto_range": self.auto_range_enabled(),
             }
         elif mode == "temperature":
             ranges = {
                 "available_ranges": "Depends on probe type",
                 "current_units": self.temperature_units(),
-                "auto_range": "N/A for temperature"
+                "auto_range": "N/A for temperature",
             }
         else:
             ranges = {"error": "Unknown measurement mode"}
-            
+
         return ranges
