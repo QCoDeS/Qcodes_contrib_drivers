@@ -130,8 +130,8 @@ class Keithley2182A(VisaInstrument):
         self.auto_range_enabled: Parameter = self.add_parameter(
             "auto_range_enabled",
             label="Auto Range",
-            get_cmd=partial(self._get_mode_param, "RANG:AUTO", _parse_output_bool),
-            set_cmd=partial(self._set_mode_param, "RANG:AUTO", bool),
+            get_cmd=partial(self._get_mode_param, "RANG:AUTO", lambda x: bool(int(x))),
+            set_cmd=partial(self._set_mode_param, "RANG:AUTO", val_type=int),
             vals=Bool(),
             docstring="Enable/disable auto ranging",
         )
@@ -293,10 +293,16 @@ class Keithley2182A(VisaInstrument):
         Args:
             param: Parameter name to set
             value: Value to set
-            val_type: Optional type conversion for boolean values
+            val_type: Optional type conversion for boolean/integer values
         """
         if val_type is bool:
             value = "ON" if value else "OFF"
+        elif val_type is int and isinstance(value, bool):
+            # Convert boolean to integer for YAML compatibility
+            value = 1 if value else 0
+        elif val_type is int and not isinstance(value, int):
+            # Ensure value is an integer
+            value = int(value)
         cmd = f"SENS:{param} {value}"
         self.write(cmd)
 

@@ -35,21 +35,20 @@ def test_idn(driver) -> None:
 
 
 def test_measurement_modes(driver) -> None:
-    """Test measurement mode commands (limited due to simulation constraints)."""
-    # Note: Direct mode parameter testing has simulation limitations
-    # Test that SCPI commands work directly
-    response = driver.ask("SENS:FUNC?")
-    assert response == '"VOLT:DC"'
+    """Test measurement mode setting and getting."""
+    # Test DC voltage mode
+    driver.mode("dc voltage")
+    assert driver.mode() == "dc voltage"
     
-    # Test setting commands are accepted
-    driver.write("SENS:FUNC \"VOLT:DC\"")
-    driver.write("SENS:FUNC \"TEMP\"")
+    # Test temperature mode
+    driver.mode("temperature")
+    assert driver.mode() == "temperature"
 
 
 def test_voltage_measurement(driver) -> None:
     """Test voltage measurement functionality."""
-    # Skip mode setting for now due to simulation limitations
-    # driver.mode("dc voltage")
+    # Set to voltage mode
+    driver.mode("dc voltage")
     
     # Test direct voltage measurement
     voltage = driver.voltage()
@@ -59,7 +58,10 @@ def test_voltage_measurement(driver) -> None:
 
 def test_temperature_measurement(driver) -> None:
     """Test temperature measurement functionality."""
-    # Test temperature measurement directly (simulation always returns temp value)
+    # Set to temperature mode
+    driver.mode("temperature")
+    
+    # Test temperature measurement
     temperature = driver.temperature()
     assert isinstance(temperature, float)
     assert temperature == pytest.approx(298.15, rel=1e-3)
@@ -67,8 +69,8 @@ def test_temperature_measurement(driver) -> None:
 
 def test_fetch_command(driver) -> None:
     """Test the FETCh command functionality."""
-    # Skip mode setting for now due to simulation limitations
-    # driver.mode("dc voltage")
+    # Set to voltage mode
+    driver.mode("dc voltage")
     
     # Test fetch
     fetched_value = driver.fetch()
@@ -78,8 +80,8 @@ def test_fetch_command(driver) -> None:
 
 def test_read_command(driver) -> None:
     """Test the READ command functionality."""
-    # Skip mode setting for now due to simulation limitations
-    # driver.mode("dc voltage")
+    # Set to voltage mode
+    driver.mode("dc voltage")
     
     # Test read
     read_value = driver.read()
@@ -89,9 +91,13 @@ def test_read_command(driver) -> None:
 
 def test_range_control(driver) -> None:
     """Test measurement range control."""
-    # Test that the commands are accepted (simulation limitation: no state tracking)
-    driver.auto_range_enabled(True)  # Command should work
-    driver.auto_range_enabled(False)  # Command should work
+    # Test auto range
+    driver.auto_range_enabled(True)
+    assert driver.auto_range_enabled() is True
+    
+    # Test manual range
+    driver.auto_range_enabled(False)
+    assert driver.auto_range_enabled() is False
     
     # Test range setting
     driver.range(1.0)
@@ -129,9 +135,12 @@ def test_line_frequency(driver) -> None:
 
 def test_averaging(driver) -> None:
     """Test averaging functionality."""
-    # Test averaging enable/disable (simulation limitation: no state tracking)
-    driver.averaging_enabled(True)  # Command should work
-    driver.averaging_enabled(False)  # Command should work
+    # Test averaging enable/disable
+    driver.averaging_enabled(True)
+    assert driver.averaging_enabled() is True
+    
+    driver.averaging_enabled(False)
+    assert driver.averaging_enabled() is False
     
     # Test averaging count
     driver.averaging_count(10)
@@ -169,33 +178,48 @@ def test_temperature_units(driver) -> None:
 
 def test_display_control(driver) -> None:
     """Test display control."""
-    # Test display enable/disable (simulation limitation: no state tracking)
-    driver.display_enabled(True)  # Command should work
-    driver.display_enabled(False)  # Command should work
+    # Test display enable/disable
+    driver.display_enabled(True)
+    assert driver.display_enabled() is True
+    
+    driver.display_enabled(False)
+    assert driver.display_enabled() is False
 
 
 def test_filters(driver) -> None:
     """Test analog and digital filter control."""
-    # Test analog filter (simulation limitation: no state tracking)
-    driver.analog_filter(True)  # Command should work
-    driver.analog_filter(False)  # Command should work
+    # Test analog filter
+    driver.analog_filter(True)
+    assert driver.analog_filter() is True
+    
+    driver.analog_filter(False)
+    assert driver.analog_filter() is False
     
     # Test digital filter
-    driver.digital_filter(True)  # Command should work
-    driver.digital_filter(False)  # Command should work
+    driver.digital_filter(True)
+    assert driver.digital_filter() is True
+    
+    driver.digital_filter(False)
+    assert driver.digital_filter() is False
 
 
 def test_input_impedance(driver) -> None:
     """Test input impedance control."""
-    driver.input_impedance(True)  # Command should work
-    driver.input_impedance(False)  # Command should work
+    driver.input_impedance(True)
+    assert driver.input_impedance() is True
+    
+    driver.input_impedance(False)
+    assert driver.input_impedance() is False
 
 
 def test_auto_zero(driver) -> None:
     """Test auto-zero functionality."""
-    # Test via method (simulation limitation: no state tracking)
-    driver.auto_zero(True)  # Command should work
-    driver.auto_zero(False)  # Command should work
+    # Test via method
+    driver.auto_zero(True)
+    assert driver.get_auto_zero() is True
+    
+    driver.auto_zero(False)
+    assert driver.get_auto_zero() is False
 
 
 def test_trigger_commands(driver) -> None:

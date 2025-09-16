@@ -1,6 +1,11 @@
 spec: "1.1"
 devices:
   Keithley2182A:
+    error:
+      status_register:
+        - q: "*STB?"
+          command_error: 32
+          query_error: 4
     eom:
       GPIB INSTR:
         q: "\n"
@@ -15,6 +20,191 @@ devices:
         q: "\n"
         r: "\n"
     
+    properties:
+      # Measurement function mode
+      function:
+        default: '"VOLT:DC"'
+        getter:
+          q: "SENS:FUNC?"
+          r: "{}"
+        setter:
+          q: "SENS:FUNC {}"
+        specs:
+          type: str
+      
+      # Voltage range
+      range:
+        default: 1.0
+        getter:
+          q: "SENS:RANG?"
+          r: "{:e}"
+        setter:
+          q: "SENS:RANG {}"
+        specs:
+          type: float
+      
+      # Auto range setting - use integer values for ON/OFF
+      auto_range:
+        default: 1
+        getter:
+          q: "SENS:RANG:AUTO?"
+          r: "{}"
+        setter:
+          q: "SENS:RANG:AUTO {}"
+        specs:
+          type: int
+          valid: [0, 1]
+      
+      # NPLC (Number of Power Line Cycles)
+      nplc:
+        default: 1.0
+        getter:
+          q: "SENS:NPLC?"
+          r: "{:e}"
+        setter:
+          q: "SENS:NPLC {}"
+        specs:
+          type: float
+      
+      # Aperture time
+      aperture:
+        default: 0.016667
+        getter:
+          q: "SENS:APER?"
+          r: "{:e}"
+        setter:
+          q: "SENS:APER {}"
+        specs:
+          type: float
+      
+      # Line frequency
+      line_freq:
+        default: 60
+        getter:
+          q: "SYST:LFR?"
+          r: "{}"
+        setter:
+          q: "SYST:LFR {}"
+        specs:
+          type: int
+          valid: [50, 60]
+      
+      # Averaging enabled - use integer for ON/OFF
+      averaging_enabled:
+        default: 0
+        getter:
+          q: "SENS:AVER?"
+          r: "{}"
+        setter:
+          q: "SENS:AVER {}"
+        specs:
+          type: int
+          valid: [0, 1]
+      
+      # Averaging count
+      averaging_count:
+        default: 10
+        getter:
+          q: "SENS:AVER:COUN?"
+          r: "{}"
+        setter:
+          q: "SENS:AVER:COUN {}"
+        specs:
+          type: int
+      
+      # Trigger source
+      trigger_source:
+        default: "IMM"
+        getter:
+          q: "TRIG:SOUR?"
+          r: "{}"
+        setter:
+          q: "TRIG:SOUR {}"
+        specs:
+          type: str
+      
+      # Trigger delay
+      trigger_delay:
+        default: 0.0
+        getter:
+          q: "TRIG:DEL?"
+          r: "{:e}"
+        setter:
+          q: "TRIG:DEL {}"
+        specs:
+          type: float
+      
+      # Temperature units
+      temp_units:
+        default: "K"
+        getter:
+          q: "UNIT:TEMP?"
+          r: "{}"
+        setter:
+          q: "UNIT:TEMP {}"
+        specs:
+          type: str
+      
+      # Display enabled - use integer for ON/OFF
+      display_enabled:
+        default: 1
+        getter:
+          q: "DISP:ENAB?"
+          r: "{}"
+        setter:
+          q: "DISP:ENAB {}"
+        specs:
+          type: int
+          valid: [0, 1]
+      
+      # Input impedance auto - use integer for ON/OFF
+      input_impedance:
+        default: 1
+        getter:
+          q: "SENS:VOLT:DC:IMP:AUTO?"
+          r: "{}"
+        setter:
+          q: "SENS:VOLT:DC:IMP:AUTO {}"
+        specs:
+          type: int
+          valid: [0, 1]
+      
+      # Analog filter - use integer for ON/OFF
+      analog_filter:
+        default: 0
+        getter:
+          q: "SENS:VOLT:DC:LPAS?"
+          r: "{}"
+        setter:
+          q: "SENS:VOLT:DC:LPAS {}"
+        specs:
+          type: int
+          valid: [0, 1]
+      
+      # Digital filter - use integer for ON/OFF
+      digital_filter:
+        default: 0
+        getter:
+          q: "SENS:VOLT:DC:DFIL?"
+          r: "{}"
+        setter:
+          q: "SENS:VOLT:DC:DFIL {}"
+        specs:
+          type: int
+          valid: [0, 1]
+      
+      # Auto-zero - use integer for ON/OFF
+      auto_zero:
+        default: 1
+        getter:
+          q: "SENS:VOLT:DC:AZER?"
+          r: "{}"
+        setter:
+          q: "SENS:VOLT:DC:AZER {}"
+        specs:
+          type: int
+          valid: [0, 1]
+    
     dialogues:
       # IDN query
       - q: "*IDN?"
@@ -28,20 +218,6 @@ devices:
       - q: "*TST?"
         r: "0"
 
-      # Measurement function - always return VOLT:DC for simplicity
-      - q: "SENS:FUNC?"
-        r: '"VOLT:DC"'
-
-      # All possible SENS:FUNC set commands - accept them all
-      - q: "SENS:FUNC VOLT:DC"
-        r: ""
-      - q: "SENS:FUNC \"VOLT:DC\""
-        r: ""
-      - q: "SENS:FUNC TEMP"
-        r: ""
-      - q: "SENS:FUNC \"TEMP\""
-        r: ""
-
       # Core measurement commands - always return consistent values
       - q: "MEAS:VOLT:DC?"
         r: "1.234567E-06"
@@ -52,84 +228,14 @@ devices:
       - q: "READ?"
         r: "1.234567E-06"
 
-      # Parameter queries - return fixed default values
-      - q: "SENS:RANG?"
-        r: "1.0000E+00"
-      - q: "SENS:RANG:AUTO?"
-        r: "1"
-      - q: "SENS:NPLC?"
-        r: "1.0000E+00"
-      - q: "SENS:APER?"
-        r: "1.6667E-02"
-      - q: "SYST:LFR?"
-        r: "60"
-      - q: "SENS:AVER?"
-        r: "0"
-      - q: "SENS:AVER:COUN?"
-        r: "10"
-      - q: "TRIG:SOUR?"
-        r: "IMM"
-      - q: "TRIG:DEL?"
-        r: "0.0000E+00"
-      - q: "UNIT:TEMP?"
-        r: "K"
-      - q: "DISP:ENAB?"
-        r: "1"
-      - q: "SENS:VOLT:DC:IMP:AUTO?"
-        r: "1"
-      - q: "SENS:VOLT:DC:LPAS?"
-        r: "0"
-      - q: "SENS:VOLT:DC:DFIL?"
-        r: "0"
-      - q: "SENS:VOLT:DC:AZER?"
-        r: "1"
-      - q: "SYST:ERR?"
-        r: "0,\"No error\""
-
-      # Accept all parameter setting commands
-      - q: "SENS:RANG 1.0"
-        r: ""
+      # Handle ON/OFF variations for boolean parameters
       - q: "SENS:RANG:AUTO ON"
         r: ""
       - q: "SENS:RANG:AUTO OFF"
         r: ""
-      - q: "SENS:NPLC 1.0"
-        r: ""
-      - q: "SENS:NPLC 0.1"
-        r: ""
-      - q: "SENS:NPLC 10.0"
-        r: ""
-      - q: "SENS:NPLC 5.0"
-        r: ""
-      - q: "SENS:APER 0.02"
-        r: ""
-      - q: "SYST:LFR 60"
-        r: ""
-      - q: "SYST:LFR 50"
-        r: ""
       - q: "SENS:AVER ON"
         r: ""
       - q: "SENS:AVER OFF"
-        r: ""
-      - q: "SENS:AVER:COUN 10"
-        r: ""
-      - q: "TRIG:SOUR IMM"
-        r: ""
-      - q: "TRIG:SOUR EXT"
-        r: ""
-      - q: "TRIG:SOUR TIM"
-        r: ""
-      - q: "TRIG:SOUR MAN"
-        r: ""
-      - q: "TRIG:SOUR BUS"
-        r: ""
-      - q: "TRIG:DEL 0.1"
-        r: ""
-      - q: "UNIT:TEMP K"
-        r: ""
-      - q: "UNIT:TEMP C"
-        r: ""
-      - q: "UNIT:TEMP F"
         r: ""
       - q: "DISP:ENAB ON"
         r: ""
@@ -159,6 +265,10 @@ devices:
         r: ""
       - q: "*TRG"
         r: ""
+
+      # Error query
+      - q: "SYST:ERR?"
+        r: "0,\"No error\""
 
 resources:
   GPIB::1::INSTR:
