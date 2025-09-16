@@ -1,20 +1,29 @@
 spec: "1.1"
 devices:
   Keithley2182A:
+    error:
+      status_register:
+        - q: "*STB?"
+          command_error: 32
+          query_error: 4
     eom:
-      ASRL INSTR:
-        q: "\n"
-        r: "\n"
       GPIB INSTR:
         q: "\n"
+        r: "\n"
+      ASRL INSTR:
+        q: "\n" 
         r: "\n"
       USB INSTR:
         q: "\n"
         r: "\n"
+      TCPIP INSTR:
+        q: "\n"
+        r: "\n"
+    
     dialogues:
       # IDN query
       - q: "*IDN?"
-        r: "KEITHLEY INSTRUMENTS INC.,MODEL 2182A,1234567,3.0.1"
+        r: "KEITHLEY INSTRUMENTS INC.,MODEL 2182A,1234567,C01 Mar 31 2022 14:29:42"
 
       # Reset command
       - q: "*RST"
@@ -70,6 +79,12 @@ devices:
       - q: "SENS:NPLC?"
         r: "1.0000E+00"
       - q: "SENS:NPLC 1.0"
+        r: ""
+      - q: "SENS:NPLC 0.1"
+        r: ""
+      - q: "SENS:NPLC 10.0"
+        r: ""
+      - q: "SENS:NPLC 5.0"
         r: ""
 
       # Aperture time
