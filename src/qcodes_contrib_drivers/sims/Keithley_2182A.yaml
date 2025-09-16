@@ -5,7 +5,7 @@ devices:
       ASRL INSTR:
         q: "\n"
         r: "\n"
-      TCPIP INSTR:
+      GPIB INSTR:
         q: "\n"
         r: "\n"
       USB INSTR:
@@ -14,7 +14,7 @@ devices:
     dialogues:
       # IDN query
       - q: "*IDN?"
-        r: "KEITHLEY INSTRUMENTS INC.,MODEL 2182A,1234567,C01 Mar 31 2022 14:29:42"
+        r: "KEITHLEY INSTRUMENTS INC.,MODEL 2182A,1234567,3.0.1"
 
       # Reset command
       - q: "*RST"
@@ -179,9 +179,5 @@ devices:
         r: "0,\"No error\""
 
 resources:
-  TCPIP::192.168.1.100::INSTR:
-    device: Keithley2182A
-  ASRL1::INSTR:
-    device: Keithley2182A
-  USB0::0x05E6::0x2182::1234567::INSTR:
+  GPIB::1::INSTR:
     device: Keithley2182A

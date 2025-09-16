@@ -29,7 +29,9 @@ def test_idn(keithley_2182a):
     """Test instrument identification."""
     idn_dict = keithley_2182a.IDN()
     assert idn_dict["vendor"] == "KEITHLEY INSTRUMENTS INC."
-    assert idn_dict["model"] == "MODEL 2182A"
+    assert idn_dict["model"] == "2182A"
+    assert idn_dict["serial"] == "1234567"
+    assert idn_dict["firmware"] == "3.0.1"
 
 
 def test_measurement_modes(keithley_2182a):
