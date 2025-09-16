@@ -1,0 +1,187 @@
+spec: "1.1"
+devices:
+  Keithley2182A:
+    eom:
+      ASRL INSTR:
+        q: "\n"
+        r: "\n"
+      TCPIP INSTR:
+        q: "\n"
+        r: "\n"
+      USB INSTR:
+        q: "\n"
+        r: "\n"
+    dialogues:
+      # IDN query
+      - q: "*IDN?"
+        r: "KEITHLEY INSTRUMENTS INC.,MODEL 2182A,1234567,C01 Mar 31 2022 14:29:42"
+
+      # Reset command
+      - q: "*RST"
+        r: ""
+
+      # Clear command
+      - q: "*CLS"
+        r: ""
+
+      # Self test
+      - q: "*TST?"
+        r: "0"
+
+      # Measurement function
+      - q: "SENS:FUNC?"
+        r: '"VOLT:DC"'
+      - q: "SENS:FUNC VOLT:DC"
+        r: ""
+      - q: "SENS:FUNC \"VOLT:DC\""
+        r: ""
+      - q: "SENS:FUNC TEMP"
+        r: ""
+      - q: "SENS:FUNC \"TEMP\""
+        r: ""
+
+      # Voltage measurements
+      - q: "MEAS:VOLT:DC?"
+        r: "1.234567E-06"
+      - q: "MEAS:TEMP?"
+        r: "2.981500E+02"
+
+      # Fetch command
+      - q: "FETC?"
+        r: "1.234567E-06"
+
+      # Read command
+      - q: "READ?"
+        r: "1.234567E-06"
+
+      # Range control
+      - q: "SENS:RANG?"
+        r: "1.0000E+00"
+      - q: "SENS:RANG 1.0"
+        r: ""
+      - q: "SENS:RANG:AUTO?"
+        r: "1"
+      - q: "SENS:RANG:AUTO ON"
+        r: ""
+      - q: "SENS:RANG:AUTO OFF"
+        r: ""
+
+      # NPLC control
+      - q: "SENS:NPLC?"
+        r: "1.0000E+00"
+      - q: "SENS:NPLC 1.0"
+        r: ""
+
+      # Aperture time
+      - q: "SENS:APER?"
+        r: "1.6667E-02"
+      - q: "SENS:APER 0.02"
+        r: ""
+
+      # Line frequency
+      - q: "SYST:LFR?"
+        r: "60"
+      - q: "SYST:LFR 60"
+        r: ""
+      - q: "SYST:LFR 50"
+        r: ""
+
+      # Averaging
+      - q: "SENS:AVER?"
+        r: "0"
+      - q: "SENS:AVER ON"
+        r: ""
+      - q: "SENS:AVER OFF"
+        r: ""
+      - q: "SENS:AVER:COUN?"
+        r: "10"
+      - q: "SENS:AVER:COUN 10"
+        r: ""
+
+      # Trigger control
+      - q: "TRIG:SOUR?"
+        r: "IMM"
+      - q: "TRIG:SOUR IMM"
+        r: ""
+      - q: "TRIG:SOUR EXT"
+        r: ""
+      - q: "TRIG:SOUR TIM"
+        r: ""
+      - q: "TRIG:SOUR MAN"
+        r: ""
+      - q: "TRIG:SOUR BUS"
+        r: ""
+      - q: "TRIG:DEL?"
+        r: "0.0000E+00"
+      - q: "TRIG:DEL 0.1"
+        r: ""
+
+      # Trigger commands
+      - q: "INIT"
+        r: ""
+      - q: "ABOR"
+        r: ""
+      - q: "*TRG"
+        r: ""
+
+      # Temperature units
+      - q: "UNIT:TEMP?"
+        r: "K"
+      - q: "UNIT:TEMP K"
+        r: ""
+      - q: "UNIT:TEMP C"
+        r: ""
+      - q: "UNIT:TEMP F"
+        r: ""
+
+      # Display control
+      - q: "DISP:ENAB?"
+        r: "1"
+      - q: "DISP:ENAB ON"
+        r: ""
+      - q: "DISP:ENAB OFF"
+        r: ""
+
+      # Input impedance
+      - q: "SENS:VOLT:DC:IMP:AUTO?"
+        r: "1"
+      - q: "SENS:VOLT:DC:IMP:AUTO ON"
+        r: ""
+      - q: "SENS:VOLT:DC:IMP:AUTO OFF"
+        r: ""
+
+      # Analog filter
+      - q: "SENS:VOLT:DC:LPAS?"
+        r: "0"
+      - q: "SENS:VOLT:DC:LPAS ON"
+        r: ""
+      - q: "SENS:VOLT:DC:LPAS OFF"
+        r: ""
+
+      # Digital filter
+      - q: "SENS:VOLT:DC:DFIL?"
+        r: "0"
+      - q: "SENS:VOLT:DC:DFIL ON"
+        r: ""
+      - q: "SENS:VOLT:DC:DFIL OFF"
+        r: ""
+
+      # Auto-zero
+      - q: "SENS:VOLT:DC:AZER?"
+        r: "1"
+      - q: "SENS:VOLT:DC:AZER ON"
+        r: ""
+      - q: "SENS:VOLT:DC:AZER OFF"
+        r: ""
+
+      # Error query
+      - q: "SYST:ERR?"
+        r: "0,\"No error\""
+
+resources:
+  TCPIP::192.168.1.100::INSTR:
+    device: Keithley2182A
+  ASRL1::INSTR:
+    device: Keithley2182A
+  USB0::0x05E6::0x2182::1234567::INSTR:
+    device: Keithley2182A
