@@ -1,11 +1,6 @@
 spec: "1.1"
 devices:
   Keithley2182A:
-    error:
-      status_register:
-        - q: "*STB?"
-          command_error: 32
-          query_error: 4
     eom:
       GPIB INSTR:
         q: "\n"
@@ -25,21 +20,19 @@ devices:
       - q: "*IDN?"
         r: "KEITHLEY INSTRUMENTS INC.,MODEL 2182A,1234567,C01 Mar 31 2022 14:29:42"
 
-      # Reset command
+      # Reset and clear commands
       - q: "*RST"
         r: ""
-
-      # Clear command
       - q: "*CLS"
         r: ""
-
-      # Self test
       - q: "*TST?"
         r: "0"
 
-      # Measurement function
+      # Measurement function - always return VOLT:DC for simplicity
       - q: "SENS:FUNC?"
         r: '"VOLT:DC"'
+
+      # All possible SENS:FUNC set commands - accept them all
       - q: "SENS:FUNC VOLT:DC"
         r: ""
       - q: "SENS:FUNC \"VOLT:DC\""
@@ -49,35 +42,57 @@ devices:
       - q: "SENS:FUNC \"TEMP\""
         r: ""
 
-      # Voltage measurements
+      # Core measurement commands - always return consistent values
       - q: "MEAS:VOLT:DC?"
         r: "1.234567E-06"
       - q: "MEAS:TEMP?"
         r: "2.981500E+02"
-
-      # Fetch command
       - q: "FETC?"
         r: "1.234567E-06"
-
-      # Read command
       - q: "READ?"
         r: "1.234567E-06"
 
-      # Range control
+      # Parameter queries - return fixed default values
       - q: "SENS:RANG?"
         r: "1.0000E+00"
-      - q: "SENS:RANG 1.0"
-        r: ""
       - q: "SENS:RANG:AUTO?"
         r: "1"
+      - q: "SENS:NPLC?"
+        r: "1.0000E+00"
+      - q: "SENS:APER?"
+        r: "1.6667E-02"
+      - q: "SYST:LFR?"
+        r: "60"
+      - q: "SENS:AVER?"
+        r: "0"
+      - q: "SENS:AVER:COUN?"
+        r: "10"
+      - q: "TRIG:SOUR?"
+        r: "IMM"
+      - q: "TRIG:DEL?"
+        r: "0.0000E+00"
+      - q: "UNIT:TEMP?"
+        r: "K"
+      - q: "DISP:ENAB?"
+        r: "1"
+      - q: "SENS:VOLT:DC:IMP:AUTO?"
+        r: "1"
+      - q: "SENS:VOLT:DC:LPAS?"
+        r: "0"
+      - q: "SENS:VOLT:DC:DFIL?"
+        r: "0"
+      - q: "SENS:VOLT:DC:AZER?"
+        r: "1"
+      - q: "SYST:ERR?"
+        r: "0,\"No error\""
+
+      # Accept all parameter setting commands
+      - q: "SENS:RANG 1.0"
+        r: ""
       - q: "SENS:RANG:AUTO ON"
         r: ""
       - q: "SENS:RANG:AUTO OFF"
         r: ""
-
-      # NPLC control
-      - q: "SENS:NPLC?"
-        r: "1.0000E+00"
       - q: "SENS:NPLC 1.0"
         r: ""
       - q: "SENS:NPLC 0.1"
@@ -86,36 +101,18 @@ devices:
         r: ""
       - q: "SENS:NPLC 5.0"
         r: ""
-
-      # Aperture time
-      - q: "SENS:APER?"
-        r: "1.6667E-02"
       - q: "SENS:APER 0.02"
         r: ""
-
-      # Line frequency
-      - q: "SYST:LFR?"
-        r: "60"
       - q: "SYST:LFR 60"
         r: ""
       - q: "SYST:LFR 50"
         r: ""
-
-      # Averaging
-      - q: "SENS:AVER?"
-        r: "0"
       - q: "SENS:AVER ON"
         r: ""
       - q: "SENS:AVER OFF"
         r: ""
-      - q: "SENS:AVER:COUN?"
-        r: "10"
       - q: "SENS:AVER:COUN 10"
         r: ""
-
-      # Trigger control
-      - q: "TRIG:SOUR?"
-        r: "IMM"
       - q: "TRIG:SOUR IMM"
         r: ""
       - q: "TRIG:SOUR EXT"
@@ -126,9 +123,33 @@ devices:
         r: ""
       - q: "TRIG:SOUR BUS"
         r: ""
-      - q: "TRIG:DEL?"
-        r: "0.0000E+00"
       - q: "TRIG:DEL 0.1"
+        r: ""
+      - q: "UNIT:TEMP K"
+        r: ""
+      - q: "UNIT:TEMP C"
+        r: ""
+      - q: "UNIT:TEMP F"
+        r: ""
+      - q: "DISP:ENAB ON"
+        r: ""
+      - q: "DISP:ENAB OFF"
+        r: ""
+      - q: "SENS:VOLT:DC:IMP:AUTO ON"
+        r: ""
+      - q: "SENS:VOLT:DC:IMP:AUTO OFF"
+        r: ""
+      - q: "SENS:VOLT:DC:LPAS ON"
+        r: ""
+      - q: "SENS:VOLT:DC:LPAS OFF"
+        r: ""
+      - q: "SENS:VOLT:DC:DFIL ON"
+        r: ""
+      - q: "SENS:VOLT:DC:DFIL OFF"
+        r: ""
+      - q: "SENS:VOLT:DC:AZER ON"
+        r: ""
+      - q: "SENS:VOLT:DC:AZER OFF"
         r: ""
 
       # Trigger commands
@@ -138,60 +159,6 @@ devices:
         r: ""
       - q: "*TRG"
         r: ""
-
-      # Temperature units
-      - q: "UNIT:TEMP?"
-        r: "K"
-      - q: "UNIT:TEMP K"
-        r: ""
-      - q: "UNIT:TEMP C"
-        r: ""
-      - q: "UNIT:TEMP F"
-        r: ""
-
-      # Display control
-      - q: "DISP:ENAB?"
-        r: "1"
-      - q: "DISP:ENAB ON"
-        r: ""
-      - q: "DISP:ENAB OFF"
-        r: ""
-
-      # Input impedance
-      - q: "SENS:VOLT:DC:IMP:AUTO?"
-        r: "1"
-      - q: "SENS:VOLT:DC:IMP:AUTO ON"
-        r: ""
-      - q: "SENS:VOLT:DC:IMP:AUTO OFF"
-        r: ""
-
-      # Analog filter
-      - q: "SENS:VOLT:DC:LPAS?"
-        r: "0"
-      - q: "SENS:VOLT:DC:LPAS ON"
-        r: ""
-      - q: "SENS:VOLT:DC:LPAS OFF"
-        r: ""
-
-      # Digital filter
-      - q: "SENS:VOLT:DC:DFIL?"
-        r: "0"
-      - q: "SENS:VOLT:DC:DFIL ON"
-        r: ""
-      - q: "SENS:VOLT:DC:DFIL OFF"
-        r: ""
-
-      # Auto-zero
-      - q: "SENS:VOLT:DC:AZER?"
-        r: "1"
-      - q: "SENS:VOLT:DC:AZER ON"
-        r: ""
-      - q: "SENS:VOLT:DC:AZER OFF"
-        r: ""
-
-      # Error query
-      - q: "SYST:ERR?"
-        r: "0,\"No error\""
 
 resources:
   GPIB::1::INSTR:
