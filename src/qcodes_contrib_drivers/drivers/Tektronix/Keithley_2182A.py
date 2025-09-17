@@ -11,11 +11,16 @@ import time
 
 from qcodes.instrument import VisaInstrument, VisaInstrumentKWArgs
 from qcodes.validators import Bool, Enum, Ints, MultiType, Numbers
+from qcodes.parameters import create_on_off_val_mapping
 
 if TYPE_CHECKING:
     from collections.abc import Callable
     from typing_extensions import Unpack
     from qcodes.parameters import Parameter
+
+
+# Create standard on/off value mapping
+on_off_vals = create_on_off_val_mapping(on_val="ON", off_val="OFF")
 
 
 def _parse_output_string(s: str) -> str:
@@ -127,12 +132,13 @@ class Keithley2182A(VisaInstrument):
         )
 
         # Auto range parameter
+        # Auto range control
         self.auto_range_enabled: Parameter = self.add_parameter(
             "auto_range_enabled",
             label="Auto Range",
-            get_cmd=partial(self._get_mode_param, "RANG:AUTO", lambda x: bool(int(x))),
-            set_cmd=partial(self._set_mode_param, "RANG:AUTO", val_type=int),
-            vals=Bool(),
+            get_cmd="SENS:RANG:AUTO?",
+            set_cmd="SENS:RANG:AUTO {}",
+            val_mapping=on_off_vals,
             docstring="Enable/disable auto ranging",
         )
 
@@ -184,7 +190,7 @@ class Keithley2182A(VisaInstrument):
             label="Averaging Enabled",
             get_cmd="SENS:AVER?",
             set_cmd="SENS:AVER {}",
-            val_mapping={True: "ON", False: "OFF"},
+            val_mapping=on_off_vals,
             docstring="Enable/disable measurement averaging",
         )
 
@@ -231,7 +237,7 @@ class Keithley2182A(VisaInstrument):
             label="Display Enabled",
             get_cmd="DISP:ENAB?",
             set_cmd="DISP:ENAB {}",
-            val_mapping={True: "ON", False: "OFF"},
+            val_mapping=on_off_vals,
             docstring="Enable/disable the front panel display",
         )
 
@@ -241,7 +247,7 @@ class Keithley2182A(VisaInstrument):
             label="Input Impedance",
             get_cmd="SENS:VOLT:DC:IMP:AUTO?",
             set_cmd="SENS:VOLT:DC:IMP:AUTO {}",
-            val_mapping={True: "ON", False: "OFF"},
+            val_mapping=on_off_vals,
             docstring="Enable/disable automatic input impedance selection",
         )
 
@@ -251,7 +257,7 @@ class Keithley2182A(VisaInstrument):
             label="Analog Filter",
             get_cmd="SENS:VOLT:DC:LPAS?",
             set_cmd="SENS:VOLT:DC:LPAS {}",
-            val_mapping={True: "ON", False: "OFF"},
+            val_mapping=on_off_vals,
             docstring="Enable/disable analog low-pass filter for noise reduction",
         )
 
@@ -261,7 +267,7 @@ class Keithley2182A(VisaInstrument):
             label="Digital Filter",
             get_cmd="SENS:VOLT:DC:DFIL?",
             set_cmd="SENS:VOLT:DC:DFIL {}",
-            val_mapping={True: "ON", False: "OFF"},
+            val_mapping=on_off_vals,
             docstring="Enable/disable digital filter for noise reduction",
         )
 

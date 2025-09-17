@@ -43,17 +43,17 @@ devices:
         specs:
           type: float
       
-      # Auto range setting - use integer values for ON/OFF
+      # Auto range setting - use ON/OFF strings
       auto_range:
-        default: 1
+        default: "ON"
         getter:
           q: "SENS:RANG:AUTO?"
           r: "{}"
         setter:
           q: "SENS:RANG:AUTO {}"
         specs:
-          type: int
-          valid: [0, 1]
+          type: str
+          valid: ["ON", "OFF"]
       
       # NPLC (Number of Power Line Cycles)
       nplc:
@@ -89,17 +89,17 @@ devices:
           type: int
           valid: [50, 60]
       
-      # Averaging enabled - use integer for ON/OFF
+      # Averaging enabled - use ON/OFF strings
       averaging_enabled:
-        default: 0
+        default: "OFF"
         getter:
           q: "SENS:AVER?"
           r: "{}"
         setter:
           q: "SENS:AVER {}"
         specs:
-          type: int
-          valid: [0, 1]
+          type: str
+          valid: ["ON", "OFF"]
       
       # Averaging count
       averaging_count:
@@ -145,65 +145,65 @@ devices:
         specs:
           type: str
       
-      # Display enabled - use integer for ON/OFF
+      # Display enabled - use ON/OFF strings
       display_enabled:
-        default: 1
+        default: "ON"
         getter:
           q: "DISP:ENAB?"
           r: "{}"
         setter:
           q: "DISP:ENAB {}"
         specs:
-          type: int
-          valid: [0, 1]
+          type: str
+          valid: ["ON", "OFF"]
       
-      # Input impedance auto - use integer for ON/OFF
+      # Input impedance auto - use ON/OFF strings
       input_impedance:
-        default: 1
+        default: "ON"
         getter:
           q: "SENS:VOLT:DC:IMP:AUTO?"
           r: "{}"
         setter:
           q: "SENS:VOLT:DC:IMP:AUTO {}"
         specs:
-          type: int
-          valid: [0, 1]
+          type: str
+          valid: ["ON", "OFF"]
       
-      # Analog filter - use integer for ON/OFF
+      # Analog filter - use ON/OFF strings
       analog_filter:
-        default: 0
+        default: "OFF"
         getter:
           q: "SENS:VOLT:DC:LPAS?"
           r: "{}"
         setter:
           q: "SENS:VOLT:DC:LPAS {}"
         specs:
-          type: int
-          valid: [0, 1]
+          type: str
+          valid: ["ON", "OFF"]
       
-      # Digital filter - use integer for ON/OFF
+      # Digital filter - use ON/OFF strings
       digital_filter:
-        default: 0
+        default: "OFF"
         getter:
           q: "SENS:VOLT:DC:DFIL?"
           r: "{}"
         setter:
           q: "SENS:VOLT:DC:DFIL {}"
         specs:
-          type: int
-          valid: [0, 1]
+          type: str
+          valid: ["ON", "OFF"]
       
-      # Auto-zero - use integer for ON/OFF
+      # Auto-zero - use ON/OFF strings
       auto_zero:
-        default: 1
+        default: "ON"
         getter:
           q: "SENS:VOLT:DC:AZER?"
           r: "{}"
         setter:
           q: "SENS:VOLT:DC:AZER {}"
         specs:
-          type: int
-          valid: [0, 1]
+          type: str
+          valid: ["ON", "OFF"]
     
     dialogues:
       # IDN query
