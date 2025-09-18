@@ -36,10 +36,10 @@ devices:
       range:
         default: 1.0
         getter:
-          q: "SENS:RANG?"
+          q: "SENS:VOLT:RANG?"
           r: "{:e}"
         setter:
-          q: "SENS:RANG {}"
+          q: "SENS:VOLT:RANG {}"
         specs:
           type: float
       
@@ -47,10 +47,10 @@ devices:
       auto_range:
         default: "ON"
         getter:
-          q: "SENS:RANG:AUTO?"
+          q: "SENS:VOLT:RANG:AUTO?"
           r: "{}"
         setter:
-          q: "SENS:RANG:AUTO {}"
+          q: "SENS:VOLT:RANG:AUTO {}"
         specs:
           type: str
           valid: ["ON", "OFF"]
@@ -59,10 +59,10 @@ devices:
       nplc:
         default: 1.0
         getter:
-          q: "SENS:NPLC?"
+          q: "SENS:VOLT:NPLC?"
           r: "{:e}"
         setter:
-          q: "SENS:NPLC {}"
+          q: "SENS:VOLT:NPLC {}"
         specs:
           type: float
       
@@ -70,47 +70,12 @@ devices:
       aperture:
         default: 0.016667
         getter:
-          q: "SENS:APER?"
+          q: "SENS:VOLT:APER?"
           r: "{:e}"
         setter:
-          q: "SENS:APER {}"
+          q: "SENS:VOLT:APER {}"
         specs:
           type: float
-      
-      # Line frequency
-      line_freq:
-        default: 60
-        getter:
-          q: "SYST:LFR?"
-          r: "{}"
-        setter:
-          q: "SYST:LFR {}"
-        specs:
-          type: int
-          valid: [50, 60]
-      
-      # Averaging enabled - use ON/OFF strings
-      averaging_enabled:
-        default: "OFF"
-        getter:
-          q: "SENS:AVER?"
-          r: "{}"
-        setter:
-          q: "SENS:AVER {}"
-        specs:
-          type: str
-          valid: ["ON", "OFF"]
-      
-      # Averaging count
-      averaging_count:
-        default: 10
-        getter:
-          q: "SENS:AVER:COUN?"
-          r: "{}"
-        setter:
-          q: "SENS:AVER:COUN {}"
-        specs:
-          type: int
       
       # Trigger source
       trigger_source:
@@ -133,17 +98,7 @@ devices:
           q: "TRIG:DEL {}"
         specs:
           type: float
-      
-      # Temperature units
-      temp_units:
-        default: "K"
-        getter:
-          q: "UNIT:TEMP?"
-          r: "{}"
-        setter:
-          q: "UNIT:TEMP {}"
-        specs:
-          type: str
+    
       
       # Display enabled - use ON/OFF strings
       display_enabled:
@@ -157,17 +112,6 @@ devices:
           type: str
           valid: ["ON", "OFF"]
       
-      # Input impedance auto - use ON/OFF strings
-      input_impedance:
-        default: "ON"
-        getter:
-          q: "SENS:VOLT:DC:IMP:AUTO?"
-          r: "{}"
-        setter:
-          q: "SENS:VOLT:DC:IMP:AUTO {}"
-        specs:
-          type: str
-          valid: ["ON", "OFF"]
       
       # Analog filter - use ON/OFF strings
       analog_filter:
@@ -208,7 +152,7 @@ devices:
     dialogues:
       # IDN query
       - q: "*IDN?"
-        r: "KEITHLEY INSTRUMENTS INC.,MODEL 2182A,1234567,C01 Mar 31 2022 14:29:42"
+        r: "KEITHLEY INSTRUMENTS INC.,MODEL 2182A,1234567,C01/B01"
 
       # Reset and clear commands
       - q: "*RST"
@@ -221,21 +165,15 @@ devices:
       # Core measurement commands - always return consistent values
       - q: "MEAS:VOLT:DC?"
         r: "1.234567E-06"
-      - q: "MEAS:TEMP?"
-        r: "2.981500E+02"
       - q: "FETC?"
         r: "1.234567E-06"
       - q: "READ?"
         r: "1.234567E-06"
 
       # Handle ON/OFF variations for boolean parameters
-      - q: "SENS:RANG:AUTO ON"
+      - q: "SENS:VOLT:RANG:AUTO ON"
         r: ""
-      - q: "SENS:RANG:AUTO OFF"
-        r: ""
-      - q: "SENS:AVER ON"
-        r: ""
-      - q: "SENS:AVER OFF"
+      - q: "SENS:VOLT:RANG:AUTO OFF"
         r: ""
       - q: "DISP:ENAB ON"
         r: ""
@@ -271,5 +209,5 @@ devices:
         r: "0,\"No error\""
 
 resources:
-  GPIB::1::INSTR:
+  GPIB0::1::INSTR:
     device: Keithley2182A
