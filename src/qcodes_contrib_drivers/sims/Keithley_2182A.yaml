@@ -148,6 +148,15 @@ devices:
         specs:
           type: str
           valid: ["ON", "OFF"]
+      
+      # Line frequency detection
+      line_frequency:
+        default: 60.0
+        getter:
+          q: "SYST:LFR?"
+          r: "{:g}"
+        specs:
+          type: float
     
     dialogues:
       # IDN query

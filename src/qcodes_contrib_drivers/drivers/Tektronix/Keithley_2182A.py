@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, Any
 import time
 
 from qcodes.instrument import VisaInstrument, VisaInstrumentKWArgs
-from qcodes.validators import Bool, Enum, Ints, MultiType, Numbers
+from qcodes.validators import Numbers, Validator
 from qcodes.parameters import create_on_off_val_mapping
 
 if TYPE_CHECKING:
@@ -21,6 +21,93 @@ if TYPE_CHECKING:
 
 # Create standard on/off value mapping
 on_off_vals = create_on_off_val_mapping(on_val="1", off_val="0")
+
+
+class ApertureTimeValidator(Validator[float]):
+    """
+    Validator for trigger delay that adjusts minimum value based on line frequency.
+
+    For 60Hz line frequency: min_value = 0.16667s
+    For 50Hz line frequency: min_value = 0.2s
+    """
+
+    def __init__(self, instrument: "Keithley2182A", max_value: float = 999999.999):
+        self.instrument = instrument
+        self.max_value = max_value
+
+    def _get_min_value(self) -> float:
+        """Get minimum value based on line frequency."""
+        try:
+            line_freq = self.instrument.line_frequency()
+        except Exception:
+            # Default to most restrictive (50Hz) if unable to read frequency
+            line_freq = 50.0
+
+        return 0.16667 if abs(line_freq - 60.0) < 1.0 else 0.2
+
+    def validate(self, value: float, context: str = "") -> None:
+        """Validate the trigger delay value against line frequency-dependent limits."""
+        if not isinstance(value, (int, float)):
+            raise TypeError(f"{repr(value)} is not a number; {context}")
+
+        min_value = self._get_min_value()
+
+        if not (min_value <= value <= self.max_value):
+            raise ValueError(
+                f"{repr(value)} is invalid: must be between {min_value:.5f} and "
+                f"{self.max_value} inclusive; {context}"
+            )
+
+    def is_numeric(self) -> bool:
+        return True
+
+    def valid_values(self) -> tuple[float, float]:
+        """Return the valid number range as a tuple (min, max)."""
+        return (self._get_min_value(), self.max_value)
+
+
+class NPLCValidator(Validator[float]):
+    """
+    Validator for NPLC that adjusts maximum value based on line frequency.
+
+    For 60Hz line frequency: max_value = 60 cycles
+    For 50Hz line frequency: max_value = 50 cycles
+    Minimum is always 0.01 cycles
+    """
+
+    def __init__(self, instrument: "Keithley2182A", min_value: float = 0.01):
+        self.instrument = instrument
+        self.min_value = min_value
+
+    def _get_max_value(self) -> float:
+        """Get maximum value based on line frequency."""
+        try:
+            line_freq = self.instrument.line_frequency()
+        except Exception:
+            # Default to most restrictive (50Hz) if unable to read frequency
+            line_freq = 50.0
+
+        return 60.0 if abs(line_freq - 60.0) < 1.0 else 50.0
+
+    def validate(self, value: float, context: str = "") -> None:
+        """Validate the NPLC value against line frequency-dependent limits."""
+        if not isinstance(value, (int, float)):
+            raise TypeError(f"{repr(value)} is not a number; {context}")
+
+        max_value = self._get_max_value()
+
+        if not (self.min_value <= value <= max_value):
+            raise ValueError(
+                f"{repr(value)} is invalid: must be between {self.min_value} and "
+                f"{max_value} inclusive; {context}"
+            )
+
+    def is_numeric(self) -> bool:
+        return True
+
+    def valid_values(self) -> tuple[float, float]:
+        """Return the valid number range as a tuple (min, max)."""
+        return (self.min_value, self._get_max_value())
 
 
 def _parse_output_string(s: str) -> str:
@@ -71,7 +158,7 @@ class Keithley2182A(VisaInstrument):
         address: str,
         reset: bool = False,
         **kwargs: "Unpack[VisaInstrumentKWArgs]",
-    ):
+    ) -> None:
         """
         Initialize the Keithley 2182A nanovoltmeter.
 
@@ -115,8 +202,8 @@ class Keithley2182A(VisaInstrument):
             label="Integration Time (NPLC)",
             get_cmd=partial(self._get_mode_param, "VOLT:NPLC", float),
             set_cmd=partial(self._set_mode_param, "VOLT:NPLC"),
-            vals=Numbers(min_value=0.01, max_value=10),
-            docstring="Set/get the integration time in number of power line cycles",
+            vals=NPLCValidator(self, min_value=0.01),
+            docstring="Set/get the integration time in number of power line cycles (max depends on line frequency)",
         )
 
         # Voltage range parameter
@@ -148,7 +235,7 @@ class Keithley2182A(VisaInstrument):
             unit="s",
             get_cmd=partial(self._get_mode_param, "VOLT:APER", float),
             set_cmd=partial(self._set_mode_param, "VOLT:APER"),
-            vals=Numbers(min_value=0.0002, max_value=0.2),
+            vals=ApertureTimeValidator(self, max_value=1.0),
             docstring="Set/get the measurement aperture time in seconds",
         )
 
@@ -175,8 +262,8 @@ class Keithley2182A(VisaInstrument):
             get_cmd="TRIG:DEL?",
             set_cmd="TRIG:DEL {}",
             get_parser=float,
-            vals=Numbers(min_value=0, max_value=999999.999),
-            docstring="Set/get trigger delay in seconds",
+            vals=Numbers(min_value=0.0, max_value=999999.999),
+            docstring="Set/get trigger delay in seconds (min value depends on line frequency)",
         )
 
         # Display parameters
@@ -207,6 +294,16 @@ class Keithley2182A(VisaInstrument):
             set_cmd="SENS:VOLT:DC:DFIL {}",
             val_mapping=on_off_vals,
             docstring="Enable/disable digital filter for noise reduction",
+        )
+
+        # Line frequency detection parameter
+        self.line_frequency: Parameter = self.add_parameter(
+            "line_frequency",
+            label="Line Frequency",
+            unit="Hz",
+            get_cmd="SYST:LFR?",
+            get_parser=float,
+            docstring="Get the detected power line frequency (50 or 60 Hz)",
         )
 
         # Initialize instrument settings
