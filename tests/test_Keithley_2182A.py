@@ -19,8 +19,6 @@ def _make_driver():
         address="GPIB0::1::INSTR",
         pyvisa_sim_file="qcodes_contrib_drivers.sims:Keithley_2182A.yaml",  # Comment out this line to test on a real instrument
     )
-    driver.reset()
-    driver.clear()
     yield driver
     driver.close()
 
@@ -102,12 +100,20 @@ def test_nplc_control(driver) -> None:
     driver.nplc(0.1)
     assert driver.nplc() == pytest.approx(0.1, rel=1e-6)
 
+    # Test if setting NPLC to a non-standard value raises an error
+    with pytest.raises(ValueError):
+        driver.nplc(0.0)  # Below minimum
+    with pytest.raises(ValueError):
+        driver.nplc(100.0)  # Above maximum
+    with pytest.raises(TypeError):
+        driver.nplc("1.0")  # Non numeric value
+
 
 def test_aperture_time(driver) -> None:
     """Test aperture time control."""
     # Test aperture time setting
-    driver.aperture_time(0.02)
-    assert driver.aperture_time() == pytest.approx(0.02, rel=1e-3)
+    driver.aperture_time(0.1)
+    assert driver.aperture_time() == pytest.approx(0.1, rel=1e-3)
 
 
 def test_trigger_system(driver) -> None:
@@ -155,10 +161,10 @@ def test_auto_zero(driver) -> None:
     """Test auto-zero functionality."""
     # Test via method
     driver.auto_zero(True)
-    assert driver.get_auto_zero() is True
+    assert driver.auto_zero() is True
 
     driver.auto_zero(False)
-    assert driver.get_auto_zero() is False
+    assert driver.auto_zero() is False
 
 
 def test_trigger_commands(driver) -> None:

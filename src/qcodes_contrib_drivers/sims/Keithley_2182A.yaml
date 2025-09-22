@@ -141,10 +141,10 @@ devices:
       auto_zero:
         default: "ON"
         getter:
-          q: "SENS:VOLT:DC:AZER?"
+          q: "SYST:AZER?"
           r: "{}"
         setter:
-          q: "SENS:VOLT:DC:AZER {}"
+          q: "SYST:AZER {}"
         specs:
           type: str
           valid: ["ON", "OFF"]
@@ -179,39 +179,10 @@ devices:
       - q: "READ?"
         r: "1.234567E-06"
 
-      # Handle ON/OFF variations for boolean parameters
-      - q: "SENS:VOLT:RANG:AUTO ON"
-        r: ""
-      - q: "SENS:VOLT:RANG:AUTO OFF"
-        r: ""
-      - q: "DISP:ENAB ON"
-        r: ""
-      - q: "DISP:ENAB OFF"
-        r: ""
-      - q: "SENS:VOLT:DC:IMP:AUTO ON"
-        r: ""
-      - q: "SENS:VOLT:DC:IMP:AUTO OFF"
-        r: ""
-      - q: "SENS:VOLT:DC:LPAS ON"
-        r: ""
-      - q: "SENS:VOLT:DC:LPAS OFF"
-        r: ""
-      - q: "SENS:VOLT:DC:DFIL ON"
-        r: ""
-      - q: "SENS:VOLT:DC:DFIL OFF"
-        r: ""
-      - q: "SENS:VOLT:DC:AZER ON"
-        r: ""
-      - q: "SENS:VOLT:DC:AZER OFF"
-        r: ""
-
       # Trigger commands
       - q: "INIT"
-        r: ""
       - q: "ABOR"
-        r: ""
       - q: "*TRG"
-        r: ""
 
       # Error query
       - q: "SYST:ERR?"

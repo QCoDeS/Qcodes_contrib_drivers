@@ -20,15 +20,15 @@ if TYPE_CHECKING:
 
 
 # Create standard on/off value mapping
-on_off_vals = create_on_off_val_mapping(on_val="1", off_val="0")
+on_off_vals = create_on_off_val_mapping(on_val="ON", off_val="OFF")
 
 
 class ApertureTimeValidator(Validator[float]):
     """
     Validator for trigger delay that adjusts minimum value based on line frequency.
 
-    For 60Hz line frequency: min_value = 0.16667s
-    For 50Hz line frequency: min_value = 0.2s
+    For 60Hz line frequency: min_value = 0.16667ms
+    For 50Hz line frequency: min_value = 0.2ms
     """
 
     def __init__(self, instrument: "Keithley2182A", max_value: float = 999999.999):
@@ -43,7 +43,7 @@ class ApertureTimeValidator(Validator[float]):
             # Default to most restrictive (50Hz) if unable to read frequency
             line_freq = 50.0
 
-        return 0.16667 if abs(line_freq - 60.0) < 1.0 else 0.2
+        return 0.00016667 if abs(line_freq - 60.0) < 1.0 else 0.0002
 
     def validate(self, value: float, context: str = "") -> None:
         """Validate the trigger delay value against line frequency-dependent limits."""
@@ -306,6 +306,15 @@ class Keithley2182A(VisaInstrument):
             docstring="Get the detected power line frequency (50 or 60 Hz)",
         )
 
+        self.auto_zero: Parameter = self.add_parameter(
+            "auto_zero",
+            label="Auto Zero",
+            get_cmd="SYST:AZER?",
+            set_cmd="SYST:AZER {}",
+            val_mapping=on_off_vals,
+            docstring="Enable/disable auto-zero functionality",
+        )
+
         # Initialize instrument settings
         if reset:
             self.reset()
@@ -410,25 +419,6 @@ class Keithley2182A(VisaInstrument):
             self.initiate_measurement()
         self.write("*TRG")
 
-    def auto_zero(self, enabled: bool = True) -> None:
-        """
-        Enable or disable auto-zero functionality.
-
-        Args:
-            enabled: True to enable auto-zero, False to disable
-        """
-        self.write(f"SYST:AZER {'ON' if enabled else 'OFF'}")
-
-    def get_auto_zero(self) -> bool:
-        """
-        Get the current auto-zero setting.
-
-        Returns:
-            True if auto-zero is enabled, False otherwise
-        """
-        response = self.ask("SYST:AZER?")
-        return _parse_output_bool(response)
-
     def configure_voltage_measurement(
         self,
         voltage_range: float = None,
@@ -483,7 +473,7 @@ class Keithley2182A(VisaInstrument):
 
         # Auto-zero setting (voltage mode)
         if status["mode"] == "dc voltage":
-            status["auto_zero"] = self.get_auto_zero()
+            status["auto_zero"] = self.auto_zero()
 
         return status
 
