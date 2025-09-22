@@ -11,7 +11,7 @@ devices:
         q: "\n"
         r: "\n"
       ASRL INSTR:
-        q: "\n" 
+        q: "\n"
         r: "\n"
       USB INSTR:
         q: "\n"
@@ -19,7 +19,7 @@ devices:
       TCPIP INSTR:
         q: "\n"
         r: "\n"
-    
+
     properties:
       # Measurement function mode
       function:
@@ -31,7 +31,7 @@ devices:
           q: "SENS:FUNC {}"
         specs:
           type: str
-      
+
       # Voltage range
       range:
         default: 1.0
@@ -42,7 +42,7 @@ devices:
           q: "SENS:VOLT:RANG {}"
         specs:
           type: float
-      
+
       # Auto range setting - use ON/OFF strings
       auto_range:
         default: "ON"
@@ -54,7 +54,7 @@ devices:
         specs:
           type: str
           valid: ["ON", "OFF"]
-      
+
       # NPLC (Number of Power Line Cycles)
       nplc:
         default: 1.0
@@ -65,7 +65,7 @@ devices:
           q: "SENS:VOLT:NPLC {}"
         specs:
           type: float
-      
+
       # Aperture time
       aperture:
         default: 0.016667
@@ -76,7 +76,7 @@ devices:
           q: "SENS:VOLT:APER {}"
         specs:
           type: float
-      
+
       # Trigger source
       trigger_source:
         default: "IMM"
@@ -87,7 +87,7 @@ devices:
           q: "TRIG:SOUR {}"
         specs:
           type: str
-      
+
       # Trigger delay
       trigger_delay:
         default: 0.0
@@ -98,8 +98,8 @@ devices:
           q: "TRIG:DEL {}"
         specs:
           type: float
-    
-      
+
+
       # Display enabled - use ON/OFF strings
       display_enabled:
         default: "ON"
@@ -111,8 +111,8 @@ devices:
         specs:
           type: str
           valid: ["ON", "OFF"]
-      
-      
+
+
       # Analog filter - use ON/OFF strings
       analog_filter:
         default: "OFF"
@@ -124,7 +124,7 @@ devices:
         specs:
           type: str
           valid: ["ON", "OFF"]
-      
+
       # Digital filter - use ON/OFF strings
       digital_filter:
         default: "OFF"
@@ -136,7 +136,7 @@ devices:
         specs:
           type: str
           valid: ["ON", "OFF"]
-      
+
       # Auto-zero - use ON/OFF strings
       auto_zero:
         default: "ON"
@@ -148,7 +148,7 @@ devices:
         specs:
           type: str
           valid: ["ON", "OFF"]
-      
+
       # Line frequency detection
       line_frequency:
         default: 60.0
@@ -157,7 +157,7 @@ devices:
           r: "{:g}"
         specs:
           type: float
-    
+
     dialogues:
       # IDN query
       - q: "*IDN?"
