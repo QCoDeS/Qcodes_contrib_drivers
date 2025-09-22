@@ -6,7 +6,7 @@ with particular focus on the MEASure and FETCh commands and related functionalit
 """
 
 from functools import partial
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Optional
 import time
 
 from qcodes.instrument import VisaInstrument, VisaInstrumentKWArgs
@@ -23,13 +23,16 @@ if TYPE_CHECKING:
 on_off_vals = create_on_off_val_mapping(on_val="ON", off_val="OFF")
 
 
-class ApertureTimeValidator(Validator[float]):
+class ApertureTimeValidator(Validator):
     """
     Validator for trigger delay that adjusts minimum value based on line frequency.
 
     For 60Hz line frequency: min_value = 0.16667ms
     For 50Hz line frequency: min_value = 0.2ms
     """
+
+    _valid_values: tuple[float, float] = (0.00016667, 1.0)
+    is_numeric = True
 
     def __init__(self, instrument: "Keithley2182A", max_value: float = 999999.999):
         self.instrument = instrument
@@ -58,15 +61,13 @@ class ApertureTimeValidator(Validator[float]):
                 f"{self.max_value} inclusive; {context}"
             )
 
-    def is_numeric(self) -> bool:
-        return True
-
+    @property
     def valid_values(self) -> tuple[float, float]:
         """Return the valid number range as a tuple (min, max)."""
-        return (self._get_min_value(), self.max_value)
+        return self._valid_values
 
 
-class NPLCValidator(Validator[float]):
+class NPLCValidator(Validator):
     """
     Validator for NPLC that adjusts maximum value based on line frequency.
 
@@ -74,6 +75,9 @@ class NPLCValidator(Validator[float]):
     For 50Hz line frequency: max_value = 50 cycles
     Minimum is always 0.01 cycles
     """
+
+    _valid_values: tuple[float, float] = (0.01, 60.0)
+    is_numeric = True
 
     def __init__(self, instrument: "Keithley2182A", min_value: float = 0.01):
         self.instrument = instrument
@@ -102,12 +106,10 @@ class NPLCValidator(Validator[float]):
                 f"{max_value} inclusive; {context}"
             )
 
-    def is_numeric(self) -> bool:
-        return True
-
+    @property
     def valid_values(self) -> tuple[float, float]:
         """Return the valid number range as a tuple (min, max)."""
-        return (self.min_value, self._get_max_value())
+        return self._valid_values
 
 
 def _parse_output_string(s: str) -> str:
@@ -336,7 +338,9 @@ class Keithley2182A(VisaInstrument):
         response = self.ask(cmd)
         return parser(response)
 
-    def _set_mode_param(self, param: str, value: Any, val_type: type = None) -> None:
+    def _set_mode_param(
+        self, param: str, value: Any, val_type: Optional[type] = None
+    ) -> None:
         """
         Set a parameter value for the current measurement mode.
 
@@ -421,7 +425,7 @@ class Keithley2182A(VisaInstrument):
 
     def configure_voltage_measurement(
         self,
-        voltage_range: float = None,
+        voltage_range: Optional[float] = None,
         auto_range: bool = True,
         nplc: float = 1.0,
         auto_zero: bool = True,
