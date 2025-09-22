@@ -112,34 +112,6 @@ class NPLCValidator(Validator):
         return self._valid_values
 
 
-def _parse_output_string(s: str) -> str:
-    """Parses and cleans string outputs of the Keithley"""
-    # Remove surrounding whitespace and newline characters
-    s = s.strip()
-
-    # Remove surrounding quotes
-    if (s[0] == s[-1]) and s.startswith(("'", '"')):
-        s = s[1:-1]
-
-    s = s.lower()
-
-    # Convert some results to a better readable version
-    conversions = {
-        "mov": "moving",
-        "rep": "repeat",
-    }
-
-    if s in conversions.keys():
-        s = conversions[s]
-
-    return s
-
-
-def _parse_output_bool(value: str) -> bool:
-    """Parse boolean output from the instrument"""
-    return True if int(value) == 1 else False
-
-
 class Keithley2182A(VisaInstrument):
     """
     QCoDeS driver for the Keithley 2182A nanovoltmeter.
