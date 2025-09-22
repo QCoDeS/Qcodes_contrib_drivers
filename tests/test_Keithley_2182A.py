@@ -23,6 +23,20 @@ def _make_driver():
     driver.close()
 
 
+def test_reset_on_init() -> None:
+    """Test that the instrument resets on initialization."""
+    driver = Keithley2182A(
+        "Keithley_2182A",
+        address="GPIB0::1::INSTR",
+        reset=True,
+        pyvisa_sim_file="qcodes_contrib_drivers.sims:Keithley_2182A.yaml",  # Comment out this line to test on a real instrument
+    )
+    idn = driver.get_idn()
+    assert idn["vendor"] == "KEITHLEY INSTRUMENTS INC."
+    assert idn["model"] == "2182A"
+    driver.close()
+
+
 def test_idn(driver) -> None:
     """Test instrument identification."""
     expected_idn = {
@@ -101,12 +115,15 @@ def test_nplc_control(driver) -> None:
     assert driver.nplc() == pytest.approx(0.1, rel=1e-6)
 
     # Test if setting NPLC to a non-standard value raises an error
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError) as error:
         driver.nplc(0.0)  # Below minimum
-    with pytest.raises(ValueError):
+    assert "0.0 is invalid: must be between" in repr(error)
+    with pytest.raises(ValueError) as error:
         driver.nplc(100.0)  # Above maximum
-    with pytest.raises(TypeError):
+    assert "100.0 is invalid: must be between" in repr(error)
+    with pytest.raises(TypeError) as error:
         driver.nplc("1.0")  # Non numeric value
+    assert "'1.0' is not a number;" in repr(error)
 
 
 def test_aperture_time(driver) -> None:
@@ -114,6 +131,16 @@ def test_aperture_time(driver) -> None:
     # Test aperture time setting
     driver.aperture_time(0.1)
     assert driver.aperture_time() == pytest.approx(0.1, rel=1e-3)
+
+    with pytest.raises(ValueError) as error:
+        driver.aperture_time(0.0)  # Below minimum
+    assert "0.0 is invalid: must be between" in repr(error)
+    with pytest.raises(ValueError) as error:
+        driver.aperture_time(2.0)  # Above maximum
+    assert "2.0 is invalid: must be between" in repr(error)
+    with pytest.raises(TypeError) as error:
+        driver.aperture_time("0.1")  # Non numeric value
+    assert "'0.1' is not a number;" in repr(error)
 
 
 def test_trigger_system(driver) -> None:
@@ -186,6 +213,14 @@ def test_configuration_methods(driver) -> None:
     assert driver.mode() == "dc voltage"
     assert driver.auto_range_enabled() is True
     assert driver.nplc() == pytest.approx(1.0, rel=1e-6)
+    driver.configure_voltage_measurement(
+        voltage_range=1.0, auto_range=False, nplc=0.1, auto_zero=False
+    )
+    assert driver.mode() == "dc voltage"
+    assert driver.auto_range_enabled() is False
+    assert driver.range() == pytest.approx(1.0, rel=1e-6)
+    assert driver.nplc() == pytest.approx(0.1, rel=1e-6)
+    assert driver.auto_zero() is False
 
 
 def test_optimization_presets(driver) -> None:
@@ -222,6 +257,10 @@ def test_measurement_speed_presets(driver) -> None:
     assert driver.nplc() == pytest.approx(10.0, rel=1e-6)
     assert driver.analog_filter() is True
     assert driver.digital_filter() is True
+
+    with pytest.raises(ValueError) as error:
+        driver.set_measurement_speed("ultra")  # Invalid preset
+    assert "Invalid speed setting. Choose from:" in repr(error)
 
 
 def test_statistics_measurement(driver) -> None:
