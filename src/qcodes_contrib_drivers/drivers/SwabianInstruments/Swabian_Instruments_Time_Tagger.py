@@ -84,10 +84,9 @@ from .private.time_tagger import (tt, TypeValidator, ParameterWithSetSideEffect,
                                   LogspaceNumValidator)
 
 _T = TypeVar('_T', bound=ParamRawDataType)
-_TimeTaggerModuleT = TypeVar('_TimeTaggerModuleT', bound=type[TimeTaggerModule])
-_TimeTaggerMeasurementT = TypeVar('_TimeTaggerMeasurementT', bound=type[TimeTaggerMeasurement])
-_TimeTaggerVirtualChannelT = TypeVar('_TimeTaggerVirtualChannelT',
-                                     bound=type[TimeTaggerVirtualChannel])
+_TimeTaggerModuleC = TypeVar('_TimeTaggerModuleC', bound=type[TimeTaggerModule])
+_TimeTaggerMeasurementT = TypeVar('_TimeTaggerMeasurementT', bound=TimeTaggerMeasurement)
+_TimeTaggerVirtualChannelT = TypeVar('_TimeTaggerVirtualChannelT', bound=TimeTaggerVirtualChannel)
 
 
 @refer_to_api_doc()
@@ -674,7 +673,7 @@ class TimeTagger(TimeTaggerInstrumentBase, Instrument):
                 'serial': self.api.getSerial(),
                 'firmware': self.api.getFirmwareVersion()}
 
-    def _add_channel_list(self, cls: _TimeTaggerModuleT):
+    def _add_channel_list(self, cls: _TimeTaggerModuleC):
         """Automatically generates add_{xxx}_{yyy} methods for all
         registered implementations of TimeTaggerModule."""
 
@@ -720,7 +719,7 @@ class TimeTagger(TimeTaggerInstrumentBase, Instrument):
         setattr(self, fun.__name__, fun)
 
 
-def _parse_time_tagger_module(cls: _TimeTaggerModuleT) -> tuple[str, str, str]:
+def _parse_time_tagger_module(cls: _TimeTaggerModuleC) -> tuple[str, str, str]:
     if issubclass(cls, TimeTaggerMeasurement):
         type_camel = 'Measurement'
     elif issubclass(cls, TimeTaggerVirtualChannel):
