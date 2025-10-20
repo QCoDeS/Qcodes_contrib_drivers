@@ -1,0 +1,1 @@
+from .Swabian_Instruments_Time_Tagger import TimeTagger
