@@ -1,0 +1,69 @@
+qcodes\_contrib\_drivers.drivers.Lakeshore.modules package
+==========================================================
+
+Submodules
+----------
+
+qcodes\_contrib\_drivers.drivers.Lakeshore.modules.bcs10 module
+---------------------------------------------------------------
+
+.. automodule:: qcodes_contrib_drivers.drivers.Lakeshore.modules.bcs10
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+qcodes\_contrib\_drivers.drivers.Lakeshore.modules.cm10 module
+--------------------------------------------------------------
+
+.. automodule:: qcodes_contrib_drivers.drivers.Lakeshore.modules.cm10
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+qcodes\_contrib\_drivers.drivers.Lakeshore.modules.moduleBase module
+--------------------------------------------------------------------
+
+.. automodule:: qcodes_contrib_drivers.drivers.Lakeshore.modules.moduleBase
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+qcodes\_contrib\_drivers.drivers.Lakeshore.modules.senseBase module
+-------------------------------------------------------------------
+
+.. automodule:: qcodes_contrib_drivers.drivers.Lakeshore.modules.senseBase
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+qcodes\_contrib\_drivers.drivers.Lakeshore.modules.sourceBase module
+--------------------------------------------------------------------
+
+.. automodule:: qcodes_contrib_drivers.drivers.Lakeshore.modules.sourceBase
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+qcodes\_contrib\_drivers.drivers.Lakeshore.modules.vm10 module
+--------------------------------------------------------------
+
+.. automodule:: qcodes_contrib_drivers.drivers.Lakeshore.modules.vm10
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+qcodes\_contrib\_drivers.drivers.Lakeshore.modules.vs10 module
+--------------------------------------------------------------
+
+.. automodule:: qcodes_contrib_drivers.drivers.Lakeshore.modules.vs10
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: qcodes_contrib_drivers.drivers.Lakeshore.modules
+   :members:
+   :undoc-members:
+   :show-inheritance:
