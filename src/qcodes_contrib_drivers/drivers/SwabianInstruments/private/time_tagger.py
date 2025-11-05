@@ -4,7 +4,6 @@ import abc
 import inspect
 import os
 import sys
-import textwrap
 import warnings
 from collections.abc import Callable, Sequence, Collection
 from pathlib import Path
@@ -13,8 +12,8 @@ from typing import Any, TypeVar
 import numpy as np
 import numpy.typing as npt
 from qcodes.instrument import InstrumentBase, InstrumentChannel, InstrumentModule
-from qcodes.parameters import ParamRawDataType, Parameter, ParameterBase
-from qcodes.validators import validators as vals
+from qcodes.parameters import DelegateParameter, ParamRawDataType, Parameter, ParameterBase
+from qcodes.validators import Validator, validators as vals
 
 try:
     sys.path.append(str(Path(os.environ['TIMETAGGER_INSTALL_PATH'], 'driver', 'python')))
@@ -22,7 +21,7 @@ try:
 except (KeyError, ImportError):
     tt = None
 
-_F = TypeVar('_F', bound=Callable[..., Any])
+_O = TypeVar('_O', bound=Callable[..., Any] | type[Any])
 
 
 def _snake_to_camel(name: str) -> str:
@@ -30,16 +29,31 @@ def _snake_to_camel(name: str) -> str:
     return humps[0] + ''.join(hump.title() for hump in humps[1:])
 
 
-def refer_to_api_doc(api_obj: str) -> Callable[[_F], _F]:
+def refer_to_api_doc(api_obj: str = '') -> Callable[[_O], _O]:
     """Decorator factory to link a method to its TT API documentation."""
 
-    def decorator(func: _F) -> _F:
-        api_name = '.'.join([api_obj, _snake_to_camel(func.__name__)])
-        func.__doc__ = textwrap.dedent(
-            f"""Forwards API method :meth:`TimeTagger:{api_name}`. See
-            documentation there."""
-        )
-        return func
+    def decorator(obj: _O) -> _O:
+        if inspect.isclass(obj) and obj.__name__.endswith('Measurement'):
+            # A Measurement class
+            api_name = obj.__name__.removesuffix('Measurement')
+            typ = 'class'
+        elif inspect.isclass(obj) and obj.__name__.endswith('VirtualChannel'):
+            # A VirtualChannel class
+            api_name = obj.__name__.removesuffix('VirtualChannel')
+            typ = 'class'
+        elif inspect.isfunction(obj):
+            # A method, probably
+            api_name = '.'.join([api_obj, _snake_to_camel(obj.__name__)])
+            typ = 'meth'
+        else:
+            raise NotImplementedError(f'decorator not implemented for {obj}')
+
+        if obj.__doc__ is not None:
+            warnings.warn(f'Overwriting docstring of {obj}', RuntimeWarning,  stacklevel=2)
+
+        obj.__doc__ = (f"Implements API object :{typ}:`TimeTagger:{api_name}` -- see the "
+                       "documentation there.")
+        return obj
 
     return decorator
 
@@ -99,6 +113,11 @@ def cached_api_object(__func: Callable[..., Any] | None = None,
         return CachedProperty
 
 
+def _count_bins(start: float, stop: float, num: int) -> int:
+    bins = np.logspace(start + 12, stop + 12, int(num), dtype=np.int64)
+    return np.unique(bins).size
+
+
 class TypeValidator(vals.Validator[type]):
     """A validator for specific types."""
 
@@ -127,6 +146,68 @@ class ArrayLikeValidator(vals.Arrays):
         except ValueError as err:
             raise ValueError(f'{value!r} is invalid: cannot convert to array; {context}') from err
         super().validate(array, context)
+
+
+class DelegateParameterWithoutParentValidator(DelegateParameter):
+    """A :class:`DelegateParameter` with a validator that does not
+    validate on the parent's validators."""
+    # Reverts behavior introduced in GH #6865 / 0000926
+
+    @property
+    def validators(self) -> tuple[Validator, ...]:
+        """Tuple of all validators associated with the parameter.
+
+        :getter: All validators associated with the parameter.
+        """
+        return tuple(self._vals)
+
+
+class LogspaceStartValidator(vals.Validator[float]):
+    """Validates the exp_start parameter of a :class:`HistogramLogBinsMeasurement`."""
+
+    def __init__(self, stop_param: ParameterBase, num_param: ParameterBase):
+        self.stop_param = stop_param
+        self.num_param = num_param
+
+    def validate(self, value: float, context: str = "") -> None:
+        if (stop := self.stop_param.cache.get(False)) is None:
+            return
+        if (num := self.num_param.cache.get(False)) is None:
+            return
+        if _count_bins(value, stop, num) != int(num):
+           raise ValueError(f'{value!r} is invalid: results in redundant bin edges; {context}')
+
+
+class LogspaceStopValidator(vals.Validator[float]):
+    """Validates the exp_stop parameter of a :class:`HistogramLogBinsMeasurement`."""
+
+    def __init__(self, start_param: ParameterBase, num_param: ParameterBase):
+        self.start_param = start_param
+        self.num_param = num_param
+
+    def validate(self, value: float, context: str = "") -> None:
+        if (start := self.start_param.cache.get(False)) is None:
+            return
+        if (num := self.num_param.cache.get(False)) is None:
+            return
+        if _count_bins(start, value, num) != int(num):
+           raise ValueError(f'{value!r} is invalid: results in redundant bin edges; {context}')
+
+
+class LogspaceNumValidator(vals.Validator[int]):
+    """Validates the n_bins parameter of a :class:`HistogramLogBinsMeasurement`."""
+
+    def __init__(self, start_param: ParameterBase, stop_param: ParameterBase):
+        self.start_param = start_param
+        self.stop_param = stop_param
+
+    def validate(self, value: int, context: str = "") -> None:
+        if (start := self.start_param.cache.get(False)) is None:
+            return
+        if (stop := self.stop_param.cache.get(False)) is None:
+            return
+        if _count_bins(start, stop, value) != int(value):
+           raise ValueError(f'{value!r} is invalid: results in redundant bin edges; {context}')
 
 
 class ParameterWithSetSideEffect(Parameter):
