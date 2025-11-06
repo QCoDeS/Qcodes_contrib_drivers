@@ -49,9 +49,9 @@ import numpy.typing as npt
 from qcodes import validators
 from qcodes.instrument import Instrument
 from qcodes.parameters import (ParameterBase, ParamRawDataType, DelegateParameter,
-                               ManualParameter, MultiParameter, Parameter, ParameterWithSetpoints)
+                               ManualParameter, MultiParameter, Parameter, ParameterWithSetpoints,
+                               create_on_off_val_mapping)
 from qcodes.parameters.cache import _Cache, _CacheProtocol
-from qcodes.utils.helpers import create_on_off_val_mapping
 from tqdm import tqdm
 
 from . import post_processing
