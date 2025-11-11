@@ -1,0 +1,29 @@
+qcodes\_contrib\_drivers.drivers.Spectrum package
+=================================================
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 10
+
+   qcodes_contrib_drivers.drivers.Spectrum.py_header
+
+Submodules
+----------
+
+qcodes\_contrib\_drivers.drivers.Spectrum.M4i module
+----------------------------------------------------
+
+.. automodule:: qcodes_contrib_drivers.drivers.Spectrum.M4i
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: qcodes_contrib_drivers.drivers.Spectrum
+   :members:
+   :undoc-members:
+   :show-inheritance:
