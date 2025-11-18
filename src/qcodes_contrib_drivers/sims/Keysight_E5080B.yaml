@@ -1,0 +1,153 @@
+# SIMULATED INSTRUMENT FOR Keysight E5080B
+spec: "1.0"
+devices:
+  Keysight_E5080B:
+    dialogues:
+      - q: "*IDN?"
+        r: "QCoDeS, Keysight_E5080B_simulated, simulated, 0.0.1"
+    properties:
+      start_freq:
+        default: 1000000
+        getter:
+          q: "SENS:FREQ:STAR?"
+          r: "{}"
+        setter:
+          q: "SENS:FREQ:STAR {}"
+      stop_freq:
+        default: 2000000
+        getter:
+          q: "SENS:FREQ:STOP?"
+          r: "{}"
+        setter:
+          q: "SENS:FREQ:STOP {}"
+      center_freq:
+        default: 1500000
+        getter:
+          q: "SENS:FREQ:CENT?"
+          r: "{}"
+        setter:
+          q: "SENS:FREQ:CENT {}"
+      step_auto:
+        default: "1"
+        getter:
+          q: "SENS:FREQ:CENT:STEP:AUTO?"
+          r: "{}"
+        setter:
+          q: "SENS:FREQ:CENT:STEP:AUTO {}"
+      step_size:
+        default: 50000
+        getter:
+          q: "SENS:FREQ:CENT:STEP:SIZE?"
+          r: "{}"
+        setter:
+          q: "SENS:FREQ:CENT:STEP:SIZE {}"
+      span:
+        default: 1000000
+        getter:
+          q: "SENS:FREQ:SPAN?"
+          r: "{}"
+        setter:
+          q: "SENS:FREQ:SPAN {}"
+      cw:
+        default: 0
+        getter:
+          q: "SENS:FREQ:CW?"
+          r: "{}"
+        setter:
+          q: "SENS:FREQ:CW {}"
+      points:
+        default: 101
+        getter:
+          q: "SENS:SWE:POIN?"
+          r: "{}"
+        setter:
+          q: "SENS:SWE:POIN {}"
+      source_power:
+        default: 0
+        getter:
+          q: "SOUR:POW?"
+          r: "{}"
+        setter:
+          q: "SOUR:POW {}"
+      if_bandwidth:
+        default: 1000
+        getter:
+          q: "SENS:BWID?"
+          r: "{}"
+        setter:
+          q: "SENS:BWID {}"
+      sweep_type:
+        default: "LIN"
+        getter:
+          q: "SENS:SWE:TYPE?"
+          r: "{}"
+        setter:
+          q: "SENS:SWE:TYPE {}"
+      sweep_mode:
+        default: "CONT"
+        getter:
+          q: "SENS:SWE:MODE?"
+          r: "{}"
+        setter:
+          q: "SENS:SWE:MODE {}"
+      scattering_parameter:
+        default: "S11"
+        getter:
+          q: "CALC:MEAS:PAR?"
+          r: "{}"
+        setter:
+          q: "CALC:MEAS:PAR {}"
+      averages_enabled:
+        default: "0"
+        getter:
+          q: "SENS:AVER?"
+          r: "{}"
+        setter:
+          q: "SENS:AVER {}"
+      averages_count:
+        default: 1
+        getter:
+          q: "SENS:AVER:COUN?"
+          r: "{}"
+        setter:
+          q: "SENS:AVER:COUN {}"
+      averages_mode:
+        default: "SWEEP"
+        getter:
+          q: "SENS:AVER:MODE?"
+          r: "{}"
+        setter:
+          q: "SENS:AVER:MODE {}"
+      format_data:
+        default: "ASCii,0"
+        getter:
+          q: "FORM:DATA?"
+          r: "{}"
+        setter:
+          q: "FORM:DATA {}"
+      rf_on:
+        default: "0"
+        getter:
+          q: "OUTP?"
+          r: "{}"
+        setter:
+          q: "OUTP {}"
+      format_border:
+        default: "NORM"
+        getter:
+          q: "FORM:BORD?"
+          r: "{}"
+        setter:
+          q: "FORM:BORD {}"
+    functions:
+      clear_averages:
+        call: "SENS:AVER:CLE"
+      cls:
+        call: "*CLS"
+      opc:
+        call: "*OPC"
+      system_reset:
+        call: "SYST:PRES"
+resources:
+  TCPIP::192.168.0.10::INSTR:
+    device: Keysight_E5080B
