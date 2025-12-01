@@ -1,5 +1,5 @@
 from qcodes.validators import ComplexNumbers
-from qcodes.parameter import ParamRawDataType, Parameter
+from qcodes.parameters import ParamRawDataType, Parameter
 from typing import Any, Optional
 from zhinst.qcodes import MFLI as mfli
 
