@@ -61,7 +61,7 @@ jobs:
       run: |
         pytest --cov=qcodes_contrib_drivers --cov-report xml --cov-config=pyproject.toml tests
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v5.5.1
+      uses: codecov/codecov-action@v5.5.2
       with:
         env_vars: OS,PYTHON
       env:
