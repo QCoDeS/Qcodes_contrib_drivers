@@ -128,7 +128,7 @@ class Opticool(Instrument):
             vals=vals.Numbers(min_value = -7, max_value=7),
             instrument=self
         )
-        
+
         self.magnet_ramp_rate = Parameter(
             name='magnet_ramp_rate',
             label='Magnet ramp rate',
@@ -155,7 +155,7 @@ class Opticool(Instrument):
             get_cmd=self._get_magnet_driven_mode,
             set_cmd=self._set_magnet_driven_mode,
             vals=vals.Enum('driven', 'persistent'),
-            insrument=self
+            instrument=self
         )
 
         self.client.open()
@@ -173,10 +173,24 @@ class Opticool(Instrument):
         ) = self.client.get_field_setpoints()
 
 
+    def ask_raw(self, cmd: str, query:str=''):
+        """Send a query to the server
+
+        Parameters:
+            action : str - the general command sent to the MultiVu server.
+                (TEMP(?), FIELD(?), CHAMBER(?), etc. Second item is the query
+            query : str, optional - specific details of the command
+
+        Returns:
+            out"""
+        self.client._query_server(cmd, query)
+
     def ramp_field(self):
-        self.log.info('Ramping field to target=%s, rate=%s, approach=%s, driven=%s'
-            % (self._field_target, self.field_rate,
-               self._field_approach_mode, self._field_driven_mode))
+        """Ramp field to values specified using magnet_ramp_* parameters"""
+        self.log.info(
+            f'Ramping field to target={self._field_target}, \
+            rate={self._field_rate}, approach={self._field_approach_mode}, \
+            driven={self._field_driven_mode}')
 
         self.client.set_field(
             self._field_target,
@@ -186,9 +200,11 @@ class Opticool(Instrument):
         )
 
     def ramp_temp(self):
-        self.log.info('Ramping temperature to target=%s, rate=%s, method=%s'
-            % (self._temp_setpoint, self._temp_ramp_rate, self._temp_ramp_method))
-        
+        """Ramp temperature to valuess specified using temperature_ramp_*
+        parameters"""
+        self.log.info(
+            f'Ramping temperature to target={self._temp_setpoint}, \
+            rate={self._temp_ramp_rate}, method={self._temp_ramp_method}')
         self.client.set_temperature(
             self._temp_setpoint,
             self._temp_ramp_rate,
@@ -196,26 +212,32 @@ class Opticool(Instrument):
         )
 
     def seal(self):
+        """Seal chamber"""
         self.log.info('Seal chamber')
         self.client.set_chamber(self.client.chamber.mode.seal)
 
     def purge_seal(self):
+        """Purge seal"""
         self.log.info('Purge Seal')
         self.client.set_chamber(self.client.chamber.mode.purge_seal)
 
     def vent_seal(self):
+        """Vent seal"""
         self.log.info('Vent Seal')
         self.client.set_chamber(self.client.chamber.mode.vent_seal)
 
     def pump_continuous(self):
+        """Continuous pumping of chamber"""
         self.log.info('Start continuous pumping of the chamber')
         self.client.set_chamber(self.client.chamber.mode.pump_continuous)
 
     def vent_continuous(self):
+        """Continuous venting of chamber"""
         self.log.info('Start continuous venting of the chamber')
         self.client.set_chamber(self.client.chamber.mode.vent_continuous)
 
     def high_vacuum(self):
+        """High vacuum mode"""
         self.log.info('Start high vacuum mode')
         self.client.set_chamber(self.client.chamber.mode.high_vacuum)
 
@@ -243,17 +265,17 @@ class Opticool(Instrument):
     #    print('TODO')
 
     def _get_temperature_sample(self):
-        T, _ = self.client.get_temperature()
-        return T
-    
+        temp, _ = self.client.get_temperature()
+        return temp
+
     def _get_temperature_aux(self):
-        T, _ = self.client.get_aux_temperature()
-        return T
-    
+        temp, _ = self.client.get_aux_temperature()
+        return temp
+
     def _get_temperature_setpoint(self):
-        T, _, _ = self.client.get_temperature_setpoints()
-        self._temp_setpoint = T
-        return T
+        temp, _, _ = self.client.get_temperature_setpoints()
+        self._temp_setpoint = temp
+        return temp
 
     def _get_temperature_ramp_method(self):
         _, _, mode = self.client.get_temperature_setpoints()
@@ -275,8 +297,8 @@ class Opticool(Instrument):
         return self.client.get_server_status()
 
     def _get_status_magnet(self):
-        _, sB = self.client.get_field()
-        return sB
+        _, status = self.client.get_field()
+        return status
 
     #def _get_status_compressor():
     #    print('TODO')
@@ -291,12 +313,12 @@ class Opticool(Instrument):
         return self.client.get_chamber()
 
     def _get_status_temperature_sample(self):
-        _, sT = self.client.get_temperature()
-        return sT
-    
+        _, status = self.client.get_temperature()
+        return status
+
     def _get_status_temperature_aux(self):
-        _, sT = self.client.get_aux_temperature()
-        return sT
+        _, status = self.client.get_aux_temperature()
+        return status
 
     #def _get_pressure_cooler():
     #    print('TODO')
@@ -305,15 +327,16 @@ class Opticool(Instrument):
     #    print('TODO')
 
     def _get_magnet_field(self):
-        B, _ = self.client.get_field()
-        return B
-    
+        field, _ = self.client.get_field()
+        return field
+
     def _get_magnet_ramp_setpoint(self):
-        B, _, _, _ = self.client.get_field_setpoints()
-        if self._field_setpoint == B:
+        field, _, _, _ = self.client.get_field_setpoints()
+        if self._field_setpoint == field:
             pass
         else:
-            print('magnet setpoint is set to {B} on instrument, {self._field_setpoint} in QCoDeS driver.') 
+            print(f'magnet setpoint is set to {field} on instrument, \
+                  {self._field_setpoint} in QCoDeS driver.')
         return self._field_setpoint
 
     def _get_magnet_ramp_rate(self):
@@ -356,7 +379,7 @@ class Opticool(Instrument):
         self.client.set_field(
             setpoint, self._field_ramp_rate,
             self._field_ramp_method, self._field_driven_mode)
-        
+
     def _set_magnet_ramp_setpoint(self, setpoint):
         self._field_setpoint = setpoint
 
