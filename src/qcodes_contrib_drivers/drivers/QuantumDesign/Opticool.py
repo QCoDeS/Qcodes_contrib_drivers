@@ -12,7 +12,7 @@ import logging
 from typing import Optional, Any
 from  MultiPyVu import Client
 
-from qcodes.instrument.base import Instrument
+from qcodes.instrument import Instrument
 from qcodes.parameters import Parameter
 from qcodes import validators as vals
 
@@ -32,10 +32,7 @@ class Opticool(Instrument):
     Status: work-in-progress
 
     Todo:
-        write down all the _functions and test driver
-        check parsing
-        check val_mapping
-        try to write more _set functions
+        find a way to get the remaining functions (may involve bypassing MultiPyVu)
     """
 
     def __init__(
@@ -46,33 +43,6 @@ class Opticool(Instrument):
             **kwargs: Any) -> None:
         super().__init__(name, **kwargs)
         self.client = Client(host=address, port=port)
-
-        self.temperature_shield = Parameter(
-            name='temperature_shield',
-            label='Shield temperature',
-            unit='K',
-            get_cmd=self._get_temperature_shield,
-            get_parser=float,
-            instrument=self
-        )
-
-        self.temperature_4k_plate = Parameter(
-            name='temperature_4k_plate',
-            label='4K plate temperature',
-            unit='K',
-            get_cmd=self._get_temperature_4k_plate,
-            get_parser=float,
-            instrument=self
-        )
-
-        self.temperature_magnet = Parameter(
-            name='temperature_magnet',
-            label='Magnet temperature',
-            unit='K',
-            get_cmd=self._get_temperature_magnet,
-            get_parser=float,
-            instrument=self
-        )
 
         self.temperature_sample = Parameter(
             name='temperature_sample',
@@ -85,12 +55,23 @@ class Opticool(Instrument):
             instrument=self
         )
 
+        self.temperature_ramp_setpoint = Parameter(
+            name='temperature_ramp_setpoint',
+            label='Ramp setpoint for the sample stage temperature',
+            unit='K',
+            get_cmd=self._get_temperature_setpoint,
+            get_parser=float,
+            set_cmd=self._set_temperature_setpoint,
+            vals=vals.Numbers(1.4, 350),
+            instrument=self
+        )
+
         self.temperature_ramp_method = Parameter(
             name='temperature_ramp_method',
             label='Ramp method for the sample stage temperature',
             get_cmd=self._get_temperature_ramp_method,
             set_cmd=self._set_temperature_ramp_method,
-            val_mapping=,#TODO
+            vals=vals.Enum('no_overshoot', 'fast_settle'),
             instrument=self
         )
 
@@ -100,24 +81,6 @@ class Opticool(Instrument):
             unit='K/min',
             get_cmd=self._get_temperature_ramp_rate,
             set_cmd=self._set_temperature_ramp_rate,
-            instrument=self
-        )
-
-        self.heater_power_4k_plate = Parameter(
-            name='heater_power_4k_plate',
-            label='Heater power at the 4K plate',
-            unit='',
-            get_cmd=self._get_heater_power_4k_plate,
-            get_parser=float,
-            instrument=self
-        )
-
-        self.heater_power_sample = Parameter(
-            name='heater_power_sample',
-            label='Heater power at the sample plate',
-            unit='',
-            get_cmd=self._get_heater_power_sample,
-            get_parser=float,
             instrument=self
         )
 
@@ -135,45 +98,11 @@ class Opticool(Instrument):
             instrument=self
         )
 
-        self.status_compressor = Parameter(
-            name='status_compressor',
-            label='Compressor status',
-            get_cmd=self._get_status_compressor,
-            instrument=self,
-        )
-
-        self.status_cooler = Parameter(
-            name='status_cooler',
-            label='Cooler status',
-            get_cmd=self._get_status_cooler,
+        self.status_temperature_sample = Parameter(
+            name='status_temperature_sample',
+            label='Status of sample temperature control',
+            get_cmd=self._get_status_temperature_sample,
             instrument=self
-        )
-
-        self.status_liquid = Parameter(
-            name='status_liquid',
-            label='Status of liquid in cooling chamber',
-            get_cmd=self._get_status_liquid,
-            instrument=self
-        )
-
-        self.status_temperature = Parameter(
-            name='status_temperature',
-            label='Status of temperature control',
-            get_cmd=self._get_status_temperature,
-            instrument=self
-        )
-
-        self.pressure_cooler = Parameter(
-            name='pressure_cooler',
-            label='Pressure in the circulation loop',
-            get_cmd=self._get_pressure_cooler,
-            instrument=self
-        )
-
-        self.pressure_vacuum_chamber = Parameter(
-            name='pressure_vacuum_chamber',
-            label='Vacuum chamber pressure',
-            get_cmd=self._get_pressure_vacuum_chamber
         )
 
         self.magnet_field = Parameter(
@@ -188,6 +117,18 @@ class Opticool(Instrument):
             instrument=self,
         )
 
+        self.magnet_ramp_setpoint = Parameter(
+            name='magnet_ramp_setpoint',
+            label='Magnetic ramp setpoint',
+            unit='T',
+            get_cmd=self._get_magnet_ramp_setpoint,
+            get_parser=self._parse_oersted_to_tesla,
+            set_cmd=self._set_magnet_ramp_setpoint,
+            set_parser=self._parse_tesla_to_oersted,
+            vals=vals.Numbers(min_value = -7, max_value=7),
+            instrument=self
+        )
+        
         self.magnet_ramp_rate = Parameter(
             name='magnet_ramp_rate',
             label='Magnet ramp rate',
@@ -196,7 +137,6 @@ class Opticool(Instrument):
             get_parser=self._parse_oersted_to_tesla,
             set_cmd=self._set_magnet_ramp_rate,
             set_parser=self._parse_tesla_to_oersted,
-            vals=vals.Numbers(min_value=0, max_value=1), #TODO - change values
             instrument=self,
         )
 
@@ -205,51 +145,79 @@ class Opticool(Instrument):
             label='Magnet ramp methode',
             get_cmd=self._get_magnet_ramp_method,
             set_cmd=self._set_magnet_ramp_method,
-            val_mapping=,#TODO
+            vals=vals.Enum('linear', 'no_overshoot', 'oscillate'),
             instrument=self,
+        )
+
+        self.magnet_ramp_mode = Parameter(
+            name='magnet_ramp_mode',
+            label='Magnet ramp mode',
+            get_cmd=self._get_magnet_driven_mode,
+            set_cmd=self._set_magnet_driven_mode,
+            vals=vals.Enum('driven', 'persistent'),
+            insrument=self
         )
 
         self.client.open()
         self.connect_message()
+        (
+            self._temp_setpoint,
+            self._temp_ramp_rate,
+            self._temp_ramp_method
+        ) = self.client.get_temperature_setpoints()
+        (
+            self._field_setpoint,
+            self._field_ramp_rate,
+            self._field_ramp_method,
+            self._field_driven_mode
+        ) = self.client.get_field_setpoints()
+
 
     def ramp_field(self):
+        self.log.info('Ramping field to target=%s, rate=%s, approach=%s, driven=%s'
+            % (self._field_target, self.field_rate,
+               self._field_approach_mode, self._field_driven_mode))
+
         self.client.set_field(
             self._field_target,
             self._field_rate,
             self._field_approach_mode,
+            self._field_driven_mode
         )
-        #TODO - define _field_target and _field_rate
 
     def ramp_temp(self):
+        self.log.info('Ramping temperature to target=%s, rate=%s, method=%s'
+            % (self._temp_setpoint, self._temp_ramp_rate, self._temp_ramp_method))
+        
         self.client.set_temperature(
             self._temp_setpoint,
-            self._temp_rate,
-            self._temp_approach_mode,
+            self._temp_ramp_rate,
+            self._temp_ramp_method,
         )
 
     def seal(self):
-        self.client.set_chamber(client.chamber.mode.seal)
-        #TODO - logging message
+        self.log.info('Seal chamber')
+        self.client.set_chamber(self.client.chamber.mode.seal)
 
     def purge_seal(self):
-        self.client.set_chamber(client.chamber.mode.purge_seal)
-        #TODO - logging message
+        self.log.info('Purge Seal')
+        self.client.set_chamber(self.client.chamber.mode.purge_seal)
 
     def vent_seal(self):
-        self.client.set_chamber(client.chamber.mode.vent_seal)
-        #TODO - logging message
+        self.log.info('Vent Seal')
+        self.client.set_chamber(self.client.chamber.mode.vent_seal)
 
     def pump_continuous(self):
-        self.client.set_chamber(client.chamber.mode.pump_continuous)
-        #TODO - logging message
+        self.log.info('Start continuous pumping of the chamber')
+        self.client.set_chamber(self.client.chamber.mode.pump_continuous)
 
     def vent_continuous(self):
-        self.client.set_chamber(client.chamber.mode.vent_continuous)
-        #TODO - logging message
+        self.log.info('Start continuous venting of the chamber')
+        self.client.set_chamber(self.client.chamber.mode.vent_continuous)
 
     def high_vacuum(self):
-        self.client.set_chamber(client.chamber.mode.high_vacuum)
-        #TODO - logging message
+        self.log.info('Start high vacuum mode')
+        self.client.set_chamber(self.client.chamber.mode.high_vacuum)
 
     def close(self) -> None:
         """Close the connection"""
@@ -257,106 +225,160 @@ class Opticool(Instrument):
         self.client.close_server()
 
     def get_idn(self) -> dict[str, str | None]:
-        """Return the Instrument Identifier Message"""
-        #TODO
+        """Overrides instrument function
 
-    def _get_temperature_shield():
-        #TODO
+        Returns:
+            A dict containing vendor, model, serial, and firmware."""
+        idparts = ['Quantum Design', self.client.instrument_name, None, self.client.get_version()]
 
-    def _get_temperature_4k_plate():
-        #TODO
+        return dict(zip(('vendor', 'model', 'serial', 'firmware'), idparts))
 
-    def _get_temperature_magnet():
-        #TODO
+    #def _get_temperature_shield(self):
+    #    print('TODO')
 
-    def _get_temperature_sample():
+    #def _get_temperature_4k_plate(self):
+    #    print('TODO')
+
+    #def _get_temperature_magnet(self):
+    #    print('TODO')
+
+    def _get_temperature_sample(self):
         T, _ = self.client.get_temperature()
         return T
+    
+    def _get_temperature_aux(self):
+        T, _ = self.client.get_aux_temperature()
+        return T
+    
+    def _get_temperature_setpoint(self):
+        T, _, _ = self.client.get_temperature_setpoints()
+        self._temp_setpoint = T
+        return T
 
-    def _get_temperature_ramp_method():
-        #TODO
+    def _get_temperature_ramp_method(self):
+        _, _, mode = self.client.get_temperature_setpoints()
+        self._temp_ramp_method = mode
+        return mode
 
-    def _get_temperature_ramp_rate():
-        #TODO
+    def _get_temperature_ramp_rate(self):
+        _, rate, _ = self.client.get_temperature_setpoints()
+        self._temp_ramp_rate = rate
+        return rate
 
-    def _get_heater_power_4k_plate():
-        #TODO
+    #def _get_heater_power_4k_plate():
+    #    print('TODO')
 
-    def _get_heater_power_sample():
-        #TODO
+    #def _get_heater_power_sample():
+    #    print('TODO')
 
-    def _get_status_cryostat():
-        #TODO
+    def _get_status_cryostat(self):
+        return self.client.get_server_status()
 
-    def _get_status_magnet():
+    def _get_status_magnet(self):
         _, sB = self.client.get_field()
         return sB
 
-    def _get_status_compressor():
-        #TODO
+    #def _get_status_compressor():
+    #    print('TODO')
 
-    def _get_status_cooler():
-        #TODO
+    #def _get_status_cooler():
+    #    print('TODO')
 
-    def _get_status_liquid():
-        #TODO
+    #def _get_status_liquid():
+    #    print('TODO')
 
     def _get_status_chamber(self):
-        return client.get_chamber()
+        return self.client.get_chamber()
 
-    def _get_status_temperature():
+    def _get_status_temperature_sample(self):
         _, sT = self.client.get_temperature()
         return sT
+    
+    def _get_status_temperature_aux(self):
+        _, sT = self.client.get_aux_temperature()
+        return sT
 
-    def _get_pressure_cooler():
-        #TODO
+    #def _get_pressure_cooler():
+    #    print('TODO')
 
-    def _get_pressure_vacuum_chamber():
-        #TODO
+    #def _get_pressure_vacuum_chamber():
+    #    print('TODO')
 
-    def _get_magnet_field():
+    def _get_magnet_field(self):
         B, _ = self.client.get_field()
+        return B
+    
+    def _get_magnet_ramp_setpoint(self):
+        B, _, _, _ = self.client.get_field_setpoints()
+        if self._field_setpoint == B:
+            pass
+        else:
+            print('magnet setpoint is set to {B} on instrument, {self._field_setpoint} in QCoDeS driver.') 
+        return self._field_setpoint
 
-    def _get_magnet_ramp_rate():
-        #TODO
+    def _get_magnet_ramp_rate(self):
+        _, rate, _, _ = self.client.get_field_setpoints()
+        self._field_ramp_rate = rate
+        return rate
 
-    def _get_magnet_ramp_method():
-        #TODO
+    def _get_magnet_ramp_method(self):
+        _, _, mode, _ = self.client.get_field_setpoints()
+        self._field_ramp_method = mode
+        return mode
 
-    def _set_temperature_sample(self, set_point):
-        _, rate, approach = self.client.get_temperature_setpoints()
-        self.client.set_temperature(set_point, rate, approach)
+    def _get_magnet_driven_mode(self):
+        _, _, _, mode = self.client.get_field_setpoints()
+        self._field_driven_mode = mode
+        return mode
 
-    def _set_temperature_ramp_method():
-        temperature, rate, _ = self.client.get_temperature_setpoints()
-        #TODO
-        """these two are not correct:
-        I need to write down a _temp_ramp_approach dict, that is save when one
-        sets the temperature. then a specific function start_temperature_ramp
-        """
+    def _set_temperature_sample(self, setpoint):
+        self.client.set_temperature(setpoint, self._temp_ramp_rate, self._temp_ramp_method)
 
-    def _set_temperature_ramp_rate():
-        #TODO
+    def _set_temperature_setpoint(self, setpoint):
+        self._temp_setpoint = setpoint
+
+    def _set_temperature_ramp_method(self, method):
+        if method == 'no_overshoot':
+            self._temp_ramp_method = self.client.temperature.approach_mode.no_overshoot
+        else:
+            self._temp_ramp_method = self.client.temperature.approach_mode.fast_settle
+
+    def _set_temperature_ramp_rate(self, rate):
+        self._temp_ramp_rate = rate
 
     def _set_status_chamber(self, status):
         """accept items seal, purge_seal, vent, vent_seal, pump_continuous,
         vent_continuous and high_vacuum.
         """
-        client.set_chamber()
+        self.client.set_chamber(status)
 
+    def _set_magnet_field(self, setpoint):
+        self.client.set_field(
+            setpoint, self._field_ramp_rate,
+            self._field_ramp_method, self._field_driven_mode)
+        
+    def _set_magnet_ramp_setpoint(self, setpoint):
+        self._field_setpoint = setpoint
 
-    def _set_magnet_field():
-        #TODO
+    def _set_magnet_ramp_rate(self, rate):
+        self._field_ramp_rate = rate
 
-    def _set_magnet_ramp_rate():
-        #TODO
+    def _set_magnet_ramp_method(self, method):
+        if method == 'no_overshoot':
+            self._field_ramp_method = self.client.field.approach_mode.no_overshoot
+        elif method == 'oscillate':
+            self._field_ramp_method = self.client.field.approach_mode.oscillate
+        else:
+            self._field_ramp_method = self.client.field.approach_mode.linear
 
-    def _set_magnet_ramp_method():
-        #TODO
+    def _set_magnet_driven_mode(self, mode):
+        if mode == 'driven':
+            self._field_driven_mode = self.client.field.driven_mode.driven
+        else:
+            self._field_driven_mode = self.client.field.driven_mode.persistent
 
-
-    def _parse_oersted_to_tesla(val):
+    def _parse_oersted_to_tesla(self, val):
         return float(val)*1e-4
 
-    def _parse_tesla_to_oersted(val):
+    def _parse_tesla_to_oersted(self, val):
         return float(val)*10000.
