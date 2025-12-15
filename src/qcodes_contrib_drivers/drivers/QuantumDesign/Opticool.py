@@ -32,7 +32,7 @@ class Opticool(Instrument):
     Status: work-in-progress
 
     Todo:
-        find a way to get the remaining functions (may involve bypassing MultiPyVu)
+        include all temperature sensors in the driver
     """
 
     def __init__(
@@ -43,6 +43,20 @@ class Opticool(Instrument):
             **kwargs: Any) -> None:
         super().__init__(name, **kwargs)
         self.client = Client(host=address, port=port)
+
+        self._FIELD_APPROACH_MAPPING = {
+            'no_overshoot': self.client.field.approach_mode.no_overshoot,
+            'oscillate': self.client.field.approach_mode.oscillate,
+            'linear': self.client.field.approach_mode.linear,
+        }
+        self._FIELD_DRIVEN_MAPPING = {
+            'driven': self.client.field.driven_mode.driven,
+            'persistent': self.client.field.driven_mode.persistent,
+        }
+        self._TEMPERATURE_APPROACH_MAPPING = {
+            'no_overshoot': self.client.temperature.approach_mode.no_overshoot,
+            'fast_settle': self.client.temperature.approach_mode.fast_settle
+        }
 
         self.temperature_sample = Parameter(
             name='temperature_sample',
@@ -355,27 +369,36 @@ class Opticool(Instrument):
         return mode
 
     def _set_temperature_sample(self, setpoint):
+        ramp_method = self._TEMPERATURE_APPROACH_MAPPING.get(
+            self._temp_ramp_method, self._temp_ramp_method)
+        if isinstance(self._temp_ramp_method, str):
+            self._temp_ramp_method = ramp_method
         self.client.set_temperature(setpoint, self._temp_ramp_rate, self._temp_ramp_method)
 
     def _set_temperature_setpoint(self, setpoint):
         self._temp_setpoint = setpoint
 
     def _set_temperature_ramp_method(self, method):
-        if method == 'no_overshoot':
-            self._temp_ramp_method = self.client.temperature.approach_mode.no_overshoot
-        else:
-            self._temp_ramp_method = self.client.temperature.approach_mode.fast_settle
+        ramp_method = self._TEMPERATURE_APPROACH_MAPPING.get(
+            method, method)
+        if isinstance(self._temp_ramp_method, str):
+            self._temp_ramp_method = ramp_method
 
     def _set_temperature_ramp_rate(self, rate):
         self._temp_ramp_rate = rate
 
     def _set_status_chamber(self, status):
-        """accept items seal, purge_seal, vent, vent_seal, pump_continuous,
-        vent_continuous and high_vacuum.
-        """
         self.client.set_chamber(status)
 
     def _set_magnet_field(self, setpoint):
+        ramp_method = self._FIELD_APPROACH_MAPPING.get(
+            self._field_ramp_method, self._field_ramp_method)
+        driven_mode = self._FIELD_DRIVEN_MAPPING.get(
+            self._field_driven_mode, self._field_driven_mode)
+        if isinstance(self._field_ramp_method, str):
+            self._field_ramp_method = ramp_method
+        if isinstance(self._field_driven_mode, str):
+            self._field_driven_mode = driven_mode
         self.client.set_field(
             setpoint, self._field_ramp_rate,
             self._field_ramp_method, self._field_driven_mode)
@@ -387,18 +410,14 @@ class Opticool(Instrument):
         self._field_ramp_rate = rate
 
     def _set_magnet_ramp_method(self, method):
-        if method == 'no_overshoot':
-            self._field_ramp_method = self.client.field.approach_mode.no_overshoot
-        elif method == 'oscillate':
-            self._field_ramp_method = self.client.field.approach_mode.oscillate
-        else:
-            self._field_ramp_method = self.client.field.approach_mode.linear
+        ramp_method = self._FIELD_APPROACH_MAPPING.get(method, method)
+        if isinstance(self._field_ramp_method, str):
+            self._field_ramp_method = ramp_method
 
     def _set_magnet_driven_mode(self, mode):
-        if mode == 'driven':
-            self._field_driven_mode = self.client.field.driven_mode.driven
-        else:
-            self._field_driven_mode = self.client.field.driven_mode.persistent
+        driven_mode = self._FIELD_DRIVEN_MAPPING.get(mode, mode)
+        if isinstance(self._field_driven_mode, str):
+            self._field_driven_mode = driven_mode
 
     def _parse_oersted_to_tesla(self, val):
         return float(val)*1e-4
