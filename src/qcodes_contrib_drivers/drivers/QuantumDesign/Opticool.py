@@ -186,7 +186,6 @@ class Opticool(Instrument):
             self._field_driven_mode
         ) = self.client.get_field_setpoints()
 
-
     def ask_raw(self, cmd: str, query:str=''):
         """Send a query to the server
 
@@ -202,14 +201,22 @@ class Opticool(Instrument):
     def ramp_field(self):
         """Ramp field to values specified using magnet_ramp_* parameters"""
         self.log.info(
-            f'Ramping field to target={self._field_target}, \
-            rate={self._field_rate}, approach={self._field_approach_mode}, \
+            f'Ramping field to target={self._field_setpoint}, \
+            rate={self._field_ramp_rate}, approach={self._field_ramp_method}, \
             driven={self._field_driven_mode}')
 
+        ramp_method = self._FIELD_APPROACH_MAPPING.get(
+            self._field_ramp_method, self._field_ramp_method)
+        driven_mode = self._FIELD_DRIVEN_MAPPING.get(
+            self._field_driven_mode, self._field_driven_mode)
+        if isinstance(self._field_ramp_method, str):
+            self._field_ramp_method = ramp_method
+        if isinstance(self._field_driven_mode, str):
+            self._field_driven_mode = driven_mode
         self.client.set_field(
-            self._field_target,
-            self._field_rate,
-            self._field_approach_mode,
+            self._field_setpoint,
+            self._field_ramp_rate,
+            self._field_ramp_method,
             self._field_driven_mode
         )
 
@@ -219,6 +226,11 @@ class Opticool(Instrument):
         self.log.info(
             f'Ramping temperature to target={self._temp_setpoint}, \
             rate={self._temp_ramp_rate}, method={self._temp_ramp_method}')
+
+        ramp_method = self._TEMPERATURE_APPROACH_MAPPING.get(
+            self._temp_ramp_method, self._temp_ramp_method)
+        if isinstance(self._temp_ramp_method, str):
+            self._temp_ramp_method = ramp_method
         self.client.set_temperature(
             self._temp_setpoint,
             self._temp_ramp_rate,
