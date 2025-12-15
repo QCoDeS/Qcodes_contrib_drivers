@@ -269,15 +269,6 @@ class Opticool(Instrument):
 
         return dict(zip(('vendor', 'model', 'serial', 'firmware'), idparts))
 
-    #def _get_temperature_shield(self):
-    #    print('TODO')
-
-    #def _get_temperature_4k_plate(self):
-    #    print('TODO')
-
-    #def _get_temperature_magnet(self):
-    #    print('TODO')
-
     def _get_temperature_sample(self):
         temp, _ = self.client.get_temperature()
         return temp
@@ -301,27 +292,12 @@ class Opticool(Instrument):
         self._temp_ramp_rate = rate
         return rate
 
-    #def _get_heater_power_4k_plate():
-    #    print('TODO')
-
-    #def _get_heater_power_sample():
-    #    print('TODO')
-
     def _get_status_cryostat(self):
         return self.client.get_server_status()
 
     def _get_status_magnet(self):
         _, status = self.client.get_field()
         return status
-
-    #def _get_status_compressor():
-    #    print('TODO')
-
-    #def _get_status_cooler():
-    #    print('TODO')
-
-    #def _get_status_liquid():
-    #    print('TODO')
 
     def _get_status_chamber(self):
         return self.client.get_chamber()
@@ -333,12 +309,6 @@ class Opticool(Instrument):
     def _get_status_temperature_aux(self):
         _, status = self.client.get_aux_temperature()
         return status
-
-    #def _get_pressure_cooler():
-    #    print('TODO')
-
-    #def _get_pressure_vacuum_chamber():
-    #    print('TODO')
 
     def _get_magnet_field(self):
         field, _ = self.client.get_field()
