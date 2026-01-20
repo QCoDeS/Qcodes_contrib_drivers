@@ -24,7 +24,6 @@ class ITC503(VisaInstrument):
         super().__init__(name, address, terminator='\r', **kwargs)
 
         self._address = address
-        self._values = {}
 
         self.add_parameter(name='temp_1',
                             label='Temperature of sensor 1',
@@ -151,7 +150,7 @@ class ITC503(VisaInstrument):
         self.visa_handle.write('X')
         result = self.visa_handle.read()
         if result.find('?') >= 0:
-            print("Error: Command %s not recognized" % 'C')
+            raise ValueError("Error: Command %s not recognized" % 'C')
         else:
             return int(result.split('C')[1][0])
 
@@ -163,7 +162,7 @@ class ITC503(VisaInstrument):
         self.visa_handle.write('X')
         result = self.visa_handle.read()
         if result.find('?') >= 0:
-            print("Error: Command %s not recognized" % 'A')
+            raise ValueError("Error: Command %s not recognized" % 'A')
         else:
             return int(result.split('A')[1][0])
 
@@ -175,6 +174,6 @@ class ITC503(VisaInstrument):
         self.visa_handle.write('X')
         result = self.visa_handle.read()
         if result.find('?') >= 0:
-            print("Error: Command %s not recognized" % 'H')
+            raise ValueError("Error: Command %s not recognized" % 'H')
         else:
             return int(result.split('H')[1][0])
