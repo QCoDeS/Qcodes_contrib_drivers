@@ -2,15 +2,13 @@
 
 """
 Created by Paritosh Karnatak <paritosh.karnatak@unibas.ch>, Feb 2019
-Updated by Elyjah <elyjah.kiyooka@cea.fr>, June 2022
+Updated by Elyjah <elyjah.kiyooka@cea.fr>, Jan 2025
 
 """
 
-import logging
-from qcodes import VisaInstrument, validators as vals
-from qcodes.utils.delaykeyboardinterrupt import DelayedKeyboardInterrupt
-
-log = logging.getLogger(__name__)
+from qcodes.instrument import VisaInstrument
+from qcodes import validators as vals
+from qcodes.utils import DelayedKeyboardInterrupt
 
 class ITC503(VisaInstrument):
     """
@@ -20,7 +18,6 @@ class ITC503(VisaInstrument):
 
     def __init__(self, name: str, address: str, **kwargs):
 
-        log.debug('Initializing instrument')
         super().__init__(name, address, terminator='\r', **kwargs)
 
         self._address = address
