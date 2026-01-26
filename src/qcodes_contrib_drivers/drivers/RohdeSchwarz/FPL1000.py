@@ -97,4 +97,78 @@ class RohdeSchwarz_FPL1000(VisaInstrument):
         spurious emissions.
         """
 
+        self.frequency_axis1 = self.add_parameter(
+            "frequency_axis1",
+            label="Trace 1 frequency",
+            unit="Hz",
+            parameter_class=FPL1000FrequencyAxis,
+            trace_number=1,
+            vals=Arrays(shape=(self.sweep_points.get_latest,)),
+        )
+
+        self.spectrum1 = self.add_parameter(
+            "spectrum1",
+            label="Trace 1 spectrum",
+            parameter_class=FPL1000Spectrum,
+            setpoints=(self.frequency_axis1,),
+            #unit=???, # TODO
+            trace_number=1,
+            vals=Arrays(shape=(self.sweep_points.get_latest,)),
+        )
+
         self.connect_message()
+
+
+# FPL1000 supports up to 6 traces
+TraceNumber = Literal[1, 2, 3, 4, 5, 6]
+
+
+class FPL1000FrequencyAxis(Parameter):
+    """
+    Array-valued parameter for frequency axis of FPL1000 spectrum analyzer
+    """
+    def __init__(
+        self,
+        name: str,
+        instrument: RohdeSchwarz_FPL1000,
+        trace_number: TraceNumber,
+        **kwargs,
+    ):
+        super().__init__(
+            name=name,
+            instrument=instrument,
+            **kwargs,
+        )
+        self.trace_number = trace_number
+
+    def get_raw(self):
+        query = f"TRACe:X? TRACE{self.trace_number}"
+        # note: assumes ASCII format
+        return np.array([
+            float(x) for x in self.instrument.ask(query).split(",")
+        ])
+
+
+class FPL1000Spectrum(ParameterWithSetpoints):
+    """
+    Array-valued parameter for retrieving spectrum data
+
+    If a long-running sweep is interrupted, the SCPI buffers should be cleared
+    with the device_clear() function.
+    """
+    def __init__(
+        self,
+        name: str,
+        instrument: RohdeSchwarz_FPL1000,
+        trace_number: TraceNumber,
+        **kwargs,
+    ) -> None:
+        super().__init__(name=name, instrument=instrument, **kwargs)
+        self.trace_number = trace_number
+
+    def get_raw(self):
+        query = f"TRACe? TRACE{self.trace_number}"
+        # note: assumes ASCII format
+        return np.array([
+            float(x) for x in self.instrument.ask(query).split(",")
+        ])
