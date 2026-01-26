@@ -111,7 +111,10 @@ class RohdeSchwarz_FPL1000(VisaInstrument):
             label="Trace 1 spectrum",
             parameter_class=FPL1000Spectrum,
             setpoints=(self.frequency_axis1,),
-            #unit=???, # TODO
+            # note: according to the manual, the unit may be actually different
+            # depending on the acquisition mode, that is left as an exercise for
+            # a future driver version
+            unit="dBm",
             trace_number=1,
             vals=Arrays(shape=(self.sweep_points.get_latest,)),
         )
