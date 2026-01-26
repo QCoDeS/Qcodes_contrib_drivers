@@ -18,6 +18,8 @@ from typing import Literal
 
 import numpy as np
 from qcodes.instrument import VisaInstrument
+from qcodes.validators import Arrays, Ints
+from qcodes import Parameter, ParameterWithSetpoints
 
 
 class RohdeSchwarz_FPL1000(VisaInstrument):
@@ -76,6 +78,23 @@ class RohdeSchwarz_FPL1000(VisaInstrument):
 
         If you set a span of 0 Hz, the FPL starts a measurement in the time
         domain.
+        """
+
+        self.sweep_points = self.add_parameter(
+            "sweep_points",
+            label="Sweep points",
+            get_cmd="SWEep:POINts?",
+            set_cmd="SWEep:POINts {}",
+            get_parser=int,
+            # minimum & maximum from manual
+            vals=Ints(min_value=101, max_value=100_001),
+        )
+        """
+        This parameter defines the number of sweep points to analyze after a
+        sweep.
+
+        Note that the number of sweep points is limited to 10001 when measuring
+        spurious emissions.
         """
 
         self.connect_message()
