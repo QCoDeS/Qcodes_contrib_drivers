@@ -35,10 +35,16 @@ class RohdeSchwarz_FPL1000(VisaInstrument):
     Args:
         name: name for the instrument
         address: Visa resource address, for exmample "TCPIP::192.123.45.67::inst0::INSTR"
+        reset: Reset the device to the preset state after connecting
     """
 
     def __init__(
-        self, name: str, address: str, terminator: str = "\n", **kwargs
+        self,
+        name: str,
+        address: str,
+        terminator: str = "\n",
+        reset: bool = True,
+        **kwargs,
     ) -> None:
         super().__init__(name=name, address=address, terminator=terminator, **kwargs)
 
@@ -254,7 +260,17 @@ class RohdeSchwarz_FPL1000(VisaInstrument):
             snapshot_exclude=True,
         )
 
+        if reset:
+            self.reset()
+
         self.connect_message()
+
+    def reset(self):
+        """
+        Sets the instrument to a defined default status. The default settings
+        are indicated in the description of commands.
+        """
+        self.write("SYSTem:PRESet")
 
 
 # FPL1000 supports up to 6 traces
