@@ -19,7 +19,11 @@ from typing import Literal
 import numpy as np
 from qcodes.instrument import VisaInstrument
 from qcodes.validators import Arrays, Ints
-from qcodes import Parameter, ParameterWithSetpoints
+from qcodes.parameters import (
+    Parameter,
+    ParameterWithSetpoints,
+    create_on_off_val_mapping,
+)
 
 
 class RohdeSchwarz_FPL1000(VisaInstrument):
@@ -95,6 +99,70 @@ class RohdeSchwarz_FPL1000(VisaInstrument):
 
         Note that the number of sweep points is limited to 10001 when measuring
         spurious emissions.
+        """
+
+        self.sweep_count = self.add_parameter(
+            "sweep_count",
+            label="Averaging sweep count",
+            get_cmd="SWEep:COUNt?",
+            set_cmd="SWEep:COUNt {}",
+            get_parser=int,
+        )
+        """
+        Defines the number of sweeps that the application uses to average
+        traces.
+
+        In continuous sweep mode, the application calculates the moving
+        average over the average count.
+
+        In single sweep mode, the application stops the measurement and
+        calculates the average after the average count has been reached.
+        """
+
+        self.sweep_time = self.add_parameter(
+            "sweep_time",
+            label="Sweep time",
+            unit="s",
+            get_cmd="SWEep:TIME?",
+            set_cmd="SWEep:TIME {}",
+            get_parser=float,
+        )
+        """
+        Defines the sweep time. Setting this parameter automatically decouples
+        the time from any other settings.
+
+        Note that this command queries only the time required to capture the
+        data, not to process it. To obtain an estimation of the total capture
+        and processing time, use the sweep_duration parameter.
+        """
+
+        self.sweep_time_auto_enabled = self.add_parameter(
+            "sweep_time_auto_enabled",
+            label="Automatic sweep time",
+            get_cmd="SWEep:TIME:AUTO?",
+            set_cmd="SWEep:TIME:AUTO {}",
+            val_mapping=create_on_off_val_mapping(on_val=1, off_val=0),
+        )
+        """
+        Enable or disable automatic sweep time based on the span and the
+        resolution and video bandwidths.
+        """
+
+        self.sweep_duration = self.add_parameter(
+            "sweep_duration",
+            label="Sweep acquisition duration estimate",
+            unit="s",
+            get_cmd="SWEep:DURation?",
+            set_cmd=False,
+            get_parser=float,
+        )
+        """
+        Provides an estimation of the total time required to capture the data
+        and process it. This time span may be considerably longer than the
+        actual sweep time (see the sweep_time parameter).
+
+        Tip: To determine the necessary timeout for data capturing in a remote
+        control program, double the estimated time and add 1 second.
         """
 
         self.frequency_axis1 = self.add_parameter(
