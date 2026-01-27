@@ -289,6 +289,7 @@ class FPL1000FrequencyAxis(Parameter):
     """
     Array-valued parameter for frequency axis of FPL1000 spectrum analyzer
     """
+
     def __init__(
         self,
         name: str,
@@ -306,9 +307,7 @@ class FPL1000FrequencyAxis(Parameter):
     def get_raw(self):
         query = f"TRACe:X? TRACE{self.trace_number}"
         # note: assumes ASCII format
-        return np.array([
-            float(x) for x in self.instrument.ask(query).split(",")
-        ])
+        return np.array([float(x) for x in self.instrument.ask(query).split(",")])
 
 
 class FPL1000Spectrum(ParameterWithSetpoints):
@@ -318,6 +317,7 @@ class FPL1000Spectrum(ParameterWithSetpoints):
     If a long-running sweep is interrupted, the SCPI buffers should be cleared
     with the device_clear() function.
     """
+
     def __init__(
         self,
         name: str,
