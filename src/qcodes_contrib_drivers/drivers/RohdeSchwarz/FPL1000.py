@@ -18,7 +18,7 @@ from typing import Literal
 
 import numpy as np
 from qcodes.instrument import VisaInstrument
-from qcodes.validators import Arrays, Ints
+from qcodes.validators import Arrays, Ints, Numbers
 from qcodes.parameters import (
     Parameter,
     ParameterWithSetpoints,
@@ -172,6 +172,63 @@ class RohdeSchwarz_FPL1000(VisaInstrument):
             set_cmd="INITiate:CONTinuous {}",
             val_mapping=create_on_off_val_mapping(on_val=1, off_val=0),
         )
+
+        self.resolution_bandwidth = self.add_parameter(
+            "resolution_bandwidth",
+            label="Resolution bandwidth",
+            unit="Hz",
+            get_cmd="BWIDth:RESolution?",
+            set_cmd="BWIDth:RESolution {}",
+            get_parser=float,
+            # note: actual value limits depend on model
+            vals=Numbers(min_value=0),
+        )
+        """
+        Defines the resolution bandwidth and decouples the resolution bandwidth
+        from the span.
+
+        For statistics measurements, this command defines the *demodulation*
+        bandwidth.
+        """
+
+        self.resolution_bandwidth_auto_enabled = self.add_parameter(
+            "resolution_bandwidth_auto_enabled",
+            label="Automatic resolution bandwidth",
+            get_cmd="BWIDth:RESolution:AUTO?",
+            set_cmd="BWIDth:RESolution:AUTO {}",
+            val_mapping=create_on_off_val_mapping(on_val=1, off_val=0),
+        )
+        """
+        Couples and decouples the resolution bandwidth to the span.
+        """
+
+        self.video_bandwidth = self.add_parameter(
+            "video_bandwidth",
+            label="Video bandwidth",
+            unit="Hz",
+            get_cmd="BWIDth:VIDeo?",
+            set_cmd="BWIDth:VIDeo {}",
+            get_parser=float,
+            # note: actual value limits depend on model
+            vals=Numbers(min_value=0),
+        )
+        """
+        Defines the video bandwidth.
+
+        Setting this parameter decouples the video bandwidth from the resolution
+        bandwidths.
+        """
+
+        self.video_bandwidth_auto_enabled = self.add_parameter(
+            "video_bandwidth_auto_enabled",
+            label="Automatic video bandwidth",
+            get_cmd="BWIDth:VIDeo:AUTO?",
+            set_cmd="BWIDth:VIDeo:AUTO {}",
+            val_mapping=create_on_off_val_mapping(on_val=1, off_val=0),
+        )
+        """
+        Couples and decouples the video bandwidth to the resolution bandwidth.
+        """
 
         self.frequency_axis1 = self.add_parameter(
             "frequency_axis1",
