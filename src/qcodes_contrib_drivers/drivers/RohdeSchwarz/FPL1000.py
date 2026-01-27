@@ -165,6 +165,14 @@ class RohdeSchwarz_FPL1000(VisaInstrument):
         control program, double the estimated time and add 1 second.
         """
 
+        self.continuous_sweep_enabled = self.add_parameter(
+            "continuous_sweep_enabled",
+            label="Continuous sweep mode",
+            get_cmd="INITiate:CONTinuous?",
+            set_cmd="INITiate:CONTinuous {}",
+            val_mapping=create_on_off_val_mapping(on_val=1, off_val=0),
+        )
+
         self.frequency_axis1 = self.add_parameter(
             "frequency_axis1",
             label="Trace 1 frequency",
