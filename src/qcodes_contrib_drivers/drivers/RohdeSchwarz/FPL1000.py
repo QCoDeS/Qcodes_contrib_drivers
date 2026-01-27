@@ -236,29 +236,37 @@ class RohdeSchwarz_FPL1000(VisaInstrument):
         Couples and decouples the video bandwidth to the resolution bandwidth.
         """
 
-        self.frequency_axis1 = self.add_parameter(
-            "frequency_axis1",
-            label="Trace 1 frequency",
+        self.frequency = self.add_parameter(
+            "frequency",
+            label="Frequency",
             unit="Hz",
             parameter_class=FPL1000FrequencyAxis,
+            # Only support one trace for now
             trace_number=1,
             vals=Arrays(shape=(self.sweep_points.get_latest,)),
             snapshot_exclude=True,
         )
+        """
+        Frequency axis of trace 1. In zero-span mode, this is the time axis.
+        """
 
-        self.spectrum1 = self.add_parameter(
-            "spectrum1",
-            label="Trace 1 spectrum",
+        self.spectrum = self.add_parameter(
+            "spectrum",
+            label="Spectrum",
             parameter_class=FPL1000Spectrum,
-            setpoints=(self.frequency_axis1,),
+            setpoints=(self.frequency,),
             # note: according to the manual, the unit may be actually different
             # depending on the acquisition mode, that is left as an exercise for
             # a future driver version
             unit="dBm",
+            # Only support one trace for now
             trace_number=1,
             vals=Arrays(shape=(self.sweep_points.get_latest,)),
             snapshot_exclude=True,
         )
+        """
+        Spectrum of trace 1.
+        """
 
         if reset:
             self.reset()
