@@ -113,16 +113,23 @@ class RohdeSchwarz_FPL1000(VisaInstrument):
             get_cmd="SWEep:COUNt?",
             set_cmd="SWEep:COUNt {}",
             get_parser=int,
+            vals=Ints(min_value=0),
         )
         """
         Defines the number of sweeps that the application uses to average
         traces.
 
-        In continuous sweep mode, the application calculates the moving
-        average over the average count.
+        In continuous sweep mode, the application calculates the moving average
+        over the average count. If the sweep count is zero, the trace is a
+        weighted average of the last 10 traces, with a weight of 9 on the most
+        recent trace (see the section "How many traces are averaged - sweep
+        count + Sweep mode" in the manual for details).
 
         In single sweep mode, the application stops the measurement and
-        calculates the average after the average count has been reached.
+        calculates the average after the average count has been reached. If the
+        sweep count is zero, the trace is the average of the previously measured
+        trace and the current trace (see the section "How many traces are
+        averaged - sweep count + Sweep mode" in the manual for details).
         """
 
         self.sweep_time = self.add_parameter(
@@ -345,11 +352,13 @@ class FPL1000Spectrum(ParameterWithSetpoints):
         Approximate timeout required to acquire all data, including averaging
         """
         instr: RohdeSchwarz_FPL1000 = self.root_instrument
+        # sweep count may be set to zero
+        n_avg = max(instr.sweep_count(), 1)
         timeout = max(
             instr.timeout(),
             # from the manual: "Tip: To determine the necessary timeout for data
             # capturing in a remote control program, double the estimated time
             # and add 1 second."
-            (instr.sweep_duration() * instr.sweep_count()) * 2 + 1,
+            (instr.sweep_duration() * n_avg) * 2 + 1,
         )
         return timeout
