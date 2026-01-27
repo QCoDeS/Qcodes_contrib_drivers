@@ -248,8 +248,27 @@ class FPL1000Spectrum(ParameterWithSetpoints):
         self.trace_number = trace_number
 
     def get_raw(self):
-        query = f"TRACe? TRACE{self.trace_number}"
-        # note: assumes ASCII format
-        return np.array([
-            float(x) for x in self.instrument.ask(query).split(",")
-        ])
+        instr: RohdeSchwarz_FPL1000 = self.root_instrument
+        with (
+            instr.continuous_sweep_enabled.set_to(False),
+            instr.timeout.set_to(self._get_timeout()),
+        ):
+            instr.write("INITiate")
+            instr.ask("*OPC?")
+            query = f"TRACe? TRACE{self.trace_number}"
+            # note: assumes ASCII format
+            return np.array([float(x) for x in instr.ask(query).split(",")])
+
+    def _get_timeout(self):
+        """
+        Approximate timeout required to acquire all data, including averaging
+        """
+        instr: RohdeSchwarz_FPL1000 = self.root_instrument
+        timeout = max(
+            instr.timeout(),
+            # from the manual: "Tip: To determine the necessary timeout for data
+            # capturing in a remote control program, double the estimated time
+            # and add 1 second."
+            (instr.sweep_duration() * instr.sweep_count()) * 2 + 1,
+        )
+        return timeout
