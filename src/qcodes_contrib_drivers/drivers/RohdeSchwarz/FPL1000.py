@@ -172,6 +172,7 @@ class RohdeSchwarz_FPL1000(VisaInstrument):
             parameter_class=FPL1000FrequencyAxis,
             trace_number=1,
             vals=Arrays(shape=(self.sweep_points.get_latest,)),
+            snapshot_exclude=True,
         )
 
         self.spectrum1 = self.add_parameter(
@@ -185,6 +186,7 @@ class RohdeSchwarz_FPL1000(VisaInstrument):
             unit="dBm",
             trace_number=1,
             vals=Arrays(shape=(self.sweep_points.get_latest,)),
+            snapshot_exclude=True,
         )
 
         self.connect_message()
