@@ -32,6 +32,12 @@ class RohdeSchwarz_FPL1000(VisaInstrument):
 
     Tested on FPL1026.
 
+    Note that this driver assumes a certain configuration of the instrument
+    state, and changing some settings in the GUI, such as the measurement mode
+    (spectrum or spurious emissions), may lead to unexpected results. Because of
+    this, a reset to the initial state (equivalent to pressing the PRESET button
+    on the front panel) is performed by default when connecting.
+
     Args:
         name: name for the instrument
         address: Visa resource address, for exmample "TCPIP::192.123.45.67::inst0::INSTR"
