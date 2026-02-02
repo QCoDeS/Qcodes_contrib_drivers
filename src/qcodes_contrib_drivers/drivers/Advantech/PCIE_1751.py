@@ -4,8 +4,8 @@ from functools import partial
 import logging
 import os
 
-from qcodes.instrument.base import Instrument
-from qcodes.utils import validators as vals
+from qcodes.instrument import Instrument
+from qcodes import validators as vals
 
 log = logging.getLogger(__name__)
 

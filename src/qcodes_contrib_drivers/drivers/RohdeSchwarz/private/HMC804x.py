@@ -1,5 +1,5 @@
-from qcodes import VisaInstrument, validators as vals
-from qcodes import InstrumentChannel, ChannelList
+from qcodes import validators as vals
+from qcodes.instrument import InstrumentChannel, ChannelList, VisaInstrument
 
 
 class RohdeSchwarzHMC804xChannel(InstrumentChannel):

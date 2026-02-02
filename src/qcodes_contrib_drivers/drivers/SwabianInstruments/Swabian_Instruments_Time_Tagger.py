@@ -1,4 +1,4 @@
-"""QCoDeS driver for the Swabian Instruments Time Tagger series.
+r"""QCoDeS driver for the Swabian Instruments Time Tagger series.
 
 Since the `Swabian Instruments Python driver`_ is already excellent,
 this driver is mostly concerned with wrapping its object-oriented API
@@ -8,18 +8,18 @@ into QCoDeS Instruments and Parameters. It is organized as follows:
    :class:`TimeTagger:TimeTagger` object.
 
  * Measurements and Virtual Channels are implemented as
-   :class:`~qcodes:qcodes.instrument.channel.InstrumentChannel` s, which
+   :class:`~qcodes:qcodes.instrument.channel.InstrumentChannel`\ s, which
    should dynamically be added and removed from the :class:`TimeTagger`
    instrument's corresponding
    :class:`~qcodes:qcodes.instrument.channel.ChannelList` as needed.
    These channels own
-   :class:`~qcodes:qcodes.parameters.parameter.Parameter` s
+   :class:`~qcodes:qcodes.parameters.parameter.Parameter`\ s
    which may be required to be initialized to instantiate the API object
    of the TimeTagger library that actually controls the measurement.
 
  * If properly initialized, each QCoDeS instrument or channel has a
    cached :meth:`api` property that gives access to the TimeTagger API
-   object. The cache is automatically invalidated if a Paramaeter is
+   object. The cache is automatically invalidated if a Parameter is
    changed that was used to instantiate the object (e.g., the binwidth).
 
  * :class:`~.private.time_tagger.TimeTaggerVirtualChannel` and
@@ -79,140 +79,158 @@ from .private.time_tagger import (tt, TypeValidator, ParameterWithSetSideEffect,
                                   TimeTaggerMeasurement, TimeTaggerSynchronizedMeasurements,
                                   TimeTaggerInstrumentBase, TimeTaggerVirtualChannel,
                                   cached_api_object, ArrayLikeValidator, TimeTaggerModule,
-                                  refer_to_api_doc)
+                                  DelegateParameterWithoutParentValidator, refer_to_api_doc,
+                                  LogspaceStartValidator, LogspaceStopValidator,
+                                  LogspaceNumValidator)
 
 _T = TypeVar('_T', bound=ParamRawDataType)
-_TimeTaggerModuleT = TypeVar('_TimeTaggerModuleT', bound=type[TimeTaggerModule])
+_TimeTaggerModuleC = TypeVar('_TimeTaggerModuleC', bound=type[TimeTaggerModule])
+_TimeTaggerMeasurementT = TypeVar('_TimeTaggerMeasurementT', bound=TimeTaggerMeasurement)
+_TimeTaggerVirtualChannelT = TypeVar('_TimeTaggerVirtualChannelT', bound=TimeTaggerVirtualChannel)
 
 
+@refer_to_api_doc()
 class CombinerVirtualChannel(TimeTaggerVirtualChannel):
-    """Virtual channel combining physical ones."""
 
     def __init__(self, parent: InstrumentBase, name: str,
                  api_tagger: tt.TimeTaggerBase | None = None, **kwargs: Any):
         super().__init__(parent, name, api_tagger, **kwargs)
 
-        self.channels = ParameterWithSetSideEffect(
+        self.channels = self.add_parameter(
             'channels',
+            ParameterWithSetSideEffect,
             set_side_effect=self._invalidate_api,
-            instrument=self,
             label='Channels',
             vals=vals.Sequence(vals.Ints())
         )
+        """List of channels to be combined into a single virtual channel."""
 
-    @cached_api_object(required_parameters={'channels'})  # type: ignore[misc]
+    @cached_api_object(required_parameters={'channels'})  # type: ignore[untyped-decorator]
     def api(self) -> tt.Combiner:
         return tt.Combiner(self.api_tagger, self.channels.get())
 
 
+@refer_to_api_doc()
 class CoincidenceVirtualChannel(TimeTaggerVirtualChannel):
-    """Virtual channel clicking on coincidence of physical clicks."""
 
     def __init__(self, parent: InstrumentBase, name: str,
                  api_tagger: tt.TimeTaggerBase | None = None, **kwargs: Any):
         super().__init__(parent, name, api_tagger, **kwargs)
 
-        self.channels = ParameterWithSetSideEffect(
+        self.channels = self.add_parameter(
             'channels',
+            ParameterWithSetSideEffect,
             set_side_effect=self._invalidate_api,
-            instrument=self,
             label='Channels',
             vals=vals.Sequence(vals.Ints())
         )
+        """List of channels on which coincidence will be detected in the
+        virtual channel."""
 
-        self.coincidence_window = ParameterWithSetSideEffect(
+        self.coincidence_window = self.add_parameter(
             'coincidence_window',
+            ParameterWithSetSideEffect,
             set_side_effect=self._invalidate_api,
-            instrument=self,
             label='Coincidence window',
             unit='ps',
             initial_value=1000,
-            vals=vals.PermissiveInts(),
+            vals=vals.Numbers(min_value=1),
             set_parser=int
         )
+        """Maximum time between all events for a coincidence."""
 
-        self.timestamp = ParameterWithSetSideEffect(
+        self.timestamp = self.add_parameter(
             'timestamp',
+            ParameterWithSetSideEffect,
             set_side_effect=self._invalidate_api,
-            instrument=self,
             label='Timestamp',
             initial_value=tt.CoincidenceTimestamp.Last,
             vals=vals.Enum(*tt.CoincidenceTimestamp)
         )
+        """Type of timestamp for virtual channel."""
 
-    @cached_api_object(required_parameters={'channels'})  # type: ignore[misc]
+    @cached_api_object(required_parameters={'channels'})  # type: ignore[untyped-decorator]
     def api(self) -> tt.Coincidence:
         return tt.Coincidence(self.api_tagger, self.channels.get())
 
 
+@refer_to_api_doc()
 class CorrelationMeasurement(TimeTaggerMeasurement):
-    """Measurement of the time-delay between clicks on channels."""
 
     def __init__(self, parent: InstrumentBase, name: str,
                  api_tagger: tt.TimeTaggerBase | None = None, **kwargs: Any):
         super().__init__(parent, name, api_tagger, **kwargs)
 
-        self.channels = ParameterWithSetSideEffect(
+        self.channels = self.add_parameter(
             'channels',
+            ParameterWithSetSideEffect,
             set_side_effect=self._invalidate_api,
-            instrument=self,
             label='Channels',
             vals=vals.MultiType(vals.Sequence(vals.Ints(), length=1),
                                 vals.Sequence(vals.Ints(), length=2))
         )
+        """Channel on which (stop) clicks are received and channel on which
+        reference clicks (start) are received (when left empty or set to
+        :class:`TimeTagger:CHANNEL_UNUSED` -> an auto-correlation measurement
+        is performed, which is the same as setting channel_1 = channel_2)."""
 
-        self.binwidth = ParameterWithSetSideEffect(
+        self.binwidth = self.add_parameter(
             'binwidth',
+            ParameterWithSetSideEffect,
             set_side_effect=self._invalidate_api,
-            instrument=self,
             label='Binwidth',
             unit='ps',
             initial_value=1000,
-            vals=vals.Numbers(),
+            vals=vals.Numbers(min_value=1),
             set_parser=int
         )
+        """Bin width in ps."""
 
-        self.n_bins = ParameterWithSetSideEffect(
+        self.n_bins = self.add_parameter(
             'n_bins',
+            ParameterWithSetSideEffect,
             set_side_effect=self._invalidate_api,
-            instrument=self,
             label='Number of bins',
             initial_value=1000,
-            vals=vals.Numbers(),
+            vals=vals.Numbers(min_value=1),
             set_parser=int
         )
+        """The number of bins in the resulting histogram."""
 
-        self.time_bins = Parameter(
+        self.time_bins = self.add_parameter(
             'time_bins',
-            instrument=self,
+            Parameter,
             label='Time bins',
             unit='ps',
             get_cmd=lambda: self.api.getIndex(),
             vals=vals.Arrays(shape=(self.n_bins.get_latest,), valid_types=(np.int64,))
         )
+        """A vector of size n_bins containing the time bins in ps."""
 
-        self.data = ParameterWithSetpoints(
+        self.data = self.add_parameter(
             'data',
+            ParameterWithSetpoints,
             get_cmd=lambda: self.api.getData(),
             vals=vals.Arrays(shape=(self.n_bins.get_latest,), valid_types=(np.int32,)),
             setpoints=(self.time_bins,),
-            instrument=self,
             label='Data',
             unit='cts',
             max_val_age=0.0
         )
+        """A one-dimensional array of size n_bins containing the histogram."""
 
-        self.data_normalized = ParameterWithSetpoints(
+        self.data_normalized = self.add_parameter(
             'data_normalized',
+            ParameterWithSetpoints,
             get_cmd=lambda: self.api.getDataNormalized(),
             vals=vals.Arrays(shape=(self.n_bins.get_latest,), valid_types=(np.float64,)),
             setpoints=(self.time_bins,),
-            instrument=self,
             label='Normalized data',
             max_val_age=0.0
         )
+        """Data normalized by the binwidth and the average count rate."""
 
-    @cached_api_object(required_parameters={'channels', 'binwidth', 'n_bins'})  # type: ignore[misc]
+    @cached_api_object(required_parameters={'channels', 'binwidth', 'n_bins'})  # type: ignore[untyped-decorator]
     def api(self) -> tt.Correlation:
         return tt.Correlation(self.api_tagger,
                               *self.channels.get(),
@@ -220,8 +238,8 @@ class CorrelationMeasurement(TimeTaggerMeasurement):
                               n_bins=self.n_bins.get())
 
 
+@refer_to_api_doc()
 class CountRateMeasurement(TimeTaggerMeasurement):
-    """Measurement of the click rate on channels."""
 
     def __init__(self, parent: InstrumentBase, name: str,
                  api_tagger: tt.TimeTaggerBase | None = None, **kwargs: Any):
@@ -230,50 +248,54 @@ class CountRateMeasurement(TimeTaggerMeasurement):
         def number_of_channels():
             return len(self.channels.get_latest())
 
-        self.channels = ParameterWithSetSideEffect(
+        self.channels = self.add_parameter(
             'channels',
+            ParameterWithSetSideEffect,
             set_side_effect=self._invalidate_api,
-            instrument=self,
             label='Channels',
             vals=vals.Sequence(vals.Ints())
         )
+        """Channels for which the average count rate is measured."""
 
         # See CounterMeasurement for explanation
-        self.__channels_proxy = DelegateParameter(
+        # Not using add_parameter (GH #6715)
+        self.__channels_proxy = DelegateParameterWithoutParentValidator(
             f'__{self.full_name}_channels_proxy',
             source=self.channels,
             vals=ArrayLikeValidator(shape=(number_of_channels,), valid_types=(int,)),
             bind_to_instrument=False
         )
 
-        self.data = ParameterWithSetpoints(
+        self.data = self.add_parameter(
             'data',
+            ParameterWithSetpoints,
             get_cmd=lambda: self.api.getData(),
             vals=vals.Arrays(shape=(number_of_channels,), valid_types=(np.float64,)),
             setpoints=(self.__channels_proxy,),
-            instrument=self,
             label='Data',
             unit='Hz',
             max_val_age=0.0
         )
+        """Average count rate in counts per second."""
 
-        self.counts_total = ParameterWithSetpoints(
+        self.counts_total = self.add_parameter(
             'counts_total',
+            ParameterWithSetpoints,
             get_cmd=lambda: self.api.getCountsTotal(),
             vals=vals.Arrays(shape=(number_of_channels,), valid_types=(np.int32,)),
             setpoints=(self.__channels_proxy,),
-            instrument=self,
             label='Total counts',
             max_val_age=0.0
         )
+        """The total number of events since the instantiation of this object."""
 
     @cached_api_object(required_parameters={'channels'})
     def api(self):
         return tt.Countrate(self.api_tagger, self.channels.get())
 
 
+@refer_to_api_doc()
 class CounterMeasurement(TimeTaggerMeasurement):
-    """Measurement of the clicks on channels."""
 
     def __init__(self, parent: InstrumentBase, name: str,
                  api_tagger: tt.TimeTaggerBase | None = None, **kwargs: Any):
@@ -282,19 +304,23 @@ class CounterMeasurement(TimeTaggerMeasurement):
         def number_of_channels():
             return len(self.channels.get_latest())
 
-        self.channels = ParameterWithSetSideEffect(
+        self.channels = self.add_parameter(
             'channels',
+            ParameterWithSetSideEffect,
             set_side_effect=self._invalidate_api,
-            instrument=self,
             label='Channels',
             vals=vals.Sequence(vals.Ints())
         )
+        """Channels used for counting tags."""
 
         # channels are setpoints for data parameters, but have a variable length and can therefore
         # not be validated using an Arrays validator with the shape parameter as is required by
         # ParameterWithSetpoints. Hence, we create a private dummy DelegateParameter to solve
         # the chicken-egg problem of validating on the length of the channels parameter.
-        self.__channels_proxy = DelegateParameter(
+        # A subclass of DelegateParameter without parent validator is needed to avoid validation
+        # issues, see GH #437.
+        # Not using add_parameter (GH #6715)
+        self.__channels_proxy = DelegateParameterWithoutParentValidator(
             # DANGER: needs unique name
             f'__{self.full_name}_channels_proxy',
             source=self.channels,
@@ -304,80 +330,100 @@ class CounterMeasurement(TimeTaggerMeasurement):
             bind_to_instrument=False
         )
 
-        self.binwidth = ParameterWithSetSideEffect(
+        self.binwidth = self.add_parameter(
             'binwidth',
+            ParameterWithSetSideEffect,
             set_side_effect=self._invalidate_api,
-            instrument=self,
             label='Binwidth',
             unit='ps',
             initial_value=10 ** 9,
-            vals=vals.Numbers(),
+            vals=vals.Numbers(min_value=1),
             set_parser=int
         )
+        """Bin width in ps."""
 
-        self.n_values = ParameterWithSetSideEffect(
+        self.n_values = self.add_parameter(
             'n_values',
+            ParameterWithSetSideEffect,
             set_side_effect=self._invalidate_api,
-            instrument=self,
             label='Number of bins',
             initial_value=1,
-            vals=vals.Numbers(),
+            vals=vals.Numbers(min_value=1),
             set_parser=int
         )
+        """Number of bins."""
 
-        self.data_total_counts = Parameter(
+        self.data_total_counts = self.add_parameter(
             'data_total_counts',
-            instrument=self,
+            Parameter,
             label='Total number of events',
             get_cmd=lambda: self.api.getDataTotalCounts(),
             set_cmd=False,
             max_val_age=0.0,
             vals=vals.Arrays(shape=(number_of_channels,), valid_types=(np.uint64,))
         )
+        """Number of events per channel.
 
-        self.time_bins = Parameter(
+        Returns total number of events per channel since the last call to
+        :meth:`clear`, including the currently integrating bin. This method
+        works correctly even when the USB transfer rate or backend processing
+        capabilities are exceeded.
+        """
+
+        self.time_bins = self.add_parameter(
             'time_bins',
-            instrument=self,
+            Parameter,
             label='Time bins',
             unit='ps',
             get_cmd=lambda: self.api.getIndex(),
             vals=vals.Arrays(shape=(self.n_values.get_latest,), valid_types=(np.int64,))
         )
+        """Returns the relative time of the bins in ps.
 
-        self.rolling = Parameter(
+        The first entry of the returned vector is always 0.
+        """
+
+        self.rolling = self.add_parameter(
             'rolling',
-            instrument=self,
+            Parameter,
             label='Rolling buffer',
             set_cmd=None,
             initial_value=True,
             vals=vals.Bool()
         )
+        """Controls how the counter array is filled."""
 
-        self.data = ParameterWithSetpoints(
+        self.data = self.add_parameter(
             'data',
+            ParameterWithSetpoints,
             get_cmd=lambda: self.api.getData(self.rolling()),
             vals=vals.Arrays(shape=(number_of_channels, self.n_values.get_latest),
                              valid_types=(np.int32,)),
             setpoints=(self.__channels_proxy, self.time_bins),
-            instrument=self,
             label='Data',
             unit='cts',
             max_val_age=0.0
         )
+        """An array of size ‘number of channels’ by n_values containing the
+        counts in each fully integrated bin."""
 
-        self.data_normalized = ParameterWithSetpoints(
+        self.data_normalized = self.add_parameter(
             'data_normalized',
+            ParameterWithSetpoints,
             get_cmd=lambda: self.api.getDataNormalized(self.rolling()),
             vals=vals.Arrays(shape=(number_of_channels, self.n_values.get_latest),
                              valid_types=(np.float64,)),
             setpoints=(self.__channels_proxy, self.time_bins,),
-            instrument=self,
             label='Normalized data',
             unit='Hz',
             max_val_age=0.0
         )
+        """Does the same as :attr:`data` but returns the count rate in Hz as a
+        float.
 
-    @cached_api_object(required_parameters={'channels', 'binwidth', 'n_values'})  # type: ignore[misc]
+        Not integrated bins and bins in overflow mode are marked as NaN."""
+
+    @cached_api_object(required_parameters={'channels', 'binwidth', 'n_values'})  # type: ignore[untyped-decorator]
     def api(self) -> tt.Counter:
         return tt.Counter(self.api_tagger,
                           self.channels.get(),
@@ -385,70 +431,83 @@ class CounterMeasurement(TimeTaggerMeasurement):
                           n_values=self.n_values.get())
 
 
+@refer_to_api_doc()
 class HistogramLogBinsMeasurement(TimeTaggerMeasurement):
-    """Log-spaced measurement of the time-delay between clicks on channels."""
 
     def __init__(self, parent: InstrumentBase, name: str,
                  api_tagger: tt.TimeTaggerBase | None = None, **kwargs: Any):
         super().__init__(parent, name, api_tagger, **kwargs)
 
-        self.click_channel = ParameterWithSetSideEffect(
+        self.click_channel = self.add_parameter(
             'click_channel',
+            ParameterWithSetSideEffect,
             set_side_effect=self._invalidate_api,
-            instrument=self,
             label='Click channel',
             vals=vals.Ints()
         )
+        """Channel on which clicks are received."""
 
-        self.start_channel = ParameterWithSetSideEffect(
+        self.start_channel = self.add_parameter(
             'start_channel',
+            ParameterWithSetSideEffect,
             set_side_effect=self._invalidate_api,
-            instrument=self,
             label='Start channel',
             vals=vals.Ints()
         )
+        """Channel on which start clicks are received."""
 
-        self.exp_start = ParameterWithSetSideEffect(
+        self.exp_start = self.add_parameter(
             'exp_start',
+            ParameterWithSetSideEffect,
             set_side_effect=self._invalidate_api,
-            instrument=self,
             label='Start exponent',
-            vals=vals.Numbers(),
+            vals=vals.Numbers(min_value=-12),
             set_parser=float
         )
+        """Exponent ``10^exp_start`` in seconds where the very first bin begins."""
 
-        self.exp_stop = ParameterWithSetSideEffect(
+        self.exp_stop = self.add_parameter(
             'exp_stop',
+            ParameterWithSetSideEffect,
             set_side_effect=self._invalidate_api,
-            instrument=self,
             label='Stop exponent',
-            vals=vals.Numbers(),
+            vals=vals.Numbers(min_value=-12),
             set_parser=float
         )
+        """Exponent ``10^exp_stop`` in seconds where the very last bin ends."""
 
-        self.n_bins = ParameterWithSetSideEffect(
+        self.n_bins = self.add_parameter(
             'n_bins',
+            ParameterWithSetSideEffect,
             set_side_effect=self._invalidate_api,
-            instrument=self,
             label='Number of bins',
-            vals=vals.Numbers(),
+            vals=vals.Numbers(min_value=1),
+            set_parser=int
         )
+        """The number of bins in the histogram."""
 
-        self.click_gate = ParameterWithSetSideEffect(
+        # Add cross-validators to catch redundant bin edges early
+        self.exp_start.add_validator(LogspaceStartValidator(self.exp_stop, self.n_bins))
+        self.exp_stop.add_validator(LogspaceStopValidator(self.exp_start, self.n_bins))
+        self.n_bins.add_validator(LogspaceNumValidator(self.exp_start, self.exp_stop))
+
+        self.click_gate = self.add_parameter(
             'click_gate',
+            ParameterWithSetSideEffect,
             set_side_effect=self._invalidate_api,
-            instrument=self,
             label='Evaluation gate for click channel',
             vals=vals.MultiType(vals.Enum(None), TypeValidator(tt.ChannelGate))
         )
+        """Optional evaluation gate for the :attr:`click_channel`."""
 
-        self.start_gate = ParameterWithSetSideEffect(
+        self.start_gate = self.add_parameter(
             'start_gate',
+            ParameterWithSetSideEffect,
             set_side_effect=self._invalidate_api,
-            instrument=self,
             label='Evaluation gate for start channel',
             vals=vals.MultiType(vals.Enum(None), TypeValidator(tt.ChannelGate))
         )
+        """Optional evaluation gate for the :attr:`start_channel`."""
 
         def n_bins():
             return self.n_bins.get_latest()
@@ -456,48 +515,54 @@ class HistogramLogBinsMeasurement(TimeTaggerMeasurement):
         def n_bin_edges():
             return n_bins() - 1
 
-        self.time_bin_edges = Parameter(
+        self.time_bin_edges = self.add_parameter(
             'time_bin_edges',
-            instrument=self,
+            Parameter,
             label='Time bin edges',
             unit='ps',
             get_cmd=lambda: self.api.getBinEdges(),
             vals=vals.Arrays(shape=(n_bin_edges,), valid_types=(np.int64,))
         )
+        """A vector of size `n_bins+1` containing the bin edges in picoseconds."""
 
-        self.time_bins = DelegateParameter(
+        self.time_bins = self.add_parameter(
             'time_bins',
+            DelegateParameter,
             source=self.time_bin_edges,
             label='Time bins',
             get_parser=lambda val: val[:-1] + np.diff(val) // 2,
             vals=vals.Arrays(shape=(n_bins,), valid_types=(np.int64,)),
             bind_to_instrument=True
         )
+        """A vector of size `n_bins` containing the bin centers in picoseconds."""
 
-        self.counts = ParameterWithSetpoints(
+        self.counts = self.add_parameter(
             'counts',
+            ParameterWithSetpoints,
             get_cmd=lambda: self.api.getDataObject().getCounts(),
             vals=vals.Arrays(shape=(n_bins,), valid_types=(np.uint64,)),
             setpoints=(self.time_bins,),
-            instrument=self,
             label='Counts',
             unit='cts',
             max_val_age=0.0
         )
+        """A one-dimensional array of size `n_bins` containing the histogram."""
 
-        self.g2 = ParameterWithSetpoints(
+        self.g2 = self.add_parameter(
             'g2',
+            ParameterWithSetpoints,
             get_cmd=lambda: self.api.getDataObject().getG2(),
             vals=vals.Arrays(shape=(n_bins,), valid_types=(np.float64,)),
             setpoints=(self.time_bins,),
-            instrument=self,
             label=r'$g^{(2)}(\tau)$',
             max_val_age=0.0
         )
+        """The counts normalized by the binwidth of each bin and the average
+        count rate."""
 
     @cached_api_object(required_parameters={
         'click_channel', 'start_channel', 'exp_start', 'exp_stop', 'n_bins'
-    })  # type: ignore[misc]
+    })  # type: ignore[untyped-decorator]
     def api(self) -> tt.HistogramLogBins:
         return tt.HistogramLogBins(self.api_tagger, self.click_channel.get(),
                                    self.start_channel.get(), self.exp_start.get(),
@@ -540,23 +605,35 @@ class TimeTagger(TimeTaggerInstrumentBase, Instrument):
     def api(self) -> tt.TimeTaggerBase:
         return self._api
 
+    @property
+    def virtual_channel_lists(self) -> list[ChannelList[_TimeTaggerVirtualChannelT]]:
+        """All submodules that implement a :class:`TimeTaggerVirtualChannel`."""
+        channel_lists = []
+        for cls in filter(lambda x: issubclass(x, TimeTaggerVirtualChannel),
+                          TimeTaggerModule.implementations()):
+            channel_lists.append(getattr(self, _parse_time_tagger_module(cls)[1]))
+        return channel_lists
+
+    @property
+    def measurement_lists(self) -> list[ChannelList[_TimeTaggerMeasurementT]]:
+        """All submodules that implement a :class:`TimeTaggerMeasurement`."""
+        channel_lists = []
+        for cls in filter(lambda x: issubclass(x, TimeTaggerMeasurement),
+                          TimeTaggerModule.implementations()):
+            channel_lists.append(getattr(self, _parse_time_tagger_module(cls)[1]))
+        return channel_lists
+
     def remove_all_measurements(self):
         """Remove all entries of TimeTaggerMeasurement instances from
         channel lists."""
-        for cls in filter(lambda x: issubclass(x, TimeTaggerMeasurement),
-                          TimeTaggerModule.implementations()):
-            lst = getattr(self, _parse_time_tagger_module(cls)[1])
-            for i in range(len(lst)):
-                lst.pop()
+        for channel_list in self.measurement_lists:
+            channel_list.clear()
 
     def remove_all_virtual_channels(self):
         """Remove all entries of TimeTaggerVirtualChannel instances from
         channel lists."""
-        for cls in filter(lambda x: issubclass(x, TimeTaggerVirtualChannel),
-                          TimeTaggerModule.implementations()):
-            lst = getattr(self, _parse_time_tagger_module(cls)[1])
-            for i in range(len(lst)):
-                lst.pop()
+        for channel_list in self.virtual_channel_lists:
+            channel_list.clear()
 
     @refer_to_api_doc('TimeTagger')
     def set_trigger_level(self, channel: int, level: float):
@@ -596,7 +673,7 @@ class TimeTagger(TimeTaggerInstrumentBase, Instrument):
                 'serial': self.api.getSerial(),
                 'firmware': self.api.getFirmwareVersion()}
 
-    def _add_channel_list(self, cls: _TimeTaggerModuleT):
+    def _add_channel_list(self, cls: _TimeTaggerModuleC):
         """Automatically generates add_{xxx}_{yyy} methods for all
         registered implementations of TimeTaggerModule."""
 
@@ -635,14 +712,14 @@ class TimeTagger(TimeTaggerInstrumentBase, Instrument):
             Returns
             -------
             {functionality}_{type_snake} :
-                The newly added {cls.__qualname__} object.
+                The newly added :class:`{cls.__qualname__}` object.
             """
         )
         fun.__name__ = f"add_{listname.rstrip('s')}"
         setattr(self, fun.__name__, fun)
 
 
-def _parse_time_tagger_module(cls: _TimeTaggerModuleT) -> tuple[str, str, str]:
+def _parse_time_tagger_module(cls: _TimeTaggerModuleC) -> tuple[str, str, str]:
     if issubclass(cls, TimeTaggerMeasurement):
         type_camel = 'Measurement'
     elif issubclass(cls, TimeTaggerVirtualChannel):

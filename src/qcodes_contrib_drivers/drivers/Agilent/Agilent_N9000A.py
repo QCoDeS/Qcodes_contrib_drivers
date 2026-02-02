@@ -2,8 +2,8 @@
 # Etienne Dumur <etienne.dumur@gmail.com>, august 2020
 
 
-from qcodes import VisaInstrument
-from qcodes.utils.validators import Numbers
+from qcodes.instrument import VisaInstrument
+from qcodes.validators import Numbers
 
 
 class Agilent_N9000A(VisaInstrument):
@@ -75,7 +75,7 @@ class Agilent_N9000A(VisaInstrument):
                            get_cmd    = ':initiate:chpower; :fetch:chpower?',
                            docstring  = 'Power Spectral Density at the RF center frequency'
                            )
-        
+
         self.connect_message()
 
 
@@ -94,12 +94,12 @@ class Agilent_N9000A(VisaInstrument):
                 power in dBm.
                 power spectral density in dBm/Hz.
         """
-        
+
         power, psd = val.split(',')
-        
+
         if output=='power':
             return float(power)
         elif output=='psd':
             return float(psd)
-        else: 
+        else:
             return 0.

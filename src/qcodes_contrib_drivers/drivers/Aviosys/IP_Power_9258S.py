@@ -1,9 +1,9 @@
 import sys
 
-from qcodes import Instrument, InstrumentChannel, ChannelList
+from qcodes.instrument import Instrument, InstrumentChannel, ChannelList
 from qcodes.utils import QCoDeSDeprecationWarning
-from qcodes.utils.validators import Enum
-from qcodes.utils.helpers import create_on_off_val_mapping
+from qcodes.validators import Enum
+from qcodes.parameters import create_on_off_val_mapping
 import urllib.request
 
 # PEP 702

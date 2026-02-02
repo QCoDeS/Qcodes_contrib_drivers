@@ -1,8 +1,9 @@
 import os, sys
 from typing import Dict, List, Optional, Tuple, Any
-from qcodes import Instrument, Parameter
-from qcodes.utils.validators import Ints
-from qcodes.utils.helpers import create_on_off_val_mapping
+from qcodes.instrument import Instrument
+from qcodes.parameters import Parameter
+from qcodes.validators import Ints
+from qcodes.parameters import create_on_off_val_mapping
 import ctypes
 
 

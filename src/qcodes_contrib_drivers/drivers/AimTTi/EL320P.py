@@ -3,7 +3,7 @@ import numpy as np
 import time
 
 from qcodes.instrument.visa import VisaInstrument
-import qcodes.utils.validators as vals
+import qcodes.validators as vals
 
 class EL320P(VisaInstrument):
     """Qcodes driver for AIM & Thurlby Thandar EL320P power supply (BlueFors 4K warmup heater).

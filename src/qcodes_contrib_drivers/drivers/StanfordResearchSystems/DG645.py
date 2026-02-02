@@ -1,8 +1,8 @@
 import logging
 log = logging.getLogger(__name__)
 
-from qcodes import VisaInstrument
-import qcodes.utils.validators as vals
+from qcodes.instrument import VisaInstrument
+import qcodes.validators as vals
 
 class DG645(VisaInstrument):
     """Qcodes driver for SRS DG645 digital delay generator.
@@ -63,7 +63,7 @@ class DG645(VisaInstrument):
                     docstring="""\
                     The prescale phase factor determines the phase at which the associated output is
                     enabled. The output is enabled when the prescaler counter equals the phase
-                    factor. 
+                    factor.
                     """
                 )
 
@@ -98,7 +98,7 @@ class DG645(VisaInstrument):
             get_parser=float,
             set_cmd='TRAT {}',
             vals=vals.Numbers(min_value=0)
-        ) 
+        )
         self.add_parameter(
             'trigger_source',
             label='Trigger source',
@@ -252,7 +252,7 @@ class DG645(VisaInstrument):
         """
         self.write('REMT')
 
-    def _set_trigger_source(self, src: str) -> None:  
+    def _set_trigger_source(self, src: str) -> None:
         self.write(f'TSRC {self.TRIGGER_MAPPING[src]}')
 
     def _get_trigger_source(self) -> str:

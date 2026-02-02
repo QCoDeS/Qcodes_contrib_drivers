@@ -1,5 +1,5 @@
-from qcodes import VisaInstrument
-from qcodes.utils.validators import Numbers, Enum, Ints
+from qcodes.instrument import VisaInstrument
+from qcodes.validators import Numbers, Enum, Ints
 
 
 class Cryocon_26(VisaInstrument):

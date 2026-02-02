@@ -23,8 +23,9 @@ import sys
 import ctypes
 import time
 
-from qcodes import Instrument, InstrumentChannel, Parameter
-from qcodes.utils.validators import Numbers
+from qcodes.instrument import Instrument, InstrumentChannel
+from qcodes.parameters import Parameter
+from qcodes.validators import Numbers
 
 logger = logging.getLogger(__name__)
 

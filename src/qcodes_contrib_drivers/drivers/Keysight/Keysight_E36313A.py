@@ -1,5 +1,5 @@
-from qcodes import VisaInstrument
-from qcodes import Instrument
+from qcodes.instrument import VisaInstrument
+from qcodes.instrument import Instrument
 from qcodes.instrument.channel import InstrumentChannel
 
 

@@ -1,19 +1,19 @@
-from qcodes import Instrument, ChannelList, InstrumentChannel
-from qcodes.utils.validators import Numbers,Bool,Enum
+from qcodes.instrument import Instrument, ChannelList, InstrumentChannel
+from qcodes.validators import Numbers,Bool,Enum
 from qcodes_contrib_drivers.drivers.QphoX.CryoSwitchController.CryoSwitchController import Cryoswitch
 import os
 from typing import Optional
 
 class CryoSwitchChannel(InstrumentChannel):
     """
-    CryoSwitchChannel class is used to define the channels for the CryoSwitchControllerDriver. 
+    CryoSwitchChannel class is used to define the channels for the CryoSwitchControllerDriver.
     It is a subclass of the InstrumentChannel class from qcodes.
 
     Attributes:
         parent (Instrument): The parent instrument to which the channel is attached.
         name (str): The name of the channel.
         channel (str): The channel identifier.
-        active_contact (Parameter): The active contact for the channel. 
+        active_contact (Parameter): The active contact for the channel.
             It can be a number between 0 and 6.
     """
 
@@ -31,7 +31,9 @@ class CryoSwitchChannel(InstrumentChannel):
         self.add_parameter(
             'active_contact',
             get_cmd=self._get_active_contact,
-            vals=Numbers(0, 6)
+            vals=Numbers(0, 6),
+            docstring="Number of the active channel, based on the json file tracking the changes. "
+                "Value 0 indicates no contact is connected."
         )
 
         self._channel = channel
@@ -81,7 +83,7 @@ class CryoSwitchChannel(InstrumentChannel):
 
     def smart_connect(self, contact: int):
         """
-        Connects a contact to the channel smartly, i.e., disconnects the previously connected 
+        Connects a contact to the channel smartly, i.e., disconnects the previously connected
         contacts and connects the specified switch contact based on the tracking history.
 
         Args:
@@ -106,24 +108,24 @@ class CryoSwitchChannel(InstrumentChannel):
 
 class CryoSwitchControllerDriver(Instrument):
     """
-    CryoSwitchControllerDriver class is used to control the Cryoswitch. 
+    CryoSwitchControllerDriver class is used to control the Cryoswitch.
     It is a subclass of the Instrument class from qcodes.
 
     Attributes:
         name (str): The name of the instrument.
-        output_voltage (Parameter): The output voltage of the controller. 
+        output_voltage (Parameter): The output voltage of the controller.
             It can be a number between 0 and 25 (V).
-        pulse_duration (Parameter): The pulse duration of the controller. 
+        pulse_duration (Parameter): The pulse duration of the controller.
             It can be a number between 0 and 1000 (ms).
-        OCP_value (Parameter): The overcurrent protection trigger value of the controller. 
+        OCP_value (Parameter): The overcurrent protection trigger value of the controller.
             It can be a number between 0 and 1000 (mA).
-        chopping (Parameter): The chopping function status of the controller. 
+        chopping (Parameter): The chopping function status of the controller.
             It can be a boolean value.
-        switch_model (Parameter): The switch model used by the controller. 
+        switch_model (Parameter): The switch model used by the controller.
             It can be either 'R583423141' or 'R573423600'.
             Equvalently, one may set the model using 'RT' (room temperature) for R573423600, and 'CRYO' instead of 'R583423141'.
             The two switch types require different connectivity between the D-Sub on the controller box and the switch.
-        power_status (Parameter): The power status of the controller. 
+        power_status (Parameter): The power status of the controller.
             It can be either 0 (disabled) or 1 (enabled).
     """
 
@@ -142,19 +144,22 @@ class CryoSwitchControllerDriver(Instrument):
         self.add_parameter(
             'output_voltage',
             set_cmd=self._controller.set_output_voltage,
-            vals=Numbers(5, 28)
+            vals=Numbers(5, 28),
+            docstring="Magnitude of the voltage pulse used to control the switch"
         )
 
         self.add_parameter(
             'pulse_duration',
             set_cmd=self._controller.set_pulse_duration_ms,
-            vals=Numbers(1, 100)
+            vals=Numbers(1, 100),
+            docstring="Duration of the voltage pulse used to control the switch in ms"
         )
 
         self.add_parameter(
             'OCP_value',
             set_cmd=self._controller.set_OCP_mA,
-            vals=Numbers(1, 150)
+            vals=Numbers(1, 150),
+            docstring="OVercurrent protection level in mA"
         )
 
         self.add_parameter(
@@ -167,15 +172,18 @@ class CryoSwitchControllerDriver(Instrument):
             'switch_model',
             set_cmd=self._select_switch_model,
             get_cmd=self._get_switch_model,
-            vals=Enum('R583423141', 'R573423600', 'CRYO', 'RT')
+            vals=Enum('R583423141', 'R573423600', 'CRYO', 'RT'),
+            docstring="Selection between the configurations for control of room-temperature "
+                    "and cryogenic version of the switch. Permitted values: 'R583423141', 'R573423600', 'CRYO', 'RT'"
         )
 
         self.add_parameter(
             'power_status',
             get_cmd=self._controller.get_power_status,
-            vals=Enum(0, 1)
+            vals=Enum(0, 1),
+            docstring="On (1) or Off (0) status of the switch controller."
         )
-        
+
         self.add_function('start', call_cmd=self._controller.start)
         self.add_function('enable_OCP', call_cmd=self._controller.enable_OCP)
         self.add_function('reset_OCP', call_cmd=self._controller.reset_OCP)
