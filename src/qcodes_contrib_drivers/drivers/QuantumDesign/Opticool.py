@@ -28,10 +28,7 @@ class Opticool(Instrument):
             localhost
         port (int): port to connect IP. Defaults to 5000
 
-    Status: work-in-progress
-
-    Todo:
-        include all temperature sensors in the driver
+    Todo: include all temperature sensors in the driver
     """
 
     def __init__(
