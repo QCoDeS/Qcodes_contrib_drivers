@@ -10,7 +10,6 @@ Authors:
 
 import logging
 from typing import Optional, Any
-from  MultiPyVu import Client
 
 from qcodes.instrument import Instrument
 from qcodes.parameters import Parameter
@@ -42,6 +41,16 @@ class Opticool(Instrument):
             port: Optional[int] = 5000,
             **kwargs: Any) -> None:
         super().__init__(name, **kwargs)
+
+        try:
+            from MultiPyVu import Client
+        except ImportError as e:
+            multipyvu_import_failed_msg = (
+                "Missing required MultiPyVu package for initializing QuantumDesign Opticool "
+                f"instrument with name {name}. Install it first, e.g. pip install MultiPyVu."
+            )
+            raise ImportError(multipyvu_import_failed_msg) from e
+
         self.client = Client(host=address, port=port)
 
         self._FIELD_APPROACH_MAPPING = {
