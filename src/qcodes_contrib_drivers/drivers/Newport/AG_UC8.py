@@ -8,8 +8,8 @@ from typing import Optional, Dict, Callable
 
 from pyvisa.resources.serial import SerialInstrument
 
-from qcodes import VisaInstrument, InstrumentChannel, ChannelList
-from qcodes.utils.validators import Ints
+from qcodes.instrument import VisaInstrument, InstrumentChannel, ChannelList
+from qcodes.validators import Ints
 
 log = logging.getLogger(__name__)
 

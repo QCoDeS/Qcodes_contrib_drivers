@@ -20,9 +20,9 @@ log = logging.getLogger(__name__)
 class Thorlab_PM100D(VisaInstrument):
     """
     Class to represent a Thorlab PM100D optical powermeter
-    
+
     status: beta-version
-    
+
     Args:
         name: name for the instrument
         address: Visa Resource name to connect

@@ -12,11 +12,11 @@ jobs:
       id-token: write
     environment: pypi-release-env
     steps:
-    - uses: actions/checkout@v4.1.2
+    - uses: actions/checkout@v6.0.2
     - name: Set up Python
-      uses: actions/setup-python@v5.0.0
+      uses: actions/setup-python@v6.2.0
       with:
-        python-version: '3.10'
+        python-version: '3.11'
     - name: Install build deps
       run: pip install --upgrade pip setuptools wheel build
     - name: Build
@@ -26,4 +26,3 @@ jobs:
       run: pip install twine
     - name: Publish to pypi
       uses: pypa/gh-action-pypi-publish@release/v1
-

@@ -1,3 +1,4 @@
+
 # This Python file uses the following encoding: utf-8
 # Loick Le Guevel, 2019
 # Etienne Dumur <etienne.dumur@gmail.com>, 2021
@@ -13,7 +14,7 @@ from qcodes.instrument import Instrument
 from qcodes.instrument import InstrumentChannel, ChannelList
 from qcodes.parameters import MultiChannelInstrumentParameter
 from qcodes.instrument import VisaInstrument
-from qcodes.utils import validators as vals
+from qcodes import validators as vals
 from qcodes.parameters import create_on_off_val_mapping
 
 class iTestChannel(InstrumentChannel):

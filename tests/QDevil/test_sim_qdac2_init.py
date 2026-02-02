@@ -1,6 +1,6 @@
 import pytest
 from qcodes_contrib_drivers.drivers.QDevil.QDAC2 import QDac2, split_version_string_into_components
-from qcodes.instrument.base import Instrument
+from qcodes.instrument import Instrument
 from .sim_qdac2_fixtures import visalib
 
 

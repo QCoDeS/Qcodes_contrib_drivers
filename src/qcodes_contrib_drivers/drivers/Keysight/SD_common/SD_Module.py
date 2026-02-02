@@ -1,7 +1,7 @@
 import warnings
 import os
-from typing import List, Union, Callable, Any
-from qcodes.instrument.base import Instrument
+from typing import Any, Callable, Dict, List, Optional, Union
+from qcodes.instrument import Instrument
 
 try:
     import keysightSD1
@@ -104,10 +104,6 @@ class SD_Module(Instrument):
                            get_cmd=self.get_slot,
                            docstring='The slot number where the device is '
                                      'located')
-        self.add_parameter('status',
-                           label='status',
-                           get_cmd=self.get_status,
-                           docstring='The status of the device')
         self.add_parameter('firmware_version',
                            label='firmware version',
                            get_cmd=self.get_firmware_version,
@@ -125,10 +121,22 @@ class SD_Module(Instrument):
                            get_cmd=self.get_open,
                            docstring='Indicating if device is open, '
                                      'True (open) or False (closed)')
+        self.add_parameter('temperature',
+                           label='temperature',
+                           get_cmd=self.get_temperature,
+                           docstring='Module temperature')
 
     #
     # Get-commands
     #
+
+    def get_idn(self) -> Dict[str, Optional[str]]:
+        """Returns IDN of module"""
+        return dict(vendor='Keysight',
+                    model=self.get_product_name(),
+                    serial=self.get_serial_number(),
+                    firmware=self.get_firmware_version(),
+                    )
 
     def get_module_count(self, verbose: bool = False) -> int:
         """Returns the number of SD modules installed in the system"""
@@ -158,12 +166,6 @@ class SD_Module(Instrument):
         """Returns the slot number where the device is located"""
         value = self.SD_module.getSlot()
         value_name = 'slot_number'
-        return result_parser(value, value_name, verbose)
-
-    def get_status(self, verbose: bool = False) -> int:
-        """Returns the status of the device"""
-        value = self.SD_module.getStatus()
-        value_name = 'status'
         return result_parser(value, value_name, verbose)
 
     def get_firmware_version(self, verbose: bool = False) -> str:
@@ -245,7 +247,7 @@ class SD_Module(Instrument):
             register data.
         """
         data = self.SD_module.FPGAreadPCport(port, data_size, address,
-                                          address_mode, access_mode)
+                                             address_mode, access_mode)
         value_name = f'data at PCport {port}'
         return result_parser(data, value_name, verbose)
 
@@ -264,11 +266,10 @@ class SD_Module(Instrument):
             verbose: boolean indicating verbose mode
         """
         result = self.SD_module.FPGAwritePCport(port, data, address,
-                                               address_mode,
-                                             access_mode)
+                                                address_mode, access_mode)
         value_name = f'set fpga PCport {port} to data:{data}, ' \
-                     f'address:{address}, address_mode:{address_mode}, ' \
-                     f'access_mode:{access_mode}'
+            f'address:{address}, address_mode:{address_mode}, ' \
+            f'access_mode:{access_mode}'
         result_parser(result, value_name, verbose)
 
     def load_fpga_image(self, filename: str) -> None:
@@ -368,6 +369,9 @@ class SD_Module(Instrument):
         value = self.SD_module.getTypeByIndex(index)
         value_name = 'type'
         return result_parser(value, value_name, verbose)
+
+    def get_temperature(self) -> float:
+        return self.SD_module.getTemperature()
 
     #
     # The methods below are useful for controlling the device, but are not

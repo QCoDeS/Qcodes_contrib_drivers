@@ -23,7 +23,8 @@ import time
 import logging
 import numpy as np
 import struct
-from qcodes import VisaInstrument, validators as vals
+from qcodes.instrument import VisaInstrument
+from qcodes import validators as vals
 
 
 class Tektronix_AWG520(VisaInstrument):

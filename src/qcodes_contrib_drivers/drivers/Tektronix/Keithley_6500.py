@@ -1,6 +1,6 @@
-from qcodes.instrument.visa import VisaInstrument
+from qcodes.instrument import VisaInstrument
 from qcodes.instrument import InstrumentChannel
-from qcodes.utils.validators import Numbers
+from qcodes.validators import Numbers
 from functools import partial
 from .Keithley_2000_Scan import Keithley_2000_Scan_Channel
 

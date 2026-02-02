@@ -5,8 +5,8 @@ import os
 import pandas as pd
 import numpy as np
 from datetime import date
-from typing import Optional
-from qcodes.instrument.base import Instrument
+from typing import Optional, cast
+from qcodes.instrument import Instrument
 
 class BlueFors(Instrument):
     """
@@ -155,25 +155,29 @@ class BlueFors(Instrument):
                                 names     = ['date', 'time', 'y'],
                                 header    = None)
 
+            date_series = cast(pd.Series[str], df["date"])
+            time_series = cast(pd.Series[str], df["time"])
+            data_time_str_series = date_series + "-" + time_series
             try:
                 # There is a space before the day for old BlueFors Control Sofware versions
                 date_time = pd.to_datetime(
-                    df["date"] + "-" + df["time"], format=" %d-%m-%y-%H:%M:%S"
+                    data_time_str_series,
+                    format=" %d-%m-%y-%H:%M:%S",
                 )
             except Exception:
                 # There is no space before the day with BlueFors Control Software v2.2
                 date_time = pd.to_datetime(
-                    df["date"] + "-" + df["time"], format="%d-%m-%y-%H:%M:%S"
+                    data_time_str_series, format="%d-%m-%y-%H:%M:%S"
                 )
             df["date_time"] = date_time
             df.set_index("date_time", inplace=True)
             df.sort_index(inplace=True)
             return df.iloc[-1]["y"]
         except (PermissionError, OSError) as err:
-            self.log.warn('Cannot access log file: {}. Returning np.nan instead of the temperature value.'.format(err))
+            self.log.warning('Cannot access log file: {}. Returning np.nan instead of the temperature value.'.format(err))
             return np.nan
         except IndexError as err:
-            self.log.warn('Cannot parse log file: {}. Returning np.nan instead of the temperature value.'.format(err))
+            self.log.warning('Cannot parse log file: {}. Returning np.nan instead of the temperature value.'.format(err))
             return np.nan
 
 
@@ -193,26 +197,65 @@ class BlueFors(Instrument):
         file_path = os.path.join(self.folder_path, folder_name, 'maxigauge '+folder_name+'.log')
 
         try:
-            df = pd.read_csv(file_path,
-                            delimiter=',',
-                            names=['date', 'time',
-                                    'ch1_name', 'ch1_void1', 'ch1_status', 'ch1_pressure', 'ch1_void2', 'ch1_void3',
-                                    'ch2_name', 'ch2_void1', 'ch2_status', 'ch2_pressure', 'ch2_void2', 'ch2_void3',
-                                    'ch3_name', 'ch3_void1', 'ch3_status', 'ch3_pressure', 'ch3_void2', 'ch3_void3',
-                                    'ch4_name', 'ch4_void1', 'ch4_status', 'ch4_pressure', 'ch4_void2', 'ch4_void3',
-                                    'ch5_name', 'ch5_void1', 'ch5_status', 'ch5_pressure', 'ch5_void2', 'ch5_void3',
-                                    'ch6_name', 'ch6_void1', 'ch6_status', 'ch6_pressure', 'ch6_void2', 'ch6_void3',
-                                    'void'],
-                            header=None)
+            df = pd.read_csv(
+                file_path,
+                delimiter=",",
+                names=[
+                    "date",
+                    "time",
+                    "ch1_name",
+                    "ch1_void1",
+                    "ch1_status",
+                    "ch1_pressure",
+                    "ch1_void2",
+                    "ch1_void3",
+                    "ch2_name",
+                    "ch2_void1",
+                    "ch2_status",
+                    "ch2_pressure",
+                    "ch2_void2",
+                    "ch2_void3",
+                    "ch3_name",
+                    "ch3_void1",
+                    "ch3_status",
+                    "ch3_pressure",
+                    "ch3_void2",
+                    "ch3_void3",
+                    "ch4_name",
+                    "ch4_void1",
+                    "ch4_status",
+                    "ch4_pressure",
+                    "ch4_void2",
+                    "ch4_void3",
+                    "ch5_name",
+                    "ch5_void1",
+                    "ch5_status",
+                    "ch5_pressure",
+                    "ch5_void2",
+                    "ch5_void3",
+                    "ch6_name",
+                    "ch6_void1",
+                    "ch6_status",
+                    "ch6_pressure",
+                    "ch6_void2",
+                    "ch6_void3",
+                    "void",
+                ],
+                header=None,
+            )
 
-            df["date_time"] = pd.to_datetime(df['date']+'-'+df['time'], format='%d-%m-%y-%H:%M:%S')
+            date_series = cast(pd.Series[str], df["date"])
+            time_series = cast(pd.Series[str], df["time"])
+            df["date_time"] = pd.to_datetime(
+                date_series + "-" + time_series, format="%d-%m-%y-%H:%M:%S"
+            )
             df.set_index("date_time", inplace=True)
             df.sort_index(inplace=True)
 
             return df.iloc[-1]['ch'+str(channel)+'_pressure']
         except (PermissionError, OSError) as err:
-            self.log.warn('Cannot access log file: {}. Returning np.nan instead of the pressure value.'.format(err))
+            self.log.warning('Cannot access log file: {}. Returning np.nan instead of the pressure value.'.format(err))
             return np.nan
         except IndexError as err:
-            self.log.warn('Cannot parse log file: {}. Returning np.nan instead of the pressure value.'.format(err))
+            self.log.warning('Cannot parse log file: {}. Returning np.nan instead of the pressure value.'.format(err))
             return np.nan

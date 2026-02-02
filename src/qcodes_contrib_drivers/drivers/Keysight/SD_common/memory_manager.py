@@ -156,6 +156,18 @@ class MemoryManager:
                 # self._log throws exception when instrument has been closed.
                 logging.debug(f'Released slot {slot_number}')
 
+    def release_all(self) -> None:
+        """
+        Release all allocated slots regardless of external references.
+        """
+        for slot in self._slots:
+            if slot.allocated:
+                self._log.info(f'Forced release of slot {slot.number} '
+                               f'allocated at {slot.allocation_time}')
+                slot.allocated = False
+                slot.allocation_ref = 0
+                self._free_memory_slots[slot.size].append(slot.number)
+
     def _create_memory_slots(self, max_size: int) -> None:
 
         creation_limit = self._get_slot_size(max_size)

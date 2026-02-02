@@ -15,7 +15,6 @@
 # sys.path.insert(0, os.path.abspath('.'))
 
 # -- General configuration ---------------------------------------------------
-import sphinx_rtd_theme
 import qcodes_contrib_drivers
 
 # Add any Sphinx extension module names here, as strings. They can be
@@ -82,8 +81,7 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "_auto", "**.ipynb_check
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = "sphinx_rtd_theme"
-html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+html_theme = "furo"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -92,16 +90,17 @@ html_static_path = ["_static"]
 
 # Configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {
-    "pandas": ("https://pandas.pydata.org/pandas-docs/stable/", None),
+    "pandas": ("https://pandas.pydata.org/pandas-docs/stable", None),
     "matplotlib": ("https://matplotlib.org/stable", None),
-    "python": ("https://docs.python.org/3.10", None),
+    "python": ("https://docs.python.org/3", None),
     "numpy": ("https://numpy.org/doc/stable", None),
-    "pyvisa": ("https://pyvisa.readthedocs.io/en/stable/", None),
+    "pyvisa": ("https://pyvisa.readthedocs.io/en/stable", None),
     "IPython": (
-        "https://ipython.readthedocs.io/en/stable/",
+        "https://ipython.readthedocs.io/en/stable",
         None,
     ),
-    "qcodes": ("https://microsoft.github.io/Qcodes/", None),
+    "qcodes": ("https://microsoft.github.io/Qcodes", None),
+    "TimeTagger": ("https://www.swabianinstruments.com/static/documentation/TimeTagger/", None),
 }
 
 
@@ -131,5 +130,9 @@ autodoc_mock_imports = [
     "nidaqmx",
     "niswitch",
     "zhinst",
-    "msl"
+    "msl",
+    "serial",
+    "scipy",
+    "nanonis_tramea",
+    "windfreak"
 ]

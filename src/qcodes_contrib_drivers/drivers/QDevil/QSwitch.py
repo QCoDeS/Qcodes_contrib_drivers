@@ -1,9 +1,9 @@
 import re
 import itertools
 from time import sleep as sleep_s
-from qcodes.instrument.parameter import DelegateParameter
-from qcodes.instrument.visa import VisaInstrument
-from qcodes.utils import validators
+from qcodes.parameters import DelegateParameter
+from qcodes.instrument import VisaInstrument
+from qcodes import validators
 from pyvisa.errors import VisaIOError
 from typing import (
     Tuple, Sequence, List, Dict, Set, Union, Optional)
@@ -75,7 +75,10 @@ def state_to_compressed_list(state: State) -> str:
                 start_line = line
                 end_line = line
                 continue
-            if line == end_line + 1:
+            # since start_line is initialized to None, and bool(not None) == True
+            # the block above will always be executed at least once
+            # so we can safely assume that end_line is not None here
+            if line == end_line + 1:  # type: ignore[operator]
                 end_line = line
                 continue
             if start_line == end_line:

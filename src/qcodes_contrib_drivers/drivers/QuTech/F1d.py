@@ -1,5 +1,6 @@
-from qcodes.instrument.base import Instrument
-from qcodes.utils.validators import Enum
+from typing import Dict, Optional
+from qcodes.instrument import Instrument
+from qcodes.validators import Enum
 
 try:
     from spirack import F1d_module
@@ -72,5 +73,11 @@ class F1d(Instrument):
         self.add_function('is_rf_clipped',
                           call_cmd=self.f1d.rf_clipped)
 
-    def get_remote_settings(self):
+    def get_remote_settings(self) -> int:
         return self.f1d.remote_settings
+
+    def get_idn(self) -> Dict[str, Optional[str]]:
+        return dict(vendor='QuTech',
+                    model='F1d',
+                    serial='',
+                    firmware='')

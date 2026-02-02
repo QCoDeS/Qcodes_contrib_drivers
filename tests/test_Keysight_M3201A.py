@@ -1,8 +1,4 @@
-try:
-    from qcodes.extensions import DriverTestCase
-except ImportError:
-    # qcodes < 0.42.0
-    from qcodes.tests.driver_test_case import DriverTestCase
+from qcodes.extensions import DriverTestCase
 import unittest
 
 try:

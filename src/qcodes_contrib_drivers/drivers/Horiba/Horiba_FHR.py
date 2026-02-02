@@ -6,14 +6,14 @@ import ctypes
 import os
 import pathlib
 import sys
-from typing import Mapping, Any, Dict
+from typing import Any, Dict, Mapping, cast
 
+from qcodes.parameters import DelegateParameter, Parameter
 from qcodes import validators
-from qcodes.instrument import (Instrument, InstrumentBase, InstrumentChannel,
-                               ChannelList)
-from typing_extensions import Literal
-
+from qcodes.instrument import (ChannelList, Instrument, InstrumentBase,
+                               InstrumentChannel)
 from qcodes_contrib_drivers.drivers.Horiba.private.fhr_client import FHRClient
+from typing_extensions import Literal
 
 
 class SpeError(Exception):
@@ -41,6 +41,21 @@ class Dispatcher:
         if code != 0:
             raise SpeError(self._ERROR_CODES.get(code))
 
+def _get_int_or_raise(section: configparser.SectionProxy, attr: str) -> int:
+    """Get an int from a value or raise a TypeError."""
+    val = section.getint(attr)
+    if val is None:
+        raise TypeError(f"Value for '{attr}' in section '{section.name}' "
+                        "is not an integer.")
+    return val
+
+def _get_bool_or_raise(section: configparser.SectionProxy, attr: str) -> bool:
+    """Get an int from a value or raise a TypeError."""
+    val = section.getboolean(attr)
+    if val is None:
+        raise TypeError(f"Value for '{attr}' in section '{section.name}' "
+                        "is not an boolean.")
+    return val
 
 class PortChannel(Dispatcher, InstrumentChannel):
     """Manages instrument communication."""
@@ -51,17 +66,23 @@ class PortChannel(Dispatcher, InstrumentChannel):
         InstrumentChannel.__init__(self, parent, name)
         self.port = ctypes.c_int(port)
 
-    def open(self):
+        self.add_parameter(
+            'open',
+            get_cmd=self._is_open,
+            set_cmd=lambda flag: self._open() if flag else self._close()
+        )
+
+    def _open(self):
         """Open serial port."""
         code, _ = self.cli.SpeCommand(self.handle, 'Port', 'Open', self.port)
         self.error_check(code)
 
-    def close(self):
+    def _close(self):
         """Close serial port."""
         code, _ = self.cli.SpeCommand(self.handle, 'Port', 'Close')
         self.error_check(code)
 
-    def is_open(self) -> bool:
+    def _is_open(self) -> bool:
         """Check if the port is open."""
         code, value = self.cli.SpeCommand(self.handle, 'Port', 'IsOpen',
                                           ctypes.c_int())
@@ -260,12 +281,11 @@ class SlitChannel(PrecisionMotorChannel):
 
         self._offset = offset
         self.add_parameter('width',
+                           parameter_class=DelegateParameter,
+                           source=self.position,
                            label=f'{label} width',
-                           get_cmd=self._get_width,
-                           set_cmd=self._set_width,
-                           set_parser=int,
-                           unit=self.unit,
                            vals=validators.Numbers(min_value, max_value),
+                           offset=self._offset,
                            docstring="Actual slit opening width")
 
     @property
@@ -276,22 +296,15 @@ class SlitChannel(PrecisionMotorChannel):
         # What I take from this is that it always returns microns.
         return 'μm'
 
-    def _get_width(self) -> int:
-        return self.position() - self._offset
-
-    def _set_width(self, width: int):
-        return self.position(width + self._offset)
-
 
 class GratingChannel(PrecisionMotorChannel):
     """Handles the grating rotation motors of the device."""
 
-    def __init__(self, parent: InstrumentBase, name: str, cli, handle,
+    def __init__(self, parent: HoribaFHR, name: str, cli, handle,
                  motor: int, min_value: int = 0, max_value: int = sys.maxsize,
                  offset: int = 0, metadata: Mapping[Any, Any] | None = None,
                  label: str | None = None):
         label = label or f'Grating {motor}'
-        # Cannot use super() since parent also defines the position parameter
         super().__init__(parent, name, cli, handle, motor, min_value,
                          max_value, offset, metadata, label)
 
@@ -329,6 +342,14 @@ class GratingChannel(PrecisionMotorChannel):
             fields=(phase, min_speed, max_speed, ramp)
         )
         self.error_check(code)
+
+    def _set_position(self, pos: int):
+        # Override to keep track of currently active grating in parent instrument
+        if not isinstance(self.parent, HoribaFHR):
+            # mypy
+            raise RuntimeError
+        super()._set_position(pos)
+        self.parent._active_grating = self
 
     def _set_shift(self, shift: int):
         """Set zero order shift."""
@@ -370,6 +391,10 @@ class HoribaFHR(Instrument):
         See ``docs/examples`` for an example notebook.
 
     """
+    _active_grating: GratingChannel | None = None
+    """Stores the currently selected grating.
+
+    Needs to be initialized by setting the position of any grating."""
 
     def __init__(
             self, name: str,
@@ -398,7 +423,7 @@ class HoribaFHR(Instrument):
             )
         }
 
-        super().__init__(name, additional_metadata | dict(metadata or {}), label)
+        super().__init__(name, metadata=additional_metadata | dict(metadata or {}), label=label)
 
         gratings = ChannelList(self, 'gratings', GratingChannel)
         slits = ChannelList(self, 'slits', SlitChannel)
@@ -409,10 +434,10 @@ class HoribaFHR(Instrument):
                 # This relies on Port being the first section because otherwise
                 # communication with the device will fail.
                 port = PortChannel(self, 'port', self.cli, self.handle,
-                                   section.getint('ComPort'))
-                port.open()
-                port.set_baud_rate(section.getint('Baudrate'))
-                port.set_timeout(section.getint('Timeout'))
+                                   _get_int_or_raise(section, 'ComPort'))
+                port.open.set(True)
+                port.set_baud_rate(_get_int_or_raise(section,'Baudrate'))
+                port.set_timeout(_get_int_or_raise(section, 'Timeout'))
                 port.config = dict(section)
             elif name.startswith('Grating'):
                 # Grating1, Grating2, etc
@@ -425,23 +450,28 @@ class HoribaFHR(Instrument):
                     self.handle,
                     motor=int(name[-1]),
                     # TODO: this assumes MotorStepUnit to be != 1
-                    min_value=section.getint('MinNm')*1000,  # pm
-                    max_value=section.getint('MaxNm')*1000,
-                    offset=section.getint('Offset'),  # motor steps
+                    min_value=_get_int_or_raise(section, 'MinNm')*1000,  # pm
+                    max_value=_get_int_or_raise(section, 'MaxNm')*1000,
+                    offset=_get_int_or_raise(section, 'Offset'),  # motor steps
+                    label=section['Name'],
                     metadata={'Coefficient of linearity': section.getfloat(
                         'CoefficientOfLinearity'
                     )}
                 )
-                grating.set_id(section.getint('AddrAxe'))
+                grating.set_id(_get_int_or_raise(section, 'AddrAxe'))
+
+                # For whatever reason these parameters are in the
+                # Spectrometer section...
+                spectrometer_config = self.config['Spectrometer']
+
                 grating.set_setup(
-                    # For whatever reason these parameters are in the
-                    # Spectrometer section...
-                    min_speed=self.config['Spectrometer'].getint('SpeedMin'),
-                    max_speed=self.config['Spectrometer'].getint('SpeedMax'),
-                    ramp=self.config['Spectrometer'].getint('Acceleration'),
-                    backlash=self.config['Spectrometer'].getint('Backlash'),
-                    step=self.config['Spectrometer'].getint('MotorStepUnit'),
-                    reverse=self.config['Spectrometer'].getboolean('Reverse')
+
+                    min_speed=_get_int_or_raise(spectrometer_config, 'SpeedMin'),
+                    max_speed=_get_int_or_raise(spectrometer_config, 'SpeedMax'),
+                    ramp=_get_int_or_raise(spectrometer_config, 'Acceleration'),
+                    backlash=_get_int_or_raise(spectrometer_config, 'Backlash'),
+                    step=_get_int_or_raise(spectrometer_config, 'MotorStepUnit'),
+                    reverse=_get_bool_or_raise(spectrometer_config,'Reverse')
                 )
                 # Hardcoded since it is not present in my ini file.
                 # Taken from 'SDK FHR Express -additional informations-.pdf'
@@ -464,20 +494,21 @@ class HoribaFHR(Instrument):
                     motor=int(name[-1]),
                     # min_value and max_value are used for the slit width,
                     # not absolute position.
-                    min_value=section.getint('Minum'),
-                    max_value=section.getint('Maxum'),
-                    offset=section.getint('Offset'),
+                    min_value=_get_int_or_raise(section,'Minum'),
+                    max_value=_get_int_or_raise(section,'Maxum'),
+                    offset=_get_int_or_raise(section,'Offset'),
+                    label=section['Name'],
                     metadata={'Coefficient of linearity': section.getfloat(
                         'CoefficientOfLinearity'
                     )}
                 )
-                slit.set_id(section.getint('AddrAxe'))
-                slit.set_setup(min_speed=section.getint('SpeedMin'),
-                               max_speed=section.getint('SpeedMax'),
-                               ramp=section.getint('Acceleration'),
-                               backlash=section.getint('Backlash'),
-                               step=section.getint('MotorStepUnit'),
-                               reverse=section.getboolean('Reverse'))
+                slit.set_id(_get_int_or_raise(section,'AddrAxe'))
+                slit.set_setup(min_speed=_get_int_or_raise(section,'SpeedMin'),
+                               max_speed=_get_int_or_raise(section,'SpeedMax'),
+                               ramp=_get_int_or_raise(section,'Acceleration'),
+                               backlash=_get_int_or_raise(section,'Backlash'),
+                               step=_get_int_or_raise(section,'MotorStepUnit'),
+                               reverse=_get_bool_or_raise(section, 'Reverse'))
                 slit.config = dict(section)
                 slits.append(slit)
             elif name.startswith('Mirror'):
@@ -489,10 +520,11 @@ class HoribaFHR(Instrument):
                     self.handle,
                     motor=int(name[-1]),
                     val_mapping=dc_val_mappings.get(int(name[-1])),
+                    label=section['Name'],
                     metadata={'Delay (ms)': section.getint('Delayms'),
                               'Duty cycle (%)': section.getint('DutyCycle%')}
                 )
-                mirror.set_id(section.getint('AddrAxe'))
+                mirror.set_id(_get_int_or_raise(section,'AddrAxe'))
                 mirror.config = dict(section)
                 mirrors.append(mirror)
 
@@ -501,7 +533,35 @@ class HoribaFHR(Instrument):
         self.add_submodule('slits', slits.to_channel_tuple())
         self.add_submodule('gratings', gratings.to_channel_tuple())
 
+        self.active_grating = Parameter(
+            'active_grating',
+            get_cmd=lambda: getattr(self, '_active_grating', None),
+            set_cmd=self._set_active_grating,
+            set_parser=self._parse_grating,
+            label='Active grating',
+            instrument=self
+        )
+        """The currently active grating.
+
+        It can be set using either the number of lines (eg ``600``) or
+        the :class:`GratingChannel` object itself. If the set value is
+        not the currently active one, the selected grating will be
+        moved to the current one's position.
+        """
+
         self.connect_message()
+
+    def _set_active_grating(self, grating: GratingChannel):
+        if (active_grating := self.active_grating.get()) is None:
+            raise ValueError('No grating has previously been moved. Please '
+                             'do so before setting this parameter.')
+        if grating is not active_grating:
+            grating.position(active_grating.position())
+
+    def _parse_grating(self, grating: str | int | GratingChannel) -> GratingChannel:
+        if isinstance(grating, (int, str)):
+            grating = cast(GratingChannel, self.gratings.get_channel_by_name(f'grating_{grating}'))
+        return grating
 
     def get_idn(self) -> Dict[str, str | None]:
         return {'serial': self.config['Firmware']['SerialNumber'],
@@ -510,8 +570,8 @@ class HoribaFHR(Instrument):
                 'vendor': 'Horiba'}
 
     def disconnect(self):
-        if self.port.is_open():
-            self.port.close()
+        if self.port.open.get():
+            self.port.open.set(False)
 
     def close(self) -> None:
         self.disconnect()
