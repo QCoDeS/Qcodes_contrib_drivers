@@ -105,7 +105,7 @@ class CombinerVirtualChannel(TimeTaggerVirtualChannel):
         )
         """List of channels to be combined into a single virtual channel."""
 
-    @cached_api_object(required_parameters={'channels'})  # type: ignore[misc]
+    @cached_api_object(required_parameters={'channels'})  # type: ignore[untyped-decorator]
     def api(self) -> tt.Combiner:
         return tt.Combiner(self.api_tagger, self.channels.get())
 
@@ -149,7 +149,7 @@ class CoincidenceVirtualChannel(TimeTaggerVirtualChannel):
         )
         """Type of timestamp for virtual channel."""
 
-    @cached_api_object(required_parameters={'channels'})  # type: ignore[misc]
+    @cached_api_object(required_parameters={'channels'})  # type: ignore[untyped-decorator]
     def api(self) -> tt.Coincidence:
         return tt.Coincidence(self.api_tagger, self.channels.get())
 
@@ -230,7 +230,7 @@ class CorrelationMeasurement(TimeTaggerMeasurement):
         )
         """Data normalized by the binwidth and the average count rate."""
 
-    @cached_api_object(required_parameters={'channels', 'binwidth', 'n_bins'})  # type: ignore[misc]
+    @cached_api_object(required_parameters={'channels', 'binwidth', 'n_bins'})  # type: ignore[untyped-decorator]
     def api(self) -> tt.Correlation:
         return tt.Correlation(self.api_tagger,
                               *self.channels.get(),
@@ -423,7 +423,7 @@ class CounterMeasurement(TimeTaggerMeasurement):
 
         Not integrated bins and bins in overflow mode are marked as NaN."""
 
-    @cached_api_object(required_parameters={'channels', 'binwidth', 'n_values'})  # type: ignore[misc]
+    @cached_api_object(required_parameters={'channels', 'binwidth', 'n_values'})  # type: ignore[untyped-decorator]
     def api(self) -> tt.Counter:
         return tt.Counter(self.api_tagger,
                           self.channels.get(),
@@ -562,7 +562,7 @@ class HistogramLogBinsMeasurement(TimeTaggerMeasurement):
 
     @cached_api_object(required_parameters={
         'click_channel', 'start_channel', 'exp_start', 'exp_stop', 'n_bins'
-    })  # type: ignore[misc]
+    })  # type: ignore[untyped-decorator]
     def api(self) -> tt.HistogramLogBins:
         return tt.HistogramLogBins(self.api_tagger, self.click_channel.get(),
                                    self.start_channel.get(), self.exp_start.get(),
