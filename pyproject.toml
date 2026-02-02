@@ -108,7 +108,8 @@ module = [
     "serial.*",
     "scipy.*",
     "nanonis_tramea",
-    "windfreak"
+    "windfreak",
+    "MultiPyVu"
 ]
 ignore_missing_imports = true
 
