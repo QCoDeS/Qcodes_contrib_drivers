@@ -19,10 +19,14 @@ if sys.platform == 'win32' and vxi_32 is not None:
         dll_path = pathlib.Path(vxi_32, 'WinNT', 'Bin', 'TLPM_32.dll')
 
     os.add_dll_directory(str(dll_path.parent))
-    sys.path.append(str(pathlib.Path(vxi_32, 'WinNT', 'TLPM', 'Examples',
-                                     'Python')))
+    sys.path.append(str(pathlib.Path(vxi_32, 'WinNT', 'TLPM', 'Examples', 'Python')))
 
-    import TLPM
+    try:
+        import TLPM
+    except ImportError as exc:
+        TLPM = exc
+else:
+    TLPM = None
 
 
 class ThorlabsPM100D(Instrument):
@@ -64,6 +68,8 @@ class ThorlabsPM100D(Instrument):
                                       'Windows.')
         if vxi_32 is None:
             raise FileNotFoundError('IVI VXIPNP path not detected.')
+        if isinstance(TLPM, ImportError):
+            raise ImportError('TLPM could not be imported.') from TLPM
 
         self.tlpm = thorlabs_tlpm or TLPM.TLPM()
         # NEED to call with IDQuery==True, otherwise the following error is
