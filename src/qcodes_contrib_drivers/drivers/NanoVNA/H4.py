@@ -7,7 +7,6 @@ A documentation notebook is in the docs/examples/ directory.
 
 import numpy as np
 from typing import Any, Dict
-import pynanovna
 
 from qcodes import Instrument
 from qcodes.parameters import ParameterWithSetpoints
