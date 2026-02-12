@@ -74,7 +74,7 @@ class NanoVNA(Instrument):
             setpoints=(self.frequency,),
             vals=Arrays(shape=(self._npts,)),
         )
-        
+
         self.add_parameter(
             "s11_imag",
             unit="",
@@ -83,7 +83,7 @@ class NanoVNA(Instrument):
             setpoints=(self.frequency,),
             vals=Arrays(shape=(self._npts,)),
         )
-        
+
         self.add_parameter(
             "s11_mag_lin",
             unit="",
@@ -92,7 +92,7 @@ class NanoVNA(Instrument):
             setpoints=(self.frequency,),
             vals=Arrays(shape=(self._npts,)),
         )
-        
+
         self.add_parameter(
             "s11_mag_db",
             unit="dB",
@@ -101,7 +101,7 @@ class NanoVNA(Instrument):
             setpoints=(self.frequency,),
             vals=Arrays(shape=(self._npts,)),
         )
-        
+
         self.add_parameter(
             "s11_phase",
             unit="rad",
@@ -110,7 +110,7 @@ class NanoVNA(Instrument):
             setpoints=(self.frequency,),
             vals=Arrays(shape=(self._npts,)),
         )
-        
+
         self.add_parameter(
             "s11",
             unit="",
@@ -268,7 +268,7 @@ class NanoVNA(Instrument):
         if not hasattr(self, '_cached_s21'):
             self._perform_sweep()
         return np.real(self._cached_s11)
-    
+
     def _get_s11_imag(self):
         """
         Get imaginary part of S11 parameter, performing a sweep if needed.
@@ -279,7 +279,7 @@ class NanoVNA(Instrument):
         if not hasattr(self, '_cached_s21'):
             self._perform_sweep()
         return np.imag(self._cached_s11)
-    
+
     def _get_s11_mag_lin(self):
         """
         Get linear magnitude of S11 parameter, performing a sweep if needed.
@@ -290,7 +290,7 @@ class NanoVNA(Instrument):
         if not hasattr(self, '_cached_s21'):
             self._perform_sweep()
         return np.abs(self._cached_s11)
-    
+
     def _get_s11_mag_db(self):
         """
         Get magnitude of S11 parameter in dB, performing a sweep if needed.
@@ -303,7 +303,7 @@ class NanoVNA(Instrument):
         mag = np.abs(self._cached_s11)
         mag = np.clip(mag, 1e-12, None)
         return 20 * np.log10(mag)
-    
+
     def _get_s11_phase(self):
         """
         Get phase of S11 parameter in radians, performing a sweep if needed.
@@ -314,7 +314,7 @@ class NanoVNA(Instrument):
         if not hasattr(self, '_cached_s21'):
             self._perform_sweep()
         return np.angle(self._cached_s11)
-    
+
     def _get_s11_complex(self):
         """
         Get complex S11 parameter, performing a sweep if needed.
@@ -412,7 +412,7 @@ class NanoVNA(Instrument):
             self._vna.kill()
         except Exception as e:
             self.log.warning(f"Exception when closing NanoVNA connection: {e}")
-    
+
         # Clear cached data
         if hasattr(self, '_cached_s21'):
             del self._cached_s21
@@ -420,5 +420,5 @@ class NanoVNA(Instrument):
             del self._cached_s11
         if hasattr(self, '_cached_freq'):
             del self._cached_freq
-    
+
         super().close()
