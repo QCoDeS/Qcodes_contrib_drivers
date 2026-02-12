@@ -29,6 +29,11 @@ class NanoVNA(Instrument):
         """
         super().__init__(name, **kwargs)
 
+        try:
+            import pynanovna
+        except ImportError as e:
+            raise ImportError("To use this driver, install pynanovna by following instructions at https://github.com/PICC-Group/pynanovna") from e
+
         self._vna = pynanovna.VNA()
 
         self._start_freq = 1e6
