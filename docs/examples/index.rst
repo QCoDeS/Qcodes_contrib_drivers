@@ -13,3 +13,8 @@ To experiment with the examples you can download them directly from the git repo
     HP/*
     Cryomagnetics/*
     OxfordInstruments/*
+    Pico/*
+
+If you're looking for a place to start, consider Pico PST.
+The driver is well-documented,
+and you can get the minimum hardware for $4.
