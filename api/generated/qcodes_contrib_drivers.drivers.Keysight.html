@@ -1,0 +1,1169 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../../">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../../genindex.html"><link rel="search" title="Search" href="../../search.html"><link rel="next" title="qcodes_contrib_drivers.drivers.Keysight.SD_common package" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html"><link rel="prev" title="qcodes_contrib_drivers.drivers.Horiba.private package" href="qcodes_contrib_drivers.drivers.Horiba.private.html">
+
+    <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
+        <title>qcodes_contrib_drivers.drivers.Keysight package - qcodes_contrib_drivers 0.25.0.dev118+main.g2747e26 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #eeffcc;
+  --color-code-foreground: black;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../../index.html"><div class="brand">qcodes_contrib_drivers 0.25.0.dev118+main.g2747e26 documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../../index.html">
+  
+  <span class="sidebar-brand-text">qcodes_contrib_drivers 0.25.0.dev118+main.g2747e26 documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../examples/index.html">Examples of how to use drivers</a><input aria-label="Toggle navigation of Examples of how to use drivers" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Agilent_N9000A.html">Example with the Agilent N9000A</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/AimTTi_EL320P.html">Example notebook for AimTTi EL320P</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Andor_DU401.html">Qcodes example with Andor DU401 BU2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Andor_iDus4xx.html">Qcodes example with Andor iDus416</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Attocube_ANC300.html">QCoDeS example with Attocube ANC300</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Aviosys_IP_Power_9258S.html">Qcodes example with Aviosys IP Power 9258S</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/BlueFors.html">Example with the BlueFors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/CopperMountain_M5180.html">Example with CopperMountain Model M5180 vector network analyzer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/CopperMountain_M5180.html#Setup-db-and-station-for-test-measurerment">Setup db and station for test measurerment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/CopperMountain_M5180.html#Look-at-the-names-and-the-labels-of-the-Sxx-parameters">Look at the names and the labels of the Sxx parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/ERASynth.html">Example with ERASynth</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Gentec_Maestro.html">QCoDeS Example with Gentec Maestro</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Holzworth_HS900.html">Example notebook for the Holzworth HS900B RF synthesizer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Horiba_FHR.html">Example for Horiba FHR</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/ITest.html">Example with the iTest from Bilt</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Keithley_6430.html">Example notebook for Keithley 6430 SMU</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Keithley_6430.html#Measure-resistance-of-a-~100k\Omega-resistor">Measure resistance of a ~100k<span class="math notranslate nohighlight">\(\Omega\)</span> resistor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Keysight_M3202A.html">Keysight M3202A AWG</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Keysight_M3202A%20with%20digitizer.html">Keysight M3202A AWG example with digitizer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Lakeshore_311.html">Qcodes example with Lakeshore 311</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Lakeshore_625.html">Example with Lakeshore Model 625 Superconducting Magnet power supply</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Lakeshore_M81_SSM_Example.html">Connect to M81</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/NanoVNA_H4.html">QCoDeS example with NanoVNA H4</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/NationalInstruments_DAQ.html">National Instruments Multifunction DAQ example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/NationalInstruments_PXIe_2597.html">Qcodes example for National Instruments PXIe-2597 RF Switch</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/NationalInstruments_RFSG.html">Qcodes example with the NI RFSG signal generator driver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Newport_AG-UC8.html">QCoDeS Example with Newport AG-UC8 Piezo Motion Controller</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/OxfordInstruments_Proteox.html">Proteox system integration with QCoDeS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/OxfordTriton.html">Example of the oxford triton driver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Rigol_DSG3136B.html">QCoDeS example with Rigol DSG3136B</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Rohde_Schwarz_HMC8043.html">QCoDeS Example with R&amp;S HMC 8043 Power Supply</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Rohde_Schwarz_HMP4040.html">QCoDeS Example with R&amp;S HMP4040 Power Supply</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Rohde_Schwarz_SMW200A.html">QCoDeS example with Rohe&amp;Schwarz SMW200A</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/SR844.html">Changing the Sensitivity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/SR844.html#Preparing-for-reading-the-buffer-and-measurement">Preparing for reading the buffer and measurement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Shamrock_SR750.html">Qcodes example with Shamrock SR750</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/SignalCore.html">Example with the microwave source SC5521A from Signal Core</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/SignalCore.html#Device-connection">Device connection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/SignalCore.html#Set-parameters">Set parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/SignalRecovery_7270.html">Example of Signal Recovery 7270 driver usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/SingleQuantum.html">Example for Single Quantum SNSPD</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Specs_Tramea.html">NANONIS TRAMEA EXAMPLES</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Standa_10MWA168.html">Qcodes example with Standa 10MWA168</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/SwabianInstruments_TimeTagger.html">Qcodes example with Swabian Instruments Time Tagger</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Tektronix_AFG3000_series.html">Tektronix AFG3000 series arbitrary function generator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Tektronix_FCA3100.html">overview over all parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Tektronix_FCA3100.html#Usage-of-the-two-main-parameters">Usage of the two main parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Tektronix_Keithley_2182A.html">Keithley 2182A Nanovoltmeter - Basic Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Tektronix_Keithley_6500.html">QCoDeS Example with Tektronix Keithley Digital Multimeter DMM6500</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Thorlabs_K10CR1.html">Qcodes example with Thorlabs K10CR1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Thorlabs_KLS1550.html">QCoDeS example with Thorlabs KLS1550 laser source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Thorlabs_MFF10x.html">Qcodes example with Thorlabs MFF10x</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Thorlabs_PRM1Z8.html">Qcodes example with Thorlabs PRM1Z8</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Valon_5015.html">QCoDeS example with Valon 5015</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Vaunix_LDA.html">Qcodes example for Vaunix LDA step attenuator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Vaunix_LDA.html#Model-with-many-channels">Model with many channels</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Windfreak_SynthUSB3.html">QCoDeS example with Windfreak SynthUSB3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/ZVL13.html">Rohde &amp; Schwarz ZVL13 Vector Network Analyzer example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/ZVL13.html#Parameters-definition">Parameters definition</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/ZurichInstruments_HF2LI.html">Zurich Instruments HF2LI example</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../examples/QDevil/index.html">QDevil drivers</a><input aria-label="Toggle navigation of QDevil drivers" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../examples/QDevil/QDAC1/index.html">QCoDeS examples of how to use QDAC-I</a><input aria-label="Toggle navigation of QCoDeS examples of how to use QDAC-I" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../examples/QDevil/QDAC1/QCodes%20example%20with%20QDevil_QDAC.html">QCoDeS Example with QDevil_QDAC</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../examples/QDevil/QDAC2/index.html">QCoDeS examples of how to use QDAC-II</a><input aria-label="Toggle navigation of QCoDeS examples of how to use QDAC-II" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../examples/QDevil/QDAC2/AWG.html">QDAC-II arbitrary-waveform generator</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../examples/QDevil/QDAC2/Chaining.html">QDAC-II trigger chaining</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../examples/QDevil/QDAC2/DC_Constant.html">QDAC-II constant voltage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../examples/QDevil/QDAC2/Debugging.html">QDAC-II debugging</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../examples/QDevil/QDAC2/GateLeakage.html">Gate Leakage Test</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../examples/QDevil/QDAC2/GateLeakageMultipleQDACs.html">Gate Leakage using multiple QDAC-IIs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../examples/QDevil/QDAC2/List.html">QDAC-II voltage lists</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../examples/QDevil/QDAC2/MultiGenerator.html">QDAC-II multiple generators per channel</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../examples/QDevil/QDAC2/PyvisaAwg.html">PyVisa direct use of QDAC-II</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../examples/QDevil/QDAC2/Scan.html">QDAC-II 1D &amp; 2D scan</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../examples/QDevil/QDAC2/Scan2DDiode.html">QDAC-II 2D diode scan</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../examples/QDevil/QDAC2/Sine.html">QDAC-II sine waves</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../examples/QDevil/QDAC2/Square.html">QDAC-II square waves</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../examples/QDevil/QDAC2/Sweep.html">QDAC-II voltage sweep</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../examples/QDevil/QDAC2/SyncMultipleQDACs.html">Synchronise multiple QDAC-IIs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../examples/QDevil/QDAC2/Triangle.html">QDAC-II triangle waves</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../examples/QDevil/QDAC2/VirtualGates.html">QDAC-II virtual gates</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../examples/QDevil/QDAC2/do2dScan.html">QDAC-II 2D diode scan</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../examples/QDevil/QSwitch/index.html">QCoDeS examples of how to use QSwitch</a><input aria-label="Toggle navigation of QCoDeS examples of how to use QSwitch" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../examples/QDevil/QSwitch/Debugging.html">QSwitch debugging</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../examples/QDevil/QSwitch/Usage.html">QSwitch usage</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/HP/HP8594E.html">QCoDeS Example with HP8594E</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Cryomagnetics/LM_500.html">Example for Cyromagnetics Model LM-500 Helium Level meter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Cryomagnetics/LM_500.html#Import-qcodes_contrib_drivers-LM_500-driver">Import qcodes_contrib_drivers LM_500 driver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Cryomagnetics/LM_500.html#Connect-to-the-instrument---this-case-GPIB">Connect to the instrument - this case GPIB</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Cryomagnetics/Model_4G.html">Example for Cyromagnetics Model 4G magnet power supply</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Cryomagnetics/Model_4G.html#Import-qcodes_contrib_drivers-Model_4G-driver">Import qcodes_contrib_drivers Model_4G driver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/OxfordInstruments/ITC_503.html">Example for Oxford Instruments Intelligent Temperature Controller Model 503</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/OxfordInstruments/ITC_503.html#Import-qcodes_contrib_drivers-ITC503-driver">Import qcodes_contrib_drivers ITC503 driver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/OxfordInstruments/ITC_503.html#Connect-to-the-instrument---this-case-GPIB">Connect to the instrument - this case GPIB</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current has-children"><a class="reference internal" href="qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a><input aria-label="Toggle navigation of qcodes_contrib_drivers.drivers package" checked="" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Advantech.html">qcodes_contrib_drivers.drivers.Advantech package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Agilent.html">qcodes_contrib_drivers.drivers.Agilent package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.AimTTi.html">qcodes_contrib_drivers.drivers.AimTTi package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Ametek.html">qcodes_contrib_drivers.drivers.Ametek package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Andor.html">qcodes_contrib_drivers.drivers.Andor package</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Attocube.html">qcodes_contrib_drivers.drivers.Attocube package</a><input aria-label="Toggle navigation of qcodes_contrib_drivers.drivers.Attocube package" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.html">qcodes_contrib_drivers.drivers.Attocube.ANC350Lib package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Aviosys.html">qcodes_contrib_drivers.drivers.Aviosys package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Bilt.html">qcodes_contrib_drivers.drivers.Bilt package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.BlueFors.html">qcodes_contrib_drivers.drivers.BlueFors package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.CopperMountain.html">qcodes_contrib_drivers.drivers.CopperMountain package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Cryocon.html">qcodes_contrib_drivers.drivers.Cryocon package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Cryogenic.html">qcodes_contrib_drivers.drivers.Cryogenic package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.DaylightSolutions.html">qcodes_contrib_drivers.drivers.DaylightSolutions package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.ERAInstruments.html">qcodes_contrib_drivers.drivers.ERAInstruments package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.GeneralMicrowave.html">qcodes_contrib_drivers.drivers.GeneralMicrowave package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Gentec.html">qcodes_contrib_drivers.drivers.Gentec package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Holzworth.html">qcodes_contrib_drivers.drivers.Holzworth package</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Horiba.html">qcodes_contrib_drivers.drivers.Horiba package</a><input aria-label="Toggle navigation of qcodes_contrib_drivers.drivers.Horiba package" class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Horiba.private.html">qcodes_contrib_drivers.drivers.Horiba.private package</a></li>
+</ul>
+</li>
+<li class="toctree-l2 current has-children current-page"><a class="current reference internal" href="#">qcodes_contrib_drivers.drivers.Keysight package</a><input aria-label="Toggle navigation of qcodes_contrib_drivers.drivers.Keysight package" checked="" class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html">qcodes_contrib_drivers.drivers.Keysight.SD_common package</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Lakeshore.html">qcodes_contrib_drivers.drivers.Lakeshore package</a><input aria-label="Toggle navigation of qcodes_contrib_drivers.drivers.Lakeshore package" class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Lakeshore.modules.html">qcodes_contrib_drivers.drivers.Lakeshore.modules package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.LighthousePhotonics.html">qcodes_contrib_drivers.drivers.LighthousePhotonics package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.M2.html">qcodes_contrib_drivers.drivers.M2 package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Minicircuits.html">qcodes_contrib_drivers.drivers.Minicircuits package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.MontanaInstruments.html">qcodes_contrib_drivers.drivers.MontanaInstruments package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.NanoVNA.html">qcodes_contrib_drivers.drivers.NanoVNA package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.NationalInstruments.html">qcodes_contrib_drivers.drivers.NationalInstruments package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Newport.html">qcodes_contrib_drivers.drivers.Newport package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.OxfordInstruments.html">qcodes_contrib_drivers.drivers.OxfordInstruments package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.QDevil.html">qcodes_contrib_drivers.drivers.QDevil package</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="qcodes_contrib_drivers.drivers.QphoX.html">qcodes_contrib_drivers.drivers.QphoX package</a><input aria-label="Toggle navigation of qcodes_contrib_drivers.drivers.QphoX package" class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.QphoX.CryoSwitchController.html">qcodes_contrib_drivers.drivers.QphoX.CryoSwitchController package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.QuTech.html">qcodes_contrib_drivers.drivers.QuTech package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.QuantumDesign.html">qcodes_contrib_drivers.drivers.QuantumDesign package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Rigol.html">qcodes_contrib_drivers.drivers.Rigol package</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="qcodes_contrib_drivers.drivers.RohdeSchwarz.html">qcodes_contrib_drivers.drivers.RohdeSchwarz package</a><input aria-label="Toggle navigation of qcodes_contrib_drivers.drivers.RohdeSchwarz package" class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" role="switch" type="checkbox"/><label for="toctree-checkbox-12"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.RohdeSchwarz.private.html">qcodes_contrib_drivers.drivers.RohdeSchwarz.private package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.SPECS.html">qcodes_contrib_drivers.drivers.SPECS package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Shamrock.html">qcodes_contrib_drivers.drivers.Shamrock package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Siglent.html">qcodes_contrib_drivers.drivers.Siglent package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.SignalCore.html">qcodes_contrib_drivers.drivers.SignalCore package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.SingleQuantum.html">qcodes_contrib_drivers.drivers.SingleQuantum package</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Spectrum.html">qcodes_contrib_drivers.drivers.Spectrum package</a><input aria-label="Toggle navigation of qcodes_contrib_drivers.drivers.Spectrum package" class="toctree-checkbox" id="toctree-checkbox-13" name="toctree-checkbox-13" role="switch" type="checkbox"/><label for="toctree-checkbox-13"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Spectrum.py_header.html">qcodes_contrib_drivers.drivers.Spectrum.py_header package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Standa.html">qcodes_contrib_drivers.drivers.Standa package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.StanfordResearchSystems.html">qcodes_contrib_drivers.drivers.StanfordResearchSystems package</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="qcodes_contrib_drivers.drivers.SwabianInstruments.html">qcodes_contrib_drivers.drivers.SwabianInstruments package</a><input aria-label="Toggle navigation of qcodes_contrib_drivers.drivers.SwabianInstruments package" class="toctree-checkbox" id="toctree-checkbox-14" name="toctree-checkbox-14" role="switch" type="checkbox"/><label for="toctree-checkbox-14"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.SwabianInstruments.private.html">qcodes_contrib_drivers.drivers.SwabianInstruments.private package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Tektronix.html">qcodes_contrib_drivers.drivers.Tektronix package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Thermotek.html">qcodes_contrib_drivers.drivers.Thermotek package</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Thorlabs.html">qcodes_contrib_drivers.drivers.Thorlabs package</a><input aria-label="Toggle navigation of qcodes_contrib_drivers.drivers.Thorlabs package" class="toctree-checkbox" id="toctree-checkbox-15" name="toctree-checkbox-15" role="switch" type="checkbox"/><label for="toctree-checkbox-15"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Thorlabs.private.html">qcodes_contrib_drivers.drivers.Thorlabs.private package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Valon.html">qcodes_contrib_drivers.drivers.Valon package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Vaunix.html">qcodes_contrib_drivers.drivers.Vaunix package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Windfreak.html">qcodes_contrib_drivers.drivers.Windfreak package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.ZurichInstruments.html">qcodes_contrib_drivers.drivers.ZurichInstruments package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.physik_instrumente.html">qcodes_contrib_drivers.drivers.physik_instrumente package</a></li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="../../_sources/api/generated/qcodes_contrib_drivers.drivers.Keysight.rst.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="qcodes-contrib-drivers-drivers-keysight-package">
+<h1>qcodes_contrib_drivers.drivers.Keysight package<a class="headerlink" href="#qcodes-contrib-drivers-drivers-keysight-package" title="Link to this heading">¶</a></h1>
+<section id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Link to this heading">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html">qcodes_contrib_drivers.drivers.Keysight.SD_common package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#module-qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG">qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG.SD_AWG"><code class="docutils literal notranslate"><span class="pre">SD_AWG</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG.SD_AWG.get_waveform_status"><code class="docutils literal notranslate"><span class="pre">SD_AWG.get_waveform_status()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG.SD_AWG.get_waveform_type"><code class="docutils literal notranslate"><span class="pre">SD_AWG.get_waveform_type()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG.SD_AWG.new_waveform_from_double"><code class="docutils literal notranslate"><span class="pre">SD_AWG.new_waveform_from_double()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG.SD_AWG.new_waveform_from_file"><code class="docutils literal notranslate"><span class="pre">SD_AWG.new_waveform_from_file()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG.SD_AWG.new_waveform_from_int"><code class="docutils literal notranslate"><span class="pre">SD_AWG.new_waveform_from_int()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG.SD_AWG.awg_config_external_trigger"><code class="docutils literal notranslate"><span class="pre">SD_AWG.awg_config_external_trigger()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG.SD_AWG.awg_flush"><code class="docutils literal notranslate"><span class="pre">SD_AWG.awg_flush()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG.SD_AWG.awg_from_array"><code class="docutils literal notranslate"><span class="pre">SD_AWG.awg_from_array()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG.SD_AWG.awg_from_file"><code class="docutils literal notranslate"><span class="pre">SD_AWG.awg_from_file()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG.SD_AWG.awg_is_running"><code class="docutils literal notranslate"><span class="pre">SD_AWG.awg_is_running()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG.SD_AWG.awg_jump_next_waveform"><code class="docutils literal notranslate"><span class="pre">SD_AWG.awg_jump_next_waveform()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG.SD_AWG.awg_pause"><code class="docutils literal notranslate"><span class="pre">SD_AWG.awg_pause()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG.SD_AWG.awg_pause_multiple"><code class="docutils literal notranslate"><span class="pre">SD_AWG.awg_pause_multiple()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG.SD_AWG.awg_queue_config"><code class="docutils literal notranslate"><span class="pre">SD_AWG.awg_queue_config()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG.SD_AWG.awg_queue_waveform"><code class="docutils literal notranslate"><span class="pre">SD_AWG.awg_queue_waveform()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG.SD_AWG.awg_resume"><code class="docutils literal notranslate"><span class="pre">SD_AWG.awg_resume()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG.SD_AWG.awg_resume_multiple"><code class="docutils literal notranslate"><span class="pre">SD_AWG.awg_resume_multiple()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG.SD_AWG.awg_start"><code class="docutils literal notranslate"><span class="pre">SD_AWG.awg_start()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG.SD_AWG.awg_start_multiple"><code class="docutils literal notranslate"><span class="pre">SD_AWG.awg_start_multiple()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG.SD_AWG.awg_stop"><code class="docutils literal notranslate"><span class="pre">SD_AWG.awg_stop()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG.SD_AWG.awg_stop_multiple"><code class="docutils literal notranslate"><span class="pre">SD_AWG.awg_stop_multiple()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG.SD_AWG.awg_trigger"><code class="docutils literal notranslate"><span class="pre">SD_AWG.awg_trigger()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG.SD_AWG.awg_trigger_multiple"><code class="docutils literal notranslate"><span class="pre">SD_AWG.awg_trigger_multiple()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG.SD_AWG.config_amplitude_modulation"><code class="docutils literal notranslate"><span class="pre">SD_AWG.config_amplitude_modulation()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG.SD_AWG.config_angle_modulation"><code class="docutils literal notranslate"><span class="pre">SD_AWG.config_angle_modulation()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG.SD_AWG.config_clock_io"><code class="docutils literal notranslate"><span class="pre">SD_AWG.config_clock_io()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG.SD_AWG.config_fpga_trigger"><code class="docutils literal notranslate"><span class="pre">SD_AWG.config_fpga_trigger()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG.SD_AWG.config_trigger_io"><code class="docutils literal notranslate"><span class="pre">SD_AWG.config_trigger_io()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG.SD_AWG.convert_prescaler_to_sample_rate"><code class="docutils literal notranslate"><span class="pre">SD_AWG.convert_prescaler_to_sample_rate()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG.SD_AWG.convert_sample_rate_to_prescaler"><code class="docutils literal notranslate"><span class="pre">SD_AWG.convert_sample_rate_to_prescaler()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG.SD_AWG.flush_waveform"><code class="docutils literal notranslate"><span class="pre">SD_AWG.flush_waveform()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG.SD_AWG.get_clock_frequency"><code class="docutils literal notranslate"><span class="pre">SD_AWG.get_clock_frequency()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG.SD_AWG.get_clock_sync_frequency"><code class="docutils literal notranslate"><span class="pre">SD_AWG.get_clock_sync_frequency()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG.SD_AWG.get_trigger_io"><code class="docutils literal notranslate"><span class="pre">SD_AWG.get_trigger_io()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG.SD_AWG.load_fpga_image"><code class="docutils literal notranslate"><span class="pre">SD_AWG.load_fpga_image()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG.SD_AWG.load_waveform"><code class="docutils literal notranslate"><span class="pre">SD_AWG.load_waveform()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG.SD_AWG.load_waveform_int16"><code class="docutils literal notranslate"><span class="pre">SD_AWG.load_waveform_int16()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG.SD_AWG.off"><code class="docutils literal notranslate"><span class="pre">SD_AWG.off()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG.SD_AWG.read_fpga"><code class="docutils literal notranslate"><span class="pre">SD_AWG.read_fpga()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG.SD_AWG.read_fpga_array"><code class="docutils literal notranslate"><span class="pre">SD_AWG.read_fpga_array()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG.SD_AWG.reload_waveform"><code class="docutils literal notranslate"><span class="pre">SD_AWG.reload_waveform()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG.SD_AWG.reload_waveform_int16"><code class="docutils literal notranslate"><span class="pre">SD_AWG.reload_waveform_int16()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG.SD_AWG.reset_channel_phase"><code class="docutils literal notranslate"><span class="pre">SD_AWG.reset_channel_phase()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG.SD_AWG.reset_clock_phase"><code class="docutils literal notranslate"><span class="pre">SD_AWG.reset_clock_phase()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG.SD_AWG.reset_multiple_channel_phase"><code class="docutils literal notranslate"><span class="pre">SD_AWG.reset_multiple_channel_phase()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG.SD_AWG.set_channel_amplitude"><code class="docutils literal notranslate"><span class="pre">SD_AWG.set_channel_amplitude()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG.SD_AWG.set_channel_frequency"><code class="docutils literal notranslate"><span class="pre">SD_AWG.set_channel_frequency()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG.SD_AWG.set_channel_offset"><code class="docutils literal notranslate"><span class="pre">SD_AWG.set_channel_offset()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG.SD_AWG.set_channel_phase"><code class="docutils literal notranslate"><span class="pre">SD_AWG.set_channel_phase()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG.SD_AWG.set_channel_wave_shape"><code class="docutils literal notranslate"><span class="pre">SD_AWG.set_channel_wave_shape()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG.SD_AWG.set_clock_frequency"><code class="docutils literal notranslate"><span class="pre">SD_AWG.set_clock_frequency()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG.SD_AWG.set_digital_filter_mode"><code class="docutils literal notranslate"><span class="pre">SD_AWG.set_digital_filter_mode()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG.SD_AWG.set_iq_modulation"><code class="docutils literal notranslate"><span class="pre">SD_AWG.set_iq_modulation()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG.SD_AWG.set_marker_config"><code class="docutils literal notranslate"><span class="pre">SD_AWG.set_marker_config()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG.SD_AWG.set_trigger_io"><code class="docutils literal notranslate"><span class="pre">SD_AWG.set_trigger_io()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG.SD_AWG.write_fpga"><code class="docutils literal notranslate"><span class="pre">SD_AWG.write_fpga()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG.SD_AWG.write_fpga_array"><code class="docutils literal notranslate"><span class="pre">SD_AWG.write_fpga_array()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#module-qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG_Async">qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG_Async module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG_Async.SD_AWG_Async"><code class="docutils literal notranslate"><span class="pre">SD_AWG_Async</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG_Async.SD_AWG_Async.asynchronous"><code class="docutils literal notranslate"><span class="pre">SD_AWG_Async.asynchronous()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG_Async.SD_AWG_Async.awg_flush"><code class="docutils literal notranslate"><span class="pre">SD_AWG_Async.awg_flush()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG_Async.SD_AWG_Async.awg_from_array"><code class="docutils literal notranslate"><span class="pre">SD_AWG_Async.awg_from_array()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG_Async.SD_AWG_Async.awg_from_file"><code class="docutils literal notranslate"><span class="pre">SD_AWG_Async.awg_from_file()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG_Async.SD_AWG_Async.awg_queue_waveform"><code class="docutils literal notranslate"><span class="pre">SD_AWG_Async.awg_queue_waveform()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG_Async.SD_AWG_Async.close"><code class="docutils literal notranslate"><span class="pre">SD_AWG_Async.close()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG_Async.SD_AWG_Async.flush_waveform"><code class="docutils literal notranslate"><span class="pre">SD_AWG_Async.flush_waveform()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG_Async.SD_AWG_Async.load_waveform"><code class="docutils literal notranslate"><span class="pre">SD_AWG_Async.load_waveform()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG_Async.SD_AWG_Async.load_waveform_int16"><code class="docutils literal notranslate"><span class="pre">SD_AWG_Async.load_waveform_int16()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG_Async.SD_AWG_Async.release_waveform_memory"><code class="docutils literal notranslate"><span class="pre">SD_AWG_Async.release_waveform_memory()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG_Async.SD_AWG_Async.reload_waveform"><code class="docutils literal notranslate"><span class="pre">SD_AWG_Async.reload_waveform()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG_Async.SD_AWG_Async.reload_waveform_int16"><code class="docutils literal notranslate"><span class="pre">SD_AWG_Async.reload_waveform_int16()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG_Async.SD_AWG_Async.set_asynchronous"><code class="docutils literal notranslate"><span class="pre">SD_AWG_Async.set_asynchronous()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG_Async.SD_AWG_Async.set_waveform_limit"><code class="docutils literal notranslate"><span class="pre">SD_AWG_Async.set_waveform_limit()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG_Async.SD_AWG_Async.upload_waveform"><code class="docutils literal notranslate"><span class="pre">SD_AWG_Async.upload_waveform()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG_Async.SD_AWG_Async.uploader_ready"><code class="docutils literal notranslate"><span class="pre">SD_AWG_Async.uploader_ready()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG_Async.Task"><code class="docutils literal notranslate"><span class="pre">Task</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG_Async.Task.run"><code class="docutils literal notranslate"><span class="pre">Task.run()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG_Async.Task.result"><code class="docutils literal notranslate"><span class="pre">Task.result</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG_Async.Task.verbose"><code class="docutils literal notranslate"><span class="pre">Task.verbose</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG_Async.WaveformReference"><code class="docutils literal notranslate"><span class="pre">WaveformReference</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG_Async.WaveformReference.is_uploaded"><code class="docutils literal notranslate"><span class="pre">WaveformReference.is_uploaded()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG_Async.WaveformReference.release"><code class="docutils literal notranslate"><span class="pre">WaveformReference.release()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG_Async.WaveformReference.wait_uploaded"><code class="docutils literal notranslate"><span class="pre">WaveformReference.wait_uploaded()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG_Async.WaveformReference.awg_name"><code class="docutils literal notranslate"><span class="pre">WaveformReference.awg_name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG_Async.WaveformReference.wave_number"><code class="docutils literal notranslate"><span class="pre">WaveformReference.wave_number</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG_Async.switchable"><code class="docutils literal notranslate"><span class="pre">switchable()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG_Async.threaded"><code class="docutils literal notranslate"><span class="pre">threaded()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#module-qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG">qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG"><code class="docutils literal notranslate"><span class="pre">SD_DIG</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.set_clksys_frequency"><code class="docutils literal notranslate"><span class="pre">SD_DIG.set_clksys_frequency()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.__init__"><code class="docutils literal notranslate"><span class="pre">SD_DIG.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.daq_flush"><code class="docutils literal notranslate"><span class="pre">SD_DIG.daq_flush()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.daq_flush_multiple"><code class="docutils literal notranslate"><span class="pre">SD_DIG.daq_flush_multiple()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.daq_read"><code class="docutils literal notranslate"><span class="pre">SD_DIG.daq_read()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.daq_start"><code class="docutils literal notranslate"><span class="pre">SD_DIG.daq_start()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.daq_start_multiple"><code class="docutils literal notranslate"><span class="pre">SD_DIG.daq_start_multiple()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.daq_stop"><code class="docutils literal notranslate"><span class="pre">SD_DIG.daq_stop()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.daq_stop_multiple"><code class="docutils literal notranslate"><span class="pre">SD_DIG.daq_stop_multiple()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.daq_trigger"><code class="docutils literal notranslate"><span class="pre">SD_DIG.daq_trigger()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.daq_trigger_multiple"><code class="docutils literal notranslate"><span class="pre">SD_DIG.daq_trigger_multiple()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.get_coupling"><code class="docutils literal notranslate"><span class="pre">SD_DIG.get_coupling()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.get_full_scale"><code class="docutils literal notranslate"><span class="pre">SD_DIG.get_full_scale()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.get_impedance"><code class="docutils literal notranslate"><span class="pre">SD_DIG.get_impedance()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.get_prescaler"><code class="docutils literal notranslate"><span class="pre">SD_DIG.get_prescaler()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.get_trigger_io"><code class="docutils literal notranslate"><span class="pre">SD_DIG.get_trigger_io()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.get_trigger_mode"><code class="docutils literal notranslate"><span class="pre">SD_DIG.get_trigger_mode()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.get_trigger_threshold"><code class="docutils literal notranslate"><span class="pre">SD_DIG.get_trigger_threshold()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.reset_clock_phase"><code class="docutils literal notranslate"><span class="pre">SD_DIG.reset_clock_phase()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.set_analog_trigger_mask"><code class="docutils literal notranslate"><span class="pre">SD_DIG.set_analog_trigger_mask()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.set_coupling"><code class="docutils literal notranslate"><span class="pre">SD_DIG.set_coupling()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.set_daq_trigger_delay"><code class="docutils literal notranslate"><span class="pre">SD_DIG.set_daq_trigger_delay()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.set_daq_trigger_mode"><code class="docutils literal notranslate"><span class="pre">SD_DIG.set_daq_trigger_mode()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.set_digital_trigger_mode"><code class="docutils literal notranslate"><span class="pre">SD_DIG.set_digital_trigger_mode()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.set_digital_trigger_source"><code class="docutils literal notranslate"><span class="pre">SD_DIG.set_digital_trigger_source()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.set_ext_trigger_behaviour"><code class="docutils literal notranslate"><span class="pre">SD_DIG.set_ext_trigger_behaviour()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.set_ext_trigger_source"><code class="docutils literal notranslate"><span class="pre">SD_DIG.set_ext_trigger_source()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.set_full_scale"><code class="docutils literal notranslate"><span class="pre">SD_DIG.set_full_scale()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.set_impedance"><code class="docutils literal notranslate"><span class="pre">SD_DIG.set_impedance()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.set_n_cycles"><code class="docutils literal notranslate"><span class="pre">SD_DIG.set_n_cycles()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.set_n_points"><code class="docutils literal notranslate"><span class="pre">SD_DIG.set_n_points()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.set_points_per_cycle"><code class="docutils literal notranslate"><span class="pre">SD_DIG.set_points_per_cycle()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.set_prescaler"><code class="docutils literal notranslate"><span class="pre">SD_DIG.set_prescaler()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.set_timeout"><code class="docutils literal notranslate"><span class="pre">SD_DIG.set_timeout()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.set_trigger_io"><code class="docutils literal notranslate"><span class="pre">SD_DIG.set_trigger_io()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.set_trigger_mode"><code class="docutils literal notranslate"><span class="pre">SD_DIG.set_trigger_mode()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG.set_trigger_threshold"><code class="docutils literal notranslate"><span class="pre">SD_DIG.set_trigger_threshold()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#module-qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_Module">qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_Module module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_Module.SD_Module"><code class="docutils literal notranslate"><span class="pre">SD_Module</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_Module.SD_Module.close"><code class="docutils literal notranslate"><span class="pre">SD_Module.close()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_Module.SD_Module.close_soft"><code class="docutils literal notranslate"><span class="pre">SD_Module.close_soft()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_Module.SD_Module.get_chassis"><code class="docutils literal notranslate"><span class="pre">SD_Module.get_chassis()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_Module.SD_Module.get_firmware_version"><code class="docutils literal notranslate"><span class="pre">SD_Module.get_firmware_version()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_Module.SD_Module.get_fpga_pc_port"><code class="docutils literal notranslate"><span class="pre">SD_Module.get_fpga_pc_port()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_Module.SD_Module.get_hardware_version"><code class="docutils literal notranslate"><span class="pre">SD_Module.get_hardware_version()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_Module.SD_Module.get_hvi_register"><code class="docutils literal notranslate"><span class="pre">SD_Module.get_hvi_register()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_Module.SD_Module.get_idn"><code class="docutils literal notranslate"><span class="pre">SD_Module.get_idn()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_Module.SD_Module.get_module_count"><code class="docutils literal notranslate"><span class="pre">SD_Module.get_module_count()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_Module.SD_Module.get_open"><code class="docutils literal notranslate"><span class="pre">SD_Module.get_open()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_Module.SD_Module.get_product_name"><code class="docutils literal notranslate"><span class="pre">SD_Module.get_product_name()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_Module.SD_Module.get_product_name_by_index"><code class="docutils literal notranslate"><span class="pre">SD_Module.get_product_name_by_index()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_Module.SD_Module.get_product_name_by_slot"><code class="docutils literal notranslate"><span class="pre">SD_Module.get_product_name_by_slot()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_Module.SD_Module.get_pxi_trigger"><code class="docutils literal notranslate"><span class="pre">SD_Module.get_pxi_trigger()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_Module.SD_Module.get_serial_number"><code class="docutils literal notranslate"><span class="pre">SD_Module.get_serial_number()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_Module.SD_Module.get_serial_number_by_index"><code class="docutils literal notranslate"><span class="pre">SD_Module.get_serial_number_by_index()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_Module.SD_Module.get_serial_number_by_slot"><code class="docutils literal notranslate"><span class="pre">SD_Module.get_serial_number_by_slot()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_Module.SD_Module.get_slot"><code class="docutils literal notranslate"><span class="pre">SD_Module.get_slot()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_Module.SD_Module.get_temperature"><code class="docutils literal notranslate"><span class="pre">SD_Module.get_temperature()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_Module.SD_Module.get_type"><code class="docutils literal notranslate"><span class="pre">SD_Module.get_type()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_Module.SD_Module.get_type_by_index"><code class="docutils literal notranslate"><span class="pre">SD_Module.get_type_by_index()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_Module.SD_Module.get_type_by_slot"><code class="docutils literal notranslate"><span class="pre">SD_Module.get_type_by_slot()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_Module.SD_Module.load_fpga_image"><code class="docutils literal notranslate"><span class="pre">SD_Module.load_fpga_image()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_Module.SD_Module.open_with_serial_number"><code class="docutils literal notranslate"><span class="pre">SD_Module.open_with_serial_number()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_Module.SD_Module.open_with_slot"><code class="docutils literal notranslate"><span class="pre">SD_Module.open_with_slot()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_Module.SD_Module.run_self_test"><code class="docutils literal notranslate"><span class="pre">SD_Module.run_self_test()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_Module.SD_Module.set_fpga_pc_port"><code class="docutils literal notranslate"><span class="pre">SD_Module.set_fpga_pc_port()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_Module.SD_Module.set_hvi_register"><code class="docutils literal notranslate"><span class="pre">SD_Module.set_hvi_register()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_Module.SD_Module.set_pxi_trigger"><code class="docutils literal notranslate"><span class="pre">SD_Module.set_pxi_trigger()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_Module.result_parser"><code class="docutils literal notranslate"><span class="pre">result_parser()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#module-qcodes_contrib_drivers.drivers.Keysight.SD_common.memory_manager">qcodes_contrib_drivers.drivers.Keysight.SD_common.memory_manager module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.memory_manager.MemoryManager"><code class="docutils literal notranslate"><span class="pre">MemoryManager</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.memory_manager.MemoryManager.AllocatedSlot"><code class="docutils literal notranslate"><span class="pre">MemoryManager.AllocatedSlot</span></code></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.memory_manager.MemoryManager.AllocatedSlot.release"><code class="docutils literal notranslate"><span class="pre">MemoryManager.AllocatedSlot.release()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.memory_manager.MemoryManager.AllocatedSlot.allocation_ref"><code class="docutils literal notranslate"><span class="pre">MemoryManager.AllocatedSlot.allocation_ref</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.memory_manager.MemoryManager.AllocatedSlot.memory_manager"><code class="docutils literal notranslate"><span class="pre">MemoryManager.AllocatedSlot.memory_manager</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.memory_manager.MemoryManager.AllocatedSlot.number"><code class="docutils literal notranslate"><span class="pre">MemoryManager.AllocatedSlot.number</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.memory_manager.MemoryManager.allocate"><code class="docutils literal notranslate"><span class="pre">MemoryManager.allocate()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.memory_manager.MemoryManager.allocation_state"><code class="docutils literal notranslate"><span class="pre">MemoryManager.allocation_state()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.memory_manager.MemoryManager.get_uninitialized_slots"><code class="docutils literal notranslate"><span class="pre">MemoryManager.get_uninitialized_slots()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.memory_manager.MemoryManager.mem_usage"><code class="docutils literal notranslate"><span class="pre">MemoryManager.mem_usage()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.memory_manager.MemoryManager.release"><code class="docutils literal notranslate"><span class="pre">MemoryManager.release()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.memory_manager.MemoryManager.release_all"><code class="docutils literal notranslate"><span class="pre">MemoryManager.release_all()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.memory_manager.MemoryManager.set_waveform_limit"><code class="docutils literal notranslate"><span class="pre">MemoryManager.set_waveform_limit()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.memory_manager.MemoryManager.memory_sizes"><code class="docutils literal notranslate"><span class="pre">MemoryManager.memory_sizes</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.memory_manager.MemoryManager.verbose"><code class="docutils literal notranslate"><span class="pre">MemoryManager.verbose</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#module-qcodes_contrib_drivers.drivers.Keysight.SD_common">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">¶</a></h2>
+</section>
+<section id="module-qcodes_contrib_drivers.drivers.Keysight.Keysight_E36313A">
+<span id="qcodes-contrib-drivers-drivers-keysight-keysight-e36313a-module"></span><h2>qcodes_contrib_drivers.drivers.Keysight.Keysight_E36313A module<a class="headerlink" href="#module-qcodes_contrib_drivers.drivers.Keysight.Keysight_E36313A" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Keysight.Keysight_E36313A.E36313A">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.Keysight.Keysight_E36313A.</span></span><span class="sig-name descname"><span class="pre">E36313A</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Keysight/Keysight_E36313A.html#E36313A"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E36313A.E36313A" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://microsoft.github.io/Qcodes/api/instrument/index.html#qcodes.instrument.VisaInstrument" title="(in QCoDeS v0.56.0.dev2+main.g6997e905c)"><code class="xref py py-class docutils literal notranslate"><span class="pre">VisaInstrument</span></code></a></p>
+<p>This is the qcodes driver for the Keysight E36313A programmable DC power supply</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Keysight.Keysight_E36313A.E36313A.get_idn">
+<span class="sig-name descname"><span class="pre">get_idn</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Keysight/Keysight_E36313A.html#E36313A.get_idn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E36313A.E36313A.get_idn" title="Link to this definition">¶</a></dt>
+<dd><p>Parse a standard VISA <code class="docutils literal notranslate"><span class="pre">*IDN?</span></code> response into an ID dict.</p>
+<p>Even though this is the VISA standard, it applies to various other
+types as well, such as IPInstruments, so it is included here in the
+Instrument base class.</p>
+<p>Override this if your instrument does not support <code class="docutils literal notranslate"><span class="pre">*IDN?</span></code> or
+returns a nonstandard IDN string. This string is supposed to be a
+comma-separated list of vendor, model, serial, and firmware, but
+semicolon and colon are also common separators so we accept them here
+as well.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A dict containing vendor, model, serial, and firmware.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Keysight.Keysight_E36313A.E36313AChannel">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.Keysight.Keysight_E36313A.</span></span><span class="sig-name descname"><span class="pre">E36313AChannel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://microsoft.github.io/Qcodes/api/instrument/index.html#qcodes.instrument.Instrument" title="(in QCoDeS v0.56.0.dev2+main.g6997e905c)"><span class="pre">Instrument</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">chan</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Keysight/Keysight_E36313A.html#E36313AChannel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E36313A.E36313AChannel" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://microsoft.github.io/Qcodes/api/instrument/index.html#qcodes.instrument.InstrumentChannel" title="(in QCoDeS v0.56.0.dev2+main.g6997e905c)"><code class="xref py py-class docutils literal notranslate"><span class="pre">InstrumentChannel</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Keysight.Keysight_E36313A.E36313AChannel.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://microsoft.github.io/Qcodes/api/instrument/index.html#qcodes.instrument.Instrument" title="(in QCoDeS v0.56.0.dev2+main.g6997e905c)"><span class="pre">Instrument</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">chan</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Keysight/Keysight_E36313A.html#E36313AChannel.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E36313A.E36313AChannel.__init__" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>parent</strong> – The instrument to which the channel is</p></li>
+<li><p><strong>attached.</strong></p></li>
+<li><p><strong>name</strong> – The name of the channel</p></li>
+<li><p><strong>chan</strong> – The number of the channel in question (1-3)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B">
+<span id="qcodes-contrib-drivers-drivers-keysight-keysight-e5080b-module"></span><h2>qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B module<a class="headerlink" href="#module-qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.</span></span><span class="sig-name descname"><span class="pre">KeySight_E5080B</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Keysight/Keysight_E5080B.html#KeySight_E5080B"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://microsoft.github.io/Qcodes/api/instrument/index.html#qcodes.instrument.VisaInstrument" title="(in QCoDeS v0.56.0.dev2+main.g6997e905c)"><code class="xref py py-class docutils literal notranslate"><span class="pre">VisaInstrument</span></code></a></p>
+<p>Qcodes driver for the Keysight E5080B Vector Network Analyzer</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.get_data">
+<span class="sig-name descname"><span class="pre">get_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Keysight/Keysight_E5080B.html#KeySight_E5080B.get_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.get_data" title="Link to this definition">¶</a></dt>
+<dd><p>Retrieve the complex measurement data</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.get_frequencies">
+<span class="sig-name descname"><span class="pre">get_frequencies</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Keysight/Keysight_E5080B.html#KeySight_E5080B.get_frequencies"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.get_frequencies" title="Link to this definition">¶</a></dt>
+<dd><p>return freqpoints</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.accept_trigger_before_armed">
+<span class="sig-name descname"><span class="pre">accept_trigger_before_armed</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">&quot;accept_trigger_before_armed&quot;,</span> <span class="pre">label=&quot;Accept</span> <span class="pre">Trigger</span> <span class="pre">Before</span> <span class="pre">Armed&quot;,</span> <span class="pre">get_cmd=&quot;CONT:SIGN:TRIG:ATBA?&quot;,</span> <span class="pre">set_cmd=&quot;CONT:SIGN:TRIG:ATBA</span> <span class="pre">{}&quot;,</span> <span class="pre">val_mapping=create_on_off_val_mapping(on_val=1,</span> <span class="pre">off_val=0),</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.accept_trigger_before_armed" title="Link to this definition">¶</a></dt>
+<dd><p>Accept Trigger Before Armed</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.averages_count">
+<span class="sig-name descname"><span class="pre">averages_count</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">&quot;averages_count&quot;,</span> <span class="pre">label=&quot;Averages</span> <span class="pre">Count&quot;,</span> <span class="pre">get_cmd=&quot;SENS:AVER:COUN?&quot;,</span> <span class="pre">get_parser=int,</span> <span class="pre">set_cmd=&quot;SENS:AVER:COUN</span> <span class="pre">{:d}&quot;,</span> <span class="pre">vals=Numbers(min_value=1,</span> <span class="pre">max_value=65536),</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.averages_count" title="Link to this definition">¶</a></dt>
+<dd><p>Parameter averages count</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.averages_enabled">
+<span class="sig-name descname"><span class="pre">averages_enabled</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">&quot;averages_enabled&quot;,</span> <span class="pre">label=&quot;Averages</span> <span class="pre">Enabled&quot;,</span> <span class="pre">get_cmd=&quot;SENS:AVER?&quot;,</span> <span class="pre">set_cmd=&quot;SENS:AVER</span> <span class="pre">{}&quot;,</span> <span class="pre">val_mapping=create_on_off_val_mapping(on_val=&quot;1&quot;,</span> <span class="pre">off_val=&quot;0&quot;),</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.averages_enabled" title="Link to this definition">¶</a></dt>
+<dd><p>Parameter averages_enabled</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.averages_mode">
+<span class="sig-name descname"><span class="pre">averages_mode</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">&quot;averages_mode&quot;,</span> <span class="pre">label=&quot;Averages</span> <span class="pre">Mode&quot;,</span> <span class="pre">get_cmd=&quot;SENS:AVER:MODE?&quot;,</span> <span class="pre">set_cmd=&quot;SENS:AVER:MODE</span> <span class="pre">{}&quot;,</span> <span class="pre">vals=Enum(&quot;POIN&quot;,</span> <span class="pre">&quot;SWE&quot;),</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.averages_mode" title="Link to this definition">¶</a></dt>
+<dd><p>Parameter averages mode</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.center_freq">
+<span class="sig-name descname"><span class="pre">center_freq</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">&quot;center_freq&quot;,</span> <span class="pre">label=&quot;Center</span> <span class="pre">Frequency&quot;,</span> <span class="pre">get_cmd=&quot;SENS:FREQ:CENT?&quot;,</span> <span class="pre">get_parser=float,</span> <span class="pre">set_cmd=&quot;SENS:FREQ:CENT</span> <span class="pre">{}&quot;,</span> <span class="pre">unit=&quot;Hz&quot;,</span> <span class="pre">vals=Numbers(min_value=min_freq,</span> <span class="pre">max_value=max_freq),</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.center_freq" title="Link to this definition">¶</a></dt>
+<dd><p>Parameter center_freq</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.cw">
+<span class="sig-name descname"><span class="pre">cw</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">&quot;cw&quot;,</span> <span class="pre">label=&quot;CW</span> <span class="pre">Frequency&quot;,</span> <span class="pre">get_cmd=&quot;SENS:FREQ:CW?&quot;,</span> <span class="pre">get_parser=float,</span> <span class="pre">set_cmd=&quot;SENS:FREQ:CW</span> <span class="pre">{}&quot;,</span> <span class="pre">unit=&quot;Hz&quot;,</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.cw" title="Link to this definition">¶</a></dt>
+<dd><p>Parameter Continuous wave</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.format_border">
+<span class="sig-name descname"><span class="pre">format_border</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">&quot;format_border&quot;,</span> <span class="pre">label=&quot;Format</span> <span class="pre">Border&quot;,</span> <span class="pre">get_cmd=&quot;FORM:BORD?&quot;,</span> <span class="pre">set_cmd=&quot;FORM:BORD</span> <span class="pre">{}&quot;,</span> <span class="pre">vals=Enum(&quot;NORM&quot;,</span> <span class="pre">&quot;SWAP&quot;),</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.format_border" title="Link to this definition">¶</a></dt>
+<dd><p>Parameter Format Border</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.format_data">
+<span class="sig-name descname"><span class="pre">format_data</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">&quot;format_data&quot;,</span> <span class="pre">label=&quot;Format</span> <span class="pre">Data&quot;,</span> <span class="pre">get_cmd=&quot;FORM:DATA?&quot;,</span> <span class="pre">set_cmd=&quot;FORM:DATA</span> <span class="pre">{}&quot;,</span> <span class="pre">vals=Enum(&quot;REAL,32&quot;,</span> <span class="pre">&quot;REAL,64&quot;,</span> <span class="pre">&quot;ASCii,0&quot;),</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.format_data" title="Link to this definition">¶</a></dt>
+<dd><p>Parameter averages mode</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.if_bandwidth">
+<span class="sig-name descname"><span class="pre">if_bandwidth</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">&quot;if_bandwidth&quot;,</span> <span class="pre">label=&quot;if_bandwidth&quot;,</span> <span class="pre">unit=&quot;Hz&quot;,</span> <span class="pre">get_cmd=&quot;SENS:BWID?&quot;,</span> <span class="pre">set_cmd=&quot;SENS:BWID</span> <span class="pre">{}&quot;,</span> <span class="pre">get_parser=float,</span> <span class="pre">vals=Numbers(min_value=1,</span> <span class="pre">max_value=15e6),</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.if_bandwidth" title="Link to this definition">¶</a></dt>
+<dd><p>Parameter if_bandwidth</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.operation_status">
+<span class="sig-name descname"><span class="pre">operation_status</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">&quot;operation_status&quot;,</span> <span class="pre">label=&quot;Operation</span> <span class="pre">Status&quot;,</span> <span class="pre">get_cmd=&quot;STAT:OPER:COND?&quot;,</span> <span class="pre">get_parser=int,</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.operation_status" title="Link to this definition">¶</a></dt>
+<dd><p>Status Operation</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.points">
+<span class="sig-name descname"><span class="pre">points</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">&quot;points&quot;,</span> <span class="pre">label=&quot;Points&quot;,</span> <span class="pre">get_cmd=&quot;SENS:SWE:POIN?&quot;,</span> <span class="pre">get_parser=int,</span> <span class="pre">set_cmd=&quot;SENS:SWE:POIN</span> <span class="pre">{}&quot;,</span> <span class="pre">unit=&quot;&quot;,</span> <span class="pre">vals=Numbers(min_value=1,</span> <span class="pre">max_value=100003),</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.points" title="Link to this definition">¶</a></dt>
+<dd><p>Parameter points</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.rf_on">
+<span class="sig-name descname"><span class="pre">rf_on</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">&quot;rf_on&quot;,</span> <span class="pre">label=&quot;RF</span> <span class="pre">ON&quot;,</span> <span class="pre">get_cmd=&quot;OUTP?&quot;,</span> <span class="pre">set_cmd=&quot;OUTP</span> <span class="pre">{}&quot;,</span> <span class="pre">val_mapping=create_on_off_val_mapping(on_val=&quot;1&quot;,</span> <span class="pre">off_val=&quot;0&quot;),</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.rf_on" title="Link to this definition">¶</a></dt>
+<dd><p>Parameter RF Power Source</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.scattering_parameter">
+<span class="sig-name descname"><span class="pre">scattering_parameter</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">&quot;scattering_parameter&quot;,</span> <span class="pre">label=&quot;scattering_parameter&quot;,</span> <span class="pre">get_cmd=&quot;CALC:MEAS:PAR?&quot;,</span> <span class="pre">set_cmd=&quot;CALC:MEAS:PAR</span> <span class="pre">{}&quot;,</span> <span class="pre">vals=vals.Enum(&quot;S11&quot;,</span> <span class="pre">&quot;S12&quot;,</span> <span class="pre">&quot;S21&quot;,</span> <span class="pre">&quot;S22&quot;),</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.scattering_parameter" title="Link to this definition">¶</a></dt>
+<dd><p>Parameter scattering_parameter</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.source_power">
+<span class="sig-name descname"><span class="pre">source_power</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">&quot;source_power&quot;,</span> <span class="pre">label=&quot;source_power&quot;,</span> <span class="pre">unit=&quot;dBm&quot;,</span> <span class="pre">get_cmd=&quot;SOUR:POW?&quot;,</span> <span class="pre">set_cmd=&quot;SOUR:POW</span> <span class="pre">{}&quot;,</span> <span class="pre">get_parser=float,</span> <span class="pre">vals=Numbers(min_value=-100,</span> <span class="pre">max_value=20),</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.source_power" title="Link to this definition">¶</a></dt>
+<dd><p>Parameter source_power</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.span">
+<span class="sig-name descname"><span class="pre">span</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">&quot;span&quot;,</span> <span class="pre">label=&quot;Frequency</span> <span class="pre">Span&quot;,</span> <span class="pre">get_cmd=&quot;SENS:FREQ:SPAN?&quot;,</span> <span class="pre">get_parser=float,</span> <span class="pre">set_cmd=&quot;SENS:FREQ:SPAN</span> <span class="pre">{}&quot;,</span> <span class="pre">unit=&quot;Hz&quot;,</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.span" title="Link to this definition">¶</a></dt>
+<dd><p>Parameter span</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.start_freq">
+<span class="sig-name descname"><span class="pre">start_freq</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">&quot;start_freq&quot;,</span> <span class="pre">label=&quot;Start</span> <span class="pre">Frequency&quot;,</span> <span class="pre">get_cmd=&quot;SENS:FREQ:STAR?&quot;,</span> <span class="pre">get_parser=float,</span> <span class="pre">set_cmd=&quot;SENS:FREQ:STAR</span> <span class="pre">{}&quot;,</span> <span class="pre">unit=&quot;Hz&quot;,</span> <span class="pre">vals=Numbers(min_value=min_freq,</span> <span class="pre">max_value=max_freq),</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.start_freq" title="Link to this definition">¶</a></dt>
+<dd><p>Parameter start_freq</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.stop_freq">
+<span class="sig-name descname"><span class="pre">stop_freq</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">&quot;stop_freq&quot;,</span> <span class="pre">label=&quot;Stop</span> <span class="pre">Frequency&quot;,</span> <span class="pre">get_cmd=&quot;SENS:FREQ:STOP?&quot;,</span> <span class="pre">get_parser=float,</span> <span class="pre">set_cmd=&quot;SENS:FREQ:STOP</span> <span class="pre">{}&quot;,</span> <span class="pre">unit=&quot;Hz&quot;,</span> <span class="pre">vals=Numbers(min_value=min_freq,</span> <span class="pre">max_value=max_freq),</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.stop_freq" title="Link to this definition">¶</a></dt>
+<dd><p>Parameter stop_freq</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.sweep_group_count">
+<span class="sig-name descname"><span class="pre">sweep_group_count</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">&quot;sweep_group_count&quot;,</span> <span class="pre">label=&quot;sweep_group_count&quot;,</span> <span class="pre">get_cmd=&quot;SENS:SWE:GRO:COUN?&quot;,</span> <span class="pre">set_cmd=&quot;SENS:SWE:GRO:COUN</span> <span class="pre">{}&quot;,</span> <span class="pre">get_parser=int,</span> <span class="pre">vals=Numbers(min_value=1,</span> <span class="pre">max_value=2e6),</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.sweep_group_count" title="Link to this definition">¶</a></dt>
+<dd><p>Parameter sweep_group_count</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.sweep_mode">
+<span class="sig-name descname"><span class="pre">sweep_mode</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">&quot;sweep_mode&quot;,</span> <span class="pre">label=&quot;Type&quot;,</span> <span class="pre">get_cmd=&quot;SENS:SWE:MODE?&quot;,</span> <span class="pre">set_cmd=&quot;SENS:SWE:MODE</span> <span class="pre">{}&quot;,</span> <span class="pre">vals=Enum(&quot;HOLD&quot;,</span> <span class="pre">&quot;CONT&quot;,</span> <span class="pre">&quot;GRO&quot;,</span> <span class="pre">&quot;SING&quot;),</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.sweep_mode" title="Link to this definition">¶</a></dt>
+<dd><p>Parameter sweep_mode</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.sweep_time">
+<span class="sig-name descname"><span class="pre">sweep_time</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">&quot;sweep_time&quot;,</span> <span class="pre">label=&quot;sweep_time&quot;,</span> <span class="pre">unit=&quot;s&quot;,</span> <span class="pre">get_parser=float,</span> <span class="pre">get_cmd=&quot;SENS:SWE:TIME?&quot;,</span> <span class="pre">set_cmd=&quot;SENS:SWE:TIME</span> <span class="pre">{}&quot;,</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.sweep_time" title="Link to this definition">¶</a></dt>
+<dd><p>Parameter sweep_time</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.sweep_time_auto">
+<span class="sig-name descname"><span class="pre">sweep_time_auto</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">&quot;sweep_time_auto&quot;,</span> <span class="pre">label=&quot;sweep_time_auto&quot;,</span> <span class="pre">get_parser=float,</span> <span class="pre">get_cmd=&quot;SENS:SWE:TIME:AUTO?&quot;,</span> <span class="pre">set_cmd=&quot;SENS:SWE:TIME:AUTO</span> <span class="pre">{}&quot;,</span> <span class="pre">val_mapping=create_on_off_val_mapping(on_val=1,</span> <span class="pre">off_val=0),</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.sweep_time_auto" title="Link to this definition">¶</a></dt>
+<dd><p>Parameter sweep_time_auto</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.sweep_type">
+<span class="sig-name descname"><span class="pre">sweep_type</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">&quot;sweep_type&quot;,</span> <span class="pre">label=&quot;Type&quot;,</span> <span class="pre">get_cmd=&quot;SENS:SWE:TYPE?&quot;,</span> <span class="pre">set_cmd=&quot;SENS:SWE:TYPE</span> <span class="pre">{}&quot;,</span> <span class="pre">vals=Enum(&quot;LIN&quot;,</span> <span class="pre">&quot;LOG&quot;,</span> <span class="pre">&quot;POW&quot;,</span> <span class="pre">&quot;CW&quot;,</span> <span class="pre">&quot;SEGM&quot;),</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.sweep_type" title="Link to this definition">¶</a></dt>
+<dd><p>Parameter sweep_type</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.trigger_slope">
+<span class="sig-name descname"><span class="pre">trigger_slope</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">&quot;trigger_slope&quot;,</span> <span class="pre">label=&quot;Trigger</span> <span class="pre">Slope&quot;,</span> <span class="pre">get_cmd=&quot;TRIG:SLOP?&quot;,</span> <span class="pre">set_cmd=&quot;TRIG:SLOP</span> <span class="pre">{}&quot;,</span> <span class="pre">vals=Enum(&quot;POS&quot;,</span> <span class="pre">&quot;NEG&quot;),</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.trigger_slope" title="Link to this definition">¶</a></dt>
+<dd><p>Trigger Slope</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.trigger_source">
+<span class="sig-name descname"><span class="pre">trigger_source</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">&quot;trigger_source&quot;,</span> <span class="pre">label=&quot;Trigger</span> <span class="pre">Source&quot;,</span> <span class="pre">get_cmd=&quot;TRIG:SOUR?&quot;,</span> <span class="pre">set_cmd=&quot;TRIG:SOUR</span> <span class="pre">{}&quot;,</span> <span class="pre">vals=Enum(&quot;EXT&quot;,</span> <span class="pre">&quot;IMM&quot;,</span> <span class="pre">&quot;MAN&quot;),</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.trigger_source" title="Link to this definition">¶</a></dt>
+<dd><p>Trigger Source</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.trigger_type">
+<span class="sig-name descname"><span class="pre">trigger_type</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">&quot;trigger_type&quot;,</span> <span class="pre">label=&quot;Trigger</span> <span class="pre">Type&quot;,</span> <span class="pre">get_cmd=&quot;TRIG:TYPE?&quot;,</span> <span class="pre">set_cmd=&quot;TRIG:TYPE</span> <span class="pre">{}&quot;,</span> <span class="pre">vals=Enum(&quot;EDGE&quot;,</span> <span class="pre">&quot;LEV&quot;),</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.trigger_type" title="Link to this definition">¶</a></dt>
+<dd><p>Trigger Type</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-qcodes_contrib_drivers.drivers.Keysight.Keysight_E8267D">
+<span id="qcodes-contrib-drivers-drivers-keysight-keysight-e8267d-module"></span><h2>qcodes_contrib_drivers.drivers.Keysight.Keysight_E8267D module<a class="headerlink" href="#module-qcodes_contrib_drivers.drivers.Keysight.Keysight_E8267D" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Keysight.Keysight_E8267D.Keysight_E8267D">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.Keysight.Keysight_E8267D.</span></span><span class="sig-name descname"><span class="pre">Keysight_E8267D</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Keysight/Keysight_E8267D.html#Keysight_E8267D"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E8267D.Keysight_E8267D" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://microsoft.github.io/Qcodes/api/instrument/index.html#qcodes.instrument.VisaInstrument" title="(in QCoDeS v0.56.0.dev2+main.g6997e905c)"><code class="xref py py-class docutils literal notranslate"><span class="pre">VisaInstrument</span></code></a></p>
+<p>This is the qcodes driver for the Keysight_E8267D signal generator</p>
+<dl class="simple">
+<dt>Status: beta-version.</dt><dd><p>TODO:
+- Add all parameters that are in the manual</p>
+</dd>
+</dl>
+<p>This driver will most likely work for multiple Agilent sources.</p>
+<p>This driver does not contain all commands available for the E8527D but only
+the ones most commonly used.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Keysight.Keysight_E8267D.Keysight_E8267D.deg_to_rad">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">deg_to_rad</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">angle_deg</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Keysight/Keysight_E8267D.html#Keysight_E8267D.deg_to_rad"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E8267D.Keysight_E8267D.deg_to_rad" title="Link to this definition">¶</a></dt>
+<dd><p>Convert degrees to radians.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Keysight.Keysight_E8267D.Keysight_E8267D.rad_to_deg">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">rad_to_deg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">angle_rad</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Keysight/Keysight_E8267D.html#Keysight_E8267D.rad_to_deg"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E8267D.Keysight_E8267D.rad_to_deg" title="Link to this definition">¶</a></dt>
+<dd><p>Convert radians to degrees.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Keysight.Keysight_E8267D.Keysight_E8267D.off">
+<span class="sig-name descname"><span class="pre">off</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Keysight/Keysight_E8267D.html#Keysight_E8267D.off"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E8267D.Keysight_E8267D.off" title="Link to this definition">¶</a></dt>
+<dd><p>Turn the RF output off.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Keysight.Keysight_E8267D.Keysight_E8267D.on">
+<span class="sig-name descname"><span class="pre">on</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Keysight/Keysight_E8267D.html#Keysight_E8267D.on"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E8267D.Keysight_E8267D.on" title="Link to this definition">¶</a></dt>
+<dd><p>Turn the RF output on.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-qcodes_contrib_drivers.drivers.Keysight.Keysight_J7211">
+<span id="qcodes-contrib-drivers-drivers-keysight-keysight-j7211-module"></span><h2>qcodes_contrib_drivers.drivers.Keysight.Keysight_J7211 module<a class="headerlink" href="#module-qcodes_contrib_drivers.drivers.Keysight.Keysight_J7211" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Keysight.Keysight_J7211.Keysight_J7211">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.Keysight.Keysight_J7211.</span></span><span class="sig-name descname"><span class="pre">Keysight_J7211</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Keysight/Keysight_J7211.html#Keysight_J7211"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_J7211.Keysight_J7211" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://microsoft.github.io/Qcodes/api/instrument/index.html#qcodes.instrument.VisaInstrument" title="(in QCoDeS v0.56.0.dev2+main.g6997e905c)"><code class="xref py py-class docutils literal notranslate"><span class="pre">VisaInstrument</span></code></a></p>
+<p>Qcodes driver for the Keysight J7211 Attenuation Control Unit.
+Tested with J7211B.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> – Instrument name</p></li>
+<li><p><strong>address</strong> – Address or VISA alias of instrument</p></li>
+<li><p><strong>attenuation</strong> – Optional attenuation level (in dB) to set on startup</p></li>
+<li><p><strong>terminator</strong> – Termination character in VISA communication.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-qcodes_contrib_drivers.drivers.Keysight.Keysight_M3201A">
+<span id="qcodes-contrib-drivers-drivers-keysight-keysight-m3201a-module"></span><h2>qcodes_contrib_drivers.drivers.Keysight.Keysight_M3201A module<a class="headerlink" href="#module-qcodes_contrib_drivers.drivers.Keysight.Keysight_M3201A" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Keysight.Keysight_M3201A.Keysight_M3201A">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.Keysight.Keysight_M3201A.</span></span><span class="sig-name descname"><span class="pre">Keysight_M3201A</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Keysight/Keysight_M3201A.html#Keysight_M3201A"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_M3201A.Keysight_M3201A" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG.SD_AWG" title="qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG.SD_AWG"><code class="xref py py-class docutils literal notranslate"><span class="pre">SD_AWG</span></code></a></p>
+<p>This is the qcodes driver for the Keysight M3201A AWG PXIe card</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – name for this instrument, passed to the base instrument</p></li>
+<li><p><strong>chassis</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – chassis number where the device is located</p></li>
+<li><p><strong>slot</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – slot number where the device is plugged in</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-qcodes_contrib_drivers.drivers.Keysight.Keysight_M3300A">
+<span id="qcodes-contrib-drivers-drivers-keysight-keysight-m3300a-module"></span><h2>qcodes_contrib_drivers.drivers.Keysight.Keysight_M3300A module<a class="headerlink" href="#module-qcodes_contrib_drivers.drivers.Keysight.Keysight_M3300A" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Keysight.Keysight_M3300A.M3300A_AWG">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.Keysight.Keysight_M3300A.</span></span><span class="sig-name descname"><span class="pre">M3300A_AWG</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Keysight/Keysight_M3300A.html#M3300A_AWG"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_M3300A.M3300A_AWG" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG.SD_AWG" title="qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG.SD_AWG"><code class="xref py py-class docutils literal notranslate"><span class="pre">SD_AWG</span></code></a></p>
+<p>Driver for the AWG of the Keysight M3300A card.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – name for this instrument, passed to the base instrument</p></li>
+<li><p><strong>chassis</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – chassis number where the device is located</p></li>
+<li><p><strong>slot</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – slot number where the device is plugged in</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<p>AWG = AWG(‘M3300A’)</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Keysight.Keysight_M3300A.M3300A_DIG">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.Keysight.Keysight_M3300A.</span></span><span class="sig-name descname"><span class="pre">M3300A_DIG</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Keysight/Keysight_M3300A.html#M3300A_DIG"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_M3300A.M3300A_DIG" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG" title="qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_DIG.SD_DIG"><code class="xref py py-class docutils literal notranslate"><span class="pre">SD_DIG</span></code></a></p>
+<p>Driver for the digitizer of the keysight M3300A card.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – name for this instrument, passed to the base instrument</p></li>
+<li><p><strong>chassis</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – chassis number where the device is located</p></li>
+<li><p><strong>slot</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – slot number where the device is plugged in</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<p>DIG  = DIG(‘M3300A’)</p>
+</dd></dl>
+
+</section>
+<section id="module-qcodes_contrib_drivers.drivers.Keysight.M3202A">
+<span id="qcodes-contrib-drivers-drivers-keysight-m3202a-module"></span><h2>qcodes_contrib_drivers.drivers.Keysight.M3202A module<a class="headerlink" href="#module-qcodes_contrib_drivers.drivers.Keysight.M3202A" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Keysight.M3202A.M3202A">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.Keysight.M3202A.</span></span><span class="sig-name descname"><span class="pre">M3202A</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Keysight/M3202A.html#M3202A"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Keysight.M3202A.M3202A" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html#qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG_Async.SD_AWG_Async" title="qcodes_contrib_drivers.drivers.Keysight.SD_common.SD_AWG_Async.SD_AWG_Async"><code class="xref py py-class docutils literal notranslate"><span class="pre">SD_AWG_Async</span></code></a></p>
+<p>qcodes driver for the Keysight M3202A AWG PXIe card.</p>
+<p>M3202A channel numbers start with 1.</p>
+<p>This driver is derived from SD_AWG_Async which uses a thread per module to
+upload waveforms concurrently. The sychronous methods like load_waveform are
+not available in this class.</p>
+<p class="rubric">Example</p>
+<p>awg1 = M3202A(‘awg1’, 0, 2)
+ref_1 = awg1.upload_waveform(wave1)</p>
+<p>trigger_mode = keysightSD1.SD_TriggerModes.EXTTRIG
+awg1.awg_queue_waveform(1, ref_1, trigger_mode, 0, 1, 0)</p>
+<p>If you want to test M3202A based on the synchronous SD_AWG, then you can
+instantiate SD_AWG directly.
+.. rubric:: Example</p>
+<dl class="simple">
+<dt>m3202a_sync = SD_AWG(name, chassis, slot, channels=4, triggers=8,</dt><dd><p>legacy_channel_numbering=False)</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> – name for this instrument, passed to the base instrument</p></li>
+<li><p><strong>chassis</strong> – chassis number where the device is located</p></li>
+<li><p><strong>slot</strong> – slot number where the device is plugged in</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-qcodes_contrib_drivers.drivers.Keysight">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-qcodes_contrib_drivers.drivers.Keysight" title="Link to this heading">¶</a></h2>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">qcodes_contrib_drivers.drivers.Keysight.SD_common package</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="qcodes_contrib_drivers.drivers.Horiba.private.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">qcodes_contrib_drivers.drivers.Horiba.private package</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2019, QCoDeS Users
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">qcodes_contrib_drivers.drivers.Keysight package</a><ul>
+<li><a class="reference internal" href="#subpackages">Subpackages</a></li>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-qcodes_contrib_drivers.drivers.Keysight.Keysight_E36313A">qcodes_contrib_drivers.drivers.Keysight.Keysight_E36313A module</a><ul>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E36313A.E36313A"><code class="docutils literal notranslate"><span class="pre">E36313A</span></code></a><ul>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E36313A.E36313A.get_idn"><code class="docutils literal notranslate"><span class="pre">E36313A.get_idn()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E36313A.E36313AChannel"><code class="docutils literal notranslate"><span class="pre">E36313AChannel</span></code></a><ul>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E36313A.E36313AChannel.__init__"><code class="docutils literal notranslate"><span class="pre">E36313AChannel.__init__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B">qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B module</a><ul>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B"><code class="docutils literal notranslate"><span class="pre">KeySight_E5080B</span></code></a><ul>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.get_data"><code class="docutils literal notranslate"><span class="pre">KeySight_E5080B.get_data()</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.get_frequencies"><code class="docutils literal notranslate"><span class="pre">KeySight_E5080B.get_frequencies()</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.accept_trigger_before_armed"><code class="docutils literal notranslate"><span class="pre">KeySight_E5080B.accept_trigger_before_armed</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.averages_count"><code class="docutils literal notranslate"><span class="pre">KeySight_E5080B.averages_count</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.averages_enabled"><code class="docutils literal notranslate"><span class="pre">KeySight_E5080B.averages_enabled</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.averages_mode"><code class="docutils literal notranslate"><span class="pre">KeySight_E5080B.averages_mode</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.center_freq"><code class="docutils literal notranslate"><span class="pre">KeySight_E5080B.center_freq</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.cw"><code class="docutils literal notranslate"><span class="pre">KeySight_E5080B.cw</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.format_border"><code class="docutils literal notranslate"><span class="pre">KeySight_E5080B.format_border</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.format_data"><code class="docutils literal notranslate"><span class="pre">KeySight_E5080B.format_data</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.if_bandwidth"><code class="docutils literal notranslate"><span class="pre">KeySight_E5080B.if_bandwidth</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.operation_status"><code class="docutils literal notranslate"><span class="pre">KeySight_E5080B.operation_status</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.points"><code class="docutils literal notranslate"><span class="pre">KeySight_E5080B.points</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.rf_on"><code class="docutils literal notranslate"><span class="pre">KeySight_E5080B.rf_on</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.scattering_parameter"><code class="docutils literal notranslate"><span class="pre">KeySight_E5080B.scattering_parameter</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.source_power"><code class="docutils literal notranslate"><span class="pre">KeySight_E5080B.source_power</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.span"><code class="docutils literal notranslate"><span class="pre">KeySight_E5080B.span</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.start_freq"><code class="docutils literal notranslate"><span class="pre">KeySight_E5080B.start_freq</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.stop_freq"><code class="docutils literal notranslate"><span class="pre">KeySight_E5080B.stop_freq</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.sweep_group_count"><code class="docutils literal notranslate"><span class="pre">KeySight_E5080B.sweep_group_count</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.sweep_mode"><code class="docutils literal notranslate"><span class="pre">KeySight_E5080B.sweep_mode</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.sweep_time"><code class="docutils literal notranslate"><span class="pre">KeySight_E5080B.sweep_time</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.sweep_time_auto"><code class="docutils literal notranslate"><span class="pre">KeySight_E5080B.sweep_time_auto</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.sweep_type"><code class="docutils literal notranslate"><span class="pre">KeySight_E5080B.sweep_type</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.trigger_slope"><code class="docutils literal notranslate"><span class="pre">KeySight_E5080B.trigger_slope</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.trigger_source"><code class="docutils literal notranslate"><span class="pre">KeySight_E5080B.trigger_source</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E5080B.KeySight_E5080B.trigger_type"><code class="docutils literal notranslate"><span class="pre">KeySight_E5080B.trigger_type</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-qcodes_contrib_drivers.drivers.Keysight.Keysight_E8267D">qcodes_contrib_drivers.drivers.Keysight.Keysight_E8267D module</a><ul>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E8267D.Keysight_E8267D"><code class="docutils literal notranslate"><span class="pre">Keysight_E8267D</span></code></a><ul>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E8267D.Keysight_E8267D.deg_to_rad"><code class="docutils literal notranslate"><span class="pre">Keysight_E8267D.deg_to_rad()</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E8267D.Keysight_E8267D.rad_to_deg"><code class="docutils literal notranslate"><span class="pre">Keysight_E8267D.rad_to_deg()</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E8267D.Keysight_E8267D.off"><code class="docutils literal notranslate"><span class="pre">Keysight_E8267D.off()</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_E8267D.Keysight_E8267D.on"><code class="docutils literal notranslate"><span class="pre">Keysight_E8267D.on()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-qcodes_contrib_drivers.drivers.Keysight.Keysight_J7211">qcodes_contrib_drivers.drivers.Keysight.Keysight_J7211 module</a><ul>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_J7211.Keysight_J7211"><code class="docutils literal notranslate"><span class="pre">Keysight_J7211</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-qcodes_contrib_drivers.drivers.Keysight.Keysight_M3201A">qcodes_contrib_drivers.drivers.Keysight.Keysight_M3201A module</a><ul>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_M3201A.Keysight_M3201A"><code class="docutils literal notranslate"><span class="pre">Keysight_M3201A</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-qcodes_contrib_drivers.drivers.Keysight.Keysight_M3300A">qcodes_contrib_drivers.drivers.Keysight.Keysight_M3300A module</a><ul>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_M3300A.M3300A_AWG"><code class="docutils literal notranslate"><span class="pre">M3300A_AWG</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Keysight.Keysight_M3300A.M3300A_DIG"><code class="docutils literal notranslate"><span class="pre">M3300A_DIG</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-qcodes_contrib_drivers.drivers.Keysight.M3202A">qcodes_contrib_drivers.drivers.Keysight.M3202A module</a><ul>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Keysight.M3202A.M3202A"><code class="docutils literal notranslate"><span class="pre">M3202A</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-qcodes_contrib_drivers.drivers.Keysight">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../../_static/documentation_options.js?v=0ec1ef52"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/scripts/furo.js?v=46bd48cc"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    </body>
+</html>

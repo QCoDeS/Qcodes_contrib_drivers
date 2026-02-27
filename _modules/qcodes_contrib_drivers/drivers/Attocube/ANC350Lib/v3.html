@@ -1,0 +1,1710 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../../../../../">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../../../genindex.html"><link rel="search" title="Search" href="../../../../../search.html">
+
+    <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
+        <title>qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.v3 - qcodes_contrib_drivers 0.25.0.dev118+main.g2747e26 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #eeffcc;
+  --color-code-foreground: black;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../../../../../index.html"><div class="brand">qcodes_contrib_drivers 0.25.0.dev118+main.g2747e26 documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../../../../../index.html">
+  
+  <span class="sidebar-brand-text">qcodes_contrib_drivers 0.25.0.dev118+main.g2747e26 documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../../../../../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../../../examples/index.html">Examples of how to use drivers</a><input aria-label="Toggle navigation of Examples of how to use drivers" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/Agilent_N9000A.html">Example with the Agilent N9000A</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/AimTTi_EL320P.html">Example notebook for AimTTi EL320P</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/Andor_DU401.html">Qcodes example with Andor DU401 BU2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/Andor_iDus4xx.html">Qcodes example with Andor iDus416</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/Attocube_ANC300.html">QCoDeS example with Attocube ANC300</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/Aviosys_IP_Power_9258S.html">Qcodes example with Aviosys IP Power 9258S</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/BlueFors.html">Example with the BlueFors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/CopperMountain_M5180.html">Example with CopperMountain Model M5180 vector network analyzer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/CopperMountain_M5180.html#Setup-db-and-station-for-test-measurerment">Setup db and station for test measurerment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/CopperMountain_M5180.html#Look-at-the-names-and-the-labels-of-the-Sxx-parameters">Look at the names and the labels of the Sxx parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/ERASynth.html">Example with ERASynth</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/Gentec_Maestro.html">QCoDeS Example with Gentec Maestro</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/Holzworth_HS900.html">Example notebook for the Holzworth HS900B RF synthesizer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/Horiba_FHR.html">Example for Horiba FHR</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/ITest.html">Example with the iTest from Bilt</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/Keithley_6430.html">Example notebook for Keithley 6430 SMU</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/Keithley_6430.html#Measure-resistance-of-a-~100k\Omega-resistor">Measure resistance of a ~100k<span class="math notranslate nohighlight">\(\Omega\)</span> resistor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/Keysight_M3202A.html">Keysight M3202A AWG</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/Keysight_M3202A%20with%20digitizer.html">Keysight M3202A AWG example with digitizer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/Lakeshore_311.html">Qcodes example with Lakeshore 311</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/Lakeshore_625.html">Example with Lakeshore Model 625 Superconducting Magnet power supply</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/Lakeshore_M81_SSM_Example.html">Connect to M81</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/NanoVNA_H4.html">QCoDeS example with NanoVNA H4</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/NationalInstruments_DAQ.html">National Instruments Multifunction DAQ example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/NationalInstruments_PXIe_2597.html">Qcodes example for National Instruments PXIe-2597 RF Switch</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/NationalInstruments_RFSG.html">Qcodes example with the NI RFSG signal generator driver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/Newport_AG-UC8.html">QCoDeS Example with Newport AG-UC8 Piezo Motion Controller</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/OxfordInstruments_Proteox.html">Proteox system integration with QCoDeS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/OxfordTriton.html">Example of the oxford triton driver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/Rigol_DSG3136B.html">QCoDeS example with Rigol DSG3136B</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/Rohde_Schwarz_HMC8043.html">QCoDeS Example with R&amp;S HMC 8043 Power Supply</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/Rohde_Schwarz_HMP4040.html">QCoDeS Example with R&amp;S HMP4040 Power Supply</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/Rohde_Schwarz_SMW200A.html">QCoDeS example with Rohe&amp;Schwarz SMW200A</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/SR844.html">Changing the Sensitivity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/SR844.html#Preparing-for-reading-the-buffer-and-measurement">Preparing for reading the buffer and measurement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/Shamrock_SR750.html">Qcodes example with Shamrock SR750</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/SignalCore.html">Example with the microwave source SC5521A from Signal Core</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/SignalCore.html#Device-connection">Device connection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/SignalCore.html#Set-parameters">Set parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/SignalRecovery_7270.html">Example of Signal Recovery 7270 driver usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/SingleQuantum.html">Example for Single Quantum SNSPD</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/Specs_Tramea.html">NANONIS TRAMEA EXAMPLES</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/Standa_10MWA168.html">Qcodes example with Standa 10MWA168</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/SwabianInstruments_TimeTagger.html">Qcodes example with Swabian Instruments Time Tagger</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/Tektronix_AFG3000_series.html">Tektronix AFG3000 series arbitrary function generator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/Tektronix_FCA3100.html">overview over all parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/Tektronix_FCA3100.html#Usage-of-the-two-main-parameters">Usage of the two main parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/Tektronix_Keithley_2182A.html">Keithley 2182A Nanovoltmeter - Basic Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/Tektronix_Keithley_6500.html">QCoDeS Example with Tektronix Keithley Digital Multimeter DMM6500</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/Thorlabs_K10CR1.html">Qcodes example with Thorlabs K10CR1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/Thorlabs_KLS1550.html">QCoDeS example with Thorlabs KLS1550 laser source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/Thorlabs_MFF10x.html">Qcodes example with Thorlabs MFF10x</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/Thorlabs_PRM1Z8.html">Qcodes example with Thorlabs PRM1Z8</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/Valon_5015.html">QCoDeS example with Valon 5015</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/Vaunix_LDA.html">Qcodes example for Vaunix LDA step attenuator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/Vaunix_LDA.html#Model-with-many-channels">Model with many channels</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/Windfreak_SynthUSB3.html">QCoDeS example with Windfreak SynthUSB3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/ZVL13.html">Rohde &amp; Schwarz ZVL13 Vector Network Analyzer example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/ZVL13.html#Parameters-definition">Parameters definition</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/ZurichInstruments_HF2LI.html">Zurich Instruments HF2LI example</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../../../examples/QDevil/index.html">QDevil drivers</a><input aria-label="Toggle navigation of QDevil drivers" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../../../examples/QDevil/QDAC1/index.html">QCoDeS examples of how to use QDAC-I</a><input aria-label="Toggle navigation of QCoDeS examples of how to use QDAC-I" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../../../examples/QDevil/QDAC1/QCodes%20example%20with%20QDevil_QDAC.html">QCoDeS Example with QDevil_QDAC</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../../../examples/QDevil/QDAC2/index.html">QCoDeS examples of how to use QDAC-II</a><input aria-label="Toggle navigation of QCoDeS examples of how to use QDAC-II" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../../../examples/QDevil/QDAC2/AWG.html">QDAC-II arbitrary-waveform generator</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../../examples/QDevil/QDAC2/Chaining.html">QDAC-II trigger chaining</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../../examples/QDevil/QDAC2/DC_Constant.html">QDAC-II constant voltage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../../examples/QDevil/QDAC2/Debugging.html">QDAC-II debugging</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../../examples/QDevil/QDAC2/GateLeakage.html">Gate Leakage Test</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../../examples/QDevil/QDAC2/GateLeakageMultipleQDACs.html">Gate Leakage using multiple QDAC-IIs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../../examples/QDevil/QDAC2/List.html">QDAC-II voltage lists</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../../examples/QDevil/QDAC2/MultiGenerator.html">QDAC-II multiple generators per channel</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../../examples/QDevil/QDAC2/PyvisaAwg.html">PyVisa direct use of QDAC-II</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../../examples/QDevil/QDAC2/Scan.html">QDAC-II 1D &amp; 2D scan</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../../examples/QDevil/QDAC2/Scan2DDiode.html">QDAC-II 2D diode scan</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../../examples/QDevil/QDAC2/Sine.html">QDAC-II sine waves</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../../examples/QDevil/QDAC2/Square.html">QDAC-II square waves</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../../examples/QDevil/QDAC2/Sweep.html">QDAC-II voltage sweep</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../../examples/QDevil/QDAC2/SyncMultipleQDACs.html">Synchronise multiple QDAC-IIs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../../examples/QDevil/QDAC2/Triangle.html">QDAC-II triangle waves</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../../examples/QDevil/QDAC2/VirtualGates.html">QDAC-II virtual gates</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../../examples/QDevil/QDAC2/do2dScan.html">QDAC-II 2D diode scan</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../../../examples/QDevil/QSwitch/index.html">QCoDeS examples of how to use QSwitch</a><input aria-label="Toggle navigation of QCoDeS examples of how to use QSwitch" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../../../examples/QDevil/QSwitch/Debugging.html">QSwitch debugging</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../../examples/QDevil/QSwitch/Usage.html">QSwitch usage</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/HP/HP8594E.html">QCoDeS Example with HP8594E</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/Cryomagnetics/LM_500.html">Example for Cyromagnetics Model LM-500 Helium Level meter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/Cryomagnetics/LM_500.html#Import-qcodes_contrib_drivers-LM_500-driver">Import qcodes_contrib_drivers LM_500 driver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/Cryomagnetics/LM_500.html#Connect-to-the-instrument---this-case-GPIB">Connect to the instrument - this case GPIB</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/Cryomagnetics/Model_4G.html">Example for Cyromagnetics Model 4G magnet power supply</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/Cryomagnetics/Model_4G.html#Import-qcodes_contrib_drivers-Model_4G-driver">Import qcodes_contrib_drivers Model_4G driver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/OxfordInstruments/ITC_503.html">Example for Oxford Instruments Intelligent Temperature Controller Model 503</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/OxfordInstruments/ITC_503.html#Import-qcodes_contrib_drivers-ITC503-driver">Import qcodes_contrib_drivers ITC503 driver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../examples/OxfordInstruments/ITC_503.html#Connect-to-the-instrument---this-case-GPIB">Connect to the instrument - this case GPIB</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a><input aria-label="Toggle navigation of qcodes_contrib_drivers.drivers package" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Advantech.html">qcodes_contrib_drivers.drivers.Advantech package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Agilent.html">qcodes_contrib_drivers.drivers.Agilent package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.AimTTi.html">qcodes_contrib_drivers.drivers.AimTTi package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Ametek.html">qcodes_contrib_drivers.drivers.Ametek package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Andor.html">qcodes_contrib_drivers.drivers.Andor package</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.html">qcodes_contrib_drivers.drivers.Attocube package</a><input aria-label="Toggle navigation of qcodes_contrib_drivers.drivers.Attocube package" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.html">qcodes_contrib_drivers.drivers.Attocube.ANC350Lib package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Aviosys.html">qcodes_contrib_drivers.drivers.Aviosys package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Bilt.html">qcodes_contrib_drivers.drivers.Bilt package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.BlueFors.html">qcodes_contrib_drivers.drivers.BlueFors package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.CopperMountain.html">qcodes_contrib_drivers.drivers.CopperMountain package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Cryocon.html">qcodes_contrib_drivers.drivers.Cryocon package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Cryogenic.html">qcodes_contrib_drivers.drivers.Cryogenic package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.DaylightSolutions.html">qcodes_contrib_drivers.drivers.DaylightSolutions package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.ERAInstruments.html">qcodes_contrib_drivers.drivers.ERAInstruments package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.GeneralMicrowave.html">qcodes_contrib_drivers.drivers.GeneralMicrowave package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Gentec.html">qcodes_contrib_drivers.drivers.Gentec package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Holzworth.html">qcodes_contrib_drivers.drivers.Holzworth package</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Horiba.html">qcodes_contrib_drivers.drivers.Horiba package</a><input aria-label="Toggle navigation of qcodes_contrib_drivers.drivers.Horiba package" class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Horiba.private.html">qcodes_contrib_drivers.drivers.Horiba.private package</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.html">qcodes_contrib_drivers.drivers.Keysight package</a><input aria-label="Toggle navigation of qcodes_contrib_drivers.drivers.Keysight package" class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html">qcodes_contrib_drivers.drivers.Keysight.SD_common package</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Lakeshore.html">qcodes_contrib_drivers.drivers.Lakeshore package</a><input aria-label="Toggle navigation of qcodes_contrib_drivers.drivers.Lakeshore package" class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Lakeshore.modules.html">qcodes_contrib_drivers.drivers.Lakeshore.modules package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.LighthousePhotonics.html">qcodes_contrib_drivers.drivers.LighthousePhotonics package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.M2.html">qcodes_contrib_drivers.drivers.M2 package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Minicircuits.html">qcodes_contrib_drivers.drivers.Minicircuits package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.MontanaInstruments.html">qcodes_contrib_drivers.drivers.MontanaInstruments package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.NanoVNA.html">qcodes_contrib_drivers.drivers.NanoVNA package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.NationalInstruments.html">qcodes_contrib_drivers.drivers.NationalInstruments package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Newport.html">qcodes_contrib_drivers.drivers.Newport package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.OxfordInstruments.html">qcodes_contrib_drivers.drivers.OxfordInstruments package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.QDevil.html">qcodes_contrib_drivers.drivers.QDevil package</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.QphoX.html">qcodes_contrib_drivers.drivers.QphoX package</a><input aria-label="Toggle navigation of qcodes_contrib_drivers.drivers.QphoX package" class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.QphoX.CryoSwitchController.html">qcodes_contrib_drivers.drivers.QphoX.CryoSwitchController package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.QuTech.html">qcodes_contrib_drivers.drivers.QuTech package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.QuantumDesign.html">qcodes_contrib_drivers.drivers.QuantumDesign package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Rigol.html">qcodes_contrib_drivers.drivers.Rigol package</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.RohdeSchwarz.html">qcodes_contrib_drivers.drivers.RohdeSchwarz package</a><input aria-label="Toggle navigation of qcodes_contrib_drivers.drivers.RohdeSchwarz package" class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" role="switch" type="checkbox"/><label for="toctree-checkbox-12"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.RohdeSchwarz.private.html">qcodes_contrib_drivers.drivers.RohdeSchwarz.private package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.SPECS.html">qcodes_contrib_drivers.drivers.SPECS package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Shamrock.html">qcodes_contrib_drivers.drivers.Shamrock package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Siglent.html">qcodes_contrib_drivers.drivers.Siglent package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.SignalCore.html">qcodes_contrib_drivers.drivers.SignalCore package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.SingleQuantum.html">qcodes_contrib_drivers.drivers.SingleQuantum package</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Spectrum.html">qcodes_contrib_drivers.drivers.Spectrum package</a><input aria-label="Toggle navigation of qcodes_contrib_drivers.drivers.Spectrum package" class="toctree-checkbox" id="toctree-checkbox-13" name="toctree-checkbox-13" role="switch" type="checkbox"/><label for="toctree-checkbox-13"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Spectrum.py_header.html">qcodes_contrib_drivers.drivers.Spectrum.py_header package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Standa.html">qcodes_contrib_drivers.drivers.Standa package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.StanfordResearchSystems.html">qcodes_contrib_drivers.drivers.StanfordResearchSystems package</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.SwabianInstruments.html">qcodes_contrib_drivers.drivers.SwabianInstruments package</a><input aria-label="Toggle navigation of qcodes_contrib_drivers.drivers.SwabianInstruments package" class="toctree-checkbox" id="toctree-checkbox-14" name="toctree-checkbox-14" role="switch" type="checkbox"/><label for="toctree-checkbox-14"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.SwabianInstruments.private.html">qcodes_contrib_drivers.drivers.SwabianInstruments.private package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Tektronix.html">qcodes_contrib_drivers.drivers.Tektronix package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Thermotek.html">qcodes_contrib_drivers.drivers.Thermotek package</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Thorlabs.html">qcodes_contrib_drivers.drivers.Thorlabs package</a><input aria-label="Toggle navigation of qcodes_contrib_drivers.drivers.Thorlabs package" class="toctree-checkbox" id="toctree-checkbox-15" name="toctree-checkbox-15" role="switch" type="checkbox"/><label for="toctree-checkbox-15"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Thorlabs.private.html">qcodes_contrib_drivers.drivers.Thorlabs.private package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Valon.html">qcodes_contrib_drivers.drivers.Valon package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Vaunix.html">qcodes_contrib_drivers.drivers.Vaunix package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Windfreak.html">qcodes_contrib_drivers.drivers.Windfreak package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.ZurichInstruments.html">qcodes_contrib_drivers.drivers.ZurichInstruments package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.physik_instrumente.html">qcodes_contrib_drivers.drivers.physik_instrumente package</a></li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <h1>Source code for qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.v3</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;ANC350v3Lib is a Python wrapper for the C++ library of the Attocube ANC350 driver (version 3)</span>
+
+<span class="sd">It depends on anc350v3.dll (and libusb0.dll) which are provided by Attocube on the installation</span>
+<span class="sd">disc. You can find the dll files for 32-bit and 64-bit in folder ANC350_Library.</span>
+<span class="sd">Please the dlls into the working directory or specify the path when instantiating the ANC350v3Lib.</span>
+
+<span class="sd">Author:</span>
+<span class="sd">    Lukas Lankes, Forschungszentrum Jülich GmbH / ZEA-2, l.lankes@fz-juelich.de</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">ctypes</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">ctypes.util</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ctypes</span><span class="w"> </span><span class="kn">import</span> <span class="n">c_int8</span><span class="p">,</span> <span class="n">c_int32</span><span class="p">,</span> <span class="n">c_uint32</span><span class="p">,</span> <span class="n">c_double</span><span class="p">,</span> <span class="n">c_void_p</span><span class="p">,</span> <span class="n">byref</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ctypes</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_string_buffer</span> <span class="k">as</span> <span class="n">c_string</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">locale</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.interface</span><span class="w"> </span><span class="kn">import</span> <span class="n">ANC350LibError</span><span class="p">,</span> <span class="n">ANC350LibDeviceType</span><span class="p">,</span> <span class="n">ANC350LibExternalTriggerMode</span><span class="p">,</span> \
+    <span class="n">ANC350LibTriggerPolarity</span><span class="p">,</span> <span class="n">ANC350LibActuatorType</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;ANC350v3Lib&quot;</span><span class="p">,</span> <span class="s2">&quot;ANC350v3LibError&quot;</span><span class="p">,</span> <span class="s2">&quot;ANC350LibError&quot;</span><span class="p">,</span> <span class="s2">&quot;ANC350LibDeviceType&quot;</span><span class="p">,</span>
+           <span class="s2">&quot;ANC350LibExternalTriggerMode&quot;</span><span class="p">,</span> <span class="s2">&quot;ANC350LibTriggerPolarity&quot;</span><span class="p">,</span> <span class="s2">&quot;ANC350LibActuatorType&quot;</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="ANC350v3LibError">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.html#qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.v3.ANC350v3LibError">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ANC350v3LibError</span><span class="p">(</span><span class="n">ANC350LibError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Exception class for errors occurring in ``ANC350v3Lib`` and ``ANC350v4Lib``</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        message: Error message</span>
+<span class="sd">        code: Error code from dll (or None)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ANC350v3LibError.__init__">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.html#qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.v3.ANC350v3LibError.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">code</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create instance of ``ANC350v3LibError``</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            message: Error message</span>
+<span class="sd">            code: Error code from dll</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">code</span><span class="p">)</span></div>
+
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_message_for_code</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">code</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Override this function to convert return codes into error messages</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            code: Occurred error code</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Corresponding error message for code</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">messages</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="o">-</span><span class="mi">1</span><span class="p">:</span> <span class="s2">&quot;Unspecified error&quot;</span><span class="p">,</span>
+            <span class="mi">0</span><span class="p">:</span> <span class="s2">&quot;Success&quot;</span><span class="p">,</span>
+            <span class="mi">1</span><span class="p">:</span> <span class="s2">&quot;Communication timeout&quot;</span><span class="p">,</span>
+            <span class="mi">2</span><span class="p">:</span> <span class="s2">&quot;Not connected&quot;</span><span class="p">,</span>
+            <span class="mi">3</span><span class="p">:</span> <span class="s2">&quot;Driver error&quot;</span><span class="p">,</span>
+            <span class="mi">7</span><span class="p">:</span> <span class="s2">&quot;Device locked&quot;</span><span class="p">,</span>
+            <span class="mi">8</span><span class="p">:</span> <span class="s2">&quot;Unknown error&quot;</span><span class="p">,</span>
+            <span class="mi">9</span><span class="p">:</span> <span class="s2">&quot;Invalid device number&quot;</span><span class="p">,</span>
+            <span class="mi">10</span><span class="p">:</span> <span class="s2">&quot;Invalid axis number&quot;</span><span class="p">,</span>
+            <span class="mi">11</span><span class="p">:</span> <span class="s2">&quot;Parameter out of range&quot;</span><span class="p">,</span>
+            <span class="mi">12</span><span class="p">:</span> <span class="s2">&quot;Function not available&quot;</span><span class="p">,</span>
+            <span class="mi">13</span><span class="p">:</span> <span class="s2">&quot;Can&#39;t open or parse file&quot;</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="n">messages</span><span class="p">[</span><span class="n">code</span><span class="p">]</span> <span class="k">if</span> <span class="n">code</span> <span class="ow">in</span> <span class="n">messages</span> <span class="k">else</span> <span class="kc">None</span></div>
+
+
+
+<div class="viewcode-block" id="ANC350v3Lib">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.html#qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.v3.ANC350v3Lib">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ANC350v3Lib</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A wrapper class for version 3 of the ANC350 driver anc350v3.dll</span>
+
+<span class="sd">    This class adapts all functions of anc350v3.dll and forwards its calls to the dll.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">DEFAULT_PATH_TO_DLL</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;anc350v3.dll&quot;</span>
+
+<div class="viewcode-block" id="ANC350v3Lib.__init__">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.html#qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.v3.ANC350v3Lib.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path_to_dll</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates an instance of the anc350v3.dll-wrapper</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            path_to_dll: Path to anc350v3.dll or None, if it&#39;s stored in the working directory</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">path_to_dll</span><span class="p">:</span>
+            <span class="n">path_to_dll</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">DEFAULT_PATH_TO_DLL</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span> <span class="o">!=</span> <span class="s1">&#39;win32&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_dll</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_encoding</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">raise</span> <span class="ne">OSError</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\&quot;</span><span class="s2">anc350v3.dll</span><span class="se">\&quot;</span><span class="s2"> is only compatible with Microsoft Windows&quot;</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_path_to_dll</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">find_library</span><span class="p">(</span><span class="n">path_to_dll</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">DEFAULT_PATH_TO_DLL</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_path_to_dll</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="s2">&quot;Could not find &quot;</span> <span class="o">+</span> <span class="n">path_to_dll</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_dll</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">windll</span><span class="o">.</span><span class="n">LoadLibrary</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_path_to_dll</span><span class="p">)</span>
+
+            <span class="c1"># String encoding</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_encoding</span> <span class="o">=</span> <span class="n">locale</span><span class="o">.</span><span class="n">getpreferredencoding</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ANC350v3LibError</span><span class="p">(</span><span class="s2">&quot;Error loading &quot;</span> <span class="o">+</span> <span class="n">path_to_dll</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span></div>
+
+
+<div class="viewcode-block" id="ANC350v3Lib.discover">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.html#qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.v3.ANC350v3Lib.discover">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">discover</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">search_usb</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">search_tcp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Discover Devices</span>
+
+<span class="sd">        The function searches for connected ANC350RES devices on USB and LAN and initializes</span>
+<span class="sd">        internal data structures per device. Devices that arwe in use by another application or PC</span>
+<span class="sd">        are not found. The function must be called before connecting to a device and must not be</span>
+<span class="sd">        called as long as any devices are connected.</span>
+
+<span class="sd">        The number of devices found is returned. In subsequent functions, devices are identified by</span>
+<span class="sd">        a sequence number that must be less than the number returned.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            search_usb: True (default) to search for USB devices; False otherwise</span>
+<span class="sd">            search_tcp: True (default) to search for TCP/IP devices; False otherwise</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Number of devices found</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ANC350LibError is raised, if the function call fails</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">interfaces</span> <span class="o">=</span> <span class="p">(</span><span class="mh">0x1</span> <span class="k">if</span> <span class="n">search_usb</span> <span class="k">else</span> <span class="mh">0x0</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="mh">0x2</span> <span class="k">if</span> <span class="n">search_tcp</span> <span class="k">else</span> <span class="mh">0x0</span><span class="p">)</span>
+        <span class="n">c_interfaces</span> <span class="o">=</span> <span class="n">c_int32</span><span class="p">(</span><span class="n">interfaces</span><span class="p">)</span>
+        <span class="n">c_dev_count</span> <span class="o">=</span> <span class="n">c_uint32</span><span class="p">()</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">return_code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dll</span><span class="o">.</span><span class="n">ANC_discover</span><span class="p">(</span><span class="n">c_interfaces</span><span class="p">,</span> <span class="n">byref</span><span class="p">(</span><span class="n">c_dev_count</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ANC350v3LibError</span><span class="p">(</span><span class="s2">&quot;Unexpected error in ANC_discover&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+        <span class="n">ANC350v3LibError</span><span class="o">.</span><span class="n">check_error</span><span class="p">(</span><span class="n">return_code</span><span class="p">,</span> <span class="s2">&quot;ANC_discover&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">c_dev_count</span><span class="o">.</span><span class="n">value</span></div>
+
+
+<div class="viewcode-block" id="ANC350v3Lib.get_device_info">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.html#qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.v3.ANC350v3Lib.get_device_info">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_device_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dev_no</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">ANC350LibDeviceType</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Device Information</span>
+
+<span class="sd">        Returns available information about a device. The function can not be called before</span>
+<span class="sd">        ``discover`` but the devices don&#39;t have to be connected with ``connect``. All Pointers to</span>
+<span class="sd">        output parameters may be zero to ignore the respective value.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dev_no: Sequence number of the device. Must be smaller than the return value from the</span>
+<span class="sd">                    last ``ANC_discover`` call (default: 0).</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A tuple containing the device&#39;s information:</span>
+<span class="sd">                0. dev_type: Type of the ANC350 device</span>
+<span class="sd">                1. id: Programmed hardware ID of the device</span>
+<span class="sd">                2. serial: The device&#39;s serial number</span>
+<span class="sd">                3. address: The device&#39;s interface address if applicable. Returns the IP address in</span>
+<span class="sd">                         dotted-decimal notation or the string &quot;USB&quot;, respectively</span>
+<span class="sd">                4. connected: True, if the device is already connected</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ANC350LibError is raised, if the function call fails</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">c_dev_no</span> <span class="o">=</span> <span class="n">c_uint32</span><span class="p">(</span><span class="n">dev_no</span><span class="p">)</span>
+        <span class="n">c_dev_type</span> <span class="o">=</span> <span class="n">c_int32</span><span class="p">()</span>
+        <span class="n">c_id</span> <span class="o">=</span> <span class="n">c_int8</span><span class="p">()</span>
+        <span class="n">c_serial</span> <span class="o">=</span> <span class="n">c_string</span><span class="p">(</span><span class="mi">16</span><span class="p">)</span>
+        <span class="n">c_address</span> <span class="o">=</span> <span class="n">c_string</span><span class="p">(</span><span class="mi">16</span><span class="p">)</span>
+        <span class="n">c_connected</span> <span class="o">=</span> <span class="n">c_int32</span><span class="p">()</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">return_code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dll</span><span class="o">.</span><span class="n">ANC_getDeviceInfo</span><span class="p">(</span><span class="n">c_dev_no</span><span class="p">,</span> <span class="n">byref</span><span class="p">(</span><span class="n">c_dev_type</span><span class="p">),</span> <span class="n">byref</span><span class="p">(</span><span class="n">c_id</span><span class="p">),</span>
+                                                      <span class="n">byref</span><span class="p">(</span><span class="n">c_serial</span><span class="p">),</span> <span class="n">byref</span><span class="p">(</span><span class="n">c_address</span><span class="p">),</span>
+                                                      <span class="n">byref</span><span class="p">(</span><span class="n">c_connected</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ANC350v3LibError</span><span class="p">(</span><span class="s2">&quot;Unexpected error in ANC_getDeviceInfo&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+        <span class="n">ANC350v3LibError</span><span class="o">.</span><span class="n">check_error</span><span class="p">(</span><span class="n">return_code</span><span class="p">,</span> <span class="s2">&quot;ANC_getDeviceInfo&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">ANC350LibDeviceType</span><span class="p">(</span><span class="n">c_dev_type</span><span class="o">.</span><span class="n">value</span><span class="p">),</span> <span class="n">c_id</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>\
+               <span class="n">c_serial</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_encoding</span><span class="p">),</span> <span class="n">c_address</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_encoding</span><span class="p">),</span>\
+               <span class="nb">bool</span><span class="p">(</span><span class="n">c_connected</span><span class="o">.</span><span class="n">value</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ANC350v3Lib.connect">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.html#qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.v3.ANC350v3Lib.connect">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">connect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dev_no</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">c_void_p</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Connect Device</span>
+
+<span class="sd">        Initializes and connects the selected device.</span>
+<span class="sd">        This has to be done before any access to control variables or measured data.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dev_no: Sequence number of the device. Must be smaller than the return value from the</span>
+<span class="sd">                    last ``discover`` call (default: 0).</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            device: Handle to the opened device; or None on error</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ANC350LibError is raised, if the function call fails</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">c_dev_no</span> <span class="o">=</span> <span class="n">c_uint32</span><span class="p">(</span><span class="n">dev_no</span><span class="p">)</span>
+        <span class="n">c_dev_handle</span> <span class="o">=</span> <span class="n">c_void_p</span><span class="p">()</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">return_code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dll</span><span class="o">.</span><span class="n">ANC_connect</span><span class="p">(</span><span class="n">c_dev_no</span><span class="p">,</span> <span class="n">byref</span><span class="p">(</span><span class="n">c_dev_handle</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ANC350v3LibError</span><span class="p">(</span><span class="s2">&quot;Unexpected error in ANC_connect&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+        <span class="n">ANC350v3LibError</span><span class="o">.</span><span class="n">check_error</span><span class="p">(</span><span class="n">return_code</span><span class="p">,</span> <span class="s2">&quot;ANC_connect&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">c_dev_handle</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ANC350v3LibError</span><span class="p">(</span><span class="s2">&quot;Received invalid handle from ANC_connect&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">c_dev_handle</span></div>
+
+
+<div class="viewcode-block" id="ANC350v3Lib.disconnect">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.html#qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.v3.ANC350v3Lib.disconnect">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">disconnect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dev_handle</span><span class="p">:</span> <span class="n">c_void_p</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Disconnect Device</span>
+
+<span class="sd">        Closes the connection to the device. The device handle becomes invalid.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dev_handle: Handle of the device to close</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ANC350LibError is raised, if the function call fails</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">return_code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dll</span><span class="o">.</span><span class="n">ANC_disconnect</span><span class="p">(</span><span class="n">dev_handle</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ANC350v3LibError</span><span class="p">(</span><span class="s2">&quot;Unexpected error in ANC_disconnect&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+        <span class="n">ANC350v3LibError</span><span class="o">.</span><span class="n">check_error</span><span class="p">(</span><span class="n">return_code</span><span class="p">,</span> <span class="s2">&quot;ANC_disconnect&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ANC350v3Lib.get_device_config">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.html#qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.v3.ANC350v3Lib.get_device_config">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_device_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dev_handle</span><span class="p">:</span> <span class="n">c_void_p</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Read Device Configuration</span>
+
+<span class="sd">        Reads static device configuration data</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dev_handle: Handle of the device to access</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A tuple containing which features of the device are enabled:</span>
+<span class="sd">                0. sync: Ethernet enabled (True) or disabled (False)</span>
+<span class="sd">                1. lockin: Low power loss measurement enabled (True) or disabled (False)</span>
+<span class="sd">                2. duty: Duty cycle enabled (True) or disabled (False)</span>
+<span class="sd">                3. app: Control by iOS app enabled (True) or disabled (False)</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ANC350LibError is raised, if the function call fails</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">c_features</span> <span class="o">=</span> <span class="n">c_uint32</span><span class="p">()</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">return_code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dll</span><span class="o">.</span><span class="n">ANC_getDeviceConfig</span><span class="p">(</span><span class="n">dev_handle</span><span class="p">,</span> <span class="n">byref</span><span class="p">(</span><span class="n">c_features</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ANC350v3LibError</span><span class="p">(</span><span class="s2">&quot;Unexpected error in ANC_getDeviceConfig&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+        <span class="n">ANC350v3LibError</span><span class="o">.</span><span class="n">check_error</span><span class="p">(</span><span class="n">return_code</span><span class="p">,</span> <span class="s2">&quot;ANC_getDeviceConfig&quot;</span><span class="p">)</span>
+
+        <span class="n">features</span> <span class="o">=</span> <span class="n">c_features</span><span class="o">.</span><span class="n">value</span>
+        <span class="n">feat_sync</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="mh">0x1</span> <span class="o">&amp;</span> <span class="n">features</span><span class="p">)</span>
+        <span class="n">feat_lockin</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="mh">0x2</span> <span class="o">&amp;</span> <span class="n">features</span><span class="p">)</span>
+        <span class="n">feat_duty</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="mh">0x4</span> <span class="o">&amp;</span> <span class="n">features</span><span class="p">)</span>
+        <span class="n">feat_app</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="mh">0x8</span> <span class="o">&amp;</span> <span class="n">features</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">feat_sync</span><span class="p">,</span> <span class="n">feat_lockin</span><span class="p">,</span> <span class="n">feat_duty</span><span class="p">,</span> <span class="n">feat_app</span></div>
+
+
+<div class="viewcode-block" id="ANC350v3Lib.get_axis_status">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.html#qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.v3.ANC350v3Lib.get_axis_status">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_axis_status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dev_handle</span><span class="p">:</span> <span class="n">c_void_p</span><span class="p">,</span> <span class="n">axis_no</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> \
+            <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Read Axis Status</span>
+
+<span class="sd">        Reads status information about an axis of the device.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dev_handle: Handle of the device to access</span>
+<span class="sd">            axis_no: Axis number (0..2)</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A tuple containing the axis status:</span>
+<span class="sd">                0. connected: True, if the axis is connected to a sensor.</span>
+<span class="sd">                1. enabled: True, if the axis voltage output is enabled.</span>
+<span class="sd">                2. moving: True, if the axis is moving.</span>
+<span class="sd">                3. target: True, if the target is reached in automatic positioning.</span>
+<span class="sd">                4. eot_fwd: True, if end of travel detected in forward direction.</span>
+<span class="sd">                5. eot_bwd: True, if end of travel detected in backward direction.</span>
+<span class="sd">                6. error: True, if the axis&#39; sensor is in error state.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ANC350LibError is raised, if the function call fails</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">c_axis_no</span> <span class="o">=</span> <span class="n">c_uint32</span><span class="p">(</span><span class="n">axis_no</span><span class="p">)</span>
+        <span class="n">c_connected</span> <span class="o">=</span> <span class="n">c_int32</span><span class="p">()</span>
+        <span class="n">c_enabled</span> <span class="o">=</span> <span class="n">c_int32</span><span class="p">()</span>
+        <span class="n">c_moving</span> <span class="o">=</span> <span class="n">c_int32</span><span class="p">()</span>
+        <span class="n">c_target</span> <span class="o">=</span> <span class="n">c_int32</span><span class="p">()</span>
+        <span class="n">c_eot_fwd</span> <span class="o">=</span> <span class="n">c_int32</span><span class="p">()</span>
+        <span class="n">c_eot_bwd</span> <span class="o">=</span> <span class="n">c_int32</span><span class="p">()</span>
+        <span class="n">c_error</span> <span class="o">=</span> <span class="n">c_int32</span><span class="p">()</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">return_code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dll</span><span class="o">.</span><span class="n">ANC_getAxisStatus</span><span class="p">(</span><span class="n">dev_handle</span><span class="p">,</span> <span class="n">c_axis_no</span><span class="p">,</span>
+                                                      <span class="n">byref</span><span class="p">(</span><span class="n">c_connected</span><span class="p">),</span> <span class="n">byref</span><span class="p">(</span><span class="n">c_enabled</span><span class="p">),</span>
+                                                      <span class="n">byref</span><span class="p">(</span><span class="n">c_moving</span><span class="p">),</span> <span class="n">byref</span><span class="p">(</span><span class="n">c_target</span><span class="p">),</span>
+                                                      <span class="n">byref</span><span class="p">(</span><span class="n">c_eot_fwd</span><span class="p">),</span> <span class="n">byref</span><span class="p">(</span><span class="n">c_eot_bwd</span><span class="p">),</span>
+                                                      <span class="n">byref</span><span class="p">(</span><span class="n">c_error</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ANC350v3LibError</span><span class="p">(</span><span class="s2">&quot;Unexpected error in ANC_getAxisStatus&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+        <span class="n">ANC350v3LibError</span><span class="o">.</span><span class="n">check_error</span><span class="p">(</span><span class="n">return_code</span><span class="p">,</span> <span class="s2">&quot;ANC_getAxisStatus&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="n">c_connected</span><span class="o">.</span><span class="n">value</span><span class="p">),</span> <span class="nb">bool</span><span class="p">(</span><span class="n">c_enabled</span><span class="o">.</span><span class="n">value</span><span class="p">),</span> <span class="nb">bool</span><span class="p">(</span><span class="n">c_moving</span><span class="o">.</span><span class="n">value</span><span class="p">),</span> \
+               <span class="nb">bool</span><span class="p">(</span><span class="n">c_target</span><span class="o">.</span><span class="n">value</span><span class="p">),</span> <span class="nb">bool</span><span class="p">(</span><span class="n">c_eot_fwd</span><span class="o">.</span><span class="n">value</span><span class="p">),</span> <span class="nb">bool</span><span class="p">(</span><span class="n">c_eot_bwd</span><span class="o">.</span><span class="n">value</span><span class="p">),</span> \
+               <span class="nb">bool</span><span class="p">(</span><span class="n">c_error</span><span class="o">.</span><span class="n">value</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ANC350v3Lib.set_axis_output">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.html#qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.v3.ANC350v3Lib.set_axis_output">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_axis_output</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dev_handle</span><span class="p">:</span> <span class="n">c_void_p</span><span class="p">,</span> <span class="n">axis_no</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">enable</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+                        <span class="n">auto_disable</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Enable Axis Output</span>
+
+<span class="sd">        Enables or disables the voltage output of an axis.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dev_handle: Handle of the device to access</span>
+<span class="sd">            axis_no: Axis number (0..2)</span>
+<span class="sd">            enable: True, to enable the voltage output. False, to disable it.</span>
+<span class="sd">            auto_disable: True, if the voltage output is to be deactivated automatically when end of</span>
+<span class="sd">                          travel is detected.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ANC350LibError is raised, if the function call fails</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">c_axis_no</span> <span class="o">=</span> <span class="n">c_uint32</span><span class="p">(</span><span class="n">axis_no</span><span class="p">)</span>
+        <span class="n">c_enable</span> <span class="o">=</span> <span class="n">c_int32</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">enable</span><span class="p">))</span>
+        <span class="n">c_auto_disable</span> <span class="o">=</span> <span class="n">c_int32</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">auto_disable</span><span class="p">))</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">return_code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dll</span><span class="o">.</span><span class="n">ANC_setAxisOutput</span><span class="p">(</span><span class="n">dev_handle</span><span class="p">,</span> <span class="n">c_axis_no</span><span class="p">,</span> <span class="n">c_enable</span><span class="p">,</span>
+                                                      <span class="n">c_auto_disable</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ANC350v3LibError</span><span class="p">(</span><span class="s2">&quot;Unexpected error in ANC_setAxisOutput&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+        <span class="n">ANC350v3LibError</span><span class="o">.</span><span class="n">check_error</span><span class="p">(</span><span class="n">return_code</span><span class="p">,</span> <span class="s2">&quot;ANC_setAxisOutput&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ANC350v3Lib.set_amplitude">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.html#qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.v3.ANC350v3Lib.set_amplitude">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_amplitude</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dev_handle</span><span class="p">:</span> <span class="n">c_void_p</span><span class="p">,</span> <span class="n">axis_no</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">amplitude</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set Amplitude</span>
+
+<span class="sd">        Sets the amplitude parameter for an axis</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dev_handle: Handle of the device to access</span>
+<span class="sd">            axis_no: Axis number (0..2)</span>
+<span class="sd">            amplitude: Amplitude in Volts [V] (internal resolution is 1mV)</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ANC350LibError is raised, if the function call fails</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">c_axis_no</span> <span class="o">=</span> <span class="n">c_uint32</span><span class="p">(</span><span class="n">axis_no</span><span class="p">)</span>
+        <span class="n">c_amplitude</span> <span class="o">=</span> <span class="n">c_double</span><span class="p">(</span><span class="n">amplitude</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">return_code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dll</span><span class="o">.</span><span class="n">ANC_setAmplitude</span><span class="p">(</span><span class="n">dev_handle</span><span class="p">,</span> <span class="n">c_axis_no</span><span class="p">,</span> <span class="n">c_amplitude</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ANC350v3LibError</span><span class="p">(</span><span class="s2">&quot;Unexpected error in ANC_setAmplitude&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+        <span class="n">ANC350v3LibError</span><span class="o">.</span><span class="n">check_error</span><span class="p">(</span><span class="n">return_code</span><span class="p">,</span> <span class="s2">&quot;ANC_setAmplitude&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ANC350v3Lib.set_frequency">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.html#qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.v3.ANC350v3Lib.set_frequency">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_frequency</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dev_handle</span><span class="p">:</span> <span class="n">c_void_p</span><span class="p">,</span> <span class="n">axis_no</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">frequency</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set Frequency</span>
+
+<span class="sd">        Sets the frequency parameter for an axis</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dev_handle: Handle of the device to access</span>
+<span class="sd">            axis_no: Axis number (0..2)</span>
+<span class="sd">            frequency: Frequency in Hertz [Hz], internal resolution is 1 Hz (although DLL accepts</span>
+<span class="sd">                       double-values)</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ANC350LibError is raised, if the function call fails</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">c_axis_no</span> <span class="o">=</span> <span class="n">c_uint32</span><span class="p">(</span><span class="n">axis_no</span><span class="p">)</span>
+        <span class="n">c_frequency</span> <span class="o">=</span> <span class="n">c_double</span><span class="p">(</span><span class="n">frequency</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">return_code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dll</span><span class="o">.</span><span class="n">ANC_setFrequency</span><span class="p">(</span><span class="n">dev_handle</span><span class="p">,</span> <span class="n">c_axis_no</span><span class="p">,</span> <span class="n">c_frequency</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ANC350v3LibError</span><span class="p">(</span><span class="s2">&quot;Unexpected error in ANC_setFrequency&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+        <span class="n">ANC350v3LibError</span><span class="o">.</span><span class="n">check_error</span><span class="p">(</span><span class="n">return_code</span><span class="p">,</span> <span class="s2">&quot;ANC_setFrequency&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ANC350v3Lib.set_dc_voltage">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.html#qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.v3.ANC350v3Lib.set_dc_voltage">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_dc_voltage</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dev_handle</span><span class="p">:</span> <span class="n">c_void_p</span><span class="p">,</span> <span class="n">axis_no</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">voltage</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set DC Output Voltage</span>
+
+<span class="sd">        Sets the DC level on the voltage output when no sawtooth based motion and no feedback loop</span>
+<span class="sd">        is active.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dev_handle: Handle of the device to access</span>
+<span class="sd">            axis_no: Axis number (0..2)</span>
+<span class="sd">            voltage: DC output voltage in Volts [V], internal resolution is 1 mV</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ANC350LibError is raised, if the function call fails</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">c_axis_no</span> <span class="o">=</span> <span class="n">c_uint32</span><span class="p">(</span><span class="n">axis_no</span><span class="p">)</span>
+        <span class="n">c_voltage</span> <span class="o">=</span> <span class="n">c_double</span><span class="p">(</span><span class="n">voltage</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">return_code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dll</span><span class="o">.</span><span class="n">ANC_setDcVoltage</span><span class="p">(</span><span class="n">dev_handle</span><span class="p">,</span> <span class="n">c_axis_no</span><span class="p">,</span> <span class="n">c_voltage</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ANC350v3LibError</span><span class="p">(</span><span class="s2">&quot;Unexpected error in ANC_setDcVoltage&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+        <span class="n">ANC350v3LibError</span><span class="o">.</span><span class="n">check_error</span><span class="p">(</span><span class="n">return_code</span><span class="p">,</span> <span class="s2">&quot;ANC_setDcVoltage&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ANC350v3Lib.get_amplitude">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.html#qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.v3.ANC350v3Lib.get_amplitude">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_amplitude</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dev_handle</span><span class="p">:</span> <span class="n">c_void_p</span><span class="p">,</span> <span class="n">axis_no</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Read Back Amplitude</span>
+
+<span class="sd">        Reads back the amplitude parameter of an axis.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dev_handle: Handle of the device to access</span>
+<span class="sd">            axis_no: Axis number (0..2)</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Amplitude in Volts [V]</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ANC350LibError is raised, if the function call fails</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">c_axis_no</span> <span class="o">=</span> <span class="n">c_uint32</span><span class="p">(</span><span class="n">axis_no</span><span class="p">)</span>
+        <span class="n">c_amplitude</span> <span class="o">=</span> <span class="n">c_double</span><span class="p">()</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">return_code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dll</span><span class="o">.</span><span class="n">ANC_getAmplitude</span><span class="p">(</span><span class="n">dev_handle</span><span class="p">,</span> <span class="n">c_axis_no</span><span class="p">,</span> <span class="n">byref</span><span class="p">(</span><span class="n">c_amplitude</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ANC350v3LibError</span><span class="p">(</span><span class="s2">&quot;Unexpected error in ANC_getAmplitude&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+        <span class="n">ANC350v3LibError</span><span class="o">.</span><span class="n">check_error</span><span class="p">(</span><span class="n">return_code</span><span class="p">,</span> <span class="s2">&quot;ANC_getAmplitude&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">c_amplitude</span><span class="o">.</span><span class="n">value</span></div>
+
+
+<div class="viewcode-block" id="ANC350v3Lib.get_frequency">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.html#qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.v3.ANC350v3Lib.get_frequency">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_frequency</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dev_handle</span><span class="p">:</span> <span class="n">c_void_p</span><span class="p">,</span> <span class="n">axis_no</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Read back Frequency</span>
+
+<span class="sd">        Reads back the frequency parameter of an axis.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dev_handle: Handle of the device to access</span>
+<span class="sd">            axis_no: Axis number (0..2)</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Frequency in Hertz [Hz]</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ANC350LibError is raised, if the function call fails</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">c_axis_no</span> <span class="o">=</span> <span class="n">c_uint32</span><span class="p">(</span><span class="n">axis_no</span><span class="p">)</span>
+        <span class="n">c_frequency</span> <span class="o">=</span> <span class="n">c_double</span><span class="p">()</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">return_code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dll</span><span class="o">.</span><span class="n">ANC_getFrequency</span><span class="p">(</span><span class="n">dev_handle</span><span class="p">,</span> <span class="n">c_axis_no</span><span class="p">,</span> <span class="n">byref</span><span class="p">(</span><span class="n">c_frequency</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ANC350v3LibError</span><span class="p">(</span><span class="s2">&quot;Unexpected error in ANC_getFrequency&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+        <span class="n">ANC350v3LibError</span><span class="o">.</span><span class="n">check_error</span><span class="p">(</span><span class="n">return_code</span><span class="p">,</span> <span class="s2">&quot;ANC_getFrequency&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">c_frequency</span><span class="o">.</span><span class="n">value</span></div>
+
+
+<div class="viewcode-block" id="ANC350v3Lib.start_single_step">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.html#qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.v3.ANC350v3Lib.start_single_step">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">start_single_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dev_handle</span><span class="p">:</span> <span class="n">c_void_p</span><span class="p">,</span> <span class="n">axis_no</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">backward</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Single Step</span>
+
+<span class="sd">        Triggers a single step in desired direction.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dev_handle: Handle of the device to access</span>
+<span class="sd">            axis_no: Axis number (0..2)</span>
+<span class="sd">            backward: Step direction forward (False) or backward (True)</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ANC350LibError is raised, if the function call fails</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">c_axis_no</span> <span class="o">=</span> <span class="n">c_uint32</span><span class="p">(</span><span class="n">axis_no</span><span class="p">)</span>
+        <span class="n">c_backward</span> <span class="o">=</span> <span class="n">c_int32</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">backward</span><span class="p">))</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">return_code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dll</span><span class="o">.</span><span class="n">ANC_startSingleStep</span><span class="p">(</span><span class="n">dev_handle</span><span class="p">,</span> <span class="n">c_axis_no</span><span class="p">,</span> <span class="n">c_backward</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ANC350v3LibError</span><span class="p">(</span><span class="s2">&quot;Unexpected error in ANC_startSingleStep&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+        <span class="n">ANC350v3LibError</span><span class="o">.</span><span class="n">check_error</span><span class="p">(</span><span class="n">return_code</span><span class="p">,</span> <span class="s2">&quot;ANC_startSingleStep&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ANC350v3Lib.start_continuous_move">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.html#qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.v3.ANC350v3Lib.start_continuous_move">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">start_continuous_move</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dev_handle</span><span class="p">:</span> <span class="n">c_void_p</span><span class="p">,</span> <span class="n">axis_no</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">start</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+                              <span class="n">backward</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Continuous Motion</span>
+
+<span class="sd">        Starts or stops continous motion in forward or backward direction.</span>
+<span class="sd">        Other kinds of motion are stopped.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dev_handle: Handle of the device to access</span>
+<span class="sd">            axis_no: Axis number (0..2)</span>
+<span class="sd">            start: Starts (True) or stops (False) the motion</span>
+<span class="sd">            backward: Step direction forward (False) or backward (True)</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ANC350LibError is raised, if the function call fails</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">c_axis_no</span> <span class="o">=</span> <span class="n">c_uint32</span><span class="p">(</span><span class="n">axis_no</span><span class="p">)</span>
+        <span class="n">c_start</span> <span class="o">=</span> <span class="n">c_int32</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">start</span><span class="p">))</span>
+        <span class="n">c_backward</span> <span class="o">=</span> <span class="n">c_int32</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">backward</span><span class="p">))</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">return_code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dll</span><span class="o">.</span><span class="n">ANC_startContinousMove</span><span class="p">(</span><span class="n">dev_handle</span><span class="p">,</span> <span class="n">c_axis_no</span><span class="p">,</span> <span class="n">c_start</span><span class="p">,</span>
+                                                           <span class="n">c_backward</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ANC350v3LibError</span><span class="p">(</span><span class="s2">&quot;Unexpected error in ANC_startContinousMove&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+        <span class="n">ANC350v3LibError</span><span class="o">.</span><span class="n">check_error</span><span class="p">(</span><span class="n">return_code</span><span class="p">,</span> <span class="s2">&quot;ANC_startContinousMove&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ANC350v3Lib.start_auto_move">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.html#qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.v3.ANC350v3Lib.start_auto_move">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">start_auto_move</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dev_handle</span><span class="p">:</span> <span class="n">c_void_p</span><span class="p">,</span> <span class="n">axis_no</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">enable</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+                        <span class="n">relative</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set Automatic Motion</span>
+
+<span class="sd">        Switches automatic moving (i.e. following the target position) on or off</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dev_handle: Handle of the device to access</span>
+<span class="sd">            axis_no: Axis number (0..2)</span>
+<span class="sd">            enable: Enables (True) or disables (False) automatic motion</span>
+<span class="sd">            relative: If the target position is to be interpreted absolute (False) or relative to</span>
+<span class="sd">                      the current position (True)</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ANC350LibError is raised, if the function call fails</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">c_axis_no</span> <span class="o">=</span> <span class="n">c_uint32</span><span class="p">(</span><span class="n">axis_no</span><span class="p">)</span>
+        <span class="n">c_enable</span> <span class="o">=</span> <span class="n">c_int32</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">enable</span><span class="p">))</span>
+        <span class="n">c_relative</span> <span class="o">=</span> <span class="n">c_int32</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">relative</span><span class="p">))</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">return_code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dll</span><span class="o">.</span><span class="n">ANC_startAutoMove</span><span class="p">(</span><span class="n">dev_handle</span><span class="p">,</span> <span class="n">c_axis_no</span><span class="p">,</span> <span class="n">c_enable</span><span class="p">,</span>
+                                                      <span class="n">c_relative</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ANC350v3LibError</span><span class="p">(</span><span class="s2">&quot;Unexpected error in ANC_startAutoMove&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+        <span class="n">ANC350v3LibError</span><span class="o">.</span><span class="n">check_error</span><span class="p">(</span><span class="n">return_code</span><span class="p">,</span> <span class="s2">&quot;ANC_startAutoMove&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ANC350v3Lib.set_target_position">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.html#qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.v3.ANC350v3Lib.set_target_position">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_target_position</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dev_handle</span><span class="p">:</span> <span class="n">c_void_p</span><span class="p">,</span> <span class="n">axis_no</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">target</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set Target Position</span>
+
+<span class="sd">        Sets the target position for automatic motion, see ``start_auto_move``.</span>
+<span class="sd">        For linear type actuators the position unit is m, for goniometers and rotators it is degree.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dev_handle: Handle of the device to access</span>
+<span class="sd">            axis_no: Axis number (0..2)</span>
+<span class="sd">            target: Target position in meters [m] or degrees [°]. Internal resolution is 1 nm or</span>
+<span class="sd">                    1 µ°.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ANC350LibError is raised, if the function call fails</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">c_axis_no</span> <span class="o">=</span> <span class="n">c_uint32</span><span class="p">(</span><span class="n">axis_no</span><span class="p">)</span>
+        <span class="n">c_target</span> <span class="o">=</span> <span class="n">c_double</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">return_code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dll</span><span class="o">.</span><span class="n">ANC_setTargetPosition</span><span class="p">(</span><span class="n">dev_handle</span><span class="p">,</span> <span class="n">c_axis_no</span><span class="p">,</span> <span class="n">c_target</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ANC350v3LibError</span><span class="p">(</span><span class="s2">&quot;Unexpected error in ANC_setTargetPosition&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+        <span class="n">ANC350v3LibError</span><span class="o">.</span><span class="n">check_error</span><span class="p">(</span><span class="n">return_code</span><span class="p">,</span> <span class="s2">&quot;ANC_setTargetPosition&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ANC350v3Lib.set_target_range">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.html#qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.v3.ANC350v3Lib.set_target_range">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_target_range</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dev_handle</span><span class="p">:</span> <span class="n">c_void_p</span><span class="p">,</span> <span class="n">axis_no</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">target_range</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set Target Range</span>
+
+<span class="sd">        Defines the range around the target position where the target is considered to be reached.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dev_handle: Handle of the device to access</span>
+<span class="sd">            axis_no: Axis number (0..2)</span>
+<span class="sd">            target_range: Target range in meters [m] or degrees [°]. Internal resolution is 1 nm or</span>
+<span class="sd">                          1 µ°.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ANC350LibError is raised, if the function call fails</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">c_axis_no</span> <span class="o">=</span> <span class="n">c_uint32</span><span class="p">(</span><span class="n">axis_no</span><span class="p">)</span>
+        <span class="n">c_target_range</span> <span class="o">=</span> <span class="n">c_double</span><span class="p">(</span><span class="n">target_range</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">return_code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dll</span><span class="o">.</span><span class="n">ANC_setTargetRange</span><span class="p">(</span><span class="n">dev_handle</span><span class="p">,</span> <span class="n">c_axis_no</span><span class="p">,</span> <span class="n">c_target_range</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ANC350v3LibError</span><span class="p">(</span><span class="s2">&quot;Unexpected error in ANC_setTargetRange&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+        <span class="n">ANC350v3LibError</span><span class="o">.</span><span class="n">check_error</span><span class="p">(</span><span class="n">return_code</span><span class="p">,</span> <span class="s2">&quot;ANC_setTargetRange&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ANC350v3Lib.get_position">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.html#qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.v3.ANC350v3Lib.get_position">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_position</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dev_handle</span><span class="p">:</span> <span class="n">c_void_p</span><span class="p">,</span> <span class="n">axis_no</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Read Current Position</span>
+
+<span class="sd">        Retrieves the current actuator position.</span>
+<span class="sd">        For linear type actuators the position unit is m; for goniometers and rotators it is degree.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dev_handle: Handle of the device to access</span>
+<span class="sd">            axis_no: Axis number (0..2)</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Current position in meters [m] or degrees [°]</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ANC350LibError is raised, if the function call fails</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">c_axis_no</span> <span class="o">=</span> <span class="n">c_uint32</span><span class="p">(</span><span class="n">axis_no</span><span class="p">)</span>
+        <span class="n">c_position</span> <span class="o">=</span> <span class="n">c_double</span><span class="p">()</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">return_code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dll</span><span class="o">.</span><span class="n">ANC_getPosition</span><span class="p">(</span><span class="n">dev_handle</span><span class="p">,</span> <span class="n">c_axis_no</span><span class="p">,</span> <span class="n">byref</span><span class="p">(</span><span class="n">c_position</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ANC350v3LibError</span><span class="p">(</span><span class="s2">&quot;Unexpected error in ANC_getPosition&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+        <span class="n">ANC350v3LibError</span><span class="o">.</span><span class="n">check_error</span><span class="p">(</span><span class="n">return_code</span><span class="p">,</span> <span class="s2">&quot;ANC_getPosition&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">c_position</span><span class="o">.</span><span class="n">value</span></div>
+
+
+<div class="viewcode-block" id="ANC350v3Lib.get_firmware_version">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.html#qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.v3.ANC350v3Lib.get_firmware_version">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_firmware_version</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dev_handle</span><span class="p">:</span> <span class="n">c_void_p</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Firmware version</span>
+
+<span class="sd">        Retrieves the version of currently loaded firmware.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dev_handle: Handle of the device to access</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Version number</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ANC350LibError is raised, if the function call fails</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">c_version</span> <span class="o">=</span> <span class="n">c_int32</span><span class="p">()</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">return_code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dll</span><span class="o">.</span><span class="n">ANC_getFirmwareVersion</span><span class="p">(</span><span class="n">dev_handle</span><span class="p">,</span> <span class="n">byref</span><span class="p">(</span><span class="n">c_version</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ANC350v3LibError</span><span class="p">(</span><span class="s2">&quot;Unexpected error in ANC_getFirmwareVersion&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+        <span class="n">ANC350v3LibError</span><span class="o">.</span><span class="n">check_error</span><span class="p">(</span><span class="n">return_code</span><span class="p">,</span> <span class="s2">&quot;ANC_getFirmwareVersion&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">c_version</span><span class="o">.</span><span class="n">value</span></div>
+
+
+<div class="viewcode-block" id="ANC350v3Lib.configure_ext_trigger">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.html#qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.v3.ANC350v3Lib.configure_ext_trigger">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">configure_ext_trigger</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dev_handle</span><span class="p">:</span> <span class="n">c_void_p</span><span class="p">,</span> <span class="n">axis_no</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                              <span class="n">mode</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">ANC350LibExternalTriggerMode</span><span class="p">,</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Configure Trigger Input</span>
+
+<span class="sd">        Enables the input trigger for steps.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dev_handle: Handle of the device to access</span>
+<span class="sd">            axis_no: Axis number (0..2)</span>
+<span class="sd">            mode: Disable (0), quadrature (1) or trigger(2) for external triggering</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ANC350LibError is raised, if the function call fails</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">c_axis_no</span> <span class="o">=</span> <span class="n">c_uint32</span><span class="p">(</span><span class="n">axis_no</span><span class="p">)</span>
+        <span class="n">c_mode</span> <span class="o">=</span> <span class="n">c_uint32</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">mode</span><span class="p">))</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">return_code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dll</span><span class="o">.</span><span class="n">ANC_configureExtTrigger</span><span class="p">(</span><span class="n">dev_handle</span><span class="p">,</span> <span class="n">c_axis_no</span><span class="p">,</span> <span class="n">c_mode</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ANC350v3LibError</span><span class="p">(</span><span class="s2">&quot;Unexpected error in ANC_configureExtTrigger&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+        <span class="n">ANC350v3LibError</span><span class="o">.</span><span class="n">check_error</span><span class="p">(</span><span class="n">return_code</span><span class="p">,</span> <span class="s2">&quot;ANC_configureExtTrigger&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ANC350v3Lib.configure_a_quad_b_in">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.html#qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.v3.ANC350v3Lib.configure_a_quad_b_in">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">configure_a_quad_b_in</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dev_handle</span><span class="p">:</span> <span class="n">c_void_p</span><span class="p">,</span> <span class="n">axis_no</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">enable</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+                              <span class="n">resolution</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Configure A-Quad-B Input</span>
+
+<span class="sd">        Enables and configures the A-Quad-B (quadrature) input for the target position.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dev_handle: Handle of the device to access</span>
+<span class="sd">            axis_no: Axis number (0..2)</span>
+<span class="sd">            enable: Enable (True) or disable (False) A-Quad-B input</span>
+<span class="sd">            resolution: A-Quad-B step width in meters [m]. Internal resolution is 1 nm.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ANC350LibError is raised, if the function call fails</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">c_axis_no</span> <span class="o">=</span> <span class="n">c_uint32</span><span class="p">(</span><span class="n">axis_no</span><span class="p">)</span>
+        <span class="n">c_enable</span> <span class="o">=</span> <span class="n">c_int32</span><span class="p">(</span><span class="n">enable</span><span class="p">)</span>
+        <span class="n">c_resolution</span> <span class="o">=</span> <span class="n">c_double</span><span class="p">(</span><span class="n">resolution</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">return_code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dll</span><span class="o">.</span><span class="n">ANC_configureAQuadBIn</span><span class="p">(</span><span class="n">dev_handle</span><span class="p">,</span> <span class="n">c_axis_no</span><span class="p">,</span> <span class="n">c_enable</span><span class="p">,</span>
+                                                          <span class="n">c_resolution</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ANC350v3LibError</span><span class="p">(</span><span class="s2">&quot;Unexpected error in ANC_configureAQuadBIn&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+        <span class="n">ANC350v3LibError</span><span class="o">.</span><span class="n">check_error</span><span class="p">(</span><span class="n">return_code</span><span class="p">,</span> <span class="s2">&quot;ANC_configureAQuadBIn&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ANC350v3Lib.configure_a_quad_b_out">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.html#qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.v3.ANC350v3Lib.configure_a_quad_b_out">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">configure_a_quad_b_out</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dev_handle</span><span class="p">:</span> <span class="n">c_void_p</span><span class="p">,</span> <span class="n">axis_no</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">enable</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+                               <span class="n">resolution</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">clock</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Configure A-Quad-B Output</span>
+
+<span class="sd">        Enables and configures the A-Quad-B (quadrature) output of the current position.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dev_handle: Handle of the device to access</span>
+<span class="sd">            axis_no: Axis number (0..2)</span>
+<span class="sd">            enable: Enable (True) or disable (False) A-Quad-B output</span>
+<span class="sd">            resolution: A-Quad-B step width in meters [m]. Internal resolution is 1 nm.</span>
+<span class="sd">            clock: Clock of the A-Quad-B output in seconds [s]. Allowed range is 40ns ... 1.3ms;</span>
+<span class="sd">                   internal resolution is 20ns.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ANC350LibError is raised, if the function call fails</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">c_axis_no</span> <span class="o">=</span> <span class="n">c_uint32</span><span class="p">(</span><span class="n">axis_no</span><span class="p">)</span>
+        <span class="n">c_enable</span> <span class="o">=</span> <span class="n">c_int32</span><span class="p">(</span><span class="n">enable</span><span class="p">)</span>
+        <span class="n">c_resolution</span> <span class="o">=</span> <span class="n">c_double</span><span class="p">(</span><span class="n">resolution</span><span class="p">)</span>
+        <span class="n">c_clock</span> <span class="o">=</span> <span class="n">c_double</span><span class="p">(</span><span class="n">clock</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">return_code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dll</span><span class="o">.</span><span class="n">ANC_configureAQuadBOut</span><span class="p">(</span><span class="n">dev_handle</span><span class="p">,</span> <span class="n">c_axis_no</span><span class="p">,</span> <span class="n">c_enable</span><span class="p">,</span>
+                                                           <span class="n">c_resolution</span><span class="p">,</span> <span class="n">c_clock</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ANC350v3LibError</span><span class="p">(</span><span class="s2">&quot;Unexpected error in ANC_configureAQuadBOut&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+        <span class="n">ANC350v3LibError</span><span class="o">.</span><span class="n">check_error</span><span class="p">(</span><span class="n">return_code</span><span class="p">,</span> <span class="s2">&quot;ANC_configureAQuadBOut&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ANC350v3Lib.configure_rng_trigger_pol">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.html#qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.v3.ANC350v3Lib.configure_rng_trigger_pol">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">configure_rng_trigger_pol</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dev_handle</span><span class="p">:</span> <span class="n">c_void_p</span><span class="p">,</span> <span class="n">axis_no</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                                  <span class="n">polarity</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">ANC350LibTriggerPolarity</span><span class="p">,</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Configure Polarity of Range Trigger</span>
+
+<span class="sd">        Configure lower position for range trigger.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dev_handle: Handle of the device to access</span>
+<span class="sd">            axis_no: Axis number (0..2)</span>
+<span class="sd">            polarity: Polarity of trigger signal when position is between lower and upper Low(0) and</span>
+<span class="sd">                      High(1)</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ANC350LibError is raised, if the function call fails</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">c_axis_no</span> <span class="o">=</span> <span class="n">c_uint32</span><span class="p">(</span><span class="n">axis_no</span><span class="p">)</span>
+        <span class="n">c_polarity</span> <span class="o">=</span> <span class="n">c_int32</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">polarity</span><span class="p">))</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">return_code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dll</span><span class="o">.</span><span class="n">ANC_configureRngTriggerPol</span><span class="p">(</span><span class="n">dev_handle</span><span class="p">,</span> <span class="n">c_axis_no</span><span class="p">,</span>
+                                                               <span class="n">c_polarity</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ANC350v3LibError</span><span class="p">(</span><span class="s2">&quot;Unexpected error in ANC_configureRngTriggerPol&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+        <span class="n">ANC350v3LibError</span><span class="o">.</span><span class="n">check_error</span><span class="p">(</span><span class="n">return_code</span><span class="p">,</span> <span class="s2">&quot;ANC_configureRngTriggerPol&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ANC350v3Lib.configure_rng_trigger">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.html#qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.v3.ANC350v3Lib.configure_rng_trigger">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">configure_rng_trigger</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dev_handle</span><span class="p">:</span> <span class="n">c_void_p</span><span class="p">,</span> <span class="n">axis_no</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">lower</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                              <span class="n">upper</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Configure Range Trigger</span>
+
+<span class="sd">        Configure lower position for range trigger.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dev_handle: Handle of the device to access</span>
+<span class="sd">            axis_no: Axis number (0..2)</span>
+<span class="sd">            lower: Lower position for range trigger in nanometers [nm]</span>
+<span class="sd">            upper: Upper position for range trigger in nanometers [nm]</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ANC350LibError is raised, if the function call fails</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">c_axis_no</span> <span class="o">=</span> <span class="n">c_uint32</span><span class="p">(</span><span class="n">axis_no</span><span class="p">)</span>
+        <span class="n">c_lower</span> <span class="o">=</span> <span class="n">c_uint32</span><span class="p">(</span><span class="n">lower</span><span class="p">)</span>
+        <span class="n">c_upper</span> <span class="o">=</span> <span class="n">c_uint32</span><span class="p">(</span><span class="n">upper</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">return_code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dll</span><span class="o">.</span><span class="n">ANC_configureRngTrigger</span><span class="p">(</span><span class="n">dev_handle</span><span class="p">,</span> <span class="n">c_axis_no</span><span class="p">,</span> <span class="n">c_lower</span><span class="p">,</span>
+                                                            <span class="n">c_upper</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ANC350v3LibError</span><span class="p">(</span><span class="s2">&quot;Unexpected error in ANC_configureRngTrigger&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+        <span class="n">ANC350v3LibError</span><span class="o">.</span><span class="n">check_error</span><span class="p">(</span><span class="n">return_code</span><span class="p">,</span> <span class="s2">&quot;ANC_configureRngTrigger&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ANC350v3Lib.configure_rng_trigger_eps">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.html#qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.v3.ANC350v3Lib.configure_rng_trigger_eps">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">configure_rng_trigger_eps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dev_handle</span><span class="p">:</span> <span class="n">c_void_p</span><span class="p">,</span> <span class="n">axis_no</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Configure Epsilon of Range Trigger</span>
+
+<span class="sd">        Configure hysteresis for range trigger.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dev_handle: Handle of the device to access</span>
+<span class="sd">            axis_no: Axis number (0..2)</span>
+<span class="sd">            epsilon: Hysteresis in nanometers per millidegree [nm/m°]</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ANC350LibError is raised, if the function call fails</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">c_axis_no</span> <span class="o">=</span> <span class="n">c_uint32</span><span class="p">(</span><span class="n">axis_no</span><span class="p">)</span>
+        <span class="n">c_epsilon</span> <span class="o">=</span> <span class="n">c_uint32</span><span class="p">(</span><span class="n">epsilon</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">return_code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dll</span><span class="o">.</span><span class="n">ANC_configureRngTriggerEps</span><span class="p">(</span><span class="n">dev_handle</span><span class="p">,</span> <span class="n">c_axis_no</span><span class="p">,</span>
+                                                               <span class="n">c_epsilon</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ANC350v3LibError</span><span class="p">(</span><span class="s2">&quot;Unexpected error in ANC_configureRngTriggerEps&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+        <span class="n">ANC350v3LibError</span><span class="o">.</span><span class="n">check_error</span><span class="p">(</span><span class="n">return_code</span><span class="p">,</span> <span class="s2">&quot;ANC_configureRngTriggerEps&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ANC350v3Lib.configure_nsl_trigger">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.html#qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.v3.ANC350v3Lib.configure_nsl_trigger">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">configure_nsl_trigger</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dev_handle</span><span class="p">:</span> <span class="n">c_void_p</span><span class="p">,</span> <span class="n">enable</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Configure NSL Trigger</span>
+
+<span class="sd">        Enables NSL input as trigger source.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dev_handle: Handle of the device to access</span>
+<span class="sd">            enable: Disable (False) or enable (True)</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ANC350LibError is raised, if the function call fails</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">c_enable</span> <span class="o">=</span> <span class="n">c_int32</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">enable</span><span class="p">))</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">return_code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dll</span><span class="o">.</span><span class="n">ANC_configureNslTrigger</span><span class="p">(</span><span class="n">dev_handle</span><span class="p">,</span> <span class="n">c_enable</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ANC350v3LibError</span><span class="p">(</span><span class="s2">&quot;Unexpected error in ANC_configureNslTrigger&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+        <span class="n">ANC350v3LibError</span><span class="o">.</span><span class="n">check_error</span><span class="p">(</span><span class="n">return_code</span><span class="p">,</span> <span class="s2">&quot;ANC_configureNslTrigger&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ANC350v3Lib.configure_nsl_trigger_axis">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.html#qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.v3.ANC350v3Lib.configure_nsl_trigger_axis">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">configure_nsl_trigger_axis</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dev_handle</span><span class="p">:</span> <span class="n">c_void_p</span><span class="p">,</span> <span class="n">axis_no</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Configure NSL Trigger Axis</span>
+
+<span class="sd">        Selects axis for NSL trigger.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dev_handle: Handle of the device to access</span>
+<span class="sd">            axis_no: Axis number (0..2)</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ANC350LibError is raised, if the function call fails</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">c_axis_no</span> <span class="o">=</span> <span class="n">c_uint32</span><span class="p">(</span><span class="n">axis_no</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">return_code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dll</span><span class="o">.</span><span class="n">ANC_configureNslTriggerAxis</span><span class="p">(</span><span class="n">dev_handle</span><span class="p">,</span> <span class="n">c_axis_no</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ANC350v3LibError</span><span class="p">(</span><span class="s2">&quot;Unexpected error in ANC_configureNslTriggerAxis&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+        <span class="n">ANC350v3LibError</span><span class="o">.</span><span class="n">check_error</span><span class="p">(</span><span class="n">return_code</span><span class="p">,</span> <span class="s2">&quot;ANC_configureNslTriggerAxis&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ANC350v3Lib.select_actuator">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.html#qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.v3.ANC350v3Lib.select_actuator">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">select_actuator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dev_handle</span><span class="p">:</span> <span class="n">c_void_p</span><span class="p">,</span> <span class="n">axis_no</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">actuator</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Select Actuator</span>
+
+<span class="sd">        Selects the actuator to be used for the axis from actuator presets.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dev_handle: Handle of the device to access</span>
+<span class="sd">            axis_no: Axis number (0..2)</span>
+<span class="sd">            actuator: Actuator selection (0..255)</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ANC350LibError is raised, if the function call fails</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">c_axis_no</span> <span class="o">=</span> <span class="n">c_uint32</span><span class="p">(</span><span class="n">axis_no</span><span class="p">)</span>
+        <span class="n">c_actuator</span> <span class="o">=</span> <span class="n">c_uint32</span><span class="p">(</span><span class="n">actuator</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">return_code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dll</span><span class="o">.</span><span class="n">ANC_selectActuator</span><span class="p">(</span><span class="n">dev_handle</span><span class="p">,</span> <span class="n">c_axis_no</span><span class="p">,</span> <span class="n">c_actuator</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ANC350v3LibError</span><span class="p">(</span><span class="s2">&quot;Unexpected error in ANC_selectActuator&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+        <span class="n">ANC350v3LibError</span><span class="o">.</span><span class="n">check_error</span><span class="p">(</span><span class="n">return_code</span><span class="p">,</span> <span class="s2">&quot;ANC_selectActuator&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ANC350v3Lib.get_actuator_name">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.html#qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.v3.ANC350v3Lib.get_actuator_name">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_actuator_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dev_handle</span><span class="p">:</span> <span class="n">c_void_p</span><span class="p">,</span> <span class="n">axis_no</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get Actuator Name</span>
+
+<span class="sd">        Get the name of the currently selected actuator</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dev_handle: Handle of the device to access</span>
+<span class="sd">            axis_no: Axis number (0..2)</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Name of the actuator</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ANC350LibError is raised, if the function call fails</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">c_axis_no</span> <span class="o">=</span> <span class="n">c_uint32</span><span class="p">(</span><span class="n">axis_no</span><span class="p">)</span>
+        <span class="n">c_name</span> <span class="o">=</span> <span class="n">c_string</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">return_code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dll</span><span class="o">.</span><span class="n">ANC_getActuatorName</span><span class="p">(</span><span class="n">dev_handle</span><span class="p">,</span> <span class="n">c_axis_no</span><span class="p">,</span> <span class="n">byref</span><span class="p">(</span><span class="n">c_name</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ANC350v3LibError</span><span class="p">(</span><span class="s2">&quot;Unexpected error in ANC_getActuatorName&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+        <span class="n">ANC350v3LibError</span><span class="o">.</span><span class="n">check_error</span><span class="p">(</span><span class="n">return_code</span><span class="p">,</span> <span class="s2">&quot;ANC_getActuatorName&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">c_name</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_encoding</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ANC350v3Lib.get_actuator_type">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.html#qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.v3.ANC350v3Lib.get_actuator_type">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_actuator_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dev_handle</span><span class="p">:</span> <span class="n">c_void_p</span><span class="p">,</span> <span class="n">axis_no</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ANC350LibActuatorType</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get Actuator Type</span>
+
+<span class="sd">        Get the type of the currently selected actuator</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dev_handle: Handle of the device to access</span>
+<span class="sd">            axis_no: Axis number (0..2)</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Type of the actuator</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ANC350LibError is raised, if the function call fails</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">c_axis_no</span> <span class="o">=</span> <span class="n">c_uint32</span><span class="p">(</span><span class="n">axis_no</span><span class="p">)</span>
+        <span class="n">c_type</span> <span class="o">=</span> <span class="n">c_int32</span><span class="p">()</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">return_code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dll</span><span class="o">.</span><span class="n">ANC_getActuatorType</span><span class="p">(</span><span class="n">dev_handle</span><span class="p">,</span> <span class="n">c_axis_no</span><span class="p">,</span> <span class="n">byref</span><span class="p">(</span><span class="n">c_type</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ANC350v3LibError</span><span class="p">(</span><span class="s2">&quot;Unexpected error in ANC_getActuatorType&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+        <span class="n">ANC350v3LibError</span><span class="o">.</span><span class="n">check_error</span><span class="p">(</span><span class="n">return_code</span><span class="p">,</span> <span class="s2">&quot;ANC_getActuatorType&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">ANC350LibActuatorType</span><span class="p">(</span><span class="n">c_type</span><span class="o">.</span><span class="n">value</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ANC350v3Lib.measure_capacitance">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.html#qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.v3.ANC350v3Lib.measure_capacitance">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">measure_capacitance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dev_handle</span><span class="p">:</span> <span class="n">c_void_p</span><span class="p">,</span> <span class="n">axis_no</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Measure Motor Capacitance</span>
+
+<span class="sd">        Performs a measurement of the capacitance of the piezo motor and returns the result. If no</span>
+<span class="sd">        motor is connected, the result will be 0.</span>
+<span class="sd">        The function doesn&#39;t return before the measurement is complete; this will take a few seconds</span>
+<span class="sd">        of time.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dev_handle: Handle of the device to access</span>
+<span class="sd">            axis_no: Axis number (0..2)</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Capacitance in Farad [F]</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ANC350LibError is raised, if the function call fails</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">c_axis_no</span> <span class="o">=</span> <span class="n">c_uint32</span><span class="p">(</span><span class="n">axis_no</span><span class="p">)</span>
+        <span class="n">c_cap</span> <span class="o">=</span> <span class="n">c_double</span><span class="p">()</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">return_code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dll</span><span class="o">.</span><span class="n">ANC_measureCapacitance</span><span class="p">(</span><span class="n">dev_handle</span><span class="p">,</span> <span class="n">c_axis_no</span><span class="p">,</span> <span class="n">byref</span><span class="p">(</span><span class="n">c_cap</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ANC350v3LibError</span><span class="p">(</span><span class="s2">&quot;Unexpected error in ANC_measureCapacitance&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+        <span class="n">ANC350v3LibError</span><span class="o">.</span><span class="n">check_error</span><span class="p">(</span><span class="n">return_code</span><span class="p">,</span> <span class="s2">&quot;ANC_measureCapacitance&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">c_cap</span><span class="o">.</span><span class="n">value</span></div>
+
+
+<div class="viewcode-block" id="ANC350v3Lib.save_params">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.html#qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.v3.ANC350v3Lib.save_params">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">save_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dev_handle</span><span class="p">:</span> <span class="n">c_void_p</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Save Parameters</span>
+
+<span class="sd">        Saves parameters to persistent flash memory in the device. They will be present as defaults</span>
+<span class="sd">        after the next power-on.</span>
+<span class="sd">        The following parameters are affected:</span>
+<span class="sd">        * amplitude (see ``set_amplitude``)</span>
+<span class="sd">        * frequency (see ``set_frequency``)</span>
+<span class="sd">        * target range (see ``set_target_range``)</span>
+<span class="sd">        * target ground (see ``set_target_ground``)</span>
+<span class="sd">        * actuator selection (see ``select_actuator``)</span>
+<span class="sd">        * trigger and quadrature settings</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dev_handle: Handle of the device to access</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ANC350LibError is raised, if the function call fails</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">return_code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dll</span><span class="o">.</span><span class="n">ANC_saveParams</span><span class="p">(</span><span class="n">dev_handle</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ANC350v3LibError</span><span class="p">(</span><span class="s2">&quot;Unexpected error in ANC_saveParams&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+        <span class="n">ANC350v3LibError</span><span class="o">.</span><span class="n">check_error</span><span class="p">(</span><span class="n">return_code</span><span class="p">,</span> <span class="s2">&quot;ANC_saveParams&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ANC350v3Lib.reset_position">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.html#qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.v3.ANC350v3Lib.reset_position">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">reset_position</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dev_handle</span><span class="p">:</span> <span class="n">c_void_p</span><span class="p">,</span> <span class="n">axis_no</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Reset Position</span>
+
+<span class="sd">        Sets the current (relative) position of an axis to Zero.</span>
+<span class="sd">        Only applicable for NUM and FPS devices.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dev_handle: Handle of the device to access</span>
+<span class="sd">            axis_no: Axis number (0..2)</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ANC350LibError is raised, if the function call fails</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">c_axis_no</span> <span class="o">=</span> <span class="n">c_uint32</span><span class="p">(</span><span class="n">axis_no</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">return_code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dll</span><span class="o">.</span><span class="n">ANC_resetPosition</span><span class="p">(</span><span class="n">dev_handle</span><span class="p">,</span> <span class="n">c_axis_no</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ANC350v3LibError</span><span class="p">(</span><span class="s2">&quot;Unexpected error in ANC_resetPosition&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+        <span class="n">ANC350v3LibError</span><span class="o">.</span><span class="n">check_error</span><span class="p">(</span><span class="n">return_code</span><span class="p">,</span> <span class="s2">&quot;ANC_resetPosition&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ANC350v3Lib.move_reference">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.html#qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.v3.ANC350v3Lib.move_reference">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">move_reference</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dev_handle</span><span class="p">:</span> <span class="n">c_void_p</span><span class="p">,</span> <span class="n">axis_no</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Reset Reference</span>
+
+<span class="sd">        Starts an approach to the reference position. A running motion command is aborted; automatic</span>
+<span class="sd">        moving (see ``start_auto_move``) is switched on. Requires a valid reference position.</span>
+<span class="sd">        Only applicable for NUM devices.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dev_handle: Handle of the device to access</span>
+<span class="sd">            axis_no: Axis number (0..2)</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ANC350LibError is raised, if the function call fails</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">c_axis_no</span> <span class="o">=</span> <span class="n">c_uint32</span><span class="p">(</span><span class="n">axis_no</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">return_code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dll</span><span class="o">.</span><span class="n">ANC_moveReference</span><span class="p">(</span><span class="n">dev_handle</span><span class="p">,</span> <span class="n">c_axis_no</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ANC350v3LibError</span><span class="p">(</span><span class="s2">&quot;Unexpected error in ANC_moveReference&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+        <span class="n">ANC350v3LibError</span><span class="o">.</span><span class="n">check_error</span><span class="p">(</span><span class="n">return_code</span><span class="p">,</span> <span class="s2">&quot;ANC_moveReference&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ANC350v3Lib.get_ref_position">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.html#qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.v3.ANC350v3Lib.get_ref_position">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_ref_position</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dev_handle</span><span class="p">:</span> <span class="n">c_void_p</span><span class="p">,</span> <span class="n">axis_no</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Read Reference Position</span>
+
+<span class="sd">        Retrieves the current reference position.</span>
+<span class="sd">        For linear type actuators the position unit is meter [m]; for goniometers and rotators it is</span>
+<span class="sd">        degree [°].</span>
+<span class="sd">        Only applicable for NUM devices.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dev_handle: Handle of the device to access</span>
+<span class="sd">            axis_no: Axis number (0..2)</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Tuple containing the reference position:</span>
+<span class="sd">                0. position: Current reference position in meters [m] or degrees [°].</span>
+<span class="sd">                1. valid: True, if the reference position is valid.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ANC350LibError is raised, if the function call fails</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">c_axis_no</span> <span class="o">=</span> <span class="n">c_uint32</span><span class="p">(</span><span class="n">axis_no</span><span class="p">)</span>
+        <span class="n">c_position</span> <span class="o">=</span> <span class="n">c_double</span><span class="p">()</span>
+        <span class="n">c_valid</span> <span class="o">=</span> <span class="n">c_int32</span><span class="p">()</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">return_code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dll</span><span class="o">.</span><span class="n">ANC_getRefPosition</span><span class="p">(</span><span class="n">dev_handle</span><span class="p">,</span> <span class="n">c_axis_no</span><span class="p">,</span>
+                                                       <span class="n">byref</span><span class="p">(</span><span class="n">c_position</span><span class="p">),</span> <span class="n">byref</span><span class="p">(</span><span class="n">c_valid</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ANC350v3LibError</span><span class="p">(</span><span class="s2">&quot;Unexpected error in ANC_getRefPosition&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+        <span class="n">ANC350v3LibError</span><span class="o">.</span><span class="n">check_error</span><span class="p">(</span><span class="n">return_code</span><span class="p">,</span> <span class="s2">&quot;ANC_getRefPosition&quot;</span><span class="p">)</span>
+
+        <span class="c1"># TODO: Could we only return position if valid is True and return None, if valid is False?</span>
+        <span class="c1"># Then, one return value would be enough</span>
+        <span class="k">return</span> <span class="n">c_position</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="nb">bool</span><span class="p">(</span><span class="n">c_valid</span><span class="o">.</span><span class="n">value</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ANC350v3Lib.configure_duty_cycle">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.html#qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.v3.ANC350v3Lib.configure_duty_cycle">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">configure_duty_cycle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dev_handle</span><span class="p">:</span> <span class="n">c_void_p</span><span class="p">,</span> <span class="n">axis_no</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">period</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+                             <span class="n">off_time</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Configure Duty Cycle Parameters</span>
+
+<span class="sd">        Enables and configures the sensor&#39;s duty cycle for all axes.</span>
+<span class="sd">        Requires the duty cycle feature to be installed.</span>
+<span class="sd">        Only applicable for NUM devices.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dev_handle: Handle of the device to access</span>
+<span class="sd">            axis_no: Axis number (0..2)</span>
+<span class="sd">            period: Duty cycle period in seconds [s]</span>
+<span class="sd">            off_time: Duty cycle off time in seconds [s]</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ANC350LibError is raised, if the function call fails</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">c_axis_no</span> <span class="o">=</span> <span class="n">c_uint32</span><span class="p">(</span><span class="n">axis_no</span><span class="p">)</span>
+        <span class="n">c_period</span> <span class="o">=</span> <span class="n">c_double</span><span class="p">(</span><span class="n">period</span><span class="p">)</span>
+        <span class="n">c_off_time</span> <span class="o">=</span> <span class="n">c_double</span><span class="p">(</span><span class="n">off_time</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">return_code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dll</span><span class="o">.</span><span class="n">ANC_configureDutyCycle</span><span class="p">(</span><span class="n">dev_handle</span><span class="p">,</span> <span class="n">c_axis_no</span><span class="p">,</span> <span class="n">c_period</span><span class="p">,</span>
+                                                           <span class="n">c_off_time</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ANC350v3LibError</span><span class="p">(</span><span class="s2">&quot;Unexpected error in ANC_configureDutyCycle&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+        <span class="n">ANC350v3LibError</span><span class="o">.</span><span class="n">check_error</span><span class="p">(</span><span class="n">return_code</span><span class="p">,</span> <span class="s2">&quot;ANC_configureDutyCycle&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ANC350v3Lib.enable_sensor">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.html#qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.v3.ANC350v3Lib.enable_sensor">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">enable_sensor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dev_handle</span><span class="p">:</span> <span class="n">c_void_p</span><span class="p">,</span> <span class="n">enable</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Switch Sensor Power</span>
+
+<span class="sd">        Switches the sensor power for all axes on or off.</span>
+<span class="sd">        Only applicable for NUM devices.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dev_handle: Handle of the device to access</span>
+<span class="sd">            enable: Enable (True) or disable (False) the sensor</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ANC350LibError is raised, if the function call fails</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">c_enable</span> <span class="o">=</span> <span class="n">c_int32</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">enable</span><span class="p">))</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">return_code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dll</span><span class="o">.</span><span class="n">ANC_enableSensor</span><span class="p">(</span><span class="n">dev_handle</span><span class="p">,</span> <span class="n">c_enable</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ANC350v3LibError</span><span class="p">(</span><span class="s2">&quot;Unexpected error in ANC_enableSensor&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+        <span class="n">ANC350v3LibError</span><span class="o">.</span><span class="n">check_error</span><span class="p">(</span><span class="n">return_code</span><span class="p">,</span> <span class="s2">&quot;ANC_enableSensor&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ANC350v3Lib.enable_ref_auto_update">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.html#qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.v3.ANC350v3Lib.enable_ref_auto_update">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">enable_ref_auto_update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dev_handle</span><span class="p">:</span> <span class="n">c_void_p</span><span class="p">,</span> <span class="n">axis_no</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">enable</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Enable Reference Auto Update</span>
+
+<span class="sd">        Enables or disables the reference auto update for an axis. When enabled, every time the</span>
+<span class="sd">        reference marking is hit, the reference position will be updated. When disabled, the</span>
+<span class="sd">        reference marking will be considered only the first time, later hits will be ignored.</span>
+<span class="sd">        Only applicable for NUM devices.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dev_handle: Handle of the device to access</span>
+<span class="sd">            axis_no: Axis number (0..2)</span>
+<span class="sd">            enable: Enable (True) or disable (False) the feature</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ANC350LibError is raised, if the function call fails</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">c_axis_no</span> <span class="o">=</span> <span class="n">c_uint32</span><span class="p">(</span><span class="n">axis_no</span><span class="p">)</span>
+        <span class="n">c_enable</span> <span class="o">=</span> <span class="n">c_int32</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">enable</span><span class="p">))</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">return_code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dll</span><span class="o">.</span><span class="n">ANC_enableRefAutoUpdate</span><span class="p">(</span><span class="n">dev_handle</span><span class="p">,</span> <span class="n">c_axis_no</span><span class="p">,</span> <span class="n">c_enable</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ANC350v3LibError</span><span class="p">(</span><span class="s2">&quot;Unexpected error in ANC_enableRefAutoUpdate&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+        <span class="n">ANC350v3LibError</span><span class="o">.</span><span class="n">check_error</span><span class="p">(</span><span class="n">return_code</span><span class="p">,</span> <span class="s2">&quot;ANC_enableRefAutoUpdate&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ANC350v3Lib.enable_ref_auto_reset">
+<a class="viewcode-back" href="../../../../../api/generated/qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.html#qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.v3.ANC350v3Lib.enable_ref_auto_reset">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">enable_ref_auto_reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dev_handle</span><span class="p">:</span> <span class="n">c_void_p</span><span class="p">,</span> <span class="n">axis_no</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">enable</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Enable Position Auto Reset</span>
+
+<span class="sd">        Enables or disables the position auto reset for an axis. When enabled, every time the</span>
+<span class="sd">        reference marking is hit, the position will be set to zero. When disabled, the reference</span>
+<span class="sd">        marking will be ignored.</span>
+<span class="sd">        Only applicable for NUM devices.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dev_handle: Handle of the device to access</span>
+<span class="sd">            axis_no: Axis number (0..2)</span>
+<span class="sd">            enable: Enable (True) or disable (False) the feature</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ANC350LibError is raised, if the function call fails</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">c_axis_no</span> <span class="o">=</span> <span class="n">c_uint32</span><span class="p">(</span><span class="n">axis_no</span><span class="p">)</span>
+        <span class="n">c_enable</span> <span class="o">=</span> <span class="n">c_int32</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">enable</span><span class="p">))</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">return_code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dll</span><span class="o">.</span><span class="n">ANC_enableRefAutoReset</span><span class="p">(</span><span class="n">dev_handle</span><span class="p">,</span> <span class="n">c_axis_no</span><span class="p">,</span> <span class="n">c_enable</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ANC350v3LibError</span><span class="p">(</span><span class="s2">&quot;Unexpected error in ANC_enableRefAutoReset&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+        <span class="n">ANC350v3LibError</span><span class="o">.</span><span class="n">check_error</span><span class="p">(</span><span class="n">return_code</span><span class="p">,</span> <span class="s2">&quot;ANC_enableRefAutoReset&quot;</span><span class="p">)</span></div>
+</div>
+
+
+    <span class="c1"># TODO: Function is part of DLL, but not documented</span>
+    <span class="c1"># def enable_trace(self, dev_handle: c_void_p, ...):</span>
+    <span class="c1">#     try:</span>
+    <span class="c1">#         return_code = self._dll.ANC_enableTrace(dev_handle, ...)</span>
+    <span class="c1">#     except Exception as exc:</span>
+    <span class="c1">#         raise ANC350LibError(&quot;Unexpected error in ANC_enableTrace&quot;) from exc</span>
+    <span class="c1">#     ANC350LibError.check_error(return_code, &quot;ANC_enableTrace&quot;)</span>
+</pre></div>
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          
+          
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2019, QCoDeS Users
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer no-toc">
+      
+      
+      
+    </aside>
+  </div>
+</div><script src="../../../../../_static/documentation_options.js?v=0ec1ef52"></script>
+    <script src="../../../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../../../_static/scripts/furo.js?v=46bd48cc"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    </body>
+</html>

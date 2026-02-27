@@ -1,0 +1,597 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="NANONIS TRAMEA EXAMPLES" href="Specs_Tramea.html"><link rel="prev" title="Example of Signal Recovery 7270 driver usage" href="SignalRecovery_7270.html">
+
+    <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
+        <title>Example for Single Quantum SNSPD - qcodes_contrib_drivers 0.25.0.dev118+main.g2747e26 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #eeffcc;
+  --color-code-foreground: black;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">qcodes_contrib_drivers 0.25.0.dev118+main.g2747e26 documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  
+  <span class="sidebar-brand-text">qcodes_contrib_drivers 0.25.0.dev118+main.g2747e26 documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current has-children"><a class="reference internal" href="index.html">Examples of how to use drivers</a><input aria-label="Toggle navigation of Examples of how to use drivers" checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Agilent_N9000A.html">Example with the Agilent N9000A</a></li>
+<li class="toctree-l2"><a class="reference internal" href="AimTTi_EL320P.html">Example notebook for AimTTi EL320P</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Andor_DU401.html">Qcodes example with Andor DU401 BU2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Andor_iDus4xx.html">Qcodes example with Andor iDus416</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Attocube_ANC300.html">QCoDeS example with Attocube ANC300</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Aviosys_IP_Power_9258S.html">Qcodes example with Aviosys IP Power 9258S</a></li>
+<li class="toctree-l2"><a class="reference internal" href="BlueFors.html">Example with the BlueFors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CopperMountain_M5180.html">Example with CopperMountain Model M5180 vector network analyzer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CopperMountain_M5180.html#Setup-db-and-station-for-test-measurerment">Setup db and station for test measurerment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CopperMountain_M5180.html#Look-at-the-names-and-the-labels-of-the-Sxx-parameters">Look at the names and the labels of the Sxx parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ERASynth.html">Example with ERASynth</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Gentec_Maestro.html">QCoDeS Example with Gentec Maestro</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Holzworth_HS900.html">Example notebook for the Holzworth HS900B RF synthesizer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Horiba_FHR.html">Example for Horiba FHR</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ITest.html">Example with the iTest from Bilt</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Keithley_6430.html">Example notebook for Keithley 6430 SMU</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Keithley_6430.html#Measure-resistance-of-a-~100k\Omega-resistor">Measure resistance of a ~100k<span class="math notranslate nohighlight">\(\Omega\)</span> resistor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Keysight_M3202A.html">Keysight M3202A AWG</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Keysight_M3202A%20with%20digitizer.html">Keysight M3202A AWG example with digitizer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Lakeshore_311.html">Qcodes example with Lakeshore 311</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Lakeshore_625.html">Example with Lakeshore Model 625 Superconducting Magnet power supply</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Lakeshore_M81_SSM_Example.html">Connect to M81</a></li>
+<li class="toctree-l2"><a class="reference internal" href="NanoVNA_H4.html">QCoDeS example with NanoVNA H4</a></li>
+<li class="toctree-l2"><a class="reference internal" href="NationalInstruments_DAQ.html">National Instruments Multifunction DAQ example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="NationalInstruments_PXIe_2597.html">Qcodes example for National Instruments PXIe-2597 RF Switch</a></li>
+<li class="toctree-l2"><a class="reference internal" href="NationalInstruments_RFSG.html">Qcodes example with the NI RFSG signal generator driver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Newport_AG-UC8.html">QCoDeS Example with Newport AG-UC8 Piezo Motion Controller</a></li>
+<li class="toctree-l2"><a class="reference internal" href="OxfordInstruments_Proteox.html">Proteox system integration with QCoDeS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="OxfordTriton.html">Example of the oxford triton driver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Rigol_DSG3136B.html">QCoDeS example with Rigol DSG3136B</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Rohde_Schwarz_HMC8043.html">QCoDeS Example with R&amp;S HMC 8043 Power Supply</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Rohde_Schwarz_HMP4040.html">QCoDeS Example with R&amp;S HMP4040 Power Supply</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Rohde_Schwarz_SMW200A.html">QCoDeS example with Rohe&amp;Schwarz SMW200A</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SR844.html">Changing the Sensitivity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SR844.html#Preparing-for-reading-the-buffer-and-measurement">Preparing for reading the buffer and measurement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Shamrock_SR750.html">Qcodes example with Shamrock SR750</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SignalCore.html">Example with the microwave source SC5521A from Signal Core</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SignalCore.html#Device-connection">Device connection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SignalCore.html#Set-parameters">Set parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SignalRecovery_7270.html">Example of Signal Recovery 7270 driver usage</a></li>
+<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Example for Single Quantum SNSPD</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Specs_Tramea.html">NANONIS TRAMEA EXAMPLES</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Standa_10MWA168.html">Qcodes example with Standa 10MWA168</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SwabianInstruments_TimeTagger.html">Qcodes example with Swabian Instruments Time Tagger</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Tektronix_AFG3000_series.html">Tektronix AFG3000 series arbitrary function generator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Tektronix_FCA3100.html">overview over all parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Tektronix_FCA3100.html#Usage-of-the-two-main-parameters">Usage of the two main parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Tektronix_Keithley_2182A.html">Keithley 2182A Nanovoltmeter - Basic Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Tektronix_Keithley_6500.html">QCoDeS Example with Tektronix Keithley Digital Multimeter DMM6500</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Thorlabs_K10CR1.html">Qcodes example with Thorlabs K10CR1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Thorlabs_KLS1550.html">QCoDeS example with Thorlabs KLS1550 laser source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Thorlabs_MFF10x.html">Qcodes example with Thorlabs MFF10x</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Thorlabs_PRM1Z8.html">Qcodes example with Thorlabs PRM1Z8</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Valon_5015.html">QCoDeS example with Valon 5015</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Vaunix_LDA.html">Qcodes example for Vaunix LDA step attenuator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Vaunix_LDA.html#Model-with-many-channels">Model with many channels</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Windfreak_SynthUSB3.html">QCoDeS example with Windfreak SynthUSB3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ZVL13.html">Rohde &amp; Schwarz ZVL13 Vector Network Analyzer example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ZVL13.html#Parameters-definition">Parameters definition</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ZurichInstruments_HF2LI.html">Zurich Instruments HF2LI example</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="QDevil/index.html">QDevil drivers</a><input aria-label="Toggle navigation of QDevil drivers" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="QDevil/QDAC1/index.html">QCoDeS examples of how to use QDAC-I</a><input aria-label="Toggle navigation of QCoDeS examples of how to use QDAC-I" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="QDevil/QDAC1/QCodes%20example%20with%20QDevil_QDAC.html">QCoDeS Example with QDevil_QDAC</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="QDevil/QDAC2/index.html">QCoDeS examples of how to use QDAC-II</a><input aria-label="Toggle navigation of QCoDeS examples of how to use QDAC-II" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="QDevil/QDAC2/AWG.html">QDAC-II arbitrary-waveform generator</a></li>
+<li class="toctree-l4"><a class="reference internal" href="QDevil/QDAC2/Chaining.html">QDAC-II trigger chaining</a></li>
+<li class="toctree-l4"><a class="reference internal" href="QDevil/QDAC2/DC_Constant.html">QDAC-II constant voltage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="QDevil/QDAC2/Debugging.html">QDAC-II debugging</a></li>
+<li class="toctree-l4"><a class="reference internal" href="QDevil/QDAC2/GateLeakage.html">Gate Leakage Test</a></li>
+<li class="toctree-l4"><a class="reference internal" href="QDevil/QDAC2/GateLeakageMultipleQDACs.html">Gate Leakage using multiple QDAC-IIs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="QDevil/QDAC2/List.html">QDAC-II voltage lists</a></li>
+<li class="toctree-l4"><a class="reference internal" href="QDevil/QDAC2/MultiGenerator.html">QDAC-II multiple generators per channel</a></li>
+<li class="toctree-l4"><a class="reference internal" href="QDevil/QDAC2/PyvisaAwg.html">PyVisa direct use of QDAC-II</a></li>
+<li class="toctree-l4"><a class="reference internal" href="QDevil/QDAC2/Scan.html">QDAC-II 1D &amp; 2D scan</a></li>
+<li class="toctree-l4"><a class="reference internal" href="QDevil/QDAC2/Scan2DDiode.html">QDAC-II 2D diode scan</a></li>
+<li class="toctree-l4"><a class="reference internal" href="QDevil/QDAC2/Sine.html">QDAC-II sine waves</a></li>
+<li class="toctree-l4"><a class="reference internal" href="QDevil/QDAC2/Square.html">QDAC-II square waves</a></li>
+<li class="toctree-l4"><a class="reference internal" href="QDevil/QDAC2/Sweep.html">QDAC-II voltage sweep</a></li>
+<li class="toctree-l4"><a class="reference internal" href="QDevil/QDAC2/SyncMultipleQDACs.html">Synchronise multiple QDAC-IIs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="QDevil/QDAC2/Triangle.html">QDAC-II triangle waves</a></li>
+<li class="toctree-l4"><a class="reference internal" href="QDevil/QDAC2/VirtualGates.html">QDAC-II virtual gates</a></li>
+<li class="toctree-l4"><a class="reference internal" href="QDevil/QDAC2/do2dScan.html">QDAC-II 2D diode scan</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="QDevil/QSwitch/index.html">QCoDeS examples of how to use QSwitch</a><input aria-label="Toggle navigation of QCoDeS examples of how to use QSwitch" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="QDevil/QSwitch/Debugging.html">QSwitch debugging</a></li>
+<li class="toctree-l4"><a class="reference internal" href="QDevil/QSwitch/Usage.html">QSwitch usage</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="HP/HP8594E.html">QCoDeS Example with HP8594E</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Cryomagnetics/LM_500.html">Example for Cyromagnetics Model LM-500 Helium Level meter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Cryomagnetics/LM_500.html#Import-qcodes_contrib_drivers-LM_500-driver">Import qcodes_contrib_drivers LM_500 driver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Cryomagnetics/LM_500.html#Connect-to-the-instrument---this-case-GPIB">Connect to the instrument - this case GPIB</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Cryomagnetics/Model_4G.html">Example for Cyromagnetics Model 4G magnet power supply</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Cryomagnetics/Model_4G.html#Import-qcodes_contrib_drivers-Model_4G-driver">Import qcodes_contrib_drivers Model_4G driver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="OxfordInstruments/ITC_503.html">Example for Oxford Instruments Intelligent Temperature Controller Model 503</a></li>
+<li class="toctree-l2"><a class="reference internal" href="OxfordInstruments/ITC_503.html#Import-qcodes_contrib_drivers-ITC503-driver">Import qcodes_contrib_drivers ITC503 driver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="OxfordInstruments/ITC_503.html#Connect-to-the-instrument---this-case-GPIB">Connect to the instrument - this case GPIB</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../api/generated/qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a><input aria-label="Toggle navigation of qcodes_contrib_drivers.drivers package" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../api/generated/qcodes_contrib_drivers.drivers.Advantech.html">qcodes_contrib_drivers.drivers.Advantech package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/generated/qcodes_contrib_drivers.drivers.Agilent.html">qcodes_contrib_drivers.drivers.Agilent package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/generated/qcodes_contrib_drivers.drivers.AimTTi.html">qcodes_contrib_drivers.drivers.AimTTi package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/generated/qcodes_contrib_drivers.drivers.Ametek.html">qcodes_contrib_drivers.drivers.Ametek package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/generated/qcodes_contrib_drivers.drivers.Andor.html">qcodes_contrib_drivers.drivers.Andor package</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../api/generated/qcodes_contrib_drivers.drivers.Attocube.html">qcodes_contrib_drivers.drivers.Attocube package</a><input aria-label="Toggle navigation of qcodes_contrib_drivers.drivers.Attocube package" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../api/generated/qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.html">qcodes_contrib_drivers.drivers.Attocube.ANC350Lib package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../api/generated/qcodes_contrib_drivers.drivers.Aviosys.html">qcodes_contrib_drivers.drivers.Aviosys package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/generated/qcodes_contrib_drivers.drivers.Bilt.html">qcodes_contrib_drivers.drivers.Bilt package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/generated/qcodes_contrib_drivers.drivers.BlueFors.html">qcodes_contrib_drivers.drivers.BlueFors package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/generated/qcodes_contrib_drivers.drivers.CopperMountain.html">qcodes_contrib_drivers.drivers.CopperMountain package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/generated/qcodes_contrib_drivers.drivers.Cryocon.html">qcodes_contrib_drivers.drivers.Cryocon package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/generated/qcodes_contrib_drivers.drivers.Cryogenic.html">qcodes_contrib_drivers.drivers.Cryogenic package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/generated/qcodes_contrib_drivers.drivers.DaylightSolutions.html">qcodes_contrib_drivers.drivers.DaylightSolutions package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/generated/qcodes_contrib_drivers.drivers.ERAInstruments.html">qcodes_contrib_drivers.drivers.ERAInstruments package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/generated/qcodes_contrib_drivers.drivers.GeneralMicrowave.html">qcodes_contrib_drivers.drivers.GeneralMicrowave package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/generated/qcodes_contrib_drivers.drivers.Gentec.html">qcodes_contrib_drivers.drivers.Gentec package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/generated/qcodes_contrib_drivers.drivers.Holzworth.html">qcodes_contrib_drivers.drivers.Holzworth package</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../api/generated/qcodes_contrib_drivers.drivers.Horiba.html">qcodes_contrib_drivers.drivers.Horiba package</a><input aria-label="Toggle navigation of qcodes_contrib_drivers.drivers.Horiba package" class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../api/generated/qcodes_contrib_drivers.drivers.Horiba.private.html">qcodes_contrib_drivers.drivers.Horiba.private package</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../api/generated/qcodes_contrib_drivers.drivers.Keysight.html">qcodes_contrib_drivers.drivers.Keysight package</a><input aria-label="Toggle navigation of qcodes_contrib_drivers.drivers.Keysight package" class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../api/generated/qcodes_contrib_drivers.drivers.Keysight.SD_common.html">qcodes_contrib_drivers.drivers.Keysight.SD_common package</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../api/generated/qcodes_contrib_drivers.drivers.Lakeshore.html">qcodes_contrib_drivers.drivers.Lakeshore package</a><input aria-label="Toggle navigation of qcodes_contrib_drivers.drivers.Lakeshore package" class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../api/generated/qcodes_contrib_drivers.drivers.Lakeshore.modules.html">qcodes_contrib_drivers.drivers.Lakeshore.modules package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../api/generated/qcodes_contrib_drivers.drivers.LighthousePhotonics.html">qcodes_contrib_drivers.drivers.LighthousePhotonics package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/generated/qcodes_contrib_drivers.drivers.M2.html">qcodes_contrib_drivers.drivers.M2 package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/generated/qcodes_contrib_drivers.drivers.Minicircuits.html">qcodes_contrib_drivers.drivers.Minicircuits package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/generated/qcodes_contrib_drivers.drivers.MontanaInstruments.html">qcodes_contrib_drivers.drivers.MontanaInstruments package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/generated/qcodes_contrib_drivers.drivers.NanoVNA.html">qcodes_contrib_drivers.drivers.NanoVNA package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/generated/qcodes_contrib_drivers.drivers.NationalInstruments.html">qcodes_contrib_drivers.drivers.NationalInstruments package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/generated/qcodes_contrib_drivers.drivers.Newport.html">qcodes_contrib_drivers.drivers.Newport package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/generated/qcodes_contrib_drivers.drivers.OxfordInstruments.html">qcodes_contrib_drivers.drivers.OxfordInstruments package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/generated/qcodes_contrib_drivers.drivers.QDevil.html">qcodes_contrib_drivers.drivers.QDevil package</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../api/generated/qcodes_contrib_drivers.drivers.QphoX.html">qcodes_contrib_drivers.drivers.QphoX package</a><input aria-label="Toggle navigation of qcodes_contrib_drivers.drivers.QphoX package" class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../api/generated/qcodes_contrib_drivers.drivers.QphoX.CryoSwitchController.html">qcodes_contrib_drivers.drivers.QphoX.CryoSwitchController package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../api/generated/qcodes_contrib_drivers.drivers.QuTech.html">qcodes_contrib_drivers.drivers.QuTech package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/generated/qcodes_contrib_drivers.drivers.QuantumDesign.html">qcodes_contrib_drivers.drivers.QuantumDesign package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/generated/qcodes_contrib_drivers.drivers.Rigol.html">qcodes_contrib_drivers.drivers.Rigol package</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../api/generated/qcodes_contrib_drivers.drivers.RohdeSchwarz.html">qcodes_contrib_drivers.drivers.RohdeSchwarz package</a><input aria-label="Toggle navigation of qcodes_contrib_drivers.drivers.RohdeSchwarz package" class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" role="switch" type="checkbox"/><label for="toctree-checkbox-12"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../api/generated/qcodes_contrib_drivers.drivers.RohdeSchwarz.private.html">qcodes_contrib_drivers.drivers.RohdeSchwarz.private package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../api/generated/qcodes_contrib_drivers.drivers.SPECS.html">qcodes_contrib_drivers.drivers.SPECS package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/generated/qcodes_contrib_drivers.drivers.Shamrock.html">qcodes_contrib_drivers.drivers.Shamrock package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/generated/qcodes_contrib_drivers.drivers.Siglent.html">qcodes_contrib_drivers.drivers.Siglent package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/generated/qcodes_contrib_drivers.drivers.SignalCore.html">qcodes_contrib_drivers.drivers.SignalCore package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/generated/qcodes_contrib_drivers.drivers.SingleQuantum.html">qcodes_contrib_drivers.drivers.SingleQuantum package</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../api/generated/qcodes_contrib_drivers.drivers.Spectrum.html">qcodes_contrib_drivers.drivers.Spectrum package</a><input aria-label="Toggle navigation of qcodes_contrib_drivers.drivers.Spectrum package" class="toctree-checkbox" id="toctree-checkbox-13" name="toctree-checkbox-13" role="switch" type="checkbox"/><label for="toctree-checkbox-13"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../api/generated/qcodes_contrib_drivers.drivers.Spectrum.py_header.html">qcodes_contrib_drivers.drivers.Spectrum.py_header package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../api/generated/qcodes_contrib_drivers.drivers.Standa.html">qcodes_contrib_drivers.drivers.Standa package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/generated/qcodes_contrib_drivers.drivers.StanfordResearchSystems.html">qcodes_contrib_drivers.drivers.StanfordResearchSystems package</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../api/generated/qcodes_contrib_drivers.drivers.SwabianInstruments.html">qcodes_contrib_drivers.drivers.SwabianInstruments package</a><input aria-label="Toggle navigation of qcodes_contrib_drivers.drivers.SwabianInstruments package" class="toctree-checkbox" id="toctree-checkbox-14" name="toctree-checkbox-14" role="switch" type="checkbox"/><label for="toctree-checkbox-14"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../api/generated/qcodes_contrib_drivers.drivers.SwabianInstruments.private.html">qcodes_contrib_drivers.drivers.SwabianInstruments.private package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../api/generated/qcodes_contrib_drivers.drivers.Tektronix.html">qcodes_contrib_drivers.drivers.Tektronix package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/generated/qcodes_contrib_drivers.drivers.Thermotek.html">qcodes_contrib_drivers.drivers.Thermotek package</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../api/generated/qcodes_contrib_drivers.drivers.Thorlabs.html">qcodes_contrib_drivers.drivers.Thorlabs package</a><input aria-label="Toggle navigation of qcodes_contrib_drivers.drivers.Thorlabs package" class="toctree-checkbox" id="toctree-checkbox-15" name="toctree-checkbox-15" role="switch" type="checkbox"/><label for="toctree-checkbox-15"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../api/generated/qcodes_contrib_drivers.drivers.Thorlabs.private.html">qcodes_contrib_drivers.drivers.Thorlabs.private package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../api/generated/qcodes_contrib_drivers.drivers.Valon.html">qcodes_contrib_drivers.drivers.Valon package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/generated/qcodes_contrib_drivers.drivers.Vaunix.html">qcodes_contrib_drivers.drivers.Vaunix package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/generated/qcodes_contrib_drivers.drivers.Windfreak.html">qcodes_contrib_drivers.drivers.Windfreak package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/generated/qcodes_contrib_drivers.drivers.ZurichInstruments.html">qcodes_contrib_drivers.drivers.ZurichInstruments package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/generated/qcodes_contrib_drivers.drivers.physik_instrumente.html">qcodes_contrib_drivers.drivers.physik_instrumente package</a></li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="../_sources/examples/SingleQuantum.ipynb.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="Example-for-Single-Quantum-SNSPD">
+<h1>Example for Single Quantum SNSPD<a class="headerlink" href="#Example-for-Single-Quantum-SNSPD" title="Link to this heading">¶</a></h1>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">qcodes</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">qc</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">qcodes_contrib_drivers.drivers.SingleQuantum.SingleQuantum</span><span class="w"> </span><span class="kn">import</span> <span class="n">WebSQControlqcode</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qcodes.parameters</span><span class="w"> </span><span class="kn">import</span> <span class="n">expand_setpoints_helper</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qcodes.dataset</span><span class="w"> </span><span class="kn">import</span> <span class="n">plot_dataset</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qcodes.logger</span><span class="w"> </span><span class="kn">import</span> <span class="n">start_all_logging</span>
+</pre></div>
+</div>
+</div>
+<p>Connects to the driver, default ip address is 192.168.1.1</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">start_all_logging</span><span class="p">()</span>
+<span class="n">station</span> <span class="o">=</span> <span class="n">qc</span><span class="o">.</span><span class="n">Station</span><span class="p">()</span>
+<span class="n">websq</span> <span class="o">=</span> <span class="n">WebSQControlqcode</span><span class="p">(</span><span class="s1">&#39;websq&#39;</span><span class="p">,</span> <span class="n">address</span><span class="o">=</span><span class="s1">&#39;192.168.1.1&#39;</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">12000</span><span class="p">)</span>
+<span class="n">station</span><span class="o">.</span><span class="n">add_component</span><span class="p">(</span><span class="n">websq</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>Get the number of detectors</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">number_of_detectors</span> <span class="o">=</span> <span class="n">websq</span><span class="o">.</span><span class="n">number_of_detectors</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<p>Set the integration time (ms)</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">websq</span><span class="o">.</span><span class="n">measurement_periode</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>Enable the detectors</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">websq</span><span class="o">.</span><span class="n">detectors</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>Set the bias current (uA) and trigger levels (mV) with array size equal to the number of detectors in your system.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">websq</span><span class="o">.</span><span class="n">bias_current</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">])</span>
+<span class="n">websq</span><span class="o">.</span><span class="n">trigger_level</span><span class="p">([</span><span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<p>Set the amount of measurements</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">websq</span><span class="o">.</span><span class="n">npts</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>Measurement of a simple IV sweep</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">exp</span> <span class="o">=</span> <span class="n">qc</span><span class="o">.</span><span class="n">load_or_create_experiment</span><span class="p">(</span>
+    <span class="n">experiment_name</span><span class="o">=</span><span class="s1">&#39;performing_meas_using_parameters_and_dataset&#39;</span><span class="p">,</span>
+    <span class="n">sample_name</span><span class="o">=</span><span class="s2">&quot;no sample&quot;</span><span class="p">)</span>
+<span class="n">timemeas</span> <span class="o">=</span> <span class="n">qc</span><span class="o">.</span><span class="n">Measurement</span><span class="p">(</span><span class="n">exp</span><span class="o">=</span><span class="n">exp</span><span class="p">)</span>
+<span class="n">timemeas</span><span class="o">.</span><span class="n">register_parameter</span><span class="p">(</span><span class="n">websq</span><span class="o">.</span><span class="n">channel1</span><span class="p">)</span>
+<span class="n">timemeas</span><span class="o">.</span><span class="n">register_parameter</span><span class="p">(</span><span class="n">websq</span><span class="o">.</span><span class="n">channel2</span><span class="p">)</span>
+<span class="n">timemeas</span><span class="o">.</span><span class="n">register_parameter</span><span class="p">(</span><span class="n">websq</span><span class="o">.</span><span class="n">channel3</span><span class="p">)</span>
+<span class="n">timemeas</span><span class="o">.</span><span class="n">register_parameter</span><span class="p">(</span><span class="n">websq</span><span class="o">.</span><span class="n">channel4</span><span class="p">)</span>
+
+<span class="k">with</span> <span class="n">timemeas</span><span class="o">.</span><span class="n">run</span><span class="p">()</span> <span class="k">as</span> <span class="n">datasaver</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
+        <span class="c1"># Tests increasing the bias current</span>
+        <span class="n">websq</span><span class="o">.</span><span class="n">bias_current</span><span class="p">([</span><span class="n">i</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">i</span><span class="p">])</span>
+        <span class="c1"># Updates the detector counts</span>
+        <span class="n">websq</span><span class="o">.</span><span class="n">counters</span><span class="p">()</span>
+        <span class="n">datasaver</span><span class="o">.</span><span class="n">add_result</span><span class="p">(</span>
+            <span class="o">*</span><span class="n">expand_setpoints_helper</span><span class="p">(</span><span class="n">websq</span><span class="o">.</span><span class="n">channel1</span><span class="p">),</span>
+            <span class="o">*</span><span class="n">expand_setpoints_helper</span><span class="p">(</span><span class="n">websq</span><span class="o">.</span><span class="n">channel2</span><span class="p">),</span>
+            <span class="o">*</span><span class="n">expand_setpoints_helper</span><span class="p">(</span><span class="n">websq</span><span class="o">.</span><span class="n">channel3</span><span class="p">),</span>
+            <span class="o">*</span><span class="n">expand_setpoints_helper</span><span class="p">(</span><span class="n">websq</span><span class="o">.</span><span class="n">channel4</span><span class="p">)</span>
+        <span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>Close the connection and plot the measurement</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">dataset</span> <span class="o">=</span> <span class="n">datasaver</span><span class="o">.</span><span class="n">dataset</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">,</span> <span class="n">cbaxes</span> <span class="o">=</span> <span class="n">plot_dataset</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">axes</span><span class="o">=</span><span class="p">[</span><span class="n">ax</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">ax</span><span class="p">])</span>
+<span class="c1"># Close connection</span>
+<span class="n">websq</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="Specs_Tramea.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">NANONIS TRAMEA EXAMPLES</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="SignalRecovery_7270.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">Example of Signal Recovery 7270 driver usage</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2019, QCoDeS Users
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer no-toc">
+      
+      
+      
+    </aside>
+  </div>
+</div><script src="../_static/documentation_options.js?v=0ec1ef52"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/scripts/furo.js?v=46bd48cc"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    </body>
+</html>

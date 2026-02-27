@@ -1,0 +1,29 @@
+qcodes\_contrib\_drivers.drivers.Rigol package
+==============================================
+
+Submodules
+----------
+
+qcodes\_contrib\_drivers.drivers.Rigol.Rigol\_DP932 module
+----------------------------------------------------------
+
+.. automodule:: qcodes_contrib_drivers.drivers.Rigol.Rigol_DP932
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+qcodes\_contrib\_drivers.drivers.Rigol.Rigol\_DSG3136B module
+-------------------------------------------------------------
+
+.. automodule:: qcodes_contrib_drivers.drivers.Rigol.Rigol_DSG3136B
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Module contents
+---------------
+
+.. automodule:: qcodes_contrib_drivers.drivers.Rigol
+   :members:
+   :show-inheritance:
+   :undoc-members:
