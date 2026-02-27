@@ -71,9 +71,7 @@ class PeakTech15xx(VisaInstrument):
         self.serial_handle.data_bits = 8
         self.serial_handle.stop_bits = StopBits.one
         self.serial_handle.parity    = Parity.none
-        # the code in pyvisa is written to allow None as a termination
-        # but the type hinting does not allow it
-        self.serial_handle.read_termination  = None  # type: ignore[assignment]
+        self.serial_handle.read_termination  = None
         self.serial_handle.write_termination = '\r'
 
         self._write_acknowledge = 'OK\r'
