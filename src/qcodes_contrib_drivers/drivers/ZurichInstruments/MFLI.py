@@ -5,6 +5,9 @@ from zhinst.qcodes import MFLI as mfli
 
 
 class ComplexSampleParameter(Parameter):
+    """
+    This defines a Complex Sample Parameter for use in the MFLI class.
+    """
     def __init__(
         self,
         *args: Any,
@@ -13,13 +16,16 @@ class ComplexSampleParameter(Parameter):
     ):
         super().__init__(*args, **kwargs)
         if dict_parameter is None:
-            raise TypeError("ComplexCampleParameter requires a dict_parameter")
+            raise TypeError("ComplexSampleParameter requires a dict_parameter")
         self._dict_parameter = dict_parameter
 
     def get_raw(self) -> ParamRawDataType:
         values_dict = self._dict_parameter.get()
-        return complex(values_dict["x"], values_dict["y"])
-
+        x = values_dict["x"]
+        y = values_dict["y"]
+        if hasattr(x, "__len__"):
+            return complex(x[0], y[0])
+        return complex(x,y)
 
 class MFLI(mfli):
     """
