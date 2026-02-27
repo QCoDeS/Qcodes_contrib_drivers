@@ -18,7 +18,7 @@ class ComplexSampleParameter(Parameter):
 
     def get_raw(self) -> ParamRawDataType:
         values_dict = self._dict_parameter.get()
-        return complex(values_dict["x"], values_dict["y"])
+        return complex(values_dict["x"][0], values_dict["y"][0])
 
 
 class MFLI(mfli):
