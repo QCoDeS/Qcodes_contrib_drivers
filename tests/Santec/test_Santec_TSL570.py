@@ -154,6 +154,7 @@ def test_sweep_start_stop_frequency(driver):
     assert driver.sweep_stop_frequency() == pytest.approx(stop_freq, abs=1e9)
 
 
+# TODO : Command times out (bug in instrument firmware?). Try to update firmware.
 def test_sweep_range_limits(driver):
     """Test sweep range minimum and maximum readout."""
     min_wl = driver.sweep_range_minimum()
