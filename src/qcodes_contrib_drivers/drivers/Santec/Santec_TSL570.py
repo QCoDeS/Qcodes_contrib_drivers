@@ -47,16 +47,6 @@ class SantecTSL570(IPInstrument):
         SCPI commands follow the Standard Commands for Programmable Instruments consortium standards.
     """
 
-    MODEL_SPECS = {
-        "260360": (1260e-9, 1360e-9),
-        "240380": (1240e-9, 1380e-9),
-        "355485": (1355e-9, 1485e-9),
-        "355505": (1355e-9, 1505e-9),
-        "500630": (1500e-9, 1630e-9),
-        "480640": (1480e-9, 1640e-9),
-        "560680": (1560e-9, 1680e-9),
-    }
-
     default_terminator = "\n"
 
     def __init__(
@@ -77,17 +67,6 @@ class SantecTSL570(IPInstrument):
         if self.model != "TSL-570":
             raise ValueError(f"Unexpected model '{self.model}' detected. Expected 'TSL-570'.")
 
-        # if self.model in self.MODEL_SPECS:
-        #     wavelength_min, wavelength_max = self.MODEL_SPECS[self.model]
-        #     log.info(f"Detected model {self.model} with wavelength range {wavelength_min}-{wavelength_max} nm")
-        # else:
-        #     raise ValueError(f"Unknown model '{self.model}' detected.")
-        #
-        wavelength_min, wavelength_max = 1260e-9, 1680e-9
-
-        frequency_min = SPEED_OF_LIGHT / wavelength_max
-        frequency_max = SPEED_OF_LIGHT / wavelength_min
-
         # Wavelength parameters
         self.wavelength: Parameter = self.add_parameter(
             name="wavelength",
@@ -97,7 +76,6 @@ class SantecTSL570(IPInstrument):
             set_cmd=":WAVelength {:.10e}",
             get_parser=float,
             set_parser=float,
-            vals=vals.Numbers(wavelength_min, wavelength_max),
         )
         """Output wavelength"""
 
@@ -132,7 +110,6 @@ class SantecTSL570(IPInstrument):
             set_cmd=":WAVelength:FREQuency {:.0f}",
             get_parser=float,
             set_parser=float,
-            vals=vals.Numbers(frequency_min, frequency_max),
         )
         """Output optical frequency"""
 
@@ -228,7 +205,6 @@ class SantecTSL570(IPInstrument):
             set_cmd=":WAVelength:SWEep:STARt {:.10e}",
             get_parser=float,
             set_parser=float,
-            vals=vals.Numbers(wavelength_min, wavelength_max),
         )
         """Sweep start wavelength"""
 
@@ -240,7 +216,6 @@ class SantecTSL570(IPInstrument):
             set_cmd=":WAVelength:SWEep:STOP {:.10e}",
             get_parser=float,
             set_parser=float,
-            vals=vals.Numbers(wavelength_min, wavelength_max),
         )
         """Sweep stop wavelength"""
 
@@ -252,7 +227,6 @@ class SantecTSL570(IPInstrument):
             set_cmd=":WAVelength:FREQuency:SWEep:STARt {:.0f}",
             get_parser=float,
             set_parser=float,
-            vals=vals.Numbers(frequency_min, frequency_max),
         )
         """Sweep start frequency"""
 
@@ -264,7 +238,6 @@ class SantecTSL570(IPInstrument):
             set_cmd=":WAVelength:FREQuency:SWEep:STOP {:.0f}",
             get_parser=float,
             set_parser=float,
-            vals=vals.Numbers(frequency_min, frequency_max),
         )
         """Sweep stop frequency"""
 
@@ -317,7 +290,6 @@ class SantecTSL570(IPInstrument):
             set_cmd=":WAVelength:SWEep:STEP {:.10e}",
             get_parser=float,
             set_parser=float,
-            vals=vals.Numbers(0.1e-12, wavelength_max - wavelength_min),
         )
         """Sweep step size"""
 
@@ -489,7 +461,6 @@ class SantecTSL570(IPInstrument):
             set_cmd=":TRIGger:OUTPut:STEP {:.10e}",
             get_parser=float,
             set_parser=float,
-            vals=vals.Numbers(0.0001e-9, wavelength_max - wavelength_min),
         )
         """Trigger output interval (0.0001 nm resolution)"""
 
