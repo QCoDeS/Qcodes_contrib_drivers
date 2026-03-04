@@ -241,6 +241,7 @@ class SantecTSL570(IPInstrument):
         )
         """Sweep stop frequency"""
 
+        # TODO : Command times out (bug in instrument firmware?). Try to update firmware.
         self.sweep_range_minimum: Parameter = self.add_parameter(
             name="sweep_range_minimum",
             label="Sweep range minimum wavelength",
@@ -250,6 +251,7 @@ class SantecTSL570(IPInstrument):
         )
         """Minimum wavelength in configurable sweep range at current sweep speed"""
 
+        # TODO : Command times out (bug in instrument firmware?). Try to update firmware.
         self.sweep_range_maximum: Parameter = self.add_parameter(
             name="sweep_range_maximum",
             label="Sweep range maximum wavelength",
