@@ -36,11 +36,11 @@ def test_idn(driver):
     assert idn_dict['model'] == 'TSL-570'
 
 
-def test_wavelength_fine(driver):
+@pytest.mark.parametrize("fine_val", [-50.0, 0.0, 50.0])
+def test_wavelength_fine(driver, fine_val):
     """Test fine wavelength tuning."""
-    for fine_val in [-50.0, 0.0, 50.0]:
-        driver.wavelength_fine(fine_val)
-        assert driver.wavelength_fine() == fine_val
+    driver.wavelength_fine(fine_val)
+    assert driver.wavelength_fine() == fine_val
 
 
 def test_disable_fine_tuning(driver):
@@ -48,7 +48,6 @@ def test_disable_fine_tuning(driver):
     driver.disable_fine_tuning()
 
 
-# Wavelength parameters
 def test_wavelength_set_get(driver):
     """Test wavelength parameter set and get."""
     test_wavelength = 1550e-9  # 1550 nm in meters
@@ -56,11 +55,11 @@ def test_wavelength_set_get(driver):
     assert driver.wavelength() == pytest.approx(test_wavelength, abs=1e-12)
 
 
-def test_wavelength_unit(driver):
+@pytest.mark.parametrize("unit", ["NM", "THz"])
+def test_wavelength_unit(driver, unit):
     """Test wavelength unit selection."""
-    for unit in ["NM", "THz"]:
-        driver.wavelength_unit(unit)
-        assert driver.wavelength_unit() == unit
+    driver.wavelength_unit(unit)
+    assert driver.wavelength_unit() == unit
 
 
 def test_frequency_set_get(driver):
@@ -70,38 +69,33 @@ def test_frequency_set_get(driver):
     assert driver.frequency() == pytest.approx(test_freq, abs=1e9)
 
 
-# Coherence control
-def test_coherence_control(driver):
+@pytest.mark.parametrize("state", [True, False])
+def test_coherence_control(driver, state):
     """Test coherence control."""
-    driver.coherence_control(True)
-    assert driver.coherence_control() == True
-    driver.coherence_control(False)
-    assert driver.coherence_control() == False
+    driver.coherence_control(state)
+    assert driver.coherence_control() == state
 
 
-# Power parameters
-def test_output(driver):
+@pytest.mark.parametrize("state", [False, True])
+def test_output(driver, state):
     """Test output state control."""
-    driver.output(False)
-    assert driver.output() == False
-    driver.output(True)
-    assert driver.output() == True
+    driver.output(state)
+    assert driver.output() == state
 
 
-def test_power_auto(driver):
+@pytest.mark.parametrize("state", [False, True])
+def test_power_auto(driver, state):
     """Test automatic power control."""
-    driver.power_auto(False)
-    assert driver.power_auto() == False
-    driver.power_auto(True)
-    assert driver.power_auto() == True
+    driver.power_auto(state)
+    assert driver.power_auto() == state
 
 
-def test_power_attenuation(driver):
+@pytest.mark.parametrize("atten", [20, 10, 0])
+def test_power_attenuation(driver, atten):
     """Test attenuator control."""
     driver.power_auto(False)  # Disable auto to set attenuation
-    for atten in [20, 10, 0]:
-        driver.power_attenuation(atten)
-        assert driver.power_attenuation() == atten
+    driver.power_attenuation(atten)
+    assert driver.power_attenuation() == atten
 
 
 def test_power_set_get(driver):
@@ -118,22 +112,20 @@ def test_power_actual(driver):
     assert isinstance(power_actual, (int, float))
 
 
-def test_shutter(driver):
+@pytest.mark.parametrize("state", [True, False])
+def test_shutter(driver, state):
     """Test shutter control."""
-    driver.shutter(True)
-    assert driver.shutter() == True
-    driver.shutter(False)
-    assert driver.shutter() == False
+    driver.shutter(state)
+    assert driver.shutter() == state
 
 
-def test_power_unit(driver):
+@pytest.mark.parametrize("unit", ["dBm", "mW"])
+def test_power_unit(driver, unit):
     """Test power unit selection."""
-    for unit in ["dBm", "mW"]:
-        driver.power_unit(unit)
-        assert driver.power_unit() == unit
+    driver.power_unit(unit)
+    assert driver.power_unit() == unit
 
 
-# Sweep parameters
 def test_sweep_start_stop(driver):
     """Test sweep start and stop wavelength."""
     start_wl = 1510e-9
@@ -166,18 +158,18 @@ def test_sweep_range_limits(driver):
     assert min_wl < max_wl
 
 
-def test_sweep_mode(driver):
+@pytest.mark.parametrize("mode", [0, 1, 2, 3])
+def test_sweep_mode(driver, mode):
     """Test sweep mode selection."""
-    for mode in [0, 1, 2, 3]:
-        driver.sweep_mode(mode)
-        assert driver.sweep_mode() == mode
+    driver.sweep_mode(mode)
+    assert driver.sweep_mode() == mode
 
 
-def test_sweep_speed(driver):
+@pytest.mark.parametrize("speed", [1, 10, 100])
+def test_sweep_speed(driver, speed):
     """Test sweep speed configuration."""
-    for speed in [1, 10, 100]:
-        driver.sweep_speed(speed)
-        assert driver.sweep_speed() == speed
+    driver.sweep_speed(speed)
+    assert driver.sweep_speed() == speed
 
 
 def test_sweep_step(driver):
@@ -187,18 +179,18 @@ def test_sweep_step(driver):
     assert driver.sweep_step() == pytest.approx(step, abs=1e-13)
 
 
-def test_sweep_dwell(driver):
+@pytest.mark.parametrize("dwell", [0.1, 1.0, 10.0])
+def test_sweep_dwell(driver, dwell):
     """Test sweep dwell time."""
-    for dwell in [0.1, 1.0, 10.0]:
-        driver.sweep_dwell(dwell)
-        assert driver.sweep_dwell() == dwell
+    driver.sweep_dwell(dwell)
+    assert driver.sweep_dwell() == dwell
 
 
-def test_sweep_cycles(driver):
+@pytest.mark.parametrize("cycles", [100, 10, 1])
+def test_sweep_cycles(driver, cycles):
     """Test sweep cycle count."""
-    for cycles in [100, 10, 1]:
-        driver.sweep_cycles(cycles)
-        assert driver.sweep_cycles() == cycles
+    driver.sweep_cycles(cycles)
+    assert driver.sweep_cycles() == cycles
 
 
 def test_sweep_count(driver):
@@ -208,11 +200,11 @@ def test_sweep_count(driver):
     assert count >= 0
 
 
-def test_sweep_delay(driver):
+@pytest.mark.parametrize("delay", [0.0, 1.0, 10.0])
+def test_sweep_delay(driver, delay):
     """Test sweep delay time."""
-    for delay in [0.0, 1.0, 10.0]:
-        driver.sweep_delay(delay)
-        assert driver.sweep_delay() == delay
+    driver.sweep_delay(delay)
+    assert driver.sweep_delay() == delay
 
 
 def test_sweep_state(driver):
@@ -221,7 +213,6 @@ def test_sweep_state(driver):
     assert state in ["STOPPED", "RUNNING", "TRIGGER_STANDBY", "PREPARING"]
 
 
-# Data readout
 def test_readout_points(driver):
     """Test readout points query."""
     points = driver.readout_points()
@@ -229,20 +220,18 @@ def test_readout_points(driver):
     assert 0 <= points <= 500_000
 
 
-# Modulation parameters
-def test_modulation_state(driver):
+@pytest.mark.parametrize("state", [True, False])
+def test_modulation_state(driver, state):
     """Test amplitude modulation state."""
-    driver.modulation_state(True)
-    assert driver.modulation_state() == True
-    driver.modulation_state(False)
-    assert driver.modulation_state() == False
+    driver.modulation_state(state)
+    assert driver.modulation_state() == state
 
 
-def test_modulation_source(driver):
+@pytest.mark.parametrize("source", ["COHERENCE_CONTROL", "INTENSITY_MODULATION", "FREQUENCY_MODULATION"])
+def test_modulation_source(driver, source):
     """Test modulation source selection."""
-    for source in ["COHERENCE_CONTROL", "INTENSITY_MODULATION", "FREQUENCY_MODULATION"]:
-        driver.modulation_source(source)
-        assert driver.modulation_source() == source
+    driver.modulation_source(source)
+    assert driver.modulation_source() == source
 
 
 def test_wavelength_offset(driver):
@@ -252,42 +241,39 @@ def test_wavelength_offset(driver):
     assert driver.wavelength_offset() == pytest.approx(test_offset, abs=1e-13)
 
 
-# Trigger parameters
-def test_trigger_input_external(driver):
+@pytest.mark.parametrize("state", [False, True])
+def test_trigger_input_external(driver, state):
     """Test external trigger input enable."""
-    driver.trigger_input_external(False)
-    assert driver.trigger_input_external() == False
-    driver.trigger_input_external(True)
-    assert driver.trigger_input_external() == True
+    driver.trigger_input_external(state)
+    assert driver.trigger_input_external() == state
 
 
-def test_trigger_input_polarity(driver):
+@pytest.mark.parametrize("pol", ["RISE", "FALL"])
+def test_trigger_input_polarity(driver, pol):
     """Test trigger input polarity."""
-    for pol in ["RISE", "FALL"]:
-        driver.trigger_input_polarity(pol)
-        assert driver.trigger_input_polarity() == pol
+    driver.trigger_input_polarity(pol)
+    assert driver.trigger_input_polarity() == pol
 
 
-def test_trigger_input_standby(driver):
+@pytest.mark.parametrize("state", [False, True])
+def test_trigger_input_standby(driver, state):
     """Test trigger input standby."""
-    driver.trigger_input_standby(False)
-    assert driver.trigger_input_standby() == False
-    driver.trigger_input_standby(True)
-    assert driver.trigger_input_standby() == True
+    driver.trigger_input_standby(state)
+    assert driver.trigger_input_standby() == state
 
 
-def test_trigger_output_timing(driver):
+@pytest.mark.parametrize("timing", ["NONE", "STOP", "START", "STEP"])
+def test_trigger_output_timing(driver, timing):
     """Test trigger output timing configuration."""
-    for timing in ["NONE", "STOP", "START", "STEP"]:
-        driver.trigger_output_timing(timing)
-        assert driver.trigger_output_timing() == timing
+    driver.trigger_output_timing(timing)
+    assert driver.trigger_output_timing() == timing
 
 
-def test_trigger_output_polarity(driver):
+@pytest.mark.parametrize("pol", ["RISE", "FALL"])
+def test_trigger_output_polarity(driver, pol):
     """Test trigger output polarity."""
-    for pol in ["RISE", "FALL"]:
-        driver.trigger_output_polarity(pol)
-        assert driver.trigger_output_polarity() == pol
+    driver.trigger_output_polarity(pol)
+    assert driver.trigger_output_polarity() == pol
 
 
 def test_trigger_output_step(driver):
@@ -297,32 +283,30 @@ def test_trigger_output_step(driver):
     assert driver.trigger_output_step() == pytest.approx(step, abs=1e-13)
 
 
-def test_trigger_output_setting(driver):
+@pytest.mark.parametrize("setting", ["WAVELENGTH", "TIME"])
+def test_trigger_output_setting(driver, setting):
     """Test trigger output period mode."""
-    for setting in ["WAVELENGTH", "TIME"]:
-        driver.trigger_output_setting(setting)
-        assert driver.trigger_output_setting() == setting
+    driver.trigger_output_setting(setting)
+    assert driver.trigger_output_setting() == setting
 
 
-def test_trigger_through(driver):
+@pytest.mark.parametrize("state", [False, True])
+def test_trigger_through(driver, state):
     """Test trigger through mode."""
-    driver.trigger_through(False)
-    assert driver.trigger_through() == False
-    driver.trigger_through(True)
-    assert driver.trigger_through() == True
+    driver.trigger_through(state)
+    assert driver.trigger_through() == state
 
 
-# System parameters
 def test_system_error(driver):
     """Test error queue readout."""
     error = driver.system_error()
-    assert error['code'] in [0, -102, -103, -108, -109, -113, -148, -200, -222. - 410]
+    assert error['code'] in [0, -102, -103, -108, -109, -113, -148, -200, -222, -410]
 
 
 def test_command_set_param(driver):
     """Test command set readout."""
     cmd_set = driver.command_set_param()
-    assert cmd_set in ["LEGACY", "SCPI"]
+    assert cmd_set == "SCPI"
 
 
 def test_system_lock(driver):
@@ -350,8 +334,6 @@ def test_system_code(driver):
     assert isinstance(code, str)
     assert re.match(r'^[A-Z]-\d{6}-[A-Z]-[A-Z]-[A-Z]{2}-\d{2}-\d$', code)
 
-
-# Method tests
 
 def test_sweep_single(driver):
     """Test single sweep start."""
