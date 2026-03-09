@@ -494,8 +494,8 @@ class SantecTSL570(IPInstrument):
         )
         """Read and clear error from error queue (read-only, returns error number)"""
 
-        self.command_set_param: Parameter = self.add_parameter(
-            name="command_set_param",
+        self.command_set: Parameter = self.add_parameter(
+            name="command_set",
             label="Command set",
             get_cmd=":SYSTem:COMMunicate:CODe?",
             get_parser=int,

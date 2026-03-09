@@ -307,7 +307,7 @@ def test_system_error(driver):
 
 def test_command_set_param(driver):
     """Test command set readout."""
-    cmd_set = driver.command_set_param()
+    cmd_set = driver.command_set()
     assert isinstance(cmd_set, str)
     assert cmd_set == "SCPI"
 
