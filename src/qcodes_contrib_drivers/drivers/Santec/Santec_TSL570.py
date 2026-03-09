@@ -8,7 +8,7 @@ import logging
 from typing import TYPE_CHECKING
 
 from qcodes import validators as vals
-from qcodes.instrument import VisaInstrumentKWArgs, IPInstrument
+from qcodes.instrument import IPInstrument, InstrumentBaseKWArgs
 from qcodes.parameters import Parameter, create_on_off_val_mapping
 
 if TYPE_CHECKING:
@@ -47,16 +47,14 @@ class SantecTSL570(IPInstrument):
         SCPI commands follow the Standard Commands for Programmable Instruments consortium standards.
     """
 
-    default_terminator = "\n"
-
     def __init__(
             self,
             name: str,
-            address: str,
-            **kwargs: "Unpack[VisaInstrumentKWArgs]",
+            address: str | None = None,
+            port: int | None = None,
+            **kwargs: "Unpack[InstrumentBaseKWArgs]",
     ) -> None:
-        kwargs.setdefault("write_confirmation", False)
-        super().__init__(name, address, **kwargs)
+        super().__init__(name, address, port, write_confirmation=False, **kwargs)
 
         # Set instrument to SCPI command mode as first step
         self.write(":SYSTem:COMMunicate:CODe 1")
