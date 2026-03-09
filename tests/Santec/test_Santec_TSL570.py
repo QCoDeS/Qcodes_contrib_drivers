@@ -32,6 +32,7 @@ def test_reset(driver):
 def test_idn(driver):
     """Test instrument identification."""
     idn_dict = driver.get_idn()
+    assert isinstance(idn_dict, dict)
     assert 'model' in idn_dict
     assert idn_dict['model'] == 'TSL-570'
 
@@ -146,7 +147,7 @@ def test_sweep_start_stop_frequency(driver):
     assert driver.sweep_stop_frequency() == pytest.approx(stop_freq, abs=1e9)
 
 
-# TODO : Command times out (bug in instrument firmware?). Try to update firmware.
+# @pytest.mark.skip(reason="Command times out - firmware bug. Try updating firmware.")
 def test_sweep_range_limits(driver):
     """Test sweep range minimum and maximum readout."""
     min_wl = driver.sweep_range_minimum()
@@ -209,8 +210,7 @@ def test_sweep_delay(driver, delay):
 
 def test_sweep_state(driver):
     """Test sweep state readout."""
-    state = driver.sweep_state()
-    assert state in ["STOPPED", "RUNNING", "TRIGGER_STANDBY", "PREPARING"]
+    assert driver.sweep_state() in ["STOPPED", "RUNNING", "TRIGGER_STANDBY", "PREPARING"]
 
 
 def test_readout_points(driver):
@@ -300,12 +300,15 @@ def test_trigger_through(driver, state):
 def test_system_error(driver):
     """Test error queue readout."""
     error = driver.system_error()
+    assert isinstance(error, dict)
+    assert 'code' in error
     assert error['code'] in [0, -102, -103, -108, -109, -113, -148, -200, -222, -410]
 
 
 def test_command_set_param(driver):
     """Test command set readout."""
     cmd_set = driver.command_set_param()
+    assert isinstance(cmd_set, str)
     assert cmd_set == "SCPI"
 
 
@@ -319,6 +322,7 @@ def test_system_alert(driver):
     """Test alert information readout."""
     alert = driver.system_alert()
     assert isinstance(alert, str)
+    assert len(alert) > 0
 
 
 def test_system_version(driver):
@@ -339,8 +343,7 @@ def test_sweep_single(driver):
     """Test single sweep start."""
     driver.sweep_single()
     time.sleep(0.5)  # Allow time for sweep to start
-    state = driver.sweep_state()
-    assert state in ["RUNNING", "TRIGGER_STANDBY", "PREPARING"]  # Should be running or preparing
+    assert driver.sweep_state() in ["RUNNING", "TRIGGER_STANDBY", "PREPARING"]  # Should be running or preparing
 
 
 def test_sweep_stop(driver):
@@ -354,8 +357,7 @@ def test_sweep_repeat(driver):
     """Test repeat sweep start."""
     driver.sweep_repeat()
     time.sleep(0.5)
-    state = driver.sweep_state()
-    assert state in ["RUNNING", "TRIGGER_STANDBY", "PREPARING"]  # Should be running or preparing
+    assert driver.sweep_state() in ["RUNNING", "TRIGGER_STANDBY", "PREPARING"]  # Should be running or preparing
 
 
 def test_software_trigger(driver):
