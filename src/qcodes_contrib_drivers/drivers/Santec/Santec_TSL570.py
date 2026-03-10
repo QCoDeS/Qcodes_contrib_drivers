@@ -4,23 +4,18 @@ The driver uses the SCPI (Standard Commands for Programmable Instruments) comman
 which provides higher compatibility with other instruments and follows SCPI consortium standards.
 """
 
-import logging
 from typing import TYPE_CHECKING
 
-from qcodes import validators as vals
-from qcodes.instrument import IPInstrument, InstrumentBaseKWArgs
+import numpy as np
+from qcodes import validators as vals, VisaInstrument
+from qcodes.instrument import InstrumentBaseKWArgs
 from qcodes.parameters import Parameter, create_on_off_val_mapping
 
 if TYPE_CHECKING:
     from typing_extensions import Unpack
 
-log = logging.getLogger(__name__)
 
-# Physical constants
-SPEED_OF_LIGHT = 299_792_458  # Speed of light in m/s
-
-
-class SantecTSL570(IPInstrument):
+class SantecTSL570(VisaInstrument):
     """
     QCoDeS driver for the Santec TSL-570 Tunable Semiconductor Laser.
 
@@ -47,18 +42,18 @@ class SantecTSL570(IPInstrument):
         SCPI commands follow the Standard Commands for Programmable Instruments consortium standards.
     """
 
+    default_terminator = '\r'
+
     def __init__(
             self,
             name: str,
             address: str | None = None,
-            port: int | None = None,
             **kwargs: "Unpack[InstrumentBaseKWArgs]",
     ) -> None:
-        super().__init__(name, address, port, write_confirmation=False, **kwargs)
+        super().__init__(name, address, **kwargs)
 
         # Set instrument to SCPI command mode as first step
         self.write(":SYSTem:COMMunicate:CODe 1")
-        log.info("Set instrument to SCPI command mode")
 
         # Detect model and set wavelength limit
         self.model = self.get_idn()['model']
@@ -244,7 +239,7 @@ class SantecTSL570(IPInstrument):
             name="sweep_range_minimum",
             label="Sweep range minimum wavelength",
             unit="m",
-            get_cmd=":WAV:SWE:RANG:MAX?",
+            get_cmd=":WAV:SWE:RANG:MIN?",
             get_parser=float,
         )
         """Minimum wavelength in configurable sweep range at current sweep speed"""
@@ -358,6 +353,21 @@ class SantecTSL570(IPInstrument):
             get_parser=int,
         )
         """Number of recorded data points"""
+
+        self.readout_data: Parameter = self.add_parameter(
+            name="readout_data",
+            label="Wavelength logging data",
+            get_cmd=self._get_readout_data,
+        )
+        """Wavelength logging data (read-only, returns list of wavelengths in meters)"""
+
+        self.readout_power_data: Parameter = self.add_parameter(
+            name="readout_power_data",
+            label="Power logging data",
+            unit="dBm",
+            get_cmd=self._get_readout_power_data,
+        )
+        """Power logging data (read-only, returns list of powers in dBm)"""
 
         # Modulation parameters
         self.modulation_state: Parameter = self.add_parameter(
@@ -541,6 +551,23 @@ class SantecTSL570(IPInstrument):
 
         self.connect_message()
 
+    def _get_readout_data(self) -> np.ndarray:
+        return 1e2 * self.visa_handle.query_binary_values(
+            message=":READout:DATa?",
+            datatype="d",
+            expect_termination=False,
+            container=np.ndarray
+        )
+
+    # TODO : Command times out. Termination character is not sent by instrument?
+    def _get_readout_power_data(self) -> np.ndarray:
+        return self.visa_handle.query_binary_values(
+            message=":READout:DATa:POWer?",
+            datatype="d",
+            expect_termination=False,
+            container=np.ndarray,
+        )
+
     def reset(self) -> None:
         """Reset to factory defaults."""
         self.write("*RST")
@@ -554,6 +581,7 @@ class SantecTSL570(IPInstrument):
         self.write(":WAVelength:SWEep:STATe:REPeat")
 
     def sweep_single(self) -> None:
+        """Start single sweep."""
         self.write(":WAV:SWE 1")
 
     def sweep_stop(self) -> None:

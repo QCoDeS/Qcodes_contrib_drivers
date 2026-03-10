@@ -7,6 +7,7 @@ To run with simulation, create a TSL570.yaml file in the sims directory.
 import re
 import time
 
+import numpy as np
 import pytest
 
 from qcodes_contrib_drivers.drivers.Santec import SantecTSL570
@@ -15,11 +16,7 @@ from qcodes_contrib_drivers.drivers.Santec import SantecTSL570
 @pytest.fixture(scope="module")
 def driver():
     """Create TSL570 instrument instance."""
-    tsl = SantecTSL570("TSL570", address="192.168.50.29", port=5000)
-    # Or use simulation:
-    # import qcodes_contrib_drivers.sims as sims
-    # visalib = sims.__file__.replace('__init__.py', 'TSL570.yaml@sim')
-    # tsl = TSL570("TSL570", address="GPIB::1::INSTR", visalib=visalib)
+    tsl = SantecTSL570("TSL570", address="TCPIP::192.168.50.29::5000::SOCKET")  # VisaInstrument
     yield tsl
     tsl.close()
 
@@ -218,6 +215,32 @@ def test_readout_points(driver):
     points = driver.readout_points()
     assert isinstance(points, int)
     assert 0 <= points <= 500_000
+
+
+def test_readout_data(driver):
+    """Test wavelength logging data readout."""
+    # Get the number of data points first
+    num_points = driver.readout_points()
+    data = driver.readout_data()
+    assert isinstance(data, np.ndarray)
+    assert len(data) == num_points
+
+    # All values should be valid wavelengths (in meters, typically in infrared range)
+    for wavelength in data:
+        assert isinstance(wavelength, float)
+        assert 1e-6 < wavelength < 2e-6  # Expect wavelengths in range 1-2 µm (typical for TSL570)
+
+
+def test_readout_power_data(driver):
+    """Test power logging data readout."""
+    num_points = driver.readout_points()
+    data = driver.readout_power_data()
+    assert isinstance(data, np.ndarray)
+    assert len(data) == num_points
+
+    for power in data:
+        assert isinstance(power, (float, np.floating))
+        assert -120 <= power <= 30
 
 
 @pytest.mark.parametrize("state", [True, False])
