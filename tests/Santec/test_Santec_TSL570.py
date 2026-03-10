@@ -144,7 +144,7 @@ def test_sweep_start_stop_frequency(driver):
     assert driver.sweep_stop_frequency() == pytest.approx(stop_freq, abs=1e9)
 
 
-# @pytest.mark.skip(reason="Command times out - firmware bug. Try updating firmware.")
+@pytest.mark.skip(reason="Command times out - firmware bug. Try updating firmware.")
 def test_sweep_range_limits(driver):
     """Test sweep range minimum and maximum readout."""
     min_wl = driver.sweep_range_minimum()

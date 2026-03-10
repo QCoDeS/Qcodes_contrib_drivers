@@ -47,7 +47,7 @@ class SantecTSL570(VisaInstrument):
     def __init__(
             self,
             name: str,
-            address: str | None = None,
+            address: str,
             **kwargs: "Unpack[InstrumentBaseKWArgs]",
     ) -> None:
         super().__init__(name, address, **kwargs)
