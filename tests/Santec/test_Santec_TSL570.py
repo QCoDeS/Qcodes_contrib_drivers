@@ -53,6 +53,21 @@ def test_wavelength_set_get(driver):
     assert driver.wavelength() == pytest.approx(test_wavelength, abs=1e-12)
 
 
+def test_wavelength_minimum(driver):
+    """Test minimum wavelength readout."""
+    wavelength_minimum = driver.wavelength_minimum()
+    assert isinstance(wavelength_minimum, float)
+    assert 1e-6 < wavelength_minimum < 2e-6
+
+
+def test_wavelength_maximum(driver):
+    """Test maximum wavelength readout."""
+    wavelength_maximum = driver.wavelength_maximum()
+    assert isinstance(wavelength_maximum, float)
+    assert 1e-6 < wavelength_maximum < 2e-6
+    assert wavelength_maximum > driver.wavelength_minimum()
+
+
 @pytest.mark.parametrize("unit", ["NM", "THz"])
 def test_wavelength_unit(driver, unit):
     """Test wavelength unit selection."""
@@ -65,6 +80,21 @@ def test_frequency_set_get(driver):
     test_freq = 193.5e12  # ~1550 nm
     driver.frequency(test_freq)
     assert driver.frequency() == pytest.approx(test_freq, abs=1e9)
+
+
+def test_frequency_minimum(driver):
+    """Test minimum frequency readout."""
+    frequency_minimum = driver.frequency_minimum()
+    assert isinstance(frequency_minimum, float)
+    assert 1e14 < frequency_minimum < 3e14
+
+
+def test_frequency_maximum(driver):
+    """Test maximum frequency readout."""
+    frequency_maximum = driver.frequency_maximum()
+    assert isinstance(frequency_maximum, float)
+    assert 1e14 < frequency_maximum < 3e14
+    assert frequency_maximum > driver.frequency_minimum()
 
 
 @pytest.mark.parametrize("state", [True, False])
@@ -88,12 +118,12 @@ def test_power_auto(driver, state):
     assert driver.power_auto() == state
 
 
-@pytest.mark.parametrize("atten", [20, 10, 0])
-def test_power_attenuation(driver, atten):
+@pytest.mark.parametrize("attenuation", [20, 10, 0])
+def test_power_attenuation(driver, attenuation):
     """Test attenuator control."""
     driver.power_auto(False)  # Disable auto to set attenuation
-    driver.power_attenuation(atten)
-    assert driver.power_attenuation() == atten
+    driver.power_attenuation(attenuation)
+    assert driver.power_attenuation() == attenuation
 
 
 def test_power_set_get(driver):
@@ -102,6 +132,21 @@ def test_power_set_get(driver):
     test_power = 2.0  # dBm
     driver.power(test_power)
     assert driver.power() == pytest.approx(test_power, abs=0.1)
+
+
+def test_power_minimum(driver):
+    """Test minimum power readout."""
+    power_minimum = driver.power_minimum()
+    assert isinstance(power_minimum, float)
+    assert np.isfinite(power_minimum)
+
+
+def test_power_maximum(driver):
+    """Test maximum power readout."""
+    power_maximum = driver.power_maximum()
+    assert isinstance(power_maximum, float)
+    assert np.isfinite(power_maximum)
+    assert power_maximum > driver.power_minimum()
 
 
 def test_power_actual(driver):
@@ -144,15 +189,28 @@ def test_sweep_start_stop_frequency(driver):
     assert driver.sweep_stop_frequency() == pytest.approx(stop_freq, abs=1e9)
 
 
-@pytest.mark.skip(reason="Command times out - firmware bug. Try updating firmware.")
+def test_sweep_frequency_step(driver):
+    """Test frequency sweep step size."""
+    step = 1e9  # 1 GHz
+    driver.sweep_step_frequency(step)
+    assert driver.sweep_step_frequency() == pytest.approx(step, abs=1e6)
+
+
+def test_sweep_frequency_range_limits(driver):
+    """Test sweep frequency range minimum and maximum readout."""
+    min_freq = driver.sweep_range_minimum_frequency()
+    max_freq = driver.sweep_range_maximum_frequency()
+    assert isinstance(min_freq, float)
+    assert isinstance(max_freq, float)
+    assert min_freq < max_freq
+
+
 def test_sweep_range_limits(driver):
-    """Test sweep range minimum and maximum readout."""
-    min_wl = driver.sweep_range_minimum()
-    max_wl = driver.sweep_range_maximum()
+    """Test sweep wavelength range minimum and maximum readout."""
+    min_wl = driver.sweep_range_minimum_wavelength()
+    max_wl = driver.sweep_range_maximum_wavelength()
     assert isinstance(min_wl, float)
     assert isinstance(max_wl, float)
-    assert min_wl == pytest.approx(min_wl)
-    assert max_wl == pytest.approx(max_wl)
     assert min_wl < max_wl
 
 
@@ -171,10 +229,10 @@ def test_sweep_speed(driver, speed):
 
 
 def test_sweep_step(driver):
-    """Test sweep step size."""
+    """Test wavelength sweep step size."""
     step = 1e-9  # 1 nm
-    driver.sweep_step(step)
-    assert driver.sweep_step() == pytest.approx(step, abs=1e-13)
+    driver.sweep_step_wavelength(step)
+    assert driver.sweep_step_wavelength() == pytest.approx(step, abs=1e-13)
 
 
 @pytest.mark.parametrize("dwell", [0.1, 1.0, 10.0])
@@ -362,6 +420,79 @@ def test_system_code(driver):
     assert re.match(r'^[A-Z]-\d{6}-[A-Z]-[A-Z]-[A-Z]{2}-\d{2}-\d$', code)
 
 
+def test_ethernet_mac_address(driver):
+    """Test Ethernet MAC address readout (read-only)."""
+    mac_address = driver.ethernet_mac_address()
+    assert isinstance(mac_address, str)
+    # Verify MAC address format: hexadecimal digits, no separators (e.g., 0013A0000000)
+    assert re.match(r'^[0-9A-Fa-f]{12}$', mac_address)
+
+
+def test_ethernet_ip_address(driver):
+    """Test Ethernet IP address readout (read-only, no modifications)."""
+    current_ip = driver.ethernet_ip_address()
+    assert isinstance(current_ip, str)
+    # Verify IPv4 format: ###.###.###.### (each octet 0-255)
+    assert re.match(r'^(\d{1,3}\.){3}\d{1,3}$', current_ip)
+    # Validate each octet is 0-255
+    octets = current_ip.split('.')
+    for octet in octets:
+        assert 0 <= int(octet) <= 255
+
+
+def test_ethernet_subnet_mask(driver):
+    """Test Ethernet subnet mask readout (read-only, no modifications)."""
+    current_mask = driver.ethernet_subnet_mask()
+    assert isinstance(current_mask, str)
+    # Verify subnet mask format: ###.###.###.### (each octet 0-255)
+    assert re.match(r'^(\d{1,3}\.){3}\d{1,3}$', current_mask)
+    # Validate each octet is 0-255
+    octets = current_mask.split('.')
+    for octet in octets:
+        assert 0 <= int(octet) <= 255
+
+
+def test_ethernet_gateway(driver):
+    """Test Ethernet default gateway readout (read-only, no modifications)."""
+    current_gateway = driver.ethernet_gateway()
+    assert isinstance(current_gateway, str)
+    # Verify gateway format: ###.###.###.### (each octet 0-255)
+    assert re.match(r'^(\d{1,3}\.){3}\d{1,3}$', current_gateway)
+    # Validate each octet is 0-255
+    octets = current_gateway.split('.')
+    for octet in octets:
+        assert 0 <= int(octet) <= 255
+
+
+def test_ethernet_port(driver):
+    """Test Ethernet port number readout (read-only, no modifications)."""
+    current_port = driver.ethernet_port()
+    assert isinstance(current_port, int)
+    # Verify port is in valid range (0-65535)
+    assert 0 <= current_port <= 65535
+
+
+def test_gpib_address(driver):
+    """Test GPIB address readout (read-only, no modifications)."""
+    gpib_addr = driver.gpib_address()
+    assert isinstance(gpib_addr, int)
+    assert 1 <= gpib_addr <= 30
+
+
+def test_gpib_delimiter(driver):
+    """Test GPIB delimiter readout (read-only, no modifications)."""
+    delimiter = driver.gpib_delimiter()
+    assert isinstance(delimiter, str)
+    assert delimiter in ["CR", "LF", "CR+LF", "NONE"]
+
+
+@pytest.mark.parametrize("brightness", [10, 100])
+def test_display_brightness(driver, brightness):
+    """Test display brightness readout (read-only, no modifications)."""
+    driver.display_brightness(brightness)
+    assert driver.display_brightness() == brightness
+
+
 def test_sweep_single(driver):
     """Test single sweep start."""
     driver.sweep_single()
@@ -387,3 +518,19 @@ def test_software_trigger(driver):
     """Test software trigger command."""
     driver.trigger_input_standby(True)
     driver.software_trigger()
+
+
+def test_shutdown_command(driver, monkeypatch):
+    """Test shutdown command string without sending it to hardware."""
+    sent_commands: list[str] = []
+    monkeypatch.setattr(driver, "write", lambda cmd: sent_commands.append(cmd))
+    driver.shutdown()
+    assert sent_commands == [":SPECial:SHUTdown"]
+
+
+def test_reboot_command(driver, monkeypatch):
+    """Test reboot command string without sending it to hardware."""
+    sent_commands: list[str] = []
+    monkeypatch.setattr(driver, "write", lambda cmd: sent_commands.append(cmd))
+    driver.reboot()
+    assert sent_commands == [":SPECial:REBoot"]

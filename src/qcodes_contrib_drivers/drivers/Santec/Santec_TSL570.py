@@ -1,8 +1,4 @@
-"""QCoDeS driver for Santec TSL-570 Tunable Semiconductor Laser.
-
-The driver uses the SCPI (Standard Commands for Programmable Instruments) command set,
-which provides higher compatibility with other instruments and follows SCPI consortium standards.
-"""
+"""QCoDeS driver for Santec TSL-570 Tunable Semiconductor Laser."""
 
 from typing import TYPE_CHECKING
 
@@ -55,12 +51,37 @@ class SantecTSL570(VisaInstrument):
         # Set instrument to SCPI command mode as first step
         self.write(":SYSTem:COMMunicate:CODe 1")
 
-        # Detect model and set wavelength limit
-        self.model = self.get_idn()['model']
-        if self.model != "TSL-570":
-            raise ValueError(f"Unexpected model '{self.model}' detected. Expected 'TSL-570'.")
+        # Read and parse IDN response to verify model and firmware version
+        self._idn = self.get_idn()
+        self._model = self._idn['model']
+        self._firmware_version = self._idn['firmware']
+
+        if self._model != "TSL-570":
+            raise ValueError(f"Unexpected model '{self._model}' detected. Expected 'TSL-570'.")
+
+        if self._firmware_version < "0026.0026.0011":
+            raise ValueError(
+                f"Firmware version {self._firmware_version} not supported. Please update to 0026.0026.0011 or later.")
 
         # Wavelength parameters
+        self.wavelength_minimum: Parameter = self.add_parameter(
+            name="wavelength_minimum",
+            label="Minimum wavelength",
+            unit="m",
+            get_cmd=":WAVelength? MINimum",
+            get_parser=float,
+        )
+        """Minimum wavelength limit for current model (read-only)"""
+
+        self.wavelength_maximum: Parameter = self.add_parameter(
+            name="wavelength_maximum",
+            label="Maximum wavelength",
+            unit="m",
+            get_cmd=":WAVelength? MAXimum",
+            get_parser=float,
+        )
+        """Maximum wavelength limit for current model (read-only)"""
+
         self.wavelength: Parameter = self.add_parameter(
             name="wavelength",
             label="Wavelength",
@@ -69,6 +90,7 @@ class SantecTSL570(VisaInstrument):
             set_cmd=":WAVelength {:.10e}",
             get_parser=float,
             set_parser=float,
+            vals=vals.Numbers(self.wavelength_minimum(), self.wavelength_maximum()),
         )
         """Output wavelength"""
 
@@ -95,6 +117,24 @@ class SantecTSL570(VisaInstrument):
         )
         """Fine-tuning offset"""
 
+        self.frequency_minimum: Parameter = self.add_parameter(
+            name="frequency_minimum",
+            label="Minimum frequency",
+            unit="Hz",
+            get_cmd=":WAVelength:FREQuency? MINimum",
+            get_parser=float,
+        )
+        """Minimum frequency limit for current model (read-only)"""
+
+        self.frequency_maximum: Parameter = self.add_parameter(
+            name="frequency_maximum",
+            label="Maximum frequency",
+            unit="Hz",
+            get_cmd=":WAVelength:FREQuency? MAXimum",
+            get_parser=float,
+        )
+        """Maximum frequency limit for current model (read-only)"""
+
         self.frequency: Parameter = self.add_parameter(
             name="frequency",
             label="Optical frequency",
@@ -103,6 +143,7 @@ class SantecTSL570(VisaInstrument):
             set_cmd=":WAVelength:FREQuency {:.0f}",
             get_parser=float,
             set_parser=float,
+            vals=vals.Numbers(self.frequency_minimum(), self.frequency_maximum()),
         )
         """Output optical frequency"""
 
@@ -147,6 +188,24 @@ class SantecTSL570(VisaInstrument):
         )
         """Automatic power control enabled"""
 
+        self.power_minimum: Parameter = self.add_parameter(
+            name="power_minimum",
+            label="Minimum power",
+            unit="mW",
+            get_cmd=":POWer? MINimum",
+            get_parser=float,
+        )
+        """Minimum power limit for current model (read-only)"""
+
+        self.power_maximum: Parameter = self.add_parameter(
+            name="power_maximum",
+            label="Maximum power",
+            unit="mW",
+            get_cmd=":POWer? MAXimum",
+            get_parser=float,
+        )
+        """Maximum power limit for current model (read-only)"""
+
         self.power: Parameter = self.add_parameter(
             name="power",
             label="Power",
@@ -155,7 +214,7 @@ class SantecTSL570(VisaInstrument):
             set_cmd=":POW {:.10e}",
             get_parser=float,
             set_parser=float,
-            vals=vals.Numbers(10 ** -1.5, 10 ** 1.3),
+            vals=vals.Numbers(self.power_minimum(), self.power_maximum())
         )
         """Output power level (mW)"""
 
@@ -190,6 +249,42 @@ class SantecTSL570(VisaInstrument):
         """Power display unit (dBm or mW)"""
 
         # Sweep parameters
+        self.sweep_range_minimum_wavelength: Parameter = self.add_parameter(
+            name="sweep_range_minimum_wavelength",
+            label="Sweep wavelength range minimum",
+            unit="m",
+            get_cmd=":WAV:SWE:RANG:MIN?",
+            get_parser=float,
+        )
+        """Minimum wavelength in configurable sweep range at current sweep speed"""
+
+        self.sweep_range_maximum_wavelength: Parameter = self.add_parameter(
+            name="sweep_range_maximum_wavelength",
+            label="Sweep wavelength range maximum",
+            unit="m",
+            get_cmd=":WAV:SWE:RANG:MAX?",
+            get_parser=float,
+        )
+        """Maximum wavelength in configurable sweep range at current sweep speed"""
+
+        self.sweep_range_minimum_frequency: Parameter = self.add_parameter(
+            name="sweep_range_minimum_frequency",
+            label="Sweep frequency range minimum",
+            unit="Hz",
+            get_cmd=":FREQuency:SWEep:RANGe:MINimum?",
+            get_parser=float,
+        )
+        """Minimum frequency in configurable sweep range at current sweep speed"""
+
+        self.sweep_range_maximum_frequency: Parameter = self.add_parameter(
+            name="sweep_range_maximum_frequency",
+            label="Sweep frequency range maximum",
+            unit="Hz",
+            get_cmd=":FREQuency:SWEep:RANGe:MAXimum?",
+            get_parser=float,
+        )
+        """Maximum frequency in configurable sweep range at current sweep speed"""
+
         self.sweep_start_wavelength: Parameter = self.add_parameter(
             name="sweep_start_wavelength",
             label="Sweep start wavelength",
@@ -198,6 +293,7 @@ class SantecTSL570(VisaInstrument):
             set_cmd=":WAVelength:SWEep:STARt {:.10e}",
             get_parser=float,
             set_parser=float,
+            vals=vals.Numbers(self.sweep_range_minimum_wavelength(), self.sweep_range_maximum_wavelength())
         )
         """Sweep start wavelength"""
 
@@ -209,6 +305,7 @@ class SantecTSL570(VisaInstrument):
             set_cmd=":WAVelength:SWEep:STOP {:.10e}",
             get_parser=float,
             set_parser=float,
+            vals=vals.Numbers(self.sweep_range_minimum_wavelength(), self.sweep_range_maximum_wavelength())
         )
         """Sweep stop wavelength"""
 
@@ -220,6 +317,7 @@ class SantecTSL570(VisaInstrument):
             set_cmd=":WAVelength:FREQuency:SWEep:STARt {:.0f}",
             get_parser=float,
             set_parser=float,
+            vals=vals.Numbers(self.sweep_range_minimum_frequency(), self.sweep_range_maximum_frequency())
         )
         """Sweep start frequency"""
 
@@ -231,28 +329,21 @@ class SantecTSL570(VisaInstrument):
             set_cmd=":WAVelength:FREQuency:SWEep:STOP {:.0f}",
             get_parser=float,
             set_parser=float,
+            vals=vals.Numbers(self.sweep_range_minimum_frequency(), self.sweep_range_maximum_frequency())
         )
         """Sweep stop frequency"""
 
-        # TODO : Command times out (bug in instrument firmware?). Try to update firmware.
-        self.sweep_range_minimum: Parameter = self.add_parameter(
-            name="sweep_range_minimum",
-            label="Sweep range minimum wavelength",
-            unit="m",
-            get_cmd=":WAV:SWE:RANG:MIN?",
+        self.sweep_step_frequency: Parameter = self.add_parameter(
+            name="sweep_step_frequency",
+            label="Sweep step frequency",
+            unit="Hz",
+            get_cmd=":WAVelength:FREQuency:SWEep:STEP?",
+            set_cmd=":WAVelength:FREQuency:SWEep:STEP {:.0f}",
             get_parser=float,
+            set_parser=float,
+            vals=vals.Numbers(20e6, 1e15),
         )
-        """Minimum wavelength in configurable sweep range at current sweep speed"""
-
-        # TODO : Command times out (bug in instrument firmware?). Try to update firmware.
-        self.sweep_range_maximum: Parameter = self.add_parameter(
-            name="sweep_range_maximum",
-            label="Sweep range maximum wavelength",
-            unit="m",
-            get_cmd=":WAV:SWE:RANG:MAX?",
-            get_parser=float,
-        )
-        """Maximum wavelength in configurable sweep range at current sweep speed"""
+        """Frequency sweep step size (20 MHz to span maximum)"""
 
         self.sweep_mode: Parameter = self.add_parameter(
             name="sweep_mode",
@@ -277,16 +368,16 @@ class SantecTSL570(VisaInstrument):
         )
         """Sweep speed"""
 
-        self.sweep_step: Parameter = self.add_parameter(
-            name="sweep_step",
-            label="Sweep step size",
+        self.sweep_step_wavelength: Parameter = self.add_parameter(
+            name="sweep_step_wavelength",
+            label="Sweep step wavelength",
             unit="m",
             get_cmd=":WAVelength:SWEep:STEP?",
             set_cmd=":WAVelength:SWEep:STEP {:.10e}",
             get_parser=float,
             set_parser=float,
         )
-        """Sweep step size"""
+        """Wavelength sweep step size"""
 
         self.sweep_dwell: Parameter = self.add_parameter(
             name="sweep_dwell",
@@ -549,6 +640,97 @@ class SantecTSL570(VisaInstrument):
         )
         """Product code (read-only, format: *-******-*-*-**-**-*)"""
 
+        # Ethernet parameters
+        self.ethernet_mac_address: Parameter = self.add_parameter(
+            name="ethernet_mac_address",
+            label="Ethernet MAC address",
+            get_cmd=":SYSTem:COMMunicate:ETHernet:MACaddress?",
+            get_parser=str,
+        )
+        """Ethernet MAC address (read-only, format: XX-XX-XX-XX-XX-XX)"""
+
+        self.ethernet_ip_address: Parameter = self.add_parameter(
+            name="ethernet_ip_address",
+            label="Ethernet IP address",
+            get_cmd=":SYSTem:COMMunicate:ETHernet:IPADdress?",
+            set_cmd=":SYSTem:COMMunicate:ETHernet:IPADdress {}",
+            get_parser=str,
+            set_parser=str,
+        )
+        """Ethernet IP address (format: ###.###.###.###)"""
+
+        self.ethernet_subnet_mask: Parameter = self.add_parameter(
+            name="ethernet_subnet_mask",
+            label="Ethernet subnet mask",
+            get_cmd=":SYSTem:COMMunicate:ETHernet:SMASk?",
+            set_cmd=":SYSTem:COMMunicate:ETHernet:SMASk {}",
+            get_parser=str,
+            set_parser=str,
+        )
+        """Ethernet subnet mask (format: ###.###.###.###)"""
+
+        self.ethernet_gateway: Parameter = self.add_parameter(
+            name="ethernet_gateway",
+            label="Ethernet default gateway",
+            get_cmd=":SYSTem:COMMunicate:ETHernet:DGATeway?",
+            set_cmd=":SYSTem:COMMunicate:ETHernet:DGATeway {}",
+            get_parser=str,
+            set_parser=str,
+        )
+        """Ethernet default gateway (format: ###.###.###.###)"""
+
+        self.ethernet_port: Parameter = self.add_parameter(
+            name="ethernet_port",
+            label="Ethernet port number",
+            get_cmd=":SYSTem:COMMunicate:ETHernet:PORT?",
+            set_cmd=":SYSTem:COMMunicate:ETHernet:PORT {}",
+            get_parser=int,
+            set_parser=int,
+            vals=vals.Ints(0, 65535),
+        )
+        """Ethernet port number (0-65535)"""
+
+        # GPIB parameters
+        self.gpib_address: Parameter = self.add_parameter(
+            name="gpib_address",
+            label="GPIB address",
+            get_cmd=":SYSTem:COMMunicate:GPIB:ADDRess?",
+            set_cmd=":SYSTem:COMMunicate:GPIB:ADDRess {}",
+            get_parser=int,
+            set_parser=int,
+            vals=vals.Ints(1, 30),
+        )
+        """GPIB address (1-30)"""
+
+        self.gpib_delimiter: Parameter = self.add_parameter(
+            name="gpib_delimiter",
+            label="GPIB command delimiter",
+            get_cmd=":SYSTem:COMMunicate:GPIB:DELimiter?",
+            set_cmd=":SYSTem:COMMunicate:GPIB:DELimiter {}",
+            get_parser=int,
+            set_parser=int,
+            val_mapping={
+                "CR": 0,
+                "LF": 1,
+                "CR+LF": 2,
+                "NONE": 3,
+            },
+        )
+        """GPIB command delimiter: CR (0), LF (1), CR+LF (2), NONE (3)"""
+
+        # Display parameters
+        self.display_brightness: Parameter = self.add_parameter(
+            name="display_brightness",
+            label="Display brightness",
+            unit="%",
+            get_cmd=":DISPlay:BRIGhtness?",
+            set_cmd=":DISPlay:BRIGhtness {}",
+            get_parser=int,
+            set_parser=int,
+            vals=vals.Ints(10, 100),
+        )
+        """Display brightness (0-100%)"""
+
         self.connect_message()
 
     def _get_readout_data(self) -> np.ndarray:
@@ -559,7 +741,6 @@ class SantecTSL570(VisaInstrument):
             container=np.ndarray
         )
 
-    # TODO : Command times out. Termination character is not sent by instrument?
     def _get_readout_power_data(self) -> np.ndarray:
         return self.visa_handle.query_binary_values(
             message=":READout:DATa:POWer?",
@@ -591,3 +772,11 @@ class SantecTSL570(VisaInstrument):
     def software_trigger(self) -> None:
         """Execute from trigger standby."""
         self.write(":TRIGger:INPut:SOFTtrigger")
+
+    def shutdown(self) -> None:
+        """Shutdown the device."""
+        self.write(":SPECial:SHUTdown")
+
+    def reboot(self) -> None:
+        """Reboot the device."""
+        self.write(":SPECial:REBoot")
