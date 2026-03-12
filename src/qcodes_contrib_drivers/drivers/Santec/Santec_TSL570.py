@@ -59,7 +59,7 @@ class SantecTSL570(VisaInstrument):
         if self._model != "TSL-570":
             raise ValueError(f"Unexpected model '{self._model}' detected. Expected 'TSL-570'.")
 
-        if self._firmware_version < "0026.0026.0011":
+        if self._firmware_version is None or self._firmware_version < "0026.0026.0011":
             raise ValueError(
                 f"Firmware version {self._firmware_version} not supported. Please update to 0026.0026.0011 or later.")
 
@@ -734,20 +734,22 @@ class SantecTSL570(VisaInstrument):
         self.connect_message()
 
     def _get_readout_data(self) -> np.ndarray:
-        return 1e2 * self.visa_handle.query_binary_values(
+        data = self.visa_handle.query_binary_values(
             message=":READout:DATa?",
             datatype="d",
             expect_termination=False,
             container=np.ndarray
         )
+        return 1e2 * np.asarray(data)
 
     def _get_readout_power_data(self) -> np.ndarray:
-        return self.visa_handle.query_binary_values(
+        data = self.visa_handle.query_binary_values(
             message=":READout:DATa:POWer?",
             datatype="d",
             expect_termination=False,
             container=np.ndarray,
         )
+        return np.asarray(data)
 
     def reset(self) -> None:
         """Reset to factory defaults."""
