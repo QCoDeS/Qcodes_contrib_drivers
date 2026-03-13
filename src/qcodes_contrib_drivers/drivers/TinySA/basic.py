@@ -144,10 +144,14 @@ class TinySASerialBackend:
         return cleaned.strip(b"\n")
 
     def command_text(self, command: str) -> str:
-        return self.command_bytes(command).decode(
-            "utf-8",
-            errors="replace",
-        ).strip()
+        return (
+            self.command_bytes(command)
+            .decode(
+                "utf-8",
+                errors="replace",
+            )
+            .strip()
+        )
 
     def version(self) -> str:
         return self.command_text("version")
@@ -267,8 +271,7 @@ class TinySASerialBackend:
     ) -> np.ndarray:
         """Run a sweep and return the first numeric column of the response."""
         command = (
-            f"scan {int(round(start))} {int(round(stop))} "
-            f"{int(points)} {int(outmask)}"
+            f"scan {int(round(start))} {int(round(stop))} {int(points)} {int(outmask)}"
         )
         payload = self.command_bytes(command)
         try:
@@ -289,6 +292,7 @@ class TinySABasic(Instrument):
 
     `measurement_trace` is a live parameter: every read triggers a new sweep.
     """
+
     ALLOWED_SWEEP_POINTS = (51, 101, 145, 290)
     ALLOWED_RBW_HZ = ("auto", 3000, 10000, 30000, 100000, 300000, 600000)
     MODE_VALUES = {
@@ -541,10 +545,7 @@ class TinySABasic(Instrument):
         )
 
     def _get_frequency_axis(self) -> np.ndarray:
-        if (
-            self._frequency_cache is None
-            or self._frequency_cache.size != self._points
-        ):
+        if self._frequency_cache is None or self._frequency_cache.size != self._points:
             self._frequency_cache = self._make_frequency_axis()
         return self._frequency_cache.copy()
 
