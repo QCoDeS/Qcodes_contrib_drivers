@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import re
 import time
-from typing import TYPE_CHECKING, Any, Sequence
+from typing import Any, Protocol, Sequence, cast
 
 import numpy as np
 from qcodes.instrument import Instrument
@@ -21,15 +21,30 @@ from qcodes.parameters import ParameterWithSetpoints
 from qcodes.validators import Arrays, Enum, Numbers
 
 
-serial = None
-list_ports = None
+class SerialHandle(Protocol):
+    """Protocol for the subset of pyserial's Serial API used by this driver."""
 
-if TYPE_CHECKING:
-    import serial as serial_module
+    def close(self) -> None: ...
 
-    SerialHandle = serial_module.Serial
-else:
-    SerialHandle = Any
+    def reset_input_buffer(self) -> None: ...
+
+    def reset_output_buffer(self) -> None: ...
+
+    def write(self, data: bytes) -> int: ...
+
+    def flush(self) -> None: ...
+
+    def read(self, size: int = 1) -> bytes: ...
+
+
+class ListPortsModule(Protocol):
+    """Protocol for the list_ports module used for USB autodetection."""
+
+    def comports(self) -> Sequence[Any]: ...
+
+
+serial: Any | None = None
+list_ports: ListPortsModule | None = None
 
 
 def _ensure_pyserial() -> None:
@@ -84,6 +99,7 @@ class TinySASerialBackend:
     @staticmethod
     def autodetect_port(*, vid: int = VID, pid: int = PID) -> str:
         _ensure_pyserial()
+        assert list_ports is not None
         for device in list_ports.comports():
             if device.vid == vid and device.pid == pid:
                 return device.device
@@ -92,7 +108,11 @@ class TinySASerialBackend:
     def connect(self) -> None:
         _ensure_pyserial()
         if self._serial is None:
-            self._serial = serial.Serial(self._port, timeout=self._timeout)
+            assert serial is not None
+            self._serial = cast(
+                SerialHandle,
+                serial.Serial(self._port, timeout=self._timeout),
+            )
             self._serial.reset_input_buffer()
             self._serial.reset_output_buffer()
 
@@ -462,6 +482,7 @@ class TinySABasic(Instrument):
         return self._rf_output_state
 
     def _set_rbw(self, value: str | int) -> None:
+        rbw: str | int
         if isinstance(value, str):
             rbw = value.strip().lower()
         else:
