@@ -3,8 +3,10 @@
 Provides a Python driver for the tinySA Basic spectrum analyser.
 
 Documentation:
-    tinySA: https://www.tinysa.org/wiki/
-    Unofficial Python API: https://github.com/LC-Linkous/tinySA_python
+Documentation:
+
+- tinySA: https://www.tinysa.org/wiki/
+- Unofficial Python API: https://github.com/LC-Linkous/tinySA_python
 
 See `docs/examples/` for example notebooks.
 
