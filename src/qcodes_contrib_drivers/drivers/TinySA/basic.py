@@ -1,12 +1,14 @@
-"""Driver for the tinySA Basic spectrum analyser.
+"""Interface for the tinySA Basic spectrum analyser.
 
-tinySA documentation: https://www.tinysa.org/wiki/
+Provides a Python driver for the tinySA Basic spectrum analyser.
 
-Written by Edward Laird (http://wp.lancs.ac.uk/laird-group/) and based on
-the unofficial Python API:
-https://github.com/LC-Linkous/tinySA_python
+Documentation:
+    tinySA: https://www.tinysa.org/wiki/
+    Unofficial Python API: https://github.com/LC-Linkous/tinySA_python
 
-A documentation notebook is in the `docs/examples/` directory.
+See `docs/examples/` for example notebooks.
+
+Written by Edward Laird (http://wp.lancs.ac.uk/laird-group/).
 """
 
 from __future__ import annotations
