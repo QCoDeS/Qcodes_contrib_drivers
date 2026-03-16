@@ -3,7 +3,6 @@
 Provides a Python driver for the tinySA Basic spectrum analyser.
 
 Documentation:
-Documentation:
 
 - tinySA: https://www.tinysa.org/wiki/
 - Unofficial Python API: https://github.com/LC-Linkous/tinySA_python
@@ -306,15 +305,14 @@ class TinySASerialBackend:
 
 class TinySABasic(Instrument):
     """
-    QCoDeS driver for tinySA.
+    QCoDeS driver for the tinySA Basic spectrum analyser.
 
-    The public API is intentionally narrow:
-    - configure the instrument with parameters such as `mode`, `start`,
-      `stop`, `npts`, and `rbw`
-    - read `measurement_trace` for a fresh sweep
-    - read `frequency` for the corresponding setpoints
+    This driver communicates with the instrument over its serial command
+    interface via `pyserial`. It provides QCoDeS parameters for sweep
+    configuration, output configuration, and trace acquisition.
 
-    `measurement_trace` is a live parameter: every read triggers a new sweep.
+    Reading `measurement_trace` triggers a fresh sweep and returns the trace
+    data with `frequency` as the corresponding setpoints.
     """
 
     ALLOWED_SWEEP_NPTS = (51, 101, 145, 290)
