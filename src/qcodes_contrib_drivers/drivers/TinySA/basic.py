@@ -540,7 +540,7 @@ class TinySABasic(Instrument):
             raise ValueError(
                 "tinySA supports only these sweep point counts: "
                 f"{', '.join(str(p) for p in self.ALLOWED_SWEEP_NPTS)}. "
-                f"Requested: {points}."
+                f"Requested: {npts}."
             )
         self._npts = npts
         self._invalidate_trace_cache()
