@@ -16,7 +16,7 @@
 
 # -- General configuration ---------------------------------------------------
 import qcodes_contrib_drivers
-
+from intersphinx_registry import get_intersphinx_mapping
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
@@ -89,19 +89,14 @@ html_theme = "furo"
 html_static_path = ["_static"]
 
 # Configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {
-    "pandas": ("https://pandas.pydata.org/pandas-docs/stable", None),
-    "matplotlib": ("https://matplotlib.org/stable", None),
-    "python": ("https://docs.python.org/3", None),
-    "numpy": ("https://numpy.org/doc/stable", None),
-    "pyvisa": ("https://pyvisa.readthedocs.io/en/stable", None),
-    "IPython": (
-        "https://ipython.readthedocs.io/en/stable",
-        None,
-    ),
+intersphinx_mapping = get_intersphinx_mapping(
+    packages={"ipython", "matplotlib", "numpy", "pandas", "python", "pyvisa", "xarray"}
+)
+# add packages that are not in the intersphinx_registry
+intersphinx_mapping.update({
     "qcodes": ("https://microsoft.github.io/Qcodes", None),
     "TimeTagger": ("https://www.swabianinstruments.com/static/documentation/TimeTagger/", None),
-}
+})
 
 
 version = "{}".format(qcodes_contrib_drivers.__version__)
