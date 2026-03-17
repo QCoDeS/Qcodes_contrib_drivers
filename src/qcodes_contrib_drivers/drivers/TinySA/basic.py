@@ -20,7 +20,7 @@ from typing import Any, Protocol, Sequence, cast
 
 import numpy as np
 from qcodes.instrument import Instrument
-from qcodes.parameters import ParameterWithSetpoints
+from qcodes.parameters import Parameter, ParameterWithSetpoints
 from qcodes.validators import Arrays, Enum, Numbers
 
 
@@ -243,6 +243,7 @@ class TinySASerialBackend:
         values: Sequence[float],
         expected_npts: int,
     ) -> np.ndarray:
+        """Coerce a trace to the expected number of points by padding or truncating."""
         array = np.asarray(values, dtype=float)
         if array.size == expected_npts:
             return array
@@ -354,21 +355,25 @@ class TinySABasic(Instrument):
 
         super().__init__(name, **kwargs)
 
-        self.add_parameter(
+        self.mode: Parameter = self.add_parameter(
             "mode",
             label="tinySA Mode",
             get_cmd=self._get_mode,
             set_cmd=self._set_mode,
             vals=Enum(*self.MODE_VALUES),
         )
-        self.add_parameter(
+        """Which port to use and whether it's an input or output mode."""
+
+        self.rf_output: Parameter = self.add_parameter(
             "rf_output",
             label="RF Output",
             get_cmd=self._get_rf_output,
             set_cmd=self._set_rf_output,
             vals=Enum("on", "off", "unknown"),
         )
-        self.add_parameter(
+        """ Whether the RF output is enabled. Only meaningful in output modes, but can be read in any mode. """
+
+        self.rbw: Parameter = self.add_parameter(
             "rbw",
             label="Resolution Bandwidth",
             unit="Hz",
@@ -376,7 +381,9 @@ class TinySABasic(Instrument):
             set_cmd=self._set_rbw,
             vals=Enum(*self.ALLOWED_RBW_HZ),
         )
-        self.add_parameter(
+        """Resolution Bandwidth."""
+
+        self.level: Parameter = self.add_parameter(
             "level",
             label="Output Level",
             unit="dBm",
@@ -384,7 +391,9 @@ class TinySABasic(Instrument):
             set_cmd=self._set_level,
             vals=Numbers(),
         )
-        self.add_parameter(
+        """RF output level."""
+
+        self.output_frequency: Parameter = self.add_parameter(
             "output_frequency",
             label="Output Frequency",
             unit="Hz",
@@ -392,7 +401,9 @@ class TinySABasic(Instrument):
             set_cmd=self._set_output_frequency,
             vals=Numbers(min_value=0),
         )
-        self.add_parameter(
+        """RF output frequency."""
+
+        self.start: Parameter = self.add_parameter(
             "start",
             label="Start Frequency",
             unit="Hz",
@@ -400,7 +411,9 @@ class TinySABasic(Instrument):
             set_cmd=self._set_start,
             vals=Numbers(min_value=0),
         )
-        self.add_parameter(
+        """Start frequency for the sweep."""
+
+        self.stop: Parameter = self.add_parameter(
             "stop",
             label="Stop Frequency",
             unit="Hz",
@@ -408,14 +421,18 @@ class TinySABasic(Instrument):
             set_cmd=self._set_stop,
             vals=Numbers(min_value=0),
         )
-        self.add_parameter(
+        """Stop frequency for the sweep."""
+
+        self.npts: Parameter = self.add_parameter(
             "npts",
             label="Sweep Points",
             get_cmd=self._get_npts,
             set_cmd=self._set_npts,
             vals=Enum(*self.ALLOWED_SWEEP_NPTS),
         )
-        self.add_parameter(
+        """Number of points for the sweep."""
+
+        self.frequency: Parameter = self.add_parameter(
             "frequency",
             label="Frequency",
             unit="Hz",
@@ -423,7 +440,9 @@ class TinySABasic(Instrument):
             set_cmd=False,
             vals=Arrays(shape=(self._point_count,)),
         )
-        self.add_parameter(
+        """Parameter frequency, which serves as the setpoints for measurement_trace."""
+
+        self.measurement_trace: ParameterWithSetpoints = self.add_parameter(
             "measurement_trace",
             label="Measurement Trace",
             unit="dBm",
@@ -433,6 +452,7 @@ class TinySABasic(Instrument):
             setpoints=(self.frequency,),
             vals=Arrays(shape=(self._point_count,)),
         )
+        """The measurement trace acquired from the instrument. Reading this parameter triggers a new sweep, and the frequency parameter is updated as the corresponding setpoints."""
 
         self.connect_message()
 
