@@ -65,6 +65,7 @@ docs = [
     "furo>=2024.8.6",
     "nbsphinx>=0.8.9",
     "PyVisa-sim>=0.6.0",
+    "intersphinx-registry>=0.2603.16",
 ]
 
 [tool.mypy]
