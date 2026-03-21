@@ -630,7 +630,7 @@ class SantecTSL570(VisaInstrument):
             get_cmd=":SYSTem:VERSion?",
             get_parser=lambda s: s.strip(),
         )
-        """Firmware version (read-only, format: ####.####.####)"""
+        """Firmware version (read-only, format: ``****.****.****``)"""
 
         self.system_code: Parameter = self.add_parameter(
             name="system_code",
@@ -638,7 +638,7 @@ class SantecTSL570(VisaInstrument):
             get_cmd=":SYSTem:CODe?",
             get_parser=lambda s: s.strip(),
         )
-        """Product code (read-only, format: *-******-*-*-**-**-*)"""
+        """Product code (read-only, format: ``*-******-*-*-**-**-*``)"""
 
         # Ethernet parameters
         self.ethernet_mac_address: Parameter = self.add_parameter(
@@ -647,7 +647,7 @@ class SantecTSL570(VisaInstrument):
             get_cmd=":SYSTem:COMMunicate:ETHernet:MACaddress?",
             get_parser=str,
         )
-        """Ethernet MAC address (read-only, format: XX-XX-XX-XX-XX-XX)"""
+        """Ethernet MAC address (read-only, format: ``**-**-**-**-**-**``)"""
 
         self.ethernet_ip_address: Parameter = self.add_parameter(
             name="ethernet_ip_address",
@@ -657,7 +657,7 @@ class SantecTSL570(VisaInstrument):
             get_parser=str,
             set_parser=str,
         )
-        """Ethernet IP address (format: ###.###.###.###)"""
+        """Ethernet IP address (format: ``***.***.***.***``)"""
 
         self.ethernet_subnet_mask: Parameter = self.add_parameter(
             name="ethernet_subnet_mask",
@@ -667,7 +667,7 @@ class SantecTSL570(VisaInstrument):
             get_parser=str,
             set_parser=str,
         )
-        """Ethernet subnet mask (format: ###.###.###.###)"""
+        """Ethernet subnet mask (format: ``***.***.***.***``)"""
 
         self.ethernet_gateway: Parameter = self.add_parameter(
             name="ethernet_gateway",
@@ -677,7 +677,7 @@ class SantecTSL570(VisaInstrument):
             get_parser=str,
             set_parser=str,
         )
-        """Ethernet default gateway (format: ###.###.###.###)"""
+        """Ethernet default gateway (format: ``***.***.***.***``)"""
 
         self.ethernet_port: Parameter = self.add_parameter(
             name="ethernet_port",
