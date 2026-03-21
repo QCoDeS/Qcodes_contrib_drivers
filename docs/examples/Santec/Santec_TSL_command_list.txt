@@ -1,0 +1,108 @@
+Command Description Page
+1. Optical output related commands 67
+:WAVelength Sets the output wavelength. 67
+:WAVelength? Reads out the wavelength value. 68
+:WAVelength:UNIT Sets units of displayed wavelength. 68
+:WAVelength:UNIT? Reads out units of displayed wavelength. 68
+:WAVelength:FINe Sets Fine-Tuning value. 69
+:WAVelength:FINe? Reads out Fine-Tuning value. 69
+:WAVelength:FINetuning:DISable Terminates Fine-Tuning operation. 69
+[:WAVelength]:FREQuency Sets the output wavelength in optical frequency. 69
+[:WAVelength]:FREQuency? Reads out output wavelength in optical frequency. 70
+:COHCtrl Sets Coherence control status. 70
+:COHCtrl? Reads out Coherence control status. 71
+:POWer:STATe Sets optical output status. 71
+:POWer:STATe? Reads out optical output status. 71
+:POWer:ATTenuation Sets the attenuator value. 71
+:POWer:ATTenuation? Reads out the attenuator value. 72
+:POWer:ATTenuation:AUTo Sets the power control mode. 72
+:POWer:ATTenuation:AUTo? Reads out the setting of the power control. 72
+:POWer[:LEVel] Sets optical output power level. 72
+:POWer[:LEVel]? Reads out optical output power level setting. 73
+:POWer:ACTual[:LEVel]? Reads out monitored optical power. 73
+:POWer:SHUTter Sets Open/Close status of the internal shutter. 74
+:POWer:SHUTter? Reads out the status of the internal shutter. 74
+:POWer:UNIT Changes the unit of the power setting and display. 74
+:POWer:UNIT? Reads out the unit of the power setting and display. 74
+:WAVelength:SWEep:STARt Sets the sweep start wavelength. 75
+:WAVelength:SWEep:STARt? Reads out the sweep start wavelength. 75
+[:WAVelength]:FREQuency:SWEep:STARt Sets the sweep start wavelength in optical requency. 76
+[:WAVelength]:FREQuency:SWEep:STARt? Reads out the sweep start wavelength in optical frequency. 76
+:WAVelength:SWEep:STOP Sets the sweep stop wavelength. 77
+:WAVelength:SWEep:STOP? Reads out the sweep stop wavelength. 77
+:WAVelength:SWEep:RANGe:MINimum? Reads out the minimum wavelength in the configurable sweep range 77
+:WAVelength:SWEep:RANGe:MAXimum? Reads out the maximum wavelength in the configurable sweep range 78
+[:WAVelength]:FREQuency:SWEep:STOP Sets the sweep stop wavelength in optical frequency. 78
+[:WAVelength]:FREQuency:SWEep:STOP? Reads out the sweep stop wavelength in optical frequency. 79
+[:WAVelength]:FREQuency:SWEep:RANGe:MINimum? Reads out the minimum frequency in the configurable sweep range 79
+[:WAVelength]:FREQuency:SWEep:RANGe:MAXimum? Reads out the maximum frequency in the configurable sweep range 80
+:WAVelength:SWEep:MODe Sets the sweep mode. 80
+:WAVelength:SWEep:MODe? Reads out the sweep mode. 81
+:WAVelength:SWEep:SPEed Sets the sweep speed. 81
+:WAVelength:SWEep:SPEed? Reads out sweep speed. 81
+:WAVelength:SWEep:STEP[:WIDTh] Sets the step for Step sweep mode. 82
+:WAVelength:SWEep:STEP[:WIDTh]? Reads out the step for Step sweep mode. 82
+[:WAVelength]:FREQuency:SWEep:STEP[:WIDTh] Sets the step for Step sweep mode in optical frequency. 83
+[:WAVelength]:FREQuency:SWEep:STEP[:WIDTh]? Reads out the step for Step Sweep mode in optical frequency. 83
+:WAVelength:SWEep:DWELl Sets wait time between consequent steps in step sweep mode. 84
+:WAVelength:SWEep:DWELl? Reads out wait time between consequent steps in step sweep mode. 84
+:WAVelength:SWEep:CYCLes Sets the sweep repetition times. 84
+:WAVelength:SWEep:CYCLes? Reads out the setting sweep repetition times. 85
+:WAVelength:SWEep:COUNt? Reads out the current number of completed sweeps. 85
+:WAVelength:SWEep:DELay Sets the wait time between consequent scans. 85
+:WAVelength:SWEep:DELay? Reads out the setting wait time between consequent scans. 85
+:WAVelength:SWEep[:STATe] Sets sweep status. 86
+:WAVelength:SWEep[:STATe]? Reads out the current sweep status. 86
+:WAVelength:SWEep[:STATe]:REPeat Starts repeat scan. 86
+:READout:POINts? Reads out the number of logging data. 86
+:READout:DATa? Reads out wavelength logging data. 87
+:READout:DATa:POWer? Reads out power logging data. 87
+:AM:STATe Enables and disables modulation function of the laser output. 88
+:AM:STATe? Reads out status of modulation function of the laser output. 88
+:AM:SOURce Sets modulation source. 88
+:AM:SOURce? Reads out modulation source. 88
+[:SOURce]:WAVelength:OFFSet Add the constant offset to the output wavelength. 89
+[:SOURce]:WAVelength:OFFSet? Reads out the constant offset to the output wavelength. 89
+2. Input/ Output related command 90
+:TRIGger:INPut:EXTernal Enables / Disables external trigger input. 90
+:TRIGger:INPut:EXTernal? Reads out the setting of external trigger input. 90
+:TRIGger:INPut[:EXTernal]:ACTive Sets input trigger polarity. 90
+:TRIGger:INPut[:EXTernal]:ACTive? Reads out input trigger polarity. 90
+:TRIGger:INPut:STANdby Sets the device in trigger signal input standby mode. 91
+:TRIGger:INPut:STANdby? Reads out the trigger signal input standby mode. 91
+:TRIGger:INPut:SOFTtrigger Executes sweep from trigger standby mode. 91
+:TRIGger:OUTPut Sets the timing of the trigger signal output. 91
+:TRIGger:OUTPut? Reads out the timing setting of the trigger signal output. 92
+:TRIGger:OUTPut:ACTive Sets output trigger polarity. 92
+:TRIGger:OUTPut:ACTive? Reads out output trigger polarity. 92
+:TRIGger:OUTPut:STEP[:WIDTh] Sets the interval of the trigger signal output. 92
+:TRIGger:OUTPut:STEP[:WIDTh]? Reads out the interval of the trigger signal output. 93
+:TRIGger:OUTPut:SETTing Sets the output trigger period mode. 93
+:TRIGger:OUTPut:SETTing? Reads out the output trigger period mode. 93
+:TRIGger:THRough Sets the trigger through mode. 94
+:TRIGger:THRough? Reads out the trigger through mode. 94
+3. System related commands 94
+:SYSTem:ERRor? Reads out the error issued. 94
+:SYSTem:COMMunicate:GPIB:ADDRess Sets the GPIB address. 95
+:SYSTem:COMMunicate:GPIB:ADDRess? Reads out the GPIB address. 95
+:SYSTem:COMMunicate:GPIB:DELimiter Sets the command delimiter for GPIB communication. 95
+:SYSTem:COMMunicate:GPIB:DELimiter? Reads out the command delimiter for GPIB communication. 95
+:SYSTem:COMMunicate:ETHernet:MACaddress? Reads out the MAC address. 96
+:SYSTem:COMMunicate:ETHernet:IPADdress Sets the IP address. 96
+:SYSTem:COMMunicate:ETHernet:IPADdress? Reads out the IP address. 96
+:SYSTem:COMMunicate:ETHernet:SMAsk Sets the subnet mask. 96
+:SYSTem:COMMunicate:ETHernet:SMASk? Reads out the subnet mask. 96
+:SYSTem:COMMunicate:ETHernet:DGATeway Sets the default gateway. 97
+:SYSTem:COMMunicate:ETHernet:DGATeway? Reads out the default gateway. 97
+:SYSTem:COMMunicate:ETHernet:PORT Sets the port number. 97
+:SYSTem:COMMunicate:ETHernet:PORT? Reads out the port number. 97
+:SYSTem:COMMunicate:CODe Sets the command set. 98
+:SYSTem:COMMunicate:CODe? Reads out the current set command set. 98
+:SYSTem:LOCK? Reads out the status of external interlock. 98
+:DISPlay:BRIGhtness Sets brightness of the display. 98
+:DISPlay:BRIGhtness? Reads out brightness of the display. 99
+:SPECial:SHUTdown Shuts down the device. 99
+:SPECial:REBoot Restarts the device. 99
+:SYSTem:ALERt? Reads out the current alert information. 99
+:SYSTem:VERSion? Reads out the frimware version 99
+:SYSTem:CODe? Reads out the product code 100

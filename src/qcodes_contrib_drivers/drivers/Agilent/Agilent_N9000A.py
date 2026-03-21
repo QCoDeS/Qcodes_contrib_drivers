@@ -82,17 +82,15 @@ class Agilent_N9000A(VisaInstrument):
 
     def power_parser(self, val: str, output: str) -> float:
         """
-        Parse the reply from a strin containing 'power, psd' to float depending
-        of the output.
+        Parse the reply from a string containing 'power, psd' to float depending on the output.
 
         Args:
             val (str): Reply of the power spectral analyzer.
             output (str): Desired output format.
 
         Returns:
-            power or power spectral density (float):
-                power in dBm.
-                power spectral density in dBm/Hz.
+            float: Power in dBm when ``output`` is ``"power"``, or power
+            spectral density in dBm/Hz when ``output`` is ``"psd"``.
         """
 
         power, psd = val.split(',')
