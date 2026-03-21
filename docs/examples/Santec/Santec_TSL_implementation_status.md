@@ -114,7 +114,7 @@
 
 ## Notes
 
-- This file is derived from the manual command inventory in `Santec_TSL570_command_list.txt` and the current implementation in `Santec_TSL570.py`.
+- This file is derived from the manual command inventory in `Santec_TSL570_command_list.txt` and the current implementation in `Santec_TSL.py`.
 - `:READout:DATa?` is implemented and covered by `test_readout_data`.
 - `:SYSTem:COMMunicate:CODe` is exposed as a read-only parameter in the driver; the driver sets SCPI mode automatically during initialization.
 - `:WAVelength:SWEep:RANGe:MINimum?` and `:WAVelength:SWEep:RANGe:MAXimum?` are implemented, but the instrument firmware may time out on some hardware/firmware revisions.

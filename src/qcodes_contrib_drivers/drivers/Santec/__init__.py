@@ -1,3 +1,3 @@
 """Santec instrument drivers."""
 
-from .Santec_TSL570 import SantecTSL570
+from .Santec_TSL import SantecTSL

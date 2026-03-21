@@ -1,4 +1,4 @@
-"""Tests for Santec TSL-570 driver using the pyvisa-sim backend."""
+"""Tests for Santec TSL drivers using the pyvisa-sim backend."""
 
 import re
 import time
@@ -6,13 +6,13 @@ import time
 import numpy as np
 import pytest
 
-from qcodes_contrib_drivers.drivers.Santec import SantecTSL570
+from qcodes_contrib_drivers.drivers.Santec import SantecTSL
 
 
 @pytest.fixture(scope="module")
 def driver():
     """Create TSL570 instrument instance."""
-    tsl = SantecTSL570(
+    tsl = SantecTSL(
         "TSL570",
         address="TCPIP::192.168.50.29::5000::SOCKET",
         pyvisa_sim_file="qcodes_contrib_drivers.sims:TSL570.yaml",  # Comment this line to test against real hardware

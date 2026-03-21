@@ -1,4 +1,4 @@
-"""QCoDeS driver for Santec TSL-570 Tunable Semiconductor Laser."""
+"""QCoDeS driver for Santec TSL tunable semiconductor lasers."""
 
 from typing import TYPE_CHECKING
 
@@ -11,9 +11,9 @@ if TYPE_CHECKING:
     from typing_extensions import Unpack
 
 
-class SantecTSL570(VisaInstrument):
+class SantecTSL(VisaInstrument):
     """
-    QCoDeS driver for the Santec TSL-570 Tunable Semiconductor Laser.
+    QCoDeS driver for the Santec TSL tunable semiconductor laser family.
 
     The driver automatically detects the model from the instrument's IDN response,
     applies appropriate wavelength limits, and sets the instrument to SCPI command mode
@@ -24,14 +24,18 @@ class SantecTSL570(VisaInstrument):
         address: VISA resource address
         **kwargs: Additional arguments passed to VisaInstrument
 
-    Supported models from TSL-570 datasheet:
-    - 260360: 1260-1360 nm (O-band)
-    - 240380: 1240-1380 nm (Extended O-band)
-    - 355485: 1355-1485 nm (C-band standard)
-    - 355505: 1355-1505 nm (C-band extended)
-    - 500630: 1500-1630 nm (L-band standard)
-    - 480640: 1480-1640 nm (Extended C/L-band)
-    - 560680: 1560-1680 nm (L-band extended)
+    Supported models:
+        - TSL-570
+        - TSL-580
+
+    Supported product codes from TSL-570 datasheet:
+        - 260360: 1260-1360 nm (O-band)
+        - 240380: 1240-1380 nm (Extended O-band)
+        - 355485: 1355-1485 nm (C-band standard)
+        - 355505: 1355-1505 nm (C-band extended)
+        - 500630: 1500-1630 nm (L-band standard)
+        - 480640: 1480-1640 nm (Extended C/L-band)
+        - 560680: 1560-1680 nm (L-band extended)
 
     Note:
         The instrument is automatically set to SCPI command mode during initialization.
@@ -56,8 +60,8 @@ class SantecTSL570(VisaInstrument):
         self._model = self._idn['model']
         self._firmware_version = self._idn['firmware']
 
-        if self._model != "TSL-570":
-            raise ValueError(f"Unexpected model '{self._model}' detected. Expected 'TSL-570'.")
+        if not self._model.startswith("TSL-"):
+            raise ValueError(f"Unexpected model '{self._model}' detected. Expected 'TSL-xxx'.")
 
         if self._firmware_version is None or self._firmware_version < "0026.0026.0011":
             raise ValueError(
