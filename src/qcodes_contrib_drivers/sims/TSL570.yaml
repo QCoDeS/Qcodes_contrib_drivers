@@ -612,7 +612,3 @@ devices:
 resources:
   TCPIP::192.168.50.29::5000::SOCKET:
     device: SantecTSL570
-
-
-
-
