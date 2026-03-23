@@ -60,7 +60,7 @@ class SantecTSL(VisaInstrument):
         self._model = self._idn['model']
         self._firmware_version = self._idn['firmware']
 
-        if not self._model.startswith("TSL-"):
+        if self._model is None or not self._model.startswith("TSL-"):
             raise ValueError(f"Unexpected model '{self._model}' detected. Expected 'TSL-xxx'.")
 
         if self._firmware_version is None or self._firmware_version < "0026.0026.0011":
