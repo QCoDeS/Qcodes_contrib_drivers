@@ -1,0 +1,1448 @@
+1. Optical output related Commands
+
+Command: :WAVelength
+Description: Sets the output wavelength.
+Syntax:
+  Legacy: [:SOURce[n]][:CHANnel[m]]:WAVelength <value>
+  SCPI:   [:SOURce[n]][:CHANnel[m]]:WAVelength <value>[PM|NM|UM|MM|M]
+Parameter:
+  Range: Specified wavelength range
+  Step: 0.1 pm
+  Legacy: <value> must be decimal notation in nm (no unit suffix).
+  SCPI: <value> supports decimal/exponential notation with optional unit suffix.
+        If omitted, default unit is m.
+Response: None
+Example:
+  Set wavelength to 1550 nm.
+  Legacy: :WAV 1550
+  SCPI1:  :WAV 1550nm
+  SCPI2:  :WAV 1550E-9
+
+Command: :WAVelength?
+Description: Reads out the wavelength value.
+Syntax:
+  Legacy: [:SOURce[n]][:CHANnel[m]]:WAVelength[:MINimum|:MAXimum]?
+  SCPI:   [:SOURce[n]][:CHANnel[m]]:WAVelength? [PM|NM|UM|MM|M][MINimum|MAXimum]
+Parameter:
+  None: Reads current set wavelength.
+  MINimum: Reads minimum acceptable wavelength.
+  MAXimum: Reads maximum acceptable wavelength.
+Response:
+  Range: Specified wavelength range
+  Step: 0.1 pm
+  Legacy: Decimal notation in nm.
+  SCPI: Numeric value with optional unit suffix; default unit is m.
+Example:
+  Current wavelength is 1550 nm.
+Transmission: :WAV?
+Response Example:
+  Legacy: 1550.0000
+  SCPI:   +1.55000000E-006
+
+Command: :WAVelength:UNIT
+Description: Sets displayed wavelength unit.
+Syntax: [:SOURce]:WAVelength:UNIT <value>
+Parameter:
+  0: nm
+  1: THz
+Response: None
+Example: Set displayed unit to THz.
+Transmission: :WAV:UNIT 1
+
+Command: :WAVelength:UNIT?
+Description: Reads displayed wavelength unit.
+Syntax: [:SOURce[n]][:CHANnel[m]]:WAVelength:UNIT?
+Parameter: None
+Response:
+  0: nm
+  1: THz
+Example: Displayed unit is THz.
+Transmission: :WAV:UNIT?
+Response Example:
+  Legacy: 1
+  SCPI:   +1
+
+Command: :WAVelength:FINe
+Description: Sets Fine-Tuning value.
+Syntax [:SOURce[n]][:CHANnel[m]]:WAVelength:FINe<wsp><value>
+Parameter
+Range: -100.00 to +100.00
+Step: 0.01
+Response
+None
+Example Sets Fine-Tuning value to 50.
+Transmission :WAV:FIN 50.00
+
+Command: :WAVelength:FINe?
+Description: Reads out Fine-Tuning value.
+Syntax [:SOURce[n]][:CHANnel[m]]:WAVelength:FINe?
+Parameter
+None
+Response
+Range: -100.00 to +100.00
+Step: 0.01
+Example The setting Fine-Tuning value is 100.
+Transmission :WAV:FIN?
+Response
+Legacy →100.00
+SCPI →+1.00000000E+002
+
+Command: :WAVelength:FINetuning:DISable
+Description: Terminates Fine-Tuning operation.
+Syntax [:SOURce[n]]:WAVelength:FINetuning:DISable
+Parameter
+Note
+Response
+None
+Example Terminates Fine-Tuning operation.
+Transmission :WAV:FIN:DIS
+
+Command [:WAVelength]:FREQuency
+Description: Sets the output wavelength in optical frequency.
+Syntax:
+  Legacy: [:SOURce[n]][:CHANnel[m]]:[:WAVelength]:FREQuency <value>
+  SCPI:   [:SOURce[n]][:CHANnel[m]][:WAVelength]:FREQuency <value>[Hz|kHz|MHz|GHz|THz]
+Parameter:
+  Range: Specified wavelength range
+  Step: 10MHz
+  Legacy: <value> should be decimal notation in THz (no unit suffix).
+  SCPI: <value> is accepted in decimal notation and exponential
+        notation. These numbers are followed by character strings
+        representing a unit. When a unit character string is not
+        specified, Hz is used as the default.
+Response: None
+Example:
+  Set the frequency to 200THz.
+  Legacy: :FREQ 200
+  SCPI1: :FREQ 200THZ
+  SCPI2: :FREQ 200E+12
+
+Command [:WAVelength]:FREQuency?
+Description: Reads out output wavelength in optical frequency.
+Syntax:
+  Legacy: [:SOURce[n]][:CHANnel[m]][:WAVelength]:FREQuency?
+          [:MINimum|:MAXimum]
+  SCPI:   [:SOURce[n]][:CHANnel[m]]:WAVelength?<wsp>
+          [Hz|kHz|MHz|GHz|THz][MINimum|MAXimum]
+Parameter:
+  None: Reads out the currently setting frequency.
+  MINimum: Reads out the minimum acceptable frequency.
+  MAXimum: Reads out the maximum acceptable frequency.
+Response:
+  Range: Specified frequency range
+  Step: 10MHz
+  Legacy: Response
+         is decimal notation in THz.
+  SCPI: These numbers are followed by character strings representing
+        a unit. When a unit character string is not specified, Hz is used
+        as the default.
+Example: The setting frequency is 200THz.
+Transmission: :FREQ?
+Response Example:
+  Legacy: 200
+  SCPI:   +2.00000000E+014
+
+Command: :COHCtrl
+Description: Sets Coherence control status.
+Syntax [:SOURce[n]][:CHANnel[m]]:COHCtrl<wsp><value>
+Parameter:
+  0: Coherence control OFF
+  1: Coherence control ON
+Response: None
+Example: Sets Coherence control status to ON.
+Transmission :COHC 1
+
+Command: :COHCtrl?
+Description: Reads out Coherence control status.
+Syntax [:SOURce[n]][:CHANnel[m]]:COHCtrl?
+Parameter: None
+Response:
+  0: Coherence control OFF
+  1: Coherence control ON
+Example: Coherence control status is ON.
+Transmission :COHC?
+Response Example:
+  Legacy: 1
+  SCPI:   +1
+
+Command: :POWer:STATe
+Description: Sets optical output status.
+Syntax [:SOURce[n]][:CHANnel[m]]:POWer:STATe<wsp><value>
+Parameter:
+  0: optical output OFF
+  1: optical output ON
+Response: None
+Example: Sets optical output status to ON.
+Transmission :POW:STAT 1
+
+Command: :POWer:STATe?
+Description: Reads out optical output status.
+Syntax [:SOURce[n]][:CHANnel[m]]:POWer:STATe?
+Parameter: None
+Response:
+  0: optical output OFF
+  1: optical output ON
+Example: Optical output is active.
+Transmission :POW:STAT?
+Response Example:
+  Legacy: 1
+  SCPI:   +1
+
+Command: :POWer:ATTenuation
+Description: Sets the attenuator value.
+Syntax [:SOURce[n]][:CHANnel[m]]:POWer:ATTenuation <value>
+Parameter:
+  Range: 0 〜30 (dB)
+  Step: 0.01 (dB)
+Response: None
+Example: Sets the attenuator value to 10 dB.
+Legacy: :POW:ATT 10
+SCPI: :POW:ATT +1.00000000E+001
+
+Command: :POWer:ATTenuation?
+Description: Reads out the attenuator value.
+Syntax [:SOURce[n]][:CHANnel[m]]:POWer:ATTenuation?
+Parameter: None
+Response:
+  Range: 0 〜30 (dB)
+  Step: 0.01 (dB)
+Example: The attenuator value is 10 dB.
+Transmission: :POW:ATT?
+Response Example:
+  Legacy: 10.00
+  SCPI:   +1.00000000E+001
+
+Command: :POWer:ATTenuation:AUTo
+Description: Sets the power control mode.
+Syntax [:SOURce[n]][:CHANnel[m]]:POWer:ATTenuation:AUTo <value>
+Parameter:
+  0: Manual mode
+  1: Auto mode
+Response: None
+Example: :POW:ATT:AUT 1
+Transmission :POW:STAT 1
+
+Command: :POWer:ATTenuation:AUTo?
+Description: Reads out the setting of the power control.
+Syntax [:SOURce[n]][:CHANnel[m]]:POWer:ATTenuation:AUTo?
+Parameter: None
+Response:
+  0: Manual mode
+  1: Auto mode
+Example: The power control mode is Auto mode.
+Transmission: :POW:ATT:AUT?
+Response Example:
+  Legacy: 1
+  SCPI:   +1
+
+Command: :POWer[:LEVel]
+Description: Sets optical output power level.
+Syntax:
+  Legacy: [:SOURce[n]][:CHANnel[m]]:POWer[:LEVel ]<value>
+  SCPI:   [:SOURce[n]][:CHANnel[m]]:POWer[:LEVel ]<value>[PW|NW|UW|MW|Watt|DBM]
+Parameter:
+  Range: -15dBm to +13dBm
+  Step: 0.01dB (0.01mW)
+  Legacy: <value> should be decimal notation in “dBm” or “mW”. Units
+          are defined by the Command “:POWer:UNIT”.
+          Character strings representing a unit cannot be accepted.
+  SCPI: <value> is accepted in decimal notation and exponential
+        notation. These numbers are followed by character strings
+        representing a unit. When a unit character string is not
+        specified, the default units are used. The default units are
+        defined by
+Response: None
+Example:
+  Set the power level to 10dBm.
+  Legacy: :POW 10
+  SCPI1: :POW 10dBm
+  SCPI2: :POW +1.00000000E+001
+
+Command: :POWer[:LEVel]?
+Description: Reads out optical output power level setting.
+Syntax:
+  Legacy: [:SOURce[n]][:CHANnel[m]]:POWer[:LEVel][:MINimum|MAXimum]?
+  SCPI:   [:SOURce[n]][:CHANnel[m]]:POWer[:LEVel]? <value>[dBm|mW][MINimum|MAXimum]
+Parameter: None
+Response:
+  Range: -15dBm to +13dBm
+  Step: 0.01dB (0.01mW)
+  Units are defined by the Command “:POWer:UNIT”.
+Example:
+  Setting power level is 10dBm or 10mW. Units are defined by
+  the Command “:POWer:UNIT”.
+Transmission: :POW?
+Response Example:
+  Legacy: 10.00
+  SCPI:   +1.00000000E+001
+
+Command: :POWer:ACTual[:LEVel]?
+Description: Reads out monitored optical power. The value is measured by
+the built-in power monitor.
+Syntax [:SOURce[n]][:CHANnel[m]]:POWer:ACTual[:LEVel]?
+Parameter: None
+Response:
+  Range: -15dBm to peak power
+  Step: 0.01dB (0.01mW)
+  Units are defined by the Command “:POWer:UNIT”.
+Example:
+  Monitored power level is 9.6dBm or 9.6mW. Units are defined
+  by the Command “:POWer:UNIT”.
+Transmission: :POW:ACT?
+Response Example:
+  Legacy: 9.60
+  SCPI:   +9.60000000E+000
+
+Command: :POWer:SHUTter
+Description: Sets Open/Close status of the internal shutter. The function is
+same as the Laser ON/OFF
+Command “:POWer:STATe” (Note,
+the relationship between Parameter
+and state is reversed).
+Syntax [:SOURce[n]][:CHANnel[m]]:POWer:SHUTter<wsp><value>
+Parameter:
+  0: Shutter Open
+  1: Shutter Close
+Response: None
+Example: Closes the internal shutter.
+Transmission: :POW:SHUT 1
+
+Command: :POWer:SHUTter?
+Description: Reads out the status of the internal shutter.
+Syntax [:SOURce]:POWer:SHUTter?
+Parameter: None
+Response:
+  0: Shutter Open
+  1: Shutter Close
+Example: The internal shutter is closed.
+Transmission: :POW:SHUT?
+Response Example:
+  Legacy: 1
+  SCPI:   +1
+
+Command: :POWer:UNIT
+Description: Changes the unit of the power setting and display.
+Syntax [:SOURce[n]][:CHANnel[m]]:POWer:UNIT<wsp><value>
+Parameter:
+  0: dBm
+  1: mW
+Response: None
+Example: Sets the power setting and display unit to “mW”.
+Transmission: :POW:UNIT 1
+
+Command: :POWer:UNIT?
+Description: Reads out the unit of the power setting and display.
+Syntax [:SOURce[n]][:CHANnel[m]]:POWer:UNIT?
+Parameter: None
+Response:
+  0: dBm
+  1: mW
+Example: The setting unit of power is mW.
+Transmission: :POW:UNIT?
+Response Example:
+  Legacy: 1
+  SCPI:   +1
+
+Command: :WAVelength:SWEep:STARt
+Description: Sets the sweep start wavelength.
+Syntax:
+  Legacy: [:SOURce[n]][:CHANnel[m]]:WAVelength:SWEep:STARt <value>
+  SCPI:   [:SOURce[n]][:CHANnel[m]]:WAVelength:SWEep:STARt <value>[PM|NM|UM|MM|M]
+Parameter:
+  Range: Specified wavelength range
+  Step: 0.1 pm
+  Legacy: <value> should be decimal notation in nm (no unit suffix).
+  SCPI: <value> is accepted in decimal notation and exponential
+        notation. These numbers are followed by character strings
+        representing a unit. When a unit character string is not
+        specified, m（meter）is used as the default.
+Response: None
+Example:
+  Sets sweep start wavelength to 1480 nm.
+  Legacy: :WAV:SWE:STARt 1480
+  SCPI1: :WAV:SWE:STARt 1480nm
+  SCPI2: :WAV:SWE:STARt 1480E-9
+
+Command: :WAVelength:SWEep:STARt?
+Description: Reads out the sweep start wavelength.
+Syntax:
+  Legacy: [:SOURce[n]][:CHANnel[m]]:WAVelength:SWEep:STARt?
+  SCPI:   [:SOURce[n]][:CHANnel[m]]:WAVelength:SWEep:STARt? [PM|NM|UM|MM|M]
+Parameter: None
+Response:
+  Range: Specified wavelength range
+  Step: 0.1pm
+  Legacy: Response
+         is decimal notation in nm.
+  SCPI: These numbers are followed by character strings representing
+        a unit. When a unit character string is not specified, m
+        （meter）is used as the default.
+Example: Setting sweep start wavelength is 1480 nm.
+Transmission: :WAV:SWE:STARt?
+Response Example:
+  Legacy: 1480.0000
+  SCPI:   +1.48000000E-006
+
+Command [:WAVelength]:FREQuency:SWEep:STARt
+Description: Sets the sweep start wavelength in optical frequency.
+Syntax:
+  Legacy: [:SOURce[n]][:CHANnel[m]][:WAVelength]:FREQuency:SWEep:STARt <value>
+  SCPI:   [:SOURce[n]][:CHANnel[m]][:WAVelength]:FREQuency:SWEep:STARt <value>[Hz|kHz|MHz|GHz|THz]
+Parameter:
+  Range: Specified wavelength range
+  Step: 10MHz
+  Legacy: <value> should be decimal notation in THz (no unit suffix).
+  SCPI: <value> is accepted in decimal notation and exponential
+        notation. These numbers are followed by character strings
+        representing a unit. When a unit character string is not
+        specified, Hz（Hertz）is used as the default.
+Response: None
+Example:
+  Sets the sweep start wavelength to 185.057 THz.
+  Legacy: :FREQ:SWE:STAR 185.0570
+  SCPI1: :FREQ:SWE:STAR 185.057THZ
+  SCPI2: :FREQ:SWE:STAR 185.057E+12
+
+Command [:WAVelength]:FREQuency:SWEep:STARt?
+Description: Reads out the sweep start wavelength in optical frequency.
+Syntax:
+  Legacy: [:SOURce[n]][:CHANnel[m]]:WAVelength:SWEep:STARt?
+  SCPI:   [:SOURce[n]][:CHANnel[m]]:WAVelength:SWEep:STARt? [Hz|kHz|MHz|GHz|THz]
+Parameter: None
+Response:
+  Range: Specified wavelength range
+  Step: 10MHz
+  Legacy: Response
+         is decimal notation in THz.
+  SCPI: These numbers are followed by character strings representing
+        a unit. When a unit character string is not specified, Hz is used
+        as the default.
+Example: Setting sweep start frequency is 185.0570THz.
+Transmission: :FREQ:SWE:STAR?
+Response Example:
+  Legacy: 185.057
+  SCPI:   +1.8505700E+014
+
+Command: :WAVelength:SWEep:STOP
+Description: Sets the sweep stop wavelength.
+Syntax:
+  Legacy: :SOURce[n]][:CHANnel[m]]:WAVelength:SWEep:STOP <value>
+  SCPI:   [:SOURce[n]][:CHANnel[m]]:WAVelength:SWEep:STOP <value>[PM|NM|UM|MM|M]
+Parameter:
+  Range: Specified wavelength range
+  Step: 0.1 pm
+  Legacy: <value> should be decimal notation in nm (no unit suffix).
+  SCPI: <value> is accepted in decimal notation and exponential
+        notation. These numbers are followed by character strings
+        representing a unit. When a unit character string is not
+        specified, m（meter）is used as the default.
+Response: None
+Example:
+  Sets sweep stop wavelength to 1640 nm.
+  Legacy: :WAV:SWE:STOP 1640
+  SCPI1: :WAV:SWE:STOP 1640nm
+  SCPI2: :WAV:SWE:STOP 1640E-9
+
+Command: :WAVelength:SWEep:STOP?
+Description: Reads out the sweep stop wavelength.
+Syntax:
+  Legacy: [:SOURce[n]][:CHANnel[m]]:WAVelength:SWEep:STOP?
+  SCPI:   [:SOURce[n]][:CHANnel[m]]:WAVelength:SWEep:STOP? [PM|NM|UM|MM|M]
+Parameter: None
+Response:
+  Range: Specified wavelength range
+  Step: 0.1pm
+  Legacy: Response
+         is decimal notation in nm.
+  SCPI: These numbers are followed by character strings representing
+        a unit. When a unit character string is not specified, m
+        （meter）is used as the default.
+Example: Setting sweep stop wavelength is 1640 nm.
+Transmission: :WAV:SWE:STOP?
+Response Example:
+  Legacy: 1640.0000
+  SCPI:   +1.64000000E-006
+
+Command: :WAVelength:SWEep:RANGe:MINimum?
+Description: Reads out the minimum wavelength in the configurable sweep
+range
+Syntax:
+  Legacy: [:SOURce]:WAVelength:SWEep:RANGe:MINimum?
+  SCPI:   [:SOURce]:WAVelength:SWEep:RANGe:MINimum? [PM|NM|UM|MM|M]
+Parameter: None
+Response:
+  Range: The minimum wavelength in the configurable sweep
+         range at the current sweep speed
+  Step: 0.1pm
+  Legacy: Response
+         is decimal notation in nm.
+  SCPI: These numbers are followed by character strings representing
+        a unit. When a unit character string is not specified, m
+        （meter）is used as the default.
+Example: The minimum wavelength in the configurable sweep range is
+1482 nm.
+Transmission: :WAV:SWE:RANG:MIN?
+Response Example:
+  Legacy: 1482.0000
+  SCPI:   +1.48200000E-006
+
+Command: :WAVelength:SWEep:RANGe:MAXimum?
+Description: Reads out the maximum wavelength in the configurable sweep
+range
+Syntax:
+  Legacy: [:SOURce]:WAVelength:SWEep:RANGe:MAXimum?
+  SCPI:   [:SOURce]:WAVelength:SWEep:RANGe:MAXimum? [PM|NM|UM|MM|M]
+Parameter: None
+Response:
+  Range: The maximum wavelength in the configurable sweep
+         range at the current sweep speed
+  Step: 0.1pm
+  Legacy: Response
+         is decimal notation in nm.
+  SCPI: These numbers are followed by character strings representing
+        a unit. When a unit character string is not specified, m
+        （meter）is used as the default.
+Example: The maximum wavelength in the configurable sweep range is
+1638 nm.
+Transmission: :WAV:SWE:RANG:MAX?
+Response Example:
+  Legacy: 1638.0000
+  SCPI:   +1.63800000E-006
+
+Command [:WAVelength]:FREQuency:SWEep:STOP
+Description: Sets the sweep stop wavelength in optical frequency.
+Syntax:
+  Legacy: [:SOURce[n]][:CHANnel[m]][:WAVelength]:FREQuency:SWEep:STOP <value>
+  SCPI:   [:SOURce[n]][:CHANnel[m]][:WAVelength]:FREQuency:SWEep:STOP <value>[Hz|kHz|MHz|GHz|THz]
+Parameter:
+  Range: Specified wavelength range
+  Step: 10MHz
+  Legacy: <value> should be decimal notation in THz (no unit suffix).
+  SCPI: <value> is accepted in decimal notation and exponential
+        notation. These numbers are followed by character strings
+        representing a unit. When a unit character string is not
+        specified, Hz（Hertz）is used as the default.
+Response: None
+Example:
+  Sets the sweep stop wavelength to 185.057 THz.
+  Legacy: :FREQ:SWE:STOP 185.05700
+  SCPI1: :FREQ:SWE:STOP 185.05700THZ
+  SCPI2: :FREQ:SWE:STOP 185.05700E+12
+
+Command [:WAVelength]:FREQuency:SWEep:STOP?
+Description: Reads out the sweep stop wavelength in optical frequency.
+Syntax:
+  Legacy: [:SOURce[n]][:CHANnel[m]][:WAVelength]:FREQuency:SWEep:STOP?
+  SCPI:   [:SOURce[n]][:CHANnel[m]][:WAVelength]:FREQuency:SWEep:STOP? [Hz|kHz|MHz|GHz|THz]
+Parameter: None
+Response:
+  Range: Specified wavelength range
+  Step: 10MHz
+  Legacy: Response
+         is decimal notation in THz.
+  SCPI: These numbers are followed by character strings representing
+        a unit. When a unit character string is not specified, Hz
+        （Hertz）is used as the default.
+Example: Setting sweep stop frequency is 185.0570THz.
+Transmission: :FREQ:SWE:STOP?
+Response Example:
+  Legacy: 185.05700
+  SCPI:   +1.8505700E+014
+
+Command: :FREQuency:SWEep:RANGe:MINimum?
+Description: Reads out the minimum frequency in the configurable sweep
+range
+Syntax:
+  Legacy: [:SOURce][:WAVelength]:FREQuency:SWEep:RANGe:MINimum?
+  SCPI:   [:SOURce][:WAVelength]:FREQuency:SWEep:RANGe:MINimum? [HZ|KHZ|MHZ|GHZ|THZ]
+Parameter: None
+Response:
+  Range: The minimum frequency in the configurable sweep
+         range at the current sweep speed
+  Step: 10MHz
+  Legacy: <value> should be decimal notation in “THz”. Character strings
+         representing a unit cannot be accepted.
+  SCPI: <value> is accepted in decimal notation and exponential
+        notation. These numbers are followed by character strings
+        representing a unit. When a unit character string is not
+        specified, Hz（Hertz）is used as the default.
+Example: The minimum frequency in the configurable sweep range is
+182.80028THz.
+Transmission: :FREQ:SWE:RANG:MIN?
+Response Example:
+  Legacy: 182.80028
+  SCPI:   1.82800280E+014
+
+Command: 80:FREQuency:SWEep:RANGe:MAXimum?
+Description: Reads out the maximum frequency in the configurable sweep
+range
+Syntax:
+  Legacy: [:SOURce][:WAVelength]:FREQuency:SWEep:RANGe:MAXimum?
+  SCPI:   [:SOURce][:WAVelength]:FREQuency:SWEep:RANGe:MAXimum? [HZ|KHZ|MHZ|GHZ|THZ]
+Parameter: None
+Response:
+  Range: The maximum frequency in the configurable sweep
+         range at the current sweep speed
+  Step: 10MHz
+  Legacy: <value> should be decimal notation in “THz”. Character strings
+         representing a unit cannot be accepted.
+  SCPI: <value> is accepted in decimal notation and exponential
+        notation. These numbers are followed by character strings
+        representing a unit. When a unit character string is not
+        specified, Hz（Hertz）is used as the default.
+Example: The maximum frequecy in the configurable sweep range is
+202.56247THz.
+Transmission: :FREQ:SWE:RANG:MAX?
+Response Example:
+  Legacy: 202.56247
+  SCPI:   +2.02562470E+014
+
+Command: :WAVelength:SWEep:MODe
+Description: Sets the sweep mode.
+Syntax [:SOURce[n]][:CHANnel[m]]:WAVelength:SWEep:MODe<wsp><value>
+Parameter:
+  0: Step sweep mode and One way
+  1: Continuous sweep mode and One way
+  2: Step sweep mode and Two way
+  3: Continuous sweep mode and Two way
+Response: None
+Example: Sets the sweep mode to continuous and One way.
+Transmission: :WAV:SWE:MOD 1
+
+Command: :WAVelength:SWEep:MODe?
+Description: Reads out the sweep mode.
+Syntax [:SOURce[n]][:CHANnel[m]]:WAVelength:SWEep:MODe?
+Parameter: None
+Response:
+  0: Step sweep mode and One way
+  1: Continuous sweep mode and One way
+  2: Step sweep mode and Two way
+  3: Continuous sweep mode and Two way
+Example: Setting sweep mode is continuous and One way.
+Transmission: :WAV:SWE:MOD?
+Response Example:
+  Legacy: 1
+  SCPI:   +1
+
+Command: :WAVelength:SWEep:SPEed
+Description: Sets the sweep speed.
+Syntax:
+  Legacy: [:SOURce[n]][:CHANnel[m]]:WAVelength:SWEep:SPEed <value>
+  SCPI:   [:SOURce[n]][:CHANnel[m]]:WAVelength:SWEep:SPEed <value>
+Parameter:
+  Range: 1 to 200 nm/s
+  Selection: 1,2,5,10,20,50,100,200 (nm/s)
+  Legacy: <value> should be decimal notation in “nm/s”. Character
+         strings representing a unit cannot be accepted.
+  SCPI: <value> should be decimal notation in “nm/s”. Character
+        strings representing a unit cannot be accepted.
+Response: None
+Example: Sets the sweep speed to 200 nm/s.
+Legacy: :WAV:SWE:SPE 200
+SCPI: :WAV:SWE:SPE 200
+
+Command: :WAVelength:SWEep:SPEed?
+Description: Reads out sweep speed.
+Syntax:
+  Legacy: [:SOURce[n]][:CHANnel[m]]:WAVelength:SWEep:SPEed?
+  SCPI:   [:SOURce[n]][:CHANnel[m]]:WAVelength:SWEep:SPEed?
+Parameter: None
+Response:
+  Range: 1 to 200 nm/s
+  Selection: 1,2,5,10,20,50,100,200 (nm/s)
+  Legacy: Character strings representing a unit cannot be accepted.
+  SCPI: Character strings representing a unit cannot be accepted.
+Example: Setting sweep speed is 200nm/s.
+Transmission: :WAV:SWE:SPE?
+Response Example:
+  Legacy: 200.0
+  SCPI:   +200.0
+
+Command: :WAVelength:SWEep:STEP[:WIDTh]
+Description: Sets the step for Step sweep mode.
+Syntax:
+  Legacy: [:SOURce[n]][:CHANnel[m]]:WAVelength:SWEep:STEP[:WIDTh] <value>
+  SCPI:   [:SOURce[n]][:CHANnel[m]]:WAVelength:SWEep:STEP[:WIDTh] <value>[PM|NM|UM|MM|M]
+Parameter:
+  Range: 0.1pm to specified wavelength span.
+  Step: 0.1 pm
+  Legacy: <value> should be decimal notation in nm (no unit suffix).
+  SCPI: <value> is accepted in decimal notation and exponential
+        notation. These numbers are followed by character strings
+        representing a unit. When a unit character string is not
+        specified, meters are used as the default units.
+Response: None
+Example: Sets the step to 0.01 nm.
+Legacy: :WAV:SWE:STEP 0.01
+SCPI1: :WAV:SWE:STEP 10pm
+SCPI2: :WAV:SWE:STEP 1.0E-11
+
+Command: :WAVelength:SWEep:STEP[:WIDTh]?
+Description: Reads out the step for Step sweep mode.
+Syntax:
+  Legacy: [:SOURce[n]][:CHANnel[m]]:WAVelength:SWEep:STEP[:WIDTh]?
+  SCPI:   [:SOURce[n]][:CHANnel[m]]:WAVelength:SWEep:STEP[:WIDTh]? <wsp>[PM|NM|UM|MM|M]
+Parameter: None
+Response:
+  Range: 0.1pm to specified wavelength span.
+  Step: 0.1 pm
+  Legacy: Response
+         is decimal notation in nm.
+  SCPI: These numbers are followed by character strings representing
+        a unit. When a unit character string is not specified, meters are
+        used as the default units.
+Example: Setting step is 0.1 nm.
+Transmission: :WAV:SWE:STEP?
+Response Example:
+  Legacy: 0.100
+  SCPI:   +1.00000000E-010
+
+Command [:WAVelength]:FREQuency:SWEep:STEP[:WIDTh]
+Description: Sets the step for Step sweep mode in optical frequency.
+Syntax:
+  Legacy: [:SOURce[n]][:CHANnel[m]][:WAVelength]:FREQuency:SWEep:STEP[:WIDTh] <value>
+  SCPI:   [:SOURce[n]][:CHANnel[m]][:WAVelength]:FREQuency:SWEep:STEP[:WIDTh] <value>[Hz|kHz|MHz|GHz|THz]
+Parameter:
+  Range: 20MHz to specified wavelength span.
+  Step: 10 MHz
+  Legacy: <value> should be decimal notation in THz (no unit suffix).
+  SCPI: <value> is accepted in decimal notation and exponential
+        notation. These numbers are followed by character strings
+        representing a unit. When a unit character string is not
+        specified, “Hz” are used as the default units.
+Response: None
+Example: Sets the step to 10 GHz.
+Legacy: :FREQ:SWE:STEP 0.010
+SCPI1: :FREQ:SWE:STEP 10GHZ
+SCPI2: :FREQ:SWE:STEP 1.0E+10
+
+Command [:WAVelength]:FREQuency:SWEep:STEP[:WIDTh]?
+Description: Reads out the step for Step Sweep mode in optical frequency.
+Syntax:
+  Legacy: [:SOURce[n]][:CHANnel[m]][:WAVelength]:FREQuency:SWEep:STEP[:WIDTh]?
+  SCPI:   [:SOURce[n]][:CHANnel[m]][:WAVelength]:FREQuency:SWEep:STEP[:WIDTh]? <wsp>
+          [Hz|kHz|MHz|GHz|THz]
+Parameter: None
+Response:
+  Range: 20MHz to specified wavelength span.
+  Step: 10 MHz
+  Legacy: Response
+         is decimal notation in THz.
+  SCPI: These numbers are followed by character strings representing
+        a unit. When a unit character string is not specified, “Hz” are
+        used as the default units.
+Example: Setting step is 0.01 THz.
+Transmission: :WAV:SWE:STEP?
+Response Example:
+  Legacy: 0.01
+  SCPI:   +1.0000000E+010
+
+Command: :WAVelength:SWEep:DWELl
+Description: Sets wait time between consequent steps in step sweep mode.
+This wait time does not include time for wavelength tuning.
+Syntax [:SOURce[n]][:CHANnel[m]]:WAVelength:SWEep:DWELl<wsp><value>
+Parameter:
+  Range: 0 to 999.9 sec
+  Step: 0.1 sec
+Response: None
+Example: Sets the dwell time to 1 second.
+Transmission: :WAV:SWE:DWEL 1
+
+Command: :WAVelength:SWEep:DWELl?
+Description: Reads out wait time between consequent steps in step sweep
+mode.
+Syntax [:SOURce[n]][:CHANnel[m]]:WAVelength:SWEep:DWELl?
+Parameter: None
+Response:
+  Range: 0 to 999.9 sec
+  Step: 0.1 sec
+Example: Setting dwell time to 3 seconds.
+Transmission: :WAV:SWE:DWEL?
+Response Example:
+  Legacy: 3.0
+  SCPI:   +3.00000000E+000
+
+Command: :WAVelength:SWEep:CYCLes
+Description: Sets the sweep repetition times.
+Syntax [:SOURce[n]][:CHANnel[m]]:WAVelength:SWEep:CYCLes<wsp><value>
+Parameter:
+  Range: 0 to 999
+  Step: 1
+Response: None
+Example: Sets the sweep repetition times to 100.
+Transmission: :WAV:SWE:CYCL 100
+
+Command: :WAVelength:SWEep:CYCLes?
+Description: Reads out the setting sweep repetition times.
+Syntax [:SOURce[n]][:CHANnel[m]]:WAVelength:SWEep:CYCLes?
+Parameter: None
+Response:
+  Range: 0 to 999
+Example: The setting repetition times is 100.
+Transmission: :WAV:SWE:CYCL?
+Response Example:
+  Legacy: 100
+  SCPI:   +100
+
+Command: :WAVelength:SWEep:COUNt?
+Description: Reads out the current number of completed sweeps.
+Syntax [:SOURce[n]][:CHANnel[m]]:WAVelength:SWEep:COUNt?
+Parameter: None
+Response:
+  Range: 0 to 999
+Example: 100 sweeps have completed.
+Transmission: :WAV:SWE:COUN?
+Response Example:
+  Legacy: 100
+  SCPI:   +100
+
+Command: :WAVelength:SWEep:DELay
+Description: Sets the wait time between consequent scans.
+Syntax [:SOURce[n]][:CHANnel[m]]:WAVelength:SWEep:DELay<wsp><value>
+Parameter:
+  Range: 0 to 999.9 sec
+  Step: 0.1 sec
+Response: None
+Example: Sets the wait time to 1 second.
+Transmission: :WAV:SWE:DEL 1
+
+Command: :WAVelength:SWEep:DELay?
+Description: Reads out the setting wait time between consequent scans.
+Syntax [:SOURce[n]][:CHANnel[m]]:WAVelength:SWEep: DELay?
+Parameter: None
+Response:
+  Range: 0 to 999.9 sec
+  Step: 0.1 sec
+Example: Setting wait time is 1 second.
+Transmission: :WAV:SWE:DEL?
+Response Example:
+  Legacy: 1.0
+  SCPI:   +1.00000000E+000
+
+Command: :WAVelength:SWEep[:STATe]
+Description: Sets sweep status.
+Syntax [:SOURce[n]][:CHANnel[m]]:WAVelength:SWEep[:STATe]<wsp><value>
+Parameter:
+  0: Stop.
+  1: Start.
+This Command executes single scan. Use “:WAVelength:SWEep[:STATe]:REPeat” for repeat scan.
+Response: None
+Example: Starts a sweep.
+Transmission: :WAV:SWE 1
+
+Command: :WAVelength:SWEep[:STATe]?
+Description: Reads out the current sweep status.
+Syntax [:SOURce[n]][:CHANnel[m]]:WAVelength:SWEep[:STATe]?
+Parameter: None
+Response:
+  0: Stopped
+  1: Running
+  3: Standing by trigger
+  4: Preparation for sweep start
+Example: Sweep is running.
+Transmission: :WAV:SWE?
+Response Example:
+  Legacy: 1
+  SCPI:   +1
+
+Command: :WAVelength:SWEep[:STATe]:REPeat
+Description: Starts repeat scan.
+Syntax [:SOURce[n]][:CHANnel[m]]:WAVelength:SWEep[:STATe]:REPeat
+Parameter: None
+Response: None
+Example: Starts repeat scan.
+Transmission: :WAV:SWE:REP
+
+Command: :READout:POINts?
+Description: Reads out the number of logging data.
+Syntax [:SOURce[n]][:CHANnel[m]]:READout:POINts?
+Parameter: None
+Response: 0 to 500,000
+Example: Recorded data number is 10,000.
+Transmission: :READ:POIN?
+Response Example:
+  Legacy: 10000
+  SCPI:   +10000
+
+Command: :READout:DATa?
+Description: Reads out wavelength logging data.
+Syntax [:SOURce[n]][:CHANnel[m]]:READout:DATa?
+Parameter: None
+Response:
+  Legacy: The data is comprised of a header (ASCII characters) and
+         wavelength data array (4-byte binary).
+         Example: #42000 □□□□□□□□ .......
+         The “4” after the “#” indicates the number of digits following
+         “4”. The following four digits, “2000”, indicate the amount of
+         recorded data in byte units. In this example, there are 2000
+         bytes of data (500 points).
+         The data is saved in integer format in 0.1 pm units. Binary data
+         is transmitted in Intel byte order.
+  SCPI: The data is comprised of a header (ASCII characters) and
+        wavelength data array (8-byte binary).
+        Example: #44000 □□□□□□□□ The “4” after the
+        “#” indicates the number of digits following “4”. The following
+        four digits, “4000” indicate the amount of recorded data in byte
+        units. n this example, there are 4000 bytes of data (500 points).
+        The data is saved in the 64 bit IEEE Standard format and data
+        is transmitted in Intel byte order.
+
+Command: :READout:DATa:POWer?
+Description: Reads out power logging data.
+Syntax [:SOURce[n]][:CHANnel[m]]:READout:DATa:POWer?
+Parameter: None
+Response:
+  The data is comprised of a header
+  (ASCII characters) and wavelength data array (4- byte binary).
+  Example: #42000 □□□□□□□□ .......
+  The “4” after the “#” indicates the number of digits following is
+  4. The following four digits, “2000”, indicate the amount of
+  recorded data in byte units. In this example, there are 2000
+  bytes of data (500 points).
+  The data is saved in the 32 bit IEEE Standard format and data
+  is transmitted in Intel byte order. The data is saved in dBm.
+
+Command: :AM:STATe
+Description: Enables and disables modulation function of the laser output.
+Syntax [:SOURce[n]][:CHANnel[m]]:AM:STATe<wsp><value>
+Parameter:
+  0: Disable
+  1: Enable
+Response: None
+Example: Enables the modulation function of the laser output.
+Transmission: :AM:STAT 1
+
+Command: :AM:STATe?
+Description: Reads out status of modulation function of the laser output.
+Syntax [:SOURce[n]][:CHANnel[m]]:AM:STATe?
+Parameter: None
+Response:
+  0: Disable
+  1: Enable
+Example: The modulation function is enabled.
+Transmission: :AM:STAT?
+Response Example:
+  Legacy: 1
+  SCPI:   +1
+
+Command: :AM:SOURce
+Description: Sets modulation source.
+Syntax: [:SOURce[n]][:CHANnel[m]]:AM:SOURce <value>
+Parameter:
+  0: Coherence control (same as :COHCtrl)
+  1: Intensity modulation
+  3: Frequency modulation
+Response: None
+Example: Select coherence control.
+Transmission: :AM:SOUR 0
+
+Command: :AM:SOURce?
+Description: Reads modulation source.
+Syntax: [:SOURce[n]][:CHANnel[m]]:AM:SOURce?
+Parameter: None
+Response:
+  0: Coherence control
+  1: Intensity modulation
+  3: Frequency modulation
+Example: Intensity modulation is selected.
+Transmission: :AM:SOUR?
+Response Example:
+  Legacy: 1
+  SCPI:   +1
+
+Command [:SOURce]:WAVelength:OFFSet
+Description: Add the constant offset to the output wavelength.
+Syntax:
+  Legacy: :WAVelength:OFFSet <value>
+  SCPI:   :WAVelength:OFFSet <value>
+Parameter:
+  Range: -0.1000 ~ 0.1000 (nm)
+  Step: 0.0001（nm）
+  Legacy: <value> should be decimal notation in nm (no unit suffix).
+  SCPI: <value> is accepted in decimal notation and exponential
+        notation. These numbers are followed by character strings
+        representing a unit. When a unit character string is not
+        specified, m（meter）is used as the default.
+Response: None
+Example: Adds the constant offset by 0.01nm to the output wavelength.
+Legacy: :WAV:OFFS 0.010
+SCPI1: :WAV:OFFS 10pm
+SCPI2: :WAV:OFFS 1.0E-13
+
+Command [:SOURce]:WAVelength:OFFSet?
+Description: Reads out the constant offset to the output wavelength.
+Syntax:
+  Legacy: [:SOURce]:WAVelength:OFFSet?
+  SCPI:   [:SOURce]:WAVelength:OFFSet? <wsp>[PM|NM|UM|MM|M]
+Parameter: None
+Response:
+  Range: -0.1000 ~ 0.1000 (nm)
+  Step: 0.0001（nm）
+  Legacy: Response
+         is decimal notation in nm.
+  SCPI: These numbers are followed by character strings representing
+        a unit. When a unit character string is not specified, m
+        (meter) is used as the default.
+Example: The constant offset to the output wavelength is 0.01nm.
+Transmission: :WAV:OFFS?
+Response Example:
+  Legacy: 0.01
+  SCPI:   +1.00000000E-013
+2. Input/Output related Commands
+
+Command: :TRIGger:INPut:EXTernal
+Description: Enables/disables external trigger input.
+Syntax: :TRIGger:INPut:EXTernal <value>
+Parameter:
+  0: Disable
+  1: Enable
+Response: None
+Example: Enable external trigger input.
+Transmission: :TRIG:INP:EXT 1
+
+Command: :TRIGger:INPut:EXTernal?
+Description: Reads out the setting of external trigger input.
+Syntax: :TRIGger:INPut:EXTernal?
+Parameter: None
+Response:
+  0: Disable
+  1: Enable
+Example: External trigger input is enabled.
+Transmission: :TRIG:INP:EXT?
+Response Example:
+  Legacy: 1
+  SCPI:   +1
+
+Command: :TRIGger:INPut[:EXTernal]:ACTive
+Description: Sets input trigger polarity.
+Syntax: :TRIGger:INPut[:EXTernal]:ACTive <value>
+Parameter:
+  0: High Active / Triggers at rising edge
+  1: Low Active / Triggers at falling edge
+Response: None
+Example: Sets the input trigger polarity to Low Active.
+Transmission: :TRIG:INP:ACT 1
+
+Command: :TRIGger:INPut[:EXTernal]:ACTive?
+Description: Reads out input trigger polarity.
+Syntax: :TRIGger:INPut[:EXTernal]:ACTive?
+Parameter: None
+Response:
+  0: High Active / Triggers at rising edge
+  1: Low Active / Triggers at falling edge
+Example: The input trigger polarity is set to Low Active.
+Transmission: :TRIG:INP:ACT?
+Response Example:
+  Legacy: 1
+  SCPI:   +1
+
+Command: :TRIGger:INPut:STANdby
+Description: Sets the device in trigger signal input standby mode.
+Syntax: :TRIGger:INPut:STANdby <value>
+Parameter:
+  0: Normal operation mode
+  1: Trigger standby mode
+Response: None
+Example: Sets the device in trigger standby mode.
+Transmission: :TRIG:INP:STAN 1
+
+Command: :TRIGger:INPut:STANdby?
+Description: Reads out the trigger signal input standby mode.
+Syntax: :TRIGger:INPut:STANdby?
+Parameter: None
+Response:
+  0: Normal operation mode
+  1: Trigger standby mode
+Example: The device is in trigger standby mode.
+Transmission: :TRIG:INP:STAN?
+Response Example:
+  Legacy: 1
+  SCPI:   +1
+
+Command: :TRIGger:INPut:SOFTtrigger
+Description: Issues a soft trigger. Executes sweep from trigger standby
+mode.
+Syntax: :TRIGger:INPut:SOFTtrigger
+Parameter: None
+Response: None
+Example: Issues a soft trigger.
+Transmission: :TRIG:INP:SOFT
+
+Command: :TRIGger:OUTPut
+Description: Sets the timing of the trigger signal output.
+Syntax: :TRIGger:OUTPut <value>
+Parameter:
+  0: None
+  1: Stop
+  2: Start
+  3: Step
+Response: None
+Example: Sets the timing of the trigger signal output to be at sweep
+completion.
+Transmission: :TRIG:OUTP 1
+
+Command: :TRIGger:OUTPut?
+Description: Reads out the timing setting of the trigger signal output.
+Syntax: :TRIGger:OUTPut?
+Parameter: None
+Response:
+  0: None
+  1: Stop
+  2: Start
+  3: Step
+Example: The timing of the trigger signal output is at sweep start.
+Transmission: :TRIG:OUTP?
+Response Example:
+  Legacy: 2
+  SCPI:   +2
+
+Command: :TRIGger:OUTPut:ACTive
+Description: Sets output trigger polarity.
+Syntax: :TRIGger:OUTPut:ACTive <value>
+Parameter:
+  0: High Active / Triggers at rising edge
+  1: Low Active / Triggers at falling edge
+Response: None
+Example: Sets the output trigger polarity to High Active.
+Transmission: :TRIG:OUTP:ACT 0
+
+Command: :TRIGger:OUTPut:ACTive?
+Description: Reads out output trigger polarity.
+Syntax: :TRIGger:OUTPut:ACTive?
+Parameter: None
+Response:
+  0: High Active / Triggers at rising edge
+  1: Low Active / Triggers at falling edge
+Example: The output trigger polarity is set to High Active.
+Transmission: :TRIG:OUTP:ACT?
+Response Example:
+  Legacy: 0
+  SCPI:   +0
+
+Command: :TRIGger:OUTPut:STEP[:WIDTh]
+Description: Sets the interval of the trigger signal output.
+Syntax:
+  Legacy: :TRIGger:OUTPut:STEP[:WIDTh] <value>
+  SCPI:   :TRIGger:OUTPut:STEP[:WIDTh] <value>[PM|NM|UM|MM|M]
+Parameter:
+  Range：0.0001 〜 Maximum specified wavelength range (nm)
+  Step：0.0001（nm）
+  The minimum set trigger step depends on the setting sweep
+  speed. Refer to “6-5. Trigger Setting” for details.
+  Legacy: <value> should be decimal notation in nm (no unit suffix).
+  SCPI: <value> is accepted in decimal notation and exponential
+        notation. These numbers are followed by character strings
+        representing a unit. When a unit character string is not
+        specified, m（meter）is used as the default.
+Response: None
+Example: Sets the interval of the trigger signal output to 1nm.
+Legacy: :TRIG:OUTP:STEP 1
+SCPI1: :TRIG:OUTP:STEP 1nm
+SCPI2: :TRIG:OUTP:STEP 1E-9
+
+Command: :TRIGger:OUTPut:STEP[:WIDTh]?
+Description: Reads out the interval of the trigger signal output.
+Syntax: :TRIGger:OUTPut:STEP[:WIDTh]?
+Parameter: None
+Response:
+  Range: 0.0001 〜 Maximum specified wavelength range (nm)
+  Step: 0.0001（nm）
+  Leagacy: Response
+           is decimal notation in nm.
+  SCPI: Response
+        is exponential notation in meters.
+Example: the trigger signal output interval is 0.1 nm.
+Transmission: :TRIG:OUTP: STEP?
+Response Example:
+  Legacy: 0.100
+  SCPI:   +1.00000000E-010
+
+Command: :TRIGger:OUTPut:SETTing
+Description: Sets the output trigger period mode.
+Syntax: :TRIGger:OUTPut:SETTing <value>
+Parameter:
+  0: Sets the output trigger to be periodic in wavelength.
+  1: Sets the output trigger to be periodic in time.
+Response: None
+Example: Sets the output trigger to be periodic in wavelength.
+Transmission: :TRIG:OUTP:SETT 0
+
+Command: :TRIGger:OUTPut:SETTing?
+Description: Reads out the output trigger period mode.
+Syntax: :TRIGger:OUTPut:SETTing?
+Parameter: None
+Response:
+  0: Output trigger is periodic in wavelength.
+  1: Output trigger is periodic in time.
+Example: The output trigger is periodic in wavelength.
+Transmission: :TRIG:OUTP:SETT?
+Response Example:
+  Legacy: 0
+  SCPI:   +0
+
+Command: :TRIGger:THRough
+Description: Sets the trigger through mode. When On is selected, input
+trigger signal is put through to the output trigger port. Trigger
+signal is re-shaped according to polarity setting.
+Syntax: :TRIGger:THRough <value>
+Parameter:
+  0: OFF
+  1: ON
+Response: None
+Example: Sets the trigger through mode to ON.
+Transmission: :TRIG:THR 1
+
+Command: :TRIGger:THRough?
+Description: Reads out the trigger through mode.
+Syntax: :TRIGger:THRough?
+Parameter: None
+Response:
+  0: OFF
+  1: ON
+Example: The trigger through mode is set to ON.
+Transmission: :TRIG:THR?
+Response Example:
+  Legacy: 1
+  SCPI:   +1
+3. System related Commands
+
+Command: :SYSTem:ERRor?
+Description: Reads out the error issued.
+Syntax: :SYSTem:ERRor?
+Parameter: None
+Response: Error Number (Refer to “7-4 5. Command Error”)
+Example: Error numbers and error messages are returned.
+Transmission: :SYST:ERR?
+
+Command: :SYSTem:COMMunicate:GPIB:ADDRess
+Description: Sets the GPIB address.
+Syntax: :SYSTem:COMMunicate:GPIB:ADDRess <value>
+Parameter: Integer from 1 to 30
+Response: None
+Example: Sets the GPIB address to “10”.
+Transmission: :SYST:COMM:GPIB:ADDR 10
+
+Command: :SYSTem:COMMunicate:GPIB:ADDRess?
+Description: Reads out the GPIB address.
+Syntax: :SYSTem:COMMunicate:GPIB:ADDRess?
+Parameter: None
+Response: Integer from 1 to 30
+Example: The GPIB address is “10”.
+Transmission: :SYST:COMM:GPIB:ADDR?
+Response Example:
+  Legacy: 10
+  SCPI:   +10
+
+Command: :SYSTem:COMMunicate:GPIB:DELimiter
+Description: Sets the
+Command delimiter for GPIB communication. EOI is
+always sent.
+Syntax: :SYSTem:COMMunicate:GPIB:DELimiter <value>
+Parameter:
+  0: CR
+  1: LF
+  2: CR+LF
+  3: None
+Response: None
+Example: Sets the GPIB
+Command delimiter to "LF".
+Transmission: :SYST:COMM:GPIB:DEL 1
+
+Command: :SYSTem:COMMunicate:GPIB:DELimiter?
+Description: Reads out the
+Command delimiter for GPIB communication.
+Syntax: :SYSTem:COMMunicate:GPIB:ADDRess?
+Parameter: None
+Response:
+  0: CR
+  1: LF
+  2: CR+LF
+  3: None
+Example: The GPIB delimiter is "LF".
+Transmission: :SYST:COMM:GPIB:DEL?
+Response Example:
+  Legacy: 1
+  SCPI:   +1
+
+Command: :SYSTem:COMMunicate:ETHernet:MACaddress?
+Description: Reads out the MAC address.
+Syntax: :SYSTem:COMMunicate:GPIB:ADDRess?
+Parameter: None
+Response: 12 digits hexadecimal
+Example: The read MAC address is 00-13-A0-00-00-00.
+Transmission: :SYST:COMM:ETH:MAC?
+Response: →0013A0000000
+
+Command: :SYSTem:COMMunicate:ETHernet:IPADdress
+Description: Sets the IP address.
+Syntax: :SYSTem:COMMunicate:ETHernet:IPADdress <value>
+Parameter: ***.***.***.*** (*** is integer from 0 to 255)
+Response: None
+Example: Sets the IP address to “192.168.0.1”.
+Transmission: :SYST:COMM:ETH:IPAD 192.168.0.1
+
+Command: :SYSTem:COMMunicate:ETHernet:IPADdress?
+Description: Reads out the IP address.
+Syntax: :SYSTem:COMMunicate:ETHernet:IPADdress?
+Parameter: None
+Response: ***.***.***.*** (*** is integer from 0 to 255)
+Example: The IP address is "192.168.0.1".
+Transmission: :SYST:COMM:ETH:IPAD?
+Response: →192.168.0.1
+
+Command: :SYSTem:COMMunicate:ETHernet:SMASk
+Description: Sets the subnet mask.
+Syntax: :SYSTem:COMMunicate:ETHernet:SMASk <value>
+Parameter: ***.***.***.*** (*** is integer from 0 to 255)
+Response: None
+Example: Sets the subnet mask to “255.255.255.0”.
+Transmission: :SYST:COMM:ETH:SMAS 255.255.255.0
+
+Command: :SYSTem:COMMunicate:ETHernet:SMASk?
+Description: Reads out the subnet mask.
+Syntax: :SYSTem:COMMunicate:ETHernet:SMASk?
+Parameter: None
+Response: ***.***.***.*** (*** is integer from 0 to 255)
+Example: The subnet mask is “255.255.255.0”.
+Transmission: :SYST:COMM:ETH:SMAS?
+Response: →255.255.255.0
+
+Command: :SYSTem:COMMunicate:ETHernet:DGATeway
+Description: Sets the default gateway.
+Syntax: :SYSTem:COMMunicate:ETHernet:DGATeway <value>
+Parameter: ***.***.***.*** (*** is integer from 0 to 255)
+Response: None
+Example: Sets the default gateway to “192.168.0.254”.
+Transmission: :SYST:COMM:ETH:DGAT 192.168.0.254
+
+Command: :SYSTem:COMMunicate:ETHernet:DGATeway?
+Description: Reads out the default gateway.
+Syntax: :SYSTem:COMMunicate:ETHernet:DGATeway?
+Parameter: None
+Response: ***.***.***.*** (*** is integer from 0 to 255)
+Example: The default gateway is “192.168.0.254”.
+Transmission: :SYST:COMM:ETH:DGAT?
+Response: →192.168.0.254
+
+Command: :SYSTem:COMMunicate:ETHernet:PORT
+Description: Sets the port number.
+Syntax: :SYSTem:COMMunicate:ETHernet:PORT <value>
+Parameter: Integer from 0 to 65535
+Response: None
+Example: Sets the port number to “64000”.
+Transmission: :SYST:COMM:ETH:PORT 64000
+
+Command: :SYSTem:COMMunicate:ETHernet:PORT?
+Description: Reads out the port number.
+Syntax: :SYSTem:COMMunicate:ETHernet:PORT?
+Parameter: None
+Response: Integer from 0 to 65535
+Example: The port number is “64000”.
+Transmission: :SYST:COMM:ETH:PORT?
+Response Example:
+  Legacy: 64000
+  SCPI:   +64000
+
+Command: :SYSTem:COMMunicate:CODe
+Description: Sets the
+Command set.
+Syntax: :SYSTem:COMMunicate:CODe <value>
+Parameter:
+  0: Legacy
+  1: SCPI
+Response: None
+Example: Set command set to SCPI.
+Transmission: :SYST:COMM:COD 1
+
+Command: :SYSTem:COMMunicate:CODe?
+Description: Reads the current command set.
+Syntax: :SYSTem:COMMunicate:CODe?
+Parameter: None
+Response:
+  0: Legacy
+  1: SCPI
+Example: Command set is SCPI.
+Transmission: :SYST:COMM:COD?
+Response Example:
+  Legacy: 1
+  SCPI:   +1
+
+Command: :SYSTem:LOCK?
+Description: Reads out the status of external interlock.
+Syntax: :SYSTem:LOCK?
+Parameter: None
+Response:
+  0: Unlocked
+  1: External inter locked
+Example: The external interlock is locked.
+Transmission: :SYST:LOCK?
+Response Example:
+  Legacy: 1
+  SCPI:   +1
+
+Command: :DISPlay:BRIGhtness
+Description: Sets brightness of the display.
+Syntax: :DISPlay:BRIGhtness <value>
+Parameter:
+  0 to 100
+  Unit: %
+Response: None
+Example: Sets brightness of the display to 50%.
+Transmission: :DISP:BRIG 50
+
+Command: :DISPlay:BRIGhtness?
+Description: Reads out brightness of the display.
+Syntax: :DISPlay:BRIGhtness?
+Parameter: None
+Response:
+  0 to 100
+  Unit: %
+Example: Brightness of the display is 50%.
+Transmission: :DISP:BRIG?
+Response Example:
+  Legacy: 50
+  SCPI:   +50
+
+Command: :SPECial:SHUTdown
+Description: Shuts down the device.
+Syntax: :SPECial:SHUTdown
+Parameter: None
+Response: None
+Example: Shuts down the device.
+Transmission: :SPEC:SHUT
+
+Command: :SPECial:REBoot
+Description: Restarts the device.
+Syntax: :SPECial:REBoot
+Parameter: None
+Response: None
+Example: Restarts the device.
+Transmission: :SPECial:REBoot
+
+Command: :SYSTem:ALERt?
+Description: Reads out the current alert information.
+Syntax: :SYSTem:ALERt?
+Parameter: None
+Response: Error Number (Refer to “7-4 6. System Alert”)
+Example: Error numbers and error messages are returned.
+Transmission: :SYST:ALER?
+
+Command: :SYSTem:VERSion?
+Description: Reads firmware version.
+Syntax: :SYSTem:VERSion?
+Parameter: None
+Response: ****.****.**** (4 digits + "." + 4 digits + "." + 4 digits)
+Example: Firmware version is 0012.0010.0005.
+Transmission: :SYST:VERS?
+Response Example: 0012.0010.0005
+
+Command: :SYSTem:CODe?
+Description: Reads the product code
+Syntax: :SYSTem:CODe?
+Parameter: None
+Response: *-******-*-*-**-**-*
+1 digit + “-“ + 6 digits (integer) + “-“ + 1 digit + “-“ + 1 digit
++ “-“ + 2 digits (integer) + “-“ + 1 digit (integer)
+Example: The product code is C-480640-P-F-AP-00-1.
+Transmission: :SYSTem:CODe?
+Response: →C-480640-P-F-AP-00-1

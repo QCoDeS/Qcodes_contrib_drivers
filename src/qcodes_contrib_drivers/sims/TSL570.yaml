@@ -1,0 +1,614 @@
+spec: "1.1"
+devices:
+  SantecTSL570:
+    eom:
+      TCPIP INSTR:
+        q: "\r"
+        r: "\r"
+      TCPIP SOCKET:
+        q: "\r"
+        r: "\r"
+
+    dialogues:
+      - q: "*IDN?"
+        r: "SANTEC,TSL-570,00001,0026.0026.0011"
+      - q: "*RST"
+      - q: ":WAVelength:FINetuning:DISable"
+      - q: ":WAVelength:SWEep:STATe:REPeat"
+      - q: ":TRIGger:INPut:SOFTtrigger"
+      - q: ":SPECial:SHUTdown"
+      - q: ":SPECial:REBoot"
+      - q: ":SYSTem:ERRor?"
+        r: '0,"No error"'
+      - q: ":READout:DATa?"
+        r: "#240\x7b\x1f\x5b\x15\x08\x14\x52\x3e\x65\x65\x3b\x2a\x69\x2b\x54\x3e\x16\x56\x2e\x65\x74\x00\x54\x3e\x45\x57\x57\x45\x24\x53\x4e\x3e\x16\x2c\x27\x6c\x41\x77\x55\x3e"
+      - q: ":READout:DATa:POWer?"
+        r: "#240\x4d\x59\x1e\x04\x02\x4d\x29\x34\x6c\x7c\x1f\x7e\x3d\x3e\x18\x08\x67\x54\x2b\x31\x5d\x5d\x2b\x3f\x13\x39\x3d\x16\x3a\x59\x52\x1d\x3c\x3e\x3a\x43\x1f\x4e\x51\x32"
+
+    properties:
+      command_set:
+        default: 1
+        getter:
+          q: ":SYSTem:COMMunicate:CODe?"
+          r: "{}"
+        setter:
+          q: ":SYSTem:COMMunicate:CODe {}"
+        specs:
+          type: int
+          valid: [0, 1]
+
+      wavelength_minimum:
+        default: 1.48e-6
+        getter:
+          q: ":WAVelength? MINimum"
+          r: "{:.10e}"
+        specs:
+          type: float
+
+      wavelength_maximum:
+        default: 1.64e-6
+        getter:
+          q: ":WAVelength? MAXimum"
+          r: "{:.10e}"
+        specs:
+          type: float
+
+      wavelength:
+        default: 1.55e-6
+        getter:
+          q: ":WAVelength?"
+          r: "{:.10e}"
+        setter:
+          q: ":WAVelength {}"
+        specs:
+          type: float
+
+      wavelength_unit:
+        default: 0
+        getter:
+          q: ":WAVelength:UNIT?"
+          r: "{}"
+        setter:
+          q: ":WAVelength:UNIT {}"
+        specs:
+          type: int
+          valid: [0, 1]
+
+      wavelength_fine:
+        default: 0.0
+        getter:
+          q: ":WAV:FIN?"
+          r: "{:.2f}"
+        setter:
+          q: ":WAV:FIN {}"
+        specs:
+          type: float
+
+      frequency_minimum:
+        default: 1.82e14
+        getter:
+          q: ":WAVelength:FREQuency? MINimum"
+          r: "{:.0f}"
+        specs:
+          type: float
+
+      frequency_maximum:
+        default: 2.03e14
+        getter:
+          q: ":WAVelength:FREQuency? MAXimum"
+          r: "{:.0f}"
+        specs:
+          type: float
+
+      frequency:
+        default: 1.935e14
+        getter:
+          q: ":WAVelength:FREQuency?"
+          r: "{:.0f}"
+        setter:
+          q: ":WAVelength:FREQuency {}"
+        specs:
+          type: float
+
+      coherence_control:
+        default: 0
+        getter:
+          q: ":COHCtrl?"
+          r: "{}"
+        setter:
+          q: ":COHCtrl {}"
+        specs:
+          type: int
+          valid: [0, 1]
+
+      output:
+        default: 0
+        getter:
+          q: ":POWer:STATe?"
+          r: "{}"
+        setter:
+          q: ":POWer:STATe {}"
+        specs:
+          type: int
+          valid: [0, 1]
+
+      power_attenuation:
+        default: 10.0
+        getter:
+          q: ":POWer:ATTenuation?"
+          r: "{:.2f}"
+        setter:
+          q: ":POWer:ATTenuation {}"
+        specs:
+          type: float
+
+      power_auto:
+        default: 1
+        getter:
+          q: ":POWer:ATTenuation:AUTo?"
+          r: "{}"
+        setter:
+          q: ":POWer:ATTenuation:AUTo {}"
+        specs:
+          type: int
+          valid: [0, 1]
+
+      power_minimum:
+        default: 0.01
+        getter:
+          q: ":POWer? MINimum"
+          r: "{:.6f}"
+        specs:
+          type: float
+
+      power_maximum:
+        default: 20.0
+        getter:
+          q: ":POWer? MAXimum"
+          r: "{:.6f}"
+        specs:
+          type: float
+
+      power:
+        default: 2.0
+        getter:
+          q: ":POW?"
+          r: "{:.6f}"
+        setter:
+          q: ":POW {}"
+        specs:
+          type: float
+
+      power_actual:
+        default: 1.95
+        getter:
+          q: ":POWer:ACTual?"
+          r: "{:.6f}"
+        specs:
+          type: float
+
+      shutter:
+        default: 0
+        getter:
+          q: ":POWer:SHUTter?"
+          r: "{}"
+        setter:
+          q: ":POWer:SHUTter {}"
+        specs:
+          type: int
+          valid: [0, 1]
+
+      power_unit:
+        default: 0
+        getter:
+          q: ":POWer:UNIT?"
+          r: "{}"
+        setter:
+          q: ":POWer:UNIT {}"
+        specs:
+          type: int
+          valid: [0, 1]
+
+      sweep_range_minimum_wavelength:
+        default: 1.50e-6
+        getter:
+          q: ":WAV:SWE:RANG:MIN?"
+          r: "{:.10e}"
+        specs:
+          type: float
+
+      sweep_range_maximum_wavelength:
+        default: 1.60e-6
+        getter:
+          q: ":WAV:SWE:RANG:MAX?"
+          r: "{:.10e}"
+        specs:
+          type: float
+
+      sweep_range_minimum_frequency:
+        default: 1.80e14
+        getter:
+          q: ":FREQuency:SWEep:RANGe:MINimum?"
+          r: "{:.0f}"
+        specs:
+          type: float
+
+      sweep_range_maximum_frequency:
+        default: 2.00e14
+        getter:
+          q: ":FREQuency:SWEep:RANGe:MAXimum?"
+          r: "{:.0f}"
+        specs:
+          type: float
+
+      sweep_start_wavelength:
+        default: 1.51e-6
+        getter:
+          q: ":WAVelength:SWEep:STARt?"
+          r: "{:.10e}"
+        setter:
+          q: ":WAVelength:SWEep:STARt {}"
+        specs:
+          type: float
+
+      sweep_stop_wavelength:
+        default: 1.58e-6
+        getter:
+          q: ":WAVelength:SWEep:STOP?"
+          r: "{:.10e}"
+        setter:
+          q: ":WAVelength:SWEep:STOP {}"
+        specs:
+          type: float
+
+      sweep_start_frequency:
+        default: 1.85e14
+        getter:
+          q: ":WAVelength:FREQuency:SWEep:STARt?"
+          r: "{:.0f}"
+        setter:
+          q: ":WAVelength:FREQuency:SWEep:STARt {}"
+        specs:
+          type: float
+
+      sweep_stop_frequency:
+        default: 1.95e14
+        getter:
+          q: ":WAVelength:FREQuency:SWEep:STOP?"
+          r: "{:.0f}"
+        setter:
+          q: ":WAVelength:FREQuency:SWEep:STOP {}"
+        specs:
+          type: float
+
+      sweep_step_frequency:
+        default: 1.0e9
+        getter:
+          q: ":WAVelength:FREQuency:SWEep:STEP?"
+          r: "{:.0f}"
+        setter:
+          q: ":WAVelength:FREQuency:SWEep:STEP {}"
+        specs:
+          type: float
+
+      sweep_mode:
+        default: 1
+        getter:
+          q: ":WAVelength:SWEep:MODe?"
+          r: "{}"
+        setter:
+          q: ":WAVelength:SWEep:MODe {}"
+        specs:
+          type: int
+          valid: [0, 1, 2, 3]
+
+      sweep_speed:
+        default: 10
+        getter:
+          q: ":WAVelength:SWEep:SPEed?"
+          r: "{:.4f}"
+        setter:
+          q: ":WAVelength:SWEep:SPEed {}"
+        specs:
+          type: float
+
+      sweep_step_wavelength:
+        default: 1.0e-9
+        getter:
+          q: ":WAVelength:SWEep:STEP?"
+          r: "{:.10e}"
+        setter:
+          q: ":WAVelength:SWEep:STEP {}"
+        specs:
+          type: float
+
+      sweep_dwell:
+        default: 0.1
+        getter:
+          q: ":WAVelength:SWEep:DWELl?"
+          r: "{:.1f}"
+        setter:
+          q: ":WAVelength:SWEep:DWELl {}"
+        specs:
+          type: float
+
+      sweep_cycles:
+        default: 1
+        getter:
+          q: ":WAVelength:SWEep:CYCLes?"
+          r: "{}"
+        setter:
+          q: ":WAVelength:SWEep:CYCLes {}"
+        specs:
+          type: int
+
+      sweep_count:
+        default: 0
+        getter:
+          q: ":WAVelength:SWEep:COUNt?"
+          r: "{}"
+        specs:
+          type: int
+
+      sweep_delay:
+        default: 0.0
+        getter:
+          q: ":WAVelength:SWEep:DELay?"
+          r: "{:.1f}"
+        setter:
+          q: ":WAVelength:SWEep:DELay {}"
+        specs:
+          type: float
+
+      sweep_state:
+        default: 0
+        getter:
+          q: ":WAVelength:SWEep:STATe?"
+          r: "{}"
+        setter:
+          q: ":WAV:SWE {}"
+        specs:
+          type: int
+          valid: [0, 1, 3, 4]
+
+      readout_points:
+        default: 5
+        getter:
+          q: ":READout:POINts?"
+          r: "{}"
+        specs:
+          type: int
+
+      modulation_state:
+        default: 0
+        getter:
+          q: ":AM:STATe?"
+          r: "{}"
+        setter:
+          q: ":AM:STATe {}"
+        specs:
+          type: int
+          valid: [0, 1]
+
+      modulation_source:
+        default: 0
+        getter:
+          q: ":AM:SOURce?"
+          r: "{}"
+        setter:
+          q: ":AM:SOURce {}"
+        specs:
+          type: int
+          valid: [0, 1, 3]
+
+      wavelength_offset:
+        default: 0.0
+        getter:
+          q: ":WAVelength:OFFSet?"
+          r: "{:.10e}"
+        setter:
+          q: ":WAVelength:OFFSet {}"
+        specs:
+          type: float
+
+      trigger_input_external:
+        default: 0
+        getter:
+          q: ":TRIGger:INPut:EXTernal?"
+          r: "{}"
+        setter:
+          q: ":TRIGger:INPut:EXTernal {}"
+        specs:
+          type: int
+          valid: [0, 1]
+
+      trigger_input_polarity:
+        default: 0
+        getter:
+          q: ":TRIGger:INPut:ACTive?"
+          r: "{}"
+        setter:
+          q: ":TRIGger:INPut:ACTive {}"
+        specs:
+          type: int
+          valid: [0, 1]
+
+      trigger_input_standby:
+        default: 0
+        getter:
+          q: ":TRIGger:INPut:STANdby?"
+          r: "{}"
+        setter:
+          q: ":TRIGger:INPut:STANdby {}"
+        specs:
+          type: int
+          valid: [0, 1]
+
+      trigger_output_timing:
+        default: 0
+        getter:
+          q: ":TRIGger:OUTPut?"
+          r: "{}"
+        setter:
+          q: ":TRIGger:OUTPut {}"
+        specs:
+          type: int
+          valid: [0, 1, 2, 3]
+
+      trigger_output_polarity:
+        default: 0
+        getter:
+          q: ":TRIGger:OUTPut:ACTive?"
+          r: "{}"
+        setter:
+          q: ":TRIGger:OUTPut:ACTive {}"
+        specs:
+          type: int
+          valid: [0, 1]
+
+      trigger_output_step:
+        default: 1.0e-9
+        getter:
+          q: ":TRIGger:OUTPut:STEP?"
+          r: "{:.10e}"
+        setter:
+          q: ":TRIGger:OUTPut:STEP {}"
+        specs:
+          type: float
+
+      trigger_output_setting:
+        default: 0
+        getter:
+          q: ":TRIGger:OUTPut:SETTing?"
+          r: "{}"
+        setter:
+          q: ":TRIGger:OUTPut:SETTing {}"
+        specs:
+          type: int
+          valid: [0, 1]
+
+      trigger_through:
+        default: 0
+        getter:
+          q: ":TRIGger:THRough?"
+          r: "{}"
+        setter:
+          q: ":TRIGger:THRough {}"
+        specs:
+          type: int
+          valid: [0, 1]
+
+      system_lock:
+        default: 1
+        getter:
+          q: ":SYSTem:LOCK?"
+          r: "{}"
+        specs:
+          type: int
+
+      system_alert:
+        default: "NO_ALERT"
+        getter:
+          q: ":SYSTem:ALERt?"
+          r: "{}"
+        specs:
+          type: str
+
+      system_version:
+        default: "0026.0026.0011"
+        getter:
+          q: ":SYSTem:VERSion?"
+          r: "{}"
+        specs:
+          type: str
+
+      system_code:
+        default: "A-123456-B-C-DE-12-3"
+        getter:
+          q: ":SYSTem:CODe?"
+          r: "{}"
+        specs:
+          type: str
+
+      ethernet_mac_address:
+        default: "0013A0000000"
+        getter:
+          q: ":SYSTem:COMMunicate:ETHernet:MACaddress?"
+          r: "{}"
+        specs:
+          type: str
+
+      ethernet_ip_address:
+        default: "192.168.50.29"
+        getter:
+          q: ":SYSTem:COMMunicate:ETHernet:IPADdress?"
+          r: "{}"
+        setter:
+          q: ":SYSTem:COMMunicate:ETHernet:IPADdress {}"
+        specs:
+          type: str
+
+      ethernet_subnet_mask:
+        default: "255.255.255.0"
+        getter:
+          q: ":SYSTem:COMMunicate:ETHernet:SMASk?"
+          r: "{}"
+        setter:
+          q: ":SYSTem:COMMunicate:ETHernet:SMASk {}"
+        specs:
+          type: str
+
+      ethernet_gateway:
+        default: "192.168.50.1"
+        getter:
+          q: ":SYSTem:COMMunicate:ETHernet:DGATeway?"
+          r: "{}"
+        setter:
+          q: ":SYSTem:COMMunicate:ETHernet:DGATeway {}"
+        specs:
+          type: str
+
+      ethernet_port:
+        default: 5000
+        getter:
+          q: ":SYSTem:COMMunicate:ETHernet:PORT?"
+          r: "{}"
+        setter:
+          q: ":SYSTem:COMMunicate:ETHernet:PORT {}"
+        specs:
+          type: int
+
+      gpib_address:
+        default: 1
+        getter:
+          q: ":SYSTem:COMMunicate:GPIB:ADDRess?"
+          r: "{}"
+        setter:
+          q: ":SYSTem:COMMunicate:GPIB:ADDRess {}"
+        specs:
+          type: int
+
+      gpib_delimiter:
+        default: 2
+        getter:
+          q: ":SYSTem:COMMunicate:GPIB:DELimiter?"
+          r: "{}"
+        setter:
+          q: ":SYSTem:COMMunicate:GPIB:DELimiter {}"
+        specs:
+          type: int
+          valid: [0, 1, 2, 3]
+
+      display_brightness:
+        default: 50
+        getter:
+          q: ":DISPlay:BRIGhtness?"
+          r: "{}"
+        setter:
+          q: ":DISPlay:BRIGhtness {}"
+        specs:
+          type: int
+
+resources:
+  TCPIP::192.168.50.29::5000::SOCKET:
+    device: SantecTSL570
