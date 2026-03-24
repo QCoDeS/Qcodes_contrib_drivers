@@ -1,0 +1,1131 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../../">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../../genindex.html"><link rel="search" title="Search" href="../../search.html"><link rel="next" title="qcodes_contrib_drivers.drivers.Shamrock package" href="qcodes_contrib_drivers.drivers.Shamrock.html"><link rel="prev" title="qcodes_contrib_drivers.drivers.SPECS package" href="qcodes_contrib_drivers.drivers.SPECS.html">
+
+    <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
+        <title>qcodes_contrib_drivers.drivers.Santec package - qcodes_contrib_drivers 0.25.0.dev47+main.gedcb5ea documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #eeffcc;
+  --color-code-foreground: black;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../../index.html"><div class="brand">qcodes_contrib_drivers 0.25.0.dev47+main.gedcb5ea documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../../index.html">
+  
+  <span class="sidebar-brand-text">qcodes_contrib_drivers 0.25.0.dev47+main.gedcb5ea documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../examples/index.html">Examples of how to use drivers</a><input aria-label="Toggle navigation of Examples of how to use drivers" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Agilent_N9000A.html">Example with the Agilent N9000A</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/AimTTi_EL320P.html">Example notebook for AimTTi EL320P</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Andor_DU401.html">Qcodes example with Andor DU401 BU2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Andor_iDus4xx.html">Qcodes example with Andor iDus416</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Attocube_ANC300.html">QCoDeS example with Attocube ANC300</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Aviosys_IP_Power_9258S.html">Qcodes example with Aviosys IP Power 9258S</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/BlueFors.html">Example with the BlueFors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/CopperMountain_M5180.html">Example with CopperMountain Model M5180 vector network analyzer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/CopperMountain_M5180.html#Setup-db-and-station-for-test-measurerment">Setup db and station for test measurerment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/CopperMountain_M5180.html#Look-at-the-names-and-the-labels-of-the-Sxx-parameters">Look at the names and the labels of the Sxx parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/ERASynth.html">Example with ERASynth</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Gentec_Maestro.html">QCoDeS Example with Gentec Maestro</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Holzworth_HS900.html">Example notebook for the Holzworth HS900B RF synthesizer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Horiba_FHR.html">Example for Horiba FHR</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/ITest.html">Example with the iTest from Bilt</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Keithley_6430.html">Example notebook for Keithley 6430 SMU</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Keithley_6430.html#Measure-resistance-of-a-~100k\Omega-resistor">Measure resistance of a ~100k<span class="math notranslate nohighlight">\(\Omega\)</span> resistor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Keysight_M3202A.html">Keysight M3202A AWG</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Keysight_M3202A%20with%20digitizer.html">Keysight M3202A AWG example with digitizer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Lakeshore_311.html">Qcodes example with Lakeshore 311</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Lakeshore_625.html">Example with Lakeshore Model 625 Superconducting Magnet power supply</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Lakeshore_M81_SSM_Example.html">Connect to M81</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/NanoVNA_H4.html">QCoDeS example with NanoVNA H4</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/NationalInstruments_DAQ.html">National Instruments Multifunction DAQ example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/NationalInstruments_PXIe_2597.html">Qcodes example for National Instruments PXIe-2597 RF Switch</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/NationalInstruments_RFSG.html">Qcodes example with the NI RFSG signal generator driver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Newport_AG-UC8.html">QCoDeS Example with Newport AG-UC8 Piezo Motion Controller</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/OxfordInstruments_Proteox.html">Proteox system integration with QCoDeS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/OxfordTriton.html">Example of the oxford triton driver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Rigol_DSG3136B.html">QCoDeS example with Rigol DSG3136B</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Rohde_Schwarz_HMC8043.html">QCoDeS Example with R&amp;S HMC 8043 Power Supply</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Rohde_Schwarz_HMP4040.html">QCoDeS Example with R&amp;S HMP4040 Power Supply</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Rohde_Schwarz_SMW200A.html">QCoDeS example with Rohe&amp;Schwarz SMW200A</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/SR844.html">Changing the Sensitivity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/SR844.html#Preparing-for-reading-the-buffer-and-measurement">Preparing for reading the buffer and measurement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Shamrock_SR750.html">Qcodes example with Shamrock SR750</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/SignalCore.html">Example with the microwave source SC5521A from Signal Core</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/SignalCore.html#Device-connection">Device connection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/SignalCore.html#Set-parameters">Set parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/SignalRecovery_7270.html">Example of Signal Recovery 7270 driver usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/SingleQuantum.html">Example for Single Quantum SNSPD</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Specs_Tramea.html">NANONIS TRAMEA EXAMPLES</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Standa_10MWA168.html">Qcodes example with Standa 10MWA168</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/SwabianInstruments_TimeTagger.html">Qcodes example with Swabian Instruments Time Tagger</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Tektronix_AFG3000_series.html">Tektronix AFG3000 series arbitrary function generator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Tektronix_FCA3100.html">overview over all parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Tektronix_FCA3100.html#Usage-of-the-two-main-parameters">Usage of the two main parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Tektronix_Keithley_2182A.html">Keithley 2182A Nanovoltmeter - Basic Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Tektronix_Keithley_6500.html">QCoDeS Example with Tektronix Keithley Digital Multimeter DMM6500</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Thorlabs_K10CR1.html">Qcodes example with Thorlabs K10CR1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Thorlabs_KLS1550.html">QCoDeS example with Thorlabs KLS1550 laser source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Thorlabs_MFF10x.html">Qcodes example with Thorlabs MFF10x</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Thorlabs_PRM1Z8.html">Qcodes example with Thorlabs PRM1Z8</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/TinySA_Basic.html">QCoDeS example with tinySA Basic</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Valon_5015.html">QCoDeS example with Valon 5015</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Vaunix_LDA.html">Qcodes example for Vaunix LDA step attenuator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Vaunix_LDA.html#Model-with-many-channels">Model with many channels</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Windfreak_SynthUSB3.html">QCoDeS example with Windfreak SynthUSB3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/ZVL13.html">Rohde &amp; Schwarz ZVL13 Vector Network Analyzer example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/ZVL13.html#Parameters-definition">Parameters definition</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/ZurichInstruments_HF2LI.html">Zurich Instruments HF2LI example</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../examples/QDevil/index.html">QDevil drivers</a><input aria-label="Toggle navigation of QDevil drivers" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../examples/QDevil/QDAC1/index.html">QCoDeS examples of how to use QDAC-I</a><input aria-label="Toggle navigation of QCoDeS examples of how to use QDAC-I" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../examples/QDevil/QDAC1/QCodes%20example%20with%20QDevil_QDAC.html">QCoDeS Example with QDevil_QDAC</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../examples/QDevil/QDAC2/index.html">QCoDeS examples of how to use QDAC-II</a><input aria-label="Toggle navigation of QCoDeS examples of how to use QDAC-II" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../examples/QDevil/QDAC2/AWG.html">QDAC-II arbitrary-waveform generator</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../examples/QDevil/QDAC2/Chaining.html">QDAC-II trigger chaining</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../examples/QDevil/QDAC2/DC_Constant.html">QDAC-II constant voltage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../examples/QDevil/QDAC2/Debugging.html">QDAC-II debugging</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../examples/QDevil/QDAC2/GateLeakage.html">Gate Leakage Test</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../examples/QDevil/QDAC2/GateLeakageMultipleQDACs.html">Gate Leakage using multiple QDAC-IIs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../examples/QDevil/QDAC2/List.html">QDAC-II voltage lists</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../examples/QDevil/QDAC2/MultiGenerator.html">QDAC-II multiple generators per channel</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../examples/QDevil/QDAC2/PyvisaAwg.html">PyVisa direct use of QDAC-II</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../examples/QDevil/QDAC2/Scan.html">QDAC-II 1D &amp; 2D scan</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../examples/QDevil/QDAC2/Scan2DDiode.html">QDAC-II 2D diode scan</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../examples/QDevil/QDAC2/Sine.html">QDAC-II sine waves</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../examples/QDevil/QDAC2/Square.html">QDAC-II square waves</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../examples/QDevil/QDAC2/Sweep.html">QDAC-II voltage sweep</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../examples/QDevil/QDAC2/SyncMultipleQDACs.html">Synchronise multiple QDAC-IIs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../examples/QDevil/QDAC2/Triangle.html">QDAC-II triangle waves</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../examples/QDevil/QDAC2/VirtualGates.html">QDAC-II virtual gates</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../examples/QDevil/QDAC2/do2dScan.html">QDAC-II 2D diode scan</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../examples/QDevil/QSwitch/index.html">QCoDeS examples of how to use QSwitch</a><input aria-label="Toggle navigation of QCoDeS examples of how to use QSwitch" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../examples/QDevil/QSwitch/Debugging.html">QSwitch debugging</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../examples/QDevil/QSwitch/Usage.html">QSwitch usage</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/HP/HP8594E.html">QCoDeS Example with HP8594E</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Cryomagnetics/LM_500.html">Example for Cyromagnetics Model LM-500 Helium Level meter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Cryomagnetics/LM_500.html#Import-qcodes_contrib_drivers-LM_500-driver">Import qcodes_contrib_drivers LM_500 driver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Cryomagnetics/LM_500.html#Connect-to-the-instrument---this-case-GPIB">Connect to the instrument - this case GPIB</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Cryomagnetics/Model_4G.html">Example for Cyromagnetics Model 4G magnet power supply</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Cryomagnetics/Model_4G.html#Import-qcodes_contrib_drivers-Model_4G-driver">Import qcodes_contrib_drivers Model_4G driver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/OxfordInstruments/ITC_503.html">Example for Oxford Instruments Intelligent Temperature Controller Model 503</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/OxfordInstruments/ITC_503.html#Import-qcodes_contrib_drivers-ITC503-driver">Import qcodes_contrib_drivers ITC503 driver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/OxfordInstruments/ITC_503.html#Connect-to-the-instrument---this-case-GPIB">Connect to the instrument - this case GPIB</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/Santec/Santec_TSL.html">Santec TSL-570 Tunable Semiconductor Laser</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current has-children"><a class="reference internal" href="qcodes_contrib_drivers.drivers.html">qcodes_contrib_drivers.drivers package</a><input aria-label="Toggle navigation of qcodes_contrib_drivers.drivers package" checked="" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Advantech.html">qcodes_contrib_drivers.drivers.Advantech package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Agilent.html">qcodes_contrib_drivers.drivers.Agilent package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.AimTTi.html">qcodes_contrib_drivers.drivers.AimTTi package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Ametek.html">qcodes_contrib_drivers.drivers.Ametek package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Andor.html">qcodes_contrib_drivers.drivers.Andor package</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Attocube.html">qcodes_contrib_drivers.drivers.Attocube package</a><input aria-label="Toggle navigation of qcodes_contrib_drivers.drivers.Attocube package" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Attocube.ANC350Lib.html">qcodes_contrib_drivers.drivers.Attocube.ANC350Lib package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Aviosys.html">qcodes_contrib_drivers.drivers.Aviosys package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Bilt.html">qcodes_contrib_drivers.drivers.Bilt package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.BlueFors.html">qcodes_contrib_drivers.drivers.BlueFors package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.CopperMountain.html">qcodes_contrib_drivers.drivers.CopperMountain package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Cryocon.html">qcodes_contrib_drivers.drivers.Cryocon package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Cryogenic.html">qcodes_contrib_drivers.drivers.Cryogenic package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.DaylightSolutions.html">qcodes_contrib_drivers.drivers.DaylightSolutions package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.ERAInstruments.html">qcodes_contrib_drivers.drivers.ERAInstruments package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.GeneralMicrowave.html">qcodes_contrib_drivers.drivers.GeneralMicrowave package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Gentec.html">qcodes_contrib_drivers.drivers.Gentec package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Holzworth.html">qcodes_contrib_drivers.drivers.Holzworth package</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Horiba.html">qcodes_contrib_drivers.drivers.Horiba package</a><input aria-label="Toggle navigation of qcodes_contrib_drivers.drivers.Horiba package" class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Horiba.private.html">qcodes_contrib_drivers.drivers.Horiba.private package</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.html">qcodes_contrib_drivers.drivers.Keysight package</a><input aria-label="Toggle navigation of qcodes_contrib_drivers.drivers.Keysight package" class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Keysight.SD_common.html">qcodes_contrib_drivers.drivers.Keysight.SD_common package</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Lakeshore.html">qcodes_contrib_drivers.drivers.Lakeshore package</a><input aria-label="Toggle navigation of qcodes_contrib_drivers.drivers.Lakeshore package" class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Lakeshore.modules.html">qcodes_contrib_drivers.drivers.Lakeshore.modules package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.LighthousePhotonics.html">qcodes_contrib_drivers.drivers.LighthousePhotonics package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.M2.html">qcodes_contrib_drivers.drivers.M2 package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Minicircuits.html">qcodes_contrib_drivers.drivers.Minicircuits package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.MontanaInstruments.html">qcodes_contrib_drivers.drivers.MontanaInstruments package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.NanoVNA.html">qcodes_contrib_drivers.drivers.NanoVNA package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.NationalInstruments.html">qcodes_contrib_drivers.drivers.NationalInstruments package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Newport.html">qcodes_contrib_drivers.drivers.Newport package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.OxfordInstruments.html">qcodes_contrib_drivers.drivers.OxfordInstruments package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.QDevil.html">qcodes_contrib_drivers.drivers.QDevil package</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="qcodes_contrib_drivers.drivers.QphoX.html">qcodes_contrib_drivers.drivers.QphoX package</a><input aria-label="Toggle navigation of qcodes_contrib_drivers.drivers.QphoX package" class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.QphoX.CryoSwitchController.html">qcodes_contrib_drivers.drivers.QphoX.CryoSwitchController package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.QuTech.html">qcodes_contrib_drivers.drivers.QuTech package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.QuantumDesign.html">qcodes_contrib_drivers.drivers.QuantumDesign package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Rigol.html">qcodes_contrib_drivers.drivers.Rigol package</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="qcodes_contrib_drivers.drivers.RohdeSchwarz.html">qcodes_contrib_drivers.drivers.RohdeSchwarz package</a><input aria-label="Toggle navigation of qcodes_contrib_drivers.drivers.RohdeSchwarz package" class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" role="switch" type="checkbox"/><label for="toctree-checkbox-12"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.RohdeSchwarz.private.html">qcodes_contrib_drivers.drivers.RohdeSchwarz.private package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.SPECS.html">qcodes_contrib_drivers.drivers.SPECS package</a></li>
+<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">qcodes_contrib_drivers.drivers.Santec package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Shamrock.html">qcodes_contrib_drivers.drivers.Shamrock package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Siglent.html">qcodes_contrib_drivers.drivers.Siglent package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.SignalCore.html">qcodes_contrib_drivers.drivers.SignalCore package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.SingleQuantum.html">qcodes_contrib_drivers.drivers.SingleQuantum package</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Spectrum.html">qcodes_contrib_drivers.drivers.Spectrum package</a><input aria-label="Toggle navigation of qcodes_contrib_drivers.drivers.Spectrum package" class="toctree-checkbox" id="toctree-checkbox-13" name="toctree-checkbox-13" role="switch" type="checkbox"/><label for="toctree-checkbox-13"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Spectrum.py_header.html">qcodes_contrib_drivers.drivers.Spectrum.py_header package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Standa.html">qcodes_contrib_drivers.drivers.Standa package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.StanfordResearchSystems.html">qcodes_contrib_drivers.drivers.StanfordResearchSystems package</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="qcodes_contrib_drivers.drivers.SwabianInstruments.html">qcodes_contrib_drivers.drivers.SwabianInstruments package</a><input aria-label="Toggle navigation of qcodes_contrib_drivers.drivers.SwabianInstruments package" class="toctree-checkbox" id="toctree-checkbox-14" name="toctree-checkbox-14" role="switch" type="checkbox"/><label for="toctree-checkbox-14"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.SwabianInstruments.private.html">qcodes_contrib_drivers.drivers.SwabianInstruments.private package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Tektronix.html">qcodes_contrib_drivers.drivers.Tektronix package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Thermotek.html">qcodes_contrib_drivers.drivers.Thermotek package</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Thorlabs.html">qcodes_contrib_drivers.drivers.Thorlabs package</a><input aria-label="Toggle navigation of qcodes_contrib_drivers.drivers.Thorlabs package" class="toctree-checkbox" id="toctree-checkbox-15" name="toctree-checkbox-15" role="switch" type="checkbox"/><label for="toctree-checkbox-15"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Thorlabs.private.html">qcodes_contrib_drivers.drivers.Thorlabs.private package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.TinySA.html">qcodes_contrib_drivers.drivers.TinySA package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Valon.html">qcodes_contrib_drivers.drivers.Valon package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Vaunix.html">qcodes_contrib_drivers.drivers.Vaunix package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.Windfreak.html">qcodes_contrib_drivers.drivers.Windfreak package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.ZurichInstruments.html">qcodes_contrib_drivers.drivers.ZurichInstruments package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qcodes_contrib_drivers.drivers.physik_instrumente.html">qcodes_contrib_drivers.drivers.physik_instrumente package</a></li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="../../_sources/api/generated/qcodes_contrib_drivers.drivers.Santec.rst.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="qcodes-contrib-drivers-drivers-santec-package">
+<h1>qcodes_contrib_drivers.drivers.Santec package<a class="headerlink" href="#qcodes-contrib-drivers-drivers-santec-package" title="Link to this heading">¶</a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">¶</a></h2>
+</section>
+<section id="module-qcodes_contrib_drivers.drivers.Santec.Santec_TSL">
+<span id="qcodes-contrib-drivers-drivers-santec-santec-tsl-module"></span><h2>qcodes_contrib_drivers.drivers.Santec.Santec_TSL module<a class="headerlink" href="#module-qcodes_contrib_drivers.drivers.Santec.Santec_TSL" title="Link to this heading">¶</a></h2>
+<p>QCoDeS driver for Santec TSL tunable semiconductor lasers.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">qcodes_contrib_drivers.drivers.Santec.Santec_TSL.</span></span><span class="sig-name descname"><span class="pre">SantecTSL</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Santec/Santec_TSL.html#SantecTSL"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://microsoft.github.io/Qcodes/api/instrument/index.html#qcodes.instrument.VisaInstrument" title="(in QCoDeS v0.57.0.dev89+main.g40837cf05)"><code class="xref py py-class docutils literal notranslate"><span class="pre">VisaInstrument</span></code></a></p>
+<p>QCoDeS driver for the Santec TSL tunable semiconductor laser family.</p>
+<p>The driver automatically detects the model from the instrument’s IDN response,
+applies appropriate wavelength limits, and sets the instrument to SCPI command mode
+during initialization.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> – Instrument name</p></li>
+<li><p><strong>address</strong> – VISA resource address</p></li>
+<li><p><strong>**kwargs</strong> – Additional arguments passed to VisaInstrument</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Supported models:</dt><dd><ul class="simple">
+<li><p>TSL-570</p></li>
+<li><p>TSL-580</p></li>
+</ul>
+</dd>
+<dt>Supported product codes from TSL-570 datasheet:</dt><dd><ul class="simple">
+<li><p>260360: 1260-1360 nm (O-band)</p></li>
+<li><p>240380: 1240-1380 nm (Extended O-band)</p></li>
+<li><p>355485: 1355-1485 nm (C-band standard)</p></li>
+<li><p>355505: 1355-1505 nm (C-band extended)</p></li>
+<li><p>500630: 1500-1630 nm (L-band standard)</p></li>
+<li><p>480640: 1480-1640 nm (Extended C/L-band)</p></li>
+<li><p>560680: 1560-1680 nm (L-band extended)</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The instrument is automatically set to SCPI command mode during initialization.
+SCPI commands follow the Standard Commands for Programmable Instruments consortium standards.</p>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.disable_fine_tuning">
+<span class="sig-name descname"><span class="pre">disable_fine_tuning</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Santec/Santec_TSL.html#SantecTSL.disable_fine_tuning"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.disable_fine_tuning" title="Link to this definition">¶</a></dt>
+<dd><p>Terminate fine-tuning operation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.reboot">
+<span class="sig-name descname"><span class="pre">reboot</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Santec/Santec_TSL.html#SantecTSL.reboot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.reboot" title="Link to this definition">¶</a></dt>
+<dd><p>Reboot the device.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Santec/Santec_TSL.html#SantecTSL.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.reset" title="Link to this definition">¶</a></dt>
+<dd><p>Reset to factory defaults.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.shutdown">
+<span class="sig-name descname"><span class="pre">shutdown</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Santec/Santec_TSL.html#SantecTSL.shutdown"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.shutdown" title="Link to this definition">¶</a></dt>
+<dd><p>Shutdown the device.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.software_trigger">
+<span class="sig-name descname"><span class="pre">software_trigger</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Santec/Santec_TSL.html#SantecTSL.software_trigger"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.software_trigger" title="Link to this definition">¶</a></dt>
+<dd><p>Execute from trigger standby.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.sweep_repeat">
+<span class="sig-name descname"><span class="pre">sweep_repeat</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Santec/Santec_TSL.html#SantecTSL.sweep_repeat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.sweep_repeat" title="Link to this definition">¶</a></dt>
+<dd><p>Start repeat sweep.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.sweep_single">
+<span class="sig-name descname"><span class="pre">sweep_single</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Santec/Santec_TSL.html#SantecTSL.sweep_single"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.sweep_single" title="Link to this definition">¶</a></dt>
+<dd><p>Start single sweep.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.sweep_stop">
+<span class="sig-name descname"><span class="pre">sweep_stop</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../_modules/qcodes_contrib_drivers/drivers/Santec/Santec_TSL.html#SantecTSL.sweep_stop"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.sweep_stop" title="Link to this definition">¶</a></dt>
+<dd><p>Stop current sweep.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.coherence_control">
+<span class="sig-name descname"><span class="pre">coherence_control</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">name=&quot;coherence_control&quot;,</span> <span class="pre">label=&quot;Coherence</span> <span class="pre">control&quot;,</span> <span class="pre">get_cmd=&quot;:COHCtrl?&quot;,</span> <span class="pre">set_cmd=&quot;:COHCtrl</span> <span class="pre">{}&quot;,</span> <span class="pre">val_mapping=create_on_off_val_mapping(on_val=1,</span> <span class="pre">off_val=0),</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.coherence_control" title="Link to this definition">¶</a></dt>
+<dd><p>Coherence control enabled</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.command_set">
+<span class="sig-name descname"><span class="pre">command_set</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">name=&quot;command_set&quot;,</span> <span class="pre">label=&quot;Command</span> <span class="pre">set&quot;,</span> <span class="pre">get_cmd=&quot;:SYSTem:COMMunicate:CODe?&quot;,</span> <span class="pre">get_parser=int,</span> <span class="pre">val_mapping={</span> <span class="pre">&quot;LEGACY&quot;:</span> <span class="pre">0,</span> <span class="pre">&quot;SCPI&quot;:</span> <span class="pre">1,</span> <span class="pre">},</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.command_set" title="Link to this definition">¶</a></dt>
+<dd><p>Instrument command set (read-only; always SCPI in this driver)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.default_terminator">
+<span class="sig-name descname"><span class="pre">default_terminator</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\r'</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.default_terminator" title="Link to this definition">¶</a></dt>
+<dd><p>The default terminator to use if the terminator is not specified when creating the instrument.
+None means use the default terminator from PyVisa.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.display_brightness">
+<span class="sig-name descname"><span class="pre">display_brightness</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">name=&quot;display_brightness&quot;,</span> <span class="pre">label=&quot;Display</span> <span class="pre">brightness&quot;,</span> <span class="pre">unit=&quot;%&quot;,</span> <span class="pre">get_cmd=&quot;:DISPlay:BRIGhtness?&quot;,</span> <span class="pre">set_cmd=&quot;:DISPlay:BRIGhtness</span> <span class="pre">{}&quot;,</span> <span class="pre">get_parser=int,</span> <span class="pre">set_parser=int,</span> <span class="pre">vals=vals.Ints(10,</span> <span class="pre">100),</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.display_brightness" title="Link to this definition">¶</a></dt>
+<dd><p>Display brightness (0-100%)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.ethernet_gateway">
+<span class="sig-name descname"><span class="pre">ethernet_gateway</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">name=&quot;ethernet_gateway&quot;,</span> <span class="pre">label=&quot;Ethernet</span> <span class="pre">default</span> <span class="pre">gateway&quot;,</span> <span class="pre">get_cmd=&quot;:SYSTem:COMMunicate:ETHernet:DGATeway?&quot;,</span> <span class="pre">set_cmd=&quot;:SYSTem:COMMunicate:ETHernet:DGATeway</span> <span class="pre">{}&quot;,</span> <span class="pre">get_parser=str,</span> <span class="pre">set_parser=str,</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.ethernet_gateway" title="Link to this definition">¶</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">***.***.***.***</span></code>)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Ethernet default gateway (format</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.ethernet_ip_address">
+<span class="sig-name descname"><span class="pre">ethernet_ip_address</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">name=&quot;ethernet_ip_address&quot;,</span> <span class="pre">label=&quot;Ethernet</span> <span class="pre">IP</span> <span class="pre">address&quot;,</span> <span class="pre">get_cmd=&quot;:SYSTem:COMMunicate:ETHernet:IPADdress?&quot;,</span> <span class="pre">set_cmd=&quot;:SYSTem:COMMunicate:ETHernet:IPADdress</span> <span class="pre">{}&quot;,</span> <span class="pre">get_parser=str,</span> <span class="pre">set_parser=str,</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.ethernet_ip_address" title="Link to this definition">¶</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">***.***.***.***</span></code>)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Ethernet IP address (format</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.ethernet_mac_address">
+<span class="sig-name descname"><span class="pre">ethernet_mac_address</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">name=&quot;ethernet_mac_address&quot;,</span> <span class="pre">label=&quot;Ethernet</span> <span class="pre">MAC</span> <span class="pre">address&quot;,</span> <span class="pre">get_cmd=&quot;:SYSTem:COMMunicate:ETHernet:MACaddress?&quot;,</span> <span class="pre">get_parser=str,</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.ethernet_mac_address" title="Link to this definition">¶</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">**-**-**-**-**-**</span></code>)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Ethernet MAC address (read-only, format</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.ethernet_port">
+<span class="sig-name descname"><span class="pre">ethernet_port</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">name=&quot;ethernet_port&quot;,</span> <span class="pre">label=&quot;Ethernet</span> <span class="pre">port</span> <span class="pre">number&quot;,</span> <span class="pre">get_cmd=&quot;:SYSTem:COMMunicate:ETHernet:PORT?&quot;,</span> <span class="pre">set_cmd=&quot;:SYSTem:COMMunicate:ETHernet:PORT</span> <span class="pre">{}&quot;,</span> <span class="pre">get_parser=int,</span> <span class="pre">set_parser=int,</span> <span class="pre">vals=vals.Ints(0,</span> <span class="pre">65535),</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.ethernet_port" title="Link to this definition">¶</a></dt>
+<dd><p>Ethernet port number (0-65535)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.ethernet_subnet_mask">
+<span class="sig-name descname"><span class="pre">ethernet_subnet_mask</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">name=&quot;ethernet_subnet_mask&quot;,</span> <span class="pre">label=&quot;Ethernet</span> <span class="pre">subnet</span> <span class="pre">mask&quot;,</span> <span class="pre">get_cmd=&quot;:SYSTem:COMMunicate:ETHernet:SMASk?&quot;,</span> <span class="pre">set_cmd=&quot;:SYSTem:COMMunicate:ETHernet:SMASk</span> <span class="pre">{}&quot;,</span> <span class="pre">get_parser=str,</span> <span class="pre">set_parser=str,</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.ethernet_subnet_mask" title="Link to this definition">¶</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">***.***.***.***</span></code>)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Ethernet subnet mask (format</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.frequency">
+<span class="sig-name descname"><span class="pre">frequency</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">name=&quot;frequency&quot;,</span> <span class="pre">label=&quot;Optical</span> <span class="pre">frequency&quot;,</span> <span class="pre">unit=&quot;Hz&quot;,</span> <span class="pre">get_cmd=&quot;:WAVelength:FREQuency?&quot;,</span> <span class="pre">set_cmd=&quot;:WAVelength:FREQuency</span> <span class="pre">{:.0f}&quot;,</span> <span class="pre">get_parser=float,</span> <span class="pre">set_parser=float,</span> <span class="pre">vals=vals.Numbers(self.frequency_minimum(),</span> <span class="pre">self.frequency_maximum()),</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.frequency" title="Link to this definition">¶</a></dt>
+<dd><p>Output optical frequency</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.frequency_maximum">
+<span class="sig-name descname"><span class="pre">frequency_maximum</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">name=&quot;frequency_maximum&quot;,</span> <span class="pre">label=&quot;Maximum</span> <span class="pre">frequency&quot;,</span> <span class="pre">unit=&quot;Hz&quot;,</span> <span class="pre">get_cmd=&quot;:WAVelength:FREQuency?</span> <span class="pre">MAXimum&quot;,</span> <span class="pre">get_parser=float,</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.frequency_maximum" title="Link to this definition">¶</a></dt>
+<dd><p>Maximum frequency limit for current model (read-only)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.frequency_minimum">
+<span class="sig-name descname"><span class="pre">frequency_minimum</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">name=&quot;frequency_minimum&quot;,</span> <span class="pre">label=&quot;Minimum</span> <span class="pre">frequency&quot;,</span> <span class="pre">unit=&quot;Hz&quot;,</span> <span class="pre">get_cmd=&quot;:WAVelength:FREQuency?</span> <span class="pre">MINimum&quot;,</span> <span class="pre">get_parser=float,</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.frequency_minimum" title="Link to this definition">¶</a></dt>
+<dd><p>Minimum frequency limit for current model (read-only)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.gpib_address">
+<span class="sig-name descname"><span class="pre">gpib_address</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">name=&quot;gpib_address&quot;,</span> <span class="pre">label=&quot;GPIB</span> <span class="pre">address&quot;,</span> <span class="pre">get_cmd=&quot;:SYSTem:COMMunicate:GPIB:ADDRess?&quot;,</span> <span class="pre">set_cmd=&quot;:SYSTem:COMMunicate:GPIB:ADDRess</span> <span class="pre">{}&quot;,</span> <span class="pre">get_parser=int,</span> <span class="pre">set_parser=int,</span> <span class="pre">vals=vals.Ints(1,</span> <span class="pre">30),</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.gpib_address" title="Link to this definition">¶</a></dt>
+<dd><p>GPIB address (1-30)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.gpib_delimiter">
+<span class="sig-name descname"><span class="pre">gpib_delimiter</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">name=&quot;gpib_delimiter&quot;,</span> <span class="pre">label=&quot;GPIB</span> <span class="pre">command</span> <span class="pre">delimiter&quot;,</span> <span class="pre">get_cmd=&quot;:SYSTem:COMMunicate:GPIB:DELimiter?&quot;,</span> <span class="pre">set_cmd=&quot;:SYSTem:COMMunicate:GPIB:DELimiter</span> <span class="pre">{}&quot;,</span> <span class="pre">get_parser=int,</span> <span class="pre">set_parser=int,</span> <span class="pre">val_mapping={</span> <span class="pre">&quot;CR&quot;:</span> <span class="pre">0,</span> <span class="pre">&quot;LF&quot;:</span> <span class="pre">1,</span> <span class="pre">&quot;CR+LF&quot;:</span> <span class="pre">2,</span> <span class="pre">&quot;NONE&quot;:</span> <span class="pre">3,</span> <span class="pre">},</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.gpib_delimiter" title="Link to this definition">¶</a></dt>
+<dd><p>CR (0), LF (1), CR+LF (2), NONE (3)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>GPIB command delimiter</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.modulation_source">
+<span class="sig-name descname"><span class="pre">modulation_source</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">name=&quot;modulation_source&quot;,</span> <span class="pre">label=&quot;Amplitude</span> <span class="pre">modulation</span> <span class="pre">source&quot;,</span> <span class="pre">get_cmd=&quot;:AM:SOURce?&quot;,</span> <span class="pre">set_cmd=&quot;:AM:SOURce</span> <span class="pre">{}&quot;,</span> <span class="pre">get_parser=int,</span> <span class="pre">set_parser=int,</span> <span class="pre">val_mapping={</span> <span class="pre">&quot;COHERENCE_CONTROL&quot;:</span> <span class="pre">0,</span> <span class="pre">&quot;INTENSITY_MODULATION&quot;:</span> <span class="pre">1,</span> <span class="pre">&quot;FREQUENCY_MODULATION&quot;:</span> <span class="pre">3,</span> <span class="pre">},</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.modulation_source" title="Link to this definition">¶</a></dt>
+<dd><p>Modulation source (COHERENCE_CONTROL, INTENSITY_MODULATION, or FREQUENCY_MODULATION)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.modulation_state">
+<span class="sig-name descname"><span class="pre">modulation_state</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">name=&quot;modulation_state&quot;,</span> <span class="pre">label=&quot;Amplitude</span> <span class="pre">modulation</span> <span class="pre">state&quot;,</span> <span class="pre">get_cmd=&quot;:AM:STATe?&quot;,</span> <span class="pre">set_cmd=&quot;:AM:STATe</span> <span class="pre">{}&quot;,</span> <span class="pre">val_mapping=create_on_off_val_mapping(on_val=1,</span> <span class="pre">off_val=0),</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.modulation_state" title="Link to this definition">¶</a></dt>
+<dd><p>Amplitude modulation state</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.output">
+<span class="sig-name descname"><span class="pre">output</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">name=&quot;output&quot;,</span> <span class="pre">label=&quot;Output</span> <span class="pre">state&quot;,</span> <span class="pre">get_cmd=&quot;:POWer:STATe?&quot;,</span> <span class="pre">set_cmd=&quot;:POWer:STATe</span> <span class="pre">{}&quot;,</span> <span class="pre">val_mapping=create_on_off_val_mapping(on_val=1,</span> <span class="pre">off_val=0),</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.output" title="Link to this definition">¶</a></dt>
+<dd><p>Optical output enabled</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.power">
+<span class="sig-name descname"><span class="pre">power</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">name=&quot;power&quot;,</span> <span class="pre">label=&quot;Power&quot;,</span> <span class="pre">unit=&quot;mW&quot;,</span> <span class="pre">get_cmd=&quot;:POW?&quot;,</span> <span class="pre">set_cmd=&quot;:POW</span> <span class="pre">{:.10e}&quot;,</span> <span class="pre">get_parser=float,</span> <span class="pre">set_parser=float,</span> <span class="pre">vals=vals.Numbers(self.power_minimum(),</span> <span class="pre">self.power_maximum())</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.power" title="Link to this definition">¶</a></dt>
+<dd><p>Output power level (mW)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.power_actual">
+<span class="sig-name descname"><span class="pre">power_actual</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">name=&quot;power_actual&quot;,</span> <span class="pre">label=&quot;Actual</span> <span class="pre">optical</span> <span class="pre">power&quot;,</span> <span class="pre">unit=&quot;mW&quot;,</span> <span class="pre">get_cmd=&quot;:POWer:ACTual?&quot;,</span> <span class="pre">get_parser=float,</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.power_actual" title="Link to this definition">¶</a></dt>
+<dd><p>Monitored optical power level (mW)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.power_attenuation">
+<span class="sig-name descname"><span class="pre">power_attenuation</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">name=&quot;power_attenuation&quot;,</span> <span class="pre">label=&quot;Attenuator</span> <span class="pre">value&quot;,</span> <span class="pre">unit=&quot;dB&quot;,</span> <span class="pre">get_cmd=&quot;:POWer:ATTenuation?&quot;,</span> <span class="pre">set_cmd=&quot;:POWer:ATTenuation</span> <span class="pre">{:.2f}&quot;,</span> <span class="pre">get_parser=float,</span> <span class="pre">set_parser=float,</span> <span class="pre">vals=vals.Numbers(0,</span> <span class="pre">30),</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.power_attenuation" title="Link to this definition">¶</a></dt>
+<dd><p>Attenuator value (dB)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.power_auto">
+<span class="sig-name descname"><span class="pre">power_auto</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">name=&quot;power_auto&quot;,</span> <span class="pre">label=&quot;Automatic</span> <span class="pre">power</span> <span class="pre">control&quot;,</span> <span class="pre">get_cmd=&quot;:POWer:ATTenuation:AUTo?&quot;,</span> <span class="pre">set_cmd=&quot;:POWer:ATTenuation:AUTo</span> <span class="pre">{}&quot;,</span> <span class="pre">val_mapping=create_on_off_val_mapping(on_val=1,</span> <span class="pre">off_val=0),</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.power_auto" title="Link to this definition">¶</a></dt>
+<dd><p>Automatic power control enabled</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.power_maximum">
+<span class="sig-name descname"><span class="pre">power_maximum</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">name=&quot;power_maximum&quot;,</span> <span class="pre">label=&quot;Maximum</span> <span class="pre">power&quot;,</span> <span class="pre">unit=&quot;mW&quot;,</span> <span class="pre">get_cmd=&quot;:POWer?</span> <span class="pre">MAXimum&quot;,</span> <span class="pre">get_parser=float,</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.power_maximum" title="Link to this definition">¶</a></dt>
+<dd><p>Maximum power limit for current model (read-only)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.power_minimum">
+<span class="sig-name descname"><span class="pre">power_minimum</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">name=&quot;power_minimum&quot;,</span> <span class="pre">label=&quot;Minimum</span> <span class="pre">power&quot;,</span> <span class="pre">unit=&quot;mW&quot;,</span> <span class="pre">get_cmd=&quot;:POWer?</span> <span class="pre">MINimum&quot;,</span> <span class="pre">get_parser=float,</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.power_minimum" title="Link to this definition">¶</a></dt>
+<dd><p>Minimum power limit for current model (read-only)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.power_unit">
+<span class="sig-name descname"><span class="pre">power_unit</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">name=&quot;power_unit&quot;,</span> <span class="pre">label=&quot;Power</span> <span class="pre">unit&quot;,</span> <span class="pre">get_cmd=&quot;:POWer:UNIT?&quot;,</span> <span class="pre">set_cmd=&quot;:POWer:UNIT</span> <span class="pre">{}&quot;,</span> <span class="pre">val_mapping={</span> <span class="pre">&quot;dBm&quot;:</span> <span class="pre">0,</span> <span class="pre">&quot;mW&quot;:</span> <span class="pre">1,</span> <span class="pre">},</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.power_unit" title="Link to this definition">¶</a></dt>
+<dd><p>Power display unit (dBm or mW)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.readout_data">
+<span class="sig-name descname"><span class="pre">readout_data</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">name=&quot;readout_data&quot;,</span> <span class="pre">label=&quot;Wavelength</span> <span class="pre">logging</span> <span class="pre">data&quot;,</span> <span class="pre">get_cmd=self._get_readout_data,</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.readout_data" title="Link to this definition">¶</a></dt>
+<dd><p>Wavelength logging data (read-only, returns list of wavelengths in meters)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.readout_points">
+<span class="sig-name descname"><span class="pre">readout_points</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">name=&quot;readout_points&quot;,</span> <span class="pre">label=&quot;Logged</span> <span class="pre">data</span> <span class="pre">points&quot;,</span> <span class="pre">get_cmd=&quot;:READout:POINts?&quot;,</span> <span class="pre">get_parser=int,</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.readout_points" title="Link to this definition">¶</a></dt>
+<dd><p>Number of recorded data points</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.readout_power_data">
+<span class="sig-name descname"><span class="pre">readout_power_data</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">name=&quot;readout_power_data&quot;,</span> <span class="pre">label=&quot;Power</span> <span class="pre">logging</span> <span class="pre">data&quot;,</span> <span class="pre">unit=&quot;dBm&quot;,</span> <span class="pre">get_cmd=self._get_readout_power_data,</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.readout_power_data" title="Link to this definition">¶</a></dt>
+<dd><p>Power logging data (read-only, returns list of powers in dBm)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.shutter">
+<span class="sig-name descname"><span class="pre">shutter</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">name=&quot;shutter&quot;,</span> <span class="pre">label=&quot;Shutter&quot;,</span> <span class="pre">get_cmd=&quot;:POWer:SHUTter?&quot;,</span> <span class="pre">set_cmd=&quot;:POWer:SHUTter</span> <span class="pre">{}&quot;,</span> <span class="pre">val_mapping=create_on_off_val_mapping(on_val=1,</span> <span class="pre">off_val=0),</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.shutter" title="Link to this definition">¶</a></dt>
+<dd><p>Internal shutter open</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.sweep_count">
+<span class="sig-name descname"><span class="pre">sweep_count</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">name=&quot;sweep_count&quot;,</span> <span class="pre">label=&quot;Sweep</span> <span class="pre">cycle</span> <span class="pre">count&quot;,</span> <span class="pre">get_cmd=&quot;:WAVelength:SWEep:COUNt?&quot;,</span> <span class="pre">get_parser=int,</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.sweep_count" title="Link to this definition">¶</a></dt>
+<dd><p>Current number of completed sweeps</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.sweep_cycles">
+<span class="sig-name descname"><span class="pre">sweep_cycles</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">name=&quot;sweep_cycles&quot;,</span> <span class="pre">label=&quot;Sweep</span> <span class="pre">cycles&quot;,</span> <span class="pre">get_cmd=&quot;:WAVelength:SWEep:CYCLes?&quot;,</span> <span class="pre">set_cmd=&quot;:WAVelength:SWEep:CYCLes</span> <span class="pre">{:d}&quot;,</span> <span class="pre">get_parser=int,</span> <span class="pre">set_parser=int,</span> <span class="pre">vals=vals.Ints(0,</span> <span class="pre">999),</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.sweep_cycles" title="Link to this definition">¶</a></dt>
+<dd><p>Number of sweep repetitions</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.sweep_delay">
+<span class="sig-name descname"><span class="pre">sweep_delay</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">name=&quot;sweep_delay&quot;,</span> <span class="pre">label=&quot;Sweep</span> <span class="pre">delay&quot;,</span> <span class="pre">unit=&quot;s&quot;,</span> <span class="pre">get_cmd=&quot;:WAVelength:SWEep:DELay?&quot;,</span> <span class="pre">set_cmd=&quot;:WAVelength:SWEep:DELay</span> <span class="pre">{:.1f}&quot;,</span> <span class="pre">get_parser=float,</span> <span class="pre">set_parser=float,</span> <span class="pre">vals=vals.Numbers(0,</span> <span class="pre">999.9),</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.sweep_delay" title="Link to this definition">¶</a></dt>
+<dd><p>Wait time between sweeps (seconds)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.sweep_dwell">
+<span class="sig-name descname"><span class="pre">sweep_dwell</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">name=&quot;sweep_dwell&quot;,</span> <span class="pre">label=&quot;Dwell</span> <span class="pre">time&quot;,</span> <span class="pre">unit=&quot;s&quot;,</span> <span class="pre">get_cmd=&quot;:WAVelength:SWEep:DWELl?&quot;,</span> <span class="pre">set_cmd=&quot;:WAVelength:SWEep:DWELl</span> <span class="pre">{:.1f}&quot;,</span> <span class="pre">get_parser=float,</span> <span class="pre">set_parser=float,</span> <span class="pre">vals=vals.Numbers(0,</span> <span class="pre">999.9),</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.sweep_dwell" title="Link to this definition">¶</a></dt>
+<dd><p>Dwell time between steps</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.sweep_mode">
+<span class="sig-name descname"><span class="pre">sweep_mode</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">name=&quot;sweep_mode&quot;,</span> <span class="pre">label=&quot;Sweep</span> <span class="pre">mode&quot;,</span> <span class="pre">get_cmd=&quot;:WAVelength:SWEep:MODe?&quot;,</span> <span class="pre">set_cmd=&quot;:WAVelength:SWEep:MODe</span> <span class="pre">{}&quot;,</span> <span class="pre">get_parser=int,</span> <span class="pre">set_parser=int,</span> <span class="pre">vals=vals.Ints(0,</span> <span class="pre">3),</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.sweep_mode" title="Link to this definition">¶</a></dt>
+<dd><p>Sweep mode (0=step/one-way, 1=continuous/one-way, 2=step/two-way, 3=continuous/two-way)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.sweep_range_maximum_frequency">
+<span class="sig-name descname"><span class="pre">sweep_range_maximum_frequency</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">name=&quot;sweep_range_maximum_frequency&quot;,</span> <span class="pre">label=&quot;Sweep</span> <span class="pre">frequency</span> <span class="pre">range</span> <span class="pre">maximum&quot;,</span> <span class="pre">unit=&quot;Hz&quot;,</span> <span class="pre">get_cmd=&quot;:FREQuency:SWEep:RANGe:MAXimum?&quot;,</span> <span class="pre">get_parser=float,</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.sweep_range_maximum_frequency" title="Link to this definition">¶</a></dt>
+<dd><p>Maximum frequency in configurable sweep range at current sweep speed</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.sweep_range_maximum_wavelength">
+<span class="sig-name descname"><span class="pre">sweep_range_maximum_wavelength</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">name=&quot;sweep_range_maximum_wavelength&quot;,</span> <span class="pre">label=&quot;Sweep</span> <span class="pre">wavelength</span> <span class="pre">range</span> <span class="pre">maximum&quot;,</span> <span class="pre">unit=&quot;m&quot;,</span> <span class="pre">get_cmd=&quot;:WAV:SWE:RANG:MAX?&quot;,</span> <span class="pre">get_parser=float,</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.sweep_range_maximum_wavelength" title="Link to this definition">¶</a></dt>
+<dd><p>Maximum wavelength in configurable sweep range at current sweep speed</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.sweep_range_minimum_frequency">
+<span class="sig-name descname"><span class="pre">sweep_range_minimum_frequency</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">name=&quot;sweep_range_minimum_frequency&quot;,</span> <span class="pre">label=&quot;Sweep</span> <span class="pre">frequency</span> <span class="pre">range</span> <span class="pre">minimum&quot;,</span> <span class="pre">unit=&quot;Hz&quot;,</span> <span class="pre">get_cmd=&quot;:FREQuency:SWEep:RANGe:MINimum?&quot;,</span> <span class="pre">get_parser=float,</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.sweep_range_minimum_frequency" title="Link to this definition">¶</a></dt>
+<dd><p>Minimum frequency in configurable sweep range at current sweep speed</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.sweep_range_minimum_wavelength">
+<span class="sig-name descname"><span class="pre">sweep_range_minimum_wavelength</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">name=&quot;sweep_range_minimum_wavelength&quot;,</span> <span class="pre">label=&quot;Sweep</span> <span class="pre">wavelength</span> <span class="pre">range</span> <span class="pre">minimum&quot;,</span> <span class="pre">unit=&quot;m&quot;,</span> <span class="pre">get_cmd=&quot;:WAV:SWE:RANG:MIN?&quot;,</span> <span class="pre">get_parser=float,</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.sweep_range_minimum_wavelength" title="Link to this definition">¶</a></dt>
+<dd><p>Minimum wavelength in configurable sweep range at current sweep speed</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.sweep_speed">
+<span class="sig-name descname"><span class="pre">sweep_speed</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">name=&quot;sweep_speed&quot;,</span> <span class="pre">label=&quot;Sweep</span> <span class="pre">speed&quot;,</span> <span class="pre">unit=&quot;nm/s&quot;,</span> <span class="pre">get_cmd=&quot;:WAVelength:SWEep:SPEed?&quot;,</span> <span class="pre">set_cmd=&quot;:WAVelength:SWEep:SPEed</span> <span class="pre">{:.4f}&quot;,</span> <span class="pre">get_parser=float,</span> <span class="pre">set_parser=float,</span> <span class="pre">vals=vals.Enum(1,</span> <span class="pre">2,</span> <span class="pre">5,</span> <span class="pre">10,</span> <span class="pre">20,</span> <span class="pre">50,</span> <span class="pre">100,</span> <span class="pre">200),</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.sweep_speed" title="Link to this definition">¶</a></dt>
+<dd><p>Sweep speed</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.sweep_start_frequency">
+<span class="sig-name descname"><span class="pre">sweep_start_frequency</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">name=&quot;sweep_start_frequency&quot;,</span> <span class="pre">label=&quot;Sweep</span> <span class="pre">start</span> <span class="pre">frequency&quot;,</span> <span class="pre">unit=&quot;Hz&quot;,</span> <span class="pre">get_cmd=&quot;:WAVelength:FREQuency:SWEep:STARt?&quot;,</span> <span class="pre">set_cmd=&quot;:WAVelength:FREQuency:SWEep:STARt</span> <span class="pre">{:.0f}&quot;,</span> <span class="pre">get_parser=float,</span> <span class="pre">set_parser=float,</span> <span class="pre">vals=vals.Numbers(self.sweep_range_minimum_frequency(),</span> <span class="pre">self.sweep_range_maximum_frequency())</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.sweep_start_frequency" title="Link to this definition">¶</a></dt>
+<dd><p>Sweep start frequency</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.sweep_start_wavelength">
+<span class="sig-name descname"><span class="pre">sweep_start_wavelength</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">name=&quot;sweep_start_wavelength&quot;,</span> <span class="pre">label=&quot;Sweep</span> <span class="pre">start</span> <span class="pre">wavelength&quot;,</span> <span class="pre">unit=&quot;m&quot;,</span> <span class="pre">get_cmd=&quot;:WAVelength:SWEep:STARt?&quot;,</span> <span class="pre">set_cmd=&quot;:WAVelength:SWEep:STARt</span> <span class="pre">{:.10e}&quot;,</span> <span class="pre">get_parser=float,</span> <span class="pre">set_parser=float,</span> <span class="pre">vals=vals.Numbers(self.sweep_range_minimum_wavelength(),</span> <span class="pre">self.sweep_range_maximum_wavelength())</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.sweep_start_wavelength" title="Link to this definition">¶</a></dt>
+<dd><p>Sweep start wavelength</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.sweep_state">
+<span class="sig-name descname"><span class="pre">sweep_state</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">name=&quot;sweep_state&quot;,</span> <span class="pre">label=&quot;Sweep</span> <span class="pre">state&quot;,</span> <span class="pre">get_cmd=&quot;:WAVelength:SWEep:STATe?&quot;,</span> <span class="pre">get_parser=int,</span> <span class="pre">val_mapping={</span> <span class="pre">&quot;STOPPED&quot;:</span> <span class="pre">0,</span> <span class="pre">&quot;RUNNING&quot;:</span> <span class="pre">1,</span> <span class="pre">&quot;TRIGGER_STANDBY&quot;:</span> <span class="pre">3,</span> <span class="pre">&quot;PREPARING&quot;:</span> <span class="pre">4,</span> <span class="pre">},</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.sweep_state" title="Link to this definition">¶</a></dt>
+<dd><p>STOPPED (0), RUNNING (1), TRIGGER_STANDBY (3), PREPARING (4)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Sweep state (read-only)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.sweep_step_frequency">
+<span class="sig-name descname"><span class="pre">sweep_step_frequency</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">name=&quot;sweep_step_frequency&quot;,</span> <span class="pre">label=&quot;Sweep</span> <span class="pre">step</span> <span class="pre">frequency&quot;,</span> <span class="pre">unit=&quot;Hz&quot;,</span> <span class="pre">get_cmd=&quot;:WAVelength:FREQuency:SWEep:STEP?&quot;,</span> <span class="pre">set_cmd=&quot;:WAVelength:FREQuency:SWEep:STEP</span> <span class="pre">{:.0f}&quot;,</span> <span class="pre">get_parser=float,</span> <span class="pre">set_parser=float,</span> <span class="pre">vals=vals.Numbers(20e6,</span> <span class="pre">1e15),</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.sweep_step_frequency" title="Link to this definition">¶</a></dt>
+<dd><p>Frequency sweep step size (20 MHz to span maximum)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.sweep_step_wavelength">
+<span class="sig-name descname"><span class="pre">sweep_step_wavelength</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">name=&quot;sweep_step_wavelength&quot;,</span> <span class="pre">label=&quot;Sweep</span> <span class="pre">step</span> <span class="pre">wavelength&quot;,</span> <span class="pre">unit=&quot;m&quot;,</span> <span class="pre">get_cmd=&quot;:WAVelength:SWEep:STEP?&quot;,</span> <span class="pre">set_cmd=&quot;:WAVelength:SWEep:STEP</span> <span class="pre">{:.10e}&quot;,</span> <span class="pre">get_parser=float,</span> <span class="pre">set_parser=float,</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.sweep_step_wavelength" title="Link to this definition">¶</a></dt>
+<dd><p>Wavelength sweep step size</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.sweep_stop_frequency">
+<span class="sig-name descname"><span class="pre">sweep_stop_frequency</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">name=&quot;sweep_stop_frequency&quot;,</span> <span class="pre">label=&quot;Sweep</span> <span class="pre">stop</span> <span class="pre">frequency&quot;,</span> <span class="pre">unit=&quot;Hz&quot;,</span> <span class="pre">get_cmd=&quot;:WAVelength:FREQuency:SWEep:STOP?&quot;,</span> <span class="pre">set_cmd=&quot;:WAVelength:FREQuency:SWEep:STOP</span> <span class="pre">{:.0f}&quot;,</span> <span class="pre">get_parser=float,</span> <span class="pre">set_parser=float,</span> <span class="pre">vals=vals.Numbers(self.sweep_range_minimum_frequency(),</span> <span class="pre">self.sweep_range_maximum_frequency())</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.sweep_stop_frequency" title="Link to this definition">¶</a></dt>
+<dd><p>Sweep stop frequency</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.sweep_stop_wavelength">
+<span class="sig-name descname"><span class="pre">sweep_stop_wavelength</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">name=&quot;sweep_stop_wavelength&quot;,</span> <span class="pre">label=&quot;Sweep</span> <span class="pre">stop</span> <span class="pre">wavelength&quot;,</span> <span class="pre">unit=&quot;m&quot;,</span> <span class="pre">get_cmd=&quot;:WAVelength:SWEep:STOP?&quot;,</span> <span class="pre">set_cmd=&quot;:WAVelength:SWEep:STOP</span> <span class="pre">{:.10e}&quot;,</span> <span class="pre">get_parser=float,</span> <span class="pre">set_parser=float,</span> <span class="pre">vals=vals.Numbers(self.sweep_range_minimum_wavelength(),</span> <span class="pre">self.sweep_range_maximum_wavelength())</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.sweep_stop_wavelength" title="Link to this definition">¶</a></dt>
+<dd><p>Sweep stop wavelength</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.system_alert">
+<span class="sig-name descname"><span class="pre">system_alert</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">name=&quot;system_alert&quot;,</span> <span class="pre">label=&quot;Alert</span> <span class="pre">information&quot;,</span> <span class="pre">get_cmd=&quot;:SYSTem:ALERt?&quot;,</span> <span class="pre">get_parser=str,</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.system_alert" title="Link to this definition">¶</a></dt>
+<dd><p>Read current alert information (read-only, returns alert number)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.system_code">
+<span class="sig-name descname"><span class="pre">system_code</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">name=&quot;system_code&quot;,</span> <span class="pre">label=&quot;Product</span> <span class="pre">code&quot;,</span> <span class="pre">get_cmd=&quot;:SYSTem:CODe?&quot;,</span> <span class="pre">get_parser=lambda</span> <span class="pre">s:</span> <span class="pre">s.strip(),</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.system_code" title="Link to this definition">¶</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">*-******-*-*-**-**-*</span></code>)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Product code (read-only, format</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.system_error">
+<span class="sig-name descname"><span class="pre">system_error</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">name=&quot;system_error&quot;,</span> <span class="pre">label=&quot;Error</span> <span class="pre">queue&quot;,</span> <span class="pre">get_cmd=&quot;:SYSTem:ERRor?&quot;,</span> <span class="pre">get_parser=lambda</span> <span class="pre">s:</span> <span class="pre">dict(code=int(s.strip().split(&quot;,&quot;)[0]),</span> <span class="pre">message=s.strip().split(&quot;,&quot;)[1].strip('&quot;'))</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.system_error" title="Link to this definition">¶</a></dt>
+<dd><p>Read and clear error from error queue (read-only, returns error number)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.system_lock">
+<span class="sig-name descname"><span class="pre">system_lock</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">name=&quot;system_lock&quot;,</span> <span class="pre">label=&quot;External</span> <span class="pre">interlock</span> <span class="pre">status&quot;,</span> <span class="pre">get_cmd=&quot;:SYSTem:LOCK?&quot;,</span> <span class="pre">get_parser=int,</span> <span class="pre">val_mapping=create_on_off_val_mapping(on_val=1,</span> <span class="pre">off_val=0),</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.system_lock" title="Link to this definition">¶</a></dt>
+<dd><p>off (0=UNLOCKED), on (1=LOCKED)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>External interlock status (read-only)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.system_version">
+<span class="sig-name descname"><span class="pre">system_version</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">name=&quot;system_version&quot;,</span> <span class="pre">label=&quot;Firmware</span> <span class="pre">version&quot;,</span> <span class="pre">get_cmd=&quot;:SYSTem:VERSion?&quot;,</span> <span class="pre">get_parser=lambda</span> <span class="pre">s:</span> <span class="pre">s.strip(),</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.system_version" title="Link to this definition">¶</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">****.****.****</span></code>)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Firmware version (read-only, format</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.trigger_input_external">
+<span class="sig-name descname"><span class="pre">trigger_input_external</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">name=&quot;trigger_input_external&quot;,</span> <span class="pre">label=&quot;External</span> <span class="pre">trigger</span> <span class="pre">input</span> <span class="pre">enabled&quot;,</span> <span class="pre">get_cmd=&quot;:TRIGger:INPut:EXTernal?&quot;,</span> <span class="pre">set_cmd=&quot;:TRIGger:INPut:EXTernal</span> <span class="pre">{}&quot;,</span> <span class="pre">val_mapping=create_on_off_val_mapping(on_val=1,</span> <span class="pre">off_val=0),</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.trigger_input_external" title="Link to this definition">¶</a></dt>
+<dd><p>External trigger input enabled</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.trigger_input_polarity">
+<span class="sig-name descname"><span class="pre">trigger_input_polarity</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">name=&quot;trigger_input_polarity&quot;,</span> <span class="pre">label=&quot;Trigger</span> <span class="pre">input</span> <span class="pre">polarity&quot;,</span> <span class="pre">get_cmd=&quot;:TRIGger:INPut:ACTive?&quot;,</span> <span class="pre">set_cmd=&quot;:TRIGger:INPut:ACTive</span> <span class="pre">{}&quot;,</span> <span class="pre">val_mapping={</span> <span class="pre">&quot;RISE&quot;:</span> <span class="pre">0,</span> <span class="pre">&quot;FALL&quot;:</span> <span class="pre">1,</span> <span class="pre">},</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.trigger_input_polarity" title="Link to this definition">¶</a></dt>
+<dd><p>RISE (0=High Active/rising edge), FALL (1=Low Active/falling edge)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Input trigger polarity</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.trigger_input_standby">
+<span class="sig-name descname"><span class="pre">trigger_input_standby</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">name=&quot;trigger_input_standby&quot;,</span> <span class="pre">label=&quot;Trigger</span> <span class="pre">input</span> <span class="pre">standby&quot;,</span> <span class="pre">get_cmd=&quot;:TRIGger:INPut:STANdby?&quot;,</span> <span class="pre">set_cmd=&quot;:TRIGger:INPut:STANdby</span> <span class="pre">{}&quot;,</span> <span class="pre">val_mapping=create_on_off_val_mapping(on_val=1,</span> <span class="pre">off_val=0),</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.trigger_input_standby" title="Link to this definition">¶</a></dt>
+<dd><p>Trigger input standby enabled</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.trigger_output_polarity">
+<span class="sig-name descname"><span class="pre">trigger_output_polarity</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">name=&quot;trigger_output_polarity&quot;,</span> <span class="pre">label=&quot;Trigger</span> <span class="pre">output</span> <span class="pre">polarity&quot;,</span> <span class="pre">get_cmd=&quot;:TRIGger:OUTPut:ACTive?&quot;,</span> <span class="pre">set_cmd=&quot;:TRIGger:OUTPut:ACTive</span> <span class="pre">{}&quot;,</span> <span class="pre">val_mapping={</span> <span class="pre">&quot;RISE&quot;:</span> <span class="pre">0,</span> <span class="pre">&quot;FALL&quot;:</span> <span class="pre">1,</span> <span class="pre">},</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.trigger_output_polarity" title="Link to this definition">¶</a></dt>
+<dd><p>RISE (0=High Active/rising edge), FALL (1=Low Active/falling edge)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Output trigger polarity</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.trigger_output_setting">
+<span class="sig-name descname"><span class="pre">trigger_output_setting</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">name=&quot;trigger_output_setting&quot;,</span> <span class="pre">label=&quot;Trigger</span> <span class="pre">output</span> <span class="pre">period</span> <span class="pre">mode&quot;,</span> <span class="pre">get_cmd=&quot;:TRIGger:OUTPut:SETTing?&quot;,</span> <span class="pre">set_cmd=&quot;:TRIGger:OUTPut:SETTing</span> <span class="pre">{}&quot;,</span> <span class="pre">val_mapping={</span> <span class="pre">&quot;WAVELENGTH&quot;:</span> <span class="pre">0,</span> <span class="pre">&quot;TIME&quot;:</span> <span class="pre">1,</span> <span class="pre">},</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.trigger_output_setting" title="Link to this definition">¶</a></dt>
+<dd><p>WAVELENGTH (0=periodic in wavelength), TIME (1=periodic in time)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Trigger output period mode</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.trigger_output_step">
+<span class="sig-name descname"><span class="pre">trigger_output_step</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">name=&quot;trigger_output_step&quot;,</span> <span class="pre">label=&quot;Trigger</span> <span class="pre">output</span> <span class="pre">interval&quot;,</span> <span class="pre">unit=&quot;m&quot;,</span> <span class="pre">get_cmd=&quot;:TRIGger:OUTPut:STEP?&quot;,</span> <span class="pre">set_cmd=&quot;:TRIGger:OUTPut:STEP</span> <span class="pre">{:.10e}&quot;,</span> <span class="pre">get_parser=float,</span> <span class="pre">set_parser=float,</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.trigger_output_step" title="Link to this definition">¶</a></dt>
+<dd><p>Trigger output interval (0.0001 nm resolution)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.trigger_output_timing">
+<span class="sig-name descname"><span class="pre">trigger_output_timing</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">name=&quot;trigger_output_timing&quot;,</span> <span class="pre">label=&quot;Trigger</span> <span class="pre">output</span> <span class="pre">timing&quot;,</span> <span class="pre">get_cmd=&quot;:TRIGger:OUTPut?&quot;,</span> <span class="pre">set_cmd=&quot;:TRIGger:OUTPut</span> <span class="pre">{}&quot;,</span> <span class="pre">val_mapping={</span> <span class="pre">&quot;NONE&quot;:</span> <span class="pre">0,</span> <span class="pre">&quot;STOP&quot;:</span> <span class="pre">1,</span> <span class="pre">&quot;START&quot;:</span> <span class="pre">2,</span> <span class="pre">&quot;STEP&quot;:</span> <span class="pre">3,</span> <span class="pre">},</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.trigger_output_timing" title="Link to this definition">¶</a></dt>
+<dd><p>NONE (0), STOP (1), START (2), STEP (3)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Trigger output timing</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.trigger_through">
+<span class="sig-name descname"><span class="pre">trigger_through</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">name=&quot;trigger_through&quot;,</span> <span class="pre">label=&quot;Trigger</span> <span class="pre">through</span> <span class="pre">mode&quot;,</span> <span class="pre">get_cmd=&quot;:TRIGger:THRough?&quot;,</span> <span class="pre">set_cmd=&quot;:TRIGger:THRough</span> <span class="pre">{}&quot;,</span> <span class="pre">val_mapping=create_on_off_val_mapping(on_val=1,</span> <span class="pre">off_val=0),</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.trigger_through" title="Link to this definition">¶</a></dt>
+<dd><p>Trigger through mode enabled</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.wavelength">
+<span class="sig-name descname"><span class="pre">wavelength</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">name=&quot;wavelength&quot;,</span> <span class="pre">label=&quot;Wavelength&quot;,</span> <span class="pre">unit=&quot;m&quot;,</span> <span class="pre">get_cmd=&quot;:WAVelength?&quot;,</span> <span class="pre">set_cmd=&quot;:WAVelength</span> <span class="pre">{:.10e}&quot;,</span> <span class="pre">get_parser=float,</span> <span class="pre">set_parser=float,</span> <span class="pre">vals=vals.Numbers(self.wavelength_minimum(),</span> <span class="pre">self.wavelength_maximum()),</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.wavelength" title="Link to this definition">¶</a></dt>
+<dd><p>Output wavelength</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.wavelength_fine">
+<span class="sig-name descname"><span class="pre">wavelength_fine</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">name=&quot;wavelength_fine&quot;,</span> <span class="pre">label=&quot;Fine</span> <span class="pre">wavelength</span> <span class="pre">tuning&quot;,</span> <span class="pre">get_cmd=&quot;:WAV:FIN?&quot;,</span> <span class="pre">set_cmd=&quot;:WAV:FIN</span> <span class="pre">{:.2f}&quot;,</span> <span class="pre">get_parser=float,</span> <span class="pre">set_parser=float,</span> <span class="pre">vals=vals.Numbers(-100.0,</span> <span class="pre">100.0),</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.wavelength_fine" title="Link to this definition">¶</a></dt>
+<dd><p>Fine-tuning offset</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.wavelength_maximum">
+<span class="sig-name descname"><span class="pre">wavelength_maximum</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">name=&quot;wavelength_maximum&quot;,</span> <span class="pre">label=&quot;Maximum</span> <span class="pre">wavelength&quot;,</span> <span class="pre">unit=&quot;m&quot;,</span> <span class="pre">get_cmd=&quot;:WAVelength?</span> <span class="pre">MAXimum&quot;,</span> <span class="pre">get_parser=float,</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.wavelength_maximum" title="Link to this definition">¶</a></dt>
+<dd><p>Maximum wavelength limit for current model (read-only)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.wavelength_minimum">
+<span class="sig-name descname"><span class="pre">wavelength_minimum</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">name=&quot;wavelength_minimum&quot;,</span> <span class="pre">label=&quot;Minimum</span> <span class="pre">wavelength&quot;,</span> <span class="pre">unit=&quot;m&quot;,</span> <span class="pre">get_cmd=&quot;:WAVelength?</span> <span class="pre">MINimum&quot;,</span> <span class="pre">get_parser=float,</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.wavelength_minimum" title="Link to this definition">¶</a></dt>
+<dd><p>Minimum wavelength limit for current model (read-only)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.wavelength_offset">
+<span class="sig-name descname"><span class="pre">wavelength_offset</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">name=&quot;wavelength_offset&quot;,</span> <span class="pre">label=&quot;Wavelength</span> <span class="pre">offset&quot;,</span> <span class="pre">unit=&quot;m&quot;,</span> <span class="pre">get_cmd=&quot;:WAVelength:OFFSet?&quot;,</span> <span class="pre">set_cmd=&quot;:WAVelength:OFFSet</span> <span class="pre">{:.10e}&quot;,</span> <span class="pre">get_parser=float,</span> <span class="pre">set_parser=float,</span> <span class="pre">vals=vals.Numbers(-0.1e-9,</span> <span class="pre">0.1e-9),</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.wavelength_offset" title="Link to this definition">¶</a></dt>
+<dd><p>Constant wavelength offset</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.wavelength_unit">
+<span class="sig-name descname"><span class="pre">wavelength_unit</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Parameter</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">self.add_parameter(</span> <span class="pre">name=&quot;wavelength_unit&quot;,</span> <span class="pre">label=&quot;Wavelength</span> <span class="pre">unit&quot;,</span> <span class="pre">get_cmd=&quot;:WAVelength:UNIT?&quot;,</span> <span class="pre">set_cmd=&quot;:WAVelength:UNIT</span> <span class="pre">{}&quot;,</span> <span class="pre">val_mapping={</span> <span class="pre">&quot;NM&quot;:</span> <span class="pre">0,</span> <span class="pre">&quot;THz&quot;:</span> <span class="pre">1,</span> <span class="pre">},</span> <span class="pre">)</span></span><a class="headerlink" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.wavelength_unit" title="Link to this definition">¶</a></dt>
+<dd><p>Wavelength display unit (NM or THz)</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-qcodes_contrib_drivers.drivers.Santec">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-qcodes_contrib_drivers.drivers.Santec" title="Link to this heading">¶</a></h2>
+<p>Santec instrument drivers.</p>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="qcodes_contrib_drivers.drivers.Shamrock.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">qcodes_contrib_drivers.drivers.Shamrock package</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="qcodes_contrib_drivers.drivers.SPECS.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">qcodes_contrib_drivers.drivers.SPECS package</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2019, QCoDeS Users
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">qcodes_contrib_drivers.drivers.Santec package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-qcodes_contrib_drivers.drivers.Santec.Santec_TSL">qcodes_contrib_drivers.drivers.Santec.Santec_TSL module</a><ul>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL"><code class="docutils literal notranslate"><span class="pre">SantecTSL</span></code></a><ul>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.disable_fine_tuning"><code class="docutils literal notranslate"><span class="pre">SantecTSL.disable_fine_tuning()</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.reboot"><code class="docutils literal notranslate"><span class="pre">SantecTSL.reboot()</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.reset"><code class="docutils literal notranslate"><span class="pre">SantecTSL.reset()</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.shutdown"><code class="docutils literal notranslate"><span class="pre">SantecTSL.shutdown()</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.software_trigger"><code class="docutils literal notranslate"><span class="pre">SantecTSL.software_trigger()</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.sweep_repeat"><code class="docutils literal notranslate"><span class="pre">SantecTSL.sweep_repeat()</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.sweep_single"><code class="docutils literal notranslate"><span class="pre">SantecTSL.sweep_single()</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.sweep_stop"><code class="docutils literal notranslate"><span class="pre">SantecTSL.sweep_stop()</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.coherence_control"><code class="docutils literal notranslate"><span class="pre">SantecTSL.coherence_control</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.command_set"><code class="docutils literal notranslate"><span class="pre">SantecTSL.command_set</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.default_terminator"><code class="docutils literal notranslate"><span class="pre">SantecTSL.default_terminator</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.display_brightness"><code class="docutils literal notranslate"><span class="pre">SantecTSL.display_brightness</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.ethernet_gateway"><code class="docutils literal notranslate"><span class="pre">SantecTSL.ethernet_gateway</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.ethernet_ip_address"><code class="docutils literal notranslate"><span class="pre">SantecTSL.ethernet_ip_address</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.ethernet_mac_address"><code class="docutils literal notranslate"><span class="pre">SantecTSL.ethernet_mac_address</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.ethernet_port"><code class="docutils literal notranslate"><span class="pre">SantecTSL.ethernet_port</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.ethernet_subnet_mask"><code class="docutils literal notranslate"><span class="pre">SantecTSL.ethernet_subnet_mask</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.frequency"><code class="docutils literal notranslate"><span class="pre">SantecTSL.frequency</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.frequency_maximum"><code class="docutils literal notranslate"><span class="pre">SantecTSL.frequency_maximum</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.frequency_minimum"><code class="docutils literal notranslate"><span class="pre">SantecTSL.frequency_minimum</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.gpib_address"><code class="docutils literal notranslate"><span class="pre">SantecTSL.gpib_address</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.gpib_delimiter"><code class="docutils literal notranslate"><span class="pre">SantecTSL.gpib_delimiter</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.modulation_source"><code class="docutils literal notranslate"><span class="pre">SantecTSL.modulation_source</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.modulation_state"><code class="docutils literal notranslate"><span class="pre">SantecTSL.modulation_state</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.output"><code class="docutils literal notranslate"><span class="pre">SantecTSL.output</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.power"><code class="docutils literal notranslate"><span class="pre">SantecTSL.power</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.power_actual"><code class="docutils literal notranslate"><span class="pre">SantecTSL.power_actual</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.power_attenuation"><code class="docutils literal notranslate"><span class="pre">SantecTSL.power_attenuation</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.power_auto"><code class="docutils literal notranslate"><span class="pre">SantecTSL.power_auto</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.power_maximum"><code class="docutils literal notranslate"><span class="pre">SantecTSL.power_maximum</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.power_minimum"><code class="docutils literal notranslate"><span class="pre">SantecTSL.power_minimum</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.power_unit"><code class="docutils literal notranslate"><span class="pre">SantecTSL.power_unit</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.readout_data"><code class="docutils literal notranslate"><span class="pre">SantecTSL.readout_data</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.readout_points"><code class="docutils literal notranslate"><span class="pre">SantecTSL.readout_points</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.readout_power_data"><code class="docutils literal notranslate"><span class="pre">SantecTSL.readout_power_data</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.shutter"><code class="docutils literal notranslate"><span class="pre">SantecTSL.shutter</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.sweep_count"><code class="docutils literal notranslate"><span class="pre">SantecTSL.sweep_count</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.sweep_cycles"><code class="docutils literal notranslate"><span class="pre">SantecTSL.sweep_cycles</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.sweep_delay"><code class="docutils literal notranslate"><span class="pre">SantecTSL.sweep_delay</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.sweep_dwell"><code class="docutils literal notranslate"><span class="pre">SantecTSL.sweep_dwell</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.sweep_mode"><code class="docutils literal notranslate"><span class="pre">SantecTSL.sweep_mode</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.sweep_range_maximum_frequency"><code class="docutils literal notranslate"><span class="pre">SantecTSL.sweep_range_maximum_frequency</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.sweep_range_maximum_wavelength"><code class="docutils literal notranslate"><span class="pre">SantecTSL.sweep_range_maximum_wavelength</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.sweep_range_minimum_frequency"><code class="docutils literal notranslate"><span class="pre">SantecTSL.sweep_range_minimum_frequency</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.sweep_range_minimum_wavelength"><code class="docutils literal notranslate"><span class="pre">SantecTSL.sweep_range_minimum_wavelength</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.sweep_speed"><code class="docutils literal notranslate"><span class="pre">SantecTSL.sweep_speed</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.sweep_start_frequency"><code class="docutils literal notranslate"><span class="pre">SantecTSL.sweep_start_frequency</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.sweep_start_wavelength"><code class="docutils literal notranslate"><span class="pre">SantecTSL.sweep_start_wavelength</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.sweep_state"><code class="docutils literal notranslate"><span class="pre">SantecTSL.sweep_state</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.sweep_step_frequency"><code class="docutils literal notranslate"><span class="pre">SantecTSL.sweep_step_frequency</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.sweep_step_wavelength"><code class="docutils literal notranslate"><span class="pre">SantecTSL.sweep_step_wavelength</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.sweep_stop_frequency"><code class="docutils literal notranslate"><span class="pre">SantecTSL.sweep_stop_frequency</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.sweep_stop_wavelength"><code class="docutils literal notranslate"><span class="pre">SantecTSL.sweep_stop_wavelength</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.system_alert"><code class="docutils literal notranslate"><span class="pre">SantecTSL.system_alert</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.system_code"><code class="docutils literal notranslate"><span class="pre">SantecTSL.system_code</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.system_error"><code class="docutils literal notranslate"><span class="pre">SantecTSL.system_error</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.system_lock"><code class="docutils literal notranslate"><span class="pre">SantecTSL.system_lock</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.system_version"><code class="docutils literal notranslate"><span class="pre">SantecTSL.system_version</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.trigger_input_external"><code class="docutils literal notranslate"><span class="pre">SantecTSL.trigger_input_external</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.trigger_input_polarity"><code class="docutils literal notranslate"><span class="pre">SantecTSL.trigger_input_polarity</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.trigger_input_standby"><code class="docutils literal notranslate"><span class="pre">SantecTSL.trigger_input_standby</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.trigger_output_polarity"><code class="docutils literal notranslate"><span class="pre">SantecTSL.trigger_output_polarity</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.trigger_output_setting"><code class="docutils literal notranslate"><span class="pre">SantecTSL.trigger_output_setting</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.trigger_output_step"><code class="docutils literal notranslate"><span class="pre">SantecTSL.trigger_output_step</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.trigger_output_timing"><code class="docutils literal notranslate"><span class="pre">SantecTSL.trigger_output_timing</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.trigger_through"><code class="docutils literal notranslate"><span class="pre">SantecTSL.trigger_through</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.wavelength"><code class="docutils literal notranslate"><span class="pre">SantecTSL.wavelength</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.wavelength_fine"><code class="docutils literal notranslate"><span class="pre">SantecTSL.wavelength_fine</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.wavelength_maximum"><code class="docutils literal notranslate"><span class="pre">SantecTSL.wavelength_maximum</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.wavelength_minimum"><code class="docutils literal notranslate"><span class="pre">SantecTSL.wavelength_minimum</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.wavelength_offset"><code class="docutils literal notranslate"><span class="pre">SantecTSL.wavelength_offset</span></code></a></li>
+<li><a class="reference internal" href="#qcodes_contrib_drivers.drivers.Santec.Santec_TSL.SantecTSL.wavelength_unit"><code class="docutils literal notranslate"><span class="pre">SantecTSL.wavelength_unit</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-qcodes_contrib_drivers.drivers.Santec">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../../_static/documentation_options.js?v=f21d3367"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/scripts/furo.js?v=46bd48cc"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+    </body>
+</html>
