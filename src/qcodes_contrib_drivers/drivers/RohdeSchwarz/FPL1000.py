@@ -18,7 +18,7 @@ from typing import Literal
 
 import numpy as np
 from qcodes.instrument import VisaInstrument
-from qcodes.validators import Arrays, Ints, Numbers
+from qcodes.validators import Arrays, Ints, Numbers, Enum
 from qcodes.parameters import (
     Parameter,
     ParameterWithSetpoints,
@@ -279,6 +279,20 @@ class RohdeSchwarz_FPL1000(VisaInstrument):
         )
         """
         Spectrum of trace 1.
+        """
+
+        self.reference_oscillator_source = self.add_parameter(
+            "reference_oscillator_source",
+            label="Reference oscillator source",
+            get_cmd="ROSCillator:SOURce?",
+            set_cmd="ROSCillator:SOURce {}",
+            vals=Enum("INT", "EXT"),
+        )
+        """
+        Select the reference oscillator. INT uses the internal 10 MHz reference
+        oscillator, while EXT uses the external reference from the "REF INPUT
+        10 MHZ" connector. If the external reference is not available, an error
+        indicator is shown on the screen.
         """
 
         if reset:
