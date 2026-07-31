@@ -18,7 +18,7 @@ from qcodes_contrib_drivers.drivers.Lakeshore.Contact_Check_Plots import show_co
 class M91_FastHall(VisaInstrument):
     """
     Driver class for the Lakeshore M91 FastHall Controller.
-    """      
+    """
 
     def __init__(self, name: str, address: str, **kwargs: Any):
         super().__init__(name, address, terminator='\n', **kwargs)
@@ -32,10 +32,10 @@ class M91_FastHall(VisaInstrument):
                 set_cmd='SYSTem:KLOCk {}',
                 val_mapping={True: 1, False: 0}
                 )
-        
+
         # Lock keypad at start up
         self.keypad_lock(True)
-            
+
         self.add_submodule("Resistivity", Resistivity(self, "Resistivity", "RESISTIVITY"))
         self.add_submodule("DCHall", DCHall(self, "DCHall", "HALL:DC"))
         self.add_submodule("ContactCheck", ContactCheck(self, "ContactCheck", "CCHECK"))
@@ -73,47 +73,47 @@ class M91_FastHall(VisaInstrument):
 
     def display_measurement_results(self, results: SimpleNamespace) -> None:
         """
-        Function can be used to print the results output of four wire 
-        measurement functions, resistivity measurement functions and 
-        Hall measurement functions in a more readable format. 
+        Function can be used to print the results output of four wire
+        measurement functions, resistivity measurement functions and
+        Hall measurement functions in a more readable format.
         """
         if isinstance(results, SimpleNamespace):
-            dictionary = results.__dict__ # create a dictionary from the data 
-            # print the set-up parameters 
-            print('-----------------------') 
-            print('Setup:') 
+            dictionary = results.__dict__ # create a dictionary from the data
+            # print the set-up parameters
+            print('-----------------------')
+            print('Setup:')
             print('-----------------------')
             for k in dictionary.get('Setup').__dict__:
                 words = re.findall('[A-Z][^A-Z]*', k)
                 print(f"{' '.join(words)}: {dictionary.get('Setup').__dict__.get(k)}")
-            print('-----------------------') 
-            # print the results 
-            print('Results:') 
-            print('-----------------------') 
-            for k in dictionary.keys(): 
-                if k == 'Setup': # skip the setup namespace because this is all printed above 
+            print('-----------------------')
+            # print the results
+            print('Results:')
+            print('-----------------------')
+            for k in dictionary.keys():
+                if k == 'Setup': # skip the setup namespace because this is all printed above
                     continue
                 words = re.findall('[A-Z][^A-Z]*', k)
                 print(f"{' '.join(words)}: {dictionary.get(k)}")
-            print('-----------------------') 
-        else: 
+            print('-----------------------')
+        else:
             print('Data is not of the correct type. Data should be of type SimpleNamespace.')
 
-    def read_error_queue(self): 
+    def read_error_queue(self):
         """
         Queries the error/event queue for all the unread items and removes them
         from the queue.
         """
         err = self.ask("SYST:ERR:ALL?")
         return err
-        
+
     def close(self) -> None:
         """
         Close connection to device.
         """
         # Unlock keypad on exit
         self.keypad_lock(False)
-        
+
         super().close()
         print('Connection closed to M91.')
 
@@ -207,7 +207,7 @@ class BoundedValueParameter(Parameter):
                 self.value = val
         else:
             self.value = None
-            
+
         return None
 
 class BoundedValueOrStringParameter(Parameter):
@@ -247,7 +247,7 @@ class BoundedValueOrStringParameter(Parameter):
                 self.value = val
         else:
             self.value = None
-            
+
         return None
 
 class named_consts(StrEnum):
@@ -262,7 +262,7 @@ class excitation_type(StrEnum):
 class sample_type(StrEnum):
     vdp = "van_der_Pauw"
     hall = "Hall_bar"
-    
+
 def _excitation_type_setter(module: InstrumentModule, value: str, contact_check: bool = False) -> None:
     """
     Function to set excitation type to voltage/current and add or remove the
@@ -280,7 +280,7 @@ def _excitation_type_setter(module: InstrumentModule, value: str, contact_check:
     else:
         format_str = "voltage" if value == "CURR" else "current"
         measure_str = "current" if value == "CURR" else "voltage"
-    
+
         try:
             del module.parameters[f"excitation_{format_str}_start"]
             del module.parameters[f"excitation_{format_str}_end"]
@@ -302,7 +302,7 @@ def _excitation_type_setter(module: InstrumentModule, value: str, contact_check:
             _add_current_excitation_params(module, contact_check)
         elif value == "VOLT":
             _add_voltage_excitation_params(module, contact_check)
-    
+
         if contact_check:
             module.excitation_start_stop_parameters = [module.parameters["excitation_type"],  # type: ignore[attr-defined]
                                 module.parameters[f"excitation_{measure_str}_start"],
@@ -310,7 +310,7 @@ def _excitation_type_setter(module: InstrumentModule, value: str, contact_check:
                                 module.parameters[f"excitation_{measure_str}_range"],
                                 module.parameters[f"measure_{format_str}_range"],
                                 module.parameters[f"compliance_{format_str}"]]
-    
+
         else:
             module.excitation_value_range_parameters = [module.parameters["excitation_type"],  # type: ignore[attr-defined]
                         module.parameters[f"excitation_{measure_str}_value"],
@@ -382,7 +382,7 @@ def excitation_start_stop_command(module: InstrumentModule) -> str:
     """
     cmd = ", ".join([f'{x()}' for x in module.excitation_start_stop_parameters])
     return cmd
-    
+
 def excitation_value_range_command(module: InstrumentModule) -> str:
     """
     Returns excitation value range command string for an InstrumentModule.
@@ -446,16 +446,16 @@ class ContactCheck(MeasureModule):
                    initial_value="CURR")
             except Exception as e:
                 pass
-                
+
     def start(self) -> None:
         """
         Performs either a), b) or c) depending on sample type (and whether auto optimise
         is enabled for a van der Pauw measurement).
-        
+
         a) Performs a contact check measurement on contact pairs 1-2,
         2-3, 3-4, 4-1 for a van der Pauw sample.
 
-        b) Automatically determines excitation value and ranges. Then runs 
+        b) Automatically determines excitation value and ranges. Then runs
         contact check on all 4 pairs for a van der Pauw sample.
 
         c) Performs a contact check measurement on contact pairs 5-6,
@@ -480,7 +480,7 @@ class ContactCheck(MeasureModule):
                     command_string = f"CCHECK:START:MANUAL {excitation_start_stop_command(self)}"
                 command_string = (f"{command_string}, {self.number_of_points()}," + f"{self.minimum_r_squared()}," +
                                 f"{self.blanking_time()}," + f"{self.sampling_time()}")
-    
+
             self.parent.write(command_string)
 
             err = False
@@ -498,7 +498,7 @@ class ContactCheck(MeasureModule):
            print("Contact Check complete.")
             time.sleep(1) # short delay to ensure results are available to be retrieved
 
-            
+
             count = 0
             while True:
                 try:
@@ -513,18 +513,18 @@ class ContactCheck(MeasureModule):
                         break
                 else:
                     break
-            
+
             if results is None:
                 print("No results available.")
                 return None
-                
+
             show_contact_check_results(results.ContactPairIVResults)
             fig, axs = plt.subplots(1, 6 if self.parent.sample_type() == "Hall_bar" else 4, figsize=(17,4), sharex=True, sharey=True)
             plot_check(results, axs)
             apply_plot_style(fig, axs, "DARK")
-        
+
             return None
-                
+
 class FastHall(MeasureModule):
     """
     FastHall MeasureModule.
@@ -533,7 +533,7 @@ class FastHall(MeasureModule):
         super().__init__(parent, name, cmd_name, **kwargs)
 
         self.tm = "ᵀᴹ"
-        
+
         self.add_parameter(name="auto_optimise", set_cmd=lambda value: self.optimise_setter(value), label="auto_optimise", vals=Bool(), initial_value=True,
                           docstring="if True then the last run contact check and resistivity measurement's parameters will be used")
         self.add_parameter(name="user_defined_field", parameter_class=BoundedValueParameter, value=0, unit="T",
@@ -549,10 +549,10 @@ class FastHall(MeasureModule):
         self.add_parameter(name="minimum_SNR", label="mininum_SNR", set_cmd= lambda value: _min_snr_setter(self, value),
                             initial_value=30, vals=MultiTypeOr(Numbers(1.1,1000), Enum(f"{named_consts.INF}")),
                           docstring="desired signal-to-noise ratio of the measurement calculated using average Hall voltage/error")
-    
+
     def optimise_setter(self, value: bool) -> None:
         """
-        Setter for the auto_optimise parameter. Adds/removes 
+        Setter for the auto_optimise parameter. Adds/removes
         associated parameters.
         """
         if value:
@@ -586,7 +586,7 @@ class FastHall(MeasureModule):
                 self.add_parameter(name="blanking_time", parameter_class=BoundedValueParameter, value=0.002, min_val=0.5E-3, max_val=300, unit="s",
                                   docstring="time to wait for hardware to settle before gathering readings")
                 self.add_parameter(name="sampling_time", parameter_class=BoundedValueOrStringParameter, value=named_consts.DEF,
-                                   valid_str=named_consts.DEF, min_val=0.01E-3, max_val=1, unit="s", 
+                                   valid_str=named_consts.DEF, min_val=0.01E-3, max_val=1, unit="s",
                                   docstring="the sampling time which measurements will be averaged over to get one sample")
                 self.add_parameter(name="resistivity", parameter_class=BoundedValueOrStringParameter,
                            valid_str=named_consts.DEF, value=named_consts.DEF, min_val=0,
@@ -599,17 +599,17 @@ class FastHall(MeasureModule):
                    initial_value="CURR")
             except Exception as e:
                 pass
-        
+
     def start(self, show_results: bool = True, print_status: bool = True) -> Optional[SimpleNamespace]:
         """
         Performs either a) or b) depending on whether auto optimise is enabled or not.
-        
+
         a) Performs a FastHallTM measurement for a van der Pauw sample.
 
-        b) Performs a FastHallTM measurement, for a van der Pauw sample, that uses the last 
+        b) Performs a FastHallTM measurement, for a van der Pauw sample, that uses the last
         run contact check measurements' excitation type, compliance limit, blanking time,
         excitation range, and the largest absolute value of start and end excitation
-        values along with the last run resistivity measurement's resistivity average and 
+        values along with the last run resistivity measurement's resistivity average and
         sample thickness.
 
         Args:
@@ -632,9 +632,9 @@ class FastHall(MeasureModule):
                                 f"{self.resistivity()}," + f"{self.blanking_time()}," +
                                 f"{self.averaging_samples()}," + f"{self.sample_thickness()}," +
                                 f"{self.minimum_SNR()}," + f"{self.sampling_time()}")
-    
+
             self.parent.write(command_string)
-            
+
             err = False
             time.sleep(0.5)
             if not self.get_running_status():
@@ -643,7 +643,7 @@ class FastHall(MeasureModule):
                 return None
             if print_status == True:
                 print(f"FastHall{self.tm} in progress ... ", end="")
-                
+
             while self.get_running_status():
                 pass
 
@@ -664,13 +664,13 @@ class FastHall(MeasureModule):
                         break
                 else:
                     break
-            
+
             if results is None:
                 print("No results available.")
                 return None
-    
+
             if show_results:
-                self.parent.display_measurement_results(results) 
+                self.parent.display_measurement_results(results)
             return results
 
 class DCHall(MeasureModule):
@@ -679,7 +679,7 @@ class DCHall(MeasureModule):
     """
     def __init__(self, parent: M91_FastHall, name: str, cmd_name: str, **kwargs: Any) -> None:
         super().__init__(parent, name, cmd_name, **kwargs)
-    
+
         self.add_parameter(name="excitation_type",
                            set_cmd=lambda value: _excitation_type_setter(self, value),
                            label="excitation_type",
@@ -689,7 +689,7 @@ class DCHall(MeasureModule):
         self.add_parameter(name="blanking_time", parameter_class=BoundedValueParameter, value=0.002, min_val=0.5E-3, max_val=300, unit="s",
                           docstring="time to wait for the hardware to settle before gathering readings")
         self.add_parameter(name="sampling_time", parameter_class=BoundedValueOrStringParameter, value=named_consts.DEF,
-                            valid_str=named_consts.DEF, min_val=0.01E-3, max_val=1, unit="s", 
+                            valid_str=named_consts.DEF, min_val=0.01E-3, max_val=1, unit="s",
                             docstring="the sampling time which measurements will be averaged over to get one sample")
         self.add_parameter(name="field_reversal", parameter_class=BoundedValueParameter, value=1, min_val=0, max_val=1, integer=True, val_mapping={"ON": 1, "OFF": 0},
                           docstring="specifies whether or not to apply field reversal")
@@ -733,12 +733,12 @@ class DCHall(MeasureModule):
                             f"{self.user_defined_field()}," + f"{self.field_reversal()}," +
                             f"{self.resistivity()}," + f"{self.blanking_time()}," + f"{self.sample_thickness()},"
                             f"{self.minimum_SNR()}," + f"{self.sampling_time()}")
-    
+
             self.parent.write(command_string)
 
             if self.get_waiting_status():
                 print("ERROR: DC Hall measurement is in the waiting state. Reset before running new measurement.")
-                
+
             err = False
             time.sleep(0.5)
             if not self.get_running_status():
@@ -747,10 +747,10 @@ class DCHall(MeasureModule):
                 return None
             if print_status == True:
                 print("DC Hall measurement in progress ... ", end="")
-            
+
             while self.get_running_status():
                 pass
-                
+
             time.sleep(0.5)
             if print_status == True:
                 print("DC Hall measurement complete.")
@@ -771,7 +771,7 @@ class DCHall(MeasureModule):
                         break
                 else:
                     break
-            
+
             if results is None:
                 print("No results available.")
                 return None
@@ -779,7 +779,7 @@ class DCHall(MeasureModule):
             if show_results:
                 self.parent.display_measurement_results(results)
             return results
-                                        
+
     def continue_dc_hall(self, show_results: bool = True, print_status: bool = True) -> Optional[SimpleNamespace]:
         """
         Continues the DC Hall measurement if it is in a waiting state. To be used
@@ -789,15 +789,15 @@ class DCHall(MeasureModule):
             show_results, bool: if True results will be printed
             print_status, bool: if True progress of measurement statements will be printed.
         """
-        
+
         if not self.get_waiting_status():
             print("ERROR: DC Hall measurement is not in a waiting state.")
             return None
-            
+
         command_string = f"HALL:DC:CONTINUE"
 
         self.parent.write(command_string)
-        
+
         err = False
         time.sleep(0.5)
         if not self.get_running_status():
@@ -806,7 +806,7 @@ class DCHall(MeasureModule):
             return None
         if print_status == True:
             print("DC Hall measurement in progress ... ", end="")
-            
+
         while self.get_running_status():
             pass
 
@@ -835,14 +835,14 @@ class DCHall(MeasureModule):
         if show_results:
             self.parent.display_measurement_results(results)
         return results
-       
+
 class FourWire(MeasureModule):
     """
     FourWire MeasureModule.
     """
     def __init__(self, parent: M91_FastHall, name: str, cmd_name: str, **kwargs: Any) -> None:
         super().__init__(parent, name, cmd_name, **kwargs)
-    
+
         self.add_parameter(name="excitation_type",
                            set_cmd=lambda value: _excitation_type_setter(self, value),
                            label="excitation_type",
@@ -861,7 +861,7 @@ class FourWire(MeasureModule):
         self.add_parameter(name="blanking_time", parameter_class=BoundedValueParameter, value=0.002, min_val=0.5E-3, max_val=300, unit="s",
                           docstring="time to wait for the hardware to settle before gathering readings")
         self.add_parameter(name="sampling_time", parameter_class=BoundedValueOrStringParameter, value=named_consts.DEF,
-                            valid_str=named_consts.DEF, min_val=0.01E-3, max_val=1, unit="s", 
+                            valid_str=named_consts.DEF, min_val=0.01E-3, max_val=1, unit="s",
                             docstring="the sampling time which measurements will be averaged over to get one sample")
         self.add_parameter(name="maximum_samples", parameter_class=BoundedValueParameter, value=100, min_val=1, max_val=1000, integer=True,
                           docstring="when minimum SNR is INF, the total number of samples to average 1-1000; when minimum SNR is specified, the maximum number of samples to average 10-1000")
@@ -872,7 +872,7 @@ class FourWire(MeasureModule):
     def start(self, show_results: bool = True, print_status: bool = True) -> Optional[SimpleNamespace]:
         """
         Performs a four wire measurement. Excitation is sourced from contact point 1
-        to contact point 2. Voltage is measured/senses between contact point 3 and 
+        to contact point 2. Voltage is measured/senses between contact point 3 and
         contact point 4.
 
         Args:
@@ -890,7 +890,7 @@ class FourWire(MeasureModule):
                             f"{self.measure_minus_channel()}," + f"{excitation_value_range_command(self)}," +
                             f"{self.blanking_time()}," + f"{self.maximum_samples()}," + f"{self.minimum_SNR()}," +
                             f"{self.excitation_reversal()}," + f"{self.sampling_time()}")
-    
+
             self.parent.write(command_string)
 
             err = False
@@ -901,7 +901,7 @@ class FourWire(MeasureModule):
                 return None
             if print_status == True:
                 print("Four Wire measurement in progress ... ", end="")
-                
+
             while self.get_running_status():
                 pass
 
@@ -926,11 +926,11 @@ class FourWire(MeasureModule):
             if results is None:
                     print("No results available.")
                     return None
-                    
+
             if show_results:
                 self.parent.display_measurement_results(results)
             return results
-    
+
 class Resistivity(MeasureModule):
     """
     Resistivity MeasureModule.
@@ -945,10 +945,10 @@ class Resistivity(MeasureModule):
                           docstring="the desired signal to noise ratio of the measurement calculated using average resistivity / error of mean")
         self.add_parameter(name="sample_thickness", parameter_class=BoundedValueOrStringParameter,
                            valid_str=named_consts.DEF, value=named_consts.DEF, min_val=0, max_val=10E-3, unit="m")
-        
+
     def optimise_setter(self, value: bool) -> None:
         """
-        Setter for the auto_optimise parameter. Adds/removes 
+        Setter for the auto_optimise parameter. Adds/removes
         associated parameters.
         """
         if value:
@@ -981,7 +981,7 @@ class Resistivity(MeasureModule):
                 self.add_parameter(name="blanking_time", parameter_class=BoundedValueParameter, value=0.002, min_val=0.5E-3, max_val=300, unit="s",
                                   docstring="time to wait for hardware to settle before gathering readings")
                 self.add_parameter(name="sampling_time", parameter_class=BoundedValueOrStringParameter, value=named_consts.DEF,
-                                   valid_str=named_consts.DEF, min_val=0.01E-3, max_val=1, unit="s", 
+                                   valid_str=named_consts.DEF, min_val=0.01E-3, max_val=1, unit="s",
                                   docstring="the sampling time which measurements will be averaged over to get one sample")
                 self.add_parameter(name="excitation_type",
                    set_cmd=lambda value: _excitation_type_setter(self, value),
@@ -995,12 +995,12 @@ class Resistivity(MeasureModule):
         """
         Performs either a), b) or c) depending on sample type (and whether auto optimise
         is enabled for a van der Pauw measurement).
-        
+
         a) Performs a resistivity measurement for a van der Pauw sample.
 
-        b) Performs a resistivity measurement, for a van der Pauw sample, that uses 
+        b) Performs a resistivity measurement, for a van der Pauw sample, that uses
         the last run contact check measurement's excitation type, compliance limit,
-        blanking time, excitation range, and the largest absolute value of start 
+        blanking time, excitation range, and the largest absolute value of start
         and end excitation values.
 
         c) Performs a resistivity measurement for on a Hall bar sample.
@@ -1028,9 +1028,9 @@ class Resistivity(MeasureModule):
                 command_string = (f"{command_string} {self.maximum_samples()}," +
                                  f"{self.blanking_time()}," + f"{self.sample_thickness()}," +
                                  f"{self.minimum_SNR()}," + f"{self.sampling_time()}")
-                
+
             self.parent.write(command_string)
-            
+
             err = False
             time.sleep(0.5)
             if not self.get_running_status():
@@ -1064,7 +1064,7 @@ class Resistivity(MeasureModule):
             if results is None:
                     print("No results available.")
                     return None
-                    
+
             if show_results:
                 self.parent.display_measurement_results(results)
             return results
