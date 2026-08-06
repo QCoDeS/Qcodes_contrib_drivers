@@ -495,7 +495,7 @@ class ContactCheck(MeasureModule):
             while self.get_running_status():
                 pass
 
-           print("Contact Check complete.")
+            print("Contact Check complete.")
             time.sleep(1) # short delay to ensure results are available to be retrieved
 
             
