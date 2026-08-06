@@ -8,7 +8,7 @@ devices:
         r: '\n'
 
     error: "m91_sim_error"
-        
+
     dialogues:
       - q: "*IDN?"
         r: "Lake Shore, M91, LSA2P78, 1.1.2"
@@ -22,7 +22,7 @@ devices:
         getter:
             q: "SYSTem:KLOCk?"
             r: "{}"
-        setter: 
+        setter:
             q: "SYSTem:KLOCk {}"
         specs:
             valid: [0,1]
@@ -56,7 +56,7 @@ devices:
       contact_check_hall_start:
         setter:
             q: "CCH:HBAR:STAR"
-    
+
       contact_check_results:
         default: '{"Setup":{"ExcitationValueStart":-0.001},"ContactPairIVResults":[{"ContactPair":{"Point1": 1,"Point2": 2}, "Offset": 0.0007, "Slope": 351, "RSquared": 0.99997, "RSquaredPass": true}],"DurationInSeconds":5.9}'
         getter:
@@ -100,7 +100,7 @@ devices:
       dchall_continue:
         setter:
             q: "HALL:DC:CONTINUE"
-    
+
       dchall_results:
         default: '{"Setup":{"ExcitationValue":0.001},"HallVoltageAverageInVolts": -0.002}'
         getter:
@@ -133,7 +133,7 @@ devices:
       fasthall_start_link:
         setter:
             q: "FASTHALL:VDP:START:LINK"
-    
+
       fasthall_results:
         default: '{"Setup":{"ExcitationValue":0.001},"HallVoltageAverageInVolts": 0.001}'
         getter:
@@ -145,7 +145,7 @@ devices:
         getter:
             q: "FASTHALL:RESULT:JSON:ALL? 0"
             r: "{}"
-            
+
       four_wire_reset:
         setter:
             q: "FWIRE:RESET"
@@ -162,7 +162,7 @@ devices:
       four_wire_start:
         setter:
             q: "FWIRe:START"
-    
+
       four_wire_results:
         default: '{"Setup":{"ExcitationValue":0.0005}, "ResistanceAverageInOhms": 166.04}'
         getter:
@@ -174,7 +174,7 @@ devices:
         getter:
             q: "FWIRE:RESULT:JSON:ALL? 0"
             r: "{}"
-      
+
       resistivity_reset:
         setter:
             q: "RESISTIVITY:RESET"
@@ -199,7 +199,7 @@ devices:
       resistivity_hall_start:
         setter:
             q: "RESISTIVITY:HBAR:START"
-    
+
       resistivity_results:
         default: '{"Setup":{"ExcitationValue":1E-5},  "ResistivityAverageInOhmMeters": 0.000888}'
         getter:
@@ -212,7 +212,7 @@ devices:
             q: "RESISTIVITY:RESULT:JSON:ALL? 0"
             r: "{}"
 
-    
+
 resources:
   TCPIP0::127.0.0.1::33577::SOCKET:
     device: m91

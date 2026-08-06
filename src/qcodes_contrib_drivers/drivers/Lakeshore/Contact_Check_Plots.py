@@ -34,7 +34,7 @@ def apply_plot_style(fig: matplotlib.figure.Figure, axs: matplotlib.axes._axes.A
             if isinstance(ax, np.ndarray):
                 for a in ax:
                     a.set_facecolor(axes_face_colour)
-                    a.grid(visible=True, which = 'major', color = grid_colour, linestyle = '--') 
+                    a.grid(visible=True, which = 'major', color = grid_colour, linestyle = '--')
             else:
                 ax.set_facecolor(axes_face_colour)
                 ax.grid(visible=True, which = 'major', color = grid_colour, linestyle = '--')
@@ -42,15 +42,15 @@ def apply_plot_style(fig: matplotlib.figure.Figure, axs: matplotlib.axes._axes.A
         axs.set_facecolor(axes_face_colour)
         axs.grid(visible=True, which = 'major', color = grid_colour, linestyle = '--')
 
-def plot_check(check_results: SimpleNamespace, check_axs: np.ndarray[Any, np.dtype[np.object_]]) -> None:    
-    
+def plot_check(check_results: SimpleNamespace, check_axs: np.ndarray[Any, np.dtype[np.object_]]) -> None:
+
     n_checks = len(check_results.ContactPairIVResults)
     pairs = vdp_pairs if n_checks == 4 else hall_pairs
     plot_points = len(check_results.ContactPairIVResults[0].IvCurvePoints)
     excitation_span = [check_results.Setup.ExcitationValueStart,
                        check_results.Setup.ExcitationValueEnd]
     excitation_type = check_results.Setup.ExcitationType
-    
+
     for i in range(n_checks):
         volts = []
         amps = []
@@ -98,4 +98,4 @@ def show_contact_check_results(check_results: list[SimpleNamespace]) -> None:
     n_checks = len(check_results)
     pairs = vdp_pairs if n_checks == 4 else hall_pairs
     for i, data in enumerate(check_results):
-        print_line(data, i, pairs) 
+        print_line(data, i, pairs)
