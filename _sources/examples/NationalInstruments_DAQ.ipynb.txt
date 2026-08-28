@@ -1,0 +1,138 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "National Instruments Multifunction DAQ example\n",
+    "======================================="
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "This was written for/tested with [National Instruments USB-6363 DAQ](https://www.ni.com/en-us/support/model.usb-6363.html), but the [nidaqmx](https://nidaqmx-python.readthedocs.io/en/latest/) API is pretty general, so I expect it will work with other devices\n",
+    "with minimal changes. The driver currently only supports analog inputs and outputs, no digital I/O."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import nidaqmx\n",
+    "from qcodes_contrib_drivers.drivers.NationalInstruments.DAQ import DAQAnalogInputs, DAQAnalogOutputs"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## `DAQAnalogInputs`"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Acquire 1 million points simultaneously on `num_ai_channels` with a sample rate of 1 MHz, averaging the acquired data down to 100 thousand points."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "devname = 'Dev0' # can be found with NI-MAX\n",
+    "sample_rate_per_channel = 1e6 # Hz\n",
+    "num_ai_channels = 5\n",
+    "ai_channels = {'meas{}'.format(i): i for i in range(num_ai_channels)}\n",
+    "num_samples_raw = 1e6\n",
+    "num_samples_averaged = 1e5"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "with nidaqmx.Task('ai_task') as ai_task:\n",
+    "    daq_ai = DAQAnalogInputs(\n",
+    "        'daq_ai',\n",
+    "        devname,\n",
+    "        sample_rate_per_channel,\n",
+    "        ai_channels,\n",
+    "        ai_task,\n",
+    "        samples_to_read=num_samples_raw,\n",
+    "        target_points=num_samples_averaged,\n",
+    "    )\n",
+    "    ai_task.start()\n",
+    "    result = daq_ai.voltage() # result.shape == (num_ai_channels, num_samples_averaged)\n",
+    "    ai_task.wait_until_done()\n",
+    "    ai_task.stop()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "For an example of synchronously writing and acquiring data on many channels, see the [`scanning-squid` docs](https://scanning-squid.readthedocs.io/en/latest/), in particular [`microscope.susceptometer.Susceptometer.scan_surface`](https://scanning-squid.readthedocs.io/en/latest/_modules/microscope/susceptometer.html#SusceptometerMicroscope.scan_surface) and [`scanner.Scanner.scan_line`](https://scanning-squid.readthedocs.io/en/latest/_modules/scanner.html#Scanner.scan_line)."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## `DAQAnalogOutputs`"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "`DAQAnalogOutputs` functions as a simple multichannel DC DAC."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "devname = 'Dev0' # can be found with NI-MAX\n",
+    "ao_channels = {str(i): i for i in range(5)}\n",
+    "daq_ao = DAQAnalogOutputs('daq_ao', devname, ao_channels)\n",
+    "daq_ao.voltage_0(5)\n",
+    "daq_ao.voltage_4(2.2)"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.6.8"
+  },
+  "nbsphinx": {
+   "execute": "never"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2
+}

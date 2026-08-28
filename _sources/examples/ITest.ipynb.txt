@@ -1,0 +1,201 @@
+{
+ "metadata": {
+  "nbsphinx": {
+   "execute": "never"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.8.3-final"
+  },
+  "orig_nbformat": 2,
+  "kernelspec": {
+   "name": "Python 3.8.3 64-bit ('base': conda)",
+   "display_name": "Python 3.8.3 64-bit ('base': conda)",
+   "metadata": {
+    "interpreter": {
+     "hash": "04a291d3d47d4de40481f20ec3463187616b5eceabad1549fe24b847b2edd3ef"
+    }
+   }
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2,
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Example with the iTest from Bilt"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Import"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "metadata": {
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "import time\n",
+    "import qcodes as qc\n",
+    "from qcodes_contrib_drivers.drivers.Bilt.ITest import ITest"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Load instrument\n",
+    "\n",
+    "Here the import is done by USB."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "metadata": {
+    "tags": []
+   },
+   "outputs": [
+    {
+     "output_type": "stream",
+     "name": "stdout",
+     "text": "Connected to: 2142 \"ITEST BE2142B/12V 15mA DC-SOURCE/SN04-016 LC1846 VL446\\240\" (serial:None, firmware:None) in 0.61s\n"
+    }
+   ],
+   "source": [
+    "dac = ITest(name='dac',\n",
+    "            address='ASRL4::INSTR',\n",
+    "            init_start=True)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Initiallization"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "metadata": {
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "for channel in dac.channels:\n",
+    "    channel.v(0)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Measurement\n",
+    "\n",
+    "User can loop over the channel"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "metadata": {
+    "tags": []
+   },
+   "outputs": [
+    {
+     "output_type": "stream",
+     "name": "stdout",
+     "text": "channel 1 voltage 9.92e-07 V\nchannel 2 voltage 1.12e-06 V\nchannel 3 voltage 1.45e-08 V\nchannel 4 voltage -8.67e-07 V\nchannel 5 voltage -1.49e-07 V\nchannel 6 voltage -8.19e-07 V\nchannel 7 voltage -6.93e-07 V\nchannel 8 voltage 1.73e-07 V\nchannel 9 voltage 8.77e-08 V\nchannel 10 voltage -1.17e-07 V\nchannel 11 voltage 1.24e-06 V\nchannel 12 voltage -1.11e-06 V\nchannel 13 voltage 3.78e-08 V\nchannel 14 voltage -7.08e-07 V\nchannel 15 voltage 1.04e-06 V\nchannel 16 voltage -2.42e-07 V\n"
+    }
+   ],
+   "source": [
+    "for channel in dac.channels:\n",
+    "    print('channel {} voltage {:.2e} V'.format(channel.chan_num, channel.v()))"
+   ]
+  },
+  {
+   "source": [
+    "## Set\n",
+    "We can set a voltage on a specific channel:"
+   ],
+   "cell_type": "markdown",
+   "metadata": {}
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 9,
+   "metadata": {
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "dac.ch04.v(0.5)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 10,
+   "metadata": {},
+   "outputs": [
+    {
+     "output_type": "execute_result",
+     "data": {
+      "text/plain": "0.50000014"
+     },
+     "metadata": {},
+     "execution_count": 10
+    }
+   ],
+   "source": [
+    "dac.ch04.v()"
+   ]
+  },
+  {
+   "source": [
+    "It is possible to set a voltage in a non synchroneous way:"
+   ],
+   "cell_type": "markdown",
+   "metadata": {}
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 12,
+   "metadata": {
+    "tags": []
+   },
+   "outputs": [
+    {
+     "output_type": "stream",
+     "name": "stdout",
+     "text": "0.50000014\n0.47945107\n0.45145621\n0.42344528\n0.39945953\n0.37142712\n0.34345707\n0.31545273\n0.29144462\n0.26346268\n"
+    }
+   ],
+   "source": [
+    "dac.ch04.output_mode('ramp')\n",
+    "dac.ch04.ramp_slope(0.00025)\n",
+    "dac.ch04.synchronous_enable(False)\n",
+    "dac.ch04.v(0.05)\n",
+    "for i in range(10):\n",
+    "    print(dac.ch04.v())\n",
+    "    time.sleep(0.1)"
+   ]
+  }
+ ]
+}
