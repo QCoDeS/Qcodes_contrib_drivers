@@ -1,7 +1,7 @@
 from .private.HMP import _RohdeSchwarzHMP
 
 
-class RohdeSchwarzHMP4040(_RohdeSchwarzHMP):
+class RohdeSchwarzHMP2030(_RohdeSchwarzHMP):
     """
     This is the qcodes driver for the Rohde & Schwarz HMP2030 Power Supply
     """
