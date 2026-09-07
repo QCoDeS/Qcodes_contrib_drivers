@@ -1,0 +1,2 @@
+Removed a stray time.sleep(5) call from the Keysight E5080B driver's class body.
+It ran once at import time rather than per instantiation, so it never served its intended purpose and only delayed loading the module.
