@@ -1,4 +1,4 @@
-from qcodes import Instrument, InstrumentChannel
+from qcodes.instrument import Instrument, InstrumentChannel
 import qcodes.parameters
 from qcodes.validators import Numbers, Enum, Ints
 from windfreak import SynthHD

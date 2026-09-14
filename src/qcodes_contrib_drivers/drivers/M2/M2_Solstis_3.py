@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import random
 import time
-from typing import Any, Sequence
+from typing import Any, Literal, Sequence
 
 from qcodes.instrument.ip import IPInstrument
 from qcodes.parameters import create_on_off_val_mapping
@@ -186,11 +186,11 @@ class M2Solstis3(IPInstrument):
         return answer['message']['parameters']
 
     def snapshot_base(
-            self, update: bool | None = False,
+            self, update: bool | Literal['All', 'Only_invalid', 'Never'] | None = False,
             params_to_skip_update: Sequence[str] | None = None
     ) -> dict[Any, Any]:
         snapshot = super().snapshot_base(update, params_to_skip_update)
         snapshot['controller_address'] = self._controller_address
-        if update and 'status' not in (params_to_skip_update or []):
+        if update in (True, 'All') and 'status' not in (params_to_skip_update or []):
             snapshot['status'] = self.get_status()
         return snapshot

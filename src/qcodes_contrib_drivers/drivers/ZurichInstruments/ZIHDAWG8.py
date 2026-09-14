@@ -5,7 +5,7 @@ import re
 import textwrap
 import time
 from functools import partial
-from typing import Any, List, Tuple, Union, Sequence, Dict, Optional
+from typing import Any, List, Literal, Tuple, Union, Sequence, Dict, Optional
 
 import numpy as np
 import zhinst.utils
@@ -64,7 +64,7 @@ class ZIHDAWG8(Instrument):
         self.warnings_as_errors: List[str] = []
         self._compiler_sleep_time = 0.01
 
-    def snapshot_base(self, update: Optional[bool] = True,
+    def snapshot_base(self, update: bool | Literal['All', 'Only_invalid', 'Never'] | None = True,
                       params_to_skip_update: Optional[Sequence[str]] = None
                       ) -> Dict:
         """ Override the base method to ignore 'feature_code' by default."""

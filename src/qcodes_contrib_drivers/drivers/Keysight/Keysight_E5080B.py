@@ -1,9 +1,8 @@
-import time
 from typing import Any
 
 import numpy as np
 from qcodes import validators as vals
-from qcodes import VisaInstrument
+from qcodes.instrument import VisaInstrument
 from qcodes.parameters import Parameter, create_on_off_val_mapping
 from qcodes.validators import Enum, Numbers
 
@@ -12,7 +11,6 @@ class KeySight_E5080B(VisaInstrument):
     """
     Qcodes driver for the Keysight E5080B Vector Network Analyzer
     """
-    time.sleep(5)  # Required sleep to ensure the instruments can start being queried
 
     def __init__(self, name: str, address: str, **kwargs: Any) -> None:
         super().__init__(name, address, terminator="\n", **kwargs)
