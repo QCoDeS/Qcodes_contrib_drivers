@@ -1,4 +1,3 @@
-import time
 from typing import Any
 
 import numpy as np
@@ -12,7 +11,6 @@ class KeySight_E5080B(VisaInstrument):
     """
     Qcodes driver for the Keysight E5080B Vector Network Analyzer
     """
-    time.sleep(5)  # Required sleep to ensure the instruments can start being queried
 
     def __init__(self, name: str, address: str, **kwargs: Any) -> None:
         super().__init__(name, address, terminator="\n", **kwargs)
