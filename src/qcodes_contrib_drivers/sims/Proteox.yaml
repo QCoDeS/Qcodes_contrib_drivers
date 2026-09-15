@@ -1,0 +1,289 @@
+# proteox.yaml
+spec: "1.1"
+
+devices:
+  proteox:
+    eom:
+      TCPIP SOCKET:
+        q: '\n'
+        r: '\n'
+
+    error: 'decs_visa_sim_ERROR'
+
+    dialogues:
+      - q: "*IDN?"
+        r: "QD - Oxford, DECS, decs-442a7b, 1.4.0.2338"
+      - q: "_get_field_data"
+        r: "0.00, 0.00, 12.00"
+
+    properties:
+
+      SAMPLE_T:
+        default: 0.005
+        getter:
+          q: "get_SAMPLE_T"
+          r: "{:+.8E}"
+        setter:
+          q: "set_SAMPLE_T:{:.6f}"
+        specs:
+          min: 0.003
+          max: 30
+          type: float
+
+      MC_T:
+        default: 0.005
+        getter:
+          q: "get_MC_T"
+          r: "{:+.8E}"
+        setter:
+          q: "set_MC_T:{:.6f}"
+        specs:
+          min: 0.003
+          max: 30
+          type: float
+
+      MC_T_SP:
+        default: 0.005
+        getter:
+          q: "get_MC_T_SP"
+          r: "{:+.8E}"
+        specs:
+          min: 0.003
+          max: 30
+          type: float
+
+      MC_H:
+        default: 0
+        getter:
+          q: "get_MC_H"
+          r: "{:+.8E}"
+        setter:
+          q: "set_MC_H:{:.6f}"
+        specs:
+          min: 0
+          max: 1
+          type: float
+
+      STILL_T:
+        getter:
+          q: "get_STILL_T"
+          r: "{RANDOM(0.7, 1, 1):.4f}"
+
+      STILL_H:
+        default: 0
+        getter:
+          q: "get_STILL_H"
+          r: "{:+.8E}"
+        setter:
+          q: "set_STILL_H:{:.6f}"
+        specs:
+          min: 0
+          max: 1
+          type: float
+
+      CP_T:
+        getter:
+          q: "get_CP_T"
+          r: "{RANDOM(0.06, 0.1, 1):.3f}"
+
+      SRB_T:
+        getter:
+          q: "get_SRB_T"
+          r: "{RANDOM(3, 6, 1):.3f}"
+
+      PT1_T:
+        getter:
+          q: "get_PT1_T1"
+          r: "{RANDOM(35, 65, 1):.3f}"
+
+      DRI_PT1_T:
+        getter:
+          q: "get_DR1_T"
+          r: "{RANDOM(35, 65, 1):.3f}"
+
+      PT2_T:
+        getter:
+          q: "get_PT2_T1"
+          r: "{RANDOM(2, 5, 1):.3f}"
+
+      DRI_PT2_T:
+        getter:
+          q: "get_DR2_T"
+          r: "{RANDOM(2, 5, 1):.3f}"
+
+      3He_F:
+        getter:
+          q: "get_3He_F"
+          r: "{RANDOM(2, 8, 1):.3f}"
+
+      OVC_P:
+        getter:
+          q: "get_OVC_P"
+          r: "{RANDOM(300, 101000, 1):.0f}"
+
+      P1_P:
+        getter:
+          q: "get_P1_P"
+          r: "{RANDOM(300, 101000, 1):.0f}"
+
+      P2_P:
+        getter:
+          q: "get_P2_P"
+          r: "{RANDOM(300, 101000, 1):.0f}"
+
+      P3_P:
+        getter:
+          q: "get_P3_P"
+          r: "{RANDOM(300, 101000, 1):.0f}"
+
+      P4_P:
+        getter:
+          q: "get_P4_P"
+          r: "{RANDOM(300, 101000, 1):.0f}"
+
+      P5_P:
+        getter:
+          q: "get_P5_P"
+          r: "{RANDOM(300, 101000, 1):.0f}"
+
+      P6_P:
+        getter:
+          q: "get_P6_P"
+          r: "{RANDOM(300, 101000, 1):.0f}"
+
+      MAG_T:
+        getter:
+          q: "get_MAG_T"
+          r: "{RANDOM(3, 7, 1):.3f}"
+
+      get_MAG_VEC:
+        default: "0.0,0.0,0.0"
+        getter:
+          q: "get_MAG_VEC"
+          r: "{}"
+
+      get_MAG_CURR_VEC:
+        default: "0.0,0.0,0.0"
+        getter:
+          q: "get_MAG_CURR_VEC"
+          r: "{}"
+
+      MAG_STATE:
+        default: '0'
+        getter:
+          q: "get_MAG_STATE"
+          r: "{}"
+        specs:
+          valid: ['0', '10', '20', '30', '40', '50', '60', '70']
+          type: str
+
+      DEMANDABLE_MAG_STATE:
+        default: '0'
+        setter:
+          q: "set_MAG_STATE:{}"
+          r: "{}"
+        specs:
+          valid: ['0', '10', '20', '30', '40']
+          type: str
+
+      MAG_X_STATE:
+        default: '0'
+        getter:
+          q: "get_MAG_X_STATE"
+          r: "{}"
+        setter:
+          q: "set_MAG_X_STATE:{}"
+        specs:
+          valid: ['0', '10', '20', '30', '40']
+          type: str
+
+      MAG_Y_STATE:
+        default: '0'
+        getter:
+          q: "get_MAG_Y_STATE"
+          r: "{}"
+        setter:
+          q: "set_MAG_Y_STATE:{}"
+        specs:
+          valid: ['0', '10', '20', '30', '40']
+          type: str
+
+      MAG_Z_STATE:
+        default: '0'
+        getter:
+          q: "get_MAG_Z_STATE"
+          r: "{}"
+        setter:
+          q: "set_MAG_Z_STATE:{}"
+        specs:
+          valid: ['0', '10', '20', '30', '40']
+          type: str
+
+      SWZ_STATE:
+        default: 0.0
+        getter:
+          q: "get_SWZ_STATE"
+          r: "{}"
+
+      get_3He_F:
+        default: 3.2
+        getter:
+          q: "get_3He_F"
+          r: "{}"
+
+      MC_H_OFF:
+        default: "0"
+        setter:
+          q: "set_MC_H_OFF:{}"
+          r: "OFF"
+        specs:
+          valid: ["0"]
+          type: str
+
+      STILL_H_OFF:
+        default: "0"
+        setter:
+          q: "set_STILL_H_OFF:{}"
+          r: "OFF"
+        specs:
+          valid: ["0"]
+          type: str
+
+      set_MAG_TARGET:
+        default: '0,0,0,0,20,0.3,false'
+        setter:
+          q: "set_MAG_TARGET:{}"
+        specs:
+          valid: ['0,0,0,0,20,0.3,false',
+                  '0,0,0,0,20,0.3,true',
+                  '0,0,0,0,10,0.3,false',
+                  '0,0,0,0,10,0.3,true',
+                  '0,0,0,0,0,0.3,false',
+                  '0,0,0,0,0,0.3,true',]
+          type: str
+
+      set_CURR_TARGET:
+        default: '0,0,0,20,0.3,false'
+        setter:
+          q: "set_CURR_TARGET:{}"
+        specs:
+          valid: ['0,0,0,20,0.3,false',
+                  '0,0,0,20,0.3,true',
+                  '0,0,0,10,0.3,false',
+                  '0,0,0,10,0.3,true',
+                  '0,0,0,0,0.3,false',
+                  '0,0,0,0,0.3,true',]
+          type: str
+
+      PUBLISH:
+        default: ""
+        setter:
+          q: "PUBLISH:{}"
+          r: "PUBLISHED"
+        specs:
+          type: str
+
+
+resources:
+  TCPIP0::127.0.0.1::33578::SOCKET:
+    device: proteox

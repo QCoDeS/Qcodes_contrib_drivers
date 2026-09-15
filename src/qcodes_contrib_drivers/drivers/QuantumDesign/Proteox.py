@@ -1,5 +1,5 @@
-"""  oi.DECS driver for Proteox dilution refrigerator systems  """
-""" Developed and maintained by Oxford Instruments NanoScience """
+"""  DECS driver for Proteox dilution refrigerator systems  """
+""" Developed and maintained by Quantum Design Oxford """
 
 from functools import partial
 from typing import Any, Union
@@ -11,19 +11,17 @@ import numpy as np
 from qcodes.instrument import VisaInstrument
 from qcodes.parameters import MultiParameter
 
-from qcodes_contrib_drivers.drivers.OxfordInstruments._decsvisa.src.decs_visa_tools.decs_visa_settings import PORT, HOST, SHUTDOWN, WRITE_DELIM
+from qcodes_contrib_drivers.drivers.QuantumDesign._decsvisa.src.decs_visa_tools.decs_visa_settings import PORT
+from qcodes_contrib_drivers.drivers.QuantumDesign._decsvisa.src.decs_visa_tools.decs_visa_settings import HOST
+from qcodes_contrib_drivers.drivers.QuantumDesign._decsvisa.src.decs_visa_tools.decs_visa_settings import SHUTDOWN
+from qcodes_contrib_drivers.drivers.QuantumDesign._decsvisa.src.decs_visa_tools.decs_visa_settings import WRITE_DELIM
+
+
 '''
 
     Please see the README.md file in this directory for setup instructions.
 
 '''
-
-#############################################
-#    Configuration settings required     #
-#############################################
-
-# supply the file path from your working directory to the decs_visa.py file
-decs_visa_path = "../../src/qcodes_contrib_drivers/drivers/OxfordInstruments/_decsvisa/src/decs_visa.py"
 
 #############################################
 #    System configuration settings     #
@@ -38,11 +36,11 @@ SYSTEM_HAS_MAGNET=True
 MAGNET_HAS_SWITCH=False
 
 # Dual PTR (ProteoxLX) system:
-DUAL_PTRS_FITTED=False # not currently used
+DUAL_PTRS_FITTED=False
 
 # Does the system have the < 5mK; > 900 uW
 # dilution unit installed
-DUAL_TURBO_FITTED=False # not currently used
+DUAL_TURBO_FITTED=False
 
 # Does the system have a 3He flow meter
 HE3_FLOW_METER_FITTED=False
@@ -81,7 +79,7 @@ class MagneticFieldParameters(MultiParameter):
         """
         Gets the values of magnetic field from the instrument
         """
-        assert isinstance(self.instrument, oiDECS)
+        assert isinstance(self.instrument, DECS)
         #Bx, By, Bz = self.instrument._get_field_data()
         return self.instrument._get_field_data()
 
@@ -122,7 +120,7 @@ class MagnetCurrentParameters(MultiParameter):
         """
         Gets the values of magnet current from the instrument
         """
-        assert isinstance(self.instrument, oiDECS)
+        assert isinstance(self.instrument, DECS)
         #Ix, Iy, Iz = self.instrument._get_field_current_data()
         return self.instrument._get_field_current_data()
 
@@ -132,21 +130,26 @@ class MagnetCurrentParameters(MultiParameter):
         """
         print("*** Current cannot be set directly with this function ***")
 
-class oiDECS(VisaInstrument):
-    """ Main implementation of the oi.DECS driver """
-    def __init__(self, name, **kwargs):
+class DECS(VisaInstrument):
+    """ Main implementation of the DECS driver """
+    def __init__(self, name, decs_visa_path, **kwargs):
+        """
+        name (str): instrument name e.g. 'Proteox'
+        decs_visa_path (str): supply the file path from your working directory to the decs_visa.py file
+        """
 
         running_on = platform.platform()
         if running_on.startswith("Windows"):
             print(f"Running on {running_on} - start subprocess without PIPEd output")
-            subprocess.Popen(["python", decs_visa_path])
+            subprocess.Popen(["python", decs_visa_path]) # comment out to use simulated instrument in /qcodes/instrument/sims/ directory
         else:
             print(f"Running on {running_on} - start subprocess with PIPEd output")
-            subprocess.Popen(["python3", decs_visa_path], stdout=subprocess.PIPE)
+            subprocess.Popen(["python3", decs_visa_path], stdout=subprocess.PIPE) # comment out to use simulated instrument in /qcodes/instrument/sims/ directory
 
         time.sleep(1)
 
-        super().__init__(name, f'TCPIP::{HOST}::{PORT}::SOCKET', terminator=WRITE_DELIM, **kwargs)
+        #super().__init__(name, 'TCPIP0::127.0.0.1::33578::SOCKET', terminator="\n", **kwargs) # for using simulated instrument in /qcodes/instrument/sims/ directory
+        super().__init__(name, f'TCPIP::{HOST}::{PORT}::SOCKET', terminator=WRITE_DELIM, **kwargs) # for real DECS system with DECSVISA, comment out to use simulated instrument in /qcodes/instrument/sims/ directory
 
         self.add_parameter(
             "PT1_Head_Temperature",
@@ -348,6 +351,7 @@ class oiDECS(VisaInstrument):
                 name = "Magnet_Current_Vector",
                 parameter_class=MagnetCurrentParameters,
             )
+
             # qcodes can't use multiparameters as setpoint, this dummy bypasses it.
             self.add_parameter(
                 name='Bx',
@@ -374,15 +378,13 @@ class oiDECS(VisaInstrument):
                 get_parser=None
             )
 
-
-
             if MAGNET_HAS_SWITCH:
                 self.add_parameter(
                     "Switch_State",
                     label=name,
                     get_cmd="get_SWZ_STATE",
-                    get_parser=float,
-                    val_mapping={'OPEN': 1.0, 'CLOSED': 0.0}
+                    get_parser=str,
+                    val_mapping={'OPEN': '1.0', 'CLOSED': '0.0'}
                 )
 
         self.connect_message()
@@ -423,7 +425,7 @@ class oiDECS(VisaInstrument):
                 self._param_setter('set_MAG_TARGET', param)
             case _:
                 print('Incorrect inputs.')
-                print('[x,y,z,mode,rate,persist_on_completion]')
+                print('[coord,x,y,z,mode,rate,persist_on_completion]')
 
 
     def set_output_current_target(self, x, y, z, sweep_mode, sweep_rate, persist_on_completion):
@@ -525,10 +527,10 @@ class oiDECS(VisaInstrument):
 
     def wait_until_field_stable_timeout(self,timeout=600):
         """VRM utility function.
-        Takes timeout in seconds, switches magnet to hold in timeout*1.1 +10s.
-        Default is 10min"""
+        Takes timeout in seconds, switches magnet to hold in timeout*1.1 + 10 s.
+        Default for timeout is 10min"""
         start=time.time()
-        tout=timeout*1.1+10
+        tout=timeout*1.1 + 10
         status=self.Magnet_State()
         while status != 'Holding Not Persistent':
             status=self.Magnet_State()
@@ -623,5 +625,5 @@ class oiDECS(VisaInstrument):
 
     def close(self) -> None:
         # Kill off the WAMP and socket connections
-        self.write(SHUTDOWN)
+        self.write(SHUTDOWN) # comment out to use simulated instrument in /qcodes/instrument/sims/ directory
         return super().close()

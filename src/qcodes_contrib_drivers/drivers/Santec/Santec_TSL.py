@@ -3,8 +3,8 @@
 from typing import TYPE_CHECKING
 
 import numpy as np
-from qcodes import validators as vals, VisaInstrument
-from qcodes.instrument import InstrumentBaseKWArgs
+from qcodes import validators as vals
+from qcodes.instrument import InstrumentBaseKWArgs, VisaInstrument
 from qcodes.parameters import Parameter, create_on_off_val_mapping
 
 if TYPE_CHECKING:

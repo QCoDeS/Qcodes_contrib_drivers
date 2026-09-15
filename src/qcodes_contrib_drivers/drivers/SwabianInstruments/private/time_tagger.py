@@ -7,7 +7,7 @@ import sys
 import warnings
 from collections.abc import Callable, Sequence, Collection
 from pathlib import Path
-from typing import Any, TypeVar
+from typing import Any, Literal, TypeVar
 
 import numpy as np
 import numpy.typing as npt
@@ -285,7 +285,7 @@ class TimeTaggerInstrumentBase(InstrumentBase, metaclass=abc.ABCMeta):
     def api(self):
         pass
 
-    def snapshot_base(self, update: bool | None = False,
+    def snapshot_base(self, update: bool | Literal['All', 'Only_invalid', 'Never'] | None = False,
                       params_to_skip_update: Sequence[str] | None = None) -> dict[Any, Any]:
         key = f'{self.__class__.__qualname__} API configuration'
         try:

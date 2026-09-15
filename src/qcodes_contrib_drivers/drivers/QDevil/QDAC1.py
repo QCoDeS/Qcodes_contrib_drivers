@@ -7,7 +7,7 @@ import time
 from collections import namedtuple
 from enum import Enum
 from functools import partial
-from typing import Any, Dict, Optional, Sequence, Tuple, Union
+from typing import Any, Dict, Literal, Optional, Sequence, Tuple, Union
 
 import pyvisa
 import pyvisa.constants
@@ -138,11 +138,11 @@ class QDacChannel(InstrumentChannel):
 
     def snapshot_base(
             self,
-            update: Optional[bool] = False,
+            update: bool | Literal['All', 'Only_invalid', 'Never'] | None = False,
             params_to_skip_update: Optional[Sequence[str]] = None
     ) -> Dict[Any, Any]:
         update_currents = self._parent._update_currents and update
-        if update and not self._parent._get_status_performed:
+        if update in (True, 'All') and not self._parent._get_status_performed:
             self._parent._update_cache(update_currents=update_currents)
         # call update_cache rather than getting the status individually for
         # each parameter. This is only done if _get_status_performed is False
@@ -421,11 +421,11 @@ class QDac(VisaInstrument):
 
     def snapshot_base(
             self,
-            update: Optional[bool] = False,
+            update: bool | Literal['All', 'Only_invalid', 'Never'] | None = False,
             params_to_skip_update: Optional[Sequence[str]] = None
     ) -> Dict[Any, Any]:
         update_currents = self._update_currents and update is True
-        if update:
+        if update in (True, 'All'):
             self._update_cache(update_currents=update_currents)
             self._get_status_performed = True
         # call _update_cache rather than getting the status individually for

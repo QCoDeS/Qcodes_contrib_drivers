@@ -8,7 +8,7 @@ A documentation notebook is in the docs/examples/ directory.
 import numpy as np
 from typing import Any, Dict
 
-from qcodes import Instrument
+from qcodes.instrument import Instrument
 from qcodes.parameters import ParameterWithSetpoints
 from qcodes.validators import Arrays, Enum
 
