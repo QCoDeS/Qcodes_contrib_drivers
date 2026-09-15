@@ -5,10 +5,9 @@ import matplotlib.pyplot as plt
 import json
 import re
 import qcodes as qc
-from enum import auto
-from strenum import StrEnum
+from enum import auto, StrEnum
 from qcodes.instrument import VisaInstrument, InstrumentModule
-from qcodes import Parameter
+from qcodes.parameters import Parameter
 from qcodes.validators import Ints, Numbers, MultiTypeOr, Enum, Bool
 from types import SimpleNamespace
 from typing import Union, Any, Optional
