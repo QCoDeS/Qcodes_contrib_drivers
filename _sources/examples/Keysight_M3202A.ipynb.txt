@@ -1,0 +1,276 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Keysight M3202A AWG"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "The Keysight M3202A is a 1 GSa/a arbitrary waveform generator.\n",
+    "\n",
+    "An instance of M3202A represents a module with 4 output channels. The channels of one module share the uploaded waveforms and trigers.\n",
+    "\n",
+    "This example loads loads waveforms in AWGs in slots 2 and 3 of chassis 0."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import logging\n",
+    "\n",
+    "import numpy as np\n",
+    "\n",
+    "try:\n",
+    "    import keysightSD1\n",
+    "except:\n",
+    "    # add the path where the keysight library probably resides and try again\n",
+    "    import sys\n",
+    "    sys.path.append(r'C:\\Program Files (x86)\\Keysight\\SD1\\Libraries\\Python')\n",
+    "    import keysightSD1\n",
+    "\n",
+    "import qcodes\n",
+    "from qcodes_contrib_drivers.drivers.Keysight.M3202A import M3202A\n",
+    "\n",
+    "import qcodes.logger as logger\n",
+    "from qcodes.logger import start_all_logging\n",
+    "\n",
+    "start_all_logging()\n",
+    "# logger.get_file_handler().setLevel(logging.DEBUG)\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# try to close station from previous run.\n",
+    "try:\n",
+    "    station.close_all_registered_instruments()\n",
+    "except: pass"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Demonstration of some errors\n",
+    "try:\n",
+    "    wrong_chassis = M3202A(\"wrong chassis\", chassis = 5, slot = 16)\n",
+    "except Exception as e: \n",
+    "    print('Expected failure:', e)\n",
+    "    \n",
+    "try:\n",
+    "    empty_slot = M3202A(\"empty_slot\", chassis = 0, slot = 16)\n",
+    "except Exception as e: \n",
+    "    print('Expected failure:', e)\n",
+    "\n",
+    "try:\n",
+    "    not_M3202A = M3202A(\"Digitizer\", chassis = 0, slot = 5)\n",
+    "except Exception as e: \n",
+    "    print('Expected failure:', e)   "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "awg1 = M3202A(\"AWG1\", chassis = 0, slot = 2)\n",
+    "awg2 = M3202A(\"AWG2\", chassis = 0, slot = 3)\n",
+    "\n",
+    "station = qcodes.Station()\n",
+    "\n",
+    "station.add_component(awg1)\n",
+    "station.add_component(awg2)\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# utility functions to create waveforms\n",
+    "\n",
+    "def get_divider(prescaler):\n",
+    "    if prescaler == 0:\n",
+    "        divider = 1\n",
+    "    elif prescaler == 1:\n",
+    "        divider = 5\n",
+    "    else:\n",
+    "        divider = prescaler * 10\n",
+    "        \n",
+    "    return divider\n",
+    "\n",
+    "def create_sawtooth(period, repetition, prescaler):\n",
+    "    divider = get_divider(prescaler)\n",
+    "    n_pts = period // divider\n",
+    "    w = np.linspace(-1, 1, n_pts)\n",
+    "    w = np.tile(w, repetition)\n",
+    "    \n",
+    "    if len(w) < 2000:\n",
+    "        raise Exception('not enough data')\n",
+    "    \n",
+    "    return w\n",
+    "\n",
+    "def create_sine(period, repetition, prescaler):\n",
+    "    divider = get_divider(prescaler)\n",
+    "    n_pts = repetition * period // divider\n",
+    "    phi = np.linspace(0, np.pi*2*repetition, n_pts)\n",
+    "    w = np.sin(phi)\n",
+    "    \n",
+    "    if len(w) < 2000:\n",
+    "        raise Exception('not enough data')\n",
+    "        \n",
+    "    return w\n",
+    "    "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# setup output channels\n",
+    "\n",
+    "pxi1 = keysightSD1.SD_TriggerExternalSources.TRIGGER_PXI1\n",
+    "trigger_mode = keysightSD1.SD_TriggerBehaviors.TRIGGER_FALL\n",
+    "\n",
+    "for awg in [awg1, awg2]:\n",
+    "    for ch in range(1,5):       \n",
+    "        awg.set_channel_offset(0.0, ch)\n",
+    "        awg.set_channel_amplitude(1.0, ch)\n",
+    "        \n",
+    "        awg.set_channel_wave_shape(keysightSD1.SD_Waveshapes.AOU_AWG, ch)\n",
+    "        awg.awg_queue_config(ch, keysightSD1.SD_QueueMode.CYCLIC)\n",
+    "        awg.awg_config_external_trigger(ch, pxi1, trigger_mode)\n",
+    "\n",
+    "awg2.amplitude_channel_1.set(0.5)\n",
+    "awg2.offset_channel_2.set(0.5)\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Generate and enqueue waveforms\n",
+    "Signal duration 20 us:\n",
+    "* \"AWG1.1\": 20x sawtooth (followed by zeros)\n",
+    "* \"AWG1.2\": 20 steps (followed by zeros)\n",
+    "* \"AWG2.3\": 2 us zero, 4 us sine, 2 us zero, 12 us sine\n",
+    "* \"AWG2.4\": 4 us sine, 4 us zero, 8 us sine, 4 us zero\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "prescaler_1GSa = 0\n",
+    "prescaler_200MSa = 1\n",
+    "prescaler_50MSa = 2\n",
+    "\n",
+    "# 2000 zero's for end\n",
+    "zeros = np.zeros(2000)\n",
+    "\n",
+    "# sawtooth period = 1 us: 2 period in 1 sample\n",
+    "sawtooth_2us = 0.5 * create_sawtooth(1000, 2, prescaler_1GSa)\n",
+    "# 20 steps use prescaler to reduce total number of samples. 200MSa/s => 4000 pts; 200 per step\n",
+    "steps = np.concatenate([0.02*i*np.ones(200) for i in range(20)])\n",
+    "\n",
+    "# sine wave 2 MHz, 4 periods\n",
+    "sine = 0.6 * create_sine(500, 4, prescaler_1GSa)\n",
+    "\n",
+    "# start all uploads\n",
+    "zeros_awg1 = awg1.upload_waveform(zeros)\n",
+    "sawtooth_2us_awg1 = awg1.upload_waveform(sawtooth_2us)\n",
+    "steps_awg1 = awg1.upload_waveform(steps)\n",
+    "\n",
+    "zeros_awg2 = awg2.upload_waveform(zeros)\n",
+    "sine_awg2 = awg2.upload_waveform(sine)\n",
+    "\n",
+    "# enqueue wave references\n",
+    "delay = 0\n",
+    "ext_trigger = keysightSD1.SD_TriggerModes.EXTTRIG\n",
+    "auto_trigger = keysightSD1.SD_TriggerModes.AUTOTRIG\n",
+    "\n",
+    "awg1.awg_queue_waveform(1, sawtooth_2us_awg1, ext_trigger, delay, 10, prescaler_1GSa)\n",
+    "awg1.awg_queue_waveform(1, zeros_awg1, auto_trigger, delay, 1, prescaler_1GSa)\n",
+    "\n",
+    "awg1.awg_queue_waveform(2, steps_awg1, ext_trigger, delay, 1, prescaler_200MSa)\n",
+    "awg1.awg_queue_waveform(2, zeros_awg1, auto_trigger, delay, 1, prescaler_1GSa)\n",
+    "\n",
+    "awg2.awg_queue_waveform(3, zeros_awg2, ext_trigger, delay, 1, prescaler_1GSa)\n",
+    "awg2.awg_queue_waveform(3, sine_awg2, auto_trigger, delay, 2, prescaler_1GSa)\n",
+    "awg2.awg_queue_waveform(3, zeros_awg2, auto_trigger, delay, 1, prescaler_1GSa)\n",
+    "awg2.awg_queue_waveform(3, sine_awg2, auto_trigger, delay, 6, prescaler_1GSa)\n",
+    "\n",
+    "awg2.awg_queue_waveform(4, sine_awg2, ext_trigger, delay, 2, prescaler_1GSa)\n",
+    "awg2.awg_queue_waveform(4, zeros_awg2, auto_trigger, delay, 2, prescaler_1GSa)\n",
+    "awg2.awg_queue_waveform(4, sine_awg2, auto_trigger, delay, 4, prescaler_1GSa)\n",
+    "awg2.awg_queue_waveform(4, zeros_awg2, auto_trigger, delay, 2, prescaler_1GSa)\n",
+    "\n",
+    "# start AWGs. They will wait for external trigger.\n",
+    "awg1.awg_start_multiple(0b0011)\n",
+    "awg2.awg_start_multiple(0b1100)\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Trigger AWGs"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# start AWGs via PXI\n",
+    "# Note: PXI trigger can be set via any module\n",
+    "awg1.set_pxi_trigger(0, pxi1)\n",
+    "awg1.set_pxi_trigger(1, pxi1)\n"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3 (Spyder)",
+   "language": "python3",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.6.10"
+  },
+  "nbsphinx": {
+   "execute": "never"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2
+}

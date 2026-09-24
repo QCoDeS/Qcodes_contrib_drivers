@@ -1,0 +1,152 @@
+{
+ "metadata": {
+  "nbsphinx": {
+   "execute": "never"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.7.7-final"
+  },
+  "orig_nbformat": 2,
+  "kernelspec": {
+   "name": "python_defaultSpec_1598432321198",
+   "display_name": "Python 3.7.7 64-bit ('python37': conda)"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2,
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Example with the Agilent N9000A"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Import"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "metadata": {
+    "tags": []
+   },
+   "outputs": [
+    {
+     "output_type": "stream",
+     "name": "stdout",
+     "text": "Logging hadn't been started.\nActivating auto-logging. Current session state plus future input saved.\nFilename       : C:\\Users\\ed261978\\.qcodes\\logs\\command_history.log\nMode           : append\nOutput logging : True\nRaw input log  : False\nTimestamping   : True\nState          : active\nQcodes Logfile : C:\\Users\\ed261978\\.qcodes\\logs\\200826-14764-qcodes.log\n"
+    }
+   ],
+   "source": [
+    "import qcodes as qc\n",
+    "from qcodes_contrib_drivers.drivers.Agilent.Agilent_N9000A import Agilent_N9000A"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Load instrument\n",
+    "\n",
+    "Here the import is done by USB"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 10,
+   "metadata": {
+    "tags": []
+   },
+   "outputs": [
+    {
+     "output_type": "stream",
+     "name": "stdout",
+     "text": "Connected to: Agilent Technologies N9000A (serial:MY49370329, firmware:A.04.26) in 0.27s\n"
+    }
+   ],
+   "source": [
+    "psa = Agilent_N9000A('agilent', 'USB0::0x0957::0x0E0B::MY49370329::INSTR')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Initiallization"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 11,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "psa.rf_center_frequency(2) # In GHz\n",
+    "psa.resolution_bandwidth(0.2) # In MHz\n",
+    "psa.video_bandwidth(0.2) # In MHz"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Measurement"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 12,
+   "metadata": {
+    "tags": []
+   },
+   "outputs": [
+    {
+     "output_type": "stream",
+     "name": "stdout",
+     "text": "Power at 1 GHz:  -60.29117031  dBm\n"
+    }
+   ],
+   "source": [
+    "print('Power at 1 GHz: ', psa.power(), ' dBm')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 13,
+   "metadata": {
+    "tags": []
+   },
+   "outputs": [
+    {
+     "output_type": "stream",
+     "name": "stdout",
+     "text": "Power spectral density at 1 GHz:  -123.5143635  dBm/Hz\n"
+    }
+   ],
+   "source": [
+    "print('Power spectral density at 1 GHz: ', psa.power_spectral_density(), ' dBm/Hz')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ]
+}
