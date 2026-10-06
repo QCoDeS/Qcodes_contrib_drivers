@@ -1,50 +1,35 @@
-from qcodes.validators import ComplexNumbers
-from qcodes.parameters import ParamRawDataType, Parameter
-from typing import Any, Optional
-from zhinst.qcodes import MFLI as mfli
+"""Zurich MFLI with scalar and coherent QCoDeS lock-in readouts."""
+
+from typing import Any
+
+from zhinst.qcodes import MFLI as VendorMFLI
+
+from ._lockin import ComplexSampleParameter as ComplexSampleParameter, LockinMixin
 
 
-class ComplexSampleParameter(Parameter):
-    """
-    This defines a Complex Sample Parameter for use in the MFLI class.
-    """
-    def __init__(
-        self,
-        *args: Any,
-        dict_parameter: Optional[Parameter] = None,
-        **kwargs: Any
-    ):
-        super().__init__(*args, **kwargs)
-        if dict_parameter is None:
-            raise TypeError("ComplexSampleParameter requires a dict_parameter")
-        self._dict_parameter = dict_parameter
+class MFLI(LockinMixin, VendorMFLI):
+    """Extend the vendor MFLI driver without changing instrument configuration.
 
-    def get_raw(self) -> ParamRawDataType:
-        values_dict = self._dict_parameter.get()
-        x = values_dict["x"]
-        y = values_dict["y"]
-        if hasattr(x, "__len__"):
-            return complex(x[0], y[0])
-        return complex(x,y)
+    The base instrument's measurement demodulator, ``demods[0]``, gains ``x``,
+    ``y``, ``r``, ``theta`` (degrees), and coherent ``readout`` parameters.
+    ``sample`` and the existing ``complex_sample`` interface are retained.
+    Core controls and LabOne modules remain accessible through the vendor API.
 
-class MFLI(mfli):
+    Args:
+        name: QCoDeS instrument name.
+        serial: Device serial, for example ``"dev7920"``.
+        host: LabOne data-server address, for example ``"localhost"``.
+        **kwargs: Passed to ``zhinst.qcodes.MFLI`` (port, interface, etc.).
     """
-    This wrapper adds back a "complex sample" parameter to the demodulators
-    such that we can use them in the way that it was done with "sample"
-    parameter in version 0.2 of ZHINST-qcodes
-    written by jenshnielsen: https://github.com/zhinst/zhinst-qcodes/issues/41
-    """
+
+    _lockin_model = "MFLI"
+    _measurement_demodulators = (0,)
+    _output_mixers = (1,)
 
     def __init__(self, name: str, serial: str, host: str, **kwargs: Any):
-        super().__init__(
-            name=name, serial=serial, host=host, **kwargs
-        )
-        for demod in self.demods:
-            demod.add_parameter(
-                "complex_sample",
-                label="Vrms",
-                vals=ComplexNumbers(),
-                parameter_class=ComplexSampleParameter,
-                dict_parameter=demod.sample,
-                snapshot_value=False,
-            )
+        super().__init__(name=name, serial=serial, host=host, **kwargs)
+        try:
+            self._initialize_lockin()
+        except Exception:
+            self.close()
+            raise
