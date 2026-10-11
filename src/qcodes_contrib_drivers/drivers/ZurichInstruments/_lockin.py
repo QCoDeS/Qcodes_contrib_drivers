@@ -97,6 +97,50 @@ class _ReadoutParameter(MultiParameter):
         return self._reader.read()
 
 
+class _PolarReadoutParameter(MultiParameter):
+    """R and Theta derived from one fresh demodulator sample."""
+
+    def __init__(self, name: str, *, reader: "_DemodulatorReadout", **kwargs: Any):
+        self._reader = reader
+        super().__init__(
+            name,
+            names=("readout_r", "readout_theta"),
+            labels=("R", "Theta"),
+            shapes=((), ()),
+            setpoints=((), ()),
+            units=("", "deg"),
+            snapshot_get=False,
+            snapshot_value=False,
+            **kwargs,
+        )
+
+    def get_raw(self) -> tuple[float, float]:
+        _, _, r, theta = self._reader.read()
+        return r, theta
+
+
+class _XYReadoutParameter(MultiParameter):
+    """X and Y from one fresh demodulator sample."""
+
+    def __init__(self, name: str, *, reader: "_DemodulatorReadout", **kwargs: Any):
+        self._reader = reader
+        super().__init__(
+            name,
+            names=("readout_x", "readout_y"),
+            labels=("X", "Y"),
+            shapes=((), ()),
+            setpoints=((), ()),
+            units=("", ""),
+            snapshot_get=False,
+            snapshot_value=False,
+            **kwargs,
+        )
+
+    def get_raw(self) -> tuple[float, float]:
+        x, y, _, _ = self._reader.read()
+        return x, y
+
+
 class _DemodulatorReadout:
     def __init__(self, instrument: "LockinMixin", index: int):
         self.instrument = instrument
@@ -144,7 +188,13 @@ class _DemodulatorReadout:
         combined = self.channel.readout
         combined.units = units
         combined.cache.invalidate()
-        for parameter in [*self.parameters, combined]:
+        polar = self.channel.readout_polar
+        polar.units = units[2:]
+        polar.cache.invalidate()
+        xy = self.channel.readout_xy
+        xy.units = units[:2]
+        xy.cache.invalidate()
+        for parameter in [*self.parameters, combined, polar, xy]:
             parameter.metadata.update(
                 signal_source=configuration[0],
                 input_scaling=configuration[1],
@@ -269,6 +319,12 @@ class LockinMixin:
                 reader.parameters.append(demod.parameters[name])
             demod.add_parameter(
                 "readout", parameter_class=_ReadoutParameter, reader=reader
+            )
+            demod.add_parameter(
+                "readout_polar", parameter_class=_PolarReadoutParameter, reader=reader
+            )
+            demod.add_parameter(
+                "readout_xy", parameter_class=_XYReadoutParameter, reader=reader
             )
             reader.configure(initial=True)
 
