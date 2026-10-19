@@ -12,8 +12,13 @@ class UHFLI(LockinMixin, VendorUHFLI):
 
     Each of ``demods[0]`` through ``demods[7]`` gains ``x``, ``y``, ``r``,
     ``theta`` (degrees), coherent ``readout``, and ``complex_sample`` parameters.
+    ``demods[0].readout("r", "theta")`` selects a MultiParameter for a dataset;
+    calling ``demods[0].readout()`` still reads all four quantities.
     Readout rejects disabled channels and channels used for external reference.
     Core controls and LabOne modules remain accessible through the vendor API.
+    ``configure_trace(duration=...)`` prepares a time trace; supplying
+    ``sweep_parameter``, ``start`` and ``stop`` prepares a parameter sweep.
+    Both return a trace parameter for ``do0d`` or ``do1d``.
 
     Args:
         name: QCoDeS instrument name.

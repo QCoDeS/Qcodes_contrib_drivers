@@ -12,8 +12,13 @@ class MFLI(LockinMixin, VendorMFLI):
 
     The base instrument's measurement demodulator, ``demods[0]``, gains ``x``,
     ``y``, ``r``, ``theta`` (degrees), and coherent ``readout`` parameters.
+    ``demods[0].readout("r", "theta")`` selects a MultiParameter for a dataset;
+    calling ``demods[0].readout()`` still reads all four quantities.
     ``sample`` and the existing ``complex_sample`` interface are retained.
     Core controls and LabOne modules remain accessible through the vendor API.
+    ``configure_trace(duration=...)`` prepares a time trace; supplying
+    ``sweep_parameter``, ``start`` and ``stop`` prepares a parameter sweep.
+    Both return a trace parameter for ``do0d`` or ``do1d``.
 
     Args:
         name: QCoDeS instrument name.
