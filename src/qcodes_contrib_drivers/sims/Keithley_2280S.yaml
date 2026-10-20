@@ -1,0 +1,575 @@
+# Fixed measurement replies; acquisition sequencing is tested with mocks.
+# The 60-3 resource provides IDN only for model/validator tests.
+spec: '1.0'
+devices:
+  32-6:
+    eom:
+      GPIB INSTR:
+        q: "\n"
+        r: "\n"
+    dialogues:
+    - q: '*IDN?'
+      r: KEITHLEY INSTRUMENTS,MODEL 2280S-32-6,SIM0001,01.07b
+    - q: '*OPC?'
+      r: '1'
+    - q: :SYST:ERR?
+      r: 0,"No error"
+    - q: :MEAS:VOLT?
+      r: '+5.000000E-02'
+    - q: :MEAS:CURR?
+      r: '+1.500000E-06'
+    - q: :MEAS:CONC?
+      r: +1.500000E-06,+5.000000E-02
+    - q: '*TST?'
+      r: '0'
+    properties:
+      source_voltage:
+        default: 0.0
+        getter:
+          q: :SOUR:VOLT?
+          r: '{}'
+        setter:
+          q: :SOUR:VOLT {}
+        specs:
+          type: float
+      source_current:
+        default: 0.1
+        getter:
+          q: :SOUR:CURR?
+          r: '{}'
+        setter:
+          q: :SOUR:CURR {}
+        specs:
+          type: float
+      voltage_limit:
+        default: 32.0
+        getter:
+          q: :SOUR:VOLT:LIM?
+          r: '{}'
+        setter:
+          q: :SOUR:VOLT:LIM {}
+        specs:
+          type: float
+      output:
+        default: 0
+        getter:
+          q: :OUTP?
+          r: '{}'
+        setter:
+          q: :OUTP {}
+        specs:
+          type: int
+      voltage_protection:
+        default: 33.0
+        getter:
+          q: :SOUR:VOLT:PROT?
+          r: '{}'
+        setter:
+          q: :SOUR:VOLT:PROT {}
+        specs:
+          type: float
+      current_protection:
+        default: 6.1
+        getter:
+          q: :SOUR:CURR:PROT?
+          r: '{}'
+        setter:
+          q: :SOUR:CURR:PROT {}
+        specs:
+          type: float
+      source_delay:
+        default: 0.001
+        getter:
+          q: :SOUR:DEL?
+          r: '{}'
+        setter:
+          q: :SOUR:DEL {}
+        specs:
+          type: float
+      source_delay_enabled:
+        default: 1
+        getter:
+          q: :SOUR:DEL:STAT?
+          r: '{}'
+        setter:
+          q: :SOUR:DEL:STAT {}
+        specs:
+          type: int
+      autozero:
+        default: 1
+        getter:
+          q: :SYST:AZER?
+          r: '{}'
+        setter:
+          q: :SYST:AZER {}
+        specs:
+          type: int
+      arm_count:
+        default: 1
+        getter:
+          q: :ARM:COUN?
+          r: '{}'
+        setter:
+          q: :ARM:COUN {}
+        specs:
+          type: int
+      arm_source:
+        default: IMM
+        getter:
+          q: :ARM:SOUR?
+          r: '{}'
+        setter:
+          q: :ARM:SOUR {}
+        specs:
+          type: str
+      trigger_count:
+        default: 1
+        getter:
+          q: :TRIG:COUN?
+          r: '{}'
+        setter:
+          q: :TRIG:COUN {}
+        specs:
+          type: int
+      trigger_source:
+        default: IMM
+        getter:
+          q: :TRIG:SOUR?
+          r: '{}'
+        setter:
+          q: :TRIG:SOUR {}
+        specs:
+          type: str
+      sample_count:
+        default: 1
+        getter:
+          q: :TRIG:SAMP:COUN?
+          r: '{}'
+        setter:
+          q: :TRIG:SAMP:COUN {}
+        specs:
+          type: int
+      continuous:
+        default: 0
+        getter:
+          q: :INIT:CONT?
+          r: '{}'
+        setter:
+          q: :INIT:CONT {}
+        specs:
+          type: int
+      brightness:
+        default: 100
+        getter:
+          q: :DISP:BRIG?
+          r: '{}'
+        setter:
+          q: :DISP:BRIG {}
+        specs:
+          type: int
+      gpib_address:
+        default: 5
+        getter:
+          q: :SYST:GPIB:ADDR?
+          r: '{}'
+        setter:
+          q: :SYST:GPIB:ADDR {}
+        specs:
+          type: int
+      buffer_size:
+        default: 100
+        getter:
+          q: :TRAC:POIN?
+          r: '{}'
+        setter:
+          q: :TRAC:POIN {}
+        specs:
+          type: int
+      buffer_feed:
+        default: SENS
+        getter:
+          q: :TRAC:FEED?
+          r: '{}'
+        setter:
+          q: :TRAC:FEED {}
+        specs:
+          type: str
+      buffer_feed_control:
+        default: ALW
+        getter:
+          q: :TRAC:FEED:CONT?
+          r: '{}'
+        setter:
+          q: :TRAC:FEED:CONT {}
+        specs:
+          type: str
+      buffer_autoclear:
+        default: 0
+        getter:
+          q: :TRAC:CLE:AUTO?
+          r: '{}'
+        setter:
+          q: :TRAC:CLE:AUTO {}
+        specs:
+          type: int
+      calculate_format:
+        default: MIN,MAX,MEAN,SDEV,PKPK
+        getter:
+          q: :CALC2:FORM?
+          r: '{}'
+        setter:
+          q: :CALC2:FORM {}
+        specs:
+          type: str
+      calculate_function:
+        default: CURR
+        getter:
+          q: :CALC2:FUNC?
+          r: '{}'
+        setter:
+          q: :CALC2:FUNC {}
+        specs:
+          type: str
+      calculate_enabled:
+        default: 0
+        getter:
+          q: :CALC2:STAT?
+          r: '{}'
+        setter:
+          q: :CALC2:STAT {}
+        specs:
+          type: int
+      function:
+        default: CONC:DC
+        getter:
+          q: :SENS:FUNC?
+          r: '"{}"'
+        setter:
+          q: :SENS:FUNC "{}"
+        specs:
+          type: str
+      data_format:
+        default: READ,SOUR,UNIT,REL
+        getter:
+          q: :FORM:ELEM?
+          r: '"{}"'
+        setter:
+          q: :FORM:ELEM "{}"
+        specs:
+          type: str
+      calculate_elements:
+        default: READ,UNIT
+        getter:
+          q: :CALC2:FORM:ELEM?
+          r: '"{}"'
+        setter:
+          q: :CALC2:FORM:ELEM "{}"
+        specs:
+          type: str
+      line_frequency:
+        default: 50
+        getter:
+          q: :SYST:LFR?
+          r: '{}'
+        specs:
+          type: int
+      protection_tripped:
+        default: NONE
+        getter:
+          q: :OUTP:PROT:TRIP?
+          r: '{}'
+        specs:
+          type: str
+      buffer_count:
+        default: 0
+        getter:
+          q: :TRAC:POIN:ACT?
+          r: '{}'
+        specs:
+          type: int
+      volt_nplc:
+        default: 1.0
+        getter:
+          q: :SENS:VOLT:NPLC?
+          r: '{}'
+        setter:
+          q: :SENS:VOLT:NPLC {}
+        specs:
+          type: float
+      volt_digits:
+        default: 6
+        getter:
+          q: :SENS:VOLT:DIG?
+          r: '{}'
+        setter:
+          q: :SENS:VOLT:DIG {}
+        specs:
+          type: int
+      volt_range:
+        default: 32.0
+        getter:
+          q: :SENS:VOLT:RANG?
+          r: '{}'
+        setter:
+          q: :SENS:VOLT:RANG {}
+        specs:
+          type: float
+      volt_filter_enabled:
+        default: 0
+        getter:
+          q: :SENS:VOLT:AVER:STAT?
+          r: '{}'
+        setter:
+          q: :SENS:VOLT:AVER:STAT {}
+        specs:
+          type: int
+      volt_filter_count:
+        default: 10
+        getter:
+          q: :SENS:VOLT:AVER:COUN?
+          r: '{}'
+        setter:
+          q: :SENS:VOLT:AVER:COUN {}
+        specs:
+          type: int
+      volt_filter_window:
+        default: 0.01
+        getter:
+          q: :SENS:VOLT:AVER:WIND?
+          r: '{}'
+        setter:
+          q: :SENS:VOLT:AVER:WIND {}
+        specs:
+          type: float
+      volt_filter_type:
+        default: MOV
+        getter:
+          q: :SENS:VOLT:AVER:TCON?
+          r: '{}'
+        setter:
+          q: :SENS:VOLT:AVER:TCON {}
+        specs:
+          type: str
+      volt_relative:
+        default: 0.0
+        getter:
+          q: :SENS:VOLT:REF?
+          r: '{}'
+        setter:
+          q: :SENS:VOLT:REF {}
+        specs:
+          type: float
+      volt_relative_enabled:
+        default: 0
+        getter:
+          q: :SENS:VOLT:REF:STAT?
+          r: '{}'
+        setter:
+          q: :SENS:VOLT:REF:STAT {}
+        specs:
+          type: int
+      curr_nplc:
+        default: 1.0
+        getter:
+          q: :SENS:CURR:NPLC?
+          r: '{}'
+        setter:
+          q: :SENS:CURR:NPLC {}
+        specs:
+          type: float
+      curr_digits:
+        default: 6
+        getter:
+          q: :SENS:CURR:DIG?
+          r: '{}'
+        setter:
+          q: :SENS:CURR:DIG {}
+        specs:
+          type: int
+      curr_range:
+        default: 0.01
+        getter:
+          q: :SENS:CURR:RANG?
+          r: '{}'
+        setter:
+          q: :SENS:CURR:RANG {}
+        specs:
+          type: float
+      curr_filter_enabled:
+        default: 0
+        getter:
+          q: :SENS:CURR:AVER:STAT?
+          r: '{}'
+        setter:
+          q: :SENS:CURR:AVER:STAT {}
+        specs:
+          type: int
+      curr_filter_count:
+        default: 10
+        getter:
+          q: :SENS:CURR:AVER:COUN?
+          r: '{}'
+        setter:
+          q: :SENS:CURR:AVER:COUN {}
+        specs:
+          type: int
+      curr_filter_window:
+        default: 0.01
+        getter:
+          q: :SENS:CURR:AVER:WIND?
+          r: '{}'
+        setter:
+          q: :SENS:CURR:AVER:WIND {}
+        specs:
+          type: float
+      curr_filter_type:
+        default: MOV
+        getter:
+          q: :SENS:CURR:AVER:TCON?
+          r: '{}'
+        setter:
+          q: :SENS:CURR:AVER:TCON {}
+        specs:
+          type: str
+      curr_relative:
+        default: 0.0
+        getter:
+          q: :SENS:CURR:REF?
+          r: '{}'
+        setter:
+          q: :SENS:CURR:REF {}
+        specs:
+          type: float
+      curr_relative_enabled:
+        default: 0
+        getter:
+          q: :SENS:CURR:REF:STAT?
+          r: '{}'
+        setter:
+          q: :SENS:CURR:REF:STAT {}
+        specs:
+          type: int
+      curr_autorange:
+        default: 1
+        getter:
+          q: :SENS:CURR:RANG:AUTO?
+          r: '{}'
+        setter:
+          q: :SENS:CURR:RANG:AUTO {}
+        specs:
+          type: int
+      conc_nplc:
+        default: 1.0
+        getter:
+          q: :SENS:CONC:NPLC?
+          r: '{}'
+        setter:
+          q: :SENS:CONC:NPLC {}
+        specs:
+          type: float
+      conc_digits:
+        default: 6
+        getter:
+          q: :SENS:CONC:DIG?
+          r: '{}'
+        setter:
+          q: :SENS:CONC:DIG {}
+        specs:
+          type: int
+      conc_range:
+        default: 0.01
+        getter:
+          q: :SENS:CONC:RANG?
+          r: '{}'
+        setter:
+          q: :SENS:CONC:RANG {}
+        specs:
+          type: float
+      conc_filter_enabled:
+        default: 0
+        getter:
+          q: :SENS:CONC:AVER:STAT?
+          r: '{}'
+        setter:
+          q: :SENS:CONC:AVER:STAT {}
+        specs:
+          type: int
+      conc_filter_count:
+        default: 10
+        getter:
+          q: :SENS:CONC:AVER:COUN?
+          r: '{}'
+        setter:
+          q: :SENS:CONC:AVER:COUN {}
+        specs:
+          type: int
+      conc_filter_window:
+        default: 0.01
+        getter:
+          q: :SENS:CONC:AVER:WIND?
+          r: '{}'
+        setter:
+          q: :SENS:CONC:AVER:WIND {}
+        specs:
+          type: float
+      conc_filter_type:
+        default: MOV
+        getter:
+          q: :SENS:CONC:AVER:TCON?
+          r: '{}'
+        setter:
+          q: :SENS:CONC:AVER:TCON {}
+        specs:
+          type: str
+      conc_relative:
+        default: 0.0
+        getter:
+          q: :SENS:CONC:REF?
+          r: '{}'
+        setter:
+          q: :SENS:CONC:REF {}
+        specs:
+          type: float
+      conc_relative_enabled:
+        default: 0
+        getter:
+          q: :SENS:CONC:REF:STAT?
+          r: '{}'
+        setter:
+          q: :SENS:CONC:REF:STAT {}
+        specs:
+          type: int
+      conc_autorange:
+        default: 1
+        getter:
+          q: :SENS:CONC:RANG:AUTO?
+          r: '{}'
+        setter:
+          q: :SENS:CONC:RANG:AUTO {}
+        specs:
+          type: int
+  60-3:
+    eom:
+      GPIB INSTR:
+        q: "\n"
+        r: "\n"
+    dialogues:
+    - q: '*IDN?'
+      r: KEITHLEY INSTRUMENTS,MODEL 2280S-60-3,SIM0001,01.07b
+    - q: '*OPC?'
+      r: '1'
+    - q: :SYST:ERR?
+      r: 0,"No error"
+    - q: :MEAS:VOLT?
+      r: '+5.000000E-02'
+    - q: :MEAS:CURR?
+      r: '+1.500000E-06'
+    - q: :MEAS:CONC?
+      r: +1.500000E-06,+5.000000E-02
+    - q: '*TST?'
+      r: '0'
+resources:
+  GPIB::1::INSTR:
+    device: 32-6
+  GPIB::2::INSTR:
+    device: 60-3
