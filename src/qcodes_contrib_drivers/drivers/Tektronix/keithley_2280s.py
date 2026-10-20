@@ -384,7 +384,7 @@ class Keithley2280S(VisaInstrument):
     while displaying both. Use ``concurrent.measure`` for a paired reading.
 
     Construction does not reset the instrument unless ``reset=True``.
-    Source limits are selected from *IDN?, and NPLC is checked against the
+    Source limits are selected from ``*IDN?``, and NPLC is checked against the
     instrument's line frequency. The hardware enforces ``voltage_limit`` too.
     """
 
@@ -683,7 +683,7 @@ class Keithley2280S(VisaInstrument):
         self.invalidate_cache()
 
     def clear(self) -> None:
-        """Clear status registers and the error queue (SCPI *CLS)."""
+        """Clear status registers and the error queue (SCPI ``*CLS``)."""
         self.write("*CLS")
 
     def trigger(self) -> None:
@@ -695,7 +695,7 @@ class Keithley2280S(VisaInstrument):
         self.write(":FORC:TRIG")
 
     def wait(self) -> None:
-        """Queue *WAI; use ``opc()`` to wait on the Python side."""
+        """Queue ``*WAI``; use ``opc()`` to wait on the Python side."""
         self.write("*WAI")
 
     def abort(self) -> None:
