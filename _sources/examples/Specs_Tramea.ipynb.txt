@@ -1,0 +1,387 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "id": "29fae1aa-5549-4ac4-b042-dde20ba6807b",
+   "metadata": {
+    "editable": true,
+    "slideshow": {
+     "slide_type": ""
+    },
+    "tags": []
+   },
+   "source": [
+    "# NANONIS TRAMEA EXAMPLES"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "id": "4aa6f099-0b01-4ab6-8d97-c245f4a4bf5f",
+   "metadata": {
+    "editable": true,
+    "slideshow": {
+     "slide_type": ""
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "from qcodes_contrib_drivers.drivers.SPECS.Specs_Tramea import NanonisTramea"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "id": "78aa2368-7863-4c6f-a566-cfc4ad55dc22",
+   "metadata": {
+    "editable": true,
+    "slideshow": {
+     "slide_type": ""
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "import socket\n",
+    "import time\n",
+    "Between_Commands_Time_s=0.5"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "9cd43090-ff33-4505-a484-c58092b4fb91",
+   "metadata": {
+    "editable": true,
+    "slideshow": {
+     "slide_type": ""
+    },
+    "tags": []
+   },
+   "source": [
+    "CREATE AN INSTANCE TO THE INSTRUMENT\n",
+    "This makes the connection to the Tramea controller"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "id": "67f2c543-61a4-47d0-9c4e-e3568ee19d11",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "nanonisInstance = NanonisTramea(name=\"Tramea\", address=\"localhost\", port=6502)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "1a6919be-294c-4616-a2f2-4fa5cd69f985",
+   "metadata": {
+    "editable": true,
+    "slideshow": {
+     "slide_type": ""
+    },
+    "tags": []
+   },
+   "source": [
+    "## GET/SET CHANNELS VALUES THROUGH PARAMETERS"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "id": "84a8e0d8-ea15-4095-97a4-4a7a294c93d2",
+   "metadata": {
+    "editable": true,
+    "scrolled": true,
+    "slideshow": {
+     "slide_type": ""
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "5.0\n",
+      "7.0\n",
+      "0.0\n",
+      "-1.6575604604440741e-06\n",
+      "-1.1079970136051998e-05\n"
+     ]
+    }
+   ],
+   "source": [
+    "nanonisInstance.Output1(5)\n",
+    "nanonisInstance.Output2(7)\n",
+    "\n",
+    "print(nanonisInstance.Output1.get())\n",
+    "print(nanonisInstance.Output2.get())\n",
+    "print(nanonisInstance.Output8.get())\n",
+    "print(nanonisInstance.Input1.get())\n",
+    "print(nanonisInstance.Input8.get())"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "1b4db55f-aaae-42ae-b2d3-345618b31195",
+   "metadata": {
+    "editable": true,
+    "slideshow": {
+     "slide_type": ""
+    },
+    "tags": []
+   },
+   "source": [
+    "## SIGNALS FUNCTIONS"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "id": "57487ab0-fa96-43b5-8257-e9330cb83abd",
+   "metadata": {
+    "editable": true,
+    "slideshow": {
+     "slide_type": ""
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "THE SIGNALS NAMES ARE: \n",
+      "[2261, 128, ['Input 1 (V)', 'Input 2 (V)', 'Input 3 (V)', 'Input 4 (V)', 'Input 5 (V)', 'Input 6 (V)', 'Input 7 (V)', 'Input 8 (V)', 'Input 9 (V)', 'Input 10 (V)', 'Input 11 (V)', 'Input 12 (V)', 'Input 13 (V)', 'Input 14 (V)', 'Input 15 (V)', 'Input 16 (V)', 'Input 17 (V)', 'Input 18 (V)', 'Input 19 (V)', 'Input 20 (V)', 'Input 21 (V)', 'Input 22 (V)', 'Input 23 (V)', 'Input 24 (V)', 'Output 1 (V)', 'Output 2 (V)', 'Output 3 (V)', 'Output 4 (V)', 'Output 5 (V)', 'Output 6 (V)', 'Output 7 (V)', 'Output 8 (V)', 'Output 9 (V)', 'Output 10 (V)', 'Output 11 (V)', 'Output 12 (V)', 'Output 13 (V)', 'Output 14 (V)', 'Output 15 (V)', 'Output 16 (V)', 'Output 17 (V)', 'Output 18 (V)', 'Output 19 (V)', 'Output 20 (V)', 'Output 21 (V)', 'Output 22 (V)', 'Output 23 (V)', 'Output 24 (V)', 'Fast Output 3 (V)', 'Output 26 (V)', 'Output 27 (V)', 'Output 28 (V)', 'Output 29 (V)', 'Output 30 (V)', 'Output 31 (V)', 'Output 32 (V)', 'Output 33 (V)', 'Output 34 (V)', 'Output 35 (V)', 'Output 36 (V)', 'Output 37 (V)', 'Output 38 (V)', 'Output 39 (V)', 'Output 40 (V)', 'Output 41 (V)', 'Output 42 (V)', 'Output 43 (V)', 'Output 44 (V)', 'Output 45 (V)', 'Output 46 (V)', 'Output 47 (V)', 'Output 48 (V)', 'Fast Output 1 (V)', 'Fast Output 2 (V)', 'Internal 1 (V)', 'Internal 2 (V)', 'Internal 3 (V)', 'Internal 4 (V)', 'Internal 5 (V)', 'Internal 6 (V)', 'Internal 7 (V)', 'Internal 8 (V)', 'Internal 9 (V)', 'Internal 10 (V)', 'Internal 11 (V)', 'Internal 12 (V)', 'LI Demod 1 X (V)', 'LI Demod 1 Y (V)', 'LI Demod 2 X (V)', 'LI Demod 2 Y (V)', 'Internal 17 (V)', 'Internal 18 (V)', 'Internal 19 (V)', 'Internal 20 (V)', 'Counter 1 (Hz)', 'Counter 2 (Hz)', 'DIO channels input A&B', 'DIO channels input C&D', 'Internal 25 (V)', 'Internal 26 (V)', 'Internal 27 (V)', 'Internal 28 (V)', 'Internal 29 (V)', 'Internal 30 (V)', 'Internal 31 (V)', 'Internal 32 (V)', 'Internal 33 (V)', 'Internal 34 (V)', 'Internal 35 (V)', 'Internal 36 (V)', 'Internal 37 (V)', 'Internal 38 (V)', 'Internal 39 (V)', 'Internal 40 (V)', 'Internal 41 (V)', 'Internal 42 (V)', 'Internal 43 (V)', 'Internal 44 (V)', 'Internal 45 (V)', 'Internal 46 (V)', 'Internal 47 (V)', 'Internal 48 (V)', 'Internal 49 (V)', 'Internal 50 (V)', 'Internal 51 (V)', 'Internal 52 (V)', 'Internal 53 (V)', 'Internal 54 (V)']]\n",
+      "THE SIGNAL CALIBRATION IS: \n",
+      "[1.0, 0.0]\n",
+      "THE SIGNAL RANGE IS: \n",
+      "[10.0, -10.0]\n",
+      "THE MEASUREMENT SIGNALS NAMES ARE: \n",
+      "['Input 1 (V)', 'Input 2 (V)', 'Input 3 (V)', 'Input 4 (V)', 'Input 5 (V)', 'Input 6 (V)', 'Input 7 (V)', 'Input 8 (V)', 'Output 1 (V)', 'Output 2 (V)', 'Output 3 (V)', 'Output 4 (V)', 'Output 5 (V)', 'Output 6 (V)', 'Output 7 (V)', 'Output 8 (V)', 'Fast Output 1 (V)', 'LI Demod 1 R (V)', 'LI Demod 1 X (V)', 'LI Demod 1 Phi (deg)', 'LI Demod 1 Y (V)', 'LI Demod 2 R (V)', 'LI Demod 2 X (V)', 'LI Demod 2 Phi (deg)', 'LI Demod 2 Y (V)', 'Counter 1 (Hz)', 'Counter 2 (Hz)', 'SC5 #1 Temp. (degC)', 'Timestamp (ms)']\n",
+      "THE LIST OF NAMES OF THE ADDITIONAL RT SIGNALS IS: \n",
+      "['- no signal -', 'DIO channels input A&B', 'DIO channels input C&D', 'Generic Ctrl: control signal (V)']\n"
+     ]
+    }
+   ],
+   "source": [
+    "SignalsNames_Get=nanonisInstance.Signals_NamesGet()\n",
+    "time.sleep(Between_Commands_Time_s)\n",
+    "\n",
+    "SignalsCalibr_Get=nanonisInstance.Signals_CalibrGet(0)\n",
+    "time.sleep(Between_Commands_Time_s)\n",
+    "\n",
+    "SignalsRange_Get=nanonisInstance.Signals_RangeGet(1)\n",
+    "time.sleep(Between_Commands_Time_s)\n",
+    "\n",
+    "SignalsMeasNames_Get=nanonisInstance.Signals_MeasNamesGet()\n",
+    "time.sleep(Between_Commands_Time_s)\n",
+    "\n",
+    "SignalsAddRT_Get=nanonisInstance.Signals_AddRTGet()\n",
+    "time.sleep(Between_Commands_Time_s)\n",
+    "\n",
+    "nanonisInstance.Signals_AddRTSet(1, 2)\n",
+    "time.sleep(Between_Commands_Time_s)\n",
+    "\n",
+    "print(\"THE SIGNALS NAMES ARE: \")\n",
+    "print(SignalsNames_Get)\n",
+    "print(\"THE SIGNAL CALIBRATION IS: \")\n",
+    "print(SignalsCalibr_Get)\n",
+    "print(\"THE SIGNAL RANGE IS: \")\n",
+    "print(SignalsRange_Get)\n",
+    "print(\"THE MEASUREMENT SIGNALS NAMES ARE: \")\n",
+    "print(SignalsMeasNames_Get)\n",
+    "print(\"THE LIST OF NAMES OF THE ADDITIONAL RT SIGNALS IS: \")\n",
+    "print(SignalsAddRT_Get)\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "0acf583f-b00d-4799-9673-a1ffb791aeda",
+   "metadata": {
+    "editable": true,
+    "slideshow": {
+     "slide_type": ""
+    },
+    "tags": []
+   },
+   "source": [
+    "## 1D SWEEPER FUNCTIONS"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "id": "dd325bee-6910-4f23-9139-a32040db6cf9",
+   "metadata": {
+    "editable": true,
+    "slideshow": {
+     "slide_type": ""
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "THE ACQUIRED CHANNELS ARE: \n",
+      "[(0,), (3,)]\n",
+      "THE FULL LIST OF CHANNELS IS: \n",
+      "[12, 'Output 1 (V)']\n",
+      "THE LIMITS ARE: \n",
+      "[1.0, 5.0]\n",
+      "THE SETTLING TIME IS: \n",
+      "0.10000000149011612\n",
+      "THE ACQUIRED DATA ARE: \n",
+      "[[ 5.00000000e+00  4.92000008e+00  4.84000015e+00  4.76000023e+00\n",
+      "   4.67999983e+00  4.59999990e+00  4.51999998e+00  4.44000006e+00\n",
+      "   4.36000013e+00  4.28000021e+00  4.19999981e+00  4.11999989e+00\n",
+      "   4.03999996e+00  3.96000004e+00  3.88000011e+00  3.79999995e+00\n",
+      "   3.72000003e+00  3.64000010e+00  3.55999994e+00  3.48000002e+00\n",
+      "   3.40000010e+00  3.31999993e+00  3.24000001e+00  3.16000009e+00\n",
+      "   3.07999992e+00  3.00000000e+00  2.92000008e+00  2.83999991e+00\n",
+      "   2.75999999e+00  2.68000007e+00  2.59999990e+00  2.51999998e+00\n",
+      "   2.44000006e+00  2.35999990e+00  2.27999997e+00  2.20000005e+00\n",
+      "   2.11999989e+00  2.03999996e+00  1.96000004e+00  1.88000000e+00\n",
+      "   1.79999995e+00  1.72000003e+00  1.63999999e+00  1.55999994e+00\n",
+      "   1.48000002e+00  1.39999998e+00  1.32000005e+00  1.24000001e+00\n",
+      "   1.15999997e+00  1.08000004e+00  1.00000000e+00]\n",
+      " [ 1.52689452e-07 -3.54334202e-06 -1.65917959e-06 -1.34689908e-05\n",
+      "  -5.01501654e-06  4.11085784e-06 -2.51951496e-06  4.60831416e-07\n",
+      "  -8.72541136e-07  8.50290144e-06  5.39286430e-06 -2.38231223e-06\n",
+      "   1.88894119e-05  5.17575654e-06 -4.28452813e-06 -1.15898983e-05\n",
+      "   1.05448153e-05 -3.40592396e-06  2.90797516e-06 -1.06314712e-06\n",
+      "   3.55783004e-06 -2.11290896e-07 -4.50976177e-06  5.81083350e-06\n",
+      "   3.72711611e-06 -1.90012645e-06 -4.77416643e-06  4.48458923e-06\n",
+      "   8.10708843e-06  7.80293431e-06  1.09789189e-05 -7.94216703e-06\n",
+      "  -1.28203119e-05  1.03700120e-06  1.07678511e-06 -1.88818353e-06\n",
+      "  -4.66876736e-06 -4.60790019e-08  5.92008291e-06 -4.16413923e-06\n",
+      "   3.04666082e-06 -5.44764077e-07  8.16326155e-06 -3.70454632e-06\n",
+      "   9.35526896e-06 -4.50389962e-06 -6.30839077e-06 -8.61283115e-06\n",
+      "  -5.78366235e-06  5.09806205e-06 -7.75761976e-07]\n",
+      " [-1.33085769e-06  4.22275571e-06  8.67848303e-06  7.26115786e-06\n",
+      "  -1.44704848e-06  1.58471971e-06 -9.93027015e-07 -6.44842612e-06\n",
+      "  -2.77788513e-06  1.14522882e-05  1.29505897e-05 -9.29164617e-06\n",
+      "   2.91142356e-07 -8.65388529e-07 -9.99988788e-06  1.83305360e-06\n",
+      "   2.48273614e-06 -6.86321573e-06  9.13961321e-06  8.29821238e-06\n",
+      "  -4.65819994e-06 -9.52614118e-06 -1.69668351e-06  6.36826371e-06\n",
+      "   1.97461713e-06  6.24220820e-06  1.22246674e-05 -4.42195358e-07\n",
+      "   1.01218056e-05  1.48423499e-06 -7.99873487e-06 -7.08201196e-06\n",
+      "  -3.65538062e-06 -5.11146993e-07 -1.32071011e-06 -2.72656257e-06\n",
+      "   2.10258804e-06  5.50597804e-07  1.93368282e-06  2.43531616e-07\n",
+      "  -1.68810020e-05  6.27592226e-06 -1.24196163e-06  1.31201148e-06\n",
+      "  -1.29345585e-06 -3.64102743e-06  7.43158989e-06 -5.65901109e-06\n",
+      "   9.88017655e-06  7.21312972e-06 -5.77259186e-07]]\n"
+     ]
+    }
+   ],
+   "source": [
+    "Channel_indexes=[0,3]\n",
+    "Channel_names=[\"\",\"\"]\n",
+    "Sweep_channel_name=\"Output 1 (V)\"\n",
+    "Lower_limit=1\n",
+    "Upper_limit=5\n",
+    "Initial_Settling_time_ms=0.4\n",
+    "Maximum_slew_rate_units_s=10\n",
+    "Number_of_steps=50\n",
+    "Period_ms=0.25\n",
+    "Autosave=0\n",
+    "Save_dialog_box=0\n",
+    "Settling_time_ms=0.1\n",
+    "Get_data=1\n",
+    "Sweep_direction=0\n",
+    "Save_base_name=\"test sweeper\"\n",
+    "Reset_signal=1\n",
+    "\n",
+    "nanonisInstance.OneDSwp_Open()\n",
+    "time.sleep(Between_Commands_Time_s)\n",
+    "\n",
+    "nanonisInstance.OneDSwp_AcqChsSet(Channel_indexes, Channel_names)\n",
+    "time.sleep(Between_Commands_Time_s)\n",
+    "channels_Get=nanonisInstance.OneDSwp_AcqChsGet()\n",
+    "time.sleep(Between_Commands_Time_s)\n",
+    "\n",
+    "nanonisInstance.OneDSwp_SwpSignalSet(Sweep_channel_name)\n",
+    "time.sleep(Between_Commands_Time_s)\n",
+    "channelsList_Get=nanonisInstance.OneDSwp_SwpSignalGet()\n",
+    "time.sleep(Between_Commands_Time_s)\n",
+    "\n",
+    "nanonisInstance.OneDSwp_LimitsSet(Lower_limit, Upper_limit)\n",
+    "time.sleep(Between_Commands_Time_s)\n",
+    "Limits_Get=nanonisInstance.OneDSwp_LimitsGet()\n",
+    "time.sleep(Between_Commands_Time_s)\n",
+    "\n",
+    "nanonisInstance.OneDSwp_PropsSet(Initial_Settling_time_ms, Maximum_slew_rate_units_s, Number_of_steps, Period_ms, Autosave, Save_dialog_box, Settling_time_ms)\n",
+    "time.sleep(Between_Commands_Time_s)\n",
+    "Props_Get=nanonisInstance.OneDSwp_PropsGet()\n",
+    "time.sleep(Between_Commands_Time_s)\n",
+    "\n",
+    "data=nanonisInstance.OneDSwp_Start(Get_data, Sweep_direction, Save_base_name, Reset_signal, 0)\n",
+    "time.sleep(1)\n",
+    "\n",
+    "print(\"THE ACQUIRED CHANNELS ARE: \")\n",
+    "print(channels_Get[1])\n",
+    "print(\"THE FULL LIST OF CHANNELS IS: \")\n",
+    "print(channelsList_Get)\n",
+    "print(\"THE LIMITS ARE: \")\n",
+    "print(Limits_Get)\n",
+    "print(\"THE SETTLING TIME IS: \")\n",
+    "print(Props_Get[6])\n",
+    "print(\"THE ACQUIRED DATA ARE: \")\n",
+    "print(data[5])"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "85c458da-4989-4110-8963-ef0caee84fcd",
+   "metadata": {
+    "editable": true,
+    "slideshow": {
+     "slide_type": ""
+    },
+    "tags": []
+   },
+   "source": [
+    "## CLOSE THE CONNECTION"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "id": "ee2bcbed-c608-46b3-b385-77cb44e12f3c",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "nanonisInstance.close()"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3 (ipykernel)",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.13.4"
+  },
+  "nbsphinx": {
+   "execute": "never"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}
