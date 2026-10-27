@@ -1,0 +1,5067 @@
+Yokogawa AQ637x (AQ6370C) Remote Command Description
+======================================================================
+Reference transcribed from IM AQ6370C-17EN, Chapter 7 (Remote Commands),
+sections 7.5 (Common Commands) and 7.6 (Instrument-Specific Commands).
+
+Each entry lists: Description / Syntax / Response / Example / Notes, as given
+in the manual. Parameter definitions are listed under Syntax. This file is a
+transcription aid for driver implementation; for binary-data formats and edge
+cases verify against the source PDF (docs/examples/Yokogawa/IMAQ6370C-17EN.pdf).
+Notation: | = choice, [ ] = optional, <wsp> = space, <NRf> = numeric value,
+<integer> = integer, <trace name> = TRA|TRB|TRC|TRD|TRE|TRF|TRG.
+
+
+======================================================================
+1. COMMON Commands (IEEE 488.2)
+======================================================================
+
+Command: *IDN?
+Description: Queries the instrument type and firmware version.
+Syntax:
+  *IDN?
+Example:
+  *IDN? -> YOKOGAWA,AQ6370C,aaaaaaaaa,bb.bb
+  aaaaaaaaa: Serial number (9 digit string)
+  bb.bb: Firmware version
+Notes:
+  - Outputs 4 field data delimited by a comma.
+  - Field 1: Manufacturer "YOKOGAWA"
+  - Field 2: Model "AQ6370C", "AQ6370D"
+  - "AQ6373" or "AQ6375"
+  - Field 3: Instrument serial number
+  - Field 4: Firmware version
+  - For the AQ6370C, field 2 is "AQ6370C."
+  - For the AQ6370D, field 2 is "AQ6370D."
+  - For the AQ6373, field 2 is "AQ6373."
+  - For the AQ6375, field 2 is "AQ6375."
+  - This is a sequential command.
+
+Command: *OPC
+Description: Sets/queries bit 0 (OPC) of the standard event status register (ESR) if operations waiting to be processed have all been completed.
+Syntax:
+  *OPC
+  *OPC?
+Example:
+  *OPC
+  *OPC? -> 1
+Notes:
+  - At the time this command is recognized, the command changes from OCIS (Operation Complete Command Idle State) to OCAS (Operation Complete Command Active State). When the no-operation pending flag is set to "True," it sets bit 0 (OCR) of ESR and returns to OCIS.
+  - If any of the following conditions are established, this command is disabled and is forced to return to OCIS.
+  - Power ON
+  - Device clear
+  - *CLS, *RST command
+  - This is an overlapping command.
+
+Command: *CLS
+Description: Clears all event status registers, the summary of which is reflected in the status byte register.
+Syntax:
+  *CLS
+Example:
+  *CLS
+Notes:
+  - Clears all queues, with the exception of the output queue, and all event registers, with the exception of the MAV summary message.
+  - After executing this command, OCIS (Operation Complete Command Idle State) and OQIS (Operation Complete Query Idle State) are brought about.
+  - This is a sequential command.
+
+Command: *ESE
+Description: Sets/queries the standard event enable register.
+Syntax:
+  *ESE<wsp><integer>
+  *ESE?
+  <integer> = 0-255
+Example:
+  *ESE 251
+  *ESE? -> 251
+Notes:
+  - An item having had its bit set becomes enabled.
+  - Resets to the default value in the following cases:
+  - When power is ON
+  - When "0" is set
+  - The set value remains the same in the following cases:
+  - *RST
+  - *CLS
+  - Device clear (DCL, SDC)
+  - The default is 0.
+  - This is a sequential command.
+
+Command: *ESR?
+Description: Queries the standard event status register and simultaneously clears it.
+Syntax:
+  *ESR?
+Example:
+  *ESR? -> 251
+Notes:
+  - The return value of this query is not affected by ESE (Event Status Enable Register).
+  - This is an overlapping command.
+
+Command: *RST
+Description: Executes a device reset to return the instrument to the known (default) status.
+Syntax:
+  *RST
+Example:
+  *RST
+Notes:
+  - Stops operation being processed and returns the instrument to the known set value (default value) immediately.
+  - This unit's parameters are cleared.
+  - The following items will remain the same.
+  - GP-IB interface status
+  - GP-IB address
+  - Output queue
+  - SRE
+  - ESE
+  - Calibration data affecting the instrument's specifications
+  - This is an overlapping command.
+
+Command: *SRE
+Description: Sets/queries the service request enable register.
+Syntax:
+  *SRE <wsp><integer>
+  *SRE?
+  <integer> = 0-255
+Example:
+  *SRE 250
+  *SRE? -> 250
+Notes:
+  - An item having had its bit set becomes enabled.
+  - Resets to the default value in the following cases:
+  - When power is ON
+  - When "0" is set
+  - The set value remains the same in the following cases:
+  - *RST
+  - *CLS
+  - Device clear (DCL, SDC)
+  - The default is 0.
+  - This is a sequential command.
+
+Command: *STB?
+Description: Queries the current value of the status byte register.
+Syntax:
+  *STB?
+Example:
+  *STB? -> 251
+Notes:
+  - STB will not be cleared even when the contents of the register are read.
+  - This is an overlapable command.
+
+Command: *TRG
+Description: Performs a <SINGLE> sweep under the sweep conditions established immediately before receiving the command.
+Syntax:
+  *TRG
+Example:
+  *TRG
+Notes:
+  - Performs a <SINGLE> sweep regardless of the setting condition of the :INITiate:CONTinuous command.
+  - This is an overlapable command.
+
+Command: *TST?
+Description: Performs the instrument's self-test and queries the status.
+Syntax:
+  *TST?
+Example:
+  *TST? -> 0
+Notes:
+  - Of the initialization sequence to be run at startup, this command executes the following operations to output their results. During initialization, the screen maintains the waveform display.
+  - Motor's return to origin operation
+  - AMP auto-offset
+  - Normally returns 0, or 1 for motor initialize error, or 2 for AMP offset error.
+  - This is a sequential command.
+
+Command: *WAI
+Description: Prevents the instrument from executing another command until the execution of the current command is complete.
+Syntax:
+  *WAI
+Example:
+  *WAI
+Notes:
+  - Becomes invalid by device clear.
+  - Meaningful if subsequent commands are overlapping. Meaningless with other commands.
+  - This is a sequential command.
+  - This subsystem consists of data logging commands.
+
+
+======================================================================
+2. APPLication (Data Logging)
+======================================================================
+
+Command: :APPLication:DLOGging:ETIMe?
+Description: Queries the elapsed time of data logging (in seconds).
+Syntax:
+  :APPLication:DLOGging:ETIMe?
+Response:
+  <integer>
+  <integer> = Elapsed time [sec]
+Example:
+  :APPLICATION:DLOGGING:ETIME? -> 10220
+Notes:
+  - This is an overlap command.
+  - This command can be used on the AQ6370D/ AQ6370C/AQ6373B/AQ6375B.
+  - This command is invalid when data logging is paused.
+
+Command: :APPLication:DLOGging:LPARameter:INTerval
+Description: Sets or queries the measurement interval of data logging.
+Syntax:
+  :APPLication:DLOGging:LPARameter:INTerval<wsp><integer>[SEC]
+  :APPLication:DLOGging:LPARameter:INTerval?
+  <integer> = Measurement interval [sec] (0 = SWEEP TIME)
+Example:
+  :APPLICATION:DLOGGING:LPARAMETER:INTERVAL 10
+  :APPLICATION:DLOGGING:LPARAMETER:INTERVAL? -> 10
+Notes:
+  - This command is invalid when data logging is in progress.
+  - This is a sequential command.
+  - This command can be used on the AQ6370C/ AQ6370D/AQ6373B/AQ6375B.
+
+Command: :APPLication:DLOGging:LPARameter:ITEM
+Description: Sets or queries the data logging source.
+Syntax:
+  :APPLication:DLOGging:LPARameter:ITEM<wsp>0|1|2|3
+  :APPLication:DLOGging:LPARameter:ITEM?
+  0|1|2|3: Data logging source
+  0 = WDM, 1 = PEAK, 2 = MULTI-PEAK, 3 = DFB-LD
+Example:
+  :APPLICATION:DLOGGING:LPARAMETER:ITEM 0
+  :APPLICATION:DLOGGING:LPARAMETER:ITEM? -> 0
+Notes:
+  - This command is invalid when data logging is in progress.
+  - This is a sequential command.
+  - This command can be used on the AQ6370C/ AQ6370D/AQ6373B/AQ6375B.
+
+Command: :APPLication:DLOGging:LPARameter:LMODe
+Description: Sets or queries the data logging mode (maximum channel mode or maximum logging mode).
+Syntax:
+  :APPLication:DLOGging:LPARameter:LMODe<wsp>1|2
+  :APPLication:DLOGging:LPARameter:LMODe?
+  1|2: Mode
+  1 = Maximum channel mode (MODE1: MAX 1024ch, 2001 entries)
+  2 = Maximum logging mode (MODE2: MAX 256ch, 10001 entries)
+Example:
+  :APPLICATION:DLOGGING:LPARAMETER:LMODE 1
+  :APPLICATION:DLOGGING:LPARAMETER:LMODE -> 1
+Notes:
+  - This command is invalid when data logging is in progress.
+  - This is a sequential command.
+  - This command can be used on theAQ6370C/ AQ6370D/AQ6373B/AQ6375B.
+
+Command: :APPLication:DLOGging:LPARameter:MEMory
+Description: Sets or queries the temporary area for saving waveform files of data logging.
+Syntax:
+  :APPLication:DLOGging:LPARameter:MEMory<wsp>INTernal|EXTernal
+  :APPLication:DLOGging:LPARameter:MEMory?
+  INTernal = Internal memory
+  EXTernal = USB storage media
+Example:
+  :APPLICATION:DLOGGING:LPARAMETER:MEMORY INTERNAL
+  :APPLICATION:DLOGGING:LPARAMETER:MEMORY? -> INT
+Notes:
+  - This command is invalid when data logging is in progress.
+  - This is a sequential command.
+  - This command can be used on the AQ6370C/ AQ6370D/AQ6373B/AQ6375B.
+
+Command: :APPLication:DLOGging:LPARameter:MTHResh
+Description: Sets or queries the threshold of the channel- matching wavelength λ for data logging.
+Syntax:
+  :APPLication:DLOGging:LPARameter:MTHResh<wsp><NRf>[M]
+  :APPLication:DLOGging:LPARameter:MTHResh?
+  <NRf>[M] = Threshold of wavelength λ [m]
+Example:
+  :APPLICATION:DLOGGING:LPARAMETER:MTHResh 0.1nm
+  :APPLICATION:DLOGGING:LPARAMETER:MTHResh? -> +1.00000000E-010
+Notes:
+  - This command is invalid when data logging is in progress.
+  - This is a sequential command.
+  - This command can be used on the AQ6370C/ AQ6370D/AQ6373B/AQ6375B.
+
+Command: :APPLication:DLOGging:LPARameter:PDETect:ATHResh
+Description: Sets or queries the threshold (absolute value) for detecting the data logging mode.
+Syntax:
+  :APPLication:DLOGging:LPARameter:PDETect:ATHResh<NRf>[DBM]
+  :APPLication:DLOGging:LPARameter:PDETect:ATHResh?
+  <NRf>[DBM] = Peak detection threshold (absolute value) [dBm]
+Example:
+  :APPLICATION:DLOGGING:LPARAMETER:PDETECT:ATHRESH -20.0dbm
+  :APPLICATION:DLOGGING:LPARAMETER:PDETECT:ATHRESH? -> -2.00000000E+001
+Notes:
+  - This command is invalid when data logging is in progress.
+  - This is a sequential command.
+  - This command can be used on the AQ6370C/ AQ6370D/AQ6373B/AQ6375B.
+
+Command: :APPLication:DLOGging:LPARameter:PDETect:RTHResh
+Description: Sets or queries the threshold (relative value) for detecting the data logging mode.
+Syntax:
+  :APPLication:DLOGging:LPARameter:PDETect:RTHResh<NRf>[DB]
+  :APPLication:DLOGging:LPARameter:PDETect:RTHResh?
+  <NRf>[DB] = Peak detection threshold (relative value) [dB]
+Example:
+  :APPLICATION:DLOGGING:LPARAMETER:PDETECT:RTHRESH 30.0db
+  :APPLICATION:DLOGGING:LPARAMETER:PDETECT:RTHRESH? -> +3.00000000E+001
+Notes:
+  - This command is invalid when data logging is in progress.
+  - This is a sequential command.
+  - This command can be used on the AQ6370C/ AQ6370D/AQ6373B/AQ6375B.
+
+Command: :APPLication:DLOGging:LPARameter:PDETect:TTYPe
+Description: Sets or queries how the threshold for detecting the data logging mode (peak or bottom) is specified.
+Syntax:
+  :APPLication:DLOGging:LPARameter:PDETect:TTYPe<wsp>ABSolute|RELative
+  :APPLication:DLOGging:LPARameter:PDETect:TTYPe?
+  ABSolute = Absolute value
+  RELative = Relative value
+Example:
+  :APPLICATION:DLOGGING:LPARAMETER:PDETECT:TTYPE ABSOLUTE
+  :APPLICATION:DLOGGING:LPARAMETER:PDETECT:TTYPE? -> ABS
+Notes:
+  - This command is invalid when data logging is in progress.
+  - This is a sequential command.
+  - This command can be used on the AQ6370C/ AQ6370D/AQ6373B/AQ6375B.
+
+Command: :APPLication:DLOGging:LPARameter:TDURation
+Description: Sets or queries the measurement duration of data logging (in seconds).
+Syntax:
+  :APPLication:DLOGging:LPARameter:TDURation<wsp><integer>[sec]
+  :APPLication:DLOGging:LPARameter:TDURation?
+  <integer> = Measurement duration [sec]
+Example:
+  :APPLICATION:DLOGGING:LPARAMETER:TDURation 3600
+  :APPLICATION:DLOGGING:LPARAMETER:TDURation? -> 3600
+Notes:
+  - This command is invalid when data logging is in progress.
+  - This is a sequential command.
+  - This command can be used on the AQ6370C/ AQ6370D/AQ6373B/AQ6375B.
+
+Command: :APPLication:DLOGging:LPARameter:TLOGging
+Description: Sets or queries whether waveforms will be logged during data logging.
+Syntax:
+  :APPLication:DLOGging:LPARameter:TLOGging<wsp>OFF|ON|0|1
+  :APPLication:DLOGging:LPARameter:TLOGging?
+  OFF = Waveform data save function off
+  ON = Waveform data save function on
+Example:
+  :APPLICATION:DLOGGING:LPARAMETER:TLOGGING OFF
+  :APPLICATION:DLOGGING:LPARAMETER:TLOGGING? -> 0
+Notes:
+  - This command is invalid when data logging is in progress.
+  - This is a sequential command.
+  - This command can be used on the AQ6370C/ AQ6370D/AQ6373B/AQ6375B.
+
+Command: :APPLication:DLOGging:STATe
+Description: Starts, stops, or queries data logging.
+Syntax:
+  :APPLication:DLOGging:STATe<wsp>STOP|STARt|0|1
+  :APPLication:DLOGging:STATe?
+  START = Starts data logging
+  STOP = Stops data logging
+Response:
+  0 = Stopped, 1 = Running
+Example:
+  :APPLICATION:DLOGGING:STATE 1
+  :APPLICATION:DLOGGING:STATE? -> 1
+Notes:
+  - Only the following commands are valid when data logging is in progress.
+  - Common commands (excluding *TRG and *TST)
+  - All query commands
+  - ABORt
+  - This is an overlappable command.
+  - This command can be used on the AQ6370C/ AQ6370D/AQ6373B/AQ6375B. Outline - Commands about the following functions are summarized in this sub system. - Analysis function (Spectrum Width, ANALYSIS1 , ANALYSIS2)
+  - Peak/Bottom search function
+  - Marker function (Δ marker, line marker)
+  - Calculation function of trace
+  - Advanced marker function (moving marker, power spectral density marker, integrated power marker) - The following procedure is performed in order to carry out remote control of the Analysis function. 1. Select the analysis algorithm (CALCulate:CATegory command) 2 Set the Analysis Parameter (CALCulate:PARameter command) 3 Execute the analysis function (CALCulate[:IMMediate] command) 4 Get the analysis results (CALCulate:DATA? command) - The following command is used in order to carry out remote control of the Peak/Bottom search function.
+  - CALCulate:MARKer:MAXimum|MINimum command - The following command is used to in order to carry out remote control of the Marker function.
+  - Δ marker: CALCulate:MARKer command
+  - Line marker: CALCulate:LMARker command - The following command is used to in order to carry out remote control of the trace Calculation function.
+  - CALCulate:MATH command
+
+
+======================================================================
+3. ABORt
+======================================================================
+
+Command: :ABORt
+Description: Stops operations such as measurements and calibration.
+Syntax:
+  ABORt
+Example:
+  ABORt
+Notes:
+  - Operations to be stopped are as follows:
+  - :APPLication:DLOGging:STATe
+  - :CALibration:ALIGn[:IMMediate]
+  - :CALibration:ALIGn:EXTernal[:IMMediate]
+  - :CALibration:ALIGn:INTernal[:IMMediate]
+  - :CALibration:BANDwidth|BWIDth[:IMMediate]
+  - :CALibration:WAVelength :INITiate
+  - :PROGram:EXECute
+  - :HCOPy[:INITiate]
+  - :HCOPy[:INITiate]:FUNCtion:CALCulate:LIST
+  - :HCOPy[:INITiate]:FUNCtion:MARKer :LIST
+  - This is an overlapping command.
+
+
+======================================================================
+4. CALCulate (Analysis / Markers / Math)
+======================================================================
+
+Command: :CALCulate:AMARker[1|2|3|4]:AOFF
+Description: Clears all advanced markers (moving markers, power spectral density markers, and integrated power markers) and turns off the advanced marker function.
+Syntax:
+  :CALCulate:AMARker[1|2|3|4]:AOFF
+  [1|2|3|4]: Advanced marker number
+Example:
+  :CALCULATE:AMARKER:AOFF
+Notes:
+  - After clearing, the advanced marker function automatically turns off.
+  - All advanced markers are cleared regardless of which advanced marker you specify.
+  - This is a sequential command.
+  - This command can be used on the AQ6370C/ AQ6370D/AQ6373B/AQ6375B.
+
+Command: :CALCulate:AMARker[1|2|3|4]:FUNCtion:INTegral:IRANge
+Description: Sets or queries the integration frequency range of the specified integrated power marker.
+Syntax:
+  :CALCulate:AMARker[1|2|3|4]:FUNCtion:INTegral:IRANge<wsp><NRf>[Hz]
+  :CALCulate:AMARker[1|2|3|4]:FUNCtion:INTegral:IRANge?
+  [1|2|3|4]: Advanced marker number
+  <NRf> = Integration frequency range [Hz]
+Example:
+  :CALCULATE:AMARKER:FUNCTION:INTEGRAL:IRANge 40GHz
+  :CALCULATE:AMARKER:FUNCTION:INTEGRAL:IRANge? -> 4.00000000E+010
+Notes:
+  - An execution error will occur if the specified advanced marker has not been assigned or is not an integrated power marker.
+  - A query error will occur if the specified advanced marker has not been assigned or is not an integrated power marker.
+  - If the advanced marker number is not specified, advanced marker 1 will be used.
+  - This is a sequential command.
+  - This command can be used on the AQ6370C/ AQ6370D/AQ6373B/AQ6375B.
+
+Command: :CALCulate:AMARker[1|2|3|4]:FUNCtion:INTegral:RESult?
+Description: Queries the integration value of the specified integrated power marker.
+Syntax:
+  :CALCulate:AMARker[1|2|3|4]:FUNCtion:INTegral:RESult?
+  [1|2|3|4]: Advanced marker number
+Example:
+  :CALCULATE:AMARKER:FUNCTION:INTEGRAL:RESULT? -> -1.00000000E+001
+Notes:
+  - The unit of the returned marker level depends on the Y-axis unit of the assigned marker trace.
+  - A query error will occur if the specified advanced marker has not been assigned or is not an integrated power marker.
+  - If the advanced marker number is not specified, advanced marker 1 will be used.
+  - This is a sequential command.
+  - This command can be used on the AQ6370C/ AQ6370D/AQ6373B/AQ6375B.
+
+Command: :CALCulate:AMARker[1|2|3|4]:FUNCtion:INTegral[:STATe]
+Description: Moves the specified integrated power marker to the center of the marker trace. Also queries the status of the specified integrated power marker.
+Syntax:
+  :CALCulate:AMARker[1|2|3|4]:FUNCtion:INTegral[:STATe]<wsp>OFF|ON|0|1
+  :CALCulate:AMARker[1|2|3|4]:FUNCtion :INTegral[:STATe]?
+  [1|2|3|4]: Advanced marker number
+Response:
+  0 = Off, 1 = On
+Example:
+  :CALCULATE:AMARKER:FUNCTION:INTEGRAL ON
+  :CALCULATE:AMARKER:FUNCTION:INTEGRAL? -> 1
+Notes:
+  - If an integrated power marker is assigned, moving markers (:CALCulate:AMARker[1|2|3|4][:STATe]) and power spectral density markers (:CALCulate: AMARker[1|2|3|4]:FUNCtion:PDENsity|:NOIS e[:STATe]) will be set to off.
+  - If this command with the parameter set to OFF is specified on an advanced marker that has been assigned to integrated power marker, the advanced marker will change to a moving marker.
+  - If the advanced marker has not been assigned, using this command with the parameter set to OFF will leave the advanced marker unassigned.
+  - If the advanced marker number is not specified, advanced marker 1 will be used.
+  - This is a sequential command.
+  - This command can be used on the AQ6370C/ AQ6370D/AQ6373B/AQ6375B.
+
+Command: :CALCulate:AMARker[1|2|3|4]:FUNCtion:PDENsity|:NOISe:BWIDth|:BANDwidth
+Description: Sets or queries the normalization bandwidth of the specified power spectral density marker.
+Syntax:
+  :CALCulate:AMARker:FUNCtion:PDENsity|:NOISe:BWIDth|:BANDwidth<wsp><NRf >[m]
+  :CALCulate:AMARker:FUNCtion:PDENsity|:NOISe:BWIDth|:BANDwidth}?
+  <NRf> = Normalization bandwidth [m]
+Example:
+  :CALCULATE:AMARKER:FUNCTION:PDENSITY:BWIDTH 0.1nm
+  :CALCULATE:AMARKER:FUNCTION:PDENSITY:BWIDTH -> +1.00000000E-010
+Notes:
+  - This command applies to advanced markers 1 to 4. The command operates in the same manner regardless of which advanced marker is specified.
+  - An execution error will occur if the specified advanced marker has not been assigned or is not a power spectral density marker.
+  - A query error will occur if the specified advanced marker has not been assigned or is not a power spectral density marker.
+  - This is a sequential command.
+  - This command can be used on the AQ6370C/ AQ6370D/AQ6373B/AQ6375B.
+
+Command: :CALCulate:AMARker[1|2|3|4]:FUNCtion:PDENsity|:NOISe:RESult?
+Description: Sets or queries the power spectral density value of the specified power spectral density marker.
+Syntax:
+  :CALCulate:AMARker[1|2|3|4]:FUNCtion:PDENsity|:NOISe:RESult?
+  [1|2|3|4]: Advanced marker number
+Example:
+  :CALCULATE:AMARKER:FUNCTION:PDENSITY:RESULT? -> -1.00000000E+001
+Notes:
+  - The unit of the returned marker level depends on the Y-axis unit of the assigned marker trace.
+  - A query error will occur if the specified advanced marker has not been assigned or is not a power spectral density marker.
+  - If the advanced marker number is not specified, advanced marker 1 will be used.
+  - This is a sequential command.
+  - This command can be used on the AQ6370C/ AQ6370D/AQ6373B/AQ6375B.
+
+Command: :CALCulate:AMARker[1|2|3|4]:FUNCtion:PDENsity|:NOISe[:STATe]
+Description: Sets the specified advanced marker to a power spectral density marker. Also queries the status of the specified power spectral density marker.
+Syntax:
+  :CALCulate:AMARker[1|2|3|4]:FUNCtion:PDENsity|:NOISe[:STATe]<wsp>OFF|ON|0|1
+  :CALCulate:AMARker[1|2|3|4]:FUNCtion:PDENsity|:NOISe[:STATe]?
+  [1|2|3|4]: Advanced marker number
+Response:
+  0 = Off, 1 = On
+Example:
+  :CALCULATE:AMARKER:FUNCTION:PDENSITY ON
+  :CALCULATE:AMARKER:FUNCTION:PDENSITY? -> 1
+Notes:
+  - If a power spectral density marker is assigned, moving markers (:CALCulate:AMARker[1|2|3|4] [:STATe]) and integrated power markers (:CAL Culate:AMARker[1|2|3|4]:FUNCtion:INTegral[: STATe]) will be set to off.
+  - If this command with the parameter set to OFF is specified on an advanced marker that has been assigned to power spectral density marker, the advanced marker will change to a moving marker.
+  - If the advanced marker has not been assigned, using this command with the parameter set to OFF will leave the advanced marker unassigned.
+  - If the advanced marker number is not specified, advanced marker 1 will be used.
+  - This is a sequential command.
+  - This command can be used on the AQ6370C/ AQ6370D/AQ6373B/AQ6375B.
+
+Command: :CALCulate:AMARker[1|2|3|4]:FUNCtion:PRESet
+Description: Changes the specified advanced marker to a moving marker.
+Syntax:
+  :CALCulate:AMARker[1|2|3|4]:FUNCtion:PRESet
+  [1|2|3|4]: Advanced marker number
+Example:
+  :CALCULATE:AMARKER:FUNCTION:PRESET
+Notes:
+  - If an advanced marker is assigned to a power spectral density marker or integrated power marker, the marker can be changed directly to a moving marker.
+  - This does not change the marker position.
+  - If the advanced marker has not been assigned, using this command will leave the advanced marker unassigned.
+  - If the advanced marker number is not specified, advanced marker 1 will be used.
+  - This is a sequential command.
+  - This command can be used on the AQ6370C/ AQ6370D/AQ6373B/AQ6375B.
+
+Command: :CALCulate:AMARker[1|2|3|4]:MAXimum
+Description: Detects the peak and sets the specified advanced marker there.
+Syntax:
+  :CALCulate:AMARker[1|2|3|4]:MAXimum
+  [1|2|3|4]: Advanced marker number
+Example:
+  :CALCULATE:AMARKER:MAXIMUM
+Notes:
+  - If the specified advanced marker has not been assigned, a moving marker will be assigned.
+  - If the advanced marker number is not specified, advanced marker 1 will be used.
+  - This is a sequential command.
+  - This command can be used on the AQ6370C/ AQ6370D/AQ6373B/AQ6375B.
+
+Command: :CALCulate:AMARker[1|2|3|4]:MAXimum:LEFT
+Description: Detects the closest peak to the left of the current specified advanced marker position and sets the specified advanced marker there.
+Syntax:
+  :CALCulate:AMARker[1|2|3|4]:MAXimum :LEFT
+  [1|2|3|4]: Advanced marker number
+Example:
+  :CALCULATE:AMARKER:MAXIMUM:LEFT
+Notes:
+  - If the specified advanced marker has not been assigned, a moving marker will be assigned.
+  - If the advanced marker number is not specified, advanced marker 1 will be used.
+  - This is a sequential command.
+  - This command can be used on the AQ6370C/ AQ6370D/AQ6373B/AQ6375B.
+
+Command: :CALCulate:AMARker[1|2|3|4]:MAXimum:NEXT
+Description: Detects the highest peak whose level is less than or equal to that of the current specified advanced marker position and sets the specified advanced marker there.
+Syntax:
+  :CALCulate:AMARker[1|2|3|4]:MAXimum :NEXT
+  [1|2|3|4]: Advanced marker number
+Example:
+  :CALCULATE:AMARKER:MAXIMUM:NEXT
+Notes:
+  - If the specified advanced marker has not been assigned, a moving marker will be assigned.
+  - If the advanced marker number is not specified, advanced marker 1 will be used.
+  - This is a sequential command.
+  - This command can be used on the AQ6370C/ AQ6370D/AQ6373B/AQ6375B.
+
+Command: :CALCulate:AMARker[1|2|3|4]:MAXimum:RIGHt
+Description: Detects the closest peak to the right of the current specified advanced marker position and sets the specified advanced marker there.
+Syntax:
+  :CALCulate:AMARker[1|2|3|4]:MAXimum :RIGHt
+  [1|2|3|4]: Advanced marker number
+Example:
+  :CALCULATE:AMARKER:MAXIMUM:RIGHT
+Notes:
+  - If the specified advanced marker has not been assigned, a moving marker will be assigned.
+  - If the advanced marker number is not specified, advanced marker 1 will be used.
+  - This is a sequential command.
+  - This command can be used on the AQ6370C/ AQ6370D/AQ6373B/AQ6375B.
+
+Command: :CALCulate:AMARker[1|2|3|4]:MINimum
+Description: Detects the bottom and sets the specified advanced marker there.
+Syntax:
+  :CALCulate:AMARker[1|2|3|4]:MINimum
+  [1|2|3|4]: Advanced marker number
+Example:
+  :CALCULATE:AMARKER:MINIMUM
+Notes:
+  - If the specified advanced marker has not been assigned, a moving marker will be assigned.
+  - If the advanced marker number is not specified, advanced marker 1 will be used.
+  - This is a sequential command.
+  - This command can be used on the AQ6370C/ AQ6370D/AQ6373B/AQ6375B.
+
+Command: :CALCulate:AMARker[1|2|3|4]:MINimum:LEFT
+Description: Detects the closest bottom to the left of the current specified advanced marker position and sets the specified advanced marker there.
+Syntax:
+  :CALCulate:AMARker[1|2|3|4]:MINimum :LEFT
+  [1|2|3|4]: Advanced marker number
+Example:
+  :CALCULATE:AMARKER:MINIMUM:LEFT
+Notes:
+  - If the specified advanced marker has not been assigned, a moving marker will be assigned.
+  - If the advanced marker number is not specified, advanced marker 1 will be used.
+  - This is a sequential command.
+  - This command can be used on the AQ6370C/ AQ6370D/AQ6373B/AQ6375B.
+
+Command: :CALCulate:AMARker[1|2|3|4]:MINimum:NEXT
+Description: Detects the lowest bottom whose level is greater than or equal to that of the current specified advanced marker position and sets the specified advanced marker there.
+Syntax:
+  :CALCulate:AMARker[1|2|3|4]:MINimum :NEXT
+  [1|2|3|4]: Advanced marker number
+Example:
+  :CALCULATE:AMARKER:MINIMUM:NEXT
+Notes:
+  - If the specified advanced marker has not been assigned, a moving marker will be assigned.
+  - If the advanced marker number is not specified, advanced marker 1 will be used.
+  - This is a sequential command.
+  - This command can be used on the AQ6370C/ AQ6370D/AQ6373B/AQ6375B.
+
+Command: :CALCulate:AMARker[1|2|3|4]:MINimum:RIGHt
+Description: Detects the closest bottom to the right of the current specified advanced marker position and sets the specified advanced marker there.
+Syntax:
+  :CALCulate:AMARker[1|2|3|4]:MINimum :RIGHt
+  [1|2|3|4]: Advanced marker number
+Example:
+  :CALCULATE:AMARKER:MINIMUM:RIGHT
+Notes:
+  - If the specified advanced marker has not been assigned, a moving marker will be assigned.
+  - If the advanced marker number is not specified, advanced marker 1 will be used.
+  - This is a sequential command.
+  - This command can be used on the AQ6370C/ AQ6370D/AQ6373B/AQ6375B.
+
+Command: :CALCulate:AMARker[1|2|3|4][:STATe]
+Description: Sets or queries whether the specified advanced marker is to be assigned. Also queries the status of the specified moving marker.
+Syntax:
+  :CALCulate:AMARker[1|2|3|4] [:STATe]<wsp>OFF|ON|0|1
+  :CALCulate:AMARker[1|2|3|4] [:STATe]?
+  [1|2|3|4]: Advanced marker number
+Response:
+  0 = Off, 1 = On
+Example:
+  :CALCULATE:AMARKER ON
+  :CALCULATE:AMARKER? -> 1
+Notes:
+  - If a moving marker is assigned, power spectral density markers (:CALCulate:AMAR ker[1|2|3|4]:FUNCtion:PDENsity|:NOISe[:STA Te]) and integrated power markers (:CALCula te:AMARker[1|2|3|4]:FUNCtion:INTegral[:STA Te]) will be set to off.
+  - If the advanced marker number is not specified, advanced marker 1 will be used.
+  - This is a sequential command.
+  - This command can be used on the AQ6370C/ AQ6370D/AQ6373B/AQ6375B.
+
+Command: :CALCulate:AMARker[1|2|3|4]:TRACe
+Description: Sets or queries the trace that the specified advanced marker is assigned to.
+Syntax:
+  :CALCulate:AMARker[1|2|3|4]:TRACe<w sp><trace name>
+  :CALCulate:AMARker[1|2|3|4]:TRACe?
+  [1|2|3|4]: Advanced marker number
+  <trace name> = Trace
+  TRA to TRG = Trace A to trace G
+Example:
+  :CALCULATE:AMARKER:TRACE TRA
+  :CALCULATE:AMARKER:TRACE? -> TRA
+Notes:
+  - Setting and querying are possible even when the specified advanced marker has not been assigned.
+  - If the advanced marker number is not specified, advanced marker 1 will be used.
+  - This is a sequential command.
+  - This command can be used on the AQ6370C/ AQ6370D/AQ6373B/AQ6375B.
+
+Command: :CALCulate:AMARker[1|2|3|4]:X
+Description: Sets the specified advanced marker to the specified position. Also queries the X value of the specified advanced marker.
+Syntax:
+  :CALCulate:AMARker[1|2|3|4]:X<wsp>< NRf>[M|HZ]
+  :CALCulate:AMARker[1|2|3|4]:X?
+  [1|2|3|4]: Advanced marker number
+  <NRf> = Advanced marker position
+Response:
+  <NRf> = Advanced marker position
+Example:
+  :CALCULATE:AMARKER:X 1550.000nm
+  :CALCULATE:AMARKER:X? -> +1.55000000E-006
+Notes:
+  - The unit of the returned advanced marker X value depends on the :CALCulate:MARKer:UNIT setting.
+  - The unit of the returned advanced marker level depends on the :CALCulate:MARKer:UNIT setting.
+  - If this set command is used when the specified advanced marker has not been assigned, a moving marker will be assigned.
+  - If a query is made when the specified advanced marker has not been assigned, a query error will occur.
+  - If the advanced marker number is not specified, advanced marker 1 will be used.
+  - This is a sequential command.
+  - This command can be used on the AQ6370C/ AQ6370D/AQ6373B/AQ6375B.
+
+Command: :CALCulate:AMARker[1|2|3|4]:Y?
+Description: Queries the Y value of the specified advanced marker.
+Syntax:
+  :CALCulate:AMARker[1|2|3|4]:Y?
+  [1|2|3|4]: Advanced marker number
+Response:
+  <NRf> = Advanced marker level
+Example:
+  :CALCULATE:AMARKER:X? -> -1.00000000E+001
+Notes:
+  - The unit of the returned advanced marker level depends on the Y-axis unit of the assigned marker trace.
+  - Even if the advanced marker is an integrated power marker or power spectral density marker, the moving marker level will be returned.
+  - The query does not return the integrated power value or the power spectral density value.
+  - A query error will occur if the specified advanced marker has not been assigned.
+  - If the advanced marker number is not specified, advanced marker 1 will be used.
+  - This is a sequential command.
+  - This command can be used on the AQ6370C/ AQ6370D/AQ6373B/AQ6375B.
+
+Command: :CALCulate:ARESolution?
+Description: Queries the actual resolution data of the specified trace.
+Syntax:
+  :CALCulate:ARESolution?<wsp><trace name>,[<start point>,<stop point>]
+  <trace name> Target trace (TRA|TRB|TRC|TRD|TRE|TRF|TRG)
+  <start point> Sample range to transfer (start point) (1 to 50001)
+  <stop point> Sample range to transfer (stop point) (1 to 50001)
+Example:
+  CALCULATE:ARESOLUTION?
+  -> +1.89759145E-009,+1.89744762E- 009,+1.89730346E-009,....
+Notes:
+  - The function outputs a wavelength value.
+  - If the <start point> and <stop point> parameters are omitted, the entire sample data of the specified trace will be output.
+  - The data is output in ASCII or BINARY format according to the :FORMat[:DATA] setting.
+  - This command is for the AQ6370D/AQ6370C/ AQ6375B.
+  - This is a sequential command.
+
+Command: :CALCulate:CATegory
+Description: Sets/queries the type of analysis.
+Syntax:
+  :CALCulate:CATegory<wsp>{SWTHresh|SWENvelope|SWRMs|SWPKrms|NOTCh|DFBLd|FPLD|LED|SMSR|POWer|PMD|OSNR|WDM|NF|FILPk|FILBtm|WFPeak|WFBTm|COLor|0|1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17}
+  :CALCulate:CATegory?
+  SWTHresh|0 Spectrum width analysis (THRESH)
+  SWENvelope|1 Spectrum width analysis (ENVELOPE)
+  SWRMs|2Spectrum width analysis (RMS)
+  SWPKrms|3 Spectrum width analysis (PEAK-RMS)
+  NOTCh|4Notch width analysis
+  DFBLd|5DFB-LD parameter analysis
+  FPLD|6FP-LD parameter analysis
+  LED|7LED parameter analysis
+  SMSR|8SMSR analysis
+  POWer|9Power analysis
+  PMD|10PMD analysis
+  OSNR|WDM|11 OSNR(WDM), WDM analysis
+  NF|12NF analysis
+  FILPk|13Filter peak analysis
+  FILBtm|14Filter bottom analysis
+  WFPeak|15WDM FIL-PK analysis
+  WFBtm|16WDM FIL-BTM analysis
+  COLor|17Color analysis
+Example:
+  :CALCULATE:CATegory SWTHresh
+  :CALCULATE:CATegory? -> 0
+Notes:
+  - Even when this command is executed, no analysis is performed unless the CALCulate[:IMMediate] command is executed.
+  - This is a sequential command.
+  - For the AQ6370C/AQ6370D, the following parameters cannot be set.
+  - OSNR, COLor
+  - For the AQ6373/AQ6373B, the following parameters cannot be set.
+  - NF, WFPeak, WFBtm
+  - For the AQ6375/AQ6375B, the following parameters cannot be set.
+  - OSNR, COLor
+  - For the AQ6375/AQ6375B,when in Wavenumber mode, analysis functions included in ANALYSIS2 cannot be executed. The following parameters cannot be set.
+  - WDM, NF, FILPk, FILBtm, WFPeak, WFBtm
+
+Command: :CALCulate:DATA?
+Description: Queries the analysis results.
+Syntax:
+  :CALCulate:DATA?
+Example:
+  :CALCULATE:DATA?
+Notes:
+  - Queries the analysis results from the last time analysis was executed.
+  - If the analysis function has not been executed, a query error occurs.
+  - For a response example, see section 7.7, "Output Format of Analysis Results."
+  - This is a sequential command.
+
+Command: :CALCulate:DATA:CGAin?
+Description: Queries the gain value of the EDFA-NF analysis results.
+Syntax:
+  :CALCulate:DATA:CGAin?
+Example:
+  :CALCULATE:DATA:CGAin?
+  -> +1.00000000E+001,+1.00000000E+001
+Notes:
+  - If the analysis function has not been executed, a query error occurs.
+  - "0" is returned if there is no relevant return value (such as if the analysis executed was not EDFA-NF analysis)
+  - The number of channels to be output can be acquired by the :CALCulate:DATA: NCHannels? command.
+  - Data is output in either ASCII or binary form, depending on the setting of :FORMat[: DATA].
+  - With the AQ6373/AQ6373B, the command is invalid.
+  - This is a sequential command.
+
+Command: :CALCulate:DATA:CNF?
+Description: Queries the NF value of the EDFA-NF analysis results.
+Syntax:
+  :CALCulate:DATA:CNF?
+Example:
+  :CALCULATE:DATA:CNF? ->
+  +1.00000000E+001,+1.00000000E+001
+Notes:
+  - If :CALCulate[:IMMediate] has not been executed, a query error occurs.
+  - "0" is returned if there is no relevant return value (such as if the analysis executed was not EDFA-NF analysis)
+  - The number of channels to be output can be acquired by the :CALCulate:DATA: NCHannels? command.
+  - Data is output in either ASCII or binary form, depending on the setting of :FORMat[: DATA].
+  - With the AQ6373/AQ6373B, the command is invalid.
+  - This is a sequential command.
+
+Command: :CALCulate:DATA:COLor?
+Description: Queries the dominant wavelength of the measured light source and the x coordinate, y coordinate, z coordinate, color temperature, and deviation of the measured light source on the xy chromaticity diagram.
+Syntax:
+  :CALCulate:DATA:COLor?
+Example:
+  :CALCulate:DATA:COLor? -> +0.58237440E-006,+4.30500000E- 001,+4.03000000E-001,+1.66500000E- 001,+3.10300000E+003,+0.0132000 0E+000
+Notes:
+  - This command returns analysis results that are not returned from the ":CALCulate:DATA?" command, such as the OSNR value. The following items are returned. The items are indicated with symbols. For the meanings of the symbols, see section 7.7. <dominant wl>,<x col>,<y col>,<z col>,<color temp>,<dev>
+  - "0" is returned if there is no relevant return value.
+  - This command is for the AQ6373B.
+  - This is a sequential command.
+
+Command: :CALCulate:DATA:CPOWers?
+Description: Queries the level value of the OSNR(WDM), WDM, EDFA-NF, WDM FIL-PK, or WDM FIL- BTM analysis results.
+Syntax:
+  :CALCulate:DATA:CPOWers?
+Example:
+  :CALCULATE:DATA:CPOWERS? ->
+  +1.00000000E+001,+1.00000000E+001
+Notes:
+  - If the analysis function has not been executed, a query error occurs.
+  - "0" is returned if there is no relevant return value.
+  - The number of channels to be output can be acquired by the :CALCulate:DATA: NCHannels? command.
+  - The value to be output depends on the analysis performed.
+  - OSNR(WDM): LEVEL or MEAS LEVEL
+  - WDM: LEVEL or MEAS LEVEL
+  - EDFA-NF: INPUT LEVEL
+  - WDM FIL-PK: PEAK LEVEL (output even if SW is OFF)
+  - WDM FIL-BTM: PEAK LEVEL (output even if SW is OFF)
+  - Data is output in either ASCII or binary form, depending on the setting of :FORMat[:DATA].
+  - This is a sequential command.
+
+Command: :CALCulate:DATA:CSNR?
+Description: Queries the SNR value from the last time WDM analysis was executed.
+Syntax:
+  :CALCulate:DATA:CSNR?
+Example:
+  :CALCULATE:DATA:CSNR? -> +4.00000000E+001,+4.00000000E+001
+Notes:
+  - If the analysis function has not been executed, a query error occurs.
+  - "0" is returned if there is no relevant return value (for example, if analysis made is other than WDM analysis).
+  - The number of channels to be output can be acquired by the :CALCulate:DATA: NCHannels? command.
+  - Data is output in either ASCII or binary form, depending on the setting of :FORMat[: DATA].
+  - This is a sequential command.
+
+Command: :CALCulate:DATA:CWAVelengths?
+Description: Queries the wavelength value of the OSNR(WDM), WDM, EDFA-NF, WDM FIL-PK, or WDM FIL-BTM analysis results.
+Syntax:
+  :CALCulate:DATA:CWAVelengths?
+Example:
+  :CALCULATE:DATA:CWAVELENGTHS? -> +1.55000000E-006,+1.56000000E-006
+Notes:
+  - If the analysis function has not been executed, a query error occurs.
+  - "0" is returned if there is no relevant return value.
+  - The number of channels to be output can be acquired by the :CALCulate:DATA:NCHannels? command.
+  - The value to be output depends on the analysis performed.
+  - OSNR(WDM) : WAVELENGTH or MEAS WL
+  - WDM : WAVELENGTH or MEAS WL
+  - EDFA-NF: WAVELENGTH
+  - WDM FIL-PK: NOMINAL WAVELENGTH
+  - WDM FIL-BTM: NOMINAL WAVELENGTH
+  - Data is output in either ASCII or binary form, depending on the setting of :FORMat[:DATA].
+  - This is a sequential command.
+
+Command: :CALCulate:DATA:DFBLd?
+Description: Queries the DFB-LD analysis results.
+Syntax:
+  :CALCulate:DATA:DFBLd?
+Example:
+  :CALCULATE:DATA:DFBLD? ->
+Notes:
+  - If the :CALCulate[:IMMediate] command has not been executed, a query error occurs.
+  - "0" is returned if there is no relevant return value
+  - (for example, if the analysis that was executed was not a DFB-LD analysis).
+  - This command returns analysis results that are not returned from the ":CALCulate:DATA?" command, such as the OSNR value. The following items are returned. The items are listed here as abbreviations. For the meaning of these abbreviations, see section 7.7.
+  - <peak wl>,<peak lvl>,<center wl>,<spec wd>,<smsr(L)>,<smsr(R)>,<mode ofst(L)>,<mode ofst(R)>,<snr>,<power>,<rms>,< Krms>
+  - This is a sequential command.
+  - This command can be used on the AQ6370C/ AQ6370D/AQ6373B/AQ6375B.
+
+Command: :CALCulate:DATA:NCHannels?
+Description: Queries the number of channels of the OSNR(WDM), WDM, EDFA-NF, WDM FIL-PK, or WDM FIL-BTM analysis results.
+Syntax:
+  :CALCulate:DATA:NCHannels?
+Example:
+  :CALCULATE:DATA:NCHANNELS? -> 16
+Notes:
+  - If the analysis function has not been executed, a query error occurs.
+  - "0" is returned if there is no relevant return value.
+  - The value is output as ASCII data, regardless of the setting of FORMat[:DATA].
+  - This is a sequential command.
+
+Command: :CALCulate:DATA:OSLope?
+Description: Queries the OUTPUT SLOPE value of the OSNR (WDM) and WDM analysis results.
+Syntax:
+  :CALCulate:DATA:OSLope?
+Response:
+  <NRf> = Output slope value [dB/nm] or [dB/THz]
+Example:
+  :CALCULATE:DATA:OSLOPE? -> +2.45352623E-001
+Notes:
+  - A query error will occur if the analysis function is not implemented.
+  - "0" is returned if there is no relevant return value (for example, if the analysis that was executed was not a WDM analysis).
+  - Analysis results can be queried even if the output of the OUTPUT SLOPE value is set to OFF.
+  - ASCII data is returned regardless of the setting specified by the :FORMat:[DATA] command.
+  - This is a sequential command.
+  - This command can be used on the AQ6370C/ AQ6370D/AQ6373B/AQ6375B.
+
+Command: :CALCulate:DISPlay
+Description: Sets/queries the display format of analysis results.
+Syntax:
+  :CALCulate:DISPlay<wsp>0|1|2|3|4
+  :CALCulate:DISPlay?
+  0: TRACE&TABLE
+  1: TABLE
+  2: TRACE
+  3: GRAPH&TABLE
+  4: GRAPH
+Example:
+  :CALCULATE:DISPLAY 1
+  :CALCULATE:DISPLAY? -> 1
+Notes:
+  - This is a sequential command.
+  - This command can be used on the AQ6370C/ AQ6370D/AQ6373B/AQ6375B.
+
+Command: :CALCulate:DISPlay:GRAPh:LMARKer:Y
+Description: Sets/queries the position of line marker Y1 or Y2 on the graph display of analysis results.
+Syntax:
+  :CALCulate:DISPlay:GRAPh:LMARker:Y< wsp>1|2,<NRf>[DB]
+  :CALCulate:DISPlay:GRAPh:LMARker:Y? <wsp>1|2
+  1: Line marker Y1. 2: Line marker Y2.
+  <NRf>: Line marker position
+Example:
+  :CALCULATE:DISPLAY:GRAPH:LMARKER: Y 1,3.4
+  :CALCULATE:DISPLAY:GRAPH:LMARKER:Y?1 -> +3.40000000E+000
+Notes:
+  - This command is valid when the EDFA-NF analysis results are being displayed on a graph.
+  - This is a sequential command.
+  - This command can be used on the AQ6370C/ AQ6370D.
+
+Command: :CALCulate[:IMMediate]
+Description: Executes analysis. Queries the result of whether analysis has been performed.
+Syntax:
+  :CALCulate[:IMMediate]
+  :CALCulate[:IMMediate]?
+  0: Not performed
+  1: Performed
+Example:
+  :CALCULATE
+  :CALCULATE? -> 1
+Notes:
+  - Analysis is performed according to the latest analysis settings.
+  - Analysis is performed on the following occasions:
+  - When CALCulate[:IMMediate] command is executed.
+  - When CALCulatePARameter: command is executed, or parameter settings changed
+  - For the AQ6375/AQ6375B, analysis functions included in ANALYSIS2 cannot be executed when in Wavenumber mode. The following parameters cannot be set.
+  - This is a sequential command.
+
+Command: :CALCulate[:IMMediate]:AUTO
+Description: Sets/queries the automatic analysis function.
+Syntax:
+  :CALCulate[:IMMediate]:AUTO<wsp>OFF|ON|0|1
+  :CALCulate[:IMMediate]:AUTO?
+  0: OFF
+  1: ON
+Example:
+  :CALCULATE:AUTO ON
+  :CALCULATE AUTO? -> 1
+Notes:
+  - When the automatic analysis function is ON, automatically activates an analysis function that is active after a sweep has ended.
+  - This is a sequential command.
+
+Command: :CALCulate:LMARker:AOFF
+Description: Clears all line markers.
+Syntax:
+  :CALCulate:LMARker:AOFFExample
+  :CALCULATE:LMARKER:AOFF
+Notes:
+  - This is a sequential command.
+
+Command: :CALCulate:LMARker:SRANge
+Description: Sets/queries whether to limit an analytical range to the spacing between line markers L1 and L2.
+Syntax:
+  :CALCulate:LMARker:SRANge<wsp>OFF|ON|0|1
+  :CALCulate:LMARker:SRANge?
+  0: OFF
+  1: ON
+Example:
+  :CALCULATE:LMARKER:SRANGE ON
+  :CALCULATE:LMARKER:SRANGE? -> 1
+Notes:
+  - This is a sequential command.
+
+Command: :CALCulate:LMARker:SSPan
+Description: Sets spacing between line markers L1 and L2 for span.
+Syntax:
+  :CALCulate:LMARker:SSPan
+Example:
+  :CALCULATE:LMARKER:SSPAN
+Notes:
+  - This is a sequential command.
+
+Command: :CALCulate:LMARker:SZSPan
+Description: Sets spacing between line markers L1 and L2 for zoom span.
+Syntax:
+  :CALCulate:LMARker:SZSPan
+Example:
+  :CALCULATE:LMARKER:SZSPAN
+Notes:
+  - This is a sequential command.
+
+Command: :CALCulate:LMARker:X
+Description: Sets/queries the position of line markers L1 and L2.
+Syntax:
+  :CALCulate:LMARker:X<wsp>1|2,<NRf> [M|HZ]
+  :CALCulate:LMARker:X?<wsp>1|2
+  1, 2 = Line marker numbers
+  <NRf> = Position of a line marker
+Response:
+  <NRf> [m|Hz] (AQ6370C, AQ6373, AQ6373B)
+  <NRf> [m|Hz|m-1] (AQ6375/AQ6375B)
+Example:
+  :CALCULATE:LMARKER:X 1,1550.000nm
+  :CALCULATE:LMARKER:X? 1 -> +1.55000000E-006
+Notes:
+  - If the specified line marker is not located, a query error occurs.
+  - For the AQ6375/AQ6375B, to set using the wavenumber, do not add any units when in Wavenumber mode, and just enter the numerical value.
+  - This is a sequential command.
+
+Command: :CALCulate:LMARker:Y
+Description: Sets/queries the position of line markers L3 and L4.
+Syntax:
+  :CALCulate:LMARker:Y<wsp>3|4,<NRf> [DBM|DB|%]
+  :CALCulate:LMARker:Y?<wsp>3|4
+  3, 4 = Line marker numbers
+  <NRf> = Position of a line marker
+Example:
+  :CALCULATE:LMARKER:y 3,-10dBm
+  :CALCULATE:LMARKER:y? 3 -> -1.00000000E+001
+Notes:
+  - If the specified line marker is not located, a query error occurs.
+  - This is a sequential command.
+
+Command: :CALCulate:MARKer:AOFF
+Description: Clears all markers.
+Syntax:
+  :CALCulate:MARKer:AOFF
+Example:
+  :CALCULATE:MARKER:AOFF
+Notes:
+  - This is a sequential command.
+
+Command: :CALCulate:MARKer:AUTO
+Description: Sets/queries the auto search function.
+Syntax:
+  :CALCulate:MARKer:AUTO<wsp>OFF|ON|0|1
+  :CALCulate:MARKer:AUTO?
+  0 = OFF
+  1 = ON
+Example:
+  :CALCULATE:MARKER:AUTO ON
+  :CALCULATE:MARKER:AUTO? -> 1
+Notes:
+  - When the auto search function is ON, this instrument automatically performs a peak/ bottom search through an active trace after a sweep has ended.
+  - This is a sequential command.
+
+Command: :CALCulate:MARKer:FUNCtion:FORMat
+Description: Sets the format of a difference value displayed in the area marker and queries the format set.
+Syntax:
+  :CALCulate:MARKer:FUNCtion:FORMat<w sp>OFFSet|SPACing|0|1
+  :CALCulate:MARKer:FUNCtion:FORMat?
+  OFFSet = Displays the difference of each marker relative to the moving marker.
+  SPACing = Displays the difference of each marker relative to a neighboring marker.
+Response:
+  0 = OFFSet, 1 = SPACing
+Example:
+  :CALCULATE:MARKER:FUNCTION:FORMATSPACING
+  :CALCULATE:MARKER:FUNCTION:FORMAT? -> 1
+Notes:
+  - This is a sequential command.
+
+Command: :CALCulate:MARKer:FUNCtion:UPDate
+Description: Sets/queries ON/OFF of the automatic update function of fixed markers used when updating an active trace.
+Syntax:
+  :CALCulate:MARKer:FUNCtion:UPDate<w sp>OFF|ON|0|1
+  :CALCulate:MARKer:FUNCtion:UPDate?
+Response:
+  0 = OFF, 1 = ON
+Example:
+  :CALCULATE:MARKER:FUNCTION: UPDATE ON
+  :CALCULATE:MARKER:FUNCTION:UPDATE? -> 1
+Notes:
+  - When the automatic update function is ON and the active trace is updated, the level positions of fixed markers automatically follow the waveform.
+  - This is a sequential command.
+
+Command: :CALCulate:MARKer:MAXimum
+Description: Detects a peak and places the moving marker on that peak.
+Syntax:
+  :CALCulate:MARKer:MAXimum
+Example:
+  :CALCULATE:MARKER:MAXIMUM
+Notes:
+  - This is a sequential command.
+
+Command: :CALCulate:MARKer:MAXimum:LEFT
+Description: Detects the nearest peak existing on the left side of the current position of the moving marker and places the moving marker on that peak.
+Syntax:
+  :CALCulate:MARKer:MAXimum:LEFT
+Example:
+  :CALCULATE:MARKER:MAXIMUM:LEFT
+Notes:
+  - If the moving marker is OFF, an execution error occurs.
+  - This is a sequential command.
+
+Command: :CALCulate:MARKer:MAXimum:NEXT
+Description: Detects the highest peak that is below the level of the current position of the moving marker and places the moving marker on that peak.
+Syntax:
+  :CALCulate:MARKer:MAXimum:NEXT
+Example:
+  :CALCULATE:MARKER:MAXIMUM:NEXT
+Notes:
+  - If the moving marker is OFF, an execution error occurs.
+  - This is a sequential command.
+
+Command: :CALCulate:MARKer:MAXimum:RIGHt
+Description: Detects the nearest peak existing on the right side of the current position of the moving marker and places the moving marker on that peak.
+Syntax:
+  :CALCulate:MARKer:MAXimum:RIGHt
+Example:
+  :CALCULATE:MARKER:MAXIMUM:RIGHT
+Notes:
+  - If the moving marker is OFF, an execution error occurs.
+  - This is a sequential command.
+
+Command: :CALCulate:MARKer:MAXimum:SCENter
+Description: Detects the peak wavelength and sets it as the measurement center waveform.
+Syntax:
+  :CALCulate:MARKer:MAXimum:SCENter
+Example:
+  :CALCULATE:MARKER:MAXIMUM:SCENTER
+Notes:
+  - This is a sequential command.
+
+Command: :CALCulate:MARKer:MAXimum:SCENter:AUTO
+Description: Sets/queries ON/OFF of the function to automatically detect the peak wavelength and set it as the measurement center wavelength.
+Syntax:
+  :CALCulate:MARKer:MAXimum:SCENter:AUTO<wsp>OFF|ON|0|1
+  :CALCulate:MARKer:MAXimum:SCENter:AUTO?
+Response:
+  0 = OFF, 1 = ON
+Example:
+  :CALCULATE:MARKER:MAXIMUM:SCENTER:AUTO ON
+  :CALCULATE:MARKER:MAXIMUM:SCENTER:AUTO? -> 1
+Notes:
+  - When this function is ON, this instrument automatically detects the peak wavelength of an active trace wavelength each time a sweep has ended, and sets it as the measurement center wavelength.
+  - This is a sequential command.
+
+Command: :CALCulate:MARKer:MAXimum:SRLevel
+Description: Detects the peak level and sets it for the reference level.
+Syntax:
+  :CALCulate:MARKer:MAXimum:SRLevel
+Example:
+  :CALCULATE:MARKER:MAXIMUM:SRLEVEL
+Notes:
+  - This is a sequential command.
+
+Command: :CALCulate:MARKer:MAXimum:SRLevel:AUTO
+Description: Sets/queries ON/OFF of the function to automatically detect the peak level and sets it as the reference level.
+Syntax:
+  :CALCulate:MARKer:MAXimum:SRLevel:AUTO<wsp>OFF|ON|0|1
+Response:
+  0 = OFF, 1 = ON
+Example:
+  :CALCULATE:MARKER:MAXIMUM:SRLEVEL:AUTO ON
+  CALCULATE:MARKER:MAXIMUM:SRLEVEL:AUTO? -> 1
+Notes:
+  - When this function is ON, the instrument automatically detects the peak level of an active trace wavelength each time a sweep has ended, and sets it as the reference level.
+  - This is a sequential command.
+
+Command: :CALCulate:MARKer:MAXimum:SZCenter
+Description: Detects the peak wavelength and sets it as the display center wavelength.
+Syntax:
+  :CALCulate:MARKer:MAXimum:SZCenter
+Example:
+  :CALCULATE:MARKER:MAXIMUM:SZCENTER
+Notes:
+  - This is a sequential command.
+
+Command: :CALCulate:MARKer:MINimum
+Description: Detects the bottom and places the moving marker on that bottom.
+Syntax:
+  :CALCulate:MARKer:MINimum
+Example:
+  :CALCULATE:MARKER:MINIMUM
+Notes:
+  - This is a sequential command.
+
+Command: :CALCulate:MARKer:MINimum:LEFT
+Description: Detects the nearest bottom existing on the left side of the current position of the moving marker and places the moving marker on that bottom.
+Syntax:
+  :CALCulate:MARKer:MINimum:LEFT
+Example:
+  :CALCULATE:MARKER:MINIMUM:LEFT
+Notes:
+  - If the moving marker is OFF, an execution error occurs.
+  - This is a sequential command.
+
+Command: :CALCulate:MARKer:MINimum:NEXT
+Description: Detects the lowest bottom that is above the level of the current position of the moving marker and places the moving marker on that bottom.
+Syntax:
+  :CALCulate:MARKer:MINimum:NEXT
+Example:
+  :CALCULATE:MARKER:MINIMUM:NEXT
+Notes:
+  - If the moving marker is OFF, an execution error occurs.
+  - This is a sequential command.
+
+Command: :CALCulate:MARKer:MINimum:RIGHt
+Description: Detects the nearest bottom existing on the right side of the current position of the moving marker and places the moving marker on that side.
+Syntax:
+  :CALCulate:MARKer:MINimum:RIGHt
+Example:
+  :CALCULATE:MARKER:MINIMUM:RIGHT
+Notes:
+  - If the moving marker is OFF, an execution error occurs.
+  - This is a sequential command.
+
+Command: :CALCulate:MARKer:MSEarch
+Description: Sets/queries the type of the search function.
+Syntax:
+  :CALCulate:MARKer:MSEarch<wsp>OFF|ON|0|1
+  :CALCulate:MARKer:MSEarch?
+  OFF|0: Sets the search function to single search.
+  ON|1: Sets the search function to multi search.
+Response:
+  0 = OFF, 1 = ON
+Example:
+  :CALCULATE:MARKER:MSEARCH on
+  :CALCULATE:MARKER:MSEARCH? -> 1
+Notes:
+  - The search is executed as soon as you set the search function.
+  - This is a sequential command.
+  - This command can be used on the AQ6370C/ AQ6370D/AQ6373B/AQ6375B.
+
+Command: :CALCulate:MARKer:MSEarch:SORT
+Description: Sets/queries the sort order of the multi search detection list.
+Syntax:
+  :CALCulate:MARKer:MSEarch:SORT<wsp>WAVelength|LEVel|0|1
+  :CALCulate:MARKer:MSEarch:SORT?
+  WAVelength|0: Wavelengths are displayed in order starting from the shortest wavelength.
+  LEVel|1: For the peak search, levels are displayed in order starting from the highest level. For the bottom search, levels are displayed in order starting from the lowest level.
+Response:
+  0 = OFF, 1 = ON
+Example:
+  :CALCULATE:MARKER:MSEARCH:SORT WAV
+  :CALCULATE:MARKER:MSEARCH:SORT? -> 0
+Notes:
+  - This is a sequential command.
+  - This command can be used on the AQ6370C/ AQ6370D/AQ6373B/AQ6375B.
+
+Command: :CALCulate:MARKer:MSEarch:THResh
+Description: Sets/queries the multi search threshold.
+Syntax:
+  :CALCulate:MARKer:MSEarch:THResh<ws p><NRf>[DB]
+  :CALCulate:MARKer:MSEarch:THResh?
+  <NRf>: Threshold (dB)
+Example:
+  :CALCULATE:MARKER:MSEARCH:THRESH50DB
+  :CALCULATE:MARKER:MSEARCH? -> +5.00000000E+001
+Notes:
+  - This is a sequential command.
+  - This command can be used on the AQ6370C/ AQ6370D/AQ6373B/AQ6375B.
+
+Command: :CALCulate:MARKer:SCENter
+Description: Sets the wavelength of the current moving marker as the measurement center waveform.
+Syntax:
+  :CALCulate:MARKer:SCENter
+Example:
+  :CALCULATE:MARKER:MINIMUM:SCENTER
+Notes:
+  - If the moving marker is OFF, an execution error occurs.
+  - This is a sequential command.
+
+Command: :CALCulate:MARKer:SRLevel
+Description: Sets the current level of the moving marker for the reference level.
+Syntax:
+  :CALCulate:MARKer:SRLevel
+Example:
+  :CALCULATE:MARKER:MINIMUM:SRLEVEL
+Notes:
+  - If the moving marker is OFF, an execution error occurs.
+  - This is a sequential command.
+
+Command: :CALCulate:MARKer[:STATe]
+Description: Specified marker is positioned or deleted in the position of the moving marker. Also, queries the status of the specified marker.
+Syntax:
+  :CALCulate:MARKer[:STATe]<wsp> <marker>,OFF|ON|0|1:CALCulate:MARKe r[:STATe]?<wsp><marker>
+  <marker>: Marker number (0: moving marker)
+Response:
+  0 = OFF, 1 = ON
+Example:
+  :CALCULATE:MARKER:STATE 1,ON
+  :CALCULATE:MARKER:STATE 1 -> 1
+Notes:
+  - When the moving marker is not active and an attempt is made to set a fixed marker, an execution error occurs.
+  - If moving marker is specified, it is placed in the center of measurment display.
+  - This is a sequential command.
+
+Command: :CALCulate:MARKer:SZCenter
+Description: Sets the current wavelength of the moving marker for the display center wavelength.
+Syntax:
+  :CALCulate:MARKer:SZCenter
+Example:
+  :CALCULATE:MARKER:SZCENTER
+Notes:
+  - If the moving marker is OFF, an execution error occurs.
+  - This is a sequential command.
+
+Command: :CALCulate:MARKer:UNIT
+Description: Sets/queries the units of display for the marker values.
+Syntax:
+  :CALCulate:MARKer:UNIT<wsp>WAVelength|FREQuency|0|1
+  :CALCulate:MARKer:UNIT?
+  Parameter
+  AQ6370C, AQ6370D, AQ6373, AQ6373B
+  WAVelength|0
+  FREQuency|1
+  AQ6375
+  WAVelength|0
+  FREQuency|1
+  WNUMber|2
+Response:
+  0=WAVelength, 1= FREQuency
+  2=WNUMber
+Example:
+  :CALCULATE:MARKER:UNIT FREQUENCY
+  :CALCULATE:MARKER:UNIT? -> 1
+Notes:
+  - WNUMber is only valid for the AQ6375.
+  - This is a sequential command.
+
+Command: :CALCulate:MARKer:X
+Description: Places a specified marker in a specified position. Queries the X value of the specified marker.
+Syntax:
+  :CALCulate:MARKer:X<wsp><marker>,<N Rf>[M|HZ]
+  :CALCulate:MARKer:X?<wsp><marker>|ALL
+  <marker> = Marker number (0: moveing marker)
+  ALL : All assigned markers
+  <NRf>= Marker position
+Response:
+  <NRf> [m|Hz](AQ6370C,AQ6370D,AQ6373, AQ6373B)
+  <NRf> [m|Hz] (If <marker> is specified)
+  <integer>, <NRf>, <NRf>, ..., <NRf> (If ALL is specified)
+  <NRf> [m|Hz|m-1] (AQ6375/AQ6375B)
+Example:
+  :CALCULATE:MARKER:X 0,1550.000nm
+  :CALCULATE:MARKER:X? 0 -> +1.55000000E-006
+Notes:
+  - If an already located marker is specified, that marker will be moved to a specified position.
+  - If the specified marker is not located, a query error occurs.
+  - If ALL is specified (e.g., :CALC:MARK:Y? ALL), the Y values of all assigned markers will be returned.
+  - The number of assigned markers will be returned as an integer, and then all the marker values will follow.
+  - For the AQ6375/AQ6375B, to set using the wavenumber, do not add any units when in Wavenumber mode, and just enter the numerical value.
+  - This is a sequential command.
+  - ALL can be used on the AQ6370C / AQ6370D/ AQ6373B/AQ6375B.
+
+Command: :CALCulate:MARKer:Y?
+Description: Queries the Y value of the specified marker.
+Syntax:
+  :CALCulate:MARKer:Y?<wsp><marker>|ALL
+  <marker> : Marker number (0: moveing marker)
+  ALL = All assigned markers
+  If <marker> is specified
+  <NRf>= Marker level
+  If ALL is specified
+  <integer>, <NRf>, <NRf>, ..., <NRf>
+Example:
+  :CALCULATE:MARKER:Y? 0 -> -1.00000000E+001
+Notes:
+  - This unit of the marker level to be queried is dependent on the Y-axis unit of the active trace.
+  - If the specified marker is not located, a query error occurs.
+  - If ALL is specified (e.g., :CALC:MARK:Y? ALL), the Y values of all assigned markers will be returned.
+  - This is a sequential command.
+  - ALL can be used on the AQ6370C / AQ6370D/ AQ6373B/AQ6375B.
+
+Command: :CALCulate:MATH:TRC
+Description: Sets/queries the TRACE C calculation function.
+Syntax:
+  :CALCulate:MATH:TRC<wsp>A-B(LOG)|B-A(LOG)|A+B(LOG)|A+B(LIN)|A-B(LIN)|B-A(LIN)|1-K(A/B)|1-K(B/A)|
+  :CALCulate:MATH:TRC?
+Example:
+  :CALCULATE:MATH:TRC A-B(LOG)
+  :CALCULATE:MATH:TRC? -> A-B(LOG)
+Notes:
+  - When the calculation function of trace C is set using this command, the attribute of trace C automatically becomes attribute "CALC".
+  - If trace C is not a calculation trace, "NONE" is returned.
+  - This is a sequential command.
+
+Command: :CALCulate:MATH:TRC:K
+Description: Sets/queries parameter K of the TRACE C calculation function.
+Syntax:
+  :CALCulate:MATH:TRC:K<wsp><NRf>
+  :CALCulate:MATH:TRC:K?
+  <NRf> = Parameter K
+Example:
+  :CALCULATE:MATH:TRC:K 0.1
+  :CALCULATE:MATH:TRC:K? -> +1.00000000E-001
+Notes:
+  - This is a sequential command.
+
+Command: :CALCulate:MATH:TRF
+Description: Sets/queries the TRACE F calculation function.
+Syntax:
+  :CALCulate:MATH:TRF<wsp>C-D(LOG)|D-C(LOG)|C+D(LOG)|D-E(LOG)|E-D(LOG)|D+E(LOG)|C+D(LIN)|C-D(LIN)|D-C(LIN)|D+E(LIN)|D-E(LIN)|E-D(LIN)|PWRNBWA|PWRNBWB|PWRNBWC|PWRNBWD|PWRNBWE
+  :CALCulate:MATH:TRF?
+Example:
+  :CALCULATE:MATH:TRF C-D(LOG)
+  :CALCULATE:MATH:TRF? -> C-D(LOG)
+Notes:
+  - When the calculation function of trace F is set using this command, the attribute of trace F automatically becomes attribute "CALC".
+  - If trace F is not a calculation trace, "NONE" is returned.
+  - Example calc:math:trf c-d(log)
+  - calc:math:trf? -> C-D(LOG)
+  - PWRNBWA, PWRNBWB, PWRNBWC, PWRNBWD, and PWRNBWE are valid only for the AQ6370D/AQ6370C/AQ6373B/ AQ6375B.
+  - This is a sequential command.
+
+Command: :CALCulate:MATH:TRF:PNBW:BWIDth|BANDwidth
+Description: Sets/queries the normalization bandwidth of the power spectral density trace.
+Syntax:
+  :CALCulate:MATH:TRF:PNBW:BWIDth|BANDwidth<wsp><NRf>[m]
+  :CALCulate:MATH:TRF:PNBW:BWIDth|BANDwidth?
+  <NRf>=Normalization bandwidth[mm]
+Example:
+  :CALCULATE:MATH:TRF:PNBW:BAND 0.1nm
+  :CALCULATE:MATH:TRF:PNBW:BAND? -> 1.00000000E-010
+Notes:
+  - This command is for the AQ6370D/AQ6370C/ AQ6375B.
+  - This is a sequential command.
+
+Command: :CALCulate:MATH:TRG
+Description: Sets/queries the TRACE G calculation function.
+Syntax:
+  :CALCulate:MATH:TRG<wsp>C-F(LOG)|
+  F-C(LOG)|C+F(LOG)|E-F(LOG)|F-E(LOG)|E+F(LOG)|C+F(LIN)|C-F(LIN)|F-C(LIN)|E+F(LIN)|E-F(LIN)|FLIN)|NORMA|NORMB|NORMC|CVFTA|CVFTB|CVFTC|MKRFT|PKCVFTA|PKCVFTB|PKCVFTC
+  :CALCulate:MATH:TRG?
+Example:
+  :CALCULATE:MATH:TRG C-F(LOG)
+  :CALCULATE:MATH:TRG? -> C-F(LOG)
+Notes:
+  - When the calculation function of trace G is set using this command, the attribute of trace G automatically becomes attribute "CALC".
+  - If trace G is not a calculation trace, "NONE" is returned.
+  - This is a sequential command.
+
+Command: :CALCulate:MATH:TRG:CVFT:FALGo
+Description: Sets/queries the fitting curve function of the TRACE G fitting curve function.
+Syntax:
+  :CALCulate:MATH:TRG:CVFT:FALGo <wsp><algorhythm>
+  :CALCulate:MATH:TRG:CVFT:FALGo?
+  <algorhythm>
+  GAUSs = GAUSS
+  LORENz = LORENZ
+  3RD = 3RD POLY
+  4TH = 4TH POLY
+  5TH = 5TH POLY
+Response:
+  0 = GAUSS 1 = LORENZ,
+  2 = 3RD POLY 3 = 4TH POLY
+  4 = 5TH POLY
+Example:
+  :CALCULATE:MATH:TRG:CVFT: FALGO GAUSS
+  :CALCULATE:MATH:TRG:CVFT:FALG? -> 1
+Notes:
+  - Setting of calculation area is common to curve fit and peak curve fit.
+  - This is a sequential command.
+
+Command: :CALCulate:MATH:TRG:CVFT:OPARea
+Description: Sets/queries a calculation area during curve fit and peak curve fit.
+Syntax:
+  :CALCulate:MATH:TRG:CVFT:OPARea <wsp>ALL|INL1-L2|OUTL1-L2|0|1|2
+  :CALCulate:MATH:TRG:CVFT:OPARea?
+  ALL = all of the set wavelength range
+  INL1-L2 = range surrounding line marker 1 and 2
+  OUTL1-L2 = range outisde line markers 1 and 2
+Response:
+  0 = ALL, 1 = INL1-L2, 2 = OUTL1-L2
+Example:
+  :CALCULATE:MATH:TRG:CVFT: OPAREA inl1-l2
+  :CALCULATE:MATH:TRG:CVFT:OPAREA?-> 1
+Notes:
+  - Setting of calculation area is common to curve fit and peak curve fit.
+  - This is a sequential command.
+
+Command: :CALCulate:MATH:TRG:CVFT:THResh
+Description: Sets/queries the threshold value for curve fitting.
+Syntax:
+  :CALCulate:MATH:TRG:CVFT:THResh <wsp><integer>[DB]
+  :CALCulate:MATH:TRG:CVFT:THResh?
+  <NRf> = Threshold level [dB]
+Example:
+  :CALCULATE:MATH:TRG:CVFT:THRESH10db
+  :CALCULATE:MATH:TRG:CVFT:THRESH?-> 10
+Notes:
+  - This is a sequential command.
+
+Command: :CALCulate:MATH:TRG:PCVFt:THResh
+Description: Sets/queries the threshold value for peak curve fitting.
+Syntax:
+  :CALCulate:MATH:TRG:PCVFt:THResh <wsp><integer>[DB]
+  :CALCulate:MATH:TRG:PCVFt:THResh?
+  <NRf> = Threshold level [dB]
+Example:
+  :CALCULATE:MATH:TRG:PCVFT: THRESH 10db
+  :CALCULATE:MATH:TRG:PCVFT:THRESH?-> 10
+Notes:
+  - This is a sequential command.
+
+Command: :CALCulate:PARameter[:CATegory]:DFBLd
+Description: Sets/queries parameters for the DFB-LD analysis function.
+Syntax:
+  :CALCulate:PARameter[:CATegory]:DFBLd<wsp><item>,<paramater>,<data>
+  :CALCulate:PARameter[:CATegory]:DFBLd?<wsp><item>,<paramater>
+  <item> = Analytical item that sets parameter(s)
+  <parameter> = Parameter to be set
+  <data> = Setting data <item> <parameter> <data> SWIDth ALGO ENVelope|THResh|RMS|
+  PKRMs
+  TH <NRf>[DB]
+  TH2 <NRf>[DB]
+  K <NRf>
+  MFITOFF|ON|0|1
+  MDIFf <NRf>[DB]
+  SMSRSMODeSMSR1|SMSR2|SMSR3|
+  SMSR4
+  SMASk <NRf>[M]
+  MDIFf <NRf>[DB] RMS ALGO RMS|PKRMs
+  TH <NRf>[DB]
+  K <NRf>
+  MDIFf <NRf> [DB] POWer SPAN <NRf>[M] OSNR MDIFf <NRf>[DB]
+  NALGoAFIX|MFIX|ACENter|
+  MCENter|PIT|0|1|2|3|4
+  NARea <NRf>[M]
+  MARea <NRf>[M]
+  FALGoLINear|GAUSs|LORenz|
+  3RD|4TH|5TH|0|1|2|3|4|5
+  NBW <NRf>[M]
+  SPOWerPEAK|INTegral|0|1
+  IRANge <NRf>
+Example:
+  :CALCULATE:PARAMETER: DFBLD SWIDTH,ALGO,THRESH
+  :CALCULATE:PARAMETER:DFBLD? SWIDTH, ALGO -> THR
+  :CALCULATE:PARAMETER:DFBLDSMSR,SMASK,0.5NM :CALCULATE:PARAMETER:DFBLD? SMSR,SMASK -> +5.00000000E-010
+Notes:
+  - If a non-existing parameter is used for a combination, an execution error occurs.
+  - (such as combinations of SWIDth and SMODe)
+  - This is a sequential command.
+
+Command: :CALCulate:PARameter[:CATegory]:FILBtm
+Description: Sets/queries parameters for the FILTER-BTM analysis function.
+Syntax:
+  :CALCulate:PARameter[:CATegory]:FILBtm<wsp><item>,<paramater>, <data>
+  :CALCulate:PARameter[:CATegory]:FILBtm?<wsp><item>,<paramater>
+  <item> = Analytical item that sets parameter(s)
+  <parameter> = Parameter to be set
+  <data> = Data to be set <item> <parameter> <data> BLEVel SW OFF|ON|0|1 BWAVelength SW OFF|ON|0|1 CWAVelength SW OFF|ON|0|1
+  ALGOPEAK|BOTTom
+  TH <NRf>[DB]
+  MDIFf <NRf>[DB] NWIDth SW OFF|ON|0|1
+  ALGOPEAK|BOTTom
+  TH <NRf>[DB]
+  MDIFf <NRf>[DB] XTALk SW OFF|ON|0|1
+  ALGOPEAK|BOTTom|
+  BLEVel|GRID
+  TH <NRf>[DB]
+  MDIFf <NRf>[DB]
+  CSPace <NRf>[M]
+  SARea <NRf>[M]
+Example:
+  :CALCULATE:PARAMETER:FILBTMCWAVELENGTH,ALGO,BOTTOM
+  :CALCULATE:PARAMETER:FILBTMCWAVELENGTH,ALGO -> BOTT
+  :CALCULATE:PARAMETER:FILBTMXTALK,CSPACE,0.2NM
+  :CALCULATE:PARAMETER:FILBTM?XTALK,CSPACEe -> +2.00000000E-010
+Notes:
+  - If a non-existing parameter is used for a combination, an execution error occurs
+  - (a combination of CWAVelength and SARea, etc.).
+  - On the AQ6373/AQ6373B, the following data parameter cannot be set.
+  - GRID
+  - This is a sequential command.
+
+Command: :CALCulate:PARameter[:CATegory]:FILPk
+Description: Sets/queries parameters for the FILTER PEAK analysis function.
+Syntax:
+  :CALCulate:PARameter[:CATegory]:FILPk<wsp><item>,<paramater>,<data>
+  :CALCulate:PARameter[:CATegory]:FILPk?<wsp><item>,<paramater>
+  <item> = Analytical item that sets parameter(s)
+  <parameter> = Parameter to be set
+  <data> = Data to be set <item> <parameter> <data> PLEVel SW OFF|ON|0|1 PWAVelength SW OFF|ON|0|1 MWAVelength SW OFF|ON|0|1
+  ALGOTHResh|RMS
+  TH <NRf>[DB]
+  K <NRf>
+  MFITOFF|ON|0|1
+  MDIFf <NRf>[DB] SWIDth SW OFF|ON|0|1
+  ALGOTHResh|RMS
+  TH <NRf>[DB]
+  K <NRf>
+  MFITOFF|ON|0|1
+  MDIFf <NRf>[DB] XTALk SW OFF|ON|0|1
+  ALGO THResh|PLEVel| GRID
+  TH <NRf>[DB]
+  K <NRf>
+  MFITOFF|ON|0|1
+  MDIFf <NRf>[DB]
+  CSPace <NRf>[M]
+  SARea <NRf>[M] RWIDth SW OFF|ON|0|1
+  TH <NRf>[DB]
+  MDIFf <NRf>[DB
+Example:
+  :CALCULATE:PARAMETER:FILPKSWIDTH,ALGO,THRESH
+  :CALCULATE:PARAMETER:FILPK?SWIDTH,ALGO -> THR
+  :CALCULATE:PARAMETER:FILPK XTALK, CSPACE,0.5NM :CALCULATE:PARAMETER: FILPK? XTALK,CSPACE -> +5.00000000E-010
+Notes:
+  - If a non-existing parameter is used for a combination, an execution error occurs
+  - (a combination of SWIDth and CSPace, etc.).
+  - On the AQ6373, the following data parameter cannot be set.
+  - GRID
+  - This is a sequential command.
+
+Command: :CALCulate:PARameter[:CATegory]:FPLD
+Description: Sets/queries parameters for the FP-LD analysis function.
+Syntax:
+  :CALCulate:PARameter[:CATegory]:FPLD<wsp><item>,<paramater>,<data>
+  :CALCulate:PARameter[:CATegory]:FPLD?<wsp><item>,<paramater>
+  <item> = Analytical item that sets parameter(s)
+  <parameter> = Parameter to be set
+  <data> = Setting data <item> <parameter> <data> SWIDth ALGO ENVelope|THResh|
+  RMS|PKRMs
+  TH <NRf>[DB]
+  TH2 <NRf>[DB]
+  K <NRf>
+  MFITOFF|ON|0|1
+  MDIFf <NRf>[DB] MWAVelength ALGO ENVelope|THResh|
+  RMS|PKRMs
+  TH <NRf>[DB]
+  TH2 <NRf>[DB]
+  K <NRf>
+  MFITOFF|ON|0|1
+  MDIFf <NRf>[DB] TPOWer OFFSet <NRf>[DB] MNUMber ALGO ENVelope|THResh|
+  RMS|PKRMs
+  TH <NRf>[DB]
+  TH2 <NRf>[DB]
+  K <NRf>
+  MFITOFF|ON|0|11
+  MDIFf <NRf>[DB]
+Example:
+  :CALCULATE:PARAMETER:FPLDSWIDTH,ALGO,THRESH
+  :CALCULATE:PARAMETER:FPLD?SWIDTH,ALGO -> THR
+  :CALCULATE:PARAMETER:FPLD TPOWER, OFFSET,1.0DB :CALCULATE:PARAMETER: FPLD? TPOWER,OFFSET -> +1.00000000E+000
+Notes:
+  - If a non-existing parameter is used for a combination, an execution error occurs.
+  - (a combination of SWIDth and OFFSET, etc.)
+  - This is a sequential command.
+
+Command: :CALCulate:PARameter[:CATegory]:LED
+Description: Sets/queries parameters for the LED analysis function.
+Syntax:
+  :CALCulate:PARameter[:CATegory]:LED <wsp><item>,<paramater>,<data>
+  :CALCulate:PARameter[:CATegory]:LED ?<wsp><item>,<paramater>
+  <item> = Analytical item that sets parameter(s)
+  <parameter> = Parameter to be set
+  <data> = Setting data <item> <parameter> <data> SWIDth ALGO ENVelope|THResh|
+  RMS|PKRMs
+  TH <NRf>[DB]
+  TH2 <NRf>[DB]
+  K <NRf>
+  MFITOFF|ON|0|1
+  MDIFf <NRf>[DB] MWAVelength ALGO ENVelope|THResh|
+  RMS|PKRMs
+  TH <NRf>[DB]
+  TH2 <NRf>[DB]
+  K <NRf>
+  MFITOFF|ON|0|1
+  MDIFf <NRf>[DB] TPOWer OFFSet <NRf>[DB]
+Example:
+  :CALCULATE:PARAMETER:LEDSWIDTH,ALGO,THRESHh
+  :CALCULATE:PARAMETER:LED?SWIDTH,ALGO -> THR
+  :CALCULATE:PARAMETER:LED TPOWER, OFFSET,1.0DB :CALCULATE:PARAMETER: LED? TPOWER,OFFSET -> +1.00000000E+000
+Notes:
+  - If a non-existing parameter is used for a combination, an execution error occurs
+  - (a combination of SWIDth and OFFSet, etc.).
+  - This is a sequential command.
+
+Command: :CALCulate:PARameter[:CATegory]:NF:AALGo
+Description: Sets/queries the measurement algorithm applied to ASE level measurements made by the NF analysis function.
+Syntax:
+  :CALCulate:PARameter[:CATegory]:NF: AALGo<wsp><algorhythm>
+  :CALCulate:PARameter[:CATegory]:NF: AALGo?
+  <algorhythm> = Measurement algorithm
+  AFIX: AUTO FIX
+  MFIX: MANUAL FIX
+  ACENter: AUTO CENTER
+  MCENter: MANUAL CENTER
+Response:
+  0 = AUTO FIX
+  1 = MANUAL FIX
+  2 = AUTO CENTER
+  3 = MANUAL CENTER
+Example:
+  :CALCULATE:PARAMETER:NF:AALGO MFIX
+  :CALCULATE:PARAMETER:NF:AALGO? -> 1
+Notes:
+  - With the AQ6373/AQ6373B, the command is invalid.
+  - This is a sequential command.
+
+Command: :CALCulate:PARameter[:CATegory]:NF:FALGo
+Description: Sets/queries the fitting function during level measurement applied to ASE level measurements made by the NF analysis function.
+Syntax:
+  :CALCulate:PARameter[:CATegory]:NF: FALGo<wsp><algorhythm>
+  :CALCulate:PARameter[:CATegory]:NF: FALGo?
+  <algorhythm> = Fitting function
+  LINear: LINEAR
+  GAUSs: GAUSS
+  LORenz: LORENZ
+  3RD: 3RD POLY
+  4TH: 4YH POLY
+  5TH: 5TH POLY
+Response:
+  0 =LINEAR
+  1 = GAUSS
+  2 = LORENZ
+  3 = 3RD POLY
+  4 = 4YH POLY
+  5 = 5TH POLY
+Example:
+  :CALCULATE:PARAMETER:NF:FALGO GAUSS
+  :CALCULATE:PARAMETER:NF:FALGO? -> 1
+Notes:
+  - With the AQ6373/AQ6373B, the command is invalid.
+  - This is a sequential command.
+
+Command: :CALCulate:PARameter[:CATegory]:NF:FARea
+Description: Sets/queries the fitting range for level measurement applied to ASE level measurements made by the NF analysis function.
+Syntax:
+  :CALCulate:PARameter[:CATegory]:NF: FARea<wsp><NRf>[M]
+  :CALCulate:PARameter[:CATegory]:NF: FARea?
+  <NRf>= fitting range [m]
+Example:
+  :CALCULATE:PARAMETER:NF: FAREA 0.80NM
+  :CALCULATE:PARAMETER:NF:FAREA? -> +8.00000000E-10
+Notes:
+  - When the fitting range is set to "Between CH" (and ASE measurement algorithm is set to "AUTO-CTR" or "MANUAL-CTR"), then the command returns 0.
+  - With the AQ6373/AQ6373B, the command is invalid.
+  - This is a sequential command.
+
+Command: :CALCulate:PARameter[:CATegory]:NF:IOFFset
+Description: Sets/queries level offset values (signal light) for the NF analysis function.
+Syntax:
+  :CALCulate:PARameter[:CATegory]:NF: IOFFset<wsp><NRf>[DB]
+  :CALCulate:PARameter[:CATegory]:NF: IOFFset?
+  <NRf> = Level offset value of signal light [dB]
+Example:
+  :CALCULATE:PARAMETER:NF: IOFFSET 10.00
+  :CALCULATE:PARAMETER:NF:IOFFSET? -> +1.00000000E+001
+Notes:
+  - With the AQ6373/AQ6373B, the command is invalid.
+  - This is a sequential command.
+
+Command: :CALCulate:PARameter[:CATegory]:NF:IRANge
+Description: Sets or queries the integration frequency range for when the EDFA-NF analysis feature calculates the signal optical power.
+Syntax:
+  :CALCulate:PARameter[:CATegory]:NF: IRANge<wsp><NRf>
+  :CALCulate:PARameter[:CATegory]:NF: IRANge?
+  <NRf> = Integration range [GHz]
+Example:
+  :CALCulate:PARameter:NF:IRANGE 40
+  :CALCulate:PARameter:NF:IRANGE? -> +4.00000000E+001
+Notes:
+  - With the AQ6373/AQ6373B/AQ6375, the command is invalid.
+  - This is a sequential command.
+
+Command: :CALCulate:PARameter[:CATegory]:NF:MARea
+Description: Sets/queries the mask range for level measurement applied to ASE level measurements made by the NF analysis function.
+Syntax:
+  :CALCulate:PARameter[:CATegory]:NF: MARea<wsp><NRf>[M]
+  :CALCulate:PARameter[:CATegory]:NF: MARea?
+  <NRf> = mask range [m]
+Example:
+  :CALCULATE:PARAMETER:NF: MAREA 0.40NM
+  :CALCULATE:PARAMETER:NF:MAREA? -> +4.00000000E-10
+Notes:
+  - When the mask range is set to "---" (and ASE level measurement function is set to "LINEAR"), the command returns 0.
+  - With the AQ6373/AQ6373B, the command is invalid.
+  - This is a sequential command.
+
+Command: :CALCulate:PARameter[:CATegory]:NF:MDIFf
+Description: Sets/queries the peak bottom difference of channel detection for the NF analysis function.
+Syntax:
+  :CALCulate:PARameter[:CATegory]:NF: MDIFf<wsp><NRf>[DB]
+  :CALCulate:PARameter[:CATegory]:NF: MDIFf?
+  <NRf> = Peak bottom difference [dB]
+Example:
+  :CALCULATE:PARAMETER:NF: MDIFF 3.00DB
+  :CALCULATE:PARAMETER:NF:MDIFF? -> +3.00000000E+000
+Notes:
+  - With the AQ6373/AQ6373B, the command is invalid.
+  - This is a sequential command.
+
+Command: :CALCulate:PARameter[:CATegory]:NF:OOFFset
+Description: Sets/queries level offset values (output light) for the NF analysis function.
+Syntax:
+  :CALCulate:PARameter[:CATegory]:NF: OOFFset<wsp><NRf>[DB]
+  :CALCulate:PARameter[:CATegory]:NF: OOFFset?
+  <NRf> = Level offset value of output light [dB]
+Example:
+  :CALCULATE:PARAMETER:NF: OOFFSET 10.00
+  :CALCULATE:PARAMETER:NF:OOFFSET? -> +1.00000000E+001
+Notes:
+  - With the AQ6373/AQ6373B, the command is invalid.
+  - This is a sequential command.
+
+Command: :CALCulate:PARameter[:CATegory]:NF:PDISplay
+Description: Sets/queries whether to display data used for fitting of the NF analysis function on the waveform screen.
+Syntax:
+  :CALCulate:PARameter[:CATegory]:NF: PDISplay<wsp>OFF|ON|0|1
+  :CALCulate:PARameter[:CATegory]:NF: PDISplay?
+Response:
+  0 = OFF, 1 = ON
+Example:
+  :CALCULATE:PARAMETER:NF:PDISPLAY ON
+  :CALCULATE:PARAMETER:NF:PDISPLAY?-> 1
+Notes:
+  - When this set value is 1 (ON), data used for fitting is displayed on the waveform screen.
+  - With the AQ6373/AQ6373B, the command is invalid.
+  - This is a sequential command.
+
+Command: :CALCulate:PARameter[:CATegory]:NF:TH
+Description: Sets/queries the threshold level of channel detection for the NF analysis function.
+Syntax:
+  :CALCulate:PARameter[:CATegory]:NF: TH<wsp><NRf>[DB]
+  :CALCulate:PARameter[:CATegory]:NF:TH?
+  <NRf> = Threshold level [dB]
+Example:
+  :CALCULATE:PARAMETER:NF:TH 20.00DB
+  :CALCULATE:PARAMETER:NF:TH-> +2.00000000E+001
+Notes:
+  - With the AQ6373/AQ6373B, the command is invalid.
+  - This is a sequential command.
+
+Command: :CALCulate:PARameter[:CATegory]:NF:RBWidth
+Description: Sets/queries the method for calculating the resolution value of the NF computation.
+Syntax:
+  :CALCulate:PARameter[:CATegory]:NF: RBWidth<wsp>MEASured|CAL|0|1
+  :CALCulate:PARameter[:CATegory]:NF: RBWidth? MEASured | 0 Use the value determined from the waveform using THRESH 3dB analysis. CAL | 1 Use the actual resolution value stored in the instrument .
+Response:
+  0=MEASURED, 1=CAL
+Example:
+  :CALCULATE:PARAMETER:NF:RBWIDTHMEASURED
+  :CALCULATE:PARAMETER:NF:RBWIDTH? -> 0
+Notes:
+  - With the AQ6373/AQ6373B, the command is invalid.
+  - This is a sequential command.
+
+Command: :CALCulate:PARameter[:CATegory]:NF:SNOise
+Description: Sets/queries whether Shot Noise is included in the NF computation
+Syntax:
+  :CALCulate:PARameter[:CATegory]:NF: SNOise<wsp>OFF|ON|0|1
+  :CALCulate:PARameter[:CATegory]:NF: SNOise? OFF | 0 Shot Noise not included in the NF computation ON | 1 Shot Noise included in the NF computation
+Response:
+  0=OFF, 1=ON
+Example:
+  :CALCULATE:PARAMETER:NF:SNOISE OFF
+  :CALCULATE:PARAMETER:NF:SNOISE?-> 0
+Notes:
+  - With the AQ6373/AQ6373B, the command is invalid.
+  - This is a sequential command.
+
+Command: :CALCulate:PARameter[:CATegory]:NF:SPOWer
+Description: Sets or queries the signal optical power calculation method of the EDFA-NF analysis feature.
+Syntax:
+  :CALCulate:PARameter[:CATegory]:NF: SPOWer<wsp>PEAK | INTegral | 0 | 1
+  :CALCulate:PARameter[:CATegory]:NF: SPOWer?
+  PEAK|0: The signal optical power is set to the level of the mode peak.
+  INTegral|1: The signal optical power is set to the power obtained by integrating the spectrum.
+Example:
+  :CALCulate:PARameter:NF:SPOWer PEAK
+  :CALCulate:PARameter:NF:SPOWer? -> 0
+Notes:
+  - With the AQ6373/AQ6373B/AQ6375, the command is invalid.
+  - This is a sequential command.
+
+Command: :CALCulate:PARameter[:CATegory]:NOTCh:K
+Description: Sets/queries the magnification of the notch width analysis function.
+Syntax:
+  :CALCulate:PARameter[:CATegory]:NOTCh:K<wsp><NRf>[DB]
+  :CALCulate:PARameter[:CATegory]:NOTCh:K?
+  <NRf> = Magnification
+Example:
+  :CALCULATE:PARAMETER:NOTCH:K 2.00
+  :CALCULATE:PARAMETER:NOTCH:K?-> +2.00000000E+000
+Notes:
+  - This is a sequential command.
+
+Command: :CALCulate:PARameter[:CATegory]:NOTCh:TH
+Description: Sets/queries the threshold value for the notch width analysis function.
+Syntax:
+  :CALCulate:PARameter[:CATegory]:NOTCh:TH<wsp><NRf>[DB]
+  :CALCulate:PARameter[:CATegory]:NOTCh:TH?
+  <NRf> = Threshold level [dB]
+Example:
+  :CALCULATE:PARAMETER:NOTCH: TH 3.00DB
+  :CALCULATE:PARAMETER:NOTCH:TH?-> +3.00000000E+000
+Notes:
+  - This is a sequential command.
+
+Command: :CALCulate:PARameter[:CATegory]:NOTCh:TYPE
+Description: Sets/queries the analysis direction of the notch width analysis function.
+Syntax:
+  :CALCulate:PARameter[:CATegory]:NOTCh:TYPE<wsp>PEAK|BOTTom|0|1
+  :CALCulate:PARameter[:CATegory]:NOTCh:TYPE?PEAK: Performs analysis using the peak level of a waveform as a reference. BOTTom: Performs analysis using the bottom level of a waveform as a reference.
+Response:
+  0 = PEAK, 1 = BOTTom
+Example:
+  :CALCULATE:PARAMETER:NOTCH: TYPE BOTTOM
+  :CALCULATE:PARAMETER:NOTCH:TYPE? -> 1
+Notes:
+  - This is a sequential command.
+
+Command: :CALCulate:PARameter[:CATegory]:PMD:TH
+Description: Sets/queries the threshold value for the PMD analysis function.
+Syntax:
+  :CALCulate:PARameter[:CATegory]:PMD :TH<wsp><NRf>[DB]
+  :CALCulate:PARameter[:CATegory]:PMD :TH?
+  <NRf> = Threshold level [dB]
+Notes:
+  - :CALCULATE:PARAMETER:PMD:TH 10.00DB :CALCULATE:PARAMETER:PMD:TH?-> +1.00000000E+001
+
+Command: :CALCulate:PARameter[:CATegory]:POWer:OFFSet
+Description: Sets/queries the offset value for the POWER analysis function.
+Syntax:
+  :CALCulate:PARameter[:CATegory]:POWer:OFFSet<wsp><NRf>[DB]
+  :CALCulate:PARameter[:CATegory]:POWer:OFFSet?
+  <NRf> = Offset value [dB]
+Example:
+  :CALCULATE:PARAMETER:POWER: OFFSET 1.00DB
+  :CALCULATE:PARAMETER:POWER:OFFSET?-> +1.00000000E+000
+
+Command: :CALCulate:PARameter[:CATegory]:SMSR:MASK
+Description: Sets/queries the mask value for the SMSR analysis function.
+Syntax:
+  :CALCulate:PARameter[:CATegory]:SMSR:MASK<wsp><NRf>[M]
+  :CALCulate:PARameter[:CATegory]:SMSR:MASK?
+  <NRf> = Mask value [m]
+Example:
+  :CALCULATE:PARAMETER:SMSR: MASK 2.0nm
+  :CALCULATE:PARAMETER:SMSR:MASK ?-> +2.00000000E-009
+
+Command: :CALCulate:PARameter[:CATegory]:SMSR:MODE
+Description: Sets/queries the analysis mode for the SMSR analysis function.
+Syntax:
+  :CALCulate:PARameter[:CATegory]:SMSR:MODE<wsp>SMSR1|SMSR2|SMSR3|SMSR4
+  :CALCulate:PARameter[:CATegory]:SMSR:MODE?
+Example:
+  :CALCULATE:PARAMETER:SMSR: MODE SMSR1
+  :CALCULATE:PARAMETER:SMSR:MODE?-> SMSR1
+
+Command: :CALCulate:PARameter[:CATegory]:SWENvelope:K
+Description: Sets/queries the magnification of the ENVELOPE method-based spectrum width analysis function.
+Syntax:
+  :CALCulate:PARameter[:CATegory]:SWENvelope:K
+  :CALCulate:PARameter[:CATegory]:SWENvelope:K
+  <NRf> = Magnification
+Example:
+  :CALCULATE:PARAMETER:SWENVELOPE: K 2.00
+  :CALCULATE:PARAMETER:SWENVELOPE:K? -> +2.00000000E+000
+Notes:
+  - This is a sequential command.
+
+Command: :CALCulate:PARameter[:CATegory]:SWENvelope:TH1
+Description: Sets/queries the search threshold level of the ENVELOPE method-based spectrum width analysis function.
+Syntax:
+  :CALCulate:PARameter[:CATegory]:SWENvelope:TH1<wsp><NRf>[DB]
+  :CALCulate:PARameter[:CATegory]:SWENvelope:TH1?
+  <NRf> = Search threshold level [dB]
+Example:
+  :CALCULATE:PARAMETER:SWENVELOPE: TH1 3.00
+  :CALCULATE:PARAMETER:SWENVELOPE: TH1?-> +3.00000000E+000
+Notes:
+  - This is a sequential command.
+
+Command: :CALCulate:PARameter[:CATegory]:SWENvelope:TH2
+Description: Sets/queries the threshold level of the ENVELOPE method-based spectrum width analysis function.
+Syntax:
+  :CALCulate:PARameter[:CATegory]:SWENvelope:TH2<wsp><NRf>[DB]
+  :CALCulate:PARameter[:CATegory]:SWENvelope:TH2?
+  <NRf> = Threshold level [dB]
+Example:
+  :CALCULATE:PARAMETER:SWENVELOPE: TH2 10.00db
+  :CALCULATE:PARAMETER:SWENVELOPE: TH2?-> +1.00000000E+001
+Notes:
+  - This is a sequential command.
+
+Command: :CALCulate:PARameter[:CATegory]:SWPKrms:K
+Description: Sets/queries the magnification of the PEAK- RMS method-based spectrum width analysis function.
+Syntax:
+  :CALCulate:PARameter[:CATegory]:SWPKrms:K<wsp><NRf>[DB]
+  :CALCulate:PARameter[:CATegory]:SWPKrms:K?
+  <NRf> = Magnification
+Example:
+  :CALCULATE:PARAMETER:SWPKRMS:K 2.00
+  :CALCULATE:PARAMETER:SWPKRMS:K?-> +2.00000000E+000
+Notes:
+  - This is a sequential command.
+
+Command: :CALCulate:PARameter[:CATegory]:SWPKrms:TH
+Description: Sets/queries the threshold level of the PEAK- RMS method-based spectrum width analysis function.
+Syntax:
+  :CALCulate:PARameter[:CATegory]:SWPKrms:TH<wsp><NRf>[DB]
+  :CALCulate:PARameter[:CATegory]:SWPKrms:TH?
+  <NRf> = Threshold level [dB]
+Example:
+  :CALCULATE:PARAMETER:SWPKRMS: TH 3.00db
+  :CALCULATE:PARAMETER:SWPKRMS:TH?-> +3.00000000E+000
+Notes:
+  - This is a sequential command.
+
+Command: :CALCulate:PARameter[:CATegory]:SWRMs:K
+Description: Sets/queries the magnification of the RMS method-based spectrum width analysis function.
+Syntax:
+  :CALCulate:PARameter[:CATegory]:SWRMS:K<wsp><NRf>[DB]
+  :CALCulate:PARameter[:CATegory]:SWRMS:K?
+  <NRf> = Magnification
+Notes:
+  - This is a sequential command.
+
+Command: :CALCulate:PARameter[:CATegory]:SWRMs:TH
+Description: Sets/queries the threshold level of the RMS method-based spectrum width analysis function.
+Syntax:
+  :CALCulate:PARameter[:CATegory]:SWRMS:TH<wsp><NRf>[DB]
+  :CALCulate:PARameter[:CATegory]:SWRMS:TH?
+  <NRf> = Threshold level [dB]
+Example:
+  :CALCULATE:PARAMETER:SWRMS: TH 3.00db
+  :CALCULATE:PARAMETER:SWRMS:TH?-> +3.00000000E+000
+Notes:
+  - This is a sequential command.
+
+Command: :CALCulate:PARameter[:CATegory]:SWTHResh:K
+Description: Sets/queries the magnification of the THRESH method-based spectrum width analysis function.
+Syntax:
+  :CALCulate:PARameter[:CATegory]:SWTHResh:K<wsp><NRf>
+  :CALCulate:PARameter[:CATegory]:SWTHResh:K?
+  <NRf> = Magnification
+Example:
+  :CALCULATE:PARAMETER:SWTHRESH: K 2.00
+  :CALCULATE:PARAMETER:SWTHRESH:K?-> +2.00000000E+000
+Notes:
+  - This is a sequential command.
+
+Command: :CALCulate:PARameter[:CATegory]:SWTHresh:MFIT
+Description: Sets/queries whether to enable the mode fit of the THRESH method-based spectrum width analysis function.
+Syntax:
+  :CALCulate:PARameter[:CATegory]:SWTHresh:MFIT<wsp>OFF|ON|0|1
+  :CALCulate:PARameter[:CATegory]:SWTHresh:MFIT?
+Response:
+  0 = OFF, 1 = ON
+Example:
+  :CALCULATE:PARAMETER:SWTHRESH: MFIT ON
+  :CALCULATE:PARAMETER:SWTHRESH:MFIT?-> 1
+Notes:
+  - This is a sequential command.
+
+Command: :CALCulate:PARameter[:CATegory]:SWTHresh:TH
+Description: Sets/queries the threshold level of the THRESH method-based spectrum width analysis function.
+Syntax:
+  :CALCulate:PARameter[:CATegory]:SWTHresh:TH<wsp><NRf>[DB]
+  :CALCulate:PARameter[:CATegory]:SWTHresh:TH?
+  <NRf> = Threshold level [dB]
+Response:
+  ex. Same as above
+Notes:
+  - This is a sequential command.
+
+Command: :CALCulate:PARameter[:CATegory]:WDM:DMASk
+Description: Sets/queries the channel mask threshold level for the WDM analysis function.
+Syntax:
+  :CALCulate:PARameter[:CATegory]:WDM :DMASk<wsp><NRf>[DB]
+  :CALCulate:PARameter[:CATegory]:WDM :DMASk?
+  <NRf> = Threshold level [dB] (-999: Mask OFF)
+Example:
+  :CALCULATE:PARAMETER:WDM:DMASK -999
+  :CALCULATE:PARAMETER:WDM:DMASK? -> -9.99000000E+002
+Notes:
+  - Channels the level of which are below this parameter will not be detected as a channel.
+  - To turn off the channel mask function, set the threshold level to -999.
+  - This is a sequential command.
+
+Command: :CALCulate:PARameter[:CATegory]:WDM:DTYPe
+Description: Sets/queries the displayed waveforms of the analysis results for the WDM analysis function.
+Syntax:
+  :CALCulate:PARameter[:CATegory]:WDM :DTYPe<wsp><display type>
+  :CALCulate:PARameter[:CATegory]:WDM :DTYPe?
+  <display type>=Type of display
+  ABSolute = Absolute value display
+  RELative = Relative value display
+  MDRift = Drift value display based on the
+  past measurement wavelength
+  GDRift = Drift value display based on the grid wavelength
+Response:
+  0 = Absolute value display
+  1 = Relative value display
+  2 = Display drift value using previously measured waveforms as a reference
+  3 = Display drift value using grid wavelength as a reference
+Example:
+  :CALCULATE:PARAMETER:WDM:DTYPE:ABSOLUTE
+  :CALCULATE:PARAMETER:WDM:DTYPE:ABSOLUTE? -> 0
+Notes:
+  - On the AQ6373/AQ6373B, the following display types cannot be set.
+  - GDRift, RELative
+  - This is a sequential command.
+
+Command: :CALCulate:PARameter[:CATegory]:WDM:DUAL
+Description: Sets/queries the SNR calculation mode for the WDM analysis function.
+Syntax:
+  :CALCulate:PARameter[:CATegory]:WDM :DUAL<wsp>OFF|ON|0|1
+  :CALCulate:PARameter[:CATegory]:WDM :DUAL?
+Response:
+  0 = OFF, 1 = ON
+Example:
+  :CALCULATE:PARAMETER:WDM:DUAL ON
+  :CALCULATE:PARAMETER:WDM:DUAL ON? -> 1
+Notes:
+  - When this set value is 1 (ON), SNR calculation uses both traces A and B data.
+  - When this set value is 0 (OFF), SNR calculation uses active trace data.
+  - This is a sequential command.
+
+Command: :CALCulate:PARameter[:CATegory]:WDM:FALGo
+Description: Sets/queries the fitting function during level measurement applied to noise level measurements made by the WDM analysis function.
+Syntax:
+  :CALCulate:PARameter[:CATegory]:WDM :FALGo<wsp><algorhythm>
+  :CALCulate:PARameter[:CATegory]:WDM :FALGo?
+  LINear = LINEAR
+  GAUSs = GAUSS
+  LORenz = LORENZ
+  3RD = 3RD POLY
+  4TH = 4YH POLY
+  5TH = 5TH POLY
+Response:
+  0 = LINEAR
+  1 = GAUSS
+  2 = LORENZ
+  3 = 3RD POLY
+  4 = 4YH POLY
+  5 = 5TH POLY
+Example:
+  : CALCULATE:PARAMETER:WDM:FALGO GAUSS
+  :CALCULATE:PARAMETER:WDM:FALGO? -> 1
+Notes:
+  - This is a sequential command.
+
+Command: :CALCulate:PARameter[:CATegory]:WDM:IRANge
+Description: Sets/queries the integral frequency range during signal light power calculation by the WDM analysis function
+Syntax:
+  :CALCulate:PARameter[:CATegory]:WDM :IRANge<wsp><NRf>
+  :CALCulate:PARameter[:CATegory]:WDM :IRANge?
+  <NRf> Integral frequency range [GHz]
+Example:
+  calc:par:wdm:iran 40
+  calc:par:wdm:iran? -> +4.00000000E+001
+Notes:
+  - With the AQ6375, the command is invalid.
+  - This is a sequential command.
+
+Command: :CALCulate:PARameter[:CATegory]:WDM:MARea
+Description: Sets/queries the mask range during level measurement applied to noise level measurements made by the WDM analysis function.
+Syntax:
+  :CALCulate:PARameter[:CATegory]:WDM :MARea<wsp><NRf>[M]
+  :CALCulate:PARameter[:CATegory]:WDM :MARea?
+Example:
+  :CALCULATE:PARAMETER:WDM: MAREA 0.40NM
+  :CALCULATE:PARAMETER:WDM:MAREA? -> +4.00000000E-10
+Notes:
+  - This is a sequential command.
+
+Command: :CALCulate:PARameter[:CATegory]:WDM:MDIFf
+Description: Sets/queries the peak bottom difference of channel detection for the WDM analysis function.
+Syntax:
+  :CALCulate:PARameter[:CATegory]:WDM :MDIFf<wsp><NRf>[DB]
+  :CALCulate:PARameter[:CATegory]:WDM :MDIFf?
+  <NRf> = Peak bottom difference [dB]
+Example:
+  :CALCULATE:PARAMETER:WDM: MDIFF 3.00DB
+  :CALCULATE:PARAMETER:WDM:MDIFF
+Notes:
+  - This is a sequential command.
+
+Command: :CALCulate:PARameter[:CATegory]:WDM:MMReset
+Description: Resets the maximum and minimum of the drift values of the WDM analysis function.
+Syntax:
+  :CALCulate:PARameter[:CATegory]:WDM :MMReset
+Example:
+  :CALCULATE:PARAMETER:WDM:MMRESET
+Notes:
+  - When "DISPLAY TYPE" (set by the :CALCu late:PARameter[:CATegory]:WDM:DTY Pe command is set to other than "DRIFT", an execution error occurs.
+  - This is a sequential command.
+
+Command: :CALCulate:PARameter[:CATegory]:WDM:NALGo
+Description: Sets/queries the measurement algorithm applied to noise level measurements made by the WDM analysis function.
+Syntax:
+  :CALCulate:PARameter[:CATegory]:WDM :NALGo<wsp><algorhythm>
+  :CALCulate:PARameter[:CATegory]:WDM :NALGo?
+  AFIX|0 = AUTO FIX
+  MFIX|1 = MANUAL FIX
+  ACENter|2 = AUTO CENTER
+  MCENter|3 = MANUAL CENTER
+  PIT|4 = PIT
+Response:
+  0 = AUTO FIX
+  1 = MANUAL FIX
+  2 = AUTO CENTER
+  3 = MANUAL CENTER
+  4 = PIT
+Example:
+  :CALCULATE:PARAMETER:WDM: NALGO ACENTER
+  :CALCULATE:PARAMETER:WDM:NALGO?-> 2
+Notes:
+  - This is a sequential command.
+
+Command: :CALCulate:PARameter[:CATegory]:WDM:NARea
+Description: Sets/queries the measuring range applied to noise level measurements made by the WDM analysis function.
+Syntax:
+  :CALCulate:PARameter[:CATegory]:WDM :NARea<wsp><NRf>[M]
+  :CALCulate:PARameter[:CATegory]:WDM :NARea?
+  <NRf> = NOISE AREA [m]
+Example:
+  :CALCULATE:PARAMETER:WDM: NAREA 0.80NM
+  :CALCULATE:PARAMETER:WDM:NAREA? -> +8.00000000E-10
+Notes:
+  - This is a sequential command.
+
+Command: :CALCulate:PARameter[:CATegory]:WDM:NBW
+Description: Sets/queries the noise bandwidth for the WDM analysis function.
+Syntax:
+  :CALCulate:PARameter[:CATegory]:WDM :NBW<wsp><NRf>[M]
+  :CALCulate:PARameter[:CATegory]:WDM :NBW?
+  <NRf> = Noise bandwidth [m]
+Example:
+  :CALCULATE:PARAMETER:WDM:NBW 0.10NM
+  :CALCULATE:PARAMETER:WDM:NBW?-> +1.00000000E-010
+Notes:
+  - This is a sequential command.
+
+Command: :CALCulate:PARameter[:CATegory]:WDM:OSLope
+Description: Sets/queries whether to enable the function of obtaining the least square approximation line in the WDM analysis function.
+Syntax:
+  :CALCulate:PARameter[:CATegory]:WDM :OSLope<wsp>OFF|ON|0|1
+  :CALCulate:PARameter[:CATegory]:WDM :OSLope?
+Response:
+  0 = OFF, 1 = ON
+Example:
+  :CALCULATE:PARAMETER:WDM:OSLOP ON
+  :CALCULATE:PARAMETER:WDM:OSLOP? -> 1
+Notes:
+  - When this set value is 1 (ON), this instrument calculates the least square approximation line of the peak of each channel and draws it on the waveform screen.
+  - This is a sequential command.
+
+Command: :CALCulate:PARameter[:CATegory]:WDM:PDISplay
+Description: Sets/queries whether to display data used for fitting of the WDM analysis function on the waveform screen.
+Syntax:
+  :CALCulate:PARameter[:CATegory]:WDM :PDISplay<wsp>OFF|ON|0|1
+  :CALCulate:PARameter[:CATegory]:WDM :PDISplay?
+Response:
+  0 = OFF, 1 = ON
+Example:
+  :CALCULATE:PARAMETER:WDM: PDISPLAY ON
+  :CALCULATE:PARAMETER:WDM:PDISPLAY?-> 1
+Notes:
+  - When this set value is 1 (ON), data used for fitting is displayed on the waveform screen.
+  - This is a sequential command.
+
+Command: :CALCulate:PARameter[:CATegory]:WDM:RCH
+Description: Sets/queries the reference channel used in calculating the offset wavelength/level of the WDM analysis function.
+Syntax:
+  :CALCulate:PARameter[:CATegory]:WDM :RCH<wsp><integer>
+  :CALCulate:PARameter[:CATegory]:WDM :RCH?
+  <integer> = Reference channel number
+  (0: channel with the highest level)
+Example:
+  :CALCULATE:PARAMETER:RCH 10
+  :CALCULATE:PARAMETER:RCH? -> 10
+Notes:
+  - When this set value is "0," the channel with the highest level is regarded as the reference channel.
+  - This is a sequential command.
+
+Command: :CALCulate:PARameter[:CATegory]:WDM:RELation
+Description: Sets/queries the display format of the wavelength/level relative values for the WDM analysis function.
+Syntax:
+  :CALCulate:PARameter[:CATegory]:WDM :RELation<wsp>OFFSet|SPACing|0|1
+  :CALCulate:PARameter[:CATegory]:WDM :RELation?
+  OFFSet|0 = Displays an offset value based on any channel.
+  SPACing|1 = Displays an offset value relative to a neighboring channel.
+Response:
+  0 = OFFSET, 1 = SPACING
+Example:
+  :CALCULATE:PARAMETER:WDM: RELATION SPACING
+  :CALCULATE:PARAMETER:WDM:RELATION?-> 1
+Notes:
+  - When "DISPLAY TYPE" (set by the :CALCu late:PARameter[:CATegory]:WDM:DTY Pe command is set to other than "ABSOLUTE", an execution error occurs.
+  - This is a sequential command.
+
+Command: :CALCulate:PARameter[:CATegory]:WDM:SPOWer
+Description: Sets/queries the signal light power calculation method of the WDM analysis function.
+Syntax:
+  :CALCulate:PARameter[:CATegory]:WDM :SPOWer<wsp>PEAK|INTegral|0|1
+  :CALCulate:PARameter[:CATegory]:WDM :SPOWer?
+  PEAK|0 = Sets the mode peak to the signal light power
+  INTegral|1 = Sets the power that integrates the spectrum to the signal light power
+Example:
+  :CALCULATE:PARAMETER:WDM:SPOwer PEAK
+  :CALCULATE:PARAMETER:WDM:SPOwer?
+  -> 0
+Notes:
+  - With the AQ6375, the command is invalid.
+  - This is a sequential command.
+
+Command: :CALCulate:PARameter[:CATegory]:WDM:TH
+Description: Sets/queries the threshold level of channel detection for the WDM analysis function.
+Syntax:
+  :CALCulate:PARameter[:CATegory]:WDM :TH<wsp><NRf>[DB]
+  :CALCulate:PARameter[:CATegory]:WDM :TH?
+  <NRf> = Threshold level [dB]
+Example:
+  :CALCULATE:PARAMETER:WDM:TH 20.00db
+  :CALCULATE:PARAMETER:WDM:TH-> +2.00000000E+001
+Notes:
+  - This is a sequential command.
+
+Command: :CALCulate:PARameter[:CATegory]:WFBottom
+Description: Sets/queries parameters for the WDM FILTER- BTM analysis function.
+Syntax:
+  :CALCulate:PARameter[:CATegory]:WFBottom<wsp><item>,<paramater>,<data>
+  :CALCulate:PARameter[:CATegory]:WFBottom?<wsp><item>,<paramater>
+  <item> = Analytical item that sets parameter(s)
+  <parameter> = Parameter to be set
+  <data> = Data to be set <item> <parameter> <data> NWAVelength ALGO BOTtom|NPEak|
+  NBOTtom|
+  GFIT|GRID
+  MDIFf <NRf>[DB]
+  TH <NRf>[DB]
+  TBANd <NRf>[M] BWAVelength SW OFF|ON|0|1 CWAVelength SW OFF|ON|0|1
+  ALGONPEak|NBOTtom
+  TH <NRf>[DB] SBANd SW OFF|ON|0|1
+  TH <NRf>[DB] EBANd SW OFF|ON|0|1
+  TH <NRf>[DB]
+  TBANd <NRf>[M] RIPPle SW OFF|ON|0|1
+  TBANd <NRf>[M] XTALk SW OFF|ON|0|1
+  SPACing <NRf>[M]
+  TBANd <NRf>[M]
+Example:
+  :CALCULATE:PARAMETER:WFBOTTOMNWAY,ALGO,NPEAK
+  :CALCULATE:PARAMETER:WFBOTTOM?NWAY,ALGO -> NPE:CALCULATE: PARAMETER:WFBOTTOM BWAVELENGTH,SW, OFF
+  :CALCULATE:PARAMETER:WFBOTTOM?BWAVELENGTH,SW -> 0
+Notes:
+  - If a non-existing parameter is used for a combination, an execution error occurs (a combination of NWAVelength and SPACing, etc.).
+  - With the AQ6373/AQ6373B, the command is invalid.
+  - This is a sequential command.
+
+Command: :CALCulate:PARameter[:CATegory]:WFPeak
+Description: Sets/queries parameters for the WDM FILTER- PEAK analysis function.
+Syntax:
+  :CALCulate:PARameter[:CATegory]:WFPeak<wsp><item>,<paramater>,<data>
+  :CALCulate:PARameter[:CATegory]:WFPeak?<wsp><item>,<paramater>
+  <item> = Analytical item that sets parameter(s)
+  <parameter> = Parameter to be set
+  <data> = Data to be set <item> <parameter> <data>
+  NWAVelength ALGO PEAK|MEAN|GFIT|
+  GRID
+  MDIFf <NRf>[DB]
+  TH <NRf>[DB]
+  TBANd <NRf>[M]
+  PWAVelength SW OFF|ON|0|1
+  CWAVelength SW OFF|ON|0|1
+  TH <NRf>[DB]
+  SBANdSWOFF|ON|0|1
+  TH <NRf>[DB]
+  PBANdSWOFF|ON|0|1
+  TH <NRf>[DB]
+  TBANd <NRf>[M]
+  RIPPleSWOFF|ON|0|1
+  TBANd <NRf>[M]
+  XTALkSWOFF|ON|0|1
+  SPACing <NRf>[M]
+  TBANd <NRf>[M]
+Example:
+  :CALCULATE:PARAMETER:WFPEAKNWAY,ALGO,PEAK
+  :CALCULATE:PARAMETER:WFPEAK?NWAY,ALGO -> PEAK
+  :CALCULATE:PARAMETER:WFPEAKBWAVELENGTH,SW,OFF
+  :CALCULATE:PARAMETERWFPEAK?BWAVELENGTH,S -> 0
+Notes:
+  - If a non-existing parameter is used for a combination, an execution error occurs (a combination of NWAVelength and SPACing, etc.).
+  - With the AQ6373/AQ6373B, the command is invalid.
+  - This is a sequential command.
+
+Command: :CALCulate:PARameter:COMMon:MDIFf
+Description: Sets/queries the peak-bottom difference parameter of channel detection used in the analysis function.
+Syntax:
+  :CALCulate:PARameter:COMMon:MDIFf<w sp><NRf>[DB]
+  :CALCulate:PARameter:COMMon:MDIFf?
+Example:
+  :CALCULATE:PARAMETER:COMMON: MDIFF 3.00DB
+  :CALCULATE:PARAMETER:COMMON:MDIFF-> +3.00000000E+000
+Notes:
+  - This is a sequential command.
+
+
+======================================================================
+5. CALibration
+======================================================================
+
+Command: :CALibration:ALIGn[:IMMediate]
+Description: Executes optical axis adjustment of the monochromator using the internal reference light source.
+Syntax:
+  :CALibration:ALIGn[:IMMediate]
+Example:
+  :CALIBRATION:ALIGN
+Notes:
+  - This is an overlapable command.
+
+Command: :CALibration:ALIGn:EXTernal[:IMMediate]
+Description: Executes optical axis adjustment of the monochromator using an external light source.
+Syntax:
+  :CALibration:ALIGn:EXTernal[:IMMediate]
+Example:
+  :CALIBRATION:ALIGN:EXTERNAL
+Notes:
+  - This is an overlappable command.
+  - This command can be used on the AQ6370D without the reference light source (-L0).
+
+Command: :CALibration:ALIGn:INTernal[:IMMediate]
+Description: Executes optical axis adjustment of the monochromator using the internal reference light source.
+Syntax:
+  :CALibration:ALIGn:INTernal[:IMMediate]
+Example:
+  :CALIBRATION:ALIGN:INTERNAL
+Notes:
+  - This is an overlappable command.
+  - This command can be used on the AQ6370C/ AQ6370D.
+
+Command: :CALibration:BANDwidth|:BWIDth[:IMMediate]
+Description: Executes an resolution calibration.
+Syntax:
+  :CALibration:BANDwidth|:BWIDth[:IMMediate]
+Example:
+  :CALIBRATION:BANDWIDTH:IMMEDIATE
+Notes:
+  - When the resolution calibration finishes, bit 3 (Cal/Alignment) of the operation status register is set to 1.
+  - For details, see section 6.4.
+  - This is an overlappable command.
+  - This command can be used on the AQ6370C/ AQ6370D.
+
+Command: :CALibration:BANDwidth|:BWIDth:INITialize
+Description: Clears the rms resolution calibration value.
+Syntax:
+  :CALibration:BANDwidth|:BWIDth:INITialize
+Example:
+  :CALIBRATION:BANDWIDTH:INITIALIZE
+Notes:
+  - This is a sequential command.
+  - This command can be used on the AQ6370C/ AQ6370D.
+
+Command: :CALibration:BANDwidth|:BWIDth:WAVelength?
+Description: Queries the wavelength of the light source used to perform resolution calibration.
+Syntax:
+  :CALibration:BANDwidth|:BWIDth:WAVelength?
+Response:
+  <NRf> = Light source wavelength in meters
+Example:
+  :CALIBRATION:BANDWIDTH:WAVELENGTH? -> 1.55000000E-006
+Notes:
+  - If resolution calibration has not been executed, this command returns 0.
+  - This is a sequential command.
+  - This command can be used on the AQ6370C/ AQ6370D.
+
+Command: :CALibration:POWer:OFFSet:TABLe
+Description: Sets/queries the level offset table.
+Syntax:
+  :CALibration:POWer:OFFSet:TABLe<wsp ><integer>,<NRf> [DB]
+  :CALibration:POWer:OFFSet:TABLe?<ws p><integer>
+  <integer> = wavelength [nm]
+  <NRf> = Level offset value [dB]
+Example:
+  :CALIBRATION:POWER:OFFSET: TABLE 1550,-0.1DB
+  :CALIBRATION:POWER:OFFSET:TABLE?1550 -> -1.00000000E-001
+Notes:
+  - Of the level offset table, the command sets or queries the offset value of a wavelength specified by <integer>.
+  - This is a sequential command.
+
+Command: :CALibration:WAVelength:EXTernal[:IMMediate]
+Description: Performs wavelength calibration using an external reference light source.
+Syntax:
+  :CALibration:WAVelength:EXTernal[:IMMediate]
+Example:
+  :CALIBRATION:WAVELENGTH:EXTERNALl
+Notes:
+  - The type of the external reference light source to be used for calibration is set using the CAL ibration:WAVelength:EXTernal:SOUR ce command.
+  - The wavelength of the external reference light source to be used for calibration is set using the CALibration:WAVelength:EXTernal :WAVelenght command.
+  - This is an overlapable command.
+
+Command: :CALibration:WAVelength:EXTernal:SOURce
+Description: Sets/queries the type of the light source used for external reference light source-based wavelength calibration.
+Syntax:
+  :CALibration:WAVelength:EXTernal :SOURce<wsp>LASer|GASCell|EMISsi on|0|1|2
+  :CALibration:WAVelength:EXTernal:SOURce?
+  LASer = An external reference light source is used for the laser
+  GASCell = A gas cell is used as the external reference light source.
+  EMISsion = An emission light is used as the external reference light source.
+Response:
+  0 = Laser, 1 = Gas cell,
+  2 = Emission light
+Example:
+  :CALIBRATION:WAVELENGTH:EXTERNALl:SOURCE LASER
+  :CALIBRATION:WAVELENGTH:EXTERNALl:SOURCEe? -> 0
+Notes:
+  - Of the level offset table, the command sets or queries the offset value of a wavelength specified by <integer>.
+  - On the AQ6373/AQ6373B, the following parameter cannot be set.
+  - GASCell , 1
+  - This is a sequential command.
+  - On the AQ6370C/AQ6370D/AQ6373/AQ6375/ AQ6375B, the following parameter cannot be set.
+  - EMISsion , 2
+
+Command: :CALibration:WAVelength:EXTernal:WAVelength
+Description: Sets/queries the wavelength of the light source used for external reference light source-based wavelength calibration.
+Syntax:
+  :CALibration:WAVelength:EXTernal:WAVelength<wsp><NRf>[M]
+  :CALibration:WAVelength:EXTernal:WAVelength?
+  <NRf> = Wavelength of the external reference light source [nm]
+Example:
+  :CALIBRATION:WAVELENGTH:EXTERNALl:WAVELENGTH 1550.000NM
+  :CALIBRATION:WAVELENGTH:EXTERNALl:WAVELENGTH? -> +1.55000000E-006
+Notes:
+  - This is a sequential command.
+
+Command: :CALibration:WAVelength:INTernal[:IMMediate]
+Description: Performs wavelength calibration using an internal reference light source.
+Syntax:
+  :CALibration:WAVelength:INTernal[:IMMediate]
+Example:
+  :CALIBRATION:WAVELENGTH:INTERNALl
+Notes:
+  - With the AQ6373/AQ6373B, the command is invalid.
+  - This is an overlapable command.
+
+Command: :CALibration:WAVelength:OFFSet:TABLe
+Description: Sets/queries the wavelength offset table.
+Syntax:
+  :CALibration:POWer:OFFSet:TABLe<wsp ><integer>,<NRf>
+  :CALibration:POWer:OFFSet:TABLe?<ws p><integer>
+  <integer> = wavelength (specified in nm)
+  <NRf> = Wavelength offset value (specified in nm)
+Example:
+  :CALIBRATION:WAVELENGTH:OFFSET:TABLE 1550,-0.1
+  :CALIBRATION:WAVELENGTH:OFFSET:TABLE? 1550 -> -1.00000000E-001
+Notes:
+  - Of the wavelength offset table, the command sets or queries the offset value of a wavelength specified by <integer>.
+  - This is a sequential command.
+
+Command: :CALibration:ZERO[:AUTO]
+Description: Sets/queries whether to enable the auto offset function of the level.
+Syntax:
+  :CALibration:ZERO[:AUTO]<wsp>OFF|ON |0|1|ONCE
+  :CALibration:ZERO[:AUTO]?
+Response:
+  0 = OFF, 1 = ON
+Example:
+  :CALIBRATION:ZERO ONCE
+  :CALIBRATION:ZERO? -> 1
+Notes:
+  - If you send this command with the parameter "ONCE" when the sweep is stopped, offset adjustment is performed once. In this case, ON/OFF of this setting does not change.
+  - On the AQ6370C/AQ6370D/AQ6373B/ AQ6375B, the operation of this command is complete at the instant the offset adjustment starts. Therefore, the AQ6370C/AQ6370D/ AQ6373B/AQ6375B can execute the next command even while offset adjustment is being performed. You can use :CALibration:Z ERO[:AUTO]:STATus? to query the execution status of the offset adjustment.
+  - This is a sequential command.
+
+Command: :CALibration:ZERO[:AUTO]:INTerval
+Description: Sets/queries the time interval for executing the Auto Offset function for the level.
+Syntax:
+  :CALibration:ZERO[:AUTO]:INTerval<w sp><integer>
+  :CALibration:ZERO[:AUTO]:INTerval?
+  <integer>= Interval of execution (specified in units of minutes)
+Example:
+  :CALIBRATION:ZERO:INTERVAL 20
+  :CALIBRATION:ZERO:INTERVAL? -> 20
+Notes:
+  - When a time is set for this parameter, the auto offset adjustment is performed at the specified time interval starting from the moment of execution.
+  - This command only valid for the AQ6373/ AQ6373B.
+  - This is a sequential command.
+
+Command: :CALibration:ZERO[:AUTO]:STATus?
+Description: Queries the offset adjustment status.
+Syntax:
+  :CALibration:ZERO[:AUTO]:STATus?
+  0: The offset adjustment is not being executed.
+  1: The offset adjustment is being executed.
+Example:
+  :CALIBRATION:ZERO:STATUS? -> 1
+Notes:
+  - This is a sequential command.
+  - This command can be used on the AQ6370C/ AQ6370D/AQ6373B/AQ6375B.
+
+
+======================================================================
+6. DISPlay
+======================================================================
+
+Command: :DISPlay:COLor
+Description: Sets/queries the screen color mode.
+Syntax:
+  :DISPlay:COLor<wsp><mode>
+  :DISPlay:COLor?
+  0 = Black and white mode
+  1-5 = Modes 1-5
+Example:
+  :DISPLAY:COLOR 1
+  :DISPLAY:COLOR? -> 1
+Notes:
+  - This is a sequential command.
+
+Command: :DISPlay[:WINDow]
+Description: Sets/queries whether the display is enabled.
+Syntax:
+  :DISPlay[:WINDow]<wsp>OFF|ON|0|1
+  :DISPlay[:WINDow]?
+Response:
+  0 = OFF, 1 = ON
+Example:
+  :DISPLAY OFF
+  :DISPLAY? -> 0
+Notes:
+  - This is a sequential command.
+  - This command can be used on the AQ6370C/ AQ6370D/AQ6373B/AQ6375B.
+
+Command: :DISPlay[:WINDow]:OVIew:POSition
+Description: Sets/queries the ON/OFF and position of the OVERVIEW display shown during zoom operation.
+Syntax:
+  :DISPlay[:WINDow]:OVIew:POSition<ws p>OFF|LEFT|RIGHt|0|1|2
+  :DISPlay[:WINDow]:OVIew:POSition?
+  OFF = Display OFF
+  LEFT = The overview display is on the left of the screen.
+  RIGHt = The overview display is on the right of the screen.
+Response:
+  0 = OFF, 1 = LEFT, 2 = RIGHt
+Example:
+  :DISPLAY:OVIEW:POSITION RIGHT
+  :DISPLAY:OVIEW:POSITION? -> 2
+Notes:
+  - This is a sequential command.
+
+Command: :DISPlay[:WINDow]:OVIew:SIZE
+Description: Sets/queries the size of the OVERVIEW display shown during zoom operation.
+Syntax:
+  :DISPlay[:WINDow]:OVIew:SIZE<wsp>LARGe|SMALl|0|1
+  :DISPlay[:WINDow]:OVIew:SIZE?
+  LARGe = Larger OVERVIEW size
+  SMALl = Smaller OVERVIEW size
+Response:
+  0 = LARGe, 1 = SMALl
+Example:
+  :DISPLAY:OVIEW:SIZE LARGE
+  :DISPLAY:OVIEW:SIZE? -> 0
+Notes:
+  - This is a sequential command.
+
+Command: :DISPlay[:WINDow]:SPLit
+Description: Sets/queries whether to split the screen display into two parts.
+Syntax:
+  :DISPlay[:WINDow]:SPLit<wsp>OFF|ON|0|1
+  :DISPlay[:WINDow]:SPLit?
+Response:
+  0 = OFF, 1 = ON
+Example:
+  :DISPLAY:SPLIT ON
+  :DISPLAY:SPLIT? -> 1
+Notes:
+  - This is a sequential command.
+
+Command: :DISPlay[:WINDow]:SPLit:HOLD:LOWer
+Description: Sets/queries whether to fix a trace assigned to the lower area when the screen is in the upper/ lower 2-split display mode.
+Syntax:
+  :DISPlay[:WINDow]:SPLit:HOLD:LOWer< wsp>OFF|ON|0|1
+  :DISPlay[:WINDow]:SPLit:HOLD:LOWer?
+Response:
+  0 = OFF, 1 = ON
+Example:
+  :DISPLAY:SPLIT:HOLD:LOWER ON
+  :DISPLAY:SPLIT:HOLD:LOWER? -> 1
+Notes:
+  - If not in 2-split screen display mode, an execution error occurs.
+
+Command: :DISPlay[:WINDow]:SPLit:HOLD:UPPer
+Description: Sets/queries whether to fix a trace assigned to the upper area when the screen is in the upper/ lower 2-split display mode.
+Syntax:
+  :DISPlay[:WINDow]:SPLit:HOLD:UPPer< wsp>OFF|ON|0|1
+  :DISPlay[:WINDow]:SPLit:HOLD:UPPer?
+Response:
+  0 = OFF, 1 = ON
+Example:
+  :DISPLAY:SPLIT:HOLD:UPPER ON
+  :DISPLAY:SPLIT:HOLD:UPPER? -> 1
+Notes:
+  - If not in 2-split screen display mode, an execution error occurs.
+  - This is a sequential command.
+
+Command: :DISPlay[:WINDow]:SPLit:POSition
+Description: Sets/queries whichever display area, upper or lower, is used to display a trace when the screen is in the upper/lower 2-split display mode.
+Syntax:
+  :DISPlay[:WINDow]:SPLit:POSition <wsp><trace name>,UP|LOW|0|1
+  :DISPlay[:WINDow]:SPLit:POSition? <wsp><trace name>
+  <trace name> = trace name (TRA,TRB,TRC,TRD,TRE,TRF,TRG)
+  UP = Trace is displayed in the upper area.
+  LOW = Trace is displayed on the lower area.
+Response:
+  0 = UP, 1 = LOW
+Example:
+  :DISPLAY:SPLIT:POSITION TRA,UP
+  :DISPLAY:SPLIT:POSITION? TRA -> 0
+Notes:
+  - This is a sequential command.
+
+Command: :DISPlay[:WINDow]:TEXT:CLEar
+Description: Clears labels.
+Syntax:
+  :DISPlay[:WINDow]:TEXT:CLEar
+Example:
+  :DISPLAY:TEXT:CLEAR
+Notes:
+  - This is a sequential command.
+
+Command: :DISPlay[:WINDow]:TEXT:DATA
+Description: Sets/queries the labels.
+Syntax:
+  :DISPlay[:WINDow]:TEXT:DATA<wsp> <string>
+  :DISPlay[:WINDow]:TEXT:DATA?
+  <string> = Label character string (56 characters max.)
+Example:
+  :DISPLAY:TEXT: DATA "Optical Spectrum Analyzer"
+  :DISPLAY:TEXT:DATA?-> Optical Spectrum Analyzer
+Notes:
+  - A label character string has a maximum length of 56 characters.If a label of more than 56 characters is specified, characters from and exceeding the 57th will be ignored.
+  - If there is no label, one space character is returned.
+  - This is a sequential command.
+
+Command: :DISPlay[:WINDow]:TRACe:X[:SCALe]:CENTer
+Description: Sets/queries the center wavelength of the X-axis of the display scale.
+Syntax:
+  :DISPlay[:WINDow]:TRACe:X[:SCALe]:CENTer<wsp><NRf>[M|HZ]
+  :DISPlay[:WINDow]:TRACe:X[:SCALe]:CENTer?
+  <NRf> = Center wavelength [m|Hz]
+Response:
+  <NRf> [m|Hz] (AQ6370C/AQ6370D/AQ6373B)
+  <NRf> [m|Hz|m-1] (AQ6375/AQ6375B)
+Example:
+  :DISPLAY:TRACE:X:CENTER 1550.000NM
+  :DISPLAY:TRACE:X:CENTER?-> +1.55000000E-006
+Notes:
+  - For the AQ6375/AQ6375B, to set using the wavenumber, do not add any units when in Wavenumber mode, and just enter the numerical value.
+  - This is a sequential command.
+
+Command: :DISPlay[:WINDow]:TRACe:X[:SCALe]:INITialize
+Description: Initializes the X-axis parameters of the display scale.
+Syntax:
+  :DISPlay[:WINDow]:TRACe:X[:SCALe]:INITialize
+Example:
+  :DISPLAY:TRACE:X:INITIALIZE
+Notes:
+  - The following parameters are initialized based on the measurement scale after this command has been executed.
+  - ZOOM CENTER, ZOOM SPAN, ZOOM START, ZOOM STOP
+  - This is a sequential command.
+
+Command: :DISPlay[:WINDow]:TRACe:X[:SCALe]:SMSCale
+Description: Sets parameters of the current display scale to the measurement scale.
+Syntax:
+  :DISPlay[:WINDow]:TRACe:X[:SCALe]:SMSCale
+Example:
+  :DISPLAY:TRACE:X:SMSCALE
+Notes:
+  - The following parameters are initialized based on the display scale after this command has been executed.
+  - CENTER, SPAN, START, STOP
+  - This is a sequential command.
+
+Command: :DISPlay[:WINDow]:TRACe:X[:SCALe]:SPAN
+Description: Sets/queries the span of the X-axis of the display scale.
+Syntax:
+  :DISPlay[:WINDow]:TRACe:X[:SCALe]:SPAN<wsp><NRf>[M|HZ]
+  :DISPlay[:WINDow]:TRACe:X[:SCALe]:SPAN?
+  <NRf> = Span [m|Hz]
+Response:
+  <NRf> [m|Hz] (AQ6370C/AQ6370D/AQ6373B)
+  <NRf> [m|Hz|m-1] (AQ6375/AQ6375B)
+Example:
+  :DISPLAY:TRACE:X:SPAN 20.0NM
+  :DISPLAY:TRACE:X:SPAN? -> +2.00000000E-008
+Notes:
+  - For the AQ6375/AQ6375B, to set using the wavenumber, do not add any units when in Wavenumber mode, and just enter the numerical value.
+  - This is a sequential command.
+
+Command: :DISPlay[:WINDow]:TRACe:X[:SCALe]:SRANge
+Description: Sets/queries whether to limit an analytical range to the display scale range.
+Syntax:
+  :DISPlay[:WINDow]:TRACe:X[:SCALe]:SRANge<wsp>OFF|ON|0|1
+  :DISPlay[:WINDow]:TRACe:X[:SCALe]:SRANge?
+Response:
+  0 = OFF, 1 = ON
+Example:
+  :DISPLAY:TRACE:X:SRANGE on
+  :DISPLAY:TRACE:X:SRANGE? -> 1
+Notes:
+  - This is a sequential command.
+
+Command: :DISPlay[:WINDow]:TRACe:X[:SCALe]:STARt
+Description: Sets/queries the start wavelength of the X-axis of the display scale.
+Syntax:
+  :DISPlay[:WINDow]:TRACe:X[:SCALe]:STARt<wsp><NRf>[M|HZ]
+  :DISPlay[:WINDow]:TRACe:X[:SCALe]:STARt?
+  <NRf> = Start wavelength [m|Hz]
+Response:
+  <NRf> [m|Hz] (AQ6370C/AQ6370D/AQ6373B)
+  <NRf> [m|Hz|m-1] (AQ6375/AQ6375B)
+Example:
+  :DISPLAY:TRACE:X:START 1540.000NM
+  :DISPLAY:TRACE:X:START?-> +1.54000000E-006
+Notes:
+  - For the AQ6375/AQ6375B, to set using the wavenumber, do not add any units when in Wavenumber mode, and just enter the numerical value.
+  - This is a sequential command.
+
+Command: :DISPlay[:WINDow]:TRACe:X[:SCALe]:STOP
+Description: Sets/queries the stop wavelength of the X-axis of the display scale.
+Syntax:
+  :DISPlay[:WINDow]:TRACe:X[:SCALe]:STOP<wsp><NRf>[M|HZ]
+  :DISPlay[:WINDow]:TRACe:X[:SCALe]:STOP?
+  <NRf> = Stop wavelength [m|Hz]
+Response:
+  <NRf> [m|Hz] (AQ6370C/AQ6370D/AQ6373B)
+  <NRf> [m|Hz|m-1] (AQ6375/AQ6375B)
+Example:
+  :DISPLAY:TRACE:X:STOP 1560.000NM
+  :DISPLAY:TRACE:X:STOP?-> +1.56000000E-006
+Notes:
+  - For the AQ6375/AQ6375B, to set using the wavenumber, do not add any units when in Wavenumber mode, and just enter the numerical value.
+  - This is a sequential command.
+
+Command: :DISPlay[:WINDow]:TRACe:Y:NMASk
+Description: Sets whether to mask the display of waveforms the level of which is at or below a set threshold level or queries the condition of whether the relevant waveform display is masked.
+Syntax:
+  :DISPlay[:WINDow]:TRACe:Y:NMASk<wsp ><NRf>[DB]
+  :DISPlay[:WINDow]:TRACe:Y:NMASk?
+  <NRf> = Threshold level [dB] (-999: Masking function OFF)
+Example:
+  :DISPLAY:TRACE:Y:MASK -999
+  :DISPLAY:TRACE:Y:MASK? -> -9.99000000E+002
+Notes:
+  - The display of waveforms the level of which is at or below this parameter will be masked.
+  - To turn off the mask function, set the threshold level to -999.
+  - This is a sequential command.
+
+Command: :DISPlay[:WINDow]:TRACe:Y:NMASk:TYPE
+Description: Sets/queries the display method when a waveform display at or below a threshold level is masked.
+Syntax:
+  :DISPlay[:WINDow]:TRACe:Y:NMASk:TYPE<wsp>VERTical|HORIzontal|0|1
+  :DISPlay[:WINDow]:TRACe:Y:NMASk:TYPE?
+  VERTical = Waveform display with zero as the mask value or lower
+  HORizontal = Waveform display with the mask value as the mask value or lower
+Response:
+  0 = VERTical, 1 = HORizontal
+Example:
+  :DISPLAY:TRACE:Y:MASK:TYPE VERTICAL
+  :DISPLAY:TRACE:Y:MASK:TYPE? -> 0
+Notes:
+  - This is a sequential command.
+
+Command: :DISPlay[:WINDow]:TRACe:Y[:SCALe]:DNUMber
+Description: Sets/queries the number of display divisions of the level axis.
+Syntax:
+  :DISPlay[:WINDow]:TRACe:Y[:SCALe]:DNUMber<wsp>8|10|12
+  :DISPlay[:WINDow]:TRACe:Y[:SCALe]:DNUMber?
+  8, 10, 12 = Number of display divisions
+Example:
+  :DISPLAY:TRACE:Y:DNUMBER 10
+  :DISPLAY:TRACE:Y:DNUMBER? -> 10
+Notes:
+  - This is a sequential command.
+
+Command: :DISPlay[:WINDow]:TRACe:Y1[:SCALe]:BLEVel
+Description: Sets/queries the base level applied when the main scale of the level axis is linear.
+Syntax:
+  :DISPlay[:WINDow]:TRACe:Y1[:SCALe]: BLEVel<wsp><NRf>[W]
+  :DISPlay[:WINDow]:TRACe:Y1[:SCALe]: BLEVel?
+  <NRf> = Base level value [W]
+Example:
+  :DISPLAY:TRACE:Y1:BLEVEL 1.0MW
+  :DISPLAY:TRACE:Y1:BLEVEL?-> +1.00000000E-003
+Notes:
+  - If a instrument other than W is specified, an execution error occurs.
+  - This is a sequential command.
+
+Command: :DISPlay[:WINDow]:TRACe:Y1[:SCALe]:PDIVision
+Description: Sets/queries the main scale of the level axis.
+Syntax:
+  :DISPlay[:WINDow]:TRACe:Y1[:SCALe]: PDIVision<wsp><NRf>[DB]
+  :DISPlay[:WINDow]:TRACe:Y1[:SCALe]: PDIVision?
+  <NRf> = Level scale [dB]
+Example:
+  :DISPLAY:TRACE:Y1:PDIV 5.0DB
+  :DISPLAY:TRACE:Y1:PDIV?-> +5.00000000E+000
+Notes:
+  - If a instrument other than dB is specified, an execution error occurs.
+  - This is a sequential command.
+
+Command: :DISPlay[:WINDow]:TRACe:Y1[:SCALe]:RLEVel
+Description: Sets/queries the reference level of the main scale of the level axis.
+Syntax:
+  :DISPlay[:WINDow]:TRACe:Y1[:SCALe]: RLEVel<wsp><NRf>[DBM|W]
+  :DISPlay[:WINDow]:TRACe:Y1[:SCALe]: RLEVel?
+  <NRf> = Reference level [dB|W]
+Example:
+  :DISPLAY:TRACE:Y1:RLEVEL -30dbm
+  :DISPLAY:TRACE:Y1:RLEVEL?-> -3.00000000E+001
+Notes:
+  - When the unit is omitted in the parameter, the reference level is set in dBm if the main scale of the level axis is in the LOG mode or is set in W if it is in the linear mode.
+  - If the setting condition of the LOG/linear mode of the level axis' main scale does not match the unit specified in the parameter of the command, the parameter of this command is translated matching the LOG/linear mode of the main scale. For example, when the main scale is LOG and you set the reference level to 1m with this command, the reference level is set to 0 dB.
+  - This is a sequential command.
+
+Command: :DISPlay[:WINDow]:TRACe:Y1[:SCALe]:RPOSition
+Description: Sets/queries the position of the reference level of the main scale of the level axis.
+Syntax:
+  :DISPlay[:WINDow]:TRACe:Y1[:SCALe]: RPOSition<wsp><integer>[DIV]
+  :DISPlay[:WINDow]:TRACe:Y1[:SCALe]: RPOSition?
+  <integer> = Position of the reference level
+Example:
+  :DISPLAY:TRACE:Y1:RPOSITION 10DIV
+  :DISPLAY:TRACE:Y1:RPOSITION? -> 10
+Notes:
+  - If a value greater than the number of display divisions of the level axis is specified for the position of the reference level, the position of this level is treated as the top of the scale.
+  - This is a sequential command.
+
+Command: :DISPlay[:WINDow]:TRACe:Y1[:SCALe]:SPACing
+Description: Sets/queries the scale mode of the main scale of the level axis.
+Syntax:
+  :DISPlay[:WINDow]:TRACe:Y1[:SCALe]: SPACing<wsp>LOGarighmic|LINear|0|1
+  :DISPlay[:WINDow]:TRACe:Y1[:SCALe]: SPACing?
+  LOGarithmic = LOG scale
+  LINear = Linear scale
+Response:
+  0 = LOGarithmic, 1 = LINear
+Example:
+  :DISPLAY:TRACE:Y1:SPACING LINIER
+  :DISPLAY:TRACE:Y1:SPACING? -> 1
+Notes:
+  - This is a sequential command.
+
+Command: :DISPlay[:WINDow]:TRACe:Y1[:SCALe]:UNIT
+Description: Sets/queries the units of the main scale of the level axis.
+Syntax:
+  :DISPlay[:WINDow]:TRACe:Y1[:SCALe]: UNIT<wsp><unit>
+  :DISPlay[:WINDow]:TRACe:Y1[:SCALe]: UNIT?
+  DBM = dBm
+  W = W
+  DBM/NM = dBm/nm or dBm/THz
+  W/NM = W/nm or W/THz
+Response:
+  0 = dBm
+  1 = W
+  2 = DBM/NM
+  3 = W/NM
+Example:
+  :DISPLAY:TRACE:Y1:UNIT DBM/NM
+  :DISPLAY:TRACE:Y1:UNIT? -> 2
+Notes:
+  - For the AQ6375, the parameters cannot be set when in Wavenumber mode. Query commands function even when in Wavenumber mode.
+  - This is a sequential command.
+
+Command: :DISPlay[:WINDow]:TRACe:Y2[:SCALe]:AUTO
+Description: Sets/queries the automatic setting function of the sub scale of the level axis.
+Syntax:
+  :DISPlay[:WINDow]:TRACe:Y2[:SCALe]: AUTO<wsp>OFF|ON|0|1
+  :DISPlay[:WINDow]:TRACe:Y2[:SCALe]: AUTO?
+Response:
+  0 = OFF, 1 = ON
+Example:
+  :DISPLAY:TRACE:Y2:AUTO ON
+  :DISPLAY:TRACE:Y2:AUTO? -> 1
+Notes:
+  - This is a sequential command.
+
+Command: :DISPlay[:WINDow]:TRACe:Y2[:SCALe]:LENGth
+Description: Sets/queries the parameter of the optical fiber length used when the unit of the subscale of the level axis is dB/km.
+Syntax:
+  :DISPlay[:WINDow]:TRACe:Y2[:SCALe]: LENGth<wsp><NRf>[KM]
+  :DISPlay[:WINDow]:TRACe:Y2[:SCALe]: LENGth?
+  <NRf> = Length of optical fiber [km]
+Example:
+  :DISPLAY:TRACE:Y2:LENGTH 99.999KM
+  :DISPLAY:TRACE:Y2:LENGTH?-> +9.99990000E+001
+Notes:
+  - When the unit of the subscale is set to other than "dB/km", an execution error occurs.
+  - This is a sequential command.
+
+Command: :DISPlay[:WINDow]:TRACe:Y2[:SCALe]:OLEVel
+Description: Sets/queries the offset level of the sub scale of the level axis.
+Syntax:
+  :DISPlay[:WINDow]:TRACe:Y2[:SCALe]: OLEVel<wsp><NRf>[DB|DB/KM]
+  :DISPlay[:WINDow]:TRACe:Y2[:SCALe]: OLEVel?
+  <NRf> = Offset level [dB|dB/km]
+Example:
+  :DISPLAY:TRACE:Y2:OLEVEL 10DB/KM
+  :DISPLAY:TRACE:Y2:OLEVEL? -> +1.00000000E+001
+Notes:
+  - When the unit of the subscale is set to other than "dB" or "dB/km", an execution error occurs.
+  - If the unit is not specified in the parameter, dB is set if the subscale of the level axis is in the dB mode or dB/km is set if it is in the dB/km mode.
+  - If a unit different from the current set unit (:DISPlay[:WINDow]:TRACe:Y2[:SCA Le]:UNIT) of the subscale is specified, an execution error occurs.
+  - This is a sequential command.
+
+Command: :DISPlay[:WINDow]:TRACe:Y2[:SCALe]:PDIVision
+Description: Sets/queries the sub scale of the level axis.
+Syntax:
+  :DISPlay[:WINDow]:TRACe:Y2[:SCALe]: PDIVision<wsp><NRf>[DB|DB/KM | %] :DISPlay[:WINDow]:TRACe:Y2[:SCALe]: PDIVision?
+  <NRf> = Level scale [dB|dB/km|%]
+Example:
+  :DISPLAY:TRACE:Y2:PDIVISION 5.0%
+  :DISPLAY:TRACE:Y2:PDIVISION? -> +5.00000000E+000
+Notes:
+  - If the unit is not specified in the parameter, the set unit of the subscale of the level axis is used as the set unit of this parameter.
+  - If a unit different from the current set unit (:DISPlay[:WINDow]:TRACe:Y2[:SCA Le]:UNIT) of the subscale is specified, an execution error occurs.
+  - This is a sequential command.
+
+Command: :DISPlay[:WINDow]:TRACe:Y2[:SCALe]:RPOSition
+Description: Sets/queries the position of the reference level of the sub scale of the level axis.
+Syntax:
+  :DISPlay[:WINDow]:TRACe:Y2[:SCALe]: RPOSition<wsp><integer>[DIV]
+  :DISPlay[:WINDow]:TRACe:Y2[:SCALe]: RPOSition?
+  <integer> = Position of the reference level
+Example:
+  :DISPLAY:TRACE:Y2:RPOSITION 10DIV
+  :DISPLAY:TRACE:Y2:RPOSITION? -> 10
+Notes:
+  - If a value greater than the number of display divisions of the level axis is specified for the position of the reference level, the position of this level is treated as the top of the scale.
+  - This is a sequential command.
+
+Command: :DISPlay[:WINDow]:TRACe:Y2[:SCALe]:SMINimum
+Description: Sets/queries the value of the bottom of the scale applied when the subscale of the level axis is set to the linear or % mode.
+Syntax:
+  :DISPlay[:WINDow]:TRACe:Y2[:SCALe]: SMINimum<wsp><NRf>[%]
+  :DISPlay[:WINDow]:TRACe:Y2[:SCALe]: SMINimum?
+  <NRf> = Value of the bottom of the scale [%]
+Example:
+  :DISPLAY:TRACE:Y2:SMINIMUM 0%
+  :DISPLAY:TRACE:Y2:SMINIMUM? -> 0
+Notes:
+  - If the unit is not specified in the parameter, the set unit of the subscale of the level axis is used as the set unit of this parameter.
+  - If a unit different from the current set unit (:DISPlay[:WINDow]:TRACe:Y2[:SCA Le]:UNIT) of the subscale is specified, an execution error occurs.
+  - This is a sequential command.
+
+Command: :DISPlay[:WINDow]:TRACe:Y2[:SCALe]:UNIT
+Description: Sets/queries the units of the sub scale of the level axis.
+Syntax:
+  :DISPlay[:WINDow]:TRACe:Y2[:SCALe]: UNIT<wsp><unit>
+  :DISPlay[:WINDow]:TRACe:Y2[:SCALe]: UNIT?
+  <unit> = Units
+  DB = dB display
+  LINear = Linear display
+  DB/KM = dB/km display
+  % = % display
+Response:
+  0 = DB
+  1 = LINear
+  2 = DB/KM
+  3 = %
+Example:
+  :DISPLAY:TRACE:Y2:UNIT DB/KM
+  :DISPLAY:TRACE:Y2:UNIT? -> 2
+Notes:
+  - This is a sequential command.
+
+
+======================================================================
+7. FORMat
+======================================================================
+
+Command: :FORMat[:DATA]
+Description: Sets/queries the format used for data transfer via GP-IB.
+Syntax:
+  :FORMat[:DATA]<wsp>REAL[,64|,32]|ASCii
+  :FORMat[:DATA]?
+  ASCii = ASCII format (default)
+  REAL[,64] = REAL format (64bits)
+  REAL,32 = REAL format (32bits)
+Example:
+  FORMAT:DATA REAL,64
+  FORMAT:DATA? -> REAL,64
+  FORMAT:DATA REAL,32 FORMAT:DATA? -> REAL,32
+  FORMAT:DATA ASCII
+  FORMAT:DATA? -> ASCII
+Notes:
+  - When the format is set to REAL (binary) using this command, the output data of the following commands are produced in the REAL format.
+  - :CALCulate:DATA:CGAin?
+  - :CALCulate:DATA:CNF?
+  - :CALCulate:DATA:CPOWers?
+  - :CALCulate:DATA:CSNR?
+  - :CALCulate:DATA:CWAVelengths?
+  - :TRACe[:DATA]:X?
+  - :TRACe[:DATA]:Y?
+  - The default is ASCII mode.
+  - When the *RST command is executed, the format is reset to the ASCII mode.
+  - The ASCII format outputs a list of numerics each of which is delimited by a comma (,).
+  - Example: 12345,12345,....
+  - By default, the REAL format outputs data in fixed length blocks of 64 bits, floating-point binary numerics.
+  - If "REAL,32" is specified in the parameter, data is output in the 32-bit, floating-point binary form.
+  - The fixed length block is defined by IEEE 488.2 and consists of "#" (ASCII), one numeric (ASCII) indicating the number of bytes that specifies the length after #, length designation (ASCII), and binary data of a specified length in this order. Binary data consists of a floating- point data string of 8 bytes (64 bits) or 4 bytes (32 bits). Floating-point data consists of lower- order bytes to higher-order bytes.
+  - E.g.: #18 [eight <byte data>]
+  - #280[80 <byte data>]
+  - #48008[8008 <byte data>]
+  - For data output in the 32-bit floating-point binary form, cancellation of significant digits is more likely to occur in comparison with transfer of data in the 64-bit, floating-point binary form.
+  - This is a sequential command.
+
+
+======================================================================
+8. HCOPy (Hard Copy)
+======================================================================
+
+Command: :HCOPY:DESTination
+Description: Sets/queries the print output destination.
+Syntax:
+  :HCOPY:DESTination<wsp>INTernal|FILE|0|2
+  :HCOPY:DESTination?
+  INTernal = Internal Printer
+  FILE = File
+Response:
+  0 = INTernal
+  2 = FILE
+Example:
+  :HCOPY:DESTINATION FILE
+  :HCOPY:DESTINATION? -> 2
+Notes:
+  - This is a sequential command.
+  - The INTernal parameter cannot be used on the AQ6370D/AQ6373B/AQ6375B.
+
+Command: :HCOPY[:IMMediate]
+Description: Makes a hard copy of the screen display.
+Syntax:
+  :HCOPY[:IMMediate]
+Example:
+  :HCOPY
+Notes:
+  - This is an overlapable command.
+
+Command: :HCOPY[:IMMediate]:FEED
+Description: Feeds printer paper to the internal printer.
+Syntax:
+  :HCOPY[:IMMediate]:FEED<wsp> [<integer>]
+  <integer> = Specify the amount of feed in 1-10 (unit: × 5 mm)
+Example:
+  :HCOPY:FEED
+Notes:
+  - If <integer> is not specified, printer paper is fed by approximately 5 mm.
+  - This is a sequential command.
+  - This command cannot be used on the AQ6370D/AQ6373B/AQ6375B.
+
+Command: :HCOPY[:IMMediate]:FUNCtion:CALCulate:LIST
+Description: Prints the results of the execution of an analysis function.
+Syntax:
+  :HCOPY[:IMMediate]:FUNCtion:CALCulate:LIST
+Example:
+  :HCOPY:FUNCTION:CALCULATE:LIST
+Notes:
+  - If the analysis function is not executed, an execution error occurs.
+  - This is an overlapable command.
+
+Command: :HCOPY[:IMMediate]:FUNCtion:MARKer:LIST
+Description: Prints a marker list.
+Syntax:
+  :HCOPY[:IMMediate]:FUNCtion:MARKer: LIST
+Example:
+  :HCOPY:FUNCTION:MARKER:LIST
+Notes:
+  - No execution error occurs even if a marker does not exist.
+  - This is an overlapable command.
+
+
+======================================================================
+9. INITiate
+======================================================================
+
+Command: :INITiate[:IMMediate]
+Description: Makes a sweep.
+Syntax:
+  :INITiate[:IMMediate]
+Example:
+  :INITIATE
+Notes:
+  - You can stop sweep with the :ABORt command.
+  - The sweep mode (AUTO, SINGLE, REPEAT, or SEGMENT MEASURE) is set using the :INITiate:SMODe command.
+  - If this command is executed while the sweep mode is in REPEAT (:INITiate:SMODe REPeat), the operation of the command is complete at the instant a sweep starts. In this case, this command is regarded as a sequential command.
+  - If this command is executed while the sweep mode is one of AUTO, SINGLE, and SEGMENT MEASURE, the operation of the command is complete at the instant a sweep ends. In this case, this command is regarded as a command subject to overlapping.
+
+Command: :INITiate:SMODe
+Description: Sets/queries the sweep mode.
+Syntax:
+  :INITiate:SMODe<wsp><sweep mode>
+  :INITiate:SMODe?
+  <sweep mode> = Sweep mode
+  SINGle = SINGLE sweep mode
+  REPeat = REPEAT sweep mode
+  AUTO = AUTO sweep mode
+  SEGMent = SEGMENT
+Response:
+  1 = SINGle
+  2 = REPeat
+  3 = AUTO
+  4 = SEGMent
+Example:
+  :INITIATE:SMODE REPEAT
+  :INITIATE:SMODE? -> 2
+Notes:
+  - This is a sequential command.
+
+
+======================================================================
+10. MEMory
+======================================================================
+
+Command: :MEMory:CLEar
+Description: Clears the contents of a specified waveform memory.
+Syntax:
+  :MEMory:CLEar<wsp><integer>
+  <integer> = Memory number
+Example:
+  :MEMORY:CLEAR 10
+Notes:
+  - No execution error occurs even if a specified waveform memory has already been cleared.
+  - This is a sequential command.
+
+Command: :MEMory:EMPTy?
+Description: Queries the condition of whether a waveform has been specified in a specified waveform memory.
+Syntax:
+  :MEMory:EMPTy?<wsp><integer>
+  <integer> = Memory number
+Example:
+  :MEMORY:EMPTY? 10 -> 1
+Notes:
+  - This is a sequential command.
+
+Command: :MEMory:LOAD
+Description: Loads a waveform from a specified waveform memory into a specified trace.
+Syntax:
+  :MEMory:LOAD<wsp><integer>,<trace name>
+  <integer> = Memory number
+  <trace name> = trace (TRA,TRB,TRC,TRD,TRE,TRF,TRG)
+Example:
+  :MEMORY:LOAD 10,TRA
+Notes:
+  - When a waveform is not registered in the specified waveform memory, a warning message appears.
+  - This is a sequential command.
+
+Command: :MEMory:STORe
+Description: Stores the waveform of a specified trace into a specified waveform memory.
+Syntax:
+  :MEMory:STORe<wsp><integer>,<trace name>
+  <integer> = Memory number
+  <trace name>= trace (TRA,TRB,TRC,TRD,TRE,TRF,TRG)
+Example:
+  :MEMORY:STORE 10,TRA
+Notes:
+  - When waveform data do not exist in the specified trace, a warning message appears.
+  - This is a sequential command.
+  - Common Items - To include a directory name in <"filename">, specify the path in the following manner. - Specification of an absolute path
+  - When the head of <"file name"> is character "\", specify the absolute path. - Relative path specification
+  - When the head of <"file name"> is any character other than "\", specify the relative path from the current directory. The current directory is specified using the :MMEMory:CDIRectory command. - If INTernal|EXTernal is not specified, access is made to the current drive.
+  - The current drive is specified using the :MMEMory: CDRive command. - If a file name extension is omitted when storing a file, an extension corresponding to the data type will be appended to the file name. - When loading a file, the file name extension can be omitted.
+
+
+======================================================================
+11. MMEMory (File Operations)
+======================================================================
+
+Command: :MMEMory:ANAMe
+Description: Sets or queries the naming rule for automatic file names.
+Syntax:
+  :MMEMory:ANAMe<wsp>NUMBer|DATE|0|1
+  :MMEMory:ANAMe?
+  NUMBer|0 Number
+  DATE|1Timestamp
+Example:
+  :MMEMORY:ANAME DATE
+  :MMEMORY:ANAME? -> 1
+Notes:
+  - This command is for the AQ6370D/AQ6370C/ AQ6375B.
+  - This is a sequential command.
+
+Command: :MMEMory:CATalog?
+Description: Queries a list of all files in the current directory.
+Syntax:
+  :MMEMory:CATalog?<wsp>[INTernal|EXTernal][,<directory name>]
+  INTernal = Acquires a file list in the current directory of the internal memory.
+  EXTernal = Acquires a file list in the current directory of the external USB storage.
+  directory name = Default name
+Response:
+  <free size>,<file number>,<file name>,<file name>, … ,<file name>
+  <free size> = <NRf> Disk's free size [KB] (1KB=1024 bytes))
+  <file number>= <integer> number of files
+  <file name> = File name
+Example:
+  :MMEMORY:CATALOG? INTERNAL,"\TEST\ SAMPLE"
+  -> +1.91176800E+006,2,test0001. wv6,test0002.wv6
+Notes:
+  - This is a sequential command.
+
+Command: :MMEMory:CDIRectory
+Description: Sets/queries the current directory.
+Syntax:
+  :MMEMory:CDIRectory<wsp><directory name>
+  :MMEMory:CDIRectory?
+  <directory name> = Directory name to be changed
+Example:
+  :MMEMORY:CDIRECTORY "\test\sample"
+  :MMEMORY:CDIRECTORY? -> \test\sample
+Notes:
+  - This is a sequential command.
+
+Command: :MMEMory:CDRive
+Description: Sets/queries the current drive.
+Syntax:
+  :MMEMory:CDRive<wsp>INTernal|EXTernal
+  :MMEMory:CDRive?
+  INTernal = Makes the current drive the internal memory.
+  EXTernal = Makes the current drive the external USB storage.
+Example:
+  :MMEMORY:CDRIVE INTERNAL
+  :MMEMORY:CDRIVE -> INT
+Notes:
+  - This is a sequential command.
+
+Command: :MMEMory:COPY
+Description: Copies a specified file.
+Syntax:
+  :MMEMory:COPY<wsp> <"source file name">,[INTernal| EXTernal], <"destination file name">[,INTernal| EXTernal]
+  <"source file name"> = File name at the copy source
+  <"destination file name"> = File name at the copy destination
+Example:
+  :MMEMORY:COPY "test001. wv6",,"test002.wv6"
+Notes:
+  - This is a sequential command.
+
+Command: :MMEMory:DATA?
+Description: Queries the data in the specified file.
+Syntax:
+  :MMEMory:DATA?<wsp><"file name"> [,INTernal| EXTernal]
+  <"file name">= Name of the file to be read
+Response:
+  The data that was read (binary block data of fixed length starting with "#")
+Example:
+  :MMEMORY:DATA? "test.csv",internal -> #18ABCDEFGH
+Notes:
+  - Maximum file size that can be sent is 1 MB.
+  - For the data format of the fixed length blocks, see :FORMat Command.
+  - This is a sequential command.
+
+Command: :MMEMory:DELete
+Description: Deletes a specified file.
+Syntax:
+  :MMEMory:DELete<wsp><"file name">[,INTernal|EXTernal]
+  <"file name"> = Name of a file to be deleted
+Example:
+  :MMEMORY:DELETE "test002. wv6",internal
+Notes:
+  - This is a sequential command.
+
+Command: :MMEMory:LOAD:ATRace
+Description: Loads the specified waveform files (all traces) into traces.
+Syntax:
+  :MMEMory:LOAD:ATRace<wsp>
+  <"file name"> [,INTernal|EXTernal]
+  <"file name"> = Name of file to load
+  INTernal|EXTernal = Source drive for loading
+Example:
+  : MMEMORY:LOAD:ATRACE "test001. csv",internal
+Notes:
+  - This is a sequential command.
+
+Command: :MMEMory:LOAD:DLOGging
+Description: Loads the specified data logging file.
+Syntax:
+  :MMEMory:LOAD:DLOGging<wsp><"filena me">[,INTernal|EXTernal]
+  <"filename"> = Name of the file to load
+  INTernal|EXTernal = Source drive to load from
+Example:
+  :MMEMORY:LOAD:DLOGGING "test001. LG8",INTERNAL
+Notes:
+  - This command is invalid when data logging is in progress.
+  - This is a sequential command.
+  - This command can be used on the AQ6370C/ AQ6370D/AQ6373B/AQ6375B.
+
+Command: :MMEMory:LOAD:MEMory
+Description: Loads a specified waveform file into a specified memory.
+Syntax:
+  :MMEMory:LOAD:MEMory<wsp><integer>, <"file name">[,INTernal|EXTernal]
+  <integer> = Number of the memory into which a file is loaded
+  <"file name"> = Name of file to be loaded INTernal| EXTernal = Drive of source file to load
+Example:
+  :MMEMORY:LOAD:MEMORY 1,"test001. wv6"INTERNAL
+Notes:
+  - This is a sequential command.
+
+Command: :MMEMory:LOAD:PROGram
+Description: Loads a specified program file into a specified program number.
+Syntax:
+  :MMEMory:LOAD:PROGram<wsp><integer> ,<"file name">[,INTernal|EXTernal]
+  <trace name> = Number of the program into which a file is loaded
+  <"file name"> = Name of a file to be loaded
+  INTernal|EXTernal = Drive of source file to be loaded
+Example:
+  MMEMORY:LOAD:PROGRAM 1,"test001. pg6",INTERNAL
+Notes:
+  - This is a sequential command.
+
+Command: :MMEMory:LOAD:SETTing
+Description: Loads a specified setting file.
+Syntax:
+  :MMEMory:LOAD:SETTing<wsp><"file name">[,INTernal|EXTernal]
+  <"file name"> = Name of a file to be loaded
+  INTernal|LOPpy = Drive of source file to be loaded
+Example:
+  MMEMORY:LOAD:SETTING "test001. st6",INTERNAL
+Notes:
+  - This is a sequential command.
+
+Command: :MMEMory:LOAD:TEMPlate
+Description: Loads a specified template file.
+Syntax:
+  :MMEMory:LOAD:TEMPlate<wsp><tem plate>,<"file name">[,INTernal| EXTernal]
+  <template> = Template at the loading destination (UPPER|LOWER|TARGET)
+  <"file name"> = Name of a file to be loaded
+  INTernal|EXTernal = Drive at the loading source
+Example:
+  :MMEMORY:LOAD:SETTINGUPPER,"test001.csv",INTERNAL
+Notes:
+  - This is a sequential command.
+
+Command: :MMEMory:LOAD:TRACe
+Description: Loads a specified waveform file into a specified trace.
+Syntax:
+  :MMEMory:LOAD:TRACe<wsp> <trace name>,<"file name"> [,INTernal|EXTernal]
+  <trace name> = Trace to be loaded
+  <"file name"> = Name of file to be loaded
+  INTernal|EXTernal = Drive of source file to load
+Example:
+  :MMEMORY:LOAD:TRACE TRA,"test001. wv6",INTERNAL
+Notes:
+  - This is a sequential command.
+
+Command: :MMEMory:MDIRectory
+Description: Creates a new directory.
+Syntax:
+  :MMEMory:MDIRectory<wsp><"directory name">[,INTernal|EXTernal]
+  <directory name> = Directory name to be created
+  INTernal|EXTernal = Destination drive for created directory
+Example:
+  :MMEMORY:MDIRECTORY "sample2",INTERNAL
+Notes:
+  - This is a sequential command.
+
+Command: :MMEMory:REMove
+Description: Readies the USB storage media for removal or queries the readiness status.
+Syntax:
+  :MMEMory:REMove
+  :MMEMory:REMove?
+Response:
+  0 = Ready for removal
+  1 = Not ready
+Example:
+  :MMEMORY:REMOVE
+  :MMEMORY:REMOVE -> 1
+
+Command: :MMEMory:REName
+Description: Renames a specified file.
+Syntax:
+  :MMEMory:REName<wsp><"new file name">,<"old file name">[,INTernal|EXTernal]
+  <"new file name">= Name of new file
+  <"old file name">= Name of old file
+  INTernal|EXTernal = Target drive
+Example:
+  :MMEMORY:RENAME "test001. wv6","test002.wv6",INTERNAL
+Notes:
+  - This is a sequential command.
+
+Command: :MMEMory:STORe:ARESult
+Description: Stores a variety of analysis results to a specified file.
+Syntax:
+  :MMEMory:STORe:ARESult<wsp><"file name">[,INTernal|EXTernal]
+  <"file name"> = Name of a file to be saved
+  INTernal|EXTernal = Save destination drive
+Example:
+  :MMEMORY:STORE:ARESULT "test001",INTERNAL
+Notes:
+  - This is a sequential command.
+
+Command: :MMEMory:STORe:ATRace
+Description: Stores the specified waveform files (all traces) into traces.
+Syntax:
+  :MMEMory:STORe:ATRace<wsp>
+  <"file name"> [,INTernal|EXTernal]
+  <"file name"> = Name of file be saved
+  INTernal|EXTernal = Save destination drive
+Example:
+  : MMEMORY:STORE:ATRACE "test001. csv",internal
+Notes:
+  - This is a sequential command.
+
+Command: :MMEMory:STORe:DATA
+Description: Stores a variety of data to a specified file.
+Syntax:
+  :MMEMory:STORe:DATA<wsp><"file name">[,INTernal|EXTernal]
+  <"file name"> = Name of a file to be saved
+  INTernal|EXTernal = Save destination drive
+Example:
+  :MMEMORY:STORE:DATA "test001",INTERNAL
+Notes:
+  - The type of data to be stored is specified using the :MMEMory:STORe:DATA:ITEM command.
+  - Whether to insert data into or overwrite the file with it when storing it is specified using the :MMEMory:STORe:DATA:MODE command.
+  - This is a sequential command.
+
+Command: :MMEMory:STORe:DATA:ITEM
+Description: Sets/queries an item to be used when storing data.
+Syntax:
+  :MMEMory:STORe:DATA:ITEM<wsp> <item>,OFF|ON|0|1
+  :MMEMory:STORe:DATA:ITEM?<wsp> <item>
+  <item> DATE = Date/time at the time of storage
+  LABel = Label
+  DATA = DATA area data
+  CONDition = Setting conditions
+  OWINdow= OUTPUT WINDOW
+  TRACe = Waveform data
+  OFF = Do not save
+  ON = Save
+Response:
+  0 = OFF, 1 = ON
+Example:
+  :MMEMORY:STORE:DATA:ITEM TRACE,OFF
+  :MMEMORY:STORE:DATA:ITEM? TRACE -> 0
+Notes:
+  - This is a sequential command.
+
+Command: :MMEMory:STORe:DATA:MODE
+Description: Sets whether to insert data into or overwrite an existing file with the data when storing it or queries the condition of whether data is inserted or overwritten.
+Syntax:
+  :MMEMory:STORe:DATA:MODE<wsp>ADD|OVER|0|1
+  :MMEMory:STORe:DATA:MODE?
+  ADD = Insert mode
+  OVER = Overwrite mode
+Response:
+  0 = ADD, 1 = OVER
+Example:
+  :MMEMORY:STORE:DATA:MODE OVER
+  :MMEMORY:STORE:DATA:MODE? -> 1
+Notes:
+  - This is a sequential command.
+
+Command: :MMEMory:STORe:DATA:TYPE
+Description: Sets/queries a file format to be used when storing data.
+Syntax:
+  :MMEMory:STORe:DATA:TYPE<wsp>CSV|DT|0|1
+  :MMEMory:STORe:DATA:TYPE?
+  CSV = CSV storage format DT = DT6 storage format
+  DT= Instrument-specific data type
+  The AQ6370C uses DT8 format
+  The AQ6373/AQ6373B uses DT9 format
+  The AQ6375/AQ6375B uses DT7 format
+Response:
+  0 = CSV, 1 = DT7 to DT9
+Example:
+  :MMEMORY:STORE:DATA:TYPE DT8
+  :MMEMORY:STORE:DATA:TYPE? -> 1
+Notes:
+  - This is a sequential command.
+
+Command: :MMEMory:STORe:DLOGging
+Description: Saves the data logging results to a specified file.
+Syntax:
+  :MMEMory:STORe:DLOGging<wsp> <"file name">[,INTernal|EXTernal]
+  <"file name"> = Name of the file to save to
+  INTernal|EXTernal = Drive to save to
+Example:
+  :MMEMORY:STORE:DLOGGING "test001",INTERNAL
+Notes:
+  - This command is invalid when data logging is in progress.
+  - This is a sequential command.
+  - This command can be used on the AQ6370C/ AQ6370D/AQ6373B/AQ6375B.
+
+Command: :MMEMory:STORe:DLOGging:CSAVe
+Description: Sets or queries whether data logging results will be saved to a file in CSV format.
+Syntax:
+  :MMEMory:STORe:DLOGging:CSAVe<wsp>OFF|ON|0|1
+  :MMEMory:STORe:DLOGging:CSAVe?
+  OFF = Data will not be saved to CSV format.
+  ON = Data will be saved to CSV format.
+Response:
+  0 = Off, 1 = On
+Example:
+  :MMEMORY:STORE:DLOGGING:CSAVE ON
+  :MMEMORY:STORE:DLOGGING:CSAVE? -> 1
+Notes:
+  - This command is invalid when data logging is in progress.
+  - This is a sequential command.
+  - This command can be used on the AQ6370C/ AQ6370D/AQ6373B/AQ6375B.
+
+Command: :MMEMory:STORe:DLOGging:TSAVe
+Description: Sets or queries whether temporary saved waveform files will be saved when data logging results is saved.
+Syntax:
+  :MMEMory:STORe:DLOGging:TSAVe<wsp>OFF|ON|0|1
+  :MMEMory:STORe:DLOGging:TSAVe?
+  OFF: Will not be saved
+  ON: Will be saved
+Response:
+  0 = Off, 1 = On
+Example:
+  :MMEMORY:STORE:DLOGGING:TSAVE ON
+  :MMEMORY:STORE:DLOGGING:TSAVE? -> 1
+Notes:
+  - This command is invalid when data logging is in progress.
+  - This is a sequential command.
+  - This command can be used on theAQ6370C/ AQ6370D/AQ6373B/AQ6375B.
+
+Command: :MMEMory:STORe:GRAPhics
+Description: Stores a waveform screen to a specified graphic file.
+Syntax:
+  :MMEMory:STORe:GRAPhics<wsp>B&W|COLor|PCOLor,BMP|TIFF,<"file name"> [,INTernal| EXTernal]
+  B&W|COLor PCOLor = Color mode when saving
+  B&W = Black and white mode
+  COLor = Color mode
+  PCOLor = Preset color
+  (waveforms in color, background in black & white)
+  BMP|TIFF = Saved format
+  BMP = BMP format
+  TIFF = TIFF format
+  <"file name"> = Name of a file to be saved
+  INTernal|EXTernal = Save destination drive
+Example:
+  :MMEMORY:STORE:GRAPHICS COLOR,BMP, "test001",INTERNAL
+Notes:
+  - This is a sequential command.
+  - PCOLor is valid only for the AQ6373B / AQ6375B.
+
+Command: :MMEMory:STORe:MEMory
+Description: Stores a specified memory to a specified waveform file.
+Syntax:
+  :MMEMory:STORe:MEMory<wsp> <integer>,BIN|CSV,<"file name">[, INTernal|EXTernal]
+  <integer> = Number of a memory whose contents are stored
+  BIN|CSV = Sav format
+  BIN = Binary format
+  CSV = Text format
+  <"file name"> = Name of file to be saved
+  INTernal|EXTernal = Save destination drive
+Example:
+  :MMEMORY:STORE:MEMORY 1,CSV, "test001",INTERNAL
+Notes:
+  - This is a sequential command.
+
+Command: :MMEMory:STORe:PROGram
+Description: Stores a specified program to a specified file.
+Syntax:
+  :MMEMory:STORe:PROGram<wsp><integer >,<"file name">[,INTernal|EXTernal]
+  <integer> = Number of a program whose contents are stored
+  <"file name"> = Name of a file to be saved
+  NTernal|EXTernal = Save destination drive
+Example:
+  :MMEMORY:STORE:PRORAM 1,"test001", INTERNAL
+Notes:
+  - This is a sequential command.
+
+Command: :MMEMory:STORe:SETTing
+Description: Stores setting information to a specified file.
+Syntax:
+  :MMEMory:STORe:SETTing<wsp><"file name">[,INTernal|EXTernal]
+  <"file name"> = Name of a file to be saved
+  INTernal|EXTernal = Save destination drive
+Example:
+  :MMEMORY:STORE:SETTING "test001", INTERNAL
+Notes:
+  - This is a sequential command.
+
+Command: :MMEMory:STORe:TEMPlate
+Description: Stores specified template data to a specified file
+Syntax:
+  :MMEMory:STORe:TEMPlate <wsp><template>,<"file name">[,INTernal|EXTernal]
+  <template> = Template to be saved.
+  (UPPER|LOWER|TARGET)
+  <"file name"> = Name of a file to be saved
+  INTernal|EXTernal = Save destination drive
+Example:
+  :MMEMORY:STORE:TEMPLATE UPPER, "test001",INTERNAL
+Notes:
+  - This is a sequential command.
+
+Command: :MMEMory:STORe:TRACe
+Description: Stores a specified trace to a specified waveform file.
+Syntax:
+  :MMEMory:STORe:TRACe<wsp><trace name>,BIN|CSV,<"file name">[,INTernal|EXTernal]
+  <trace name> = Trace to be saved
+  BIN|CSV = Save format
+  BIN = Binary format
+  CSV = Text format)
+  <"file name"> = Name of file to be saved
+  INTernal|EXTernal = Save destination drive
+Example:
+  :MMEMORY:STORE:TRACE TRA,CSV, "test001",INTERNAL
+Notes:
+  - This is a sequential command.
+
+
+======================================================================
+12. PROGram
+======================================================================
+
+Command: :PROGram:EXECute
+Description: This key is used to execute a program that has been specified.
+Syntax:
+  :PROGram:EXECute<wsp><integer>
+  <integer> = Number of a program to execute
+Example:
+  :PROGRAM:EXECUTE 1
+Notes:
+  - This is an overlapable command.
+
+
+======================================================================
+13. SENSe (Measurement Conditions)
+======================================================================
+
+Command: :SENSe:AVERage:COUNt
+Description: Sets/queries the number of times averaging for each measured point.
+Syntax:
+  :SENSe:AVERage:COUNt<wsp><integer>
+  :SENSe:AVERage:COUNt?
+  <integer> = Number of times averaging
+Example:
+  : :SENSE:AVERAGE:COUNT 100
+  :SENSE:AVERAGE:COUNT? -> 100
+Notes:
+  - This is a sequential command.
+
+Command: :SENSe:BANDwidth|:BWIDth[:RESolution]
+Description: Sets/queries the measurment resolution.
+Syntax:
+  :SENSe:BANDwidth|:BWIDth[:RESolution]<wsp><NRf>[M|Hz]
+  :SENSe:BANDwidth|:BWIDth [:RESolution]?
+  <NRf> = Measurement resolution [m|Hz]
+Response:
+  <NRf> [m|Hz] (AQ6370C/AQ6370D/AQ6373B/ AQ6373)
+  <NRf> [m|Hz|m-1] (AQ6375/AQ6375B)
+Example:
+  :SENSE:BANDWIDTH:RESOLUTION 20PM
+  :SENSE:BANDWIDTH? -> +2.00000000E-012
+Notes:
+  - For the AQ6375/AQ6375B, to set using the wavenumber, do not add any units when in Wavenumber mode, and just enter the numerical value.
+  - This is a sequential command.
+
+Command: :SENSe:CHOPper
+Description: Sets/queries chopper mode.
+Syntax:
+  :SENSe:CHOPper<wsp>OFF|SWITch|0|2
+  :SENSe:CHOPper?
+Response:
+  0 = OFF,
+  2 = SWITCH
+Example:
+  :SENSE:CHOPPER SWITCH
+  :SENSE:CHOPPER? -> 2
+Notes:
+  - When the measurement sensitivity setting (:SENSe:SENSe command) is NORMAL HOLD or NORMAL AUTO, Chopper does not function even if chopper mode is turned on with this command.
+  - With the AQ6375/AQ6375B, the command is invalid.
+  - This is a sequential command.
+
+Command: :SENSe:CORRection:LEVel:SHIFt
+Description: Sets/queries the offset value for the level.
+Syntax:
+  :SENSe:CORRection:LEVel:SHIFt<wsp>< NRf>[DB]
+  :SENSe:CORRection:LEVel:SHIFt?
+  <NRf> = Level offset value [dB]
+Example:
+  :SENSE:CORRECTION:LEVEL:SHIFT 0.2DB
+  :SENSE:CORRECTION:LEVEL:SHIFT?-> +2.00000000E-001
+Notes:
+  - This is a sequential command.
+
+Command: :SENSe:CORRection:RVELocity:MEDium
+Description: Sets/queries whether air or vacuum is used as the wavelength reference.
+Syntax:
+  :SENSe:CORRection:RVELocity:MEDium <wsp>AIR|VACuum|0|1
+  :SENSe:CORRection:RVELocity:MEDium?
+  AIR = Air is assumed to be the reference.
+  VACuum = Vacuum is assumed to be the reference.
+Response:
+  0 = AIR
+  1 = VACuum
+Example:
+  :SENSE:CORRECTION:RVELOCITY: MEDIUM VACUUM
+  :SENSE:CORRECTION:RVELOCITY:MEDIUM?-> 1
+Notes:
+  - This is a sequential command.
+
+Command: :SENSe:CORRection:WAVelength:SHIFt
+Description: Sets/queries the offset value for the levelwavelength.
+Syntax:
+  :SENSe:CORRection:WAVelength:SHIFt< wsp><NRf>[M]
+  :SENSe:CORRection:WAVelength:SHIFt?
+  <NRf>= Wavelength offset value [m]
+Example:
+  :SENSE:CORRECTION:WANELENGTH: SHIFT 0.05NM
+  :SENSE:CORRECTION:WANELENGTH:SHIFT?-> +5.00000000E-011
+Notes:
+  - This is a sequential command.
+
+Command: :SENSe:SENSe
+Description: Sets/queries the measurement sensitivity.
+Syntax:
+  :SENSe:SENSe<wsp><sense>
+  :SENSe:SENSe?
+  <sense>= Sensitivity setting parameters
+  NHLD = NORMAL HOLD
+  NAUT = NORMAL AUTO
+  NORMal = NORMAL
+  MID = MID
+  HIGH1 = HIGH1 or HIGH1/CHOP
+  HIGH2 = HIGH2 or HIGH2/CHOP
+  HIGH3 = HIGH3 or HIGH3/CHOP
+Response:
+  0 = NHLD
+  1 = NAUT
+  2 = MID
+  3 = HIGH1
+  4 = HIGH2
+  5 = HIGH3
+  6 = NORMAL
+Example:
+  :SENSE:SENSE MID
+  :SENSE:SENSE? -> 2
+Notes:
+  - This is a sequential command.
+
+Command: :SENSe:SETTing:CORRection
+Description: Sets/queries the resolution correction function.
+Syntax:
+  :SENSe:SETTing:CORRection<wsp>OFF|ON|0|1|2|MODE1|MODE2
+  :SENSe:SETTing:CORRection?
+Response:
+  0 = OFF, 1 = ON with MODE1
+  2 = ON with MODE2 (for AQ6370D)
+Example:
+  :SENSE:SETTING:CORRECTION ON
+  :SENSE:SETTING:CORRECTION? -> 1
+Notes:
+  - With the AQ6375, the command is invalid.
+  - Only AQ6370D returns 2 in response to the query.
+  - This is a sequential command.
+
+Command: :SENSe:SETTing:FCONnetcor
+Description: Sets/queries the fiber connector mode.
+Syntax:
+  :SENSe:SETTing:FCONnector<wsp>NORMal|ANGLed|0|1
+  :SENSe:SETTing:FCONnector?
+  NORMal = Standard mode
+  ANGLed = Angle lap fiber mode
+Response:
+  0 = NORMal, 1 = ANGLed
+Example:
+  :SENSE:SETTING:FCONNECTOR ANGLED
+  :SENSE:SETTING:FCONNECTOR? -> 1
+Notes:
+  - This is a sequential command.
+
+Command: :SENSe:SETTing:FIBer
+Description: Sets/queries the fiber core size mode.
+Syntax:
+  :SENSe:SETTing:FIBer<wsp>SMALl|LARGe|0|1
+  :SENSe:SETTing:FIBer?
+  SMALl= Standard mode
+  LARGe= Large core size fiber mode
+Response:
+  0 = SMALl, 1 = LARGe
+Example:
+  :SENSE:SETTING:FIBER LARGE
+  :SENSE:SETTING:FIBER? -> 1
+Notes:
+  - This is a sequential command.
+  - This command only valid for the AQ6373/ AQ6373B.
+
+Command: :SENSe:SETTing:SMOothing
+Description: Sets/queries the Smoothing function.
+Syntax:
+  :SENSe:SETTing:SMOothing<wsp>OFF|ON|0|1
+  :SENSe:SETTing:SMOothing?
+Response:
+  0 = OFF, 1 = ON
+Example:
+  :SENSE:SETTING:SMOothing ON
+  :SENSE:SETTING:SMOothing? -> 1
+Notes:
+  - This is a sequential command.
+  - This command only valid for the AQ6373/ AQ6373B/AQ6375B.
+
+Command: :SENSe:SWEep:POINts
+Description: Sets/queries the number of samples measured.
+Syntax:
+  :SENSe:SWEep:POINts<wsp><integer>
+  :SENSe:SWEep:POINts?
+  <integer> = The number of samples to be measured
+Example:
+  :SENSE:SWEEP:POINTS 20001
+  :SENSE:SWEEP:POINTS? -> 20001
+Notes:
+  - When the function of automatically setting the sampling number to be measured (SENSe:SWEep:POINts:AUTO command) is ON, the sampling number to be measured that has been set can be queried.
+  - When the function of automatically setting the sampling number to be measured (SENSe:SWEep:POINts:AUTO command) is ON, this command will be automatically set to OFF.
+  - When the sampling number to be measured is set using this command, the sampling intervals for measurements (SENSe:SWEep:STEP) will be automatically set.
+  - With the AQ6375, if you set HIGH1-HIGH3, it becomes HIGH1/CHOP-HIGH3/CHOP.
+  - This is a sequential command.
+
+Command: :SENSe:SWEep:POINts:AUTO
+Description: Sets/queries the function of automatically setting the sampling number to be measured.
+Syntax:
+  :SENSe:SWEep:POINts:AUTO<wsp>OFF|ON|0|1
+  :SENSe:SWEep:POINts:AUTO?
+Response:
+  0 = OFF, 1 = ON
+Example:
+  :SENSE:SWEEP:POINTS:AUTO ON
+  :SENSE:SWEEP:POINTS:AUTO? -> 1
+Notes:
+  - When the capability to automatically set the sampling number to be measured is set to ON using this command, the sampling number to be measured and the sampling intervals for measurements (SENSe:SWEep:STEP) will be automatically set.
+  - This is a sequential command.
+
+Command: :SENSe:SWEep:SEGMent:POINts
+Description: Sets/queries the number of sampling points to be measured at one time when performing SEGMENT MEASURE.
+Syntax:
+  :SENSe:SWEep:SEGMent:POINts<wsp> <integer>
+  :SENSe:SWEep:SEGMent:POINts?
+  <integer> = The number of samples measured
+Example:
+  :SENSE:SWEEP:SEGMENT:POINTS 100
+  :SENSE:SWEEP:SEGMENT:POINTS? -> 100
+Notes:
+  - This is a sequential command.
+
+Command: :SENSe:SWEep:SPEed
+Description: Sets/queries the sweep speed.
+Syntax:
+  :SENSe:SWEep:SPEed<wsp>1x|2x|0|1
+  :SENSe:SETTing:FCONnector?
+  1x|0: Standard
+  2x|1: Twice as fast as standard
+Response:
+  0 = 1x, 1 = 2x
+Example:
+  :SENSE:SWEEP:SPEED 2x
+  :SENSE:SWEEP:SPEED? -> 1
+Notes:
+  - This is a sequential command.
+  - This command can be used on the AQ6370C/ AQ6370D/AQ6373B/AQ6375B.
+
+Command: :SENSe:SWEep:STEP
+Description: Sets/queries the sampling interval for measurements.
+Syntax:
+  :SENSe:SWEep:STEP<wsp><NRf>[M]
+  :SENSe:SWEep:STEP?
+  <NRf> = The sampling interval for measurement [m]
+Example:
+  :SENSE:SWEEP:STEP 1PM
+  :SENSE:SWEEP:STEP?-> +1.00000000E-012
+Notes:
+  - When the function of automatically setting the sampling interval for measurement (SENSe:SWEep:POINts:AUTO command) is ON, the sampling number to be measured that has been set can be queried.
+  - When the function of automatically setting the sampling number to be measured (SENSe:SWEep:POINts:AUTO command) is ON, this command will be automatically set to OFF.
+  - When the sampling interval for measurement is set using this command, the sampling intervals for measurements (SENSe:SWEep:POINts) will be automatically set.
+  - This is a sequential command.
+
+Command: :SENSe:SWEep:TIME:0NM
+Description: Sets/queries the time taken from the start to the end of measurements when measurement is made in the 0-nm sweep mode.
+Syntax:
+  :SENSe:SWEep:TIME:0NM<wsp><integer> [SEC]
+  :SENSe:SWEep:TIME:0NM?
+  <integer> = Measurement time [sec] (0 = MINIMUM)
+Example:
+  :SENSE:SWEEP:TIME:0NM 10SEC
+  :SENSE:SWEEP:TIME:0NM? -> 10
+Notes:
+  - This is a sequential command.
+
+Command: :SENSe:SWEep:TIME:INTerval
+Description: Sets/queries the time taken from the start of a sweep to that of the next sweep when repeat sweeps are made.
+Syntax:
+  :SENSe:SWEep:TIME:INTerval<wsp><int eger>[SEC]
+  :SENSe:SWEep:TIME:INTerval?
+  <integer> = Measurement time [sec] (0 = MINIMUM)
+Example:
+  :SENSE:SWEEP:TIME:INTERVAL 100sec
+  :SENSE:SWEEP:TIME:INTERVAL? -> 100
+Notes:
+  - This is a sequential command.
+
+Command: :SENSe:SWEep:TLSSync
+Description: Sets/queries the synchronous sweep function.
+Syntax:
+  :SENSe:SWEep:TLSSync<wsp>OFF|ON|0|1|
+  :SENSe:SWEep:TLSSync?
+Response:
+  0 = OFF, 1 = ON
+Example:
+  :SENSE:SWEEP:TLSSYNC ON
+  :SENSE:SWEEP:TLSSYNC? -> 1
+Notes:
+  - This is a sequential command.
+  - With the AQ6370D/AQ6373B/AQ6375B, the command is invalid.
+
+Command: :SENSe:WAVelength:CENTer
+Description: Sets/queries the measurement condition center wavelength.
+Syntax:
+  :SENSe:WAVelength:CENTer<wsp><NRf>[M|HZ]
+  :SENSe:WAVelength:CENTer?
+  <NRf> = Measurement center wavelength [m]
+Response:
+  <NRf> [m|Hz] (AQ6370C/AQ6370D/AQ6373/ AQ6373B)
+  <NRf> [m|Hz|m-1] (AQ6375/AQ6375B)
+Example:
+  :SENSE:WAVELENGTH:CENTER 1550.000NM
+  :SENSE:WAVELENGTH:CENTER?-> +1.55000000E-006
+Notes:
+  - For the AQ6375/AQ6375B, to set using the wavenumber, do not add any units when in Wavenumber mode, and just enter the numerical value.
+  - This is a sequential command.
+
+Command: :SENSe:WAVelength:SPAN
+Description: Sets/queries the measurement condition measurement span.
+Syntax:
+  :SENSe:WAVelengthSPAN<wsp><NRf> [M|HZ]
+  :SENSe:WAVelength:SPAN?
+  <NRf> = Measurement span [m]
+Response:
+  <NRf> [m|Hz] (AQ6370C/AQ6370D/AQ6373/ AQ6373B)
+  <NRf> [m|Hz|m-1] (AQ6375/AQ6375B)
+Example:
+  :SENSE:WAVELENGTH:SPAN 20.0NM
+  :SENSE:WAVELENGTH:SPAN?-> +2.00000000E-008
+Notes:
+  - For the AQ6375/AQ6375B, to set using the wavenumber, do not add any units when in Wavenumber mode, and just enter the numerical value.
+  - This is a sequential command.
+
+Command: :SENSe:WAVelength:SRANge
+Description: Sets/queries whether to limit a sweep range to the spacing between line markers L1 and L2.
+Syntax:
+  :SENSe:WAVelength:SRANge<wsp>OFF|ON|0|1
+  :SENSe:WAVelength:SRANge?
+Response:
+  0 = OFF, 1 = ON
+Example:
+  :SENSE:WAVELENGTH:SRANGE ON
+  :SENSE:WAVELENGTH:SRANGE? -> 1
+Notes:
+  - This is a sequential command.
+
+Command: :SENSe:WAVelength:STARt
+Description: Sets/queries the measurement condition measurement start wavelength.
+Syntax:
+  :SENSe:WAVelength:STARt<wsp><NRf> [M|HZ]
+  :SENSe:WAVelength:STARt?
+  <NRf>=Measurement center wavelength [m]
+Response:
+  <NRf> [m|Hz] (AQ6370C/AQ6370D/AQ6373/ AQ6373B)
+  <NRf> [m|Hz|m-1] (AQ6375/AQ6375B)
+Example:
+  :SENSE:WAVELENGTH:START 1540.000NM
+  :SENSE:WAVELENGTH:START?-> +1.54000000E-006
+Notes:
+  - For the AQ6375/AQ6375B, to set using the wavenumber, do not add any units when in Wavenumber mode, and just enter the numerical value.
+  - This is a sequential command.
+
+Command: :SENSe:WAVelength:STOP
+Description: Sets/queries the measurement condition measurement stop wavelength.
+Syntax:
+  :SENSe:WAVelengthSTOP<wsp><NRf> [M|HZ]
+  :SENSe:WAVelength:STOP?
+  <NRf> = Measurement stop wavelength [m]
+Response:
+  <NRf> [m|Hz] (AQ6370C/AQ6370D/AQ6373/ AQ6373B)
+  <NRf> [m|Hz|m-1] (AQ6375/AQ6375B)
+Example:
+  :SENSE:WAVELENGTH:STOP 1560.000NM
+  :SENSE:WAVELENGTH:STOP?-> +1.56000000E-006
+Notes:
+  - For the AQ6375/AQ6375B, to set using the wavenumber, do not add any units when in Wavenumber mode, and just enter the numerical value.
+  - This is a sequential command.
+
+
+======================================================================
+14. STATus
+======================================================================
+
+Command: :STATus:OPERation:CONDition?
+Description: Queries the contents of the operation status condition register.
+Syntax:
+  :STATus:OPERation:CONDiton?
+Example:
+  :STATUS:OPERATION:CONDITION? -> 1
+Notes:
+  - This is a sequential command.
+
+Command: :STATus:OPERation:ENABle
+Description: Queries the contents of the operation status Enable register.
+Syntax:
+  :STATus:OPERation:ENABle<wsp> <integer>
+  :STATus:OPERation:ENABle?
+  <integer> = Contents of the operation status enable register
+Example:
+  :STATUS:OPERATION:ENABLE 8
+  :STATUS:OPERATION:ENABLE? -> 8
+Notes:
+  - This is a sequential command.
+
+Command: :STATus:OPERation[:EVENt]?
+Description: Queries the contents of the operation status Event register.
+Syntax:
+  :STATus:OPERation[:EVENt]?
+Example:
+  :STATUS:OPERATION? -> 1
+Notes:
+  - This is a sequential command.
+
+Command: :STATus:PRESet
+Description: Clears the event register and sets all bits of the enable register.
+Syntax:
+  :STATus:PRESet
+Example:
+  :STATUS:PRESET
+Notes:
+  - When this command is executed, the registers will be affected as follows.
+  - The operation status event register is cleared to "0."
+  - All bits of the operation status enable register are set to "0."
+  - The questionable status event register is cleared to "0."
+  - All bits of the questionable status enable register are set to "0."
+  - Even when this command is executed, the standard event status register and standard event status enable register do not change.
+  - This is a sequential command.
+
+Command: :STATus:QUEStionable:CONDition?
+Description: Queries the contents of the qestionable status condition register.
+Syntax:
+  :STATus:QUEStionable:CONDiton?
+Example:
+  :STATUS:QUESTIONABLE:CONDITION? -> 1
+Notes:
+  - This is a sequential command.
+
+Command: :STATus:QUEStionable:ENABle
+Description: Reads the contents of the questionable status enable register or writes data to this register.
+Syntax:
+  :STATus:QUEStionable:ENABle<wsp> <integer>
+  :STATus:QUEStionable:ENABle?
+  <integer> = Contents of the questionable status enable register
+Example:
+  :STATUS:QUESTIONABLE:ENABLE 8
+  :STATUS:QUESTIONABLE:ENABLE? -> 8
+Notes:
+  - This is a sequential command.
+
+Command: :STATus:QUEStionable[:EVENt]?
+Description: Reads the contents of the questionable status event register.
+Syntax:
+  :STATus:QUEStionable[:EVENt]?
+Example:
+  :STATUS:QUESTIONABLE:? -> 1
+Notes:
+  - This is a sequential command.
+
+
+======================================================================
+15. SYSTem
+======================================================================
+
+Command: :SYSTem:BUZZer:CLICk
+Description: Sets/queries whether to sound the buzzer when clicked the key.
+Syntax:
+  :SYSTem:BUZZer:CLICk<wsp>OFF|ON|0|1
+  :SYSTem:BUZZer:CLICk?
+Response:
+  0 = OFF, 1 = ON
+Example:
+  :SYSTEM:BUZZER:CLICK ONn
+  :SYSTEM:BUZZER:CLICK? -> 1
+Notes:
+  - This is a sequential command.
+
+Command: :SYSTem:BUZZer:WARNing
+Description: Sets/queries whether to sound the buzzer during an alarm.
+Syntax:
+  :SYSTem:BUZZer:WARNing<wsp>OFF|ON|0|1
+  :SYSTem:BUZZer:WARNing?
+Response:
+  0 = OFF, 1 = ON
+Example:
+  :SYSTEM:BUZZER:WARNING ON
+  :SYSTEM:BUZZER:WARNING? -> 1
+Notes:
+  - This is a sequential command.
+
+Command: :SYSTem:COMMunicate:CFORmat
+Description: Sets/queries the GP-IB command format of this unit.
+Syntax:
+  :SYSTem:COMMunicate:CFORmat<wsp> <mode>
+  :SYSTem: COMMunicate:CFORmat?
+  <mode> = GP-IB command format
+  For AQ6370C
+  AQ6317 = AQ6317 compatible mode
+  AQ6370C = AQ6370C mode
+  For AQ6370D
+  AQ6317 = AQ6317 compatible mode
+  AQ6370D = AQ6370D mode
+  For AQ6373
+  AQ6317 = AQ6317 compatible mode
+  AQ6373 = AQ6373 mode
+  For AQ6373B
+  AQ6317 = AQ6317 compatible mode
+  AQ6373B = AQ6373B mode
+  For AQ6375
+  AQ6317 = AQ6317 compatible mode
+  AQ6375 = AQ6375 mode
+  For AQ6375B
+  AQ6317 = AQ6317 compatible mode
+  AQ6375B = AQ6375B mode
+Response:
+  For AQ6370C
+  0 = AQ6317, 1 = AQ6370C
+  For AQ637D
+  0 = AQ6317, 1 = AQ6370D
+  For AQ6373
+  0 = AQ6317, 1 = AQ6373
+  For AQ6373B
+  0 = AQ6317, 1 = AQ6373B
+  For AQ6375
+  0 = AQ6317, 1 = AQ6375
+  For AQ6375B
+  0 = AQ6317, 1 = AQ6375B
+Example:
+  :SYSTEM:COMMUNICATE:CFORMAT AQ6370C
+  syst:comm:cformat? -> 1
+Notes:
+  - This command is valid when in AQ6370C/ AQ6370D/AQ6373/AQ6373B/AQ6375/ AQ6375B mode. This command results in an error when in AQ6317 compatible mode.
+  - To set the GP-IB command format while this unit is in the AQ6317-compatible mode, use the following commands.
+  - Control command
+  - CFORM* (*: 0 = AQ6317 compatible mode, 1 = AQ6370C/AQ6370D/AQ6373/AQ6373B/ AQ6375/AQ6375B mode)
+  - Query command
+  - CFORM? (return value: 0 = AQ6317- compatible mode, 1 = AQ6370C/AQ6370D/ AQ6373/AQ6373B/AQ6375/AQ6375B mode)
+  - To use a GP-IB command to place this unit into the AQ6317-compatible mode, regardless of the status during execution of the command, execute the following command. Note that if this unit has already been in the AQ6317-compatible mode at the time of executing this command, a command error occurs, but you can ignore it.
+  - :SYSTem:COMMunicate:CFORmat<wsp>AQ6317
+  - To use a GP-IB command to place this unit into the AQ6370C, AQ6370D, AQ6373, AQ6373B, AQ6375 or AQ6375B mode, regardless of the status during execution of the command, execute the following command. Note that if this unit has already been in the AQ6370C, AQ6370D, AQ6373, AQ6373B, AQ6375 or AQ6375B mode at the time of executing this command, a command error occurs, but you can ignore it.
+  - CFORM1
+  - This is a sequential command.
+
+Command: :SYSTem:COMMunicate:GP-IB2:ADDRess
+Description: Sets/queries the GP-IB address of the instrument's GP-IB2 port.
+Syntax:
+  :SYSTem:COMMunicate:GP-IB2:ADDRess <wsp><integer>
+  :SYSTem:COMMunicate:GP-IB2:ADDRess?
+Example:
+  :SYSTEM:COMMUNICATE:GP-IB2: ADDRESS 2
+  :SYSTEM:COMMUNICATE:GP-IB2: ADDRESS?-> 2
+Notes:
+  - This is a sequential command.
+  - With the AQ6370D/AQ6373B/AQ6375B, the command is invalid.
+
+Command: :SYSTem:COMMunicate:GPIB2:SCONtroller
+Description: Sets/queries whether the system controller function of the instrument's GP-IB2 port is enabled.
+Syntax:
+  :SYSTem:COMMunicate:GPIB2:SCONtroller<wsp>OFF|ON|0|1
+  :SYSTem:COMMunicate:GPIB2:SCONtroller?
+  OFF|0: Disables the system controller function
+  ON|1: Enables the system controller function
+Example:
+  :SYSTEM:COMMUNICATE:GPIB2:SCON ON
+  :SYSTEM:COMMUNICATE:GPIB2:SCON? -> 1
+Notes:
+  - To use the instrument's GP-IB2 port as a system controller in performing a synchronous sweep with a variable wavelength light source, enable this setting.
+  - This is a sequential command.
+  - With the AQ6370D/AQ6373B/AQ6375B, the command is invalid.
+
+Command: :SYSTem:COMMunicate:GP-IB2:TLS:ADDRess
+Description: Sets/queries the GP-IB address of the turnable laser source connected to the instrument's GP- IB2 port.
+Syntax:
+  :SYSTem:COMMunicate:GP-IB2:TLS: ADDRess<wsp><integer>
+  :SYSTem:COMMunicate:GP-IB2:TLS: ADDRess?
+  <integer> = GP-IB address of the turnable laser source
+Example:
+  : :SYSTEM:COMMUNICATE:GP-IB2:TLS: ADDRESS 20
+  :SYSTEM:COMMUNICATE:GP-IB2:TLS: ADDRESS? -> 20
+Notes:
+  - Sets the address of the Tunable Laser Source.
+  - This is a sequential command.
+  - With the AQ6370D/AQ6373B/AQ6375B, the command is invalid.
+
+Command: :SYSTem:COMMunicate:LOCKout
+Description: Sets/cancels local lockout.
+Syntax:
+  :SYSTem:COMMunicate:LOCKout<wsp>OFF|ON|0|1
+  :SYSTem:COMMunicate:LOCKout?
+  OFF|0: Cancels local lockout
+  ON|1: Sets local lockout
+Example:
+  :SYSTEM:COMMUNICATE:LOCKOUT OFF
+  :SYSTEM:COMMUNICATE:LOCKOUT? -> 0
+Notes:
+  - This command is valid when the remote interface is the Ethernet interface. An interface message is available for the GP-IB interface.
+  - During local lockout, if the Ethernet connection is lost, the instrument switches to local mode, regardless of the local lockout status.
+  - This is a sequential command.
+  - This command can be used on the AQ6370C.
+
+Command: :SYSTem:COMMunicate:RMONitor
+Description: Sets/queries whether the remote monitor function is enabled.
+Syntax:
+  :SYSTem:COMMunicate:RMONitor<wsp>OFF|ON|0|1
+  :SYSTem:COMMunicate:RMONitor?
+  OFF|0: Disables the remote monitor function
+  ON|1: Enables the remote monitor function
+Example:
+  :SYSTEM:COMMUNICATE:RMONITOR OFF
+  :SYSTEM:COMMUNICATE:RMONITOR? -> 0
+Notes:
+  - This is a sequential command.
+  - This command can be used on the AQ6370C/ AQ6370D/AQ6373B/AQ6375B.
+
+Command: :SYSTem:DATE
+Description: Sets/queries the system data.
+Syntax:
+  :SYSTem:DATE<wsp><year>,<month>,<d ay>
+  :SYSTem:DATE?
+  <year> = Year
+  <month> = Month
+  <day> = Day
+Example:
+  :SYSTEM:DATE 2006,03,01
+  :SYSTEM:DATE? -> 2006,03,01
+Notes:
+  - This is a sequential command.
+
+Command: :SYSTem:DISPlay:TRANsparent
+Description: Sets/queries whether to make the Interrupt Window and OVERVIEW Window of the measurement screen semi-transparent.
+Syntax:
+  :SYSTem:DISPlay:TRANsparent<wsp>OFF |ON|0|1
+  :SYSTem:DISPlay:TRANsparent?
+Response:
+  0 = OFF, 1 = ON
+Example:
+  :SYSTEM:DISPLAY:TRANSPARENT OFF
+  :SYSTEM:DISPLAY:TRANSPARENT? -> 0
+Notes:
+  - This is a sequential command.
+
+Command: :SYSTem:DISPlay:UNCal
+Description: Sets/queries whether to display an alarm message in the event of UNCAL.
+Syntax:
+  :SYSTem:DISPlay:UNCal<wsp>OFF|ON|0|1
+  :SYSTem:DISPlay:UNCal?
+Response:
+  0 = OFF, 1 = ON
+Example:
+  :SYSTEM:DISPLAY:UNCAL OFF
+  :SYSTEM:DISPLAY:UNCAL? -> 0
+Notes:
+  - This is a sequential command.
+
+Command: :SYSTem:ERRor[:NEXT]?
+Description: Queries data in an error queue and deletes it from the queue.
+Syntax:
+  :SYSTem:ERRor[:NEXT]?
+  <integer> = Error number
+Example:
+  :SYSTEM:ERROR? -> 100
+Notes:
+  - This is a sequential command.
+
+Command: :SYSTem:GRID
+Description: Sets/queries the instrument's grid setting.
+Syntax:
+  :SYSTem:GRID<wsp><grid>
+  :SYSTem:GRID?
+  <grid> = Grid setting
+  12.5 GHZ = 12.5 GHz Spacing
+  25 GHZ = 25 GHz Spacing
+  50 GHZ = 50 GHz Spacing
+  100 GHZ = 100 GHz Spacing
+  200 GHZ = 200 GHz Spacing
+  CUSTom = User setting
+Response:
+  0 = 12.5GHz
+  1 = 25GHz
+  2 = 50GHz
+  3 = 100GHz
+  4 = 200GHz
+  5 = CUSTom
+Example:
+  :SYSTEM:GRID 50GHZ
+  :SYSTEM:GRID? -> 2
+Notes:
+  - This is a sequential command.
+  - With the AQ6373/AQ6373B, the command is invalid.
+  - For the AQ6375/AQ6375B,cannot be executed when in Wavenumber mode.
+
+Command: :SYSTem:GRID:CUSTom:CLEar:ALL
+Description: Clears the user-specified custom grid and returns it to the default value.
+Syntax:
+  :SYSTem:GRID:CUSTom:CLEar:ALL
+Example:
+  :SYSTem:GRID:CUSTOM:CLEAR:ALL
+Notes:
+  - With the AQ6373/AQ6373B, the command is invalid.
+  - For the AQ6375/AQ6375B,cannot be executed when in Wavenumber mode.
+  - This is a sequential command.
+
+Command: :SYSTem:GRID:CUSTom:DELete
+Description: Deletes the specified grid of the custom grid.
+Syntax:
+  :SYSTem:GRID:CUSTom:DELete<wsp><int eger>
+  <integer> = Number of a grid to be deleted
+Example:
+  :SYSTem:GRID:CUSTOM:DELETE 10
+Notes:
+  - With the AQ6373/AQ6373B, the command is invalid.
+  - For the AQ6375/AQ6375B,cannot be executed when in Wavenumber mode.
+  - This is a sequential command.
+
+Command: :SYSTem:GRID:CUSTom:INSert
+Description: Inserts a new grid when the grid setting is in the custom grid.
+Syntax:
+  :SYSTem:GRID:CUSTom:INSert<wsp><NRf >[M|HZ]
+  <NRf> = Grid wavelength/frequency to be inserted [m| Hz]
+Example:
+  :SYSTem:GRID:CUSTOM:INSERT1550.123NM
+Notes:
+  - When :SYSTem:GRID is CUSTom, an execution error occurs.
+  - With the AQ6373/AQ6373B, the command is invalid.
+  - For the AQ6375/AQ6375B,cannot be executed when in Wavenumber mode.
+  - This is a sequential command.
+
+Command: :SYSTem:GRID:CUSTom:SPACing
+Description: Sets/queries the grid spacing of the custom grid.
+Syntax:
+  :SYSTem:GRID:CUSTom:SPACing<wsp><NR f>[GHZ]
+  :SYSTem:GRID:CUSTom:SPACing?
+  <NRf> = Grid spacing [GHz]
+Example:
+  :SYSTem:GRID:CUSTOM:SPACING 12.5
+  :SYSTem:GRID:CUSTOM:SPACING?-> +1.25000000E+001
+Notes:
+  - When :SYSTem:GRID is CUSTom, an execution error occurs.
+  - With the AQ6373/AQ6373B, the command is invalid.
+  - For the AQ6375/AQ6375B,cannot be executed when in Wavenumber mode.
+  - This is a sequential command.
+
+Command: :SYSTem:GRID:CUSTom:STARt
+Description: Sets/queries the custom grid start wavelength.
+Syntax:
+  :SYSTem:GRID:CUSTom:STARt<wsp><NRf> [M|HZ]
+  :SYSTem:GRID:CUSTom:STARt?
+  <NRf> = Grid start wavelength [m|Hz]
+Example:
+  :SYSTem:GRID:CUSTOM:START1550.000NM
+  :SYSTem:GRID:CUSTOM:START?-> +1.55000000E-006
+Notes:
+  - When :SYSTem:GRID is CUSTom, an execution error occurs.
+  - With the AQ6373/AQ6373B, the command is invalid.
+  - For the AQ6375/AQ6375B,cannot be executed when in Wavenumber mode.
+  - This is a sequential command.
+
+Command: :SYSTem:GRID:CUSTom:STOP
+Description: Sets/queries the custom grid stop wavelength.
+Syntax:
+  :SYSTem:GRID:CUSTom:STOP<wsp><NRf> [M|HZ]
+  :SYSTem:GRID:CUSTom:STOP?
+  <NRf> = Grid stop wavelength [m|Hz]
+Example:
+  :SYSTEM:GRID:CUSTOM:STOP 1560.000NM
+  :SYSTEM:GRID:CUSTOM:STOP?-> +1.56000000E-006
+Notes:
+  - When :SYSTem:GRID is something other than CUSTom, an execution error occurs.
+  - With the AQ6373/AQ6373B, the command is invalid.
+  - For the AQ6375,cannot be executed when in Wavenumber mode.
+  - This is a sequential command.
+
+Command: :SYSTem:GRID:REFerence
+Description: Sets/queries the reference frequency of the instrument's grid setting.
+Syntax:
+  :SYSTem:GRID:REFerence<wsp><NRf> [HZ]
+  :SYSTem:GRID:REFerence?
+  <NRf> = Grid's reference frequency [Hz]
+Example:
+  :SYSTEM:GRID:REFERENCE 193.1000HZ
+  :SYSTEM:GRID:REFERENCE ?-> +1.93000000E+014
+Notes:
+  - With the AQ6373/AQ6373B, the command is invalid.
+  - For the AQ6375/AQ6375B,cannot be executed when in Wavenumber mode.
+  - This is a sequential command.
+
+Command: :SYSTem:INFormation?
+Description: Queries model-specific information (the model code and special code)
+Syntax:
+  :SYSTem:INFormation?<wsp><integer>
+  <integer> = The type of instrument specific information to obtain
+  0 = MODEL code
+  1 = SPECIAL code
+Example:
+  :SYSTEM:INFORMATION? 1 -> AQ6370C-M/
+Notes:
+  - Outputs model-specific information (the model code and special code)
+  - If no SPECIAL mode is present, "NONE" is returned.
+  - This is a sequential command.
+
+Command: :SYSTem:INFormation:FSPeed?
+Description: Queries the rotation speed of the CPU cooling fan inside the device.
+Syntax:
+  :SYSTem:INFormation:FSPeed?
+Response:
+  <integer> = Rotation speed [rpm]
+Example:
+  :SYST:INF:FSP? -> 6700
+Notes:
+  - This command is for the AQ6375B. The response is -1 if it is executed on another model.
+  - This is a sequential command.
+
+Command: :SYSTem:OLOCk
+Description: Sets or queries whether keys are locked.
+Syntax:
+  :SYSTem:OLOCk<wsp>OFF|ON|0|1, <"password">
+  :SYSTem:OLOCk?
+  OFF = Not locked (release the lock)
+  ON = Locked
+  <"password"> = 4-digit password string
+  The characters that can be used are numbers from 0 to 9.
+Response:
+  0=OFF, 1=ON
+Example:
+  :SYST:OLOC ON,"1234"
+  :SYST:OLOC? -> 1
+Notes:
+  - This command is for the AQ6370C, AQ6370D, AQ6373B, and AQ6375B.
+  - This is a sequential command.
+
+Command: :SYSTem:PRESet
+Description: Initializes the unit status.
+Syntax:
+  :SYSTem:PRESet
+Example:
+  :SYSTEM:PRESET
+Notes:
+  - This is a sequential command.
+
+Command: :SYSTem:TIME
+Description: Sets/queries the system time.
+Syntax:
+  :SYSTem:TIME<wsp><hour>,<minute>, <second>
+  :SYSTem:TIME?
+  <hour> = Hour
+  <minute> = Minute
+  <second> = Second
+Example:
+  :SYSTEM:TIME 22,10,01
+  :SYSTEM:TIME? -> 22,10,1
+Notes:
+  - This is a sequential command.
+
+Command: :SYSTem:VERSion?
+Description: Queries the SCPI compatibility version of this unit.
+Syntax:
+  :SYSTem:VERSion?
+Example:
+  :SYSTEM:VERSION? -> 1999.0
+Notes:
+  - This is a sequential command.
+
+
+======================================================================
+16. TRACe
+======================================================================
+
+Command: :TRACe:ACTive
+Description: Sets/queries the active trace.
+Syntax:
+  :TRACe:ACTive<wsp><trace name>
+  :TRACe:ACTive?
+  <trace name> = Active trace
+  (TRA|TRB|TRC|TRD|TRE|TRF|TRG)
+Example:
+  :TRACE:ACTIVE TRA
+  :TRACE:ACTIVE? -> TRA
+Notes:
+  - This is a sequential command. :TRACe:ATTRibute[:<trace name>]
+
+Command: :TRACe:ATTRibute[:<trace name>]
+Description: Sets/queries the attributes of the specified trace.
+Syntax:
+  :TRACe:ATTRibute[:<trace name>] <wsp><attribute>
+  :TRACe:ATTRibute[:<trace name>]?
+  <trace name> = trace
+  (TRA|TRB|TRC|TRD|TRE|TRF|TRG)
+  <attribute> = Attribute
+  WRITe = WRITE
+  FIX = FIX
+  MAX = MAX HOLD
+  MIN = MIN HOLD
+  RAVG = ROLL AVG
+  CALC = CALC
+Response:
+  0 = WRITe
+  1 = FIX
+  2 = MAX
+  3 = MIN
+  4 = RAVG
+  5 = CALC
+Example:
+  :TRACE:ATTRIBUTE:TRA WRITE
+  :TRACE:ATTRIBUTE:TRA? -> 0
+Notes:
+  - If <trace name> is omitted, the command is executed with respect to the active trace.
+  - If <trace name> is specified, the specified trace is set as the active trace after the command is exeucted.
+  - When the attribute is set to a CALC trace, the expression is set using the :CALCulate: MATH command.
+  - This is a sequential command.
+
+Command: :TRACe:ATTRibute:RAVG[:<trace name>]
+Description: Sets/queries the number of times for averaging of the specified trace.
+Syntax:
+  :TRACe:ATTRibute:RAVG[:<trace name>]<wsp><integer>
+  :TRACe:ATTRibute:RAVG[:<trace name>]?
+  <trace name> = trace
+  (TRA|TRB|TRC|TRD|TRE|TRF|TRG)
+  <integer> = Number of times averaging of ROLL AVG
+Example:
+  :TRACE:ATTRIBUTE:RAVG:TRA 10
+  :TRACE:ATTRIBUTE:RAVG:TRA? -> 10
+Notes:
+  - When this command is executed, the attribute of the set trace goes to ROLL AVG.
+  - If <trace name> is omitted, the command is executed with respect to the active trace.
+  - If <trace name> is specified, the specified trace is set as the active trace after the command is exeucted.
+  - This is a sequential command.
+
+Command: :TRACe:COPY
+Description: Copies the data of a specified trace to another trace.
+Syntax:
+  :TRACe:COPY<wsp><source trace name>,<destination trace name>
+  <source trace name> = Copy source trace
+  <destination trace name> = Copy trace destination
+Example:
+  :TRACE:COPY TRA,TRB
+Notes:
+  - This is a sequential command.
+
+Command: :TRACe[:DATA]:SNUMber?
+Description: Sets/queries the number of number of data sampled of the specified trace.
+Syntax:
+  :TRACe[:DATA]:SNUMber?<wsp><trace name>
+  <trace name> = Trace from which to acquire data
+Example:
+  :TRACE:DATA:SNUMBER? -> 50001
+Notes:
+  - If a specified trace has no data, "0" is returned.
+  - This is a sequential command.
+
+Command: :TRACe[:DATA]:X?
+Description: Queries the wavelength axis data of the specified trace.
+Syntax:
+  :TRACe[:DATA]:X?<wsp><trace name> [,<start point>,<stop point>]
+  <trace name>= Trace to be transferred
+  (TRA|TRB|TRC|TRD|TRE|TRF|TRG)
+  <start point>= A range of samples to be transferred (starting point) (1 to 50001)
+  <stop point> = A range of samples to be transferred (stopping point) (1 to 50001)
+Example:
+  :TRACE:X? TRA -> +1.55000000E-006,+1.55001000E- 006,+1.55002000E-006,.....
+Notes:
+  - Data is output in the unit of wavelength value (m), regardless of whether this unit is in the wavelength mode or in the frequency mode.
+  - If the parameter <start point> or <stop point> is omitted, all sampling data of a specified trace will be output.
+  - The number of output data can be acquired by executing :TRACe[:DATA]:SNUMber?.
+  - Data is output in either ASCII or binary form, depending on the setting of :FORMat[:DATA].
+  - This is a sequential command.
+
+Command: :TRACe[:DATA]:Y?
+Description: Queries the level axis data of specified trace.
+Syntax:
+  :TRACe[:DATA]:Y?<wsp><trace name> [,<start point>,<stop point>]
+  <trace name> = Trace to be transferred
+  (TRA|TRB|TRC|TRD|TRE|TRF|TRG)
+  <start point> = A range of samples to be transferred (starting point) (1 to 50001)
+  <stop point> = A range of samples to be transferred (stopping point) (1 to 50001)
+Response:
+  For ASCII data: <NRf>,<NRf>,.....<NRf>
+  For BINARY data: '#'<integer><byte num><data byte>
+Example:
+  :TRACE:Y? TRA -> -1.00000000E+001, -1.00000000E+001, -1.00000000E+001,....
+Notes:
+  - The data is output in order of its wavelength from the shortest level to the longest, irrespective of the wavelength/frequency mode.
+  - When the level scale is LOG, data is output in LOG values.
+  - When the level scale is Linear, data is output in linear values.
+  - If the parameter <start point> or <stop point> is omitted, all sampling data of a specified trace will be output.
+  - The number of output data can be acquired by executing :TRACe[:DATA]:SNUMber?.
+  - Data is output in either ASCII or binary form, depending on the setting of :FORMat[:DATA].
+  - This is a sequential command.
+
+Command: :TRACe[:DATA]:Y:PDENsity?
+Description: Queries the power spectral density trace data.
+Syntax:
+  :TRACe[:DATA]:Y:PDENsity? <wsp> <trace name>,<NRf>[m][, <start point>,<stop point>
+  <trace name> = Computation source trace
+  <NRF> = Normalization bandwidth [m]
+  <start point> = Sample range to transfer (start point) (1 to 50001)
+  <stop point> = Sample range to transfer (stop point) (1 to 50001)
+Example:
+  :trac:y:pden? tra,0.1nm
+  -> -5.36017335E+001, -5.36143380E+001, -5.34441639E+001,....
+Notes:
+  - When the level scale is set to LOG, LOG values will be output.
+  - When the level scale is set to linear, linear values will be output.
+  - If the <start point> and <stop point> parameters are omitted, the entire sample data of the specified trace will be output.
+  - The data is output in ASCII or BINARY format according to the :FORMat[:DATA] setting.
+  - This command is for the AQ6370D/AQ6370C/ AQ6375B.
+  - This is a sequential command.
+
+Command: :TRACe:DELete
+Description: Deletes the data of a specified trace.
+Syntax:
+  :TRACe:DELete<wsp><trace name>
+  <trace name> = Trace to be transferred
+  (TRA|TRB|TRC|TRD|TRE|TRF|TRG)
+Example:
+  :TRACE:DELETE TRA
+Notes:
+  - This is a sequential command.
+
+Command: :TRACe:DELete:ALL
+Description: Clears the data for all traces.
+Syntax:
+  :TRACe:DELete:ALL
+Example:
+  :TRACE:DELETE:ALL
+Notes:
+  - This is a sequential command. :TRACe:STATe[:<trace name>]
+
+Command: :TRACe:STATe[:<trace name>]
+Description: Sets/queries the display status of the specified trace.
+Syntax:
+  :TRACe:STATe[:<trace name>]<wsp> OFF|ON|0|1
+  :TRACe:ACTive?
+  <trace name> = Trace to be transferred
+  (TRA|TRB|TRC|TRD|TRE|TRF|TRG)
+  OFF = Hide trace (BLANK)
+  ON = Makes trace visible (DISP).
+Response:
+  0 = OFF, 1 = ON
+Example:
+  :TRACE:STATE OFF
+  :TRACE:STATE OFF? -> 0
+Notes:
+  - If <trace name> is omitted, the command is executed with respect to the active trace.
+  - If <trace name> is specified, the specified trace is set as the active trace after the command is exeucted.
+  - This is a sequential command. TRACe:TEMPlate:DATA
+
+Command: :TRACe:TEMPlate:DATA
+Description: Adds data to the specified template or queries the data.
+Syntax:
+  :TRACe:TEMPlate:DATA<wsp><template> ,<wavelength>[M],<level>[DB]
+  :TRACe:TEMPlate:DATA?<wsp> <template>
+  <template> = Template (UPPer|LOWer|TARGet)
+  <wavelength> = Wavelength of template data to be added [nm]
+  <level> = Lvl. of template data added [dB]
+Response:
+  <integer>,<wavelengh>,<level>,<w avelength>,<level>, ... ,<level>
+  <integer> = Number of data points
+  <wavelength> = wavelength value [m]
+  <level> = Level value [dB]
+Example:
+  :TRACE:TEMPlATE:DATA TARGET,1550NM, -10dbm
+  :TRACE:TEMPlATE:DATA? TARGET -> 3, +1.54000000E-006,-1.00000000E+001, +1.54500000E-006,-5.00000000E+000, +1.55000000E-006,-1.00000000E+001
+Notes:
+  - Adds data to a specified template.
+  - After data has been added, it will be sorted by wavelength.
+  - If data exceeding the maximum number of template data is added, an execution error occurs.
+  - This is a sequential command.
+
+Command: :TRACe:TEMPlate:DATA:ADELete
+Description: Deletes all data of a specified template.
+Syntax:
+  :TRACe:TEMPlate:DATA:ADELete<wsp><t emplate>
+  <template> = Template
+  (UPPer|LOWer|TARGet)
+Example:
+  :TRACE:TEMPlATE:DATA:ADELETE TARGET
+Notes:
+  - Deletes all data of a specified template.
+  - This is a sequential command.
+
+Command: :TRACe:TEMPlate:DATA:ETYPe
+Description: Sets/queries the extrapolation mode of the specified template.
+Syntax:
+  :TRACe:TEMPlate:DATA:ETYPe<wsp><tem plate>, <type>
+  <template> = Template (UPPer | LOWer | TARGet)
+  <type> = Extrapolation type
+  A = Extrapolation type A
+  B = Extrapolation type B
+  NONE = No extrapolation
+Response:
+  0 = NONE, 1 = A, 2 = B
+Example:
+  :TRACE:TEMPlATE:DATA:ETYPETARGET,NONE
+  :TRACE:TEMPlATE:DATA:ETYPE? target -> NONE
+Notes:
+  - This is a sequential command.
+  - Parameter: Response ex. Same as the above
+
+Command: :TRACe:TEMPlate:DATA:MODE
+Description: Sets/queries the absolute value mode/relative value mode of the specified template.
+Syntax:
+  :TRACe:TEMPlate:DATA:MODE<wsp><temp late>,<mode>
+  <template> = Template
+  (UPPer|LOWer|TARGet)
+  <mode> = Mode (ABSolute | RELative)
+  ABSolute = Absolute value mode
+  RELative = Relative value mode
+Response:
+  0 = ABSolute, 1 = RELative
+Example:
+  :TRACE:TEMPlATE:DATA:MODETARGET,RELATIVE
+  :TRACE:TEMPlATE:DATA:MODE? TARGET -> REL
+Notes:
+  - This is a sequential command.
+
+Command: :TRACe:TEMPlate:DISPlay
+Description: Sets/queries display ON/OFF for the specified template.
+Syntax:
+  :TRACe:TEMPlate:DISPlay<wsp><templa te>,OFF|ON|0|1
+  :TRACe:TEMPlate:DISPlay?<wsp><templ ate>
+  <template>= Template
+  (UPPer|LOWer|TARGet)
+  OFF = Display OFF
+  ON = Display ON
+Response:
+  0 = OFF, 1 = ON
+Example:
+  :TRACE:TEMPlATE:DISPLAY TARGET,OFF
+  :TRACE:TEMPlATE:DISPLAY? TARGET-> 0
+Notes:
+  - This is a sequential command.
+
+Command: :TRACe:TEMPlate:GONogo
+Description: Sets or acquires ON/OFF of the go/no-go decision function of the template function.
+Syntax:
+  :TRACe:TEMPlate:GONogo<wsp>OFF|ON|0 |1
+  :TRACe:TEMPlate:GONogo?
+  OFF = Judgement function OFF
+  ON = Judgment function ON
+Response:
+  0 = OFF, 1 = ON
+Example:
+  :TRACE:TEMPlATE:GONOGO OFF
+  :TRACE:TEMPlATE:GONOGO? -> 0
+Notes:
+  - This is a sequential command.
+
+Command: :TRACe:TEMPlate:LEVel:SHIFt
+Description: Sets/queries the amount of level shift for the template.
+Syntax:
+  :TRACe:TEMPlate:LEVel:SHIFt<wsp><NR f>[DB]
+  :TRACe:TEMPlate:LEVel:SHIFt?
+  <NRf> = Level shift amount [dB]
+Example:
+  :TRACE:TEMPlATE:LEVEL:SHIFT -1db
+  :TRACE:TEMPlATE:LEVEL:SHIFT?-> -1.00000000E+000
+Notes:
+  - This is a sequential command.
+
+Command: :TRACe:TEMPlate:RESult?
+Description: Queries the results of go/no-go decision of the template function.
+Syntax:
+  :TRACe:TEMPlate:RESult?
+Response:
+  0= No go, 1= Go
+Example:
+  :TRACE:TEMPlATE:RESULT? -> 1
+Notes:
+  - This is a sequential command.
+
+Command: :TRACe:TEMPlate:TTYPe
+Description: Sets/queries judgement type of the go/no-go decision function of the template function.
+Syntax:
+  :TRACe:TEMPlate:TTYPe<wsp><type>
+  :TRACe:TEMPlate:TTYPe?
+  <type>= Judgement type
+  UPPer = Judge Upper line only
+  LOWer= Judge Lower line only
+  U&L = Judge both Upper and LOWer line
+Response:
+  0 = UPPer, 1 = LOWer, 2 = U&L
+Example:
+  :TRACE:TEMPlATE:TTYPE U&L
+  :TRACE:TEMPlATE:TTYPE? -> 2
+Notes:
+  - This is a sequential command.
+
+Command: :TRACe:TEMPlate:WAVelength:SHIFt
+Description: Sets/queries the amount of wavelength shift for the template.
+Syntax:
+  :TRACe:TEMPlate:WAVelength:SHIFt <wsp><NRf>[M]
+  :TRACe:TEMPlate:WAVelength:SHIFt?
+  <NRf> = Amount of a wavelength shift [m]
+Example:
+  :TRACE:TEMPlATE:WAVELENGTH: SHIFT -5NM
+  :TRACE:TEMPlATE:WAVELENGTH:SHIFT? -> -5.00000000E-009
+Notes:
+  - This is a sequential command.
+
+
+======================================================================
+17. TRIGger
+======================================================================
+
+Command: :TRIGger[:SEQuence]:DELay
+Description: Sets/queries the trigger delay.
+Syntax:
+  :TRIGger[:SEQuence]:DELay<wsp><NRf> [S]
+  :TRIGger[:SEQuence]:DELay?
+  <NRf> = delay [sec]
+Example:
+  :TRIGER:DELAY 100.0US
+  :TRIGER:DELAY? -> +1.00000000E-004
+Notes:
+  - When this command is executed, the external trigger mode becomes enabled.
+  - (TRIGger[:SEQuence]:STATe ON)
+  - This is a sequential command.
+
+Command: :TRIGger[:SEQuence]:GATE:ITIMe
+Description: Sets or queries sampling interval for gate sampling.
+Syntax:
+  :TRIGger[:SEQuence]:GATE:ITIMe<wsp> <NRf>[S]
+  :TRIGger[:SEQuence]:GATE:ITIMe?
+  <NRf> = Sampling interval
+Response:
+  <NRf> = Sampling interval[S]
+Example:
+  :TRIGGER:SEQUENCE:GATE:ITIME 100ms
+  :TRIGGER:SEQUENCE:GATE:ITIME? -> +1.00000000E-001
+Notes:
+  - This is a sequential command.
+  - This command can be used on the AQ6370C/ AQ6370D/AQ6373B/AQ6375B.
+
+Command: :TRIGger[:SEQuence]:GATE:LOGic
+Description: Sets or queries the gate signal logic of gate sampling.
+Syntax:
+  :TRIGger[:SEQuence]:GATE:LOGic<wsp>POSI|NEGA|0|1
+  :TRIGger[:SEQuence]:GATE:LOGic?
+  POSI = Sampling is performed when the gate signal is at high level
+  NEGA = Sampling is performed when the gate signal is at low level
+Response:
+  0 = POSI, 1 = NEGA
+Example:
+  :TRIGGER:SEQUENCE:GATE:LOGIC POSI
+  :TRIGGER:SEQUENCE:GATE:LOGIC? -> 0
+Notes:
+  - This is a sequential command.
+  - This command can be used on the AQ6370C/ AQ6370D/AQ6373B/AQ6375B.
+
+Command: :TRIGger[:SEQuence]:SLOPe
+Description: Sets/queries the trigger edge.
+Syntax:
+  :TRIGger[:SEQuence]:SLOPe<wsp>RISE|FALL|0|1
+  :TRIGger[:SEQuence]:SLOPe?
+  RISE = RISE
+  FALL = FALL
+Response:
+  0 = RISE, 1 = FALL
+Example:
+  :TRIGER:SLOPE RISE
+  :TRIGER:SLOPE? -> 0
+Notes:
+  - When this command is executed, the external trigger mode becomes enabled.
+  - This is a sequential command.
+
+Command: :TRIGger[:SEQuence]:STATe
+Description: Sets/queries the external trigger mode.
+Syntax:
+  :TRIGger[:SEQuence]:STATe<wsp>OFF|ON|PHOLd|0|1|2
+  :TRIGger[:SEQuence]:STATe?
+  OFF: External Trigger OFF
+  ON: External trigger mode
+  PHOLd: Peak hold mode
+  GATE: Gate sampling
+Response:
+  0 = OFF, 1 = ON, 2 = PHOLd, 3 = GATE
+Example:
+  :TRIGER:STATE ON
+  :TRIGER:STATE? -> 1
+Notes:
+  - This is a sequential command.
+  - Gate sampling can be used on the AQ6370C / AQ6370D / AQ6373B/AQ6375B.
+
+Command: :TRIGger[:SEQuence]:INPut
+Description: Sets/queries the signal of the input trigger.
+Syntax:
+  :TRIGger[:SEQuence]:INPut<wsp>ETRigger|STRigger|SENable|0|1|2
+  :TRIGger[:SEQuence]:INPut?
+  ETRigger|0: Sampling trigger
+  STRigger|1: Sweep trigger
+  SENable|2: Sample enable
+Example:
+  :TRIGER:INPUT STRIGGER
+  :TRIGER:INPUT? -> 1
+Notes:
+  - This is a sequential command.
+
+Command: :TRIGger[:SEQuence]:OUTPut
+Description: Sets/queries the signal of the output trigger.
+Syntax:
+  :TRIGger[:SEQuence]:OUTPut<wsp>OFF|SSTatus|0|1
+  :TRIGger[:SEQuence]:OUTPut?
+  OFF: OFF
+  SSTatus: Sweep status
+Response:
+  0 = OFF, 1 = SSTatus
+Example:
+  :TRIGER:OUTPUT SSTATUS
+  :TRIGER:OUTPUT? -> 1
+Notes:
+  - This is a sequential command.
+
+Command: :TRIGger[:SEQuence]:PHOLd:HTIMe
+Description: Sets/queries the hold time of peak hold mode.
+Syntax:
+  :TRIGger[:SEQuence]:PHOLd:HTIMe <wsp><NRf>[s]
+  :TRIGger[:SEQuence]:PHOLd:HTIMe?
+  <NRf> = Hold time [s]
+Example:
+  :TRIGER:PHOLD:HTIME 100MS
+  :TRIGER:PHOLD:HTIME? -> +1.00000000E-1
+Notes:
+  - This is a sequential command.
+
+
+======================================================================
+18. UNIT
+======================================================================
+
+Command: :UNIT:POWer:DIGit
+Description: Sets/queries the number of decimal places displayed for the level value.
+Syntax:
+  :UNIT:POWer:DIGit<wsp>1|2|3
+  :UNIT:POWer:DIGit?
+  1, 2, 3 = Number of displayed digits
+Example:
+  :UNIT:POWER:DIGIT 3
+  :UNIT:POWER:DIGIT? -> 3
+Notes:
+  - This is a sequential command.
+
+Command: :UNIT:X
+Description: Sets/queries the units for the X axis.
+Syntax:
+  :UNIT:X<wsp>WAVelength|FREQuency|WNUMber|0|1|2:UNIT:X?
+Response:
+  0 = WAVelength, 1 = FREQuency,
+  2=WNUMber
+Example:
+  :UNIT:X FREQUENCY
+  :UNIT:X? -> 1
+Notes:
+  - This is a sequential command.

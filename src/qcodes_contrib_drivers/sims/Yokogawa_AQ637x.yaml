@@ -1,0 +1,1595 @@
+spec: "1.1"
+devices:
+  AQ6370C:
+    eom:
+      TCPIP INSTR:
+        q: "\n"
+        r: "\n"
+    dialogues:
+      - q: "*IDN?"
+        r: "YOKOGAWA,AQ6370C,90Y812345,02.07"
+      - q: "*CLS"
+      - q: "*RST"
+      - q: "*TRG"
+      - q: "*WAI"
+      - q: "*OPC"
+      - q: ":ABORt"
+      - q: ":INITIATE"
+      - q: ":DISPlay:TEXT:CLEar"
+      - q: ":DISPlay:TRACe:X:SCALe:INITialize"
+      - q: ":DISPLAY:TRACE:X:SMSCALE"
+      - q: ":TRACe:DELete:ALL"
+      - q: ":TRACe:ACTive TRA"
+      - q: ":TRACe:DELete TRA"
+      - q: ":TRACe:ACTive TRB"
+      - q: ":TRACe:DELete TRB"
+      - q: ":TRACe:ACTive TRC"
+      - q: ":TRACe:DELete TRC"
+      - q: ":TRACe:ACTive TRD"
+      - q: ":TRACe:DELete TRD"
+      - q: ":TRACe:ACTive TRE"
+      - q: ":TRACe:DELete TRE"
+      - q: ":TRACe:ACTive TRF"
+      - q: ":TRACe:DELete TRF"
+      - q: ":TRACe:ACTive TRG"
+      - q: ":TRACe:DELete TRG"
+      - q: ':CALibration:ALIGn'
+      - q: ':CALibration:ALIGn:EXTernal'
+      - q: ':CALibration:ALIGn:INTernal'
+      - q: ':CALibration:BANDwidth'
+      - q: ':CALibration:BANDwidth:INITialize'
+      - q: ':CALibration:WAVelength:INTernal'
+      - q: ':CALibration:WAVelength:EXTernal'
+      - q: ':CALibration:ZERO ONCE'
+      - q: ':CALibration:POWer:OFFSet:TABLe 1,0.5'
+      - q: ':CALibration:WAVelength:OFFSet:TABLe 1,0.0'
+      - q: ":SYSTem:ERRor?"
+        r: '0,"No error"'
+      - q: ":TRACe:DATA:X? TRA"
+        r: "#240\x7b\x1f\x5b\x15\x08\x14\x52\x3e\x65\x65\x3b\x2a\x69\x2b\x54\x3e\x16\x56\x2e\x65\x74\x00\x54\x3e\x45\x57\x57\x45\x24\x53\x4e\x3e\x16\x2c\x27\x6c\x41\x77\x55\x3e"
+      - q: ":TRACe:DATA:Y? TRA"
+        r: "#240\x4d\x59\x1e\x04\x02\x4d\x29\x34\x6c\x7c\x1f\x7e\x3d\x3e\x18\x08\x67\x54\x2b\x31\x5d\x5d\x2b\x3f\x13\x39\x3d\x16\x3a\x59\x52\x1d\x3c\x3e\x3a\x43\x1f\x4e\x51\x32"
+    properties:
+      event_status_enable:
+        default: 0
+        getter:
+          q: '*ESE?'
+          r: '{:d}'
+        setter:
+          q: '*ESE {}'
+        specs:
+          type: int
+      service_request_enable:
+        default: 0
+        getter:
+          q: '*SRE?'
+          r: '{:d}'
+        setter:
+          q: '*SRE {}'
+        specs:
+          type: int
+      event_status_register:
+        default: 0
+        getter:
+          q: '*ESR?'
+          r: '{:d}'
+        specs:
+          type: int
+      status_byte:
+        default: 0
+        getter:
+          q: '*STB?'
+          r: '{:d}'
+        specs:
+          type: int
+      self_test:
+        default: 0
+        getter:
+          q: '*TST?'
+          r: '{:d}'
+        specs:
+          type: int
+      operation_complete:
+        default: 1
+        getter:
+          q: '*OPC?'
+          r: '{:d}'
+        specs:
+          type: int
+      display_color:
+        default: 0
+        getter:
+          q: ':DISPlay:COLor?'
+          r: '{:d}'
+        setter:
+          q: ':DISPlay:COLor {}'
+        specs:
+          type: int
+          valid: [0, 1, 2, 3, 4, 5]
+      display_enabled:
+        default: 1
+        getter:
+          q: ':DISPlay?'
+          r: '{:d}'
+        setter:
+          q: ':DISPlay {}'
+        specs:
+          type: int
+          valid: [0, 1]
+      display_overview_position:
+        default: 0
+        getter:
+          q: ':DISPlay:OVIew:POSition?'
+          r: '{:d}'
+        setter:
+          q: ':DISPlay:OVIew:POSition {}'
+        specs:
+          type: int
+          valid: [0, 1, 2]
+      display_overview_size:
+        default: 0
+        getter:
+          q: ':DISPlay:OVIew:SIZE?'
+          r: '{:d}'
+        setter:
+          q: ':DISPlay:OVIew:SIZE {}'
+        specs:
+          type: int
+          valid: [0, 1]
+      display_split:
+        default: 0
+        getter:
+          q: ':DISPlay:SPLit?'
+          r: '{:d}'
+        setter:
+          q: ':DISPlay:SPLit {}'
+        specs:
+          type: int
+          valid: [0, 1]
+      display_split_hold_lower:
+        default: 0
+        getter:
+          q: ':DISPlay:SPLit:HOLD:LOWer?'
+          r: '{:d}'
+        setter:
+          q: ':DISPlay:SPLit:HOLD:LOWer {}'
+        specs:
+          type: int
+          valid: [0, 1]
+      display_split_hold_upper:
+        default: 0
+        getter:
+          q: ':DISPlay:SPLit:HOLD:UPPer?'
+          r: '{:d}'
+        setter:
+          q: ':DISPlay:SPLit:HOLD:UPPer {}'
+        specs:
+          type: int
+          valid: [0, 1]
+      display_text_data:
+        default: ""
+        getter:
+          q: ':DISPlay:TEXT:DATA?'
+          r: '{}'
+        setter:
+          q: ':DISPlay:TEXT:DATA "{}"'
+        specs:
+          type: str
+      display_trace_x_center:
+        default: 1.55e-06
+        getter:
+          q: ':DISPlay:TRACe:X:SCALe:CENTer?'
+          r: '{:.6e}'
+        setter:
+          q: ':DISPlay:TRACe:X:SCALe:CENTer {}M'
+        specs:
+          type: float
+      display_trace_x_span:
+        default: 1e-07
+        getter:
+          q: ':DISPlay:TRACe:X:SCALe:SPAN?'
+          r: '{:.6e}'
+        setter:
+          q: ':DISPlay:TRACe:X:SCALe:SPAN {}M'
+        specs:
+          type: float
+      display_trace_x_srange:
+        default: 0
+        getter:
+          q: ':DISPlay:TRACe:X:SCALe:SRANge?'
+          r: '{:d}'
+        setter:
+          q: ':DISPlay:TRACe:X:SCALe:SRANge {}'
+        specs:
+          type: int
+          valid: [0, 1]
+      display_trace_x_start:
+        default: 1.5e-06
+        getter:
+          q: ':DISPlay:TRACe:X:SCALe:STARt?'
+          r: '{:.6e}'
+        setter:
+          q: ':DISPlay:TRACe:X:SCALe:STARt {}M'
+        specs:
+          type: float
+      display_trace_x_stop:
+        default: 1.6e-06
+        getter:
+          q: ':DISPlay:TRACe:X:SCALe:STOP?'
+          r: '{:.6e}'
+        setter:
+          q: ':DISPlay:TRACe:X:SCALe:STOP {}M'
+        specs:
+          type: float
+      display_trace_y_nmask:
+        default: -60.0
+        getter:
+          q: ':DISPlay:TRACe:Y:NMASk?'
+          r: '{:.6e}'
+        setter:
+          q: ':DISPlay:TRACe:Y:NMASk {}'
+        specs:
+          type: float
+      display_trace_y_nmask_type:
+        default: 0
+        getter:
+          q: ':DISPlay:TRACe:Y:NMASk:TYPE?'
+          r: '{:d}'
+        setter:
+          q: ':DISPlay:TRACe:Y:NMASk:TYPE {}'
+        specs:
+          type: int
+          valid: [0, 1]
+      display_trace_y_dnumber:
+        default: 10
+        getter:
+          q: ':DISPlay:TRACe:Y:SCALe:DNUMber?'
+          r: '{:d}'
+        setter:
+          q: ':DISPlay:TRACe:Y:SCALe:DNUMber {}'
+        specs:
+          type: int
+          valid: [8, 10, 12]
+      display_trace_y1_blevel:
+        default: 0.0
+        getter:
+          q: ':DISPlay:TRACe:Y1:SCALe:BLEVel?'
+          r: '{:.6e}'
+        setter:
+          q: ':DISPlay:TRACe:Y1:SCALe:BLEVel {}'
+        specs:
+          type: float
+      display_trace_y1_pdivision:
+        default: 10.0
+        getter:
+          q: ':DISPlay:TRACe:Y1:SCALe:PDIVision?'
+          r: '{:.6e}'
+        setter:
+          q: ':DISPlay:TRACe:Y1:SCALe:PDIVision {}'
+        specs:
+          type: float
+      display_trace_y1_rlevel:
+        default: -10.0
+        getter:
+          q: ':DISPlay:TRACe:Y1:SCALe:RLEVel?'
+          r: '{:.6e}'
+        setter:
+          q: ':DISPlay:TRACe:Y1:SCALe:RLEVel {}DBM'
+        specs:
+          type: float
+      display_trace_y1_rposition:
+        default: 10
+        getter:
+          q: ':DISPlay:TRACe:Y1:SCALe:RPOSition?'
+          r: '{:d}'
+        setter:
+          q: ':DISPlay:TRACe:Y1:SCALe:RPOSition {}'
+        specs:
+          type: int
+          valid: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+      display_trace_y1_spacing:
+        default: 0
+        getter:
+          q: ':DISPlay:TRACe:Y1:SCALe:SPACing?'
+          r: '{:d}'
+        setter:
+          q: ':DISPlay:TRACe:Y1:SCALe:SPACing {}'
+        specs:
+          type: int
+          valid: [0, 1]
+      display_trace_y1_unit:
+        default: 0
+        getter:
+          q: ':DISPlay:TRACe:Y1:SCALe:UNIT?'
+          r: '{:d}'
+        setter:
+          q: ':DISPlay:TRACe:Y1:SCALe:UNIT {}'
+        specs:
+          type: int
+          valid: [0, 1, 2, 3]
+      display_trace_y2_auto:
+        default: 0
+        getter:
+          q: ':DISPlay:TRACe:Y2:SCALe:AUTO?'
+          r: '{:d}'
+        setter:
+          q: ':DISPlay:TRACe:Y2:SCALe:AUTO {}'
+        specs:
+          type: int
+          valid: [0, 1]
+      display_trace_y2_length:
+        default: 1.0
+        getter:
+          q: ':DISPlay:TRACe:Y2:SCALe:LENGth?'
+          r: '{:.6e}'
+        setter:
+          q: ':DISPlay:TRACe:Y2:SCALe:LENGth {}KM'
+        specs:
+          type: float
+      display_trace_y2_olevel:
+        default: 0.0
+        getter:
+          q: ':DISPlay:TRACe:Y2:SCALe:OLEVel?'
+          r: '{:.6e}'
+        setter:
+          q: ':DISPlay:TRACe:Y2:SCALe:OLEVel {}DB'
+        specs:
+          type: float
+      display_trace_y2_pdivision:
+        default: 5.0
+        getter:
+          q: ':DISPlay:TRACe:Y2:SCALe:PDIVision?'
+          r: '{:.6e}'
+        setter:
+          q: ':DISPlay:TRACe:Y2:SCALe:PDIVision {}DB'
+        specs:
+          type: float
+      display_trace_y2_rposition:
+        default: 10
+        getter:
+          q: ':DISPlay:TRACe:Y2:SCALe:RPOSition?'
+          r: '{:d}'
+        setter:
+          q: ':DISPlay:TRACe:Y2:SCALe:RPOSition {}'
+        specs:
+          type: int
+          valid: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+      display_trace_y2_sminimum:
+        default: 0.0
+        getter:
+          q: ':DISPlay:TRACe:Y2:SCALe:SMINimum?'
+          r: '{:.6e}'
+        setter:
+          q: ':DISPlay:TRACe:Y2:SCALe:SMINimum {}%'
+        specs:
+          type: float
+      display_trace_y2_unit:
+        default: 0
+        getter:
+          q: ':DISPlay:TRACe:Y2:SCALe:UNIT?'
+          r: '{:d}'
+        setter:
+          q: ':DISPlay:TRACe:Y2:SCALe:UNIT {}'
+        specs:
+          type: int
+          valid: [0, 1, 2, 3]
+      format_data:
+        default: "REAL,64"
+        getter:
+          q: ':FORMat:DATA?'
+          r: '{}'
+        setter:
+          q: ':FORMat:DATA {}'
+        specs:
+          type: str
+      sweep_mode:
+        default: 1
+        getter:
+          q: ':INITiate:SMODe?'
+          r: '{:d}'
+        setter:
+          q: ':INITiate:SMODe {}'
+        specs:
+          type: int
+          valid: [1, 2, 3, 4]
+      sense_average_count:
+        default: 1
+        getter:
+          q: ':SENSe:AVERage:COUNt?'
+          r: '{:d}'
+        setter:
+          q: ':SENSe:AVERage:COUNt {}'
+        specs:
+          type: int
+      sense_bandwidth_resolution:
+        default: 1e-09
+        getter:
+          q: ':SENSe:BANDwidth:RESolution?'
+          r: '{:.6e}'
+        setter:
+          q: ':SENSe:BANDwidth:RESolution {}M'
+        specs:
+          type: float
+      sense_chopper:
+        default: 0
+        getter:
+          q: ':SENSe:CHOPper?'
+          r: '{:d}'
+        setter:
+          q: ':SENSe:CHOPper {}'
+        specs:
+          type: int
+          valid: [0, 2]
+      sense_correction_level_shift:
+        default: 0.0
+        getter:
+          q: ':SENSe:CORRection:LEVel:SHIFt?'
+          r: '{:.6e}'
+        setter:
+          q: ':SENSe:CORRection:LEVel:SHIFt {}'
+        specs:
+          type: float
+      sense_correction_rvelocity_medium:
+        default: 0
+        getter:
+          q: ':SENSe:CORRection:RVELocity:MEDium?'
+          r: '{:d}'
+        setter:
+          q: ':SENSe:CORRection:RVELocity:MEDium {}'
+        specs:
+          type: int
+          valid: [0, 1]
+      sense_correction_wavelength_shift:
+        default: 0.0
+        getter:
+          q: ':SENSe:CORRection:WAVelength:SHIFt?'
+          r: '{:.6e}'
+        setter:
+          q: ':SENSe:CORRection:WAVelength:SHIFt {}'
+        specs:
+          type: float
+      sense_sensitivity:
+        default: 0
+        getter:
+          q: ':SENSe:SENSe?'
+          r: '{:d}'
+        setter:
+          q: ':SENSe:SENSe {}'
+        specs:
+          type: int
+          valid: [0, 1, 2, 3, 4, 5, 6]
+      sense_setting_correction:
+        default: 0
+        getter:
+          q: ':SENSe:SETTing:CORRection?'
+          r: '{:d}'
+        setter:
+          q: ':SENSe:SETTing:CORRection {}'
+        specs:
+          type: int
+          valid: [0, 1, 2]
+      sense_setting_fconnector:
+        default: 0
+        getter:
+          q: ':SENSe:SETTing:FCONnector?'
+          r: '{:d}'
+        setter:
+          q: ':SENSe:SETTing:FCONnector {}'
+        specs:
+          type: int
+          valid: [0, 1]
+      sense_setting_smoothing:
+        default: 0
+        getter:
+          q: ':SENSe:SETTing:SMOothing?'
+          r: '{:d}'
+        setter:
+          q: ':SENSe:SETTing:SMOothing {}'
+        specs:
+          type: int
+          valid: [0, 1]
+      sense_sweep_points:
+        default: 1001
+        getter:
+          q: ':SENSe:SWEep:POINts?'
+          r: '{:d}'
+        setter:
+          q: ':SENSe:SWEep:POINts {}'
+        specs:
+          type: int
+      sense_sweep_points_auto:
+        default: 1
+        getter:
+          q: ':SENSe:SWEep:POINts:AUTO?'
+          r: '{:d}'
+        setter:
+          q: ':SENSe:SWEep:POINts:AUTO {}'
+        specs:
+          type: int
+          valid: [0, 1]
+      sense_sweep_segment_points:
+        default: 1001
+        getter:
+          q: ':SENSe:SWEep:SEGMent:POINts?'
+          r: '{:d}'
+        setter:
+          q: ':SENSe:SWEep:SEGMent:POINts {}'
+        specs:
+          type: int
+      sense_sweep_speed:
+        default: 0
+        getter:
+          q: ':SENSe:SWEep:SPEed?'
+          r: '{:d}'
+        setter:
+          q: ':SENSe:SWEep:SPEed {}'
+        specs:
+          type: int
+          valid: [0, 1]
+      sense_sweep_step:
+        default: 1e-09
+        getter:
+          q: ':SENSe:SWEep:STEP?'
+          r: '{:.6e}'
+        setter:
+          q: ':SENSe:SWEep:STEP {}M'
+        specs:
+          type: float
+      sense_sweep_time_0nm:
+        default: 0
+        getter:
+          q: ':SENSe:SWEep:TIME:0NM?'
+          r: '{:d}'
+        setter:
+          q: ':SENSe:SWEep:TIME:0NM {}'
+        specs:
+          type: int
+      sense_sweep_time_interval:
+        default: 0
+        getter:
+          q: ':SENSe:SWEep:TIME:INTerval?'
+          r: '{:d}'
+        setter:
+          q: ':SENSe:SWEep:TIME:INTerval {}'
+        specs:
+          type: int
+      sense_sweep_tlssync:
+        default: 0
+        getter:
+          q: ':SENSe:SWEep:TLSSync?'
+          r: '{:d}'
+        setter:
+          q: ':SENSe:SWEep:TLSSync {}'
+        specs:
+          type: int
+          valid: [0, 1]
+      sense_wavelength_center:
+        default: 1.55e-06
+        getter:
+          q: ':SENSe:WAVelength:CENTer?'
+          r: '{:.6e}'
+        setter:
+          q: ':SENSe:WAVelength:CENTer {}M'
+        specs:
+          type: float
+      sense_wavelength_span:
+        default: 1e-07
+        getter:
+          q: ':SENSe:WAVelength:SPAN?'
+          r: '{:.6e}'
+        setter:
+          q: ':SENSe:WAVelength:SPAN {}M'
+        specs:
+          type: float
+      sense_wavelength_srange:
+        default: 0
+        getter:
+          q: ':SENSe:WAVelength:SRANge?'
+          r: '{:d}'
+        setter:
+          q: ':SENSe:WAVelength:SRANge {}'
+        specs:
+          type: int
+          valid: [0, 1]
+      sense_wavelength_start:
+        default: 1.5e-06
+        getter:
+          q: ':SENSe:WAVelength:STARt?'
+          r: '{:.6e}'
+        setter:
+          q: ':SENSe:WAVelength:STARt {}M'
+        specs:
+          type: float
+      sense_wavelength_stop:
+        default: 1.6e-06
+        getter:
+          q: ':SENSe:WAVelength:STOP?'
+          r: '{:.6e}'
+        setter:
+          q: ':SENSe:WAVelength:STOP {}M'
+        specs:
+          type: float
+      trigger_delay:
+        default: 0.0
+        getter:
+          q: ':TRIGger:DELay?'
+          r: '{:.6e}'
+        setter:
+          q: ':TRIGger:DELay {}'
+        specs:
+          type: float
+      trigger_gate_time:
+        default: 0.0
+        getter:
+          q: ':TRIGger:GATE:TIMe?'
+          r: '{:.6e}'
+        setter:
+          q: ':TRIGger:GATE:TIMe {}'
+        specs:
+          type: float
+      trigger_gate_logic:
+        default: 0
+        getter:
+          q: ':TRIGger:GATE:LOGic?'
+          r: '{:d}'
+        setter:
+          q: ':TRIGger:GATE:LOGic {}'
+        specs:
+          type: int
+          valid: [0, 1]
+      trigger_gate_slope:
+        default: 0
+        getter:
+          q: ':TRIGger:GATE:SLOPe?'
+          r: '{:d}'
+        setter:
+          q: ':TRIGger:GATE:SLOPe {}'
+        specs:
+          type: int
+          valid: [0, 1]
+      trigger_gate_state:
+        default: 0
+        getter:
+          q: ':TRIGger:GATE:STATe?'
+          r: '{:d}'
+        setter:
+          q: ':TRIGger:GATE:STATe {}'
+        specs:
+          type: int
+          valid: [0, 1, 2]
+      trigger_input:
+        default: 0
+        getter:
+          q: ':TRIGger:INPut?'
+          r: '{:d}'
+        setter:
+          q: ':TRIGger:INPut {}'
+        specs:
+          type: int
+          valid: [0, 1, 2]
+      trigger_output:
+        default: 0
+        getter:
+          q: ':TRIGger:OUTPut?'
+          r: '{:d}'
+        setter:
+          q: ':TRIGger:OUTPut {}'
+        specs:
+          type: int
+          valid: [0, 1]
+      trigger_phold_htime:
+        default: 0.0
+        getter:
+          q: ':TRIGger:PHOLd:HTIMe?'
+          r: '{:.6e}'
+        setter:
+          q: ':TRIGger:PHOLd:HTIMe {}'
+        specs:
+          type: float
+      calibration_bandwidth_wavelength:
+        default: 1.55e-06
+        getter:
+          q: ':CALibration:BANDwidth:WAVelength?'
+          r: '{:.6e}'
+        specs:
+          type: float
+      calibration_wavelength_external_source:
+        default: 0
+        getter:
+          q: ':CALibration:WAVelength:EXTernal:SOURce?'
+          r: '{:d}'
+        setter:
+          q: ':CALibration:WAVelength:EXTernal:SOURce {}'
+        specs:
+          type: int
+          valid: [0, 1, 2]
+      calibration_wavelength_external_wavelength:
+        default: 1.55e-06
+        getter:
+          q: ':CALibration:WAVelength:EXTernal:WAVelength?'
+          r: '{:.6e}'
+        setter:
+          q: ':CALibration:WAVelength:EXTernal:WAVelength {}M'
+        specs:
+          type: float
+      calibration_zero_auto:
+        default: 1
+        getter:
+          q: ':CALibration:ZERO:AUTO?'
+          r: '{:d}'
+        setter:
+          q: ':CALibration:ZERO:AUTO {}'
+        specs:
+          type: int
+          valid: [0, 1]
+      calibration_zero_interval:
+        default: 10
+        getter:
+          q: ':CALibration:ZERO:INTerval?'
+          r: '{:d}'
+        setter:
+          q: ':CALibration:ZERO:INTerval {}'
+        specs:
+          type: int
+      calibration_zero_status:
+        default: 0
+        getter:
+          q: ':CALibration:ZERO:STATus?'
+          r: '{:d}'
+        specs:
+          type: int
+      am1_state:
+        default: 0
+        getter:
+          q: ':CALCulate:AMARker1:STATe?'
+          r: '{:d}'
+        setter:
+          q: ':CALCulate:AMARker1:STATe {}'
+        specs:
+          type: int
+          valid: [0, 1]
+      am1_trace:
+        default: "TRA"
+        getter:
+          q: ':CALCulate:AMARker1:TRACe?'
+          r: '{}'
+        setter:
+          q: ':CALCulate:AMARker1:TRACe {}'
+        specs:
+          type: str
+          valid: [TRA, TRB, TRC, TRD, TRE, TRF, TRG]
+      am1_x:
+        default: 1.55e-06
+        getter:
+          q: ':CALCulate:AMARker1:X?'
+          r: '{:.6e}'
+        setter:
+          q: ':CALCulate:AMARker1:X {}'
+        specs:
+          type: float
+      am1_y:
+        default: -20.0
+        getter:
+          q: ':CALCulate:AMARker1:Y?'
+          r: '{:.6e}'
+        specs:
+          type: float
+      am1_int_state:
+        default: 0
+        getter:
+          q: ':CALCulate:AMARker1:FUNCtion:INTegral:STATe?'
+          r: '{:d}'
+        setter:
+          q: ':CALCulate:AMARker1:FUNCtion:INTegral:STATe {}'
+        specs:
+          type: int
+          valid: [0, 1]
+      am1_int_range:
+        default: 1e-09
+        getter:
+          q: ':CALCulate:AMARker1:FUNCtion:INTegral:IRANge?'
+          r: '{:.6e}'
+        setter:
+          q: ':CALCulate:AMARker1:FUNCtion:INTegral:IRANge {}'
+        specs:
+          type: float
+      am1_int_result:
+        default: 0.0
+        getter:
+          q: ':CALCulate:AMARker1:FUNCtion:INTegral:RESult?'
+          r: '{:.6e}'
+        specs:
+          type: float
+      am1_pd_state:
+        default: 0
+        getter:
+          q: ':CALCulate:AMARker1:FUNCtion:PDENsity:STATe?'
+          r: '{:d}'
+        setter:
+          q: ':CALCulate:AMARker1:FUNCtion:PDENsity:STATe {}'
+        specs:
+          type: int
+          valid: [0, 1]
+      am1_pd_bw:
+        default: 1e-09
+        getter:
+          q: ':CALCulate:AMARker1:FUNCtion:PDENsity:BWIDth?'
+          r: '{:.6e}'
+        setter:
+          q: ':CALCulate:AMARker1:FUNCtion:PDENsity:BWIDth {}M'
+        specs:
+          type: float
+      am1_pd_result:
+        default: 0.0
+        getter:
+          q: ':CALCulate:AMARker1:FUNCtion:PDENsity:RESult?'
+          r: '{:.6e}'
+        specs:
+          type: float
+      marker_auto:
+        default: 0
+        getter:
+          q: ':CALCulate:MARKer:AUTO?'
+          r: '{:d}'
+        setter:
+          q: ':CALCulate:MARKer:AUTO {}'
+        specs:
+          type: int
+          valid: [0, 1]
+      marker_function_format:
+        default: 0
+        getter:
+          q: ':CALCulate:MARKer:FUNCtion:FORMat?'
+          r: '{:d}'
+        setter:
+          q: ':CALCulate:MARKer:FUNCtion:FORMat {}'
+        specs:
+          type: int
+          valid: [0, 1]
+      marker_function_update:
+        default: 0
+        getter:
+          q: ':CALCulate:MARKer:FUNCtion:UPDate?'
+          r: '{:d}'
+        setter:
+          q: ':CALCulate:MARKer:FUNCtion:UPDate {}'
+        specs:
+          type: int
+          valid: [0, 1]
+      marker_max_scenter_auto:
+        default: 0
+        getter:
+          q: ':CALCulate:MARKer:MAXimum:SCENter:AUTO?'
+          r: '{:d}'
+        setter:
+          q: ':CALCulate:MARKer:MAXimum:SCENter:AUTO {}'
+        specs:
+          type: int
+          valid: [0, 1]
+      marker_max_srlevel_auto:
+        default: 0
+        getter:
+          q: ':CALCulate:MARKer:MAXimum:SRLevel:AUTO?'
+          r: '{:d}'
+        setter:
+          q: ':CALCulate:MARKer:MAXimum:SRLevel:AUTO {}'
+        specs:
+          type: int
+          valid: [0, 1]
+      marker_msearch:
+        default: 0
+        getter:
+          q: ':CALCulate:MARKer:MSEarch?'
+          r: '{:d}'
+        setter:
+          q: ':CALCulate:MARKer:MSEarch {}'
+        specs:
+          type: int
+          valid: [0, 1]
+      marker_msearch_sort:
+        default: 0
+        getter:
+          q: ':CALCulate:MARKer:MSEarch:SORT?'
+          r: '{:d}'
+        setter:
+          q: ':CALCulate:MARKer:MSEarch:SORT {}'
+        specs:
+          type: int
+          valid: [0, 1]
+      marker_msearch_threshold:
+        default: 20.0
+        getter:
+          q: ':CALCulate:MARKer:MSEarch:THResh?'
+          r: '{:.6e}'
+        setter:
+          q: ':CALCulate:MARKer:MSEarch:THResh {}'
+        specs:
+          type: float
+      marker_unit:
+        default: 0
+        getter:
+          q: ':CALCulate:MARKer:UNIT?'
+          r: '{:d}'
+        setter:
+          q: ':CALCulate:MARKer:UNIT {}'
+        specs:
+          type: int
+          valid: [0, 1]
+      line_marker_srange:
+        default: 0
+        getter:
+          q: ':CALCulate:LMARker:SRANge?'
+          r: '{:d}'
+        setter:
+          q: ':CALCulate:LMARker:SRANge {}'
+        specs:
+          type: int
+          valid: [0, 1]
+      system_version:
+        default: "02.07"
+        getter:
+          q: ':SYSTem:VERSion?'
+          r: '{}'
+        specs:
+          type: str
+      system_fspeed:
+        default: "1"
+        getter:
+          q: ':SYSTem:FSPeed?'
+          r: '{}'
+        specs:
+          type: str
+      system_buzzer_click:
+        default: 0
+        getter:
+          q: ':SYSTem:BUZZer:CLIC?'
+          r: '{:d}'
+        setter:
+          q: ':SYSTem:BUZZer:CLIC {}'
+        specs:
+          type: int
+          valid: [0, 1]
+      system_buzzer_warning:
+        default: 0
+        getter:
+          q: ':SYSTem:BUZZer:WARNing?'
+          r: '{:d}'
+        setter:
+          q: ':SYSTem:BUZZer:WARNing {}'
+        specs:
+          type: int
+          valid: [0, 1]
+      system_gpib2_address:
+        default: 1
+        getter:
+          q: ':SYSTem:COMMunicate:GP-IB2:ADDRess?'
+          r: '{:d}'
+        setter:
+          q: ':SYSTem:COMMunicate:GP-IB2:ADDRess {}'
+        specs:
+          type: int
+      system_gpib2_scontroller:
+        default: 0
+        getter:
+          q: ':SYSTem:COMMunicate:GP-IB2:SCONtroller?'
+          r: '{:d}'
+        setter:
+          q: ':SYSTem:COMMunicate:GP-IB2:SCONtroller {}'
+        specs:
+          type: int
+          valid: [0, 1]
+      system_gpib2_tls_address:
+        default: 1
+        getter:
+          q: ':SYSTem:COMMunicate:GP-IB2:TLS:ADDRess?'
+          r: '{:d}'
+        setter:
+          q: ':SYSTem:COMMunicate:GP-IB2:TLS:ADDRess {}'
+        specs:
+          type: int
+      system_lockout:
+        default: 0
+        getter:
+          q: ':SYSTem:COMMunicate:LOCKout?'
+          r: '{:d}'
+        setter:
+          q: ':SYSTem:COMMunicate:LOCKout {}'
+        specs:
+          type: int
+          valid: [0, 1]
+      system_rmonitor:
+        default: 0
+        getter:
+          q: ':SYSTem:COMMunicate:RMONitor?'
+          r: '{:d}'
+        setter:
+          q: ':SYSTem:COMMunicate:RMONitor {}'
+        specs:
+          type: int
+          valid: [0, 1]
+      system_date:
+        default: "2026,07,21"
+        getter:
+          q: ':SYSTem:DATE?'
+          r: '{}'
+        setter:
+          q: ':SYSTem:DATE {}'
+        specs:
+          type: str
+      system_time:
+        default: "12,00,00"
+        getter:
+          q: ':SYSTem:TIME?'
+          r: '{}'
+        setter:
+          q: ':SYSTem:TIME {}'
+        specs:
+          type: str
+      system_transparent:
+        default: 0
+        getter:
+          q: ':SYSTem:DISPlay:TRANsparent?'
+          r: '{:d}'
+        setter:
+          q: ':SYSTem:DISPlay:TRANsparent {}'
+        specs:
+          type: int
+          valid: [0, 1]
+      system_uncal:
+        default: 0
+        getter:
+          q: ':SYSTem:DISPlay:UNCal?'
+          r: '{:d}'
+        setter:
+          q: ':SYSTem:DISPlay:UNCal {}'
+        specs:
+          type: int
+          valid: [0, 1]
+      system_grid:
+        default: 0
+        getter:
+          q: ':SYSTem:GRID?'
+          r: '{:d}'
+        setter:
+          q: ':SYSTem:GRID {}'
+        specs:
+          type: int
+          valid: [0, 1, 2, 3, 4, 5]
+      system_grid_spacing:
+        default: 100.0
+        getter:
+          q: ':SYSTem:GRID:CUSTom:SPACing?'
+          r: '{:.6e}'
+        setter:
+          q: ':SYSTem:GRID:CUSTom:SPACing {}GHZ'
+        specs:
+          type: float
+      system_grid_start:
+        default: 1.5e-06
+        getter:
+          q: ':SYSTem:GRID:CUSTom:STARt?'
+          r: '{:.6e}'
+        setter:
+          q: ':SYSTem:GRID:CUSTom:STARt {}M'
+        specs:
+          type: float
+      system_grid_stop:
+        default: 1.6e-06
+        getter:
+          q: ':SYSTem:GRID:CUSTom:STOP?'
+          r: '{:.6e}'
+        setter:
+          q: ':SYSTem:GRID:CUSTom:STOP {}M'
+        specs:
+          type: float
+      system_grid_reference:
+        default: 1.55e-06
+        getter:
+          q: ':SYSTem:GRID:REFerence?'
+          r: '{:.6e}'
+        setter:
+          q: ':SYSTem:GRID:REFerence {}M'
+        specs:
+          type: float
+      status_op_cond:
+        default: 0
+        getter:
+          q: ':STATus:OPERation:CONDition?'
+          r: '{:d}'
+        specs:
+          type: int
+      status_op_enable:
+        default: 0
+        getter:
+          q: ':STATus:OPERation:ENABle?'
+          r: '{:d}'
+        setter:
+          q: ':STATus:OPERation:ENABle {}'
+        specs:
+          type: int
+      status_op_event:
+        default: 0
+        getter:
+          q: ':STATus:OPERation:EVENt?'
+          r: '{:d}'
+        specs:
+          type: int
+      status_q_cond:
+        default: 0
+        getter:
+          q: ':STATus:QUEStionable:CONDition?'
+          r: '{:d}'
+        specs:
+          type: int
+      status_q_enable:
+        default: 0
+        getter:
+          q: ':STATus:QUEStionable:ENABle?'
+          r: '{:d}'
+        setter:
+          q: ':STATus:QUEStionable:ENABle {}'
+        specs:
+          type: int
+      status_q_event:
+        default: 0
+        getter:
+          q: ':STATus:QUEStionable:EVENt?'
+          r: '{:d}'
+        specs:
+          type: int
+      unit_power_digit:
+        default: 1
+        getter:
+          q: ':UNIT:POWer:DIGit?'
+          r: '{:d}'
+        setter:
+          q: ':UNIT:POWer:DIGit {}'
+        specs:
+          type: int
+          valid: [1, 2, 3]
+      unit_x:
+        default: 0
+        getter:
+          q: ':UNIT:X?'
+          r: '{:d}'
+        setter:
+          q: ':UNIT:X {}'
+        specs:
+          type: int
+          valid: [0, 1]
+      template_gonogo:
+        default: 0
+        getter:
+          q: ':TRACe:TEMPlate:GONogo?'
+          r: '{:d}'
+        setter:
+          q: ':TRACe:TEMPlate:GONogo {}'
+        specs:
+          type: int
+          valid: [0, 1]
+      template_level_shift:
+        default: 0.0
+        getter:
+          q: ':TRACe:TEMPlate:LEVel:SHIFt?'
+          r: '{:.6e}'
+        setter:
+          q: ':TRACe:TEMPlate:LEVel:SHIFt {}'
+        specs:
+          type: float
+      template_result:
+        default: "PASS"
+        getter:
+          q: ':TRACe:TEMPlate:RESult?'
+          r: '{}'
+        specs:
+          type: str
+      template_ttype:
+        default: 0
+        getter:
+          q: ':TRACe:TEMPlate:TTYPe?'
+          r: '{:d}'
+        setter:
+          q: ':TRACe:TEMPlate:TTYPe {}'
+        specs:
+          type: int
+          valid: [0, 1, 2]
+      template_wl_shift:
+        default: 0.0
+        getter:
+          q: ':TRACe:TEMPlate:WAVelength:SHIFt?'
+          r: '{:.6e}'
+        setter:
+          q: ':TRACe:TEMPlate:WAVelength:SHIFt {}M'
+        specs:
+          type: float
+      dlog_etime:
+        default: 0
+        getter:
+          q: ':APPLication:DLOGging:ETIMe?'
+          r: '{:d}'
+        specs:
+          type: int
+      dlog_interval:
+        default: 1
+        getter:
+          q: ':APPLication:DLOGging:LPARameter:INTerval?'
+          r: '{:d}'
+        setter:
+          q: ':APPLication:DLOGging:LPARameter:INTerval {}'
+        specs:
+          type: int
+      dlog_item:
+        default: 0
+        getter:
+          q: ':APPLication:DLOGging:LPARameter:ITEM?'
+          r: '{:d}'
+        setter:
+          q: ':APPLication:DLOGging:LPARameter:ITEM {}'
+        specs:
+          type: int
+          valid: [0, 1, 2, 3]
+      dlog_lmode:
+        default: 1
+        getter:
+          q: ':APPLication:DLOGging:LPARameter:LMODe?'
+          r: '{:d}'
+        setter:
+          q: ':APPLication:DLOGging:LPARameter:LMODe {}'
+        specs:
+          type: int
+          valid: [1, 2]
+      dlog_memory:
+        default: "INT"
+        getter:
+          q: ':APPLication:DLOGging:LPARameter:MEMory?'
+          r: '{}'
+        setter:
+          q: ':APPLication:DLOGging:LPARameter:MEMory {}'
+        specs:
+          type: str
+          valid: [INT, EXT]
+      dlog_mthresh:
+        default: 0.0
+        getter:
+          q: ':APPLication:DLOGging:LPARameter:MTHResh?'
+          r: '{:.6e}'
+        setter:
+          q: ':APPLication:DLOGging:LPARameter:MTHResh {}'
+        specs:
+          type: float
+      dlog_athresh:
+        default: 0.0
+        getter:
+          q: ':APPLication:DLOGging:LPARameter:PDETect:ATHResh?'
+          r: '{:.6e}'
+        setter:
+          q: ':APPLication:DLOGging:LPARameter:PDETect:ATHResh {}'
+        specs:
+          type: float
+      dlog_rthresh:
+        default: 0.0
+        getter:
+          q: ':APPLication:DLOGging:LPARameter:PDETect:RTHResh?'
+          r: '{:.6e}'
+        setter:
+          q: ':APPLication:DLOGging:LPARameter:PDETect:RTHResh {}'
+        specs:
+          type: float
+      dlog_ttype:
+        default: "ABS"
+        getter:
+          q: ':APPLication:DLOGging:LPARameter:PDETect:TTYPe?'
+          r: '{}'
+        setter:
+          q: ':APPLication:DLOGging:LPARameter:PDETect:TTYPe {}'
+        specs:
+          type: str
+          valid: [ABS, REL]
+      dlog_tduration:
+        default: 0
+        getter:
+          q: ':APPLication:DLOGging:LPARameter:TDURation?'
+          r: '{:d}'
+        setter:
+          q: ':APPLication:DLOGging:LPARameter:TDURation {}'
+        specs:
+          type: int
+      dlog_tlogging:
+        default: 0
+        getter:
+          q: ':APPLication:DLOGging:LPARameter:TLOGging?'
+          r: '{:d}'
+        setter:
+          q: ':APPLication:DLOGging:LPARameter:TLOGging {}'
+        specs:
+          type: int
+          valid: [0, 1]
+      dlog_state:
+        default: 0
+        getter:
+          q: ':APPLication:DLOGging:STATe?'
+          r: '{:d}'
+        setter:
+          q: ':APPLication:DLOGging:STATe {}'
+        specs:
+          type: int
+          valid: [0, 1]
+      state_TRA:
+        default: 0
+        getter:
+          q: ':TRACe:STATe:TRA?'
+          r: '{:d}'
+        setter:
+          q: ':TRACe:STATe:TRA {}'
+        specs:
+          type: int
+          valid: [0, 1]
+      attribute_TRA:
+        default: 0
+        getter:
+          q: ':TRACe:ATTRibute:TRA?'
+          r: '{:d}'
+        setter:
+          q: ':TRACe:ATTRibute:TRA {}'
+        specs:
+          type: int
+          valid: [0, 1, 2, 3, 4, 5]
+      roll_avg_TRA:
+        default: 10
+        getter:
+          q: ':TRACe:ATTRibute:RAVG:TRA?'
+          r: '{:d}'
+        setter:
+          q: ':TRACe:ATTRibute:RAVG:TRA {}'
+        specs:
+          type: int
+      snumber_TRA:
+        # Must match the length of the DATA:X?/DATA:Y? TRA blob above (5 REAL64
+        # values); the `data` ParameterWithSetpoints validates its array shape
+        # against this sample count on every get.
+        default: 5
+        getter:
+          q: ':TRACe:DATA:SNUMber? TRA'
+          r: '{:d}'
+        specs:
+          type: int
+      state_TRB:
+        default: 0
+        getter:
+          q: ':TRACe:STATe:TRB?'
+          r: '{:d}'
+        setter:
+          q: ':TRACe:STATe:TRB {}'
+        specs:
+          type: int
+          valid: [0, 1]
+      attribute_TRB:
+        default: 0
+        getter:
+          q: ':TRACe:ATTRibute:TRB?'
+          r: '{:d}'
+        setter:
+          q: ':TRACe:ATTRibute:TRB {}'
+        specs:
+          type: int
+          valid: [0, 1, 2, 3, 4, 5]
+      roll_avg_TRB:
+        default: 10
+        getter:
+          q: ':TRACe:ATTRibute:RAVG:TRB?'
+          r: '{:d}'
+        setter:
+          q: ':TRACe:ATTRibute:RAVG:TRB {}'
+        specs:
+          type: int
+      snumber_TRB:
+        default: 1001
+        getter:
+          q: ':TRACe:DATA:SNUMber? TRB'
+          r: '{:d}'
+        specs:
+          type: int
+      state_TRC:
+        default: 0
+        getter:
+          q: ':TRACe:STATe:TRC?'
+          r: '{:d}'
+        setter:
+          q: ':TRACe:STATe:TRC {}'
+        specs:
+          type: int
+          valid: [0, 1]
+      attribute_TRC:
+        default: 0
+        getter:
+          q: ':TRACe:ATTRibute:TRC?'
+          r: '{:d}'
+        setter:
+          q: ':TRACe:ATTRibute:TRC {}'
+        specs:
+          type: int
+          valid: [0, 1, 2, 3, 4, 5]
+      roll_avg_TRC:
+        default: 10
+        getter:
+          q: ':TRACe:ATTRibute:RAVG:TRC?'
+          r: '{:d}'
+        setter:
+          q: ':TRACe:ATTRibute:RAVG:TRC {}'
+        specs:
+          type: int
+      snumber_TRC:
+        default: 1001
+        getter:
+          q: ':TRACe:DATA:SNUMber? TRC'
+          r: '{:d}'
+        specs:
+          type: int
+      state_TRD:
+        default: 0
+        getter:
+          q: ':TRACe:STATe:TRD?'
+          r: '{:d}'
+        setter:
+          q: ':TRACe:STATe:TRD {}'
+        specs:
+          type: int
+          valid: [0, 1]
+      attribute_TRD:
+        default: 0
+        getter:
+          q: ':TRACe:ATTRibute:TRD?'
+          r: '{:d}'
+        setter:
+          q: ':TRACe:ATTRibute:TRD {}'
+        specs:
+          type: int
+          valid: [0, 1, 2, 3, 4, 5]
+      roll_avg_TRD:
+        default: 10
+        getter:
+          q: ':TRACe:ATTRibute:RAVG:TRD?'
+          r: '{:d}'
+        setter:
+          q: ':TRACe:ATTRibute:RAVG:TRD {}'
+        specs:
+          type: int
+      snumber_TRD:
+        default: 1001
+        getter:
+          q: ':TRACe:DATA:SNUMber? TRD'
+          r: '{:d}'
+        specs:
+          type: int
+      state_TRE:
+        default: 0
+        getter:
+          q: ':TRACe:STATe:TRE?'
+          r: '{:d}'
+        setter:
+          q: ':TRACe:STATe:TRE {}'
+        specs:
+          type: int
+          valid: [0, 1]
+      attribute_TRE:
+        default: 0
+        getter:
+          q: ':TRACe:ATTRibute:TRE?'
+          r: '{:d}'
+        setter:
+          q: ':TRACe:ATTRibute:TRE {}'
+        specs:
+          type: int
+          valid: [0, 1, 2, 3, 4, 5]
+      roll_avg_TRE:
+        default: 10
+        getter:
+          q: ':TRACe:ATTRibute:RAVG:TRE?'
+          r: '{:d}'
+        setter:
+          q: ':TRACe:ATTRibute:RAVG:TRE {}'
+        specs:
+          type: int
+      snumber_TRE:
+        default: 1001
+        getter:
+          q: ':TRACe:DATA:SNUMber? TRE'
+          r: '{:d}'
+        specs:
+          type: int
+      state_TRF:
+        default: 0
+        getter:
+          q: ':TRACe:STATe:TRF?'
+          r: '{:d}'
+        setter:
+          q: ':TRACe:STATe:TRF {}'
+        specs:
+          type: int
+          valid: [0, 1]
+      attribute_TRF:
+        default: 0
+        getter:
+          q: ':TRACe:ATTRibute:TRF?'
+          r: '{:d}'
+        setter:
+          q: ':TRACe:ATTRibute:TRF {}'
+        specs:
+          type: int
+          valid: [0, 1, 2, 3, 4, 5]
+      roll_avg_TRF:
+        default: 10
+        getter:
+          q: ':TRACe:ATTRibute:RAVG:TRF?'
+          r: '{:d}'
+        setter:
+          q: ':TRACe:ATTRibute:RAVG:TRF {}'
+        specs:
+          type: int
+      snumber_TRF:
+        default: 1001
+        getter:
+          q: ':TRACe:DATA:SNUMber? TRF'
+          r: '{:d}'
+        specs:
+          type: int
+      state_TRG:
+        default: 0
+        getter:
+          q: ':TRACe:STATe:TRG?'
+          r: '{:d}'
+        setter:
+          q: ':TRACe:STATe:TRG {}'
+        specs:
+          type: int
+          valid: [0, 1]
+      attribute_TRG:
+        default: 0
+        getter:
+          q: ':TRACe:ATTRibute:TRG?'
+          r: '{:d}'
+        setter:
+          q: ':TRACe:ATTRibute:TRG {}'
+        specs:
+          type: int
+          valid: [0, 1, 2, 3, 4, 5]
+      roll_avg_TRG:
+        default: 10
+        getter:
+          q: ':TRACe:ATTRibute:RAVG:TRG?'
+          r: '{:d}'
+        setter:
+          q: ':TRACe:ATTRibute:RAVG:TRG {}'
+        specs:
+          type: int
+      snumber_TRG:
+        default: 1001
+        getter:
+          q: ':TRACe:DATA:SNUMber? TRG'
+          r: '{:d}'
+        specs:
+          type: int
+  AQ6373:
+    eom:
+      TCPIP INSTR:
+        q: "\n"
+        r: "\n"
+    dialogues:
+      - q: "*IDN?"
+        r: "YOKOGAWA,AQ6373,90Y654321,02.07"
+    properties:
+      sense_setting_fiber:
+        default: 0
+        getter:
+          q: ':SENSe:SETTing:FIBer?'
+          r: '{:d}'
+        setter:
+          q: ':SENSe:SETTing:FIBer {}'
+        specs:
+          type: int
+          valid: [0, 1]
+resources:
+  TCPIP::192.0.2.10::INSTR:
+    device: AQ6370C
+  TCPIP::192.0.2.11::INSTR:
+    device: AQ6373
