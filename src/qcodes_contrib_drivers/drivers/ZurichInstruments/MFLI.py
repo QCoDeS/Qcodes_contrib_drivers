@@ -1,4 +1,6 @@
-"""Zurich MFLI with scalar and coherent QCoDeS lock-in readouts."""
+"""Zurich MFLI with scalar and coherent QCoDeS lock-in readouts.
+See `docs/examples/ZurichInstruments_lockins.ipynb` for an example notebook.
+"""
 
 from typing import Any
 

@@ -55,11 +55,14 @@ def lockin(request):
     instrument.close()
 
 
-def time_data(lockin, *, rate=10):
+def time_data(lockin, *, rate=10, grid_step=None):
     # Deliberately differ from the nominal grid and exceed float timestamp precision.
     ticks = np.array([[2**60 + i * int(lockin.clockbase() / rate) for i in range(3)]], dtype=np.uint64)
     return {
-        f"/dev1234/demods/0/sample.{c}": [dict(value=np.array([v]), timestamp=ticks.copy())]
+        f"/dev1234/demods/0/sample.{c}": [dict(
+            value=np.array([v]), timestamp=ticks.copy(),
+            header={"gridcoldelta": np.array([1 / rate if grid_step is None else grid_step])},
+        )]
         for c, v in (("x", [3.0, 0.0, -3.0]), ("y", [4.0, 2.0, -4.0]))
     }
 
@@ -78,7 +81,7 @@ def prepare(lockin, mode, **kwargs):
             module.read.return_value = time_data(lockin, rate=lockin.demods[0].rate())
             trace = lockin.configure_trace(grid_mode=4, points=3, **kwargs)
         else:
-            module.read.return_value = time_data(lockin)
+            module.read.return_value = time_data(lockin, grid_step=0.5 / 3)
             trace = lockin.configure_trace(duration=0.5, points=3, **kwargs)
     else:
         module = lockin.session.modules.create_sweeper_module.return_value
@@ -109,7 +112,7 @@ def test_do0d_saves_one_acquisition_with_actual_axis(lockin, mode, tmp_path):
     for _ in range(2):
         dataset, _, _ = do0d(trace, exp=experiment, do_plot=False, use_threads=False)
         data = dataset.get_parameter_data()
-        expected_axis = {"time": [0., 0.1, 0.2], "exact": [0., 0.001, 0.002],
+        expected_axis = {"time": [0., 0.5 / 3, 1 / 3], "exact": [0., 0.001, 0.002],
                          "sweep": [1., 2.1, 3.]}[mode]
         for i, expected in enumerate((np.degrees(np.arctan2([4, 2, -4], [3, 0, -3])),
                                       [5, 2, 5], [3, 0, -3], [4, 2, -4])):
@@ -247,7 +250,67 @@ def test_interpolated_grid_modes(lockin, grid_mode):
     trace()
     module.grid.mode.assert_called_once_with(grid_mode)
     module.duration.assert_called_once_with(0.5)
-    np.testing.assert_allclose(trace.axis, [0, 0.1, 0.2])
+    np.testing.assert_allclose(trace.axis, np.arange(3) * 0.5 / 3)
+
+
+@pytest.mark.parametrize("grid_mode", [1, 2])
+def test_interpolated_axis_uses_grid_instead_of_irregular_timestamps(lockin, grid_mode):
+    lockin.demods[0].rate(10000)
+    trace = lockin.configure_trace(
+        duration=1, points=1000, grid_mode=grid_mode, parameters=("r", "theta")
+    )
+    module = lockin.session.modules.create_daq_module.return_value
+    times = np.arange(1000) * 0.001
+    # The first ten timestamps reproduce the irregular axis in the saved notebook.
+    times[:10] = [0, 0.001311, 0.001820, 0.002840, 0.003859,
+                  0.004879, 0.005825, 0.006845, 0.007864, 0.008811]
+    ticks = np.uint64(2**60) + np.rint(times * lockin.clockbase()).astype(np.uint64)
+    module.read.return_value = {
+        f"/dev1234/demods/0/sample.{c}": [dict(
+            value=np.full((1, 1000), value), timestamp=ticks[None, :].copy(),
+            header={"gridcoldelta": np.array([0.001])},
+        )]
+        for c, value in (("x", 3.0), ("y", 4.0))
+    }
+
+    r, theta = trace()
+
+    np.testing.assert_allclose(trace.axis, np.arange(1000) * 0.001)
+    np.testing.assert_allclose(np.diff(trace.axis), 0.001)
+    for component_setpoints in trace.setpoints:
+        np.testing.assert_array_equal(component_setpoints[0], trace.axis)
+    np.testing.assert_allclose(r, 5)
+    np.testing.assert_allclose(theta, np.degrees(np.arctan2(4, 3)))
+
+
+@pytest.mark.parametrize("grid_mode", [1, 2])
+def test_interpolated_axis_uses_reported_spacing(lockin, grid_mode):
+    trace, module = prepare(lockin, "time", grid_mode=grid_mode)
+    # Use the acquired grid even if LabOne rounds the requested duration.
+    for bursts in module.read.return_value.values():
+        bursts[0]["header"]["gridcoldelta"] = 0.17
+    trace()
+    np.testing.assert_allclose(trace.axis, [0, 0.17, 0.34])
+
+
+@pytest.mark.parametrize("fault", [
+    "missing_header", "missing_delta", "nonscalar", "zero", "negative",
+    "nan", "inf", "mismatched",
+])
+def test_rejects_invalid_interpolated_grid(lockin, fault):
+    trace, module = prepare(lockin, "time")
+    burst = module.read.return_value["/dev1234/demods/0/sample.y"][0]
+    if fault == "missing_header":
+        del burst["header"]
+    elif fault == "missing_delta":
+        del burst["header"]["gridcoldelta"]
+    else:
+        burst["header"]["gridcoldelta"] = {
+            "nonscalar": [0.1, 0.2], "zero": 0, "negative": -0.1,
+            "nan": np.nan, "inf": np.inf, "mismatched": 0.2,
+        }[fault]
+    with pytest.raises(RuntimeError, match="Invalid or incomplete time trace"):
+        trace()
 
 
 @pytest.mark.parametrize("rate", [0, -1, float("nan"), float("inf")])
@@ -256,6 +319,14 @@ def test_exact_requires_positive_finite_rate(lockin, rate):
     with pytest.raises(ValueError, match="rate"):
         lockin.configure_trace(points=3, grid_mode=4)
     lockin.session.modules.create_daq_module.assert_not_called()
+
+
+def test_exact_axis_uses_timestamps_without_grid_header(lockin):
+    trace, module = prepare(lockin, "exact")
+    for bursts in module.read.return_value.values():
+        del bursts[0]["header"]
+    trace()
+    np.testing.assert_allclose(trace.axis, [0, 0.001, 0.002])
 
 
 def test_exact_rate_change_requires_new_trace(lockin):

@@ -1,4 +1,7 @@
-"""QCoDeS array readout for a single LabOne acquisition."""
+"""QCoDeS array readout for a single LabOne acquisition.
+
+Written by Edward Laird (http://wp.lancs.ac.uk/laird-group/).
+"""
 
 from collections.abc import Sequence
 from contextlib import ExitStack
@@ -27,8 +30,10 @@ class TraceParameter(MultiParameter):
     Create through ``lockin.configure_trace``. All selected components share
     one acquisition; R and Theta are derived from its X/Y arrays (Theta in
     degrees). ``axis`` returns the latest acquired setpoints, or the nominal
-    grid before the first acquisition. Configure a new parameter to change
-    trace length, selection, or units before starting a new dataset.
+    grid before the first acquisition. Interpolated time traces use LabOne's
+    reported grid spacing; exact traces use device timestamps. Configure a new
+    parameter to change trace length, selection, or units before starting a
+    new dataset.
     """
 
     def __init__(
@@ -299,11 +304,24 @@ class TraceParameter(MultiParameter):
             ticks = stamps[0][0]
             if ticks[0] < 0 or np.any(ticks[1:] <= ticks[:-1]):
                 raise ValueError("Trace timestamps do not increase")
-            clockbase = float(self._device.clockbase())
-            if not math.isfinite(clockbase) or clockbase <= 0:
-                raise ValueError("Invalid device clockbase")
-            # Subtract before converting: timestamps may be larger than 2**53.
-            axis = (ticks - ticks[0]) / clockbase
+            if self._grid_mode == 4:
+                clockbase = float(self._device.clockbase())
+                if not math.isfinite(clockbase) or clockbase <= 0:
+                    raise ValueError("Invalid device clockbase")
+                # Subtract before converting: timestamps may exceed 2**53.
+                axis = (ticks - ticks[0]) / clockbase
+            else:
+                # Resampled values lie on the grid reported by LabOne. The
+                # returned timestamps need not have this uniform spacing.
+                steps = [
+                    float(np.asarray(b["header"]["gridcoldelta"]).item())
+                    for b in bursts
+                ]
+                if not all(math.isfinite(step) and step > 0 for step in steps):
+                    raise ValueError("Invalid time-grid spacing")
+                if steps[0] != steps[1]:
+                    raise ValueError("X/Y time-grid spacing does not match")
+                axis = np.arange(self._points) * steps[0]
             return axis, values[0][0].copy(), values[1][0].copy()
         except (KeyError, IndexError, TypeError, ValueError) as exc:
             raise RuntimeError(f"Invalid or incomplete time trace: {exc}") from exc

@@ -3,15 +3,145 @@ import threading
 from types import SimpleNamespace
 from unittest.mock import Mock
 
+import numpy as np
 import pytest
 from qcodes.dataset import Measurement, initialise_or_create_database_at, new_experiment
 from qcodes.instrument import Instrument, InstrumentChannel
 from qcodes.parameters import MultiParameter, Parameter
 
+from qcodes_contrib_drivers.drivers.ZurichInstruments import _lockin as lockin_driver
 from qcodes_contrib_drivers.drivers.ZurichInstruments._lockin import (
+    LockinMixin,
     _DemodulatorReadout,
     _ReadoutParameter,
 )
+
+
+class AcquisitionClock:
+    """Advance acquisition time without real sleeps or hardware."""
+
+    def __init__(self):
+        self.now = 0.0
+        self.sleeps = []
+
+    def monotonic(self):
+        return self.now
+
+    def sleep(self, seconds):
+        assert seconds > 0
+        self.sleeps.append(seconds)
+        self.now += seconds
+
+
+class SimulatedScalarLockin(LockinMixin):
+    """Emulate device nodes while retaining the real readout and guards."""
+
+    def __init__(self, model):
+        self._lockin_model = model
+        self._lockin_options = set()
+        self._readout_lock = threading.RLock()
+        self.extrefs = []
+        self.sigins = [SimpleNamespace(scaling=lambda: 1.0)]
+        self.acquisition_timeout = lambda: 0.025
+        channel = SimpleNamespace(
+            adcselect=lambda: 0, enable=lambda: 1, sample=Mock(),
+        )
+        self.demods = [channel]
+        reader = _DemodulatorReadout(self, 0)
+        self._readouts = {0: reader}
+        channel.readout = _ReadoutParameter("readout", reader=reader)
+        self.configure_readout(demod=0)
+
+
+@pytest.fixture(params=["MFLI", "UHFLI"])
+def scalar_acquisition(request, monkeypatch):
+    clock = AcquisitionClock()
+    # Replace this driver's time module, not the process-wide clock used by pytest.
+    monkeypatch.setattr(lockin_driver, "time", clock)
+    return SimulatedScalarLockin(request.param), clock
+
+
+def scalar_sample(timestamp, x=3.0, y=4.0):
+    return dict(
+        timestamp=np.array([timestamp], dtype=np.uint64),
+        x=np.array([x]), y=np.array([y]),
+    )
+
+
+def test_scalar_acquisition_waits_for_fresh_timestamp(scalar_acquisition):
+    instrument, clock = scalar_acquisition
+    channel = instrument.demods[0]
+    # A one-tick increase must remain distinguishable above float precision.
+    timestamp = 2**60
+    baseline = scalar_sample(timestamp, x=-7, y=0)
+    channel.sample.side_effect = [
+        baseline, baseline,
+        scalar_sample(timestamp, x=9, y=12),  # Changed values alone are not fresh.
+        scalar_sample(timestamp + 1, x=3, y=-4),
+    ]
+
+    values = channel.readout()
+
+    assert values == pytest.approx((3, -4, 5, np.degrees(np.arctan2(-4, 3))))
+    assert channel.sample.call_count == 4
+    assert clock.sleeps
+
+
+def test_scalar_acquisition_waits_for_new_sample_on_each_read(scalar_acquisition):
+    instrument, _ = scalar_acquisition
+    channel = instrument.demods[0]
+    previous = scalar_sample(100, x=0, y=0)
+    first = scalar_sample(101, x=3, y=4)
+    second = scalar_sample(102, x=0, y=-2)
+    channel.sample.side_effect = [previous, first, first, second]
+
+    assert channel.readout() == pytest.approx((3, 4, 5, np.degrees(np.arctan2(4, 3))))
+    assert channel.readout() == pytest.approx((0, -2, 2, -90))
+
+
+@pytest.mark.parametrize("after_success", [False, True])
+def test_scalar_acquisition_times_out_when_samples_stop(scalar_acquisition, after_success):
+    instrument, clock = scalar_acquisition
+    channel = instrument.demods[0]
+    frozen = scalar_sample(101)
+    if after_success:
+        channel.sample.side_effect = [scalar_sample(100), frozen]
+        assert channel.readout()[:3] == (3, 4, 5)
+        channel.sample.side_effect = None
+    channel.sample.return_value = frozen
+
+    with pytest.raises(TimeoutError, match="supplied no newer sample within 0.025 s"):
+        channel.readout()
+
+    assert clock.now >= instrument.acquisition_timeout()
+    assert clock.sleeps
+
+
+def test_scalar_acquisition_rejects_sample_arriving_after_timeout(scalar_acquisition):
+    instrument, clock = scalar_acquisition
+    channel = instrument.demods[0]
+    samples = iter((scalar_sample(100), scalar_sample(101)))
+
+    # Simulate the sample transport crossing the deadline on its second call.
+    def get_sample():
+        sample = next(samples)
+        if sample["timestamp"].item() == 101:
+            clock.now += 2 * instrument.acquisition_timeout()
+        return sample
+
+    channel.sample.side_effect = get_sample
+
+    with pytest.raises(TimeoutError, match="supplied no newer sample"):
+        channel.readout()
+
+
+def test_scalar_acquisition_rejects_backwards_timestamp(scalar_acquisition):
+    instrument, _ = scalar_acquisition
+    channel = instrument.demods[0]
+    channel.sample.side_effect = [scalar_sample(2**60), scalar_sample(2**60 - 1)]
+
+    with pytest.raises(RuntimeError, match="timestamp moved backwards; reconnect"):
+        channel.readout()
 
 
 @pytest.mark.parametrize(

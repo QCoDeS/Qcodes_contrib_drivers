@@ -1,4 +1,9 @@
-"""Zurich UHFLI with scalar and coherent QCoDeS lock-in readouts."""
+"""Zurich UHFLI with scalar and coherent QCoDeS lock-in readouts.
+
+See `docs/examples/ZurichInstruments_lockins.ipynb` for an example notebook.
+
+Written by Edward Laird (http://wp.lancs.ac.uk/laird-group/).
+"""
 
 from typing import Any
 

@@ -1,6 +1,8 @@
 """Shared scalar and trace readout helpers for Zurich lock-in amplifiers.
 
-This has been tested with MFLI and UHF-LI. See See `docs/examples/` for an example notebook."""
+This has been tested with MFLI and UHF-LI. See `docs/examples/ZurichInstruments_lockins.ipynb` for an example notebook.
+
+Written by Edward Laird (http://wp.lancs.ac.uk/laird-group/)."""
 
 from collections.abc import Callable, Mapping, Sequence
 from functools import partial
@@ -445,6 +447,7 @@ class LockinMixin:
         Args:
             duration: Time-trace duration, including the final sample interval.
                 The nominal time grid is ``arange(points) * duration / points``.
+                After acquisition, setpoints use LabOne's reported grid spacing.
                 Continuous streaming must be enabled with rate >= points/duration.
                 Required for grid modes 1 and 2; must be omitted for mode 4.
             grid_mode: Time-trace sampling: 1 (nearest neighbour), 2 (linear,
