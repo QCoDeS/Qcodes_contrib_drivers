@@ -387,8 +387,18 @@ class LockinMixin:
             raise RuntimeError(
                 "MFLI demodulator 1 is reference-only and cannot supply measurements"
             )
-        for reference in self.extrefs:
-            if bool(reference.enable()) and int(reference.demodselect()) == index:
+        for reference_index, reference in enumerate(self.extrefs):
+            if not bool(reference.enable()):
+                continue
+            demodselect = getattr(reference, "demodselect", None)
+            if demodselect is None:
+                # Do not guess which demodulator firmware uses for recovery.
+                raise RuntimeError(
+                    f"Cannot verify external-reference recovery for {self._lockin_model}: "
+                    f"extrefs[{reference_index}].demodselect is unavailable while "
+                    "the external reference is enabled"
+                )
+            if int(demodselect()) == index:
                 raise RuntimeError(
                     f"Demodulator {index} is being used for external-reference recovery"
                 )

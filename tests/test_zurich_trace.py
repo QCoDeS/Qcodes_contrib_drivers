@@ -94,6 +94,43 @@ def prepare(lockin, mode, **kwargs):
 
 
 @pytest.mark.parametrize("mode", ["time", "exact", "sweep"])
+@pytest.mark.parametrize("stage", ["configure", "read"])
+@pytest.mark.parametrize("enabled, selected, error", [
+    pytest.param(0, 0, None, id="disabled-matching"),
+    pytest.param(0, None, None, id="disabled-without-demodselect"),
+    pytest.param(1, 0, "being used for external-reference recovery", id="enabled-matching"),
+    pytest.param(1, 1, None, id="enabled-other-demodulator"),
+    pytest.param(1, None, "extrefs\\[1\\].demodselect is unavailable", id="enabled-without-demodselect"),
+])
+def test_trace_external_reference_guard(lockin, mode, stage, enabled, selected, error):
+    if stage == "read":
+        trace, _ = prepare(lockin, mode)
+    reference = SimpleNamespace(enable=Mock(return_value=enabled))
+    if selected is not None:
+        reference.demodselect = Mock(return_value=selected)
+    lockin.extrefs = [SimpleNamespace(enable=lambda: 0), reference]
+
+    def acquire():
+        if stage == "configure":
+            configured_trace, _ = prepare(lockin, mode)
+            return configured_trace()
+        return trace()
+
+    if error is not None:
+        with pytest.raises(RuntimeError, match=error):
+            acquire()
+        lockin.session.modules.create_daq_module.assert_not_called()
+        lockin.session.modules.create_sweeper_module.assert_not_called()
+        assert lockin.frequency() == 10.0
+    else:
+        x, y = acquire()
+        np.testing.assert_allclose(x, [3, 0, -3])
+        np.testing.assert_allclose(y, [4, 2, -4])
+    if not enabled and selected is not None:
+        reference.demodselect.assert_not_called()
+
+
+@pytest.mark.parametrize("mode", ["time", "exact", "sweep"])
 def test_do0d_saves_one_acquisition_with_actual_axis(lockin, mode, tmp_path):
     trace, module = prepare(lockin, mode, parameters=("theta", "r", "x", "y"))
     module.execute.assert_not_called()

@@ -68,6 +68,48 @@ def scalar_sample(timestamp, x=3.0, y=4.0):
     )
 
 
+@pytest.mark.parametrize("enabled, selected, error", [
+    pytest.param(0, 0, None, id="disabled-matching"),
+    pytest.param(0, None, None, id="disabled-without-demodselect"),
+    pytest.param(1, 0, "being used for external-reference recovery", id="enabled-matching"),
+    pytest.param(1, 1, None, id="enabled-other-demodulator"),
+    pytest.param(1, None, "extrefs\\[1\\].demodselect is unavailable", id="enabled-without-demodselect"),
+])
+def test_scalar_external_reference_guard(scalar_acquisition, enabled, selected, error):
+    instrument, _ = scalar_acquisition
+    reference = SimpleNamespace(enable=Mock(return_value=enabled))
+    if selected is not None:
+        reference.demodselect = Mock(return_value=selected)
+    # Check the second reference too, after skipping a disabled reference.
+    instrument.extrefs = [SimpleNamespace(enable=lambda: 0), reference]
+    channel = instrument.demods[0]
+    channel.sample.side_effect = [scalar_sample(100), scalar_sample(101)]
+
+    if error is not None:
+        with pytest.raises(RuntimeError, match=error):
+            channel.readout()
+        channel.sample.assert_not_called()
+    else:
+        assert channel.readout() == pytest.approx((3, 4, 5, np.degrees(np.arctan2(4, 3))))
+        assert channel.sample.call_count == 2
+    if not enabled and selected is not None:
+        reference.demodselect.assert_not_called()
+
+
+def test_scalar_rechecks_external_reference_after_sampling(scalar_acquisition):
+    instrument, _ = scalar_acquisition
+    reference = SimpleNamespace(enable=Mock(return_value=0), demodselect=lambda: 0)
+    instrument.extrefs = [reference]
+
+    def sample():
+        reference.enable.return_value = 1
+        return scalar_sample(100 + instrument.demods[0].sample.call_count)
+
+    instrument.demods[0].sample.side_effect = sample
+    with pytest.raises(RuntimeError, match="being used for external-reference recovery"):
+        instrument.demods[0].readout()
+
+
 def test_scalar_acquisition_waits_for_fresh_timestamp(scalar_acquisition):
     instrument, clock = scalar_acquisition
     channel = instrument.demods[0]
