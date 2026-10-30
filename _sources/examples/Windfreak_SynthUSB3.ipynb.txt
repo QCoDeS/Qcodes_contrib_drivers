@@ -1,0 +1,179 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "id": "aeaa1ed0-ca33-4b53-90a6-677d954b4cbe",
+   "metadata": {},
+   "source": [
+    "# QCoDeS example with Windfreak SynthUSB3"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "c76ba465-60be-4586-8001-cdb186731e5e",
+   "metadata": {},
+   "source": [
+    "The [Windfreak SynthUSB3](https://windfreaktech.com/product/synthusb3-6ghz-rf-signal-generator/?srsltid=AfmBOop659Mas_4NI602nmVhP5K-_Rg4vD_sRtijN1eoaUwZvDInOmIo) is an RF signal generator."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "8427ab68-14ea-48a0-8db0-9d87b7e30733",
+   "metadata": {},
+   "source": [
+    "## Setup and testing\n",
+    "### Setup\n",
+    "1. Make sure you have QCoDeS set up (see the [QCoDeS website](https://microsoft.github.io/Qcodes/index.html) or my notebook [14 minutes to QCoDeS](https://github.com/lairdgrouplancaster/14-minutes-to-QCoDeS/blob/main/14_minutes_to_QCoDeS.ipynb).)\n",
+    "2. Plug the instrument into the USB interface of your computer, and run the output to a spectrum analyser so you can see what it's doing.\n",
+    "3. Edit the code below to set your USB address, and run it."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "id": "eb776893-b46f-468d-8e53-dd1a89271fe1",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import time\n",
+    "import qcodes as qc\n",
+    "from qcodes_contrib_drivers.drivers.Windfreak.Windfreak_SynthUSB3 import WindfreakSynthUSB3\n",
+    "\n",
+    "qc.Instrument.close_all() # Closes all open instruments, in case there is a duplicate for any reason.\n",
+    "sg_1 = WindfreakSynthUSB3('sg_1','ASRL4')  # Set your USB address here."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "1453c1ed-1a04-435f-9fc9-a4459b7542a0",
+   "metadata": {},
+   "source": [
+    "### Test the connection\n",
+    "Run:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "id": "fdb4a19a-f5fd-46e8-875a-20696fe2f1d9",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "'SynthUSB3 1040'"
+      ]
+     },
+     "execution_count": 2,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "sg_1.identify() # Should print name and serial number of the instrument."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "c83b54ed-026f-4b07-bb31-958576acf60a",
+   "metadata": {},
+   "source": [
+    "### Test the output state\n",
+    "Check that the instrument correctly reports its output state. You may need to run this command twice to make the instrument respond properly."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "id": "6dc83997-4fe7-42ce-a943-6bdec75fae20",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "'ON'"
+      ]
+     },
+     "execution_count": 3,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "sg_1.device_clear()  # Seems to be necessary after an identify() query.\n",
+    "sg_1.output()    # Query the output state"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "77811b84-15e5-4839-a991-fd74bfa53294",
+   "metadata": {},
+   "source": [
+    "### Test basic parameters\n",
+    "Run the following commands, and check by looking at your spectrum analyser that they are having the desired effect."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "id": "533f07e0-acde-4377-8268-39f39c91979c",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "sg_1.frequency(600)  # Set the frequency\n",
+    "sg_1.level(-5)      # Set the level"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "8fcd3cf1-2ab9-4f58-8fc2-8d2665d30713",
+   "metadata": {},
+   "source": [
+    "## Closing the connection\n",
+    "After your work is complete, you can close the connection to the instrument with the following command."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "id": "4c17e24a-c924-4ea7-bd3e-092ae372262d",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "sg_1.close()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "b2c46fdf-094c-4520-a0d0-f2c776c0aaed",
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3 (ipykernel)",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.11.9"
+  },
+  "nbsphinx": {
+   "execute": "never"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}
