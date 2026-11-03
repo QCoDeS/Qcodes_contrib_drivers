@@ -51,6 +51,8 @@ def proteox_driver_init_on_windows(monkeypatch):
     )
     yield proteox_sim
 
+    # Undo patches before close removes the instrument's instance attributes.
+    monkeypatch.undo()
     proteox_sim.close()
 
 def proteox_driver_init_not_on_windows(monkeypatch):
