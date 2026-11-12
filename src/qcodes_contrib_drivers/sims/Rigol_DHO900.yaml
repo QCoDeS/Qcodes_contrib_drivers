@@ -1,0 +1,1014 @@
+# pyvisa-sim model of a Rigol DHO914S for the QCoDeS driver RigolDHO900.
+# Load with pyvisa_sim_file="qcodes_contrib_drivers.sims:Rigol_DHO900.yaml".
+# Settings are stored and read back independently of each other; the responses copy
+# the formats of a DHO914S with firmware 00.01.04. The waveform of every channel and
+# mode is the same 1000-point WORD block: four periods of a 1 V sine over 1 ms.
+# pyvisa-sim responses are text, so the block consists of printable bytes (low byte
+# 'A', the sine in the high byte).
+# The trigger status is always STOP, so that raw reads and digitize() complete.
+spec: "1.1"
+
+devices:
+  dho900:
+    eom:
+      USB INSTR:
+        q: "\n"
+        r: "\n"
+      TCPIP INSTR:
+        q: "\n"
+        r: "\n"
+    error: ERROR
+    dialogues:
+      - q: '*IDN?'
+        r: 'RIGOL TECHNOLOGIES,DHO914S,DHO9S000000000,00.01.04'
+      - q: ':SYSTem:RAMount?'
+        r: '4'
+      - q: ':SYSTem:MODules?'
+        r: '1,1,0,0,0'
+      - q: ':SYSTem:DGSTatus?'
+        r: '1'
+      - q: ':SYSTem:ERRor?'
+        r: '0,"No error"'
+      - q: ':TRIGger:STATus?'
+        r: 'STOP'
+      - q: ':ACQuire:SRATe?'
+        r: '1.250000E+9'
+      - q: ':COUNter:CURRent?'
+        r: '1.000000E+03'
+      - q: ':DVM:CURRent?'
+        r: '7.071000E-01'
+      - q: ':RUN'
+      - q: ':STOP'
+      - q: ':SINGle'
+      - q: ':TFORce'
+      - q: ':CLEar'
+      - q: ':AUToset'
+      - q: '*RST'
+      - q: ':COUNter:TOTalize:CLEar'
+      - q: ':MEASure:CLEar'
+      - q: ':MEASure:STATistic:RESet'
+      - q: ':MEASure:ITEM? VMAX,CHANnel1'
+        r: '1.000000E+00'
+      - q: ':MEASure:ITEM? VMIN,CHANnel1'
+        r: '-1.000000E+00'
+      - q: ':MEASure:ITEM? VPP,CHANnel1'
+        r: '2.000000E+00'
+      - q: ':MEASure:ITEM? VAMP,CHANnel1'
+        r: '2.000000E+00'
+      - q: ':MEASure:ITEM? VAVG,CHANnel1'
+        r: '0.000000E+00'
+      - q: ':MEASure:ITEM? VRMS,CHANnel1'
+        r: '7.071068E-01'
+      - q: ':MEASure:ITEM? ACRMs,CHANnel1'
+        r: '7.071068E-01'
+      - q: ':MEASure:ITEM? FREQuency,CHANnel1'
+        r: '1.000000E+03'
+      - q: ':MEASure:ITEM? PERiod,CHANnel1'
+        r: '1.000000E-03'
+      - q: ':MEASure:ITEM? RTIMe,CHANnel1'
+        r: '2.950000E-04'
+      - q: ':MEASure:ITEM? FTIMe,CHANnel1'
+        r: '2.950000E-04'
+      - q: ':MEASure:ITEM? PDUTy,CHANnel1'
+        r: '5.000000E-01'
+      - q: ':MEASure:ITEM? OVERshoot,CHANnel1'
+        r: '9.9000E+37'
+      - q: ':MEASure:ITEM? VMAX,CHANnel2'
+        r: '1.000000E+00'
+      - q: ':MEASure:ITEM? VMIN,CHANnel2'
+        r: '-1.000000E+00'
+      - q: ':MEASure:ITEM? VPP,CHANnel2'
+        r: '2.000000E+00'
+      - q: ':MEASure:ITEM? VAMP,CHANnel2'
+        r: '2.000000E+00'
+      - q: ':MEASure:ITEM? VAVG,CHANnel2'
+        r: '0.000000E+00'
+      - q: ':MEASure:ITEM? VRMS,CHANnel2'
+        r: '7.071068E-01'
+      - q: ':MEASure:ITEM? ACRMs,CHANnel2'
+        r: '7.071068E-01'
+      - q: ':MEASure:ITEM? FREQuency,CHANnel2'
+        r: '1.000000E+03'
+      - q: ':MEASure:ITEM? PERiod,CHANnel2'
+        r: '1.000000E-03'
+      - q: ':MEASure:ITEM? RTIMe,CHANnel2'
+        r: '2.950000E-04'
+      - q: ':MEASure:ITEM? FTIMe,CHANnel2'
+        r: '2.950000E-04'
+      - q: ':MEASure:ITEM? PDUTy,CHANnel2'
+        r: '5.000000E-01'
+      - q: ':MEASure:ITEM? OVERshoot,CHANnel2'
+        r: '9.9000E+37'
+      - q: ':MEASure:ITEM? VMAX,CHANnel3'
+        r: '1.000000E+00'
+      - q: ':MEASure:ITEM? VMIN,CHANnel3'
+        r: '-1.000000E+00'
+      - q: ':MEASure:ITEM? VPP,CHANnel3'
+        r: '2.000000E+00'
+      - q: ':MEASure:ITEM? VAMP,CHANnel3'
+        r: '2.000000E+00'
+      - q: ':MEASure:ITEM? VAVG,CHANnel3'
+        r: '0.000000E+00'
+      - q: ':MEASure:ITEM? VRMS,CHANnel3'
+        r: '7.071068E-01'
+      - q: ':MEASure:ITEM? ACRMs,CHANnel3'
+        r: '7.071068E-01'
+      - q: ':MEASure:ITEM? FREQuency,CHANnel3'
+        r: '1.000000E+03'
+      - q: ':MEASure:ITEM? PERiod,CHANnel3'
+        r: '1.000000E-03'
+      - q: ':MEASure:ITEM? RTIMe,CHANnel3'
+        r: '2.950000E-04'
+      - q: ':MEASure:ITEM? FTIMe,CHANnel3'
+        r: '2.950000E-04'
+      - q: ':MEASure:ITEM? PDUTy,CHANnel3'
+        r: '5.000000E-01'
+      - q: ':MEASure:ITEM? OVERshoot,CHANnel3'
+        r: '9.9000E+37'
+      - q: ':MEASure:ITEM? VMAX,CHANnel4'
+        r: '1.000000E+00'
+      - q: ':MEASure:ITEM? VMIN,CHANnel4'
+        r: '-1.000000E+00'
+      - q: ':MEASure:ITEM? VPP,CHANnel4'
+        r: '2.000000E+00'
+      - q: ':MEASure:ITEM? VAMP,CHANnel4'
+        r: '2.000000E+00'
+      - q: ':MEASure:ITEM? VAVG,CHANnel4'
+        r: '0.000000E+00'
+      - q: ':MEASure:ITEM? VRMS,CHANnel4'
+        r: '7.071068E-01'
+      - q: ':MEASure:ITEM? ACRMs,CHANnel4'
+        r: '7.071068E-01'
+      - q: ':MEASure:ITEM? FREQuency,CHANnel4'
+        r: '1.000000E+03'
+      - q: ':MEASure:ITEM? PERiod,CHANnel4'
+        r: '1.000000E-03'
+      - q: ':MEASure:ITEM? RTIMe,CHANnel4'
+        r: '2.950000E-04'
+      - q: ':MEASure:ITEM? FTIMe,CHANnel4'
+        r: '2.950000E-04'
+      - q: ':MEASure:ITEM? PDUTy,CHANnel4'
+        r: '5.000000E-01'
+      - q: ':MEASure:ITEM? OVERshoot,CHANnel4'
+        r: '9.9000E+37'
+      - q: ':MEASure:ITEM? RRPHase,CHANnel1,CHANnel2'
+        r: '9.000000E+01'
+      - q: ':MEASure:STATistic:ITEM VPP,CHANnel1'
+      - q: ':MEASure:STATistic:ITEM? CURRent,VPP,CHANnel1'
+        r: '2.000000E+00'
+      - q: ':MEASure:STATistic:ITEM? AVERages,VPP,CHANnel1'
+        r: '2.000000E+00'
+      - q: ':MEASure:STATistic:ITEM? MINimum,VPP,CHANnel1'
+        r: '1.990000E+00'
+      - q: ':MEASure:STATistic:ITEM? MAXimum,VPP,CHANnel1'
+        r: '2.010000E+00'
+      - q: ':MEASure:STATistic:ITEM? DEViation,VPP,CHANnel1'
+        r: '5.000000E-03'
+      - q: ':MEASure:STATistic:ITEM? CNT,VPP,CHANnel1'
+        r: '1.200000E+01'
+      - q: ':WAVeform:DATA?'
+        r: '#9000002000AAABABACADADAEAEAFAGAGAHAHAIAJAJAKAKALALAMANANAOAOAPAPAQAQARARASASASATATAUAUAUAVAVAVAWAWAWAXAXAXAXAYAYAYAYAYAYAZAZAZAZAZAZAZAZAZAZAZAZAZAZAZAZAYAYAYAYAYAYAXAXAXAXAWAWAWAVAVAVAUAUAUATATASASASARARAQAQAPAPAOAOANANAMALALAKAKAJAJAIAHAHAGAGAFAEAEADADACABABAAA@A@A?A>A>A=A=A<A;A;A:A:A9A8A8A7A7A6A6A5A4A4A3A3A2A2A1A1A0A0A/A/A/A.A.A-A-A-A,A,A,A+A+A+A*A*A*A*A)A)A)A)A)A)A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A)A)A)A)A)A)A*A*A*A*A+A+A+A,A,A,A-A-A-A.A.A/A/A/A0A0A1A1A2A2A3A3A4A4A5A6A6A7A7A8A8A9A:A:A;A;A<A=A=A>A>A?A@A@AAABABACADADAEAEAFAGAGAHAHAIAJAJAKAKALALAMANANAOAOAPAPAQAQARARASASASATATAUAUAUAVAVAVAWAWAWAXAXAXAXAYAYAYAYAYAYAZAZAZAZAZAZAZAZAZAZAZAZAZAZAZAZAYAYAYAYAYAYAXAXAXAXAWAWAWAVAVAVAUAUAUATATASASASARARAQAQAPAPAOAOANANAMALALAKAKAJAJAIAHAHAGAGAFAEAEADADACABABAAA@A@A?A>A>A=A=A<A;A;A:A:A9A8A8A7A7A6A6A5A4A4A3A3A2A2A1A1A0A0A/A/A/A.A.A-A-A-A,A,A,A+A+A+A*A*A*A*A)A)A)A)A)A)A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A)A)A)A)A)A)A*A*A*A*A+A+A+A,A,A,A-A-A-A.A.A/A/A/A0A0A1A1A2A2A3A3A4A4A5A6A6A7A7A8A8A9A:A:A;A;A<A=A=A>A>A?A@A@AAABABACADADAEAEAFAGAGAHAHAIAJAJAKAKALALAMANANAOAOAPAPAQAQARARASASASATATAUAUAUAVAVAVAWAWAWAXAXAXAXAYAYAYAYAYAYAZAZAZAZAZAZAZAZAZAZAZAZAZAZAZAZAYAYAYAYAYAYAXAXAXAXAWAWAWAVAVAVAUAUAUATATASASASARARAQAQAPAPAOAOANANAMALALAKAKAJAJAIAHAHAGAGAFAEAEADADACABABAAA@A@A?A>A>A=A=A<A;A;A:A:A9A8A8A7A7A6A6A5A4A4A3A3A2A2A1A1A0A0A/A/A/A.A.A-A-A-A,A,A,A+A+A+A*A*A*A*A)A)A)A)A)A)A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A)A)A)A)A)A)A*A*A*A*A+A+A+A,A,A,A-A-A-A.A.A/A/A/A0A0A1A1A2A2A3A3A4A4A5A6A6A7A7A8A8A9A:A:A;A;A<A=A=A>A>A?A@A@AAABABACADADAEAEAFAGAGAHAHAIAJAJAKAKALALAMANANAOAOAPAPAQAQARARASASASATATAUAUAUAVAVAVAWAWAWAXAXAXAXAYAYAYAYAYAYAZAZAZAZAZAZAZAZAZAZAZAZAZAZAZAZAYAYAYAYAYAYAXAXAXAXAWAWAWAVAVAVAUAUAUATATASASASARARAQAQAPAPAOAOANANAMALALAKAKAJAJAIAHAHAGAGAFAEAEADADACABABAAA@A@A?A>A>A=A=A<A;A;A:A:A9A8A8A7A7A6A6A5A4A4A3A3A2A2A1A1A0A0A/A/A/A.A.A-A-A-A,A,A,A+A+A+A*A*A*A*A)A)A)A)A)A)A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A(A)A)A)A)A)A)A*A*A*A*A+A+A+A,A,A,A-A-A-A.A.A/A/A/A0A0A1A1A2A2A3A3A4A4A5A6A6A7A7A8A8A9A:A:A;A;A<A=A=A>A>A?A@A@'
+      - q: ':WAVeform:PREamble?'
+        r: '1,0,1000,1,1.000000E-6,-5.000000E-4,0.000000,1.5625E-04,-16063,32768'
+      - q: ':SYSTem:SETup?'
+        r: '#9000000010SIMSETUP01'
+    properties:
+      ch1_display:
+        default: '1'
+        getter:
+          q: ':CHANnel1:DISPlay?'
+          r: "{}"
+        setter:
+          q: ':CHANnel1:DISPlay {}'
+      ch1_probe:
+        default: '10'
+        getter:
+          q: ':CHANnel1:PROBe?'
+          r: "{}"
+        setter:
+          q: ':CHANnel1:PROBe {}'
+      ch1_units:
+        default: 'VOLT'
+        getter:
+          q: ':CHANnel1:UNITs?'
+          r: "{}"
+        setter:
+          q: ':CHANnel1:UNITs {}'
+      ch1_coupling:
+        default: 'DC'
+        getter:
+          q: ':CHANnel1:COUPling?'
+          r: "{}"
+        setter:
+          q: ':CHANnel1:COUPling {}'
+      ch1_bwlimit:
+        default: 'OFF'
+        getter:
+          q: ':CHANnel1:BWLimit?'
+          r: "{}"
+        setter:
+          q: ':CHANnel1:BWLimit {}'
+      ch1_invert:
+        default: '0'
+        getter:
+          q: ':CHANnel1:INVert?'
+          r: "{}"
+        setter:
+          q: ':CHANnel1:INVert {}'
+      ch1_vernier:
+        default: '0'
+        getter:
+          q: ':CHANnel1:VERNier?'
+          r: "{}"
+        setter:
+          q: ':CHANnel1:VERNier {}'
+      ch1_scale:
+        default: '5.000000E-01'
+        getter:
+          q: ':CHANnel1:SCALe?'
+          r: "{}"
+        setter:
+          q: ':CHANnel1:SCALe {}'
+      ch1_offset:
+        default: '0.000000E+00'
+        getter:
+          q: ':CHANnel1:OFFSet?'
+          r: "{}"
+        setter:
+          q: ':CHANnel1:OFFSet {}'
+      ch1_position:
+        default: '0.000000E+00'
+        getter:
+          q: ':CHANnel1:POSition?'
+          r: "{}"
+        setter:
+          q: ':CHANnel1:POSition {}'
+      ch1_tcal:
+        default: '0.000000'
+        getter:
+          q: ':CHANnel1:TCALibrate?'
+          r: "{}"
+        setter:
+          q: ':CHANnel1:TCALibrate {}'
+      ch1_label:
+        default: 'CH1'
+        getter:
+          q: ':CHANnel1:LABel:CONTent?'
+          r: "{}"
+        setter:
+          q: ':CHANnel1:LABel:CONTent {}'
+      ch1_label_show:
+        default: '0'
+        getter:
+          q: ':CHANnel1:LABel:SHOW?'
+          r: "{}"
+        setter:
+          q: ':CHANnel1:LABel:SHOW {}'
+      ch2_display:
+        default: '0'
+        getter:
+          q: ':CHANnel2:DISPlay?'
+          r: "{}"
+        setter:
+          q: ':CHANnel2:DISPlay {}'
+      ch2_probe:
+        default: '10'
+        getter:
+          q: ':CHANnel2:PROBe?'
+          r: "{}"
+        setter:
+          q: ':CHANnel2:PROBe {}'
+      ch2_units:
+        default: 'VOLT'
+        getter:
+          q: ':CHANnel2:UNITs?'
+          r: "{}"
+        setter:
+          q: ':CHANnel2:UNITs {}'
+      ch2_coupling:
+        default: 'DC'
+        getter:
+          q: ':CHANnel2:COUPling?'
+          r: "{}"
+        setter:
+          q: ':CHANnel2:COUPling {}'
+      ch2_bwlimit:
+        default: 'OFF'
+        getter:
+          q: ':CHANnel2:BWLimit?'
+          r: "{}"
+        setter:
+          q: ':CHANnel2:BWLimit {}'
+      ch2_invert:
+        default: '0'
+        getter:
+          q: ':CHANnel2:INVert?'
+          r: "{}"
+        setter:
+          q: ':CHANnel2:INVert {}'
+      ch2_vernier:
+        default: '0'
+        getter:
+          q: ':CHANnel2:VERNier?'
+          r: "{}"
+        setter:
+          q: ':CHANnel2:VERNier {}'
+      ch2_scale:
+        default: '5.000000E-01'
+        getter:
+          q: ':CHANnel2:SCALe?'
+          r: "{}"
+        setter:
+          q: ':CHANnel2:SCALe {}'
+      ch2_offset:
+        default: '0.000000E+00'
+        getter:
+          q: ':CHANnel2:OFFSet?'
+          r: "{}"
+        setter:
+          q: ':CHANnel2:OFFSet {}'
+      ch2_position:
+        default: '0.000000E+00'
+        getter:
+          q: ':CHANnel2:POSition?'
+          r: "{}"
+        setter:
+          q: ':CHANnel2:POSition {}'
+      ch2_tcal:
+        default: '0.000000'
+        getter:
+          q: ':CHANnel2:TCALibrate?'
+          r: "{}"
+        setter:
+          q: ':CHANnel2:TCALibrate {}'
+      ch2_label:
+        default: 'CH2'
+        getter:
+          q: ':CHANnel2:LABel:CONTent?'
+          r: "{}"
+        setter:
+          q: ':CHANnel2:LABel:CONTent {}'
+      ch2_label_show:
+        default: '0'
+        getter:
+          q: ':CHANnel2:LABel:SHOW?'
+          r: "{}"
+        setter:
+          q: ':CHANnel2:LABel:SHOW {}'
+      ch3_display:
+        default: '0'
+        getter:
+          q: ':CHANnel3:DISPlay?'
+          r: "{}"
+        setter:
+          q: ':CHANnel3:DISPlay {}'
+      ch3_probe:
+        default: '10'
+        getter:
+          q: ':CHANnel3:PROBe?'
+          r: "{}"
+        setter:
+          q: ':CHANnel3:PROBe {}'
+      ch3_units:
+        default: 'VOLT'
+        getter:
+          q: ':CHANnel3:UNITs?'
+          r: "{}"
+        setter:
+          q: ':CHANnel3:UNITs {}'
+      ch3_coupling:
+        default: 'DC'
+        getter:
+          q: ':CHANnel3:COUPling?'
+          r: "{}"
+        setter:
+          q: ':CHANnel3:COUPling {}'
+      ch3_bwlimit:
+        default: 'OFF'
+        getter:
+          q: ':CHANnel3:BWLimit?'
+          r: "{}"
+        setter:
+          q: ':CHANnel3:BWLimit {}'
+      ch3_invert:
+        default: '0'
+        getter:
+          q: ':CHANnel3:INVert?'
+          r: "{}"
+        setter:
+          q: ':CHANnel3:INVert {}'
+      ch3_vernier:
+        default: '0'
+        getter:
+          q: ':CHANnel3:VERNier?'
+          r: "{}"
+        setter:
+          q: ':CHANnel3:VERNier {}'
+      ch3_scale:
+        default: '5.000000E-01'
+        getter:
+          q: ':CHANnel3:SCALe?'
+          r: "{}"
+        setter:
+          q: ':CHANnel3:SCALe {}'
+      ch3_offset:
+        default: '0.000000E+00'
+        getter:
+          q: ':CHANnel3:OFFSet?'
+          r: "{}"
+        setter:
+          q: ':CHANnel3:OFFSet {}'
+      ch3_position:
+        default: '0.000000E+00'
+        getter:
+          q: ':CHANnel3:POSition?'
+          r: "{}"
+        setter:
+          q: ':CHANnel3:POSition {}'
+      ch3_tcal:
+        default: '0.000000'
+        getter:
+          q: ':CHANnel3:TCALibrate?'
+          r: "{}"
+        setter:
+          q: ':CHANnel3:TCALibrate {}'
+      ch3_label:
+        default: 'CH3'
+        getter:
+          q: ':CHANnel3:LABel:CONTent?'
+          r: "{}"
+        setter:
+          q: ':CHANnel3:LABel:CONTent {}'
+      ch3_label_show:
+        default: '0'
+        getter:
+          q: ':CHANnel3:LABel:SHOW?'
+          r: "{}"
+        setter:
+          q: ':CHANnel3:LABel:SHOW {}'
+      ch4_display:
+        default: '0'
+        getter:
+          q: ':CHANnel4:DISPlay?'
+          r: "{}"
+        setter:
+          q: ':CHANnel4:DISPlay {}'
+      ch4_probe:
+        default: '10'
+        getter:
+          q: ':CHANnel4:PROBe?'
+          r: "{}"
+        setter:
+          q: ':CHANnel4:PROBe {}'
+      ch4_units:
+        default: 'VOLT'
+        getter:
+          q: ':CHANnel4:UNITs?'
+          r: "{}"
+        setter:
+          q: ':CHANnel4:UNITs {}'
+      ch4_coupling:
+        default: 'DC'
+        getter:
+          q: ':CHANnel4:COUPling?'
+          r: "{}"
+        setter:
+          q: ':CHANnel4:COUPling {}'
+      ch4_bwlimit:
+        default: 'OFF'
+        getter:
+          q: ':CHANnel4:BWLimit?'
+          r: "{}"
+        setter:
+          q: ':CHANnel4:BWLimit {}'
+      ch4_invert:
+        default: '0'
+        getter:
+          q: ':CHANnel4:INVert?'
+          r: "{}"
+        setter:
+          q: ':CHANnel4:INVert {}'
+      ch4_vernier:
+        default: '0'
+        getter:
+          q: ':CHANnel4:VERNier?'
+          r: "{}"
+        setter:
+          q: ':CHANnel4:VERNier {}'
+      ch4_scale:
+        default: '5.000000E-01'
+        getter:
+          q: ':CHANnel4:SCALe?'
+          r: "{}"
+        setter:
+          q: ':CHANnel4:SCALe {}'
+      ch4_offset:
+        default: '0.000000E+00'
+        getter:
+          q: ':CHANnel4:OFFSet?'
+          r: "{}"
+        setter:
+          q: ':CHANnel4:OFFSet {}'
+      ch4_position:
+        default: '0.000000E+00'
+        getter:
+          q: ':CHANnel4:POSition?'
+          r: "{}"
+        setter:
+          q: ':CHANnel4:POSition {}'
+      ch4_tcal:
+        default: '0.000000'
+        getter:
+          q: ':CHANnel4:TCALibrate?'
+          r: "{}"
+        setter:
+          q: ':CHANnel4:TCALibrate {}'
+      ch4_label:
+        default: 'CH4'
+        getter:
+          q: ':CHANnel4:LABel:CONTent?'
+          r: "{}"
+        setter:
+          q: ':CHANnel4:LABel:CONTent {}'
+      ch4_label_show:
+        default: '0'
+        getter:
+          q: ':CHANnel4:LABel:SHOW?'
+          r: "{}"
+        setter:
+          q: ':CHANnel4:LABel:SHOW {}'
+      wav_mode:
+        default: 'NORM'
+        getter:
+          q: ':WAVeform:MODE?'
+          r: "{}"
+        setter:
+          q: ':WAVeform:MODE {}'
+      wav_source:
+        default: 'CHAN1'
+        getter:
+          q: ':WAVeform:SOURce?'
+          r: "{}"
+        setter:
+          q: ':WAVeform:SOURce {}'
+      wav_format:
+        default: 'WORD'
+        getter:
+          q: ':WAVeform:FORMat?'
+          r: "{}"
+        setter:
+          q: ':WAVeform:FORMat {}'
+      wav_start:
+        default: '1'
+        getter:
+          q: ':WAVeform:STARt?'
+          r: "{}"
+        setter:
+          q: ':WAVeform:STARt {}'
+      wav_stop:
+        default: '1000'
+        getter:
+          q: ':WAVeform:STOP?'
+          r: "{}"
+        setter:
+          q: ':WAVeform:STOP {}'
+      tim_mode:
+        default: 'MAIN'
+        getter:
+          q: ':TIMebase:MODE?'
+          r: "{}"
+        setter:
+          q: ':TIMebase:MODE {}'
+      tim_scale:
+        default: '1.000000E-4'
+        getter:
+          q: ':TIMebase:MAIN:SCALe?'
+          r: "{}"
+        setter:
+          q: ':TIMebase:MAIN:SCALe {}'
+      tim_offset:
+        default: '0.000000'
+        getter:
+          q: ':TIMebase:MAIN:OFFSet?'
+          r: "{}"
+        setter:
+          q: ':TIMebase:MAIN:OFFSet {}'
+      tim_href:
+        default: 'CENT'
+        getter:
+          q: ':TIMebase:HREFerence:MODE?'
+          r: "{}"
+        setter:
+          q: ':TIMebase:HREFerence:MODE {}'
+      tim_href_pos:
+        default: '0'
+        getter:
+          q: ':TIMebase:HREFerence:POSition?'
+          r: "{}"
+        setter:
+          q: ':TIMebase:HREFerence:POSition {}'
+      tim_vernier:
+        default: '0'
+        getter:
+          q: ':TIMebase:VERNier?'
+          r: "{}"
+        setter:
+          q: ':TIMebase:VERNier {}'
+      tim_roll:
+        default: '1'
+        getter:
+          q: ':TIMebase:ROLL?'
+          r: "{}"
+        setter:
+          q: ':TIMebase:ROLL {}'
+      tim_delay:
+        default: '0'
+        getter:
+          q: ':TIMebase:DELay:ENABle?'
+          r: "{}"
+        setter:
+          q: ':TIMebase:DELay:ENABle {}'
+      tim_delay_scale:
+        default: '5.000000E-5'
+        getter:
+          q: ':TIMebase:DELay:SCALe?'
+          r: "{}"
+        setter:
+          q: ':TIMebase:DELay:SCALe {}'
+      tim_delay_offset:
+        default: '0.000000'
+        getter:
+          q: ':TIMebase:DELay:OFFSet?'
+          r: "{}"
+        setter:
+          q: ':TIMebase:DELay:OFFSet {}'
+      acq_type:
+        default: 'NORM'
+        getter:
+          q: ':ACQuire:TYPE?'
+          r: "{}"
+        setter:
+          q: ':ACQuire:TYPE {}'
+      acq_aver:
+        default: '2'
+        getter:
+          q: ':ACQuire:AVERages?'
+          r: "{}"
+        setter:
+          q: ':ACQuire:AVERages {}'
+      acq_mdep:
+        default: '1.0000E+06'
+        getter:
+          q: ':ACQuire:MDEPth?'
+          r: "{}"
+        setter:
+          q: ':ACQuire:MDEPth {}'
+      trig_mode:
+        default: 'EDGE'
+        getter:
+          q: ':TRIGger:MODE?'
+          r: "{}"
+        setter:
+          q: ':TRIGger:MODE {}'
+      trig_sweep:
+        default: 'AUTO'
+        getter:
+          q: ':TRIGger:SWEep?'
+          r: "{}"
+        setter:
+          q: ':TRIGger:SWEep {}'
+      trig_coupling:
+        default: 'DC'
+        getter:
+          q: ':TRIGger:COUPling?'
+          r: "{}"
+        setter:
+          q: ':TRIGger:COUPling {}'
+      trig_holdoff:
+        default: '8.000000E-9'
+        getter:
+          q: ':TRIGger:HOLDoff?'
+          r: "{}"
+        setter:
+          q: ':TRIGger:HOLDoff {}'
+      trig_nrej:
+        default: '0'
+        getter:
+          q: ':TRIGger:NREJect?'
+          r: "{}"
+        setter:
+          q: ':TRIGger:NREJect {}'
+      trig_edge_source:
+        default: 'CHAN1'
+        getter:
+          q: ':TRIGger:EDGE:SOURce?'
+          r: "{}"
+        setter:
+          q: ':TRIGger:EDGE:SOURce {}'
+      trig_edge_slope:
+        default: 'POS'
+        getter:
+          q: ':TRIGger:EDGE:SLOPe?'
+          r: "{}"
+        setter:
+          q: ':TRIGger:EDGE:SLOPe {}'
+      trig_edge_level:
+        default: '0.000000'
+        getter:
+          q: ':TRIGger:EDGE:LEVel?'
+          r: "{}"
+        setter:
+          q: ':TRIGger:EDGE:LEVel {}'
+      trig_pulse_source:
+        default: 'CHAN1'
+        getter:
+          q: ':TRIGger:PULSe:SOURce?'
+          r: "{}"
+        setter:
+          q: ':TRIGger:PULSe:SOURce {}'
+      trig_pulse_polarity:
+        default: 'POS'
+        getter:
+          q: ':TRIGger:PULSe:POLarity?'
+          r: "{}"
+        setter:
+          q: ':TRIGger:PULSe:POLarity {}'
+      trig_pulse_when:
+        default: 'GRE'
+        getter:
+          q: ':TRIGger:PULSe:WHEN?'
+          r: "{}"
+        setter:
+          q: ':TRIGger:PULSe:WHEN {}'
+      trig_pulse_uwidth:
+        default: '2.000000E-6'
+        getter:
+          q: ':TRIGger:PULSe:UWIDth?'
+          r: "{}"
+        setter:
+          q: ':TRIGger:PULSe:UWIDth {}'
+      trig_pulse_lwidth:
+        default: '1.000000E-6'
+        getter:
+          q: ':TRIGger:PULSe:LWIDth?'
+          r: "{}"
+        setter:
+          q: ':TRIGger:PULSe:LWIDth {}'
+      trig_pulse_level:
+        default: '0.000000'
+        getter:
+          q: ':TRIGger:PULSe:LEVel?'
+          r: "{}"
+        setter:
+          q: ':TRIGger:PULSe:LEVel {}'
+      meas_thr_type:
+        default: 'PERC'
+        getter:
+          q: ':MEASure:THReshold:TYPE?'
+          r: "{}"
+        setter:
+          q: ':MEASure:THReshold:TYPE {}'
+      meas_max:
+        default: '9.000000E+01'
+        getter:
+          q: ':MEASure:SETup:MAX?'
+          r: "{}"
+        setter:
+          q: ':MEASure:SETup:MAX {}'
+      meas_mid:
+        default: '5.000000E+01'
+        getter:
+          q: ':MEASure:SETup:MID?'
+          r: "{}"
+        setter:
+          q: ':MEASure:SETup:MID {}'
+      meas_min:
+        default: '1.000000E+01'
+        getter:
+          q: ':MEASure:SETup:MIN?'
+          r: "{}"
+        setter:
+          q: ':MEASure:SETup:MIN {}'
+      meas_amp:
+        default: 'AUTO'
+        getter:
+          q: ':MEASure:AMP:TYPE?'
+          r: "{}"
+        setter:
+          q: ':MEASure:AMP:TYPE {}'
+      meas_area:
+        default: 'MAIN'
+        getter:
+          q: ':MEASure:AREA?'
+          r: "{}"
+        setter:
+          q: ':MEASure:AREA {}'
+      meas_stat_count:
+        default: '1000'
+        getter:
+          q: ':MEASure:STATistic:COUNt?'
+          r: "{}"
+        setter:
+          q: ':MEASure:STATistic:COUNt {}'
+      meas_stat_disp:
+        default: '0'
+        getter:
+          q: ':MEASure:STATistic:DISPlay?'
+          r: "{}"
+        setter:
+          q: ':MEASure:STATistic:DISPlay {}'
+      coun_enab:
+        default: '0'
+        getter:
+          q: ':COUNter:ENABle?'
+          r: "{}"
+        setter:
+          q: ':COUNter:ENABle {}'
+      coun_source:
+        default: 'CHAN1'
+        getter:
+          q: ':COUNter:SOURce?'
+          r: "{}"
+        setter:
+          q: ':COUNter:SOURce {}'
+      coun_mode:
+        default: 'FREQ'
+        getter:
+          q: ':COUNter:MODE?'
+          r: "{}"
+        setter:
+          q: ':COUNter:MODE {}'
+      coun_digits:
+        default: '4'
+        getter:
+          q: ':COUNter:NDIGits?'
+          r: "{}"
+        setter:
+          q: ':COUNter:NDIGits {}'
+      coun_tot:
+        default: '0'
+        getter:
+          q: ':COUNter:TOTalize:ENABle?'
+          r: "{}"
+        setter:
+          q: ':COUNter:TOTalize:ENABle {}'
+      dvm_enab:
+        default: '0'
+        getter:
+          q: ':DVM:ENABle?'
+          r: "{}"
+        setter:
+          q: ':DVM:ENABle {}'
+      dvm_source:
+        default: 'CHAN1'
+        getter:
+          q: ':DVM:SOURce?'
+          r: "{}"
+        setter:
+          q: ':DVM:SOURce {}'
+      dvm_mode:
+        default: 'ACRM'
+        getter:
+          q: ':DVM:MODE?'
+          r: "{}"
+        setter:
+          q: ':DVM:MODE {}'
+      awg_output:
+        default: '0'
+        getter:
+          q: ':SOURce:OUTPut:STATe?'
+          r: "{}"
+        setter:
+          q: ':SOURce:OUTPut:STATe {}'
+      awg_function:
+        default: 'SIN'
+        getter:
+          q: ':SOURce:FUNCtion?'
+          r: "{}"
+        setter:
+          q: ':SOURce:FUNCtion {}'
+      awg_frequency:
+        default: '1.000000E+3'
+        getter:
+          q: ':SOURce:FREQuency?'
+          r: "{}"
+        setter:
+          q: ':SOURce:FREQuency {}'
+      awg_amplitude:
+        default: '2.000000E0'
+        getter:
+          q: ':SOURce:VOLTage:AMPLitude?'
+          r: "{}"
+        setter:
+          q: ':SOURce:VOLTage:AMPLitude {}'
+      awg_offset:
+        default: '0.000000'
+        getter:
+          q: ':SOURce:VOLTage:OFFSet?'
+          r: "{}"
+        setter:
+          q: ':SOURce:VOLTage:OFFSet {}'
+      awg_phase:
+        default: '0.000000'
+        getter:
+          q: ':SOURce:PHASe?'
+          r: "{}"
+        setter:
+          q: ':SOURce:PHASe {}'
+      awg_symmetry:
+        default: '5.000000E+1'
+        getter:
+          q: ':SOURce:FUNCtion:RAMP:SYMMetry?'
+          r: "{}"
+        setter:
+          q: ':SOURce:FUNCtion:RAMP:SYMMetry {}'
+      awg_duty:
+        default: '5.000000E+1'
+        getter:
+          q: ':SOURce:FUNCtion:SQUare:DUTY?'
+          r: "{}"
+        setter:
+          q: ':SOURce:FUNCtion:SQUare:DUTY {}'
+      awg_mod:
+        default: '0'
+        getter:
+          q: ':SOURce:MOD:STATe?'
+          r: "{}"
+        setter:
+          q: ':SOURce:MOD:STATe {}'
+      awg_mod_type:
+        default: 'AM'
+        getter:
+          q: ':SOURce:MOD:TYPe?'
+          r: "{}"
+        setter:
+          q: ':SOURce:MOD:TYPe {}'
+      awg_am_depth:
+        default: '1.000000E+2'
+        getter:
+          q: ':SOURce:MOD:AM:DEPTh?'
+          r: "{}"
+        setter:
+          q: ':SOURce:MOD:AM:DEPTh {}'
+      awg_fm_dev:
+        default: '1.000000E+3'
+        getter:
+          q: ':SOURce:MOD:FM:DEViation?'
+          r: "{}"
+        setter:
+          q: ':SOURce:MOD:FM:DEViation {}'
+      awg_pm_dev:
+        default: '9.000000E+1'
+        getter:
+          q: ':SOURce:MOD:PM:DEViation?'
+          r: "{}"
+        setter:
+          q: ':SOURce:MOD:PM:DEViation {}'
+      awg_am_freq:
+        default: '1.000000E+2'
+        getter:
+          q: ':SOURce:MOD:AM:INTernal:FREQ?'
+          r: "{}"
+        setter:
+          q: ':SOURce:MOD:AM:INTernal:FREQ {}'
+      awg_am_func:
+        default: 'SIN'
+        getter:
+          q: ':SOURce:MOD:AM:INTernal:FUNCtion?'
+          r: "{}"
+        setter:
+          q: ':SOURce:MOD:AM:INTernal:FUNCtion {}'
+      awg_fm_freq:
+        default: '1.000000E+2'
+        getter:
+          q: ':SOURce:MOD:FM:INTernal:FREQ?'
+          r: "{}"
+        setter:
+          q: ':SOURce:MOD:FM:INTernal:FREQ {}'
+      awg_fm_func:
+        default: 'SIN'
+        getter:
+          q: ':SOURce:MOD:FM:INTernal:FUNCtion?'
+          r: "{}"
+        setter:
+          q: ':SOURce:MOD:FM:INTernal:FUNCtion {}'
+      awg_pm_freq:
+        default: '1.000000E+2'
+        getter:
+          q: ':SOURce:MOD:PM:INTernal:FREQ?'
+          r: "{}"
+        setter:
+          q: ':SOURce:MOD:PM:INTernal:FREQ {}'
+      awg_pm_func:
+        default: 'SIN'
+        getter:
+          q: ':SOURce:MOD:PM:INTernal:FUNCtion?'
+          r: "{}"
+        setter:
+          q: ':SOURce:MOD:PM:INTernal:FUNCtion {}'
+
+resources:
+  USB0::0x1AB1::0x044C::DHO9S000000000::INSTR:
+    device: dho900
+  TCPIP0::192.168.1.20::INSTR:
+    device: dho900
