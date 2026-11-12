@@ -81,6 +81,45 @@ def test_single_snapshot_without_idn_query(
     assert visa_handle.query.called
 
 
+def test_single_write_pacing(
+    single_supply: TeledyneT3PS30051P,
+    visa_handle: MagicMock,
+    mocker: "MockerFixture",
+) -> None:
+    elapsed = 0.0
+    ready_at = 0.0
+
+    def wait(seconds: float) -> None:
+        nonlocal elapsed
+        elapsed += seconds
+
+    def write(command: str) -> None:
+        nonlocal ready_at
+        assert elapsed >= ready_at, "Command sent before the supply was ready"
+        ready_at = elapsed + 0.1
+
+    def query(command: str) -> str:
+        assert elapsed >= ready_at, "Query sent before the write had settled"
+        return "10"
+
+    mocker.patch(
+        "qcodes_contrib_drivers.drivers.Teledyne.T3PS30051P.sleep",
+        side_effect=wait,
+    )
+    visa_handle.write.side_effect = write
+    visa_handle.query.side_effect = query
+
+    single_supply.output(False)
+    single_supply.voltage(10.0)
+    single_supply.current(0.4)
+    assert single_supply.voltage() == 10.0
+    assert visa_handle.write.call_args_list == [
+        call("OUTP CH1,OFF"),
+        call("VOLT 10.0"),
+        call("CURR 0.4"),
+    ]
+
+
 def test_multi_initialization(
     multi_supply: TeledyneT3PS3000, visa_handle: MagicMock
 ) -> None:
