@@ -120,6 +120,79 @@ def test_single_write_pacing(
     ]
 
 
+def test_multi_write_pacing(
+    multi_supply: TeledyneT3PS3000,
+    visa_handle: MagicMock,
+    mocker: "MockerFixture",
+) -> None:
+    elapsed = 0.0
+    ready_at = 0.0
+
+    def wait(seconds: float) -> None:
+        nonlocal elapsed
+        elapsed += seconds
+
+    def write(command: str) -> None:
+        nonlocal ready_at
+        assert elapsed >= ready_at, "Command sent before the supply was ready"
+        ready_at = elapsed + 0.1
+
+    def query(command: str) -> str:
+        assert elapsed >= ready_at, "Query sent before the write had settled"
+        return "10"
+
+    mocker.patch(
+        "qcodes_contrib_drivers.drivers.Teledyne.T3PS3000.sleep",
+        side_effect=wait,
+    )
+    visa_handle.write.side_effect = write
+    visa_handle.query.side_effect = query
+
+    multi_supply.ch1.output(False)
+    multi_supply.ch2.voltage(10.0)
+    multi_supply.ch3.output(False)
+    assert multi_supply.ch2.voltage() == 10.0
+    assert visa_handle.write.call_args_list == [
+        call("OUTP CH1,OFF"),
+        call("CH2:VOLT 10.0"),
+        call("OUTP CH3,OFF"),
+    ]
+
+
+def test_multi_query_pacing(
+    visa_handle: MagicMock, mocker: "MockerFixture"
+) -> None:
+    elapsed = 0.0
+    ready_at = 0.0
+
+    def wait(seconds: float) -> None:
+        nonlocal elapsed
+        elapsed += seconds
+
+    def write(command: str) -> None:
+        nonlocal ready_at
+        ready_at = elapsed + 1.0
+
+    def read() -> str:
+        assert elapsed >= ready_at, "Read started before the supply was ready"
+        return "Teledyne LeCroy,T3PS3000,456,1.0"
+
+    visa_handle.query_delay = 0.0
+    visa_handle.write.side_effect = write
+    visa_handle.read.side_effect = read
+    visa_handle.query.side_effect = lambda command: MessageBasedResource.query(
+        visa_handle, command
+    )
+    mocker.patch("pyvisa.resources.messagebased.time.sleep", side_effect=wait)
+
+    supply = TeledyneT3PS3000("paced_supply", "USB::1::INSTR")
+    try:
+        assert supply.IDN()["model"] == "T3PS3000"
+        assert visa_handle.read.call_count == 2
+    finally:
+        supply.close()
+
+
 def test_multi_initialization(
     multi_supply: TeledyneT3PS3000, visa_handle: MagicMock
 ) -> None:

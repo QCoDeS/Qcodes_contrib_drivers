@@ -1,5 +1,6 @@
 from functools import partial
 from ipaddress import IPv4Address
+from time import sleep
 from typing import TYPE_CHECKING, Self
 
 from qcodes.instrument import (
@@ -196,6 +197,10 @@ class TeledyneT3PS3000(VisaInstrument):
     CH1 and CH2 support independent, series, and parallel operation. CH3 has
     front-panel voltage selection and write-only remote output control.
     Construction and closing the connection do not change output settings.
+    Writes wait 100 ms after transmission before returning so subsequent
+    commands do not arrive too soon.
+    Queries wait one second before reading, including the initial identification
+    query, to allow the supply time to prepare its response.
 
     Args:
         name: Instrument name.
@@ -210,6 +215,7 @@ class TeledyneT3PS3000(VisaInstrument):
         self, name: str, address: str, **kwargs: "Unpack[VisaInstrumentKWArgs]"
     ) -> None:
         super().__init__(name, address, **kwargs)
+        self.visa_handle.query_delay = 1.0
         self.status: Parameter[int, Self] = self.add_parameter(
             "status",
             get_cmd="SYST:STAT?",
@@ -283,6 +289,11 @@ class TeledyneT3PS3000(VisaInstrument):
         """The two programmable channels; CH3 is exposed separately."""
 
         self.connect_message()
+
+    def write_raw(self, cmd: str) -> None:
+        """Send a command and allow the supply 100 ms to process it."""
+        super().write_raw(cmd)
+        sleep(0.1)
 
     def _get_operation_mode(self) -> int:
         bits = (self.status() >> 2) & 3
