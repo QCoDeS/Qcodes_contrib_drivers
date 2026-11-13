@@ -15,11 +15,13 @@ Where the instrument deviates from the guide, the driver follows the instrument:
 - Out-of-range values are clipped without an error (a vertical scale of 1000 V/div
   becomes 100 V/div, a generator frequency of 30 MHz becomes 25 MHz). The driver
   refuses them against the limits of the guide or, where they differ, of the
-  instrument, which depend on other settings (probe ratio, vertical scale, waveform
-  function), and reads back the settings whose limits depend on the instrument state
-  (memory depth, horizontal offset, zoom, pulse widths, delay calibration,
-  measurement thresholds): a value the instrument changed raises ``ValueError``
-  naming the value it set.
+  instrument, which depend on other settings (vertical scale, waveform function),
+  and reads back the settings whose limits depend on the instrument state (vertical
+  offset and bias, memory depth, horizontal scale and offset, zoom, pulse widths,
+  the Bode plot's frequencies): a value the instrument clipped stays set, is logged
+  as a warning and is the value cached. Delay calibration and measurement
+  thresholds, whose out-of-range values the instrument ignores rather than clips,
+  raise ``ValueError`` naming the value that remains.
 - Setting the generator above 10 MHz lowers an amplitude above 5 V to 5 V without an
   error; the driver refuses such a frequency.
 - A query the instrument rejects receives no response at all, so the client waits
@@ -68,13 +70,29 @@ Where the instrument deviates from the guide, the driver follows the instrument:
 - Binary blocks read with the termination character on (a read ends at each 0x0A
   byte of the data) intermittently stalled for a whole VISA timeout; the driver
   reads them with it off (:meth:`RigolDHO900.query_block`).
+- The Bode plot (:BODeplot) has no command that reads its results.
+  ``:BODeplot:ENABle 0`` turns the generator output off, also when the plot is off
+  already; the driver does not write it then. The sources read as CHAN1 (the guide:
+  CHANnel1); the same channel as input and output is rejected (-222), and writing
+  a source turns that channel on, even unchanged (the driver writes only a
+  change). A sweep
+  leaves the input and output channels AC-coupled. Start, stop, points and
+  amplitude out of range are clipped without an error (:class:`RigolDHO900Bode`).
+
+Besides the instrument's Bode plot (``bode``), the driver measures gain and phase
+from the waveforms (``frequency_response``, after https://github.com/wjakob/rigol):
+a least-squares sine fit at the generator frequency to the input and output traces
+of one acquisition, with the vertical scales adjusted to each signal. On a DHO914S
+its floor with an open output channel was -75 dB to -119 dB, against -51 dB to
+-65 dB of the instrument's own plot (both 2 Vpp, 100 Hz to 25 MHz).
 """
 
 from __future__ import annotations
 
-import logging
 import math
 import time
+from collections.abc import Callable, Sequence
+from functools import wraps
 from typing import TYPE_CHECKING, Any
 
 import numpy as np
@@ -88,16 +106,16 @@ from qcodes.instrument import (
     VisaInstrumentKWArgs,
 )
 from qcodes.parameters import (
+    MultiParameter,
     Parameter,
     ParameterWithSetpoints,
     create_on_off_val_mapping,
 )
-from qcodes.validators import Arrays, Enum, Ints, MultiType, Numbers, Strings
+from qcodes.validators import Arrays, Bool, Enum, Ints, MultiType, Numbers, Strings
 
 if TYPE_CHECKING:
     from typing import Unpack
 
-log = logging.getLogger(__name__)
 
 _ON_OFF = create_on_off_val_mapping(on_val="1", off_val="0")
 
@@ -208,26 +226,25 @@ def _float_or_nan(response: str) -> float:
     return math.nan if abs(value) >= _INVALID else value
 
 
-def offset_limit(scale: float, probe_ratio: float) -> float:
-    """The vertical offset (and bias) limit in V for a vertical scale in V/div at a
-    probe ratio. Measured on a DHO914S (firmware 00.01.04) at a probe ratio of 1,
-    and scaling with the ratio: +-0.5 V below 500 uV/div, +-1 V up to 58 mV/div,
-    +-8 V up to 250 mV/div, +-20 V below 2.55 V/div, +-100 V from 2.55 V/div. The
-    guide's table has the same limits with the band edges at 65 mV, 260 mV and
-    2.65 V/div."""
-    s = scale / probe_ratio
-    eps = 1e-9
-    if s < 500e-6 * (1 - eps):
-        limit = 0.5
-    elif s <= 58e-3 * (1 + eps):
-        limit = 1.0
-    elif s <= 250e-3 * (1 + eps):
-        limit = 8.0
-    elif s < 2.55 * (1 - eps):
-        limit = 20.0
-    else:
-        limit = 100.0
-    return limit * probe_ratio
+class _ReadBackParameter(Parameter):
+    """A parameter whose value the instrument clips without an error when it is out
+    of range. Its setter writes and reads back (RigolDHO900._write_checked) and leaves
+    a value the instrument changed in read_back; the cache then contains that value,
+    where QCoDeS would cache the requested one."""
+
+    read_back: float | None = None
+
+    def _wrap_set(self, set_function: Callable[..., None]) -> Callable[..., None]:
+        set_and_cache = super()._wrap_set(set_function)
+
+        @wraps(set_and_cache)
+        def set_and_read_back(value: Any, **kwargs: Any) -> None:
+            self.read_back = None
+            set_and_cache(value, **kwargs)
+            if self.read_back is not None:
+                self.cache._update_with(value=self.read_back, raw_value=self.read_back)
+
+        return set_and_read_back
 
 
 def awg_max_amplitude(frequency: float) -> float:
@@ -236,6 +253,90 @@ def awg_max_amplitude(frequency: float) -> float:
         if frequency <= corner:
             return amplitude
     return AWG_MAX_AMPLITUDE[-1][1]
+
+
+#: a sample this many divisions from the screen center or farther is clipped: the
+#: ADC range ends at +-4.369 div (DHO914S)
+CLIP_DIVISIONS = 4.3
+
+
+def log_frequencies(
+    start: float, stop: float, points_per_decade: int
+) -> npt.NDArray[np.float64]:
+    """Logarithmically spaced frequencies from start to stop: start * 10**(k / n)
+    for n points per decade, and stop. The instrument's Bode plot uses the same grid
+    (1 kHz, 1.259 kHz, 1.585 kHz, ... at 10 points per decade)."""
+    if not 0 < start < stop:
+        raise ValueError(
+            f"frequencies: start {start:g} Hz must be below stop {stop:g} Hz"
+        )
+    steps = math.floor(points_per_decade * math.log10(stop / start) + 1e-9)
+    freqs = start * 10.0 ** (np.arange(steps + 1) / points_per_decade)
+    if freqs[-1] < stop * (1 - 1e-9):
+        freqs = np.append(freqs, stop)
+    return np.asarray(freqs, dtype=np.float64)
+
+
+def memory_channels(enabled: Sequence[int]) -> tuple[int, ...]:
+    """The channels whose samples the memory contains, in its order, for the channels
+    that are on (firmware 00.01.04, DHO914S): CH1 alone with one channel on, CH1 and the
+    other channel with CH1 among two, CH1 and CH2 with two others, CH1 to CHn with n of
+    three or four. A memory read of the k-th channel that is on returns the k-th of
+    these; the memory of a channel that is on is its own only where the two agree."""
+    on = tuple(sorted(enabled))
+    if len(on) == 1:
+        return (1,)
+    if len(on) == 2:
+        return on if on[0] == 1 else (1, 2)
+    return tuple(range(1, len(on) + 1))
+
+
+def readable_channels(enabled: Sequence[int], n_channels: int = 4) -> tuple[int, ...]:
+    """The fewest channels, those that are on included, whose memory is their own
+    (memory_channels): the channels to turn on for a memory read."""
+    on = set(enabled)
+    for extra in ((), (1,), (1, 2), (1, 2, 3), tuple(range(1, n_channels + 1))):
+        candidate = tuple(sorted(on | set(extra)))
+        if memory_channels(candidate) == candidate:
+            return candidate
+    return tuple(range(1, n_channels + 1))
+
+
+def linear_frequencies(
+    start: float, stop: float, points: int
+) -> npt.NDArray[np.float64]:
+    """Equally spaced frequencies from start to stop, both included."""
+    if not 0 < start < stop:
+        raise ValueError(
+            f"frequencies: start {start:g} Hz must be below stop {stop:g} Hz"
+        )
+    return np.linspace(start, stop, points, dtype=np.float64)
+
+
+def fit_sine(
+    t: npt.ArrayLike, y: npt.ArrayLike, frequency: float
+) -> tuple[float, float, float]:
+    """Least-squares fit of y = A sin(2 pi f t + phase) + c at a known frequency f.
+
+    Returns (A, phase in rad, c). The fit rejects noise and harmonics that a peak or
+    zero-crossing measurement picks up, and needs no whole number of periods."""
+    t = np.asarray(t, dtype=np.float64)
+    y = np.asarray(y, dtype=np.float64)
+    w = 2 * np.pi * frequency
+    design = np.column_stack([np.sin(w * t), np.cos(w * t), np.ones_like(t)])
+    (b, a, c), *_ = np.linalg.lstsq(design, y, rcond=None)
+    return float(np.hypot(a, b)), float(np.arctan2(a, b)), float(c)
+
+
+def scale_125(value: float) -> float:
+    """The smallest value of the 1-2-5 sequence (..., 1, 2, 5, 10, ...) at or above
+    value."""
+    exponent = math.floor(math.log10(value))
+    for mantissa in (1, 2, 5, 10):
+        candidate = mantissa * 10.0**exponent
+        if candidate >= value * (1 - 1e-9):
+            return candidate
+    return 10.0 ** (exponent + 1)
 
 
 class RigolDHO900Channel(InstrumentChannel["RigolDHO900"]):
@@ -333,6 +434,7 @@ class RigolDHO900Channel(InstrumentChannel["RigolDHO900"]):
 
         self.offset: Parameter = self.add_parameter(
             "offset",
+            parameter_class=_ReadBackParameter,
             label="Vertical offset",
             unit="V",
             get_cmd=f"{prefix}:OFFSet?",
@@ -341,10 +443,13 @@ class RigolDHO900Channel(InstrumentChannel["RigolDHO900"]):
             vals=Numbers(),
         )
         """Vertical offset: shifts the waveform on the display; the voltage at the
-        screen center is -offset. Its range depends on the scale and probe ratio."""
+        screen center is -offset. Its range depends on the scale and probe ratio; the
+        instrument clips a value outside it, which is logged as a warning, and the
+        clipped value is the one cached."""
 
         self.bias: Parameter = self.add_parameter(
             "bias",
+            parameter_class=_ReadBackParameter,
             label="Bias voltage",
             unit="V",
             get_cmd=f"{prefix}:POSition?",
@@ -353,7 +458,7 @@ class RigolDHO900Channel(InstrumentChannel["RigolDHO900"]):
             vals=Numbers(),
         )
         """Bias voltage (:CHANnel<n>:POSition): added to the waveform data and to the
-        measurements, unlike offset. Same range as offset."""
+        measurements, unlike offset. Same range and clipping as offset."""
 
         self.delay_calibration: Parameter = self.add_parameter(
             "delay_calibration",
@@ -392,7 +497,7 @@ class RigolDHO900Channel(InstrumentChannel["RigolDHO900"]):
             "enabled",
             label=f"Channel {channel} on",
             get_cmd=f"{prefix}:DISPlay?",
-            set_cmd=f"{prefix}:DISPlay {{}}",
+            set_cmd=self._set_enabled,
             val_mapping=_ON_OFF,
         )
         """Whether the channel is on. While it is off, the instrument ignores changes
@@ -437,6 +542,11 @@ class RigolDHO900Channel(InstrumentChannel["RigolDHO900"]):
         """Whether the channel is on (queried)."""
         return self.ask(f"{self._prefix}:DISPlay?").strip() == "1"
 
+    def _set_enabled(self, value: str) -> None:
+        self.write(f"{self._prefix}:DISPlay {value}")
+        # the instrument reconfigures the acquisition; digitize() allows for it
+        self.root_instrument._channels_changed = time.monotonic()
+
     def _require_on_unless_unchanged(self, node: str, value: float, what: str) -> bool:
         """For a channel that is off, which ignores scale and offset changes: True if
         value is the current one (nothing to write), else ValueError. False for a
@@ -463,33 +573,41 @@ class RigolDHO900Channel(InstrumentChannel["RigolDHO900"]):
             return
         self.write(f"{self._prefix}:SCALe {value:.6e}")
 
-    def _check_offset_range(self, value: float, what: str) -> None:
-        ratio = float(self.ask(f"{self._prefix}:PROBe?"))
+    def _write_in_range(self, node: str, value: float, param: Parameter) -> None:
+        """Write offset or bias and read it back. The instrument clips a value outside
+        the range of the scale and probe ratio without an error, and that range is
+        not predictable from the scale alone (it differs between channels and with
+        the bandwidth limit): a clipped value stays set, is logged as a warning and
+        is the value cached (_ReadBackParameter)."""
+        header = f"{self._prefix}:{node}"
+        self.write(f"{header} {value:.6e}")
+        actual = float(self.ask(f"{header}?"))
+        if math.isclose(actual, value, rel_tol=_READBACK_RTOL, abs_tol=1e-12):
+            return
+        param.read_back = actual  # type: ignore[attr-defined]
         scale = float(self.ask(f"{self._prefix}:SCALe?"))
-        limit = offset_limit(scale, ratio)
-        if abs(value) > limit * (1 + 1e-9):
-            raise ValueError(
-                f"{self.full_name}: {what} {value} V is outside +-{limit:g} V at "
-                f"{scale:g} V/div and probe ratio {ratio:g}"
-            )
+        ratio = float(self.ask(f"{self._prefix}:PROBe?"))
+        self.log.warning(
+            "%s %g V is outside the range at %g V/div and probe ratio %g; the "
+            "instrument set %g V",
+            param.name, value, scale, ratio, actual,
+        )
 
     def _set_offset(self, value: float) -> None:
-        self._check_offset_range(value, "offset")
         if self._require_on_unless_unchanged("OFFSet", value, "offset"):
             return
-        self.write(f"{self._prefix}:OFFSet {value:.6e}")
+        self._write_in_range("OFFSet", value, self.offset)
 
     def _set_delay_calibration(self, value: float) -> None:
         current = float(self.ask(f"{self._prefix}:TCALibrate?"))
         if math.isclose(current, value, rel_tol=_READBACK_RTOL, abs_tol=1e-15):
             return
-        self.root_instrument._write_checked(
+        self.root_instrument._write_or_raise(
             f"{self._prefix}:TCALibrate", value, self.delay_calibration
         )
 
     def _set_bias(self, value: float) -> None:
-        self._check_offset_range(value, "bias")
-        self.write(f"{self._prefix}:POSition {value:.6e}")
+        self._write_in_range("POSition", value, self.bias)
 
     def _get_trace(self) -> npt.NDArray[np.float64]:
         if not self.is_on():
@@ -566,19 +684,23 @@ class RigolDHO900Waveform(InstrumentModule["RigolDHO900"]):
         )  # fmt: skip
         return {key: float(value) for key, value in zip(keys, fields, strict=True)}
 
-    def _source_for_axis(self) -> str:
-        # the preamble of a channel that is off has 0 points; all channels that are
-        # on share the time axis
+    def _axis_preamble(self) -> dict[str, float]:
+        # the preamble of a channel that is off has 0 points, and so has that of a
+        # channel turned on after the acquisition stopped (normal mode); all channels
+        # with samples share the time axis
+        pre = None
         for channel in self.root_instrument.channels:
             if channel.is_on():
-                return channel.source_name
-        return "CHANnel1"
+                pre = self.preamble(channel.source_name)
+                if pre["points"] > 0:
+                    return pre
+        return pre if pre is not None else self.preamble("CHANnel1")
 
     def _get_points(self) -> int:
-        return int(self.preamble(self._source_for_axis())["points"])
+        return int(self._axis_preamble()["points"])
 
     def _get_time_axis(self) -> npt.NDArray[np.float64]:
-        pre = self.preamble(self._source_for_axis())
+        pre = self._axis_preamble()
         n = int(pre["points"])
         times = pre["xorigin"] + (np.arange(n) - pre["xreference"]) * pre["xincrement"]
         return np.asarray(times, dtype=np.float64)
@@ -587,15 +709,58 @@ class RigolDHO900Waveform(InstrumentModule["RigolDHO900"]):
         # type 2: raw; type 1 (maximum) reads the memory only while stopped
         return int(pre["type"]) == 2
 
+    def _check_memory(self, source: str) -> None:
+        """Refuse a memory read of a channel whose memory is not its own: the
+        instrument records other channels than those that are on for some sets of
+        channels (memory_channels), and a memory read follows the channels on now, not
+        those of the acquisition."""
+        root = self.root_instrument
+        if not source.upper().startswith("CHAN"):
+            return
+        on = tuple(n for n, ch in enumerate(root.channels, 1) if ch.is_on())
+        if memory_channels(on) != on:
+            names = ", ".join(f"CH{n}" for n in on)
+            turn_on = ", ".join(
+                f"CH{n}" for n in readable_channels(on, root.n_channels) if n not in on
+            )
+            raise RuntimeError(
+                f"{self.full_name}: with {names} on, the instrument records "
+                f"{', '.join(f'CH{n}' for n in memory_channels(on))} into the memory, "
+                f"not the channels that are on: turn on {turn_on} and acquire again, "
+                "or read the display (mode normal)"
+            )
+        acquired = root._acquired_channels
+        if acquired is not None and acquired != on:
+            raise RuntimeError(
+                f"{self.full_name}: channels were turned on or off after the "
+                "acquisition, which moves the memory of the others: acquire again"
+            )
+
     def read(self, source: str) -> npt.NDArray[np.float64]:
         """Read the waveform of a source (:WAVeform:SOURce syntax) in V."""
+        return self.read_with_preamble(source)[0]
+
+    def read_with_preamble(
+        self, source: str
+    ) -> tuple[npt.NDArray[np.float64], dict[str, float]]:
+        """Read the waveform of a source in V, with the preamble of the read (see
+        preamble()) for its time axis."""
         pre = self.preamble(source)
-        if self._needs_stop(pre) and self.ask(":TRIGger:STATus?").strip() != "STOP":
+        stopped = self.ask(":TRIGger:STATus?").strip() == "STOP"
+        if self._needs_stop(pre) and not stopped:
             raise RuntimeError(
                 f"{self.full_name}: the memory (raw mode) can only be read while the "
                 "acquisition is stopped: call stop() or digitize() first"
             )
+        # raw, or maximum while stopped: the memory
+        if stopped and self.ask(":WAVeform:MODE?").strip() in ("RAW", "MAX"):
+            self._check_memory(source)
         n = int(pre["points"])
+        if n == 0:
+            raise RuntimeError(
+                f"{self.full_name}: {source} has no samples in the stopped acquisition "
+                "(the channel was turned on after it): acquire again"
+            )
         raw = np.empty(n, dtype=np.uint16)
         chunk = self.chunk_points
         for first in range(0, n, chunk):
@@ -612,7 +777,7 @@ class RigolDHO900Waveform(InstrumentModule["RigolDHO900"]):
                 )
             raw[first:last] = block
         volts = (raw - pre["yorigin"] - pre["yreference"]) * pre["yincrement"]
-        return np.asarray(volts, dtype=np.float64)
+        return np.asarray(volts, dtype=np.float64), pre
 
 
 class RigolDHO900Timebase(InstrumentModule["RigolDHO900"]):
@@ -634,6 +799,7 @@ class RigolDHO900Timebase(InstrumentModule["RigolDHO900"]):
 
         self.scale: Parameter = self.add_parameter(
             "scale",
+            parameter_class=_ReadBackParameter,
             label="Horizontal scale",
             unit="s/div",
             get_cmd=":TIMebase:MAIN:SCALe?",
@@ -647,6 +813,7 @@ class RigolDHO900Timebase(InstrumentModule["RigolDHO900"]):
 
         self.offset: Parameter = self.add_parameter(
             "offset",
+            parameter_class=_ReadBackParameter,
             label="Horizontal offset",
             unit="s",
             get_cmd=":TIMebase:MAIN:OFFSet?",
@@ -657,7 +824,8 @@ class RigolDHO900Timebase(InstrumentModule["RigolDHO900"]):
             vals=Numbers(),
         )
         """Time of the screen center relative to the trigger. Its range depends on
-        the scale and the run state; a value the instrument changes raises."""
+        the scale and the run state; a value the instrument clips is logged as a
+        warning and cached as clipped."""
 
         self.reference: Parameter = self.add_parameter(
             "reference",
@@ -714,6 +882,7 @@ class RigolDHO900Timebase(InstrumentModule["RigolDHO900"]):
 
         self.delay_scale: Parameter = self.add_parameter(
             "delay_scale",
+            parameter_class=_ReadBackParameter,
             label="Zoom scale",
             unit="s/div",
             get_cmd=":TIMebase:DELay:SCALe?",
@@ -727,6 +896,7 @@ class RigolDHO900Timebase(InstrumentModule["RigolDHO900"]):
 
         self.delay_offset: Parameter = self.add_parameter(
             "delay_offset",
+            parameter_class=_ReadBackParameter,
             label="Zoom offset",
             unit="s",
             get_cmd=":TIMebase:DELay:OFFSet?",
@@ -777,6 +947,7 @@ class RigolDHO900Acquisition(InstrumentModule["RigolDHO900"]):
 
         self.memory_depth: Parameter = self.add_parameter(
             "memory_depth",
+            parameter_class=_ReadBackParameter,
             label="Memory depth",
             unit="pts",
             get_cmd=":ACQuire:MDEPth?",
@@ -787,7 +958,8 @@ class RigolDHO900Acquisition(InstrumentModule["RigolDHO900"]):
         """Points per acquisition: "auto" or 1e3, 1e4, 1e5, 1e6, 1e7, 2.5e7, 5e7. The
         largest depth depends on the number of channels on (DHO900: 50M for one,
         25M for two, 10M for three or four). A read returns the depth in use, also
-        in auto. A depth the instrument does not accept raises."""
+        in auto. A depth the instrument does not accept is replaced by the one it
+        sets, which is logged as a warning and cached."""
 
         self.sample_rate: Parameter = self.add_parameter(
             "sample_rate",
@@ -966,6 +1138,7 @@ class RigolDHO900Trigger(InstrumentModule["RigolDHO900"]):
 
         self.pulse_upper_width: Parameter = self.add_parameter(
             "pulse_upper_width",
+            parameter_class=_ReadBackParameter,
             label="Pulse upper width",
             unit="s",
             get_cmd=":TRIGger:PULSe:UWIDth?",
@@ -979,6 +1152,7 @@ class RigolDHO900Trigger(InstrumentModule["RigolDHO900"]):
 
         self.pulse_lower_width: Parameter = self.add_parameter(
             "pulse_lower_width",
+            parameter_class=_ReadBackParameter,
             label="Pulse lower width",
             unit="s",
             get_cmd=":TRIGger:PULSe:LWIDth?",
@@ -1334,6 +1508,613 @@ class RigolDHO900AWG(InstrumentModule["RigolDHO900"]):
         self.write(f":SOURce:VOLTage:OFFSet {value:.6e}")
 
 
+class RigolDHO900Bode(InstrumentModule["RigolDHO900"]):
+    """The instrument's own Bode plot (:BODeplot, DHO914S and DHO924S): it sweeps
+    the generator and draws gain and phase on the display.
+
+    The programming guide has no command that reads the results; they are available
+    only on the display (screenshot()). frequency_response measures gain and phase
+    from the waveforms instead and returns them.
+
+    While it runs, the instrument sets the input and output channels to AC coupling
+    and leaves them so, and changes their vertical scales, the time base and the
+    memory depth; the generator output is on during the sweep and off at its end.
+    Input and output must be different channels (the instrument rejects the same
+    channel, -222), and writing a source turns that channel on, also an unchanged
+    source while the plot is off (the driver writes only a change). Out-of-range
+    values are clipped without an error (a start frequency above the stop becomes
+    stop - 10 Hz, a stop below the start becomes start + 10 Hz, an amplitude of 6 V
+    becomes 1.705 V); the driver refuses values outside the guide's ranges, and a
+    start or stop frequency the instrument clips against the other is logged as a
+    warning and cached as clipped."""
+
+    def __init__(
+        self, parent: RigolDHO900, name: str, **kwargs: Unpack[InstrumentBaseKWArgs]
+    ) -> None:
+        super().__init__(parent, name, **kwargs)
+        # the instrument returns CHAN1 (the guide: CHANnel1) and accepts both forms
+        sources = {f"ch{n}": f"CHAN{n}" for n in range(1, parent.n_channels + 1)}
+
+        self.enabled: Parameter = self.add_parameter(
+            "enabled",
+            label="Bode plot shown",
+            get_cmd=":BODeplot:ENABle?",
+            set_cmd=self._set_enabled,
+            val_mapping=_ON_OFF,
+        )
+        """Whether the Bode plot window is shown. Turning it off turns the generator
+        output off; the driver therefore writes nothing when it is off already."""
+
+        self.sweep_type: Parameter = self.add_parameter(
+            "sweep_type",
+            label="Bode sweep type",
+            get_cmd=":BODeplot:SWEeptype?",
+            set_cmd=":BODeplot:SWEeptype {}",
+            val_mapping={"log": "LOG", "linear": "LINE"},
+        )
+        """Logarithmic or linear frequency steps."""
+
+        self.input_source: Parameter = self.add_parameter(
+            "input_source",
+            label="Bode input",
+            get_cmd=":BODeplot:REF:IN?",
+            set_cmd=self._source_setter(":BODeplot:REF:IN", ":BODeplot:REF:OUT?"),
+            val_mapping=sources,
+        )
+        """The channel at the input of the device under test; not the output
+        channel. A change turns the channel on."""
+
+        self.output_source: Parameter = self.add_parameter(
+            "output_source",
+            label="Bode output",
+            get_cmd=":BODeplot:REF:OUT?",
+            set_cmd=self._source_setter(":BODeplot:REF:OUT", ":BODeplot:REF:IN?"),
+            val_mapping=sources,
+        )
+        """The channel at the output of the device under test; not the input
+        channel. A change turns the channel on."""
+
+        self.start_frequency: Parameter = self.add_parameter(
+            "start_frequency",
+            parameter_class=_ReadBackParameter,
+            label="Bode start frequency",
+            unit="Hz",
+            get_cmd=":BODeplot:STARt?",
+            set_cmd=lambda value: parent._write_checked(
+                ":BODeplot:STARt", value, self.start_frequency
+            ),
+            get_parser=float,
+            vals=Numbers(10, 24.99e6),
+        )
+        """Start frequency, 10 Hz to 24.99 MHz, below the stop frequency."""
+
+        self.stop_frequency: Parameter = self.add_parameter(
+            "stop_frequency",
+            parameter_class=_ReadBackParameter,
+            label="Bode stop frequency",
+            unit="Hz",
+            get_cmd=":BODeplot:STOP?",
+            set_cmd=lambda value: parent._write_checked(
+                ":BODeplot:STOP", value, self.stop_frequency
+            ),
+            get_parser=float,
+            vals=Numbers(100, 25e6),
+        )
+        """Stop frequency, 100 Hz to 25 MHz, above the start frequency."""
+
+        self.points_per_decade: Parameter = self.add_parameter(
+            "points_per_decade",
+            label="Bode points per decade",
+            get_cmd=":BODeplot:POINts?",
+            set_cmd=":BODeplot:POINts {}",
+            get_parser=int,
+            vals=Ints(10, 300),
+        )
+        """Frequency points per decade (logarithmic sweep)."""
+
+        self.amplitude: Parameter = self.add_parameter(
+            "amplitude",
+            label="Bode amplitude",
+            unit="Vpp",
+            get_cmd=":BODeplot:VOLTage? ALL",
+            set_cmd=":BODeplot:VOLTage ALL,{:.6e}",
+            get_parser=float,
+            vals=Numbers(20e-3, 5.0),
+        )
+        """Generator amplitude of the whole sweep, 20 mV to 5 V peak-to-peak. The
+        amplitudes of the frequency ranges (:BODeplot:VOLTage <range>,<amp>) are
+        separate settings that this one does not change."""
+
+        self.running: Parameter = self.add_parameter(
+            "running",
+            label="Bode sweep in progress",
+            get_cmd=":BODeplot:RUNStop?",
+            val_mapping=_ON_OFF,
+        )
+        """Whether a sweep is in progress; start() and stop() change it."""
+
+    def _set_enabled(self, value: str) -> None:
+        # :BODeplot:ENABle 0 turns the generator output off, also when the Bode plot
+        # is off already
+        if value == "0" and self.ask(":BODeplot:ENABle?").strip() == "0":
+            return
+        self.write(f":BODeplot:ENABle {value}")
+
+    def _source_setter(self, header: str, other_query: str) -> Any:
+        # writing a source turns that channel on, also the unchanged source
+        def set_source(keyword: str) -> None:
+            if self.ask(f"{header}?").strip() == keyword:
+                return
+            if self.ask(other_query).strip() == keyword:
+                raise ValueError(
+                    f"{self.full_name}: input and output must be different channels "
+                    "(the instrument rejects the same channel)"
+                )
+            self.write(f"{header} {keyword}")
+
+        return set_source
+
+    def start(self) -> None:
+        """Show the Bode plot and start a sweep; returns immediately."""
+        self.write(":BODeplot:ENABle 1")
+        self.write(":BODeplot:RUNStop 1")
+
+    def stop(self) -> None:
+        """Stop the sweep in progress."""
+        self.write(":BODeplot:RUNStop 0")
+
+    def sweep(self, timeout: float = 3600.0, poll_interval: float = 0.5) -> float:
+        """Run one sweep and return when it has ended; returns its duration in s.
+
+        Raises TimeoutError, with the sweep stopped, if it has not ended within
+        timeout seconds. The results are shown on the display only."""
+        self.start()
+        begin = time.monotonic()
+        while True:
+            time.sleep(poll_interval)
+            elapsed = time.monotonic() - begin
+            if self.ask(":BODeplot:RUNStop?").strip() == "0":
+                return elapsed
+            if elapsed > timeout:
+                self.stop()
+                raise TimeoutError(
+                    f"{self.full_name}: sweep not ended within {timeout} s"
+                )
+
+
+class RigolDHO900ResponseParameter(MultiParameter):
+    """Gain (dB) and phase (deg) against frequency from one sweep of
+    frequency_response; the frequencies are those of its settings."""
+
+    def __init__(
+        self, name: str, instrument: RigolDHO900FrequencyResponse, **kwargs: Any
+    ) -> None:
+        super().__init__(
+            name,
+            names=("gain", "phase"),
+            shapes=((1,), (1,)),
+            instrument=instrument,
+            labels=("Gain", "Phase"),
+            units=("dB", "deg"),
+            setpoints=None,
+            setpoint_names=(("frequency",), ("frequency",)),
+            setpoint_labels=(("Frequency",), ("Frequency",)),
+            setpoint_units=(("Hz",), ("Hz",)),
+            snapshot_get=False,
+            snapshot_value=False,
+            docstring="Gain (dB) and phase (deg) of a sweep of frequency_response.",
+            **kwargs,
+        )
+        self._module = instrument
+
+    # shapes and setpoints follow the frequency settings: a measurement registers
+    # them before the sweep
+
+    @property  # type: ignore[override]
+    def shapes(self) -> tuple[tuple[int, ...], ...]:
+        n = len(self._module.frequencies())
+        return ((n,), (n,))
+
+    @shapes.setter
+    def shapes(self, value: Any) -> None:
+        pass
+
+    @property
+    def setpoints(self) -> tuple[tuple[tuple[float, ...]], ...]:
+        freqs = tuple(float(f) for f in self._module.frequencies())
+        return ((freqs,), (freqs,))
+
+    @setpoints.setter
+    def setpoints(self, value: Any) -> None:
+        pass
+
+    def get_raw(self) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]:
+        result = self._module.sweep()
+        return result["gain"], result["phase"]
+
+
+class RigolDHO900FrequencyResponse(InstrumentModule["RigolDHO900"]):
+    """Gain and phase of a device under test, measured with the generator (DHO914S,
+    DHO924S) and the waveforms of two channels, the method of
+    https://github.com/wjakob/rigol (BSD-3-Clause).
+
+    At each frequency the generator outputs a sine; one single acquisition records
+    the input and output channels over at least ``cycles`` periods, and a sine at
+    the generator's frequency is fitted to each trace by least squares (fit_sine).
+    Gain and phase are the ratio of the fitted amplitudes and the difference of the
+    fitted phases. With autoscale, the vertical scales are adjusted between
+    acquisitions so that each signal spans about 6 of the 8 divisions without
+    clipping, which keeps the 12-bit resolution over a wide range of gains.
+
+    The settings of this module are kept by the driver, not by the instrument;
+    they do not change the instrument's own Bode plot (bode)."""
+
+    #: acquisitions per frequency at most, while autoscale adjusts the scales
+    max_acquisitions = 6
+    #: the signal peak, in divisions, that autoscale aims for, and the range it
+    #: accepts without a change
+    target_divisions = 3.0
+    accepted_divisions = (1.5, 4.0)
+
+    def __init__(
+        self, parent: RigolDHO900, name: str, **kwargs: Unpack[InstrumentBaseKWArgs]
+    ) -> None:
+        super().__init__(parent, name, **kwargs)
+        channels = [f"ch{n}" for n in range(1, parent.n_channels + 1)]
+
+        self.input_source: Parameter = self.add_parameter(
+            "input_source",
+            label="Input",
+            initial_value="ch1",
+            set_cmd=None,
+            vals=Enum("awg", *channels),
+        )
+        """The channel at the input of the device under test, or "awg": the set
+        generator amplitude is the input then, and the phase is NaN."""
+
+        self.output_source: Parameter = self.add_parameter(
+            "output_source",
+            label="Output",
+            initial_value="ch2",
+            set_cmd=None,
+            vals=Enum(*channels),
+        )
+        """The channel at the output of the device under test."""
+
+        self.sweep_type: Parameter = self.add_parameter(
+            "sweep_type",
+            label="Sweep type",
+            initial_value="log",
+            set_cmd=None,
+            vals=Enum("log", "linear"),
+        )
+        """Logarithmic frequency steps (points_per_decade) or linear steps
+        (points)."""
+
+        self.start_frequency: Parameter = self.add_parameter(
+            "start_frequency",
+            label="Start frequency",
+            unit="Hz",
+            initial_value=1e3,
+            set_cmd=None,
+            vals=Numbers(0.1, 25e6),
+        )
+        """First frequency of the sweep."""
+
+        self.stop_frequency: Parameter = self.add_parameter(
+            "stop_frequency",
+            label="Stop frequency",
+            unit="Hz",
+            initial_value=1e6,
+            set_cmd=None,
+            vals=Numbers(0.1, 25e6),
+        )
+        """Last frequency of the sweep."""
+
+        self.points_per_decade: Parameter = self.add_parameter(
+            "points_per_decade",
+            label="Points per decade",
+            initial_value=10,
+            set_cmd=None,
+            vals=Ints(1, 1000),
+        )
+        """Frequency points per decade of a logarithmic sweep (log_frequencies)."""
+
+        self.points: Parameter = self.add_parameter(
+            "points",
+            label="Points",
+            initial_value=50,
+            set_cmd=None,
+            vals=Ints(2, 10000),
+        )
+        """Number of equally spaced frequency points of a linear sweep, start and
+        stop included."""
+
+        self.frequencies: Parameter = self.add_parameter(
+            "frequencies",
+            label="Frequency",
+            unit="Hz",
+            get_cmd=self._get_frequencies,
+            snapshot_value=False,
+        )
+        """The frequencies of the sweep, from sweep type, start, stop and points per
+        decade (logarithmic) or points (linear)."""
+
+        self.amplitude: Parameter = self.add_parameter(
+            "amplitude",
+            label="Generator amplitude",
+            unit="Vpp",
+            initial_value=1.0,
+            set_cmd=None,
+            vals=Numbers(AWG_MIN_AMPLITUDE, AWG_MAX_AMPLITUDE[0][1]),
+        )
+        """Peak-to-peak amplitude of the generator's sine into a high impedance; at
+        most 5 V for a sweep above 10 MHz."""
+
+        self.cycles: Parameter = self.add_parameter(
+            "cycles",
+            label="Periods per acquisition",
+            initial_value=10,
+            set_cmd=None,
+            vals=Ints(1, 10000),
+        )
+        """Periods on the screen at least: the time base is the 1-2-5 step at or
+        above cycles / frequency / 10 div. The record can extend beyond the screen
+        at fast time bases."""
+
+        self.memory_depth: Parameter = self.add_parameter(
+            "memory_depth",
+            label="Memory depth",
+            unit="pts",
+            initial_value=1e4,
+            set_cmd=None,
+            vals=Enum(*MEMORY_DEPTHS[:4]),
+        )
+        """Memory depth of the acquisitions, 1e3 to 1e6 points."""
+
+        self.settling_time: Parameter = self.add_parameter(
+            "settling_time",
+            label="Settling time",
+            unit="s",
+            initial_value=0.0,
+            set_cmd=None,
+            vals=Numbers(0, 3600),
+        )
+        """Delay between a frequency change and the acquisition, for a device under
+        test with long time constants."""
+
+        self.autoscale: Parameter = self.add_parameter(
+            "autoscale",
+            label="Adjust vertical scales",
+            initial_value=True,
+            set_cmd=None,
+            vals=Bool(),
+        )
+        """Whether the vertical scales are adjusted to each signal (see the class
+        docstring); otherwise they stay as set."""
+
+        self.response: RigolDHO900ResponseParameter = self.add_parameter(
+            "response", parameter_class=RigolDHO900ResponseParameter
+        )
+        """Gain (dB) and phase (deg) from one sweep, for the QCoDeS dataset."""
+
+        self.last_sweep: dict[str, npt.NDArray[np.float64]] | None = None
+        """The result of the most recent sweep() (see there)."""
+
+    def _get_frequencies(self) -> npt.NDArray[np.float64]:
+        start, stop = self.start_frequency(), self.stop_frequency()
+        if self.sweep_type() == "log":
+            return log_frequencies(start, stop, self.points_per_decade())
+        return linear_frequencies(start, stop, self.points())
+
+    def sweep(
+        self, frequencies: npt.ArrayLike | None = None
+    ) -> dict[str, npt.NDArray[np.float64]]:
+        """Measure gain and phase at the frequencies of the settings, or at the given
+        ones.
+
+        Returns (and keeps as last_sweep) arrays by key: frequency (the generator's,
+        Hz), gain (dB), phase (deg, unwrapped over the sweep; NaN with "awg" as
+        input), input_amplitude and output_amplitude (V, peak), input_scale and
+        output_scale (V/div of the acquisition used).
+
+        Changes the instrument settings: generator (sine, amplitude, no offset or
+        modulation, frequency; the output is on during the sweep and back in its
+        previous state afterwards), the two channels (on, offset 0, scales with
+        autoscale), time base (main mode, no auto roll, offset 0), memory depth,
+        edge trigger on the input channel (on the output channel with "awg"
+        as input) at 0 V, rising, and the waveform mode (raw). Coupling,
+        bandwidth limit and probe ratio stay as set. Turns on CH1 (and CH2, CH3)
+        where the instrument records the measured channels into the memory only
+        with them (memory_channels)."""
+        root = self.root_instrument
+        awg = root.awg
+        if awg is None:
+            raise RuntimeError(f"{self.full_name}: the instrument has no generator")
+        input_source = self.input_source()
+        output_source = self.output_source()
+        if input_source == output_source:
+            raise ValueError(f"{self.full_name}: input and output are the same channel")
+        if frequencies is None:
+            freqs = self.frequencies()
+        else:
+            freqs = np.atleast_1d(np.asarray(frequencies, dtype=np.float64))
+        if freqs.size == 0:
+            raise ValueError(f"{self.full_name}: no frequencies")
+        if freqs.min() < AWG_MIN_FREQUENCY or freqs.max() > AWG_MAX_FREQUENCY["sine"]:
+            raise ValueError(
+                f"{self.full_name}: frequencies must lie within "
+                f"{AWG_MIN_FREQUENCY:g} Hz to {AWG_MAX_FREQUENCY['sine']:g} Hz"
+            )
+        amplitude = self.amplitude()
+        if amplitude > awg_max_amplitude(float(freqs.max())) * (1 + 1e-9):
+            raise ValueError(
+                f"{self.full_name}: amplitude {amplitude:g} V is above "
+                f"{awg_max_amplitude(float(freqs.max())):g} V, the limit at "
+                f"{freqs.max():g} Hz"
+            )
+        channels: dict[str, RigolDHO900Channel] = {}
+        for source in (input_source, output_source):
+            if source != "awg":
+                channels[source] = root.submodules[source]  # type: ignore[assignment]
+        trigger_source = input_source if input_source != "awg" else output_source
+
+        output_was_on = awg.output()
+        self._prepare(awg, amplitude, float(freqs[0]), channels, trigger_source)
+        scales = {source: ch.scale() for source, ch in channels.items()}
+        n = freqs.size
+        result = {
+            key: np.full(n, np.nan)
+            for key in (
+                "frequency", "gain", "phase", "input_amplitude", "output_amplitude",
+                "input_scale", "output_scale",
+            )
+        }  # fmt: skip
+        wrapped = np.full(n, np.nan)
+        try:
+            for i, frequency in enumerate(freqs):
+                fit = self._measure_point(awg, float(frequency), channels, scales)
+                actual = fit["frequency"]
+                result["frequency"][i] = actual
+                out_amp, out_phase = fit[output_source]
+                if input_source == "awg":
+                    in_amp, in_phase = amplitude / 2, math.nan
+                else:
+                    in_amp, in_phase = fit[input_source]
+                    result["input_scale"][i] = scales[input_source]
+                result["output_scale"][i] = scales[output_source]
+                result["input_amplitude"][i] = in_amp
+                result["output_amplitude"][i] = out_amp
+                if in_amp > 0 and out_amp > 0:
+                    result["gain"][i] = 20 * math.log10(out_amp / in_amp)
+                wrapped[i] = math.remainder(out_phase - in_phase, 2 * math.pi)
+                self.log.debug(
+                    "%g Hz, gain %.3f dB, phase %.2f deg",
+                    actual, result["gain"][i],
+                    math.degrees(wrapped[i]),
+                )  # fmt: skip
+        finally:
+            if not output_was_on:
+                awg.output(False)
+        if input_source != "awg":
+            result["phase"] = np.degrees(np.unwrap(wrapped))
+        self.last_sweep = result
+        return result
+
+    def _prepare(
+        self,
+        awg: RigolDHO900AWG,
+        amplitude: float,
+        first_frequency: float,
+        channels: dict[str, RigolDHO900Channel],
+        trigger_source: str,
+    ) -> None:
+        root = self.root_instrument
+        awg.modulation(False)
+        awg.offset(0.0)
+        # amplitude and frequency limit each other: go through 1 kHz
+        if awg.function() in ("dc", "noise"):
+            awg.function("sine")
+        awg.frequency(1e3)
+        awg.function("sine")
+        awg.amplitude(amplitude)
+        awg.frequency(first_frequency)
+        awg.output(True)
+        for channel in channels.values():
+            channel.enabled(True)
+            channel.offset(0.0)
+        # the memory of the measured channels is their own only for some sets of
+        # channels on (memory_channels): turn on the others it requires
+        on = root._channels_on()
+        for n in readable_channels(on, root.n_channels):
+            if n not in on:
+                root.channels[n - 1].enabled(True)
+        root.timebase.mode("main")
+        root.timebase.auto_roll(False)
+        root.timebase.delay_enabled(False)
+        root.run()
+        root.timebase.offset(0.0)
+        root.acquisition.memory_depth(self.memory_depth())
+        trigger = root.trigger
+        trigger.type("edge")
+        trigger.edge_source(trigger_source)
+        trigger.edge_slope("rising")
+        trigger.edge_level(0.0)
+        root.waveform.mode("raw")
+
+    def _measure_point(
+        self,
+        awg: RigolDHO900AWG,
+        frequency: float,
+        channels: dict[str, RigolDHO900Channel],
+        scales: dict[str, float],
+    ) -> dict[str, Any]:
+        """Acquire at one frequency, adjusting the scales (autoscale); returns the
+        generator frequency and (amplitude, phase) of each channel."""
+        root = self.root_instrument
+        # a stopped acquisition limits the time base to the record: set it running
+        root.run()
+        awg.frequency(frequency)
+        actual = float(self.ask(":SOURce:FREQuency?"))
+        timebase = scale_125(self.cycles() / actual / 10)
+        timebase = min(max(timebase, 2e-9), 500.0)
+        root.timebase.scale(timebase)
+        if self.settling_time() > 0:
+            time.sleep(self.settling_time())
+        fits: dict[str, Any] = {"frequency": actual}
+        for _ in range(self.max_acquisitions):
+            self._acquire(timeout=2.0 + 30 * timebase)
+            changed = False
+            for source, channel in channels.items():
+                volts, pre = root.waveform.read_with_preamble(channel.source_name)
+                t = pre["xorigin"] + (np.arange(volts.size) - pre["xreference"]) * pre[
+                    "xincrement"
+                ]
+                amp, phase, offset = fit_sine(t, volts, actual)
+                fits[source] = (amp, phase)
+                if self.autoscale():
+                    new = self._new_scale(channel, volts, amp, offset, scales[source])
+                    if new != scales[source]:
+                        channel.scale(new)
+                        scales[source] = float(channel.scale())
+                        changed = True
+            if not changed:
+                break
+        return fits
+
+    def _new_scale(
+        self,
+        channel: RigolDHO900Channel,
+        volts: npt.NDArray[np.float64],
+        amplitude: float,
+        offset: float,
+        scale: float,
+    ) -> float:
+        ratio = float(channel.probe_ratio())
+        low, high = 200e-6 * ratio, 10.0 * ratio
+        if np.max(np.abs(volts)) >= CLIP_DIVISIONS * scale:
+            return min(scale * 5, high)
+        peak = (amplitude + abs(offset)) / scale
+        lower, upper = self.accepted_divisions
+        if lower <= peak <= upper or (peak < lower and scale <= low * (1 + 1e-9)):
+            return scale
+        return min(max(scale * peak / self.target_divisions, low), high)
+
+    def _acquire(self, timeout: float) -> None:
+        """One single acquisition; a forced trigger if none arrives (a signal below
+        the trigger's sensitivity)."""
+        root = self.root_instrument
+        try:
+            root.digitize(timeout=timeout)
+        except TimeoutError:
+            root.force_trigger()
+            deadline = time.monotonic() + timeout
+            while self.ask(":TRIGger:STATus?").strip() != "STOP":
+                if time.monotonic() > deadline:
+                    raise
+                time.sleep(0.02)
+
+
 class RigolDHO900Counter(InstrumentModule["RigolDHO900"]):
     """The hardware frequency counter."""
 
@@ -1546,7 +2327,7 @@ class RigolDHO900Measurement(InstrumentModule["RigolDHO900"]):
 
     def _threshold_setter(self, header: str, name: str) -> Any:
         def set_value(value: float) -> None:
-            self.root_instrument._write_checked(
+            self.root_instrument._write_or_raise(
                 header, value, self.parameters[name], fmt="{:g}"
             )
 
@@ -1590,12 +2371,17 @@ class RigolDHO900(VisaInstrument):
 
         model = str(self.get_idn().get("model") or "")
         if not model.upper().startswith(("DHO9", "DHO8")):
-            log.warning("%s: model %r is not a DHO800 or DHO900", name, model)
+            self.log.warning("model %r is not a DHO800 or DHO900", model)
         self.model = model
         self.n_channels = int(self.ask(":SYSTem:RAMount?"))
         modules = self.ask(":SYSTem:MODules?").split(",")
         self.has_logic_analyzer = modules[0].strip() == "1"
         self.has_awg = self.ask(":SYSTem:DGSTatus?").strip() == "1"
+        # the channels on at the last acquisition the driver started or stopped; None
+        # while running or before (waveform reads check it, _check_memory)
+        self._acquired_channels: tuple[int, ...] | None = None
+        # when the driver last turned a channel on or off (time.monotonic())
+        self._channels_changed = -math.inf
 
         self.waveform: RigolDHO900Waveform = self.add_submodule(
             "waveform", RigolDHO900Waveform(self, "waveform")
@@ -1642,8 +2428,18 @@ class RigolDHO900(VisaInstrument):
 
         self.awg: RigolDHO900AWG | None = None
         """The function generator; None on models without one."""
+        self.bode: RigolDHO900Bode | None = None
+        """The instrument's own Bode plot; None on models without a generator."""
+        self.frequency_response: RigolDHO900FrequencyResponse | None = None
+        """Gain and phase measured from the waveforms; None on models without a
+        generator."""
         if self.has_awg:
             self.awg = self.add_submodule("awg", RigolDHO900AWG(self, "awg"))
+            self.bode = self.add_submodule("bode", RigolDHO900Bode(self, "bode"))
+            self.frequency_response = self.add_submodule(
+                "frequency_response",
+                RigolDHO900FrequencyResponse(self, "frequency_response"),
+            )
 
         self.connect_message()
 
@@ -1675,8 +2471,27 @@ class RigolDHO900(VisaInstrument):
     def _write_checked(
         self, header: str, value: float, param: Parameter, fmt: str = "{:.6e}"
     ) -> None:
-        """Write a value and read it back; raise if the instrument set another one
-        (it clips out-of-range values without an error)."""
+        """Write a value and read it back. The instrument clips an out-of-range value
+        without an error: a value it changed stays set, is logged as a warning and is
+        the value cached (param is a _ReadBackParameter)."""
+        self.write(f"{header} {fmt.format(value)}")
+        actual = float(self.ask(f"{header}?"))
+        if math.isclose(actual, value, rel_tol=_READBACK_RTOL, abs_tol=1e-15):
+            return
+        param.read_back = actual  # type: ignore[attr-defined]
+        unit = f" {param.unit}" if param.unit else ""
+        param.instrument.log.warning(  # type: ignore[union-attr]
+            "%s %g%s is outside the instrument's range; the instrument set %g%s",
+            param.name, value, unit, actual, unit,
+        )
+
+    def _write_or_raise(
+        self, header: str, value: float, param: Parameter, fmt: str = "{:.6e}"
+    ) -> None:
+        """Write a value and read it back; raise if the instrument did not take it.
+        For settings whose value the instrument ignores rather than clips (delay
+        calibration at slow time bases, thresholds out of order): the setting then
+        remains at its previous value."""
         self.write(f"{header} {fmt.format(value)}")
         actual = float(self.ask(f"{header}?"))
         if not math.isclose(actual, value, rel_tol=_READBACK_RTOL, abs_tol=1e-15):
@@ -1705,17 +2520,32 @@ class RigolDHO900(VisaInstrument):
 
     # --- acquisition control
 
+    def _channels_on(self) -> tuple[int, ...]:
+        return tuple(n for n, ch in enumerate(self.channels, 1) if ch.is_on())
+
+    #: s after a channel was turned on or off before digitize() arms an acquisition
+    channel_settling = 1.0
+
+    #: s after :SINGle within which a STOP without a preceding arming is taken as the
+    #: instrument not yet armed, not as an acquisition that completed before the first
+    #: poll: after a reconfiguration (run, time base, memory depth) the status read
+    #: STOP for up to 0.44 s before the instrument armed
+    arming_time = 1.0
+
     def run(self) -> None:
         """Start acquiring continuously."""
         self.write(":RUN")
+        self._acquired_channels = None
 
     def stop(self) -> None:
         """Stop acquiring; the memory keeps the last acquisition."""
         self.write(":STOP")
+        self._acquired_channels = self._channels_on()
 
     def single(self) -> None:
         """Arm a single acquisition (trigger sweep single); returns immediately."""
         self.write(":SINGle")
+        self._acquired_channels = self._channels_on()
 
     def force_trigger(self) -> None:
         """Generate a trigger (normal and single sweep)."""
@@ -1737,7 +2567,13 @@ class RigolDHO900(VisaInstrument):
         Raises TimeoutError if no trigger arrives within timeout seconds; the
         instrument then remains armed (force_trigger() completes it).
         """
+        # after a channel was turned on or off, the trigger status does not follow
+        # :SINGle for about 0.3 s (STOP before the arming, WAIT before a STOP)
+        settling = self._channels_changed + self.channel_settling - time.monotonic()
+        if settling > 0:
+            time.sleep(settling)
         self.write(":SINGle")
+        self._acquired_channels = self._channels_on()
         start = time.monotonic()
         armed = False
         while True:
@@ -1745,10 +2581,10 @@ class RigolDHO900(VisaInstrument):
             elapsed = time.monotonic() - start
             if status != "STOP":
                 armed = True
-            elif armed or elapsed > 0.2:
-                # STOP before the instrument reported the arming: a single whose
-                # trigger came within one poll, or (after 0.2 s) one that completed
-                # before the first poll
+            elif armed or elapsed > self.arming_time:
+                # STOP after the instrument reported the arming, or (after
+                # arming_time) a single that completed before the first poll; before
+                # that, STOP can also precede the arming
                 return
             if elapsed > timeout:
                 raise TimeoutError(

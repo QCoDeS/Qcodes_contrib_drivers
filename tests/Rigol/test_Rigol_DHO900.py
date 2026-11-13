@@ -6,13 +6,17 @@ returns one 1000-point waveform block for every channel: four periods of a 1 V s
 
 import math
 
+import numpy as np
 import pytest
 import pyvisa
 
 from qcodes_contrib_drivers.drivers.Rigol.Rigol_DHO900 import (
     MEASUREMENT_ITEMS,
     RigolDHO900,
-    offset_limit,
+    RigolDHO900FrequencyResponse,
+    RigolDHO900Waveform,
+    fit_sine,
+    log_frequencies,
 )
 
 SIM = "qcodes_contrib_drivers.sims:Rigol_DHO900.yaml"
@@ -101,18 +105,37 @@ def test_block_reads_turn_the_termination_character_off(dho, monkeypatch):
     assert dho.visa_handle.read_termination == "\n"
 
 
+def clipping_offsets(monkeypatch, limit):
+    """Make the model clip CH1's offset and bias to +-limit without an error, as the
+    instrument does."""
+    write = RigolDHO900.write
+
+    def clipping(self, cmd):
+        header, _, value = cmd.partition(" ")
+        if header in (":CHANnel1:OFFSet", ":CHANnel1:POSition"):
+            cmd = f"{header} {max(-limit, min(limit, float(value))):.6e}"
+        write(self, cmd)
+
+    monkeypatch.setattr(RigolDHO900, "write", clipping)
+
+
 def test_out_of_range_values_are_refused(dho):
     with pytest.raises(ValueError, match="outside"):
         dho.ch1.scale(200)  # 0.5 V/div at probe ratio 10: at most 100 V/div
-    with pytest.raises(ValueError, match="outside"):
-        dho.ch1.offset(10.5)
     with pytest.raises(ValueError, match="outside"):
         dho.trigger.edge_level(2.3)
     dho.awg.function("square")
     with pytest.raises(ValueError, match="limit of square"):
         dho.awg.frequency(20e6)
-    assert offset_limit(0.05, 1) == 1.0
-    assert offset_limit(0.06, 1) == 8.0
+
+
+def test_clipped_offset_stays_with_a_warning(dho, monkeypatch, caplog):
+    clipping_offsets(monkeypatch, 8.0)
+    with caplog.at_level("WARNING"):
+        dho.ch1.offset(10.5)
+    assert "the instrument set 8 V" in caplog.text
+    assert float(dho.ask(":CHANnel1:OFFSet?")) == pytest.approx(8.0)
+    assert dho.ch1.offset.cache.get(get_if_invalid=False) == pytest.approx(8.0)
 
 
 def test_settings_the_instrument_would_ignore_are_refused(dho):
@@ -144,3 +167,63 @@ def test_dvm_reading_while_off_is_nan(dho):
 def test_digitize_returns_once_stopped(dho):
     dho.digitize(timeout=2)
     assert dho.trigger.status() == "stop"
+
+
+def test_log_frequencies_match_the_instrument_s_grid():
+    # the instrument's Bode plot from 100 Hz to 25 MHz at 10 points per decade
+    freqs = log_frequencies(100, 25e6, 10)
+    assert len(freqs) == 55
+    assert freqs[:2] == pytest.approx([100.0, 125.8925], rel=1e-6)
+    assert freqs[-1] == 25e6
+
+
+def test_fit_sine():
+    rng = np.random.default_rng(1)
+    t = np.arange(10_000) * 1.37e-6  # not a whole number of periods
+    y = 0.8 * np.sin(2 * np.pi * 1e3 * t - 1.1) + 0.05 + rng.normal(0, 0.05, t.size)
+    amplitude, phase, offset = fit_sine(t, y, 1e3)
+    assert amplitude == pytest.approx(0.8, rel=2e-3)
+    assert phase == pytest.approx(-1.1, abs=3e-3)
+    assert offset == pytest.approx(0.05, abs=2e-3)
+
+
+def test_bode_settings(dho):
+    dho.bode.amplitude(1.5)
+    assert dho.bode.amplitude() == 1.5
+    with pytest.raises(ValueError, match="different channels"):
+        dho.bode.output_source("ch1")  # the input
+    assert not dho.bode.running.settable
+
+
+def test_frequency_response_snapshot_runs_no_sweep(dho, monkeypatch):
+    monkeypatch.setattr(RigolDHO900FrequencyResponse, "sweep",
+                        lambda self, *a: pytest.fail("snapshot ran a sweep"))
+    snap = dho.snapshot(update=True)["submodules"]["frequency_response"]
+    assert "value" not in snap["parameters"]["response"]
+
+
+def test_frequency_response_of_a_low_pass(dho, monkeypatch):
+    """A first-order low-pass between ch1 and ch2, as waveforms."""
+    fc = 10e3
+
+    def read(self, source):
+        f = float(dho.ask(":SOURce:FREQuency?"))
+        n = 10_000
+        dt = 10 * float(dho.ask(":TIMebase:MAIN:SCALe?")) / n
+        t = np.arange(n) * dt
+        h = 1.0 if source == "CHANnel1" else 1 / (1 + 1j * f / fc)
+        y = abs(h) * np.sin(2 * np.pi * f * t + np.angle(h))
+        pre = {"points": n, "xincrement": dt, "xorigin": 0.0, "xreference": 0.0}
+        return y, pre
+
+    monkeypatch.setattr(RigolDHO900Waveform, "read_with_preamble", read)
+    fr = dho.frequency_response
+    fr.amplitude(2.0)
+    fr.start_frequency(1e3)
+    fr.stop_frequency(1e5)
+    fr.points_per_decade(2)
+    assert fr.response.shapes == ((5,), (5,))
+    gain, phase = fr.response()
+    h = 1 / (1 + 1j * fr.frequencies() / fc)
+    assert gain == pytest.approx(20 * np.log10(abs(h)), abs=0.01)
+    assert phase == pytest.approx(np.degrees(np.angle(h)), abs=0.1)

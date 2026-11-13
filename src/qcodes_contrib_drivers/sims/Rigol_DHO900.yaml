@@ -964,6 +964,62 @@ devices:
           r: "{}"
         setter:
           q: ':SOURce:MOD:PM:DEViation {}'
+      bode_enable:
+        default: '0'
+        getter:
+          q: ':BODeplot:ENABle?'
+          r: "{}"
+        setter:
+          q: ':BODeplot:ENABle {}'
+      bode_runstop:
+        default: '0'
+        getter:
+          q: ':BODeplot:RUNStop?'
+          r: "{}"
+        setter:
+          q: ':BODeplot:RUNStop {}'
+      bode_sweeptype:
+        default: 'LOG'
+        getter:
+          q: ':BODeplot:SWEeptype?'
+          r: "{}"
+        setter:
+          q: ':BODeplot:SWEeptype {}'
+      bode_in:
+        default: 'CHAN1'
+        getter:
+          q: ':BODeplot:REF:IN?'
+          r: "{}"
+        setter:
+          q: ':BODeplot:REF:IN {}'
+      bode_out:
+        default: 'CHAN2'
+        getter:
+          q: ':BODeplot:REF:OUT?'
+          r: "{}"
+        setter:
+          q: ':BODeplot:REF:OUT {}'
+      bode_start:
+        default: '1.000000E+2'
+        getter:
+          q: ':BODeplot:STARt?'
+          r: "{}"
+        setter:
+          q: ':BODeplot:STARt {}'
+      bode_stop:
+        default: '1.000000E+6'
+        getter:
+          q: ':BODeplot:STOP?'
+          r: "{}"
+        setter:
+          q: ':BODeplot:STOP {}'
+      bode_points:
+        default: '10'
+        getter:
+          q: ':BODeplot:POINts?'
+          r: "{}"
+        setter:
+          q: ':BODeplot:POINts {}'
       awg_am_freq:
         default: '1.000000E+2'
         getter:
@@ -1006,6 +1062,13 @@ devices:
           r: "{}"
         setter:
           q: ':SOURce:MOD:PM:INTernal:FUNCtion {}'
+      bode_voltage:
+        default: '2.000000E-1'
+        getter:
+          q: ':BODeplot:VOLTage? ALL'
+          r: "{}"
+        setter:
+          q: ':BODeplot:VOLTage ALL,{}'
 
 resources:
   USB0::0x1AB1::0x044C::DHO9S000000000::INSTR:
