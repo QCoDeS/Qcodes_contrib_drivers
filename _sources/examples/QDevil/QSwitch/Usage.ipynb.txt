@@ -1,0 +1,637 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "id": "5e62a6a0-a4e4-4928-a276-d761d509c2a4",
+   "metadata": {},
+   "source": [
+    "# QSwitch usage"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "id": "4bea1adc-81e2-4388-a9e0-bf8ebc3e4f83",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import pprint\n",
+    "pp = pprint.PrettyPrinter()\n",
+    "import qcodes\n",
+    "from qcodes_contrib_drivers.drivers.QDevil import QSwitch"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "e2b87dde-0057-4b87-b957-ee44166592cd",
+   "metadata": {},
+   "source": [
+    "Connect via USB:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "id": "5787c333-0d69-47db-bfe3-37bead44a7c5",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Connected to: Quantum Machines QSwitch (serial:2, firmware:0.178) in 0.05s\n"
+     ]
+    }
+   ],
+   "source": [
+    "qswitch_addr = '/dev/cu.usbmodem14101'\n",
+    "qswitch = QSwitch.QSwitch('switch', visalib='@py', address=f'ASRL{qswitch_addr}::INSTR')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "89bf3106-0ffa-4a05-9632-5a7aba24c51e",
+   "metadata": {},
+   "source": [
+    "Or connect via Ethernet:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "id": "a4724b86-62f4-4749-8398-06c32f42f53a",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Connected to: Quantum Machines QSwitch (serial:2, firmware:0.178) in 0.12s\n"
+     ]
+    }
+   ],
+   "source": [
+    "qswitch_addr = '192.168.8.21'\n",
+    "qswitch = QSwitch.QSwitch('switch', visalib='@py', address=f'TCPIP::{qswitch_addr}::5025::SOCKET')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "1866cc7c-eb2d-463f-b16e-ce20125437ac",
+   "metadata": {},
+   "source": [
+    "When the QSwitch is reset, all lines are grounded:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "id": "a1eb56b0-20cc-4dbd-a603-5c1d3069bcb7",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "'(@1!0:24!0)'"
+      ]
+     },
+     "execution_count": 3,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "qswitch.reset()\n",
+    "qswitch.state()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "2fc0260b-8052-457a-b820-15edd7a699d3",
+   "metadata": {},
+   "source": [
+    "Or in expanded form:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "id": "c592efa5",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "'(@1!0,2!0,3!0,4!0,5!0,6!0,7!0,8!0,9!0,10!0,11!0,12!0,13!0,14!0,15!0,16!0,17!0,18!0,19!0,20!0,21!0,22!0,23!0,24!0)'"
+      ]
+     },
+     "execution_count": 4,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "QSwitch.expand_channel_list(qswitch.state())"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "f20fa87f",
+   "metadata": {},
+   "source": [
+    "Or expressed as a Python array:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "id": "4519574b-8427-4412-a156-bc64169e7f22",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "[(1, 0),\n",
+       " (2, 0),\n",
+       " (3, 0),\n",
+       " (4, 0),\n",
+       " (5, 0),\n",
+       " (6, 0),\n",
+       " (7, 0),\n",
+       " (8, 0),\n",
+       " (9, 0),\n",
+       " (10, 0),\n",
+       " (11, 0),\n",
+       " (12, 0),\n",
+       " (13, 0),\n",
+       " (14, 0),\n",
+       " (15, 0),\n",
+       " (16, 0),\n",
+       " (17, 0),\n",
+       " (18, 0),\n",
+       " (19, 0),\n",
+       " (20, 0),\n",
+       " (21, 0),\n",
+       " (22, 0),\n",
+       " (23, 0),\n",
+       " (24, 0)]"
+      ]
+     },
+     "execution_count": 5,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "qswitch.closed_relays()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "733345b3-f9e4-4edc-a352-7615360a7299",
+   "metadata": {},
+   "source": [
+    "Beep and blink on SCPI command errors:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "id": "d0e47647-f672-40e8-a9d3-86ac1a5b90c3",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "qswitch.error_indicator('on')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "8c9ee245",
+   "metadata": {},
+   "source": [
+    "## Manipulation by numbers"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "630d55d3",
+   "metadata": {},
+   "source": [
+    "Connect and unground line 23:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "id": "e2376ee8",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "'(@1!0:22!0,24!0,23!9)'"
+      ]
+     },
+     "execution_count": 7,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "qswitch.close_relay(23, 9)\n",
+    "qswitch.open_relay(23, 0)\n",
+    "qswitch.state()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "ff299d44",
+   "metadata": {},
+   "source": [
+    "Tap off line 23 to BNC 2:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 8,
+   "id": "c3998fd0",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "'(@1!0:22!0,24!0,23!9,23!2)'"
+      ]
+     },
+     "execution_count": 8,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "qswitch.close_relay(23, 2)\n",
+    "qswitch.state()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "08690b84",
+   "metadata": {},
+   "source": [
+    "Multiple relays at once:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 9,
+   "id": "c2909bd6",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "'(@1!0:21!0,23!9,23!2)'"
+      ]
+     },
+     "execution_count": 9,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "qswitch.open_relays([(22, 0), (24, 0)])\n",
+    "qswitch.state()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "6fea1be8",
+   "metadata": {},
+   "source": [
+    "## Arrangements"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "f3ac66ed",
+   "metadata": {},
+   "source": [
+    "At a higher level of abstraction, lines and break-out BNCs can be given names."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 10,
+   "id": "9d3d65c5",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "qswitch.arrange(\n",
+    "    breakouts={'DMM': 2, 'VNA': 7},  # BNC 2 connected to DMM & BNC 7 to VNA\n",
+    "    lines={'plunger': 23, 'sensor': 5})  # Give names to lines 23 & 5"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "add499e2",
+   "metadata": {},
+   "source": [
+    "There are specialised functions for manipulating relays by name:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 11,
+   "id": "3f7f92ca",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "qswitch.connect('plunger')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "8e57837f",
+   "metadata": {},
+   "source": [
+    "which is equivalent to"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 12,
+   "id": "45ae7eea",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "qswitch.close_relay(23, 9)\n",
+    "qswitch.open_relay(23, 0)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "6550e6ea",
+   "metadata": {},
+   "source": [
+    "that is, connect the device-under-test to input line 23, and then unground it."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "4af6640a",
+   "metadata": {},
+   "source": [
+    "For the BNC breakout:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 13,
+   "id": "ac31add0",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "qswitch.breakout('sensor', 'DMM')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "be900d2c",
+   "metadata": {},
+   "source": [
+    "which is equivalent to"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 14,
+   "id": "86cfd2da",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "qswitch.close_relay(5, 2)\n",
+    "qswitch.open_relay(5, 0)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "8a1d8733",
+   "metadata": {},
+   "source": [
+    "that is, connect the device-under-test line 5 to BNC 2, and then unground it."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "8b788de6",
+   "metadata": {},
+   "source": [
+    "For convenience, the default name of a line or BNC is just its number, so eg."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 15,
+   "id": "e0ad0e89",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "qswitch.breakout('24', '1')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "ded54735",
+   "metadata": {},
+   "source": [
+    "is equivalent to"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 16,
+   "id": "291c4da7",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "qswitch.close_relay(24, 1)\n",
+    "qswitch.open_relay(24, 0)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "e36b17b1",
+   "metadata": {},
+   "source": [
+    "Moreover, any breakouts are also disconnected when grounding:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 17,
+   "id": "245cd62c",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "qswitch.ground('sensor')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "db813c1f",
+   "metadata": {},
+   "source": [
+    "will be equivalent to"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 18,
+   "id": "54374fb6",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "qswitch.close_relay(5, 0)\n",
+    "qswitch.open_relays([(5, 2), (5, 9)])"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "800db438",
+   "metadata": {},
+   "source": [
+    "## Monitors"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "7b49f273",
+   "metadata": {},
+   "source": [
+    "There is a pseudo parameter dedicated to monitoring:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 19,
+   "id": "f48f9830",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "{'1': ['grounded'],\n",
+       " '2': ['grounded'],\n",
+       " '3': ['grounded'],\n",
+       " '4': ['grounded'],\n",
+       " 'sensor': ['grounded'],\n",
+       " '6': ['grounded'],\n",
+       " '7': ['grounded'],\n",
+       " '8': ['grounded'],\n",
+       " '9': ['grounded'],\n",
+       " '10': ['grounded'],\n",
+       " '11': ['grounded'],\n",
+       " '12': ['grounded'],\n",
+       " '13': ['grounded'],\n",
+       " '14': ['grounded'],\n",
+       " '15': ['grounded'],\n",
+       " '16': ['grounded'],\n",
+       " '17': ['grounded'],\n",
+       " '18': ['grounded'],\n",
+       " '19': ['grounded'],\n",
+       " '20': ['grounded'],\n",
+       " '21': ['grounded'],\n",
+       " 'plunger': ['connected', 'breakout DMM'],\n",
+       " '24': ['breakout 1']}"
+      ]
+     },
+     "execution_count": 19,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "qswitch.overview()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 20,
+   "id": "b5030c09",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "monitor = qcodes.Monitor(qswitch.overview)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "f2f5d12a",
+   "metadata": {},
+   "source": [
+    "## Autosave"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "b4fcd850",
+   "metadata": {},
+   "source": [
+    "When turning on autosave, the state will be restored over restart."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 21,
+   "id": "dfdba65e",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "qswitch.auto_save('on')\n",
+    "qswitch.auto_save('off')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "bff23cac",
+   "metadata": {},
+   "source": [
+    "The QSwitch only supports a single Ethernet connection at a time, so you can explicitly tell Python to let go of the connection:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "44bac656",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "qswitch.close()"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3 (ipykernel)",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.10.12"
+  },
+  "nbsphinx": {
+   "execute": "never"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}

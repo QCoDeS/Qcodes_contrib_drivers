@@ -1,0 +1,354 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Yokogawa AQ637x — Quick Example\n",
+    "\n",
+    "This example demonstrates the main usage patterns of the `YokogawaAQ637x` driver: connecting to the instrument, configuring measurement parameters, triggering a sweep, reading and plotting trace data, and capturing instrument state via snapshots.\n",
+    "\n",
+    "**Note:** Replace the VISA resource string with your instrument address before running.\n"
+   ],
+   "id": "4d1fece869d9d327"
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": "## 1) Imports and Connection\n",
+   "id": "19e0e96820b5656"
+  },
+  {
+   "cell_type": "code",
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2026-07-29T11:06:27.373494600Z",
+     "start_time": "2026-07-29T11:06:24.761997900Z"
+    }
+   },
+   "source": [
+    "import json\n",
+    "import matplotlib.pyplot as plt\n",
+    "from qcodes_contrib_drivers.drivers.Yokogawa.Yokogawa_AQ637x import YokogawaAQ637x\n",
+    "\n",
+    "# Connect to the instrument (replace address with your instrument's VISA resource string)\n",
+    "inst = YokogawaAQ637x(\"OSA\", address=\"TCPIP::<instrument-ip>::INSTR\")\n",
+    "\n",
+    "print(\"Connected to:\", inst.get_idn())\n"
+   ],
+   "id": "bd15061daf15d9c3",
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Connected to: {'vendor': 'YOKOGAWA', 'model': 'AQ6370C', 'serial': '91MC06547', 'firmware': '04.06'}\n"
+     ]
+    }
+   ],
+   "execution_count": 1
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": "## 2) Configure Measurement and Trigger a Sweep\n",
+   "id": "b77134599c503a40"
+  },
+  {
+   "cell_type": "code",
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2026-07-29T11:06:27.452198600Z",
+     "start_time": "2026-07-29T11:06:27.390027600Z"
+    }
+   },
+   "source": [
+    "# Configure measurement parameters\n",
+    "inst.sense_wavelength_start(1.0e-6)      # Start wavelength (m)\n",
+    "inst.sense_wavelength_stop(1.7e-6)       # Stop wavelength (m)\n",
+    "inst.sense_bandwidth_resolution(1e-9)    # Resolution bandwidth (m)\n",
+    "inst.sense_sensitivity('NORMAL_AUTO')    # Sensitivity mode\n",
+    "\n",
+    "# Select active trace and perform a single sweep\n",
+    "inst.TRA.active()\n",
+    "inst.single()\n",
+    "\n",
+    "print(\"Sweep complete.\")\n"
+   ],
+   "id": "fb41bb70ef61a2a5",
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Sweep complete.\n"
+     ]
+    }
+   ],
+   "execution_count": 2
+  },
+  {
+   "metadata": {},
+   "cell_type": "markdown",
+   "source": "## 3) Read and Plot Trace Data\n",
+   "id": "c8b9a2609f1b66ed"
+  },
+  {
+   "cell_type": "code",
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2026-07-29T11:06:28.196677700Z",
+     "start_time": "2026-07-29T11:06:27.462733900Z"
+    }
+   },
+   "source": "# Retrieve trace data\nwavelengths = inst.TRA.trace_axis()  # X-axis in metres (wavelength, per unit_x)\nlevels = inst.TRA.data()             # Level data (typically dBm)\n\nprint(f\"Data points: {len(wavelengths)}\")\nprint(f\"Wavelength range: {1e9 * wavelengths[0]:.2f} nm to {1e9 * wavelengths[-1]:.2f} nm\")\n\n# Plot\nplt.figure(figsize=(10, 6))\nplt.plot(1e9 * wavelengths, levels, linewidth=1)\nplt.xlabel('Wavelength (nm)')\nplt.ylabel('Level (dBm)')\nplt.title('Yokogawa AQ637x Trace')\nplt.grid(True, alpha=0.3)\nplt.tight_layout()\nplt.show()",
+   "id": "2ad48c9cf331743b",
+   "outputs": [],
+   "execution_count": null
+  },
+  {
+   "metadata": {},
+   "cell_type": "markdown",
+   "source": [
+    "## 4) Capture Instrument State via Snapshot\n",
+    "\n",
+    "Use QCoDeS snapshot feature to capture the current state of all instrument parameters. This is useful for documentation and reproducibility of measurements.\n"
+   ],
+   "id": "c25bccd76d716bec"
+  },
+  {
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2026-07-29T11:07:14.027618300Z",
+     "start_time": "2026-07-29T11:06:28.209198500Z"
+    }
+   },
+   "cell_type": "code",
+   "source": [
+    "# Take a snapshot of the instrument state\n",
+    "snapshot = inst.snapshot(update=True)\n",
+    "\n",
+    "# Display snapshot in human-readable format\n",
+    "inst.print_readable_snapshot()\n",
+    "\n",
+    "# Optionally, save the full snapshot to a JSON file for later reference\n",
+    "with open(\"instrument_snapshot.json\", \"w\") as f:\n",
+    "    json.dump(snapshot, f, indent=2, default=str)\n",
+    "\n",
+    "print(\"\\nFull snapshot saved to 'instrument_snapshot.json'\")\n"
+   ],
+   "id": "5d507e5848d1d2f4",
+   "outputs": [
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "[OSA(YokogawaAQ637x)] Snapshot: Could not update parameter: display_trace_y2_sminimum\n",
+      "[OSA(YokogawaAQ637x)] Snapshot: Could not update parameter: trigger_gate_time\n",
+      "[OSA(YokogawaAQ637x)] Snapshot: Could not update parameter: trigger_gate_slope\n",
+      "[OSA(YokogawaAQ637x)] Snapshot: Could not update parameter: trigger_gate_state\n",
+      "[OSA(YokogawaAQ637x)] Snapshot: Could not update parameter: system_fspeed\n",
+      "[OSA(YokogawaAQ637x)] Snapshot: Could not update parameter: system_communicate_gpib2_address\n",
+      "[OSA(YokogawaAQ637x)] Snapshot: Could not update parameter: system_communicate_gpib2_scontroller\n",
+      "[OSA(YokogawaAQ637x)] Snapshot: Could not update parameter: system_communicate_gpib2_tls_address\n",
+      "[OSA(YokogawaAQ637x)] Snapshot: Could not update parameter: dlog_elapsed_time\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "OSA:\n",
+      "\tparameter                                 value\n",
+      "--------------------------------------------------------------------------------\n",
+      "IDN                                        :\t{'vendor': 'YOKOGAWA', 'model': ...\n",
+      "calibration_bandwidth_wavelength           :\t0 (m)\n",
+      "calibration_wavelength_external_source     :\tLASER \n",
+      "calibration_wavelength_external_wavelength :\t1.5235e-06 (m)\n",
+      "calibration_zero_auto                      :\tFalse \n",
+      "calibration_zero_interval                  :\t10 \n",
+      "calibration_zero_status                    :\t0 \n",
+      "display_color                              :\t1 \n",
+      "display_enabled                            :\tTrue \n",
+      "display_overview_position                  :\tRIGHT \n",
+      "display_overview_size                      :\tLARGE \n",
+      "display_split                              :\tFalse \n",
+      "display_split_hold_lower                   :\tFalse \n",
+      "display_split_hold_upper                   :\tFalse \n",
+      "display_text_data                          :\t// AQ6370C OPTICAL SPECTRUM ANAL...\n",
+      "display_trace_x_center                     :\t3.9972e+14 (m)\n",
+      "display_trace_x_span                       :\t1.9986e+14 (m)\n",
+      "display_trace_x_srange                     :\tTrue \n",
+      "display_trace_x_start                      :\t2.9979e+14 (m)\n",
+      "display_trace_x_stop                       :\t4.9965e+14 (m)\n",
+      "display_trace_y1_blevel                    :\t0 (W)\n",
+      "display_trace_y1_pdivision                 :\t10 (dB)\n",
+      "display_trace_y1_rlevel                    :\t-10 (dBm)\n",
+      "display_trace_y1_rposition                 :\t8 (DIV)\n",
+      "display_trace_y1_spacing                   :\tLOG \n",
+      "display_trace_y1_unit                      :\tDBM \n",
+      "display_trace_y2_auto                      :\tFalse \n",
+      "display_trace_y2_length                    :\t1 (km)\n",
+      "display_trace_y2_olevel                    :\t0 (dB)\n",
+      "display_trace_y2_pdivision                 :\t5 (dB)\n",
+      "display_trace_y2_rposition                 :\t5 (DIV)\n",
+      "display_trace_y2_sminimum                  :\tNone (%)\n",
+      "display_trace_y2_unit                      :\tDB \n",
+      "display_trace_y_dnumber                    :\t10 \n",
+      "display_trace_y_nmask                      :\t-999 (dB)\n",
+      "display_trace_y_nmask_type                 :\tHORIZONTAL \n",
+      "dlog_elapsed_time                          :\tNone (s)\n",
+      "dlog_interval                              :\t5 \n",
+      "dlog_item                                  :\t2 \n",
+      "dlog_lmode                                 :\t2 \n",
+      "dlog_memory                                :\tINTERNAL \n",
+      "dlog_mthresh                               :\t1e-09 \n",
+      "dlog_pdetect_athresh                       :\t-50 \n",
+      "dlog_pdetect_rthresh                       :\t3 \n",
+      "dlog_pdetect_ttype                         :\tRELATIVE \n",
+      "dlog_state                                 :\tSTOP \n",
+      "dlog_tduration                             :\t60 \n",
+      "dlog_tlogging                              :\tTrue \n",
+      "event_status_enable                        :\t251 \n",
+      "event_status_register                      :\t16 \n",
+      "format_data                                :\tREAL64 \n",
+      "line_marker_srange                         :\tFalse \n",
+      "marker_auto                                :\tFalse \n",
+      "marker_function_format                     :\tOFFSET \n",
+      "marker_function_update                     :\tFalse \n",
+      "marker_maximum_scenter_auto                :\tFalse \n",
+      "marker_maximum_srlevel_auto                :\tFalse \n",
+      "marker_msearch                             :\tFalse \n",
+      "marker_msearch_sort                        :\tWAVELENGTH \n",
+      "marker_msearch_threshold                   :\t50 (dB)\n",
+      "marker_unit                                :\tFREQUENCY \n",
+      "operation_complete                         :\t1 \n",
+      "self_test                                  :\tNot available \n",
+      "sense_average_count                        :\t1 \n",
+      "sense_bandwidth_resolution                 :\t2e+11 (m)\n",
+      "sense_chopper                              :\tOFF \n",
+      "sense_correction_level_shift               :\t0 (dB)\n",
+      "sense_correction_rvelocity_medium          :\tVACUUM \n",
+      "sense_correction_wavelength_shift          :\t0 (m)\n",
+      "sense_sensitivity                          :\tNORMAL_AUTO \n",
+      "sense_setting_correction                   :\tOFF \n",
+      "sense_setting_fconnector                   :\tNORMAL \n",
+      "sense_setting_smoothing                    :\tFalse \n",
+      "sense_sweep_points                         :\t2001 \n",
+      "sense_sweep_points_auto                    :\tTrue \n",
+      "sense_sweep_segment_points                 :\t1 \n",
+      "sense_sweep_speed                          :\t1X \n",
+      "sense_sweep_step                           :\t2e-10 (m)\n",
+      "sense_sweep_time_0nm                       :\t0 (s)\n",
+      "sense_sweep_time_interval                  :\t0 (s)\n",
+      "sense_sweep_tlssync                        :\tFalse \n",
+      "sense_wavelength_center                    :\t3.9972e+14 (m)\n",
+      "sense_wavelength_span                      :\t1.9986e+14 (m)\n",
+      "sense_wavelength_srange                    :\tFalse \n",
+      "sense_wavelength_start                     :\t2.9979e+14 (m)\n",
+      "sense_wavelength_stop                      :\t4.9965e+14 (m)\n",
+      "service_request_enable                     :\t0 \n",
+      "status_byte                                :\t128 \n",
+      "status_operation_condition                 :\t1 \n",
+      "status_operation_enable                    :\t255 \n",
+      "status_operation_event                     :\t1 \n",
+      "status_questionable_condition              :\t0 \n",
+      "status_questionable_enable                 :\t128 \n",
+      "status_questionable_event                  :\t0 \n",
+      "sweep_mode                                 :\tSINGLE \n",
+      "system_buzzer_click                        :\tTrue \n",
+      "system_buzzer_warning                      :\tTrue \n",
+      "system_communicate_gpib2_address           :\tNone \n",
+      "system_communicate_gpib2_scontroller       :\tNone \n",
+      "system_communicate_gpib2_tls_address       :\tNone \n",
+      "system_communicate_lockout                 :\tFalse \n",
+      "system_communicate_rmonitor                :\tFalse \n",
+      "system_date                                :\t2026,7,21 \n",
+      "system_display_transparent                 :\tTrue \n",
+      "system_display_uncal                       :\tTrue \n",
+      "system_error                               :\tNot available \n",
+      "system_fspeed                              :\tNone \n",
+      "system_grid                                :\tCUSTOM \n",
+      "system_grid_custom_spacing                 :\t50 (GHz)\n",
+      "system_grid_custom_start                   :\t1.8737e+14 (m)\n",
+      "system_grid_custom_stop                    :\t1.9986e+14 (m)\n",
+      "system_grid_reference                      :\t1.9341e+14 (m)\n",
+      "system_time                                :\t14:28:45 \n",
+      "system_version                             :\t1999.0 \n",
+      "template_gonogo                            :\tFalse \n",
+      "template_level_shift                       :\t0 (dB)\n",
+      "template_result                            :\t0 \n",
+      "template_ttype                             :\tUPPER_AND_LOWER \n",
+      "template_wavelength_shift                  :\t0 (m)\n",
+      "timeout                                    :\t5 (s)\n",
+      "trigger_delay                              :\t0 (s)\n",
+      "trigger_gate_logic                         :\tPOSITIVE \n",
+      "trigger_gate_slope                         :\tNone \n",
+      "trigger_gate_state                         :\tNone \n",
+      "trigger_gate_time                          :\tNone (s)\n",
+      "trigger_input                              :\tEXTERNAL_TRIGGER \n",
+      "trigger_output                             :\tOFF \n",
+      "trigger_phold_htime                        :\t0.01 (s)\n",
+      "unit_power_digit                           :\t3 \n",
+      "unit_x                                     :\tFREQUENCY \n",
+      "\n",
+      "Full snapshot saved to 'instrument_snapshot.json'\n"
+     ]
+    }
+   ],
+   "execution_count": 4
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## 5) Cleanup\n",
+    "\n"
+   ],
+   "id": "8434c368f8e2cfe0"
+  },
+  {
+   "cell_type": "code",
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2026-07-29T11:07:14.170396200Z",
+     "start_time": "2026-07-29T11:07:14.045774500Z"
+    }
+   },
+   "source": [
+    "inst.close()\n",
+    "print(\"Connection closed.\")"
+   ],
+   "id": "ddcb35336c30d079",
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Connection closed.\n"
+     ]
+    }
+   ],
+   "execution_count": 5
+  }
+ ],
+ "metadata": {
+  "nbsphinx": {
+   "execute": "never"
+  },
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+   "language_info": {
+    "file_extension": ".py",
+    "mimetype": "text/x-python",
+    "name": "python",
+    "nbconvert_exporter": "python",
+    "version": "3.12"
+   }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}
