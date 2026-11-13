@@ -178,5 +178,6 @@ class LighthousePhotonicsSproutG(VisaInstrument):
                 pbar.refresh()
                 assert self.enabled()
                 time.sleep(1)
+            assert pbar.total is not None
             pbar.n = pbar.total
             pbar.refresh()
