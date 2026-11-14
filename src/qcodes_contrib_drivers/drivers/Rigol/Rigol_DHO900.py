@@ -957,7 +957,8 @@ class RigolDHO900Acquisition(InstrumentModule["RigolDHO900"]):
         )
         """Points per acquisition: "auto" or 1e3, 1e4, 1e5, 1e6, 1e7, 2.5e7, 5e7. The
         largest depth depends on the number of channels on (DHO900: 50M for one,
-        25M for two, 10M for three or four). A read returns the depth in use, also
+        25M for two, 10M for three or four); the trigger source counts as a channel
+        on, also while it is off. A read returns the depth in use, also
         in auto. A depth the instrument does not accept is replaced by the one it
         sets, which is logged as a warning and cached."""
 
