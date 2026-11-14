@@ -26,6 +26,7 @@ ADDRESS = "USB0::0x1AB1::0x044C::DHO9S000000000::INSTR"
 @pytest.fixture
 def dho():
     scope = RigolDHO900("dho_sim", ADDRESS, pyvisa_sim_file=SIM)
+    scope.run_confirm_time = 0.0  # the sim's trigger status is always STOP
     yield scope
     scope.close()
 
@@ -202,21 +203,26 @@ def test_frequency_response_snapshot_runs_no_sweep(dho, monkeypatch):
     assert "value" not in snap["parameters"]["response"]
 
 
-def test_frequency_response_of_a_low_pass(dho, monkeypatch):
-    """A first-order low-pass between ch1 and ch2, as waveforms."""
-    fc = 10e3
+def two_channels(dho, monkeypatch, response):
+    """Waveforms of ch1 (the generator, 1 V amplitude) and ch2 (response(f))."""
 
-    def read(self, source):
+    def read(self, source, points=None):
         f = float(dho.ask(":SOURce:FREQuency?"))
         n = 10_000
         dt = 10 * float(dho.ask(":TIMebase:MAIN:SCALe?")) / n
         t = np.arange(n) * dt
-        h = 1.0 if source == "CHANnel1" else 1 / (1 + 1j * f / fc)
+        h = 1.0 if source == "CHANnel1" else response(f)
         y = abs(h) * np.sin(2 * np.pi * f * t + np.angle(h))
         pre = {"points": n, "xincrement": dt, "xorigin": 0.0, "xreference": 0.0}
         return y, pre
 
-    monkeypatch.setattr(RigolDHO900Waveform, "read_with_preamble", read)
+    monkeypatch.setattr(RigolDHO900Waveform, "_read_memory", read)
+
+
+def test_frequency_response_of_a_low_pass(dho, monkeypatch):
+    """A first-order low-pass between ch1 and ch2, as waveforms."""
+    fc = 10e3
+    two_channels(dho, monkeypatch, lambda f: 1 / (1 + 1j * f / fc))
     fr = dho.frequency_response
     fr.amplitude(2.0)
     fr.start_frequency(1e3)
@@ -227,3 +233,22 @@ def test_frequency_response_of_a_low_pass(dho, monkeypatch):
     h = 1 / (1 + 1j * fr.frequencies() / fc)
     assert gain == pytest.approx(20 * np.log10(abs(h)), abs=0.01)
     assert phase == pytest.approx(np.degrees(np.angle(h)), abs=0.1)
+
+
+def test_through_calibration_corrects_skew_and_gain(dho, monkeypatch):
+    """A channel difference of 1.5 ns and 0.3 dB, measured on the same node and
+    removed from the response of a low-pass behind it."""
+
+    def path(f):
+        return 10 ** (0.3 / 20) * np.exp(-2j * np.pi * f * 1.5e-9)
+
+    fr = dho.frequency_response
+    freqs = [1e3, 1e5, 1e7, 2.5e7]
+    two_channels(dho, monkeypatch, path)
+    fr.calibrate_through(freqs)
+    fc = 1e6
+    two_channels(dho, monkeypatch, lambda f: path(f) / (1 + 1j * f / fc))
+    result = fr.sweep(freqs)
+    h = 1 / (1 + 1j * np.array(freqs) / fc)
+    assert result["gain"] == pytest.approx(20 * np.log10(abs(h)), abs=0.01)
+    assert result["phase"] == pytest.approx(np.degrees(np.angle(h)), abs=0.1)

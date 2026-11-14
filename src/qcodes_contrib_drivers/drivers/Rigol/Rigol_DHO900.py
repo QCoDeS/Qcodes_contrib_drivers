@@ -12,6 +12,19 @@ Where the instrument deviates from the guide, the driver follows the instrument:
 - ``*OPC?`` returns 0 while an acquisition is in progress instead of waiting, so the
   end of a single acquisition is detected by polling ``:TRIGger:STATus?`` for STOP
   (:meth:`RigolDHO900.digitize`).
+- The channels share the ADC, interleaved, but the preamble gives them the same
+  time axis: with four channels on, CH1 lagged CH2 by 0.8 ns (one sample period
+  at 1.25 GSa/s) more than with two. :meth:`RigolDHO900FrequencyResponse.
+  calibrate_through` measures and corrects the difference between two channels.
+- At some vertical scales between the steps of the 1-2-5 sequence (0.301, 0.341,
+  0.461, 0.505 V/div with a 10:1 probe) the gain differs from the preamble's
+  conversion by up to 0.11 dB; the autoscale of frequency_response uses the steps.
+- A ``:SINGle`` while the acquisition runs occasionally stops it without an
+  acquisition (an empty memory); :meth:`RigolDHO900.digitize` stops it first.
+- ``:RUN`` takes effect 0.1 s to 0.4 s after it and occasionally not at all; a
+  pending ``:RUN`` turns a following ``:SINGle`` into continuous acquisition.
+  :meth:`RigolDHO900.run` returns once the acquisition runs and sends ``:RUN``
+  again otherwise.
 - Out-of-range values are clipped without an error (a vertical scale of 1000 V/div
   becomes 100 V/div, a generator frequency of 30 MHz becomes 25 MHz). The driver
   refuses them against the limits of the guide or, where they differ, of the
@@ -91,9 +104,8 @@ from __future__ import annotations
 
 import math
 import time
-from collections.abc import Callable, Sequence
 from functools import wraps
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, ClassVar
 
 import numpy as np
 import numpy.typing as npt
@@ -114,10 +126,17 @@ from qcodes.parameters import (
 from qcodes.validators import Arrays, Bool, Enum, Ints, MultiType, Numbers, Strings
 
 if TYPE_CHECKING:
+    from collections.abc import Callable, Sequence
     from typing import Unpack
 
 
 _ON_OFF = create_on_off_val_mapping(on_val="1", off_val="0")
+
+
+class EmptyReadError(RuntimeError):
+    """The instrument returned an empty block for a memory read.
+
+    The acquisition was not stopped, or a single acquisition did not take place."""
 
 #: a response at or above this value is no reading (the instrument sends 9.9E37)
 _INVALID = 9e37
@@ -227,8 +246,9 @@ def _float_or_nan(response: str) -> float:
 
 
 class _ReadBackParameter(Parameter):
-    """A parameter whose value the instrument clips without an error when it is out
-    of range. Its setter writes and reads back (RigolDHO900._write_checked) and leaves
+    """A parameter whose value the instrument clips without an error.
+
+    Its setter writes and reads back (RigolDHO900._write_checked) and leaves
     a value the instrument changed in read_back; the cache then contains that value,
     where QCoDeS would cache the requested one."""
 
@@ -248,7 +268,14 @@ class _ReadBackParameter(Parameter):
 
 
 def awg_max_amplitude(frequency: float) -> float:
-    """The highest generator amplitude (Vpp) at a frequency."""
+    """The highest generator amplitude at a frequency.
+
+    Args:
+        frequency: Generator frequency in Hz.
+
+    Returns:
+        The highest peak-to-peak amplitude in V into a high impedance.
+    """
     for corner, amplitude in AWG_MAX_AMPLITUDE:
         if frequency <= corner:
             return amplitude
@@ -263,9 +290,23 @@ CLIP_DIVISIONS = 4.3
 def log_frequencies(
     start: float, stop: float, points_per_decade: int
 ) -> npt.NDArray[np.float64]:
-    """Logarithmically spaced frequencies from start to stop: start * 10**(k / n)
-    for n points per decade, and stop. The instrument's Bode plot uses the same grid
-    (1 kHz, 1.259 kHz, 1.585 kHz, ... at 10 points per decade)."""
+    """Logarithmically spaced frequencies from start to stop.
+
+    The frequencies are start * 10**(k / n) for n points per decade, and stop. The
+    instrument's Bode plot uses the same grid (1 kHz, 1.259 kHz, 1.585 kHz, ... at
+    10 points per decade).
+
+    Args:
+        start: First frequency in Hz.
+        stop: Last frequency in Hz.
+        points_per_decade: Number of points per decade.
+
+    Returns:
+        The frequencies in Hz, start and stop included.
+
+    Raises:
+        ValueError: If start is not below stop.
+    """
     if not 0 < start < stop:
         raise ValueError(
             f"frequencies: start {start:g} Hz must be below stop {stop:g} Hz"
@@ -278,11 +319,19 @@ def log_frequencies(
 
 
 def memory_channels(enabled: Sequence[int]) -> tuple[int, ...]:
-    """The channels whose samples the memory contains, in its order, for the channels
-    that are on (firmware 00.01.04, DHO914S): CH1 alone with one channel on, CH1 and the
-    other channel with CH1 among two, CH1 and CH2 with two others, CH1 to CHn with n of
+    """The channels whose samples the memory contains, in its order.
+
+    Firmware 00.01.04, DHO914S: CH1 alone with one channel on, CH1 and the other
+    channel with CH1 among two, CH1 and CH2 with two others, CH1 to CHn with n of
     three or four. A memory read of the k-th channel that is on returns the k-th of
-    these; the memory of a channel that is on is its own only where the two agree."""
+    these; the memory of a channel that is on is its own only where the two agree.
+
+    Args:
+        enabled: Numbers of the channels that are on.
+
+    Returns:
+        Numbers of the channels recorded into the memory, in its order.
+    """
     on = tuple(sorted(enabled))
     if len(on) == 1:
         return (1,)
@@ -292,8 +341,18 @@ def memory_channels(enabled: Sequence[int]) -> tuple[int, ...]:
 
 
 def readable_channels(enabled: Sequence[int], n_channels: int = 4) -> tuple[int, ...]:
-    """The fewest channels, those that are on included, whose memory is their own
-    (memory_channels): the channels to turn on for a memory read."""
+    """The channels to turn on for a memory read.
+
+    The fewest channels, those that are on included, whose memory is their own
+    (memory_channels).
+
+    Args:
+        enabled: Numbers of the channels that are on.
+        n_channels: Number of analog channels of the instrument.
+
+    Returns:
+        Numbers of the channels to have on.
+    """
     on = set(enabled)
     for extra in ((), (1,), (1, 2), (1, 2, 3), tuple(range(1, n_channels + 1))):
         candidate = tuple(sorted(on | set(extra)))
@@ -305,7 +364,19 @@ def readable_channels(enabled: Sequence[int], n_channels: int = 4) -> tuple[int,
 def linear_frequencies(
     start: float, stop: float, points: int
 ) -> npt.NDArray[np.float64]:
-    """Equally spaced frequencies from start to stop, both included."""
+    """Equally spaced frequencies from start to stop.
+
+    Args:
+        start: First frequency in Hz.
+        stop: Last frequency in Hz.
+        points: Number of frequencies.
+
+    Returns:
+        The frequencies in Hz, start and stop included.
+
+    Raises:
+        ValueError: If start is not below stop.
+    """
     if not 0 < start < stop:
         raise ValueError(
             f"frequencies: start {start:g} Hz must be below stop {stop:g} Hz"
@@ -318,8 +389,17 @@ def fit_sine(
 ) -> tuple[float, float, float]:
     """Least-squares fit of y = A sin(2 pi f t + phase) + c at a known frequency f.
 
-    Returns (A, phase in rad, c). The fit rejects noise and harmonics that a peak or
-    zero-crossing measurement picks up, and needs no whole number of periods."""
+    The fit rejects noise and harmonics that a peak or zero-crossing measurement
+    picks up, and needs no whole number of periods.
+
+    Args:
+        t: Sample times in s.
+        y: Sample values.
+        frequency: The known frequency f in Hz.
+
+    Returns:
+        The amplitude A, the phase in rad and the offset c.
+    """
     t = np.asarray(t, dtype=np.float64)
     y = np.asarray(y, dtype=np.float64)
     w = 2 * np.pi * frequency
@@ -329,8 +409,14 @@ def fit_sine(
 
 
 def scale_125(value: float) -> float:
-    """The smallest value of the 1-2-5 sequence (..., 1, 2, 5, 10, ...) at or above
-    value."""
+    """The smallest value of the 1-2-5 sequence (1, 2, 5, 10, ...) at or above value.
+
+    Args:
+        value: A positive number.
+
+    Returns:
+        The value of the sequence.
+    """
     exponent = math.floor(math.log10(value))
     for mantissa in (1, 2, 5, 10):
         candidate = mantissa * 10.0**exponent
@@ -545,12 +631,14 @@ class RigolDHO900Channel(InstrumentChannel["RigolDHO900"]):
     def _set_enabled(self, value: str) -> None:
         self.write(f"{self._prefix}:DISPlay {value}")
         # the instrument reconfigures the acquisition; digitize() allows for it
-        self.root_instrument._channels_changed = time.monotonic()
+        self.parent._channels_changed = time.monotonic()
 
     def _require_on_unless_unchanged(self, node: str, value: float, what: str) -> bool:
-        """For a channel that is off, which ignores scale and offset changes: True if
-        value is the current one (nothing to write), else ValueError. False for a
-        channel that is on."""
+        """Whether a change of a channel that is off can be skipped.
+
+        A channel that is off ignores scale and offset changes: True if value is the
+        current one (nothing to write), else ValueError. False for a channel that is
+        on."""
         if self.is_on():
             return False
         current = float(self.ask(f"{self._prefix}:{node}?"))
@@ -574,7 +662,9 @@ class RigolDHO900Channel(InstrumentChannel["RigolDHO900"]):
         self.write(f"{self._prefix}:SCALe {value:.6e}")
 
     def _write_in_range(self, node: str, value: float, param: Parameter) -> None:
-        """Write offset or bias and read it back. The instrument clips a value outside
+        """Write offset or bias and read it back.
+
+        The instrument clips a value outside
         the range of the scale and probe ratio without an error, and that range is
         not predictable from the scale alone (it differs between channels and with
         the bandwidth limit): a clipped value stays set, is logged as a warning and
@@ -656,13 +746,22 @@ class RigolDHO900Waveform(InstrumentModule["RigolDHO900"]):
         """The time of each trace point relative to the trigger."""
 
     def preamble(self, source: str = "CHANnel1") -> dict[str, float]:
-        """The waveform preamble of a source (as in :WAVeform:SOURce) in the current
-        mode, for the whole record: format, type, points, count, x and y increment,
-        origin and reference.
+        """The waveform preamble of a source in the current mode, for the whole record.
 
         Selects the whole record first (:WAVeform:STARt 1, :WAVeform:STOP at its
         end): the points the preamble reports are those between start and stop, not
-        the record length."""
+        the record length.
+
+        Args:
+            source: Waveform source as in :WAVeform:SOURce, e.g. "CHANnel1".
+
+        Returns:
+            By key: format, type, points, count, xincrement, xorigin, xreference,
+            yincrement, yorigin and yreference.
+
+        Raises:
+            RuntimeError: If the preamble does not have ten fields.
+        """
         self.write(f":WAVeform:SOURce {source}")
         self.write(":WAVeform:FORMat WORD")
         mode = self.ask(":WAVeform:MODE?").strip()
@@ -675,6 +774,9 @@ class RigolDHO900Waveform(InstrumentModule["RigolDHO900"]):
             last = round(float(self.ask(":ACQuire:MDEPth?")))
         self.write(":WAVeform:STARt 1")
         self.write(f":WAVeform:STOP {last}")
+        return self._ask_preamble()
+
+    def _ask_preamble(self) -> dict[str, float]:
         fields = self.ask(":WAVeform:PREamble?").split(",")
         if len(fields) != 10:
             raise RuntimeError(f"{self.full_name}: unexpected preamble {fields!r}")
@@ -710,8 +812,9 @@ class RigolDHO900Waveform(InstrumentModule["RigolDHO900"]):
         return int(pre["type"]) == 2
 
     def _check_memory(self, source: str) -> None:
-        """Refuse a memory read of a channel whose memory is not its own: the
-        instrument records other channels than those that are on for some sets of
+        """Refuse a memory read of a channel whose memory is not its own.
+
+        The instrument records other channels than those that are on for some sets of
         channels (memory_channels), and a memory read follows the channels on now, not
         those of the acquisition."""
         root = self.root_instrument
@@ -737,14 +840,38 @@ class RigolDHO900Waveform(InstrumentModule["RigolDHO900"]):
             )
 
     def read(self, source: str) -> npt.NDArray[np.float64]:
-        """Read the waveform of a source (:WAVeform:SOURce syntax) in V."""
+        """Read the waveform of a source.
+
+        Args:
+            source: Waveform source as in :WAVeform:SOURce, e.g. "CHANnel1".
+
+        Returns:
+            The samples in V.
+
+        Raises:
+            RuntimeError: As read_with_preamble().
+        """
         return self.read_with_preamble(source)[0]
 
     def read_with_preamble(
         self, source: str
     ) -> tuple[npt.NDArray[np.float64], dict[str, float]]:
-        """Read the waveform of a source in V, with the preamble of the read (see
-        preamble()) for its time axis."""
+        """Read the waveform of a source, with the preamble of the read.
+
+        Args:
+            source: Waveform source as in :WAVeform:SOURce, e.g. "CHANnel1".
+
+        Returns:
+            The samples in V, and the preamble of the read (see preamble()) for
+            their time axis.
+
+        Raises:
+            RuntimeError: If the memory (raw mode) is read while the acquisition
+                runs; if the memory of the source is not its own for the channels
+                on (memory_channels), or channels were turned on or off since the
+                acquisition; if the source has no samples; if a block has another
+                number of points than requested.
+        """
         pre = self.preamble(source)
         stopped = self.ask(":TRIGger:STATus?").strip() == "STOP"
         if self._needs_stop(pre) and not stopped:
@@ -755,6 +882,27 @@ class RigolDHO900Waveform(InstrumentModule["RigolDHO900"]):
         # raw, or maximum while stopped: the memory
         if stopped and self.ask(":WAVeform:MODE?").strip() in ("RAW", "MAX"):
             self._check_memory(source)
+        return self._read_points(source, pre), pre
+
+    def _read_memory(
+        self, source: str, points: int
+    ) -> tuple[npt.NDArray[np.float64], dict[str, float]]:
+        """read_with_preamble() of a stopped raw acquisition, without its checks.
+
+        Reads points points without the queries of the mode, the trigger status and
+        the channels on: for a caller that has established them for a series of
+        acquisitions (frequency_response). One query for the preamble instead of
+        about ten."""
+        self.write(f":WAVeform:SOURce {source}")
+        self.write(":WAVeform:FORMat WORD")
+        self.write(":WAVeform:STARt 1")
+        self.write(f":WAVeform:STOP {points}")
+        pre = self._ask_preamble()
+        return self._read_points(source, pre), pre
+
+    def _read_points(
+        self, source: str, pre: dict[str, float]
+    ) -> npt.NDArray[np.float64]:
         n = int(pre["points"])
         if n == 0:
             raise RuntimeError(
@@ -770,6 +918,11 @@ class RigolDHO900Waveform(InstrumentModule["RigolDHO900"]):
             self.write(f":WAVeform:STOP {last}")
             self.write(f":WAVeform:STARt {first + 1}")
             block = self.root_instrument.query_block(":WAVeform:DATA?", "H")
+            if len(block) == 0:
+                raise EmptyReadError(
+                    f"{self.full_name}: 0 points received for points {first + 1} "
+                    f"to {last} of {source}"
+                )
             if len(block) != last - first:
                 raise RuntimeError(
                     f"{self.full_name}: {len(block)} points received for points "
@@ -777,7 +930,7 @@ class RigolDHO900Waveform(InstrumentModule["RigolDHO900"]):
                 )
             raw[first:last] = block
         volts = (raw - pre["yorigin"] - pre["yreference"]) * pre["yincrement"]
-        return np.asarray(volts, dtype=np.float64), pre
+        return np.asarray(volts, dtype=np.float64)
 
 
 class RigolDHO900Timebase(InstrumentModule["RigolDHO900"]):
@@ -1203,7 +1356,7 @@ class RigolDHO900AWG(InstrumentModule["RigolDHO900"]):
     amplitude of 2 V gave 1.99 Vpp at a 1 MOhm input. Arbitrary waveforms cannot be
     loaded through SCPI."""
 
-    FUNCTIONS = {
+    FUNCTIONS: ClassVar[dict[str, str]] = {
         "sine": "SIN",
         "square": "SQU",
         "ramp": "RAMP",
@@ -1214,7 +1367,7 @@ class RigolDHO900AWG(InstrumentModule["RigolDHO900"]):
     #: the keywords as the instrument accepts and returns them: the long forms
     #: SINusoid, SQUare and TRIangle and the short forms UPR, DNR and NOIS of the
     #: guide are rejected (-222), and a query returns UPRAMP, DNRAMP and NOISE
-    MODULATION_FUNCTIONS = {
+    MODULATION_FUNCTIONS: ClassVar[dict[str, str]] = {
         "sine": "SIN",
         "square": "SQU",
         "triangle": "TRI",
@@ -1423,9 +1576,10 @@ class RigolDHO900AWG(InstrumentModule["RigolDHO900"]):
         self.write(f":SOURce:MOD:TYPe {keyword}")
 
     def _modulation_setter(self, kind: str, header: str, name: str) -> Any:
-        """The set function of a modulation setting of kind (AM, FM, PM): written
-        while the modulation is on with that type; otherwise an unchanged value is
-        accepted and a change refused."""
+        """The set function of a modulation setting of kind (AM, FM, PM).
+
+        The value is written while the modulation is on with that type; otherwise an
+        unchanged value is accepted and a change refused."""
 
         def set_value(value: float | str) -> None:
             text = value if isinstance(value, str) else f"{value:.6e}"
@@ -1510,8 +1664,9 @@ class RigolDHO900AWG(InstrumentModule["RigolDHO900"]):
 
 
 class RigolDHO900Bode(InstrumentModule["RigolDHO900"]):
-    """The instrument's own Bode plot (:BODeplot, DHO914S and DHO924S): it sweeps
-    the generator and draws gain and phase on the display.
+    """The instrument's own Bode plot (:BODeplot, DHO914S and DHO924S).
+
+    It sweeps the generator and draws gain and phase on the display.
 
     The programming guide has no command that reads the results; they are available
     only on the display (screenshot()). frequency_response measures gain and phase
@@ -1665,10 +1820,21 @@ class RigolDHO900Bode(InstrumentModule["RigolDHO900"]):
         self.write(":BODeplot:RUNStop 0")
 
     def sweep(self, timeout: float = 3600.0, poll_interval: float = 0.5) -> float:
-        """Run one sweep and return when it has ended; returns its duration in s.
+        """Run one sweep and return when it has ended.
 
-        Raises TimeoutError, with the sweep stopped, if it has not ended within
-        timeout seconds. The results are shown on the display only."""
+        The results are shown on the display only.
+
+        Args:
+            timeout: Longest duration of the sweep in s.
+            poll_interval: Interval in s between the queries of the sweep's state.
+
+        Returns:
+            The duration of the sweep in s.
+
+        Raises:
+            TimeoutError: If the sweep has not ended within timeout; the sweep is
+                then stopped.
+        """
         self.start()
         begin = time.monotonic()
         while True:
@@ -1684,8 +1850,9 @@ class RigolDHO900Bode(InstrumentModule["RigolDHO900"]):
 
 
 class RigolDHO900ResponseParameter(MultiParameter):
-    """Gain (dB) and phase (deg) against frequency from one sweep of
-    frequency_response; the frequencies are those of its settings."""
+    """Gain (dB) and phase (deg) against frequency from one frequency_response sweep.
+
+    The frequencies are those of its settings."""
 
     def __init__(
         self, name: str, instrument: RigolDHO900FrequencyResponse, **kwargs: Any
@@ -1713,6 +1880,7 @@ class RigolDHO900ResponseParameter(MultiParameter):
 
     @property  # type: ignore[override]
     def shapes(self) -> tuple[tuple[int, ...], ...]:
+        """The shapes of gain and phase, from the frequencies of the settings."""
         n = len(self._module.frequencies())
         return ((n,), (n,))
 
@@ -1722,6 +1890,7 @@ class RigolDHO900ResponseParameter(MultiParameter):
 
     @property
     def setpoints(self) -> tuple[tuple[tuple[float, ...]], ...]:
+        """The frequencies of the settings, the setpoints of gain and phase."""
         freqs = tuple(float(f) for f in self._module.frequencies())
         return ((freqs,), (freqs,))
 
@@ -1730,21 +1899,24 @@ class RigolDHO900ResponseParameter(MultiParameter):
         pass
 
     def get_raw(self) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]:
+        """Run a sweep and return its gain and phase."""
         result = self._module.sweep()
         return result["gain"], result["phase"]
 
 
 class RigolDHO900FrequencyResponse(InstrumentModule["RigolDHO900"]):
-    """Gain and phase of a device under test, measured with the generator (DHO914S,
-    DHO924S) and the waveforms of two channels, the method of
-    https://github.com/wjakob/rigol (BSD-3-Clause).
+    """Gain and phase of a device under test from the generator and two channels.
+
+    Measured with the generator (DHO914S, DHO924S) and the waveforms of two
+    channels, the method of https://github.com/wjakob/rigol (BSD-3-Clause).
 
     At each frequency the generator outputs a sine; one single acquisition records
     the input and output channels over at least ``cycles`` periods, and a sine at
     the generator's frequency is fitted to each trace by least squares (fit_sine).
     Gain and phase are the ratio of the fitted amplitudes and the difference of the
     fitted phases. With autoscale, the vertical scales are adjusted between
-    acquisitions so that each signal spans about 6 of the 8 divisions without
+    acquisitions, in steps of the 1-2-5 sequence, so that the peak of each signal
+    lies at 1.6 to 4 of the 4 divisions above the center line without
     clipping, which keeps the 12-bit resolution over a wide range of gains.
 
     The settings of this module are kept by the driver, not by the instrument;
@@ -1752,9 +1924,9 @@ class RigolDHO900FrequencyResponse(InstrumentModule["RigolDHO900"]):
 
     #: acquisitions per frequency at most, while autoscale adjusts the scales
     max_acquisitions = 6
-    #: the signal peak, in divisions, that autoscale aims for, and the range it
-    #: accepts without a change
-    target_divisions = 3.0
+    #: the range of the signal peak, in divisions, that autoscale accepts without a
+    #: change of a scale of the 1-2-5 sequence; a new scale is the step of that
+    #: sequence that places the peak at or below the upper end (1.6 to 4 div)
     accepted_divisions = (1.5, 4.0)
 
     def __init__(
@@ -1894,6 +2066,23 @@ class RigolDHO900FrequencyResponse(InstrumentModule["RigolDHO900"]):
         """Whether the vertical scales are adjusted to each signal (see the class
         docstring); otherwise they stay as set."""
 
+        self.through_correction: Parameter = self.add_parameter(
+            "through_correction",
+            label="Apply the through calibration",
+            initial_value=True,
+            set_cmd=None,
+            vals=Bool(),
+        )
+        """Whether sweep() corrects gain and phase by the through calibration
+        (calibrate_through()), while one exists."""
+
+        self.through_calibrated: Parameter = self.add_parameter(
+            "through_calibrated",
+            label="Through calibration available",
+            get_cmd=lambda: self.through_calibration is not None,
+        )
+        """Whether a through calibration exists (through_calibration)."""
+
         self.response: RigolDHO900ResponseParameter = self.add_parameter(
             "response", parameter_class=RigolDHO900ResponseParameter
         )
@@ -1901,6 +2090,12 @@ class RigolDHO900FrequencyResponse(InstrumentModule["RigolDHO900"]):
 
         self.last_sweep: dict[str, npt.NDArray[np.float64]] | None = None
         """The result of the most recent sweep() (see there)."""
+
+        self.through_calibration: dict[str, Any] | None = None
+        """The reference of calibrate_through(), or None: arrays by key frequency
+        (Hz), gain (dB) and phase (deg), and the input_source and output_source it
+        was measured with. Can be saved and set again for a later session with the
+        same probes and channels."""
 
     def _get_frequencies(self) -> npt.NDArray[np.float64]:
         start, stop = self.start_frequency(), self.stop_frequency()
@@ -1911,13 +2106,7 @@ class RigolDHO900FrequencyResponse(InstrumentModule["RigolDHO900"]):
     def sweep(
         self, frequencies: npt.ArrayLike | None = None
     ) -> dict[str, npt.NDArray[np.float64]]:
-        """Measure gain and phase at the frequencies of the settings, or at the given
-        ones.
-
-        Returns (and keeps as last_sweep) arrays by key: frequency (the generator's,
-        Hz), gain (dB), phase (deg, unwrapped over the sweep; NaN with "awg" as
-        input), input_amplitude and output_amplitude (V, peak), input_scale and
-        output_scale (V/div of the acquisition used).
+        """Measure gain and phase at the frequencies of the settings or at given ones.
 
         Changes the instrument settings: generator (sine, amplitude, no offset or
         modulation, frequency; the output is on during the sweep and back in its
@@ -1927,7 +2116,138 @@ class RigolDHO900FrequencyResponse(InstrumentModule["RigolDHO900"]):
         as input) at 0 V, rising, and the waveform mode (raw). Coupling,
         bandwidth limit and probe ratio stay as set. Turns on CH1 (and CH2, CH3)
         where the instrument records the measured channels into the memory only
-        with them (memory_channels)."""
+        with them (memory_channels).
+
+        With a through calibration (calibrate_through()) and through_correction
+        on, gain and phase are corrected by the reference: the gain in dB and the
+        phase are its differences from the reference, interpolated between the
+        reference's frequencies (the gain over log f, the phase linearly over f,
+        exact for a delay).
+
+        Args:
+            frequencies: Frequencies in Hz; by default those of the settings
+                (frequencies).
+
+        Returns:
+            Arrays by key, also kept as last_sweep: frequency (the generator's, Hz),
+            gain (dB), phase (deg, unwrapped over the sweep; NaN with "awg" as
+            input), raw_gain and raw_phase (without the through correction; equal
+            to gain and phase without it), input_amplitude and output_amplitude (V,
+            peak), input_scale and output_scale (V/div of the acquisition used).
+
+        Raises:
+            RuntimeError: If the instrument has no generator.
+            ValueError: If input and output are the same channel, there are no
+                frequencies, a frequency lies outside the generator's range, or
+                the amplitude exceeds the generator's limit at the highest
+                frequency; with the through correction, if the calibration was
+                measured with other channels or a frequency lies outside its
+                range.
+            TimeoutError: If an acquisition does not end, also after a forced
+                trigger.
+        """
+        return self._sweep(frequencies, correct=self.through_correction())
+
+    def calibrate_through(
+        self, frequencies: npt.ArrayLike | None = None
+    ) -> dict[str, Any]:
+        """Measure the reference of the through correction.
+
+        Connect the input and output channel to the same node (the generator's
+        output, or the input of the device under test) before. The sweep then
+        measures the difference between the two channels and their probes: delay
+        (channel skew, and the interleaving of the instrument's ADC between the
+        channels, 0.8 ns between CH1 and CH2 with four channels on), gain and the
+        frequency response of the probes. Later sweeps with the same input and
+        output source are corrected by it while through_correction is on. A
+        reference that deviates by more than 3 dB or 45 deg is logged as a
+        warning: the channels are then probably not on the same node.
+
+        Args:
+            frequencies: Frequencies in Hz; by default those of the settings
+                (frequencies). Later sweeps must lie within their range.
+
+        Returns:
+            The reference, also kept as through_calibration.
+
+        Raises:
+            RuntimeError: As sweep().
+            ValueError: As sweep().
+            TimeoutError: As sweep().
+        """
+        result = self._sweep(frequencies, correct=False)
+        reference: dict[str, Any] = {
+            "frequency": result["frequency"].copy(),
+            "gain": result["gain"].copy(),
+            "phase": result["phase"].copy(),
+            "input_source": self.input_source(),
+            "output_source": self.output_source(),
+        }
+        worst_gain = float(np.nanmax(np.abs(reference["gain"])))
+        phases = reference["phase"][np.isfinite(reference["phase"])]
+        worst_phase = float(np.max(np.abs(phases))) if phases.size else 0.0
+        if worst_gain > 3.0 or worst_phase > 45.0:
+            self.log.warning(
+                "through calibration deviates by up to %.1f dB and %.0f deg: the "
+                "input and output channel are probably not on the same node",
+                worst_gain, worst_phase,
+            )  # fmt: skip
+        self.through_calibration = reference
+        return reference
+
+    def clear_through_calibration(self) -> None:
+        """Discard the through calibration; later sweeps are uncorrected."""
+        self.through_calibration = None
+
+    def _through_reference(
+        self, freqs: npt.NDArray[np.float64]
+    ) -> dict[str, Any] | None:
+        """The through calibration for a sweep at freqs; None without one.
+
+        Checked against the sources and the frequency range of the sweep."""
+        reference = self.through_calibration
+        if reference is None:
+            return None
+        sources = (reference["input_source"], reference["output_source"])
+        if sources != (self.input_source(), self.output_source()):
+            raise ValueError(
+                f"{self.full_name}: the through calibration was measured with input "
+                f"{sources[0]} and output {sources[1]}: calibrate again, or turn "
+                "through_correction off"
+            )
+        ref_f = np.asarray(reference["frequency"], dtype=np.float64)
+        low, high = float(np.min(ref_f)), float(np.max(ref_f))
+        # the generator's frequencies differ from the requested ones by up to 1e-6
+        if freqs.min() < low * (1 - 1e-6) or freqs.max() > high * (1 + 1e-6):
+            raise ValueError(
+                f"{self.full_name}: the through calibration covers {low:g} Hz to "
+                f"{high:g} Hz, the sweep {freqs.min():g} Hz to {freqs.max():g} Hz"
+            )
+        return reference
+
+    @staticmethod
+    def _correct(
+        reference: dict[str, Any],
+        frequency: npt.NDArray[np.float64],
+        gain: npt.NDArray[np.float64],
+        wrapped: npt.NDArray[np.float64],
+    ) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]:
+        """Gain (dB) and wrapped phase (rad) corrected by a through reference."""
+        order = np.argsort(reference["frequency"])
+        ref_f = np.asarray(reference["frequency"], dtype=np.float64)[order]
+        ref_gain = np.asarray(reference["gain"], dtype=np.float64)[order]
+        ref_phase = np.radians(np.asarray(reference["phase"], dtype=np.float64)[order])
+        f = np.clip(frequency, ref_f[0], ref_f[-1])
+        gain = gain - np.interp(np.log10(f), np.log10(ref_f), ref_gain)
+        if np.all(np.isfinite(ref_phase)):
+            wrapped = np.remainder(
+                wrapped - np.interp(f, ref_f, ref_phase) + np.pi, 2 * np.pi
+            ) - np.pi
+        return gain, wrapped
+
+    def _sweep(
+        self, frequencies: npt.ArrayLike | None, correct: bool
+    ) -> dict[str, npt.NDArray[np.float64]]:
         root = self.root_instrument
         awg = root.awg
         if awg is None:
@@ -1954,6 +2274,7 @@ class RigolDHO900FrequencyResponse(InstrumentModule["RigolDHO900"]):
                 f"{awg_max_amplitude(float(freqs.max())):g} V, the limit at "
                 f"{freqs.max():g} Hz"
             )
+        reference = self._through_reference(freqs) if correct else None
         channels: dict[str, RigolDHO900Channel] = {}
         for source in (input_source, output_source):
             if source != "awg":
@@ -1963,6 +2284,11 @@ class RigolDHO900FrequencyResponse(InstrumentModule["RigolDHO900"]):
         output_was_on = awg.output()
         self._prepare(awg, amplitude, float(freqs[0]), channels, trigger_source)
         scales = {source: ch.scale() for source, ch in channels.items()}
+        # constant during the sweep: queried once, not at every acquisition
+        ratios = {source: float(ch.probe_ratio()) for source, ch in channels.items()}
+        depth = round(float(root.ask(":ACQuire:MDEPth?")))
+        channels_on = root._channels_on()
+        peaks: dict[str, list[float]] = {source: [] for source in channels}
         n = freqs.size
         result = {
             key: np.full(n, np.nan)
@@ -1974,7 +2300,13 @@ class RigolDHO900FrequencyResponse(InstrumentModule["RigolDHO900"]):
         wrapped = np.full(n, np.nan)
         try:
             for i, frequency in enumerate(freqs):
-                fit = self._measure_point(awg, float(frequency), channels, scales)
+                if self.autoscale():
+                    self._predict_scales(channels, scales, ratios, peaks)
+                fit = self._measure_point(
+                    awg, float(frequency), channels, scales, ratios, depth, channels_on
+                )
+                for source in channels:
+                    peaks[source].append(fit["peaks"][source])
                 actual = fit["frequency"]
                 result["frequency"][i] = actual
                 out_amp, out_phase = fit[output_source]
@@ -1982,8 +2314,8 @@ class RigolDHO900FrequencyResponse(InstrumentModule["RigolDHO900"]):
                     in_amp, in_phase = amplitude / 2, math.nan
                 else:
                     in_amp, in_phase = fit[input_source]
-                    result["input_scale"][i] = scales[input_source]
-                result["output_scale"][i] = scales[output_source]
+                    result["input_scale"][i] = fit["scales"][input_source]
+                result["output_scale"][i] = fit["scales"][output_source]
                 result["input_amplitude"][i] = in_amp
                 result["output_amplitude"][i] = out_amp
                 if in_amp > 0 and out_amp > 0:
@@ -1997,6 +2329,15 @@ class RigolDHO900FrequencyResponse(InstrumentModule["RigolDHO900"]):
         finally:
             if not output_was_on:
                 awg.output(False)
+        result["raw_gain"] = result["gain"].copy()
+        if input_source != "awg":
+            result["raw_phase"] = np.degrees(np.unwrap(wrapped))
+        else:
+            result["raw_phase"] = result["phase"].copy()
+        if reference is not None:
+            result["gain"], wrapped = self._correct(
+                reference, result["frequency"], result["gain"], wrapped
+            )
         if input_source != "awg":
             result["phase"] = np.degrees(np.unwrap(wrapped))
         self.last_sweep = result
@@ -2049,64 +2390,156 @@ class RigolDHO900FrequencyResponse(InstrumentModule["RigolDHO900"]):
         frequency: float,
         channels: dict[str, RigolDHO900Channel],
         scales: dict[str, float],
+        ratios: dict[str, float],
+        depth: int,
+        channels_on: tuple[int, ...],
     ) -> dict[str, Any]:
-        """Acquire at one frequency, adjusting the scales (autoscale); returns the
-        generator frequency and (amplitude, phase) of each channel."""
+        """Acquire at one frequency, adjusting the scales (autoscale).
+
+        Returns the generator frequency, (amplitude, phase) of each channel and, by
+        keys "peaks" and "scales", the peak of each trace (V) and the scale it was
+        acquired at (V/div). A trace still clipped after the last acquisition is
+        logged as a warning."""
         root = self.root_instrument
-        # a stopped acquisition limits the time base to the record: set it running
-        root.run()
-        awg.frequency(frequency)
+        # sweep() has checked frequency and amplitude against the generator's limits
+        self.write(f":SOURce:FREQuency {frequency:.7e}")
         actual = float(self.ask(":SOURce:FREQuency?"))
+        awg.frequency.cache.set(actual)
         timebase = scale_125(self.cycles() / actual / 10)
         timebase = min(max(timebase, 2e-9), 500.0)
-        root.timebase.scale(timebase)
+        self._set_timebase(timebase)
         if self.settling_time() > 0:
             time.sleep(self.settling_time())
-        fits: dict[str, Any] = {"frequency": actual}
+        fits: dict[str, Any] = {"frequency": actual, "peaks": {}, "scales": {}}
         for _ in range(self.max_acquisitions):
-            self._acquire(timeout=2.0 + 30 * timebase)
+            self._acquire(2.0 + 30 * timebase, channels_on)
             changed = False
+            try:
+                reads = {
+                    source: root.waveform._read_memory(channel.source_name, depth)
+                    for source, channel in channels.items()
+                }
+            except EmptyReadError as error:
+                self.log.warning("%s; acquiring again", error)
+                continue
             for source, channel in channels.items():
-                volts, pre = root.waveform.read_with_preamble(channel.source_name)
+                volts, pre = reads[source]
                 t = pre["xorigin"] + (np.arange(volts.size) - pre["xreference"]) * pre[
                     "xincrement"
                 ]
                 amp, phase, offset = fit_sine(t, volts, actual)
                 fits[source] = (amp, phase)
+                fits["peaks"][source] = float(np.max(np.abs(volts)))
+                # the scale of this acquisition: autoscale may change it below
+                fits["scales"][source] = scales[source]
                 if self.autoscale():
-                    new = self._new_scale(channel, volts, amp, offset, scales[source])
+                    new = self._new_scale(
+                        ratios[source], volts, amp, offset, scales[source]
+                    )
                     if new != scales[source]:
                         channel.scale(new)
                         scales[source] = float(channel.scale())
                         changed = True
             if not changed:
                 break
+        if any(source not in fits for source in channels):
+            raise EmptyReadError(
+                f"{self.full_name}: no acquisition with samples at {actual:g} Hz in "
+                f"{self.max_acquisitions} attempts"
+            )
+        for source, scale in fits["scales"].items():
+            if fits["peaks"][source] >= CLIP_DIVISIONS * scale:
+                self.log.warning(
+                    "%g Hz: %s clipped at %g V/div in the last acquisition; gain "
+                    "and phase of this point are unreliable",
+                    actual, source, scale,
+                )  # fmt: skip
         return fits
+
+    def _set_timebase(self, scale: float) -> None:
+        """Set the time base, while stopped where the instrument accepts the value.
+
+        :RUN takes 0.1 s to 0.4 s. A stopped acquisition holds a time base far
+        below that of its record (10 ms/div to 0.5 us/div gives 20 us/div): the
+        acquisition is then started and the value set again."""
+        root = self.root_instrument
+        root.write(f":TIMebase:MAIN:SCALe {scale:.6e}")
+        actual = float(root.ask(":TIMebase:MAIN:SCALe?"))
+        if math.isclose(actual, scale, rel_tol=_READBACK_RTOL):
+            root.timebase.scale.cache.set(actual)
+        else:
+            root.run()
+            root.timebase.scale(scale)
+
+    def _predict_scales(
+        self,
+        channels: dict[str, RigolDHO900Channel],
+        scales: dict[str, float],
+        ratios: dict[str, float],
+        peaks: dict[str, list[float]],
+    ) -> None:
+        """Set each scale for the peak extrapolated from the last two points.
+
+        A gain that changes along the sweep then does not cost a second
+        acquisition."""
+        for source, channel in channels.items():
+            history = peaks[source]
+            if len(history) < 2 or min(history[-2:]) <= 0:
+                continue
+            trend = min(max(history[-1] / history[-2], 0.5), 2.0)
+            new = self._scale_for_peak(
+                ratios[source], history[-1] * trend, scales[source]
+            )
+            if new != scales[source]:
+                channel.scale(new)
+                scales[source] = float(channel.scale())
 
     def _new_scale(
         self,
-        channel: RigolDHO900Channel,
+        ratio: float,
         volts: npt.NDArray[np.float64],
         amplitude: float,
         offset: float,
         scale: float,
     ) -> float:
-        ratio = float(channel.probe_ratio())
-        low, high = 200e-6 * ratio, 10.0 * ratio
-        if np.max(np.abs(volts)) >= CLIP_DIVISIONS * scale:
-            return min(scale * 5, high)
-        peak = (amplitude + abs(offset)) / scale
-        lower, upper = self.accepted_divisions
-        if lower <= peak <= upper or (peak < lower and scale <= low * (1 + 1e-9)):
-            return scale
-        return min(max(scale * peak / self.target_divisions, low), high)
+        peak = float(np.max(np.abs(volts)))
+        if peak >= CLIP_DIVISIONS * scale:
+            return min(scale_125(scale * 5), 10.0 * ratio)
+        # the peak of the trace, not that of the fitted sine: near a notch of the
+        # response, harmonics and noise exceed the fundamental, and a scale for the
+        # fundamental clips the trace
+        return self._scale_for_peak(ratio, max(peak, amplitude + abs(offset)), scale)
 
-    def _acquire(self, timeout: float) -> None:
-        """One single acquisition; a forced trigger if none arrives (a signal below
-        the trigger's sensitivity)."""
+    def _scale_for_peak(self, ratio: float, peak: float, scale: float) -> float:
+        """The scale for a signal peak (V), a step of the 1-2-5 sequence.
+
+        Unchanged while the scale is such a step and the peak lies within
+        accepted_divisions, else the smallest step that holds the peak within the
+        upper end. Only the steps: at scales between them the instrument's gain
+        differed from the preamble's conversion by up to 0.11 dB (0.301, 0.341,
+        0.461, 0.505 V/div; DHO914S, 10:1 probe), at the steps by 0.02 dB at most,
+        so that a through calibration and a later sweep share the scale's gain."""
+        low, high = 200e-6 * ratio, 10.0 * ratio
+        if peak <= 0:
+            return min(max(scale_125(low), low), high)
+        lower, upper = self.accepted_divisions
+        divisions = peak / scale
+        on_grid = math.isclose(scale, scale_125(scale), rel_tol=1e-6)
+        if on_grid and (
+            lower <= divisions <= upper
+            or (divisions < lower and scale <= low * (1 + 1e-9))
+        ):
+            return scale
+        return min(max(scale_125(peak / upper), low), high)
+
+    def _acquire(self, timeout: float, channels_on: tuple[int, ...]) -> None:
+        """One single acquisition.
+
+        A forced trigger if none arrives (a signal below the trigger's
+        sensitivity)."""
         root = self.root_instrument
         try:
-            root.digitize(timeout=timeout)
+            root._digitize(timeout, 0.02, channels_on)
         except TimeoutError:
             root.force_trigger()
             deadline = time.monotonic() + timeout
@@ -2346,13 +2779,14 @@ class RigolDHO900Measurement(InstrumentModule["RigolDHO900"]):
 class RigolDHO900(VisaInstrument):
     """QCoDeS driver for the Rigol DHO900 (and DHO800) series oscilloscopes.
 
+    The driver writes nothing at connect. A trace sets the waveform source, format
+    and the start and stop points before it reads.
+
     Args:
         name: Name of the instrument.
         address: VISA address, e.g. ``USB0::0x1AB1::0x044C::<serial>::INSTR``.
         **kwargs: Passed on to VisaInstrument.
 
-    The driver writes nothing at connect. A trace sets the waveform source, format
-    and the start and stop points before it reads.
     """
 
     default_terminator = "\n"
@@ -2464,15 +2898,21 @@ class RigolDHO900(VisaInstrument):
                 return f"CHANnel{n}"
         if source.startswith("math") and source[4:] in ("1", "2", "3", "4"):
             return f"MATH{source[4:]}"
-        if self.has_logic_analyzer and source.startswith("d") and source[1:].isdigit():
-            if 0 <= int(source[1:]) <= 15:
-                return f"D{source[1:]}"
+        if (
+            self.has_logic_analyzer
+            and source.startswith("d")
+            and source[1:].isdigit()
+            and 0 <= int(source[1:]) <= 15
+        ):
+            return f"D{source[1:]}"
         raise ValueError(f"{self.name}: unknown source {source!r}")
 
     def _write_checked(
         self, header: str, value: float, param: Parameter, fmt: str = "{:.6e}"
     ) -> None:
-        """Write a value and read it back. The instrument clips an out-of-range value
+        """Write a value and read it back.
+
+        The instrument clips an out-of-range value
         without an error: a value it changed stays set, is logged as a warning and is
         the value cached (param is a _ReadBackParameter)."""
         self.write(f"{header} {fmt.format(value)}")
@@ -2490,6 +2930,7 @@ class RigolDHO900(VisaInstrument):
         self, header: str, value: float, param: Parameter, fmt: str = "{:.6e}"
     ) -> None:
         """Write a value and read it back; raise if the instrument did not take it.
+
         For settings whose value the instrument ignores rather than clips (delay
         calibration at slow time bases, thresholds out of order): the setting then
         remains at its previous value."""
@@ -2506,7 +2947,15 @@ class RigolDHO900(VisaInstrument):
 
         Read with the termination character off, to the USBTMC end of message:
         with it on, a read ends at each 0x0A byte of the data, and full-memory reads
-        then intermittently stalled for the whole VISA timeout."""
+        then intermittently stalled for the whole VISA timeout.
+
+        Args:
+            command: The query.
+            datatype: Struct format character of the values, e.g. "H".
+
+        Returns:
+            The values of the block.
+        """
         visa = self.visa_handle
         with visa.read_termination_context(None):
             values = visa.query_binary_values(
@@ -2533,15 +2982,53 @@ class RigolDHO900(VisaInstrument):
     #: STOP for up to 0.44 s before the instrument armed
     arming_time = 1.0
 
+    #: s after :RUN within which the trigger status must leave STOP before run()
+    #: sends :RUN again; 0 turns the check off
+    run_confirm_time = 1.0
+
     def run(self) -> None:
-        """Start acquiring continuously."""
-        self.write(":RUN")
+        """Start acquiring continuously; returns once the acquisition runs.
+
+        The instrument applies :RUN 0.1 s to 0.4 s after it, and occasionally not at
+        all. A :RUN still pending when a :SINGle arrives turns the single acquisition
+        into a continuous one. run() therefore polls the trigger status until it
+        leaves STOP, sends :RUN again after run_confirm_time, and raises TimeoutError
+        after three attempts."""
         self._acquired_channels = None
+        for _ in range(3):
+            self.write(":RUN")
+            if self.run_confirm_time <= 0:
+                return
+            start = time.monotonic()
+            while time.monotonic() - start < self.run_confirm_time:
+                if self.ask(":TRIGger:STATus?").strip() != "STOP":
+                    return
+                time.sleep(0.02)
+        raise TimeoutError(f"{self.name}: the acquisition did not start after :RUN")
 
     def stop(self) -> None:
-        """Stop acquiring; the memory keeps the last acquisition."""
-        self.write(":STOP")
+        """Stop acquiring; returns once the acquisition has stopped.
+
+        The memory keeps the last acquisition.
+
+        Raises:
+            TimeoutError: If the trigger status has not read STOP within
+                run_confirm_time after the second :STOP.
+        """
+        self._stop_confirmed()
         self._acquired_channels = self._channels_on()
+
+    def _stop_confirmed(self) -> None:
+        for _ in range(2):
+            self.write(":STOP")
+            if self.run_confirm_time <= 0:
+                return
+            start = time.monotonic()
+            while time.monotonic() - start < self.run_confirm_time:
+                if self.ask(":TRIGger:STATus?").strip() == "STOP":
+                    return
+                time.sleep(0.02)
+        raise TimeoutError(f"{self.name}: the acquisition did not stop after :STOP")
 
     def single(self) -> None:
         """Arm a single acquisition (trigger sweep single); returns immediately."""
@@ -2557,26 +3044,50 @@ class RigolDHO900(VisaInstrument):
         self.write(":CLEar")
 
     def autoset(self) -> None:
-        """Adjust scales, time base and trigger to the input signals (front-panel
-        AUTO). Changes most settings."""
+        """Adjust scales, time base and trigger to the input signals (AUTO key).
+
+        Changes most settings."""
         self.write(":AUToset")
 
     def digitize(self, timeout: float = 10.0, poll_interval: float = 0.02) -> None:
-        """Acquire one waveform and wait until the acquisition has stopped, so that
-        the channels' traces and the measurements come from the same acquisition.
+        """Acquire one waveform and wait until the acquisition has stopped.
 
-        Raises TimeoutError if no trigger arrives within timeout seconds; the
-        instrument then remains armed (force_trigger() completes it).
+        The channels' traces and the measurements then come from the same
+        acquisition.
+
+        Args:
+            timeout: Longest wait for the trigger in s.
+            poll_interval: Interval in s between the queries of the trigger status.
+
+        Raises:
+            TimeoutError: If no trigger arrives within timeout; the instrument then
+                remains armed (force_trigger() completes it).
         """
+        self._digitize(timeout, poll_interval, self._channels_on())
+
+    def _digitize(
+        self, timeout: float, poll_interval: float, channels_on: tuple[int, ...]
+    ) -> None:
+        """digitize() with the channels on already known (frequency_response)."""
         # after a channel was turned on or off, the trigger status does not follow
         # :SINGle for about 0.3 s (STOP before the arming, WAIT before a STOP)
         settling = self._channels_changed + self.channel_settling - time.monotonic()
         if settling > 0:
             time.sleep(settling)
+        # a :SINGle while the acquisition runs occasionally stopped it without a
+        # single acquisition (status STOP, trigger sweep AUTO, an empty memory;
+        # 2026-11-14), and the running acquisition's WAIT or TD reads as an arming:
+        # stop it first
+        if self.ask(":TRIGger:STATus?").strip() != "STOP":
+            self._stop_confirmed()
+        # the first poll right after :SINGle: the instrument reports WAIT for about
+        # 0.1 s even for a short record, so the arming is seen and the arming_time
+        # fallback is rarely needed
         self.write(":SINGle")
-        self._acquired_channels = self._channels_on()
+        self._acquired_channels = channels_on
         start = time.monotonic()
         armed = False
+        resent = False
         while True:
             status = self.ask(":TRIGger:STATus?").strip()
             elapsed = time.monotonic() - start
@@ -2588,6 +3099,18 @@ class RigolDHO900(VisaInstrument):
                 # that, STOP can also precede the arming
                 return
             if elapsed > timeout:
+                if not resent and self.ask(":TRIGger:SWEep?").strip() != "SING":
+                    # the instrument acquires continuously: a :RUN applied after
+                    # the :SINGle overrode it
+                    self.log.warning(
+                        "the acquisition ran continuously after :SINGle; "
+                        "sending :SINGle again"
+                    )
+                    resent = True
+                    self.write(":SINGle")
+                    start = time.monotonic()
+                    armed = False
+                    continue
                 raise TimeoutError(
                     f"{self.name}: no trigger within {timeout} s (status {status})"
                 )
@@ -2609,8 +3132,9 @@ class RigolDHO900(VisaInstrument):
         return f"{MEASUREMENT_ITEMS[item]},{sources}"
 
     def _sources_off(self, *sources: str | None) -> bool:
-        """Whether one of the channel sources is off (a measurement query would turn
-        it on)."""
+        """Whether one of the channel sources is off.
+
+        A measurement query would turn it on."""
         for source in sources:
             if source is not None:
                 channel = self._channel_of(source)
@@ -2630,27 +3154,42 @@ class RigolDHO900(VisaInstrument):
         source2: str | None = None,
         wait: float | None = None,
     ) -> float:
-        """One automatic measurement: item (a key of MEASUREMENT_ITEMS, e.g. "vpp",
-        "frequency", "phase_rr") of source ("ch1", ..., "math1", ...; delays and
-        phases also of source2). NaN when it cannot be measured, and for a channel
-        that is off (which the instrument would turn on to measure it).
+        """One automatic measurement.
 
         The instrument adds the item to the measurements on the display and computes
         it afterwards: while the result is invalid, it is queried again for up to
-        wait seconds (default measurement_wait). On a stopped acquisition the
-        instrument computes only some of the items added (about 14 added one at a
-        time, none of many added in quick succession); an item still invalid there
-        is queried once more after the display's items are removed
-        (:MEASure:CLEar)."""
+        wait seconds. On a stopped acquisition the instrument computes only some of
+        the items added (about 14 added one at a time, none of many added in quick
+        succession); an item still invalid there is queried once more after the
+        display's items are removed (:MEASure:CLEar).
+
+        Args:
+            item: A key of MEASUREMENT_ITEMS, e.g. "vpp", "frequency", "phase_rr".
+            source: "ch1", ..., "math1", ...
+            source2: The second source of delays and phases.
+            wait: Longest wait in s for a valid result; by default
+                measurement_wait.
+
+        Returns:
+            The result; NaN when it cannot be measured, and for a channel that is
+            off (which the instrument would turn on to measure it).
+
+        Raises:
+            ValueError: If the item or a source is unknown, or a delay or phase
+                has no second source.
+        """
         query = self._measurement_sources(item, source, source2)
         if self._sources_off(source, source2):
             return math.nan
         wait = self.measurement_wait if wait is None else wait
         value = self._query_measurement(query, wait)
-        if math.isnan(value) and wait > 0:
-            if self.ask(":TRIGger:STATus?").strip() == "STOP":
-                self.write(":MEASure:CLEar")
-                value = self._query_measurement(query, wait)
+        if (
+            math.isnan(value)
+            and wait > 0
+            and self.ask(":TRIGger:STATus?").strip() == "STOP"
+        ):
+            self.write(":MEASure:CLEar")
+            value = self._query_measurement(query, wait)
         return value
 
     def _query_measurement(self, query: str, wait: float) -> float:
@@ -2664,12 +3203,23 @@ class RigolDHO900(VisaInstrument):
     def measure_statistics(
         self, item: str, source: str = "ch1", source2: str | None = None
     ) -> dict[str, float]:
-        """The statistics of a measurement (current, average, minimum, maximum,
-        deviation, count), switching its statistics on first. NaN where there is no
-        value yet, and for a channel that is off."""
+        """The statistics of a measurement, switching its statistics on first.
+
+        Args:
+            item: A key of MEASUREMENT_ITEMS.
+            source: "ch1", ..., "math1", ...
+            source2: The second source of delays and phases.
+
+        Returns:
+            By key: current, average, minimum, maximum, deviation and count. NaN
+            where there is no value yet, and for a channel that is off.
+
+        Raises:
+            ValueError: As measure().
+        """
         query = self._measurement_sources(item, source, source2)
         if self._sources_off(source, source2):
-            return {key: math.nan for key in STATISTICS}
+            return dict.fromkeys(STATISTICS, math.nan)
         self.write(f":MEASure:STATistic:ITEM {query}")
         return {
             key: _float_or_nan(self.ask(f":MEASure:STATistic:ITEM? {keyword},{query}"))
@@ -2679,7 +3229,17 @@ class RigolDHO900(VisaInstrument):
     # --- instrument
 
     def screenshot(self, image_format: str = "png") -> bytes:
-        """The display as an image file (png, bmp or jpg)."""
+        """The display as an image file.
+
+        Args:
+            image_format: "png", "bmp" or "jpg".
+
+        Returns:
+            The content of the image file.
+
+        Raises:
+            ValueError: If the format is not one of these.
+        """
         fmt = image_format.upper()
         if fmt not in ("PNG", "BMP", "JPG"):
             raise ValueError(
@@ -2692,7 +3252,11 @@ class RigolDHO900(VisaInstrument):
         return bytes(self.query_block(":SYSTem:SETup?", "B"))
 
     def load_setup(self, setup: bytes) -> None:
-        """Load a setup read by save_setup."""
+        """Load a setup read by save_setup.
+
+        Args:
+            setup: The binary block that save_setup() returned.
+        """
         self.visa_handle.write_binary_values(
             ":SYSTem:SETup ", list(setup), datatype="B"
         )
