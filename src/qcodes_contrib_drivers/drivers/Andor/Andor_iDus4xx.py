@@ -1519,6 +1519,7 @@ class AndorIDus4xx(Instrument):
                 pbar.refresh()
                 time.sleep(1)
             pbar.postfix = status
+            assert pbar.total is not None
             pbar.n = pbar.total
             pbar.refresh()
 
@@ -1549,5 +1550,6 @@ class AndorIDus4xx(Instrument):
                 pbar.n = temp - initial
                 pbar.refresh()
                 time.sleep(1)
+            assert pbar.total is not None
             pbar.n = pbar.total
             pbar.refresh()
