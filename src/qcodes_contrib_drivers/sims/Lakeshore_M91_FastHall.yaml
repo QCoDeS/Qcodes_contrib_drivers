@@ -1,0 +1,218 @@
+spec: "1.1"
+
+devices:
+  m91:
+    eom:
+      TCPIP SOCKET:
+        q: '\n'
+        r: '\n'
+
+    error: "m91_sim_error"
+
+    dialogues:
+      - q: "*IDN?"
+        r: "Lake Shore, M91, LSA2P78, 1.1.2"
+      - q: "SYST:ERR:ALL?"
+        r: 0,"No error"
+
+    properties:
+
+      keypad_lock:
+        default: 1
+        getter:
+            q: "SYSTem:KLOCk?"
+            r: "{}"
+        setter:
+            q: "SYSTem:KLOCk {}"
+        specs:
+            valid: [0,1]
+            type: int
+
+      sample_type:
+        setter:
+            q: "{}"
+
+      contact_check_reset:
+        setter:
+            q: "CCHECK:RESET"
+
+      contact_check_running:
+        default: 1
+        getter:
+            q: "CCHECK:RUNNING?"
+            r: "{}"
+        specs:
+            valid: [0,1]
+            type: int
+
+      contact_check_start_optimised:
+        setter:
+            q: "CCHECK:VDP:STAR:OPT"
+
+      contact_check_start_manual:
+        setter:
+            q: "CCHECK:START:MANUAL"
+
+      contact_check_hall_start:
+        setter:
+            q: "CCH:HBAR:STAR"
+
+      contact_check_results:
+        default: '{"Setup":{"ExcitationValueStart":-0.001},"ContactPairIVResults":[{"ContactPair":{"Point1": 1,"Point2": 2}, "Offset": 0.0007, "Slope": 351, "RSquared": 0.99997, "RSquaredPass": true}],"DurationInSeconds":5.9}'
+        getter:
+            q: "CCHECK:RESULT:JSON? 0"
+            r: "{}"
+
+      contact_check_all_results:
+        default: '{"Setup":{"ExcitationType": 1, "ExcitationValueStart":-0.001, "ExcitationValueEnd":0.001},"ContactPairIVResults":[{"ContactPair":{"Point1": 1,"Point2": 2}, "Offset": 0.0007, "Slope": 351, "RSquared": 0.99997, "RSquaredPass": true, "IvCurvePoints": [{"Source": 0.0001,"ResistanceInOhms": 374,"VoltageInVolts":0.037,"CurrentInAmps": 9.97E-05}]}]}'
+        getter:
+            q: "CCHECK:RESULT:JSON:ALL? 0"
+            r: "{}"
+
+
+      dchall_reset:
+        setter:
+            q: "HALL:DC:RESET"
+
+      dchall_running:
+        default: 1
+        getter:
+            q: "HALL:DC:RUNNING?"
+            r: "{}"
+        specs:
+            valid: [0,1]
+            type: int
+
+      dchall_waiting:
+        default: 0
+        getter:
+            q : "HALL:WAITing?"
+            r: "{}"
+
+      dchall_hall_start:
+        setter:
+            q: "HALL:HBAR:DC:STAR"
+
+      dchall_start:
+        setter:
+            q: "HALL:DC:START"
+
+      dchall_continue:
+        setter:
+            q: "HALL:DC:CONTINUE"
+
+      dchall_results:
+        default: '{"Setup":{"ExcitationValue":0.001},"HallVoltageAverageInVolts": -0.002}'
+        getter:
+            q: "HALL:DC:RESULT:JSON? 0"
+            r: "{}"
+
+      dchall_all_results:
+        default: '{"Setup":{"ExcitationValue":0.001},"HallVoltageAverageInVolts": -0.002,"DcHallSamples":[{"GeometryCHallVoltageInVolts": -0.003}]}'
+        getter:
+            q: "HALL:DC:RESULT:JSON:ALL? 0"
+            r: "{}"
+
+      fasthall_reset:
+        setter:
+            q: "FASTHALL:RESET"
+
+      fasthall_running:
+        default: 1
+        getter:
+            q: "FASTHALL:RUNNING?"
+            r: "{}"
+        specs:
+            valid: [0,1]
+            type: int
+
+      fasthall_start:
+        setter:
+            q: "FASTHALL:START"
+
+      fasthall_start_link:
+        setter:
+            q: "FASTHALL:VDP:START:LINK"
+
+      fasthall_results:
+        default: '{"Setup":{"ExcitationValue":0.001},"HallVoltageAverageInVolts": 0.001}'
+        getter:
+            q: "FASTHALL:RESULT:JSON? 0"
+            r: "{}"
+
+      fasthall_all_results:
+        default: '{"Setup":{"ExcitationValue":0.001},"HallVoltageAverageInVolts": 0.001,"FastHallSamples":[{"HallVoltageInVolts": -0.001}]}'
+        getter:
+            q: "FASTHALL:RESULT:JSON:ALL? 0"
+            r: "{}"
+
+      four_wire_reset:
+        setter:
+            q: "FWIRE:RESET"
+
+      four_wire_running:
+        default: 1
+        getter:
+            q: "FWIRE:RUNNING?"
+            r: "{}"
+        specs:
+            valid: [0,1]
+            type: int
+
+      four_wire_start:
+        setter:
+            q: "FWIRe:START"
+
+      four_wire_results:
+        default: '{"Setup":{"ExcitationValue":0.0005}, "ResistanceAverageInOhms": 166.04}'
+        getter:
+            q: "FWIRE:RESULT:JSON? 0"
+            r: "{}"
+
+      four_wire_all_results:
+        default: '{"Setup":{"ExcitationValue":0.0005}, "ResistanceAverageInOhms": 166.57,"FourWireMeasurementSamples":[{"ResistanceInOhms": 166.74}]}'
+        getter:
+            q: "FWIRE:RESULT:JSON:ALL? 0"
+            r: "{}"
+
+      resistivity_reset:
+        setter:
+            q: "RESISTIVITY:RESET"
+
+      resistivity_running:
+        default: 1
+        getter:
+            q: "RESISTIVITY:RUNNING?"
+            r: "{}"
+        specs:
+            valid: [0,1]
+            type: int
+
+      resistivity_start:
+        setter:
+            q: "RESISTIVITY:START"
+
+      resistivity_start_link:
+        setter:
+            q: "RESISTIVITY:START:LINK"
+
+      resistivity_hall_start:
+        setter:
+            q: "RESISTIVITY:HBAR:START"
+
+      resistivity_results:
+        default: '{"Setup":{"ExcitationValue":1E-5},  "ResistivityAverageInOhmMeters": 0.000888}'
+        getter:
+            q: "RESISTIVITY:RESULT:JSON? 0"
+            r: "{}"
+
+      resistivity_all_results:
+        default: '{"Setup":{"ExcitationValue":1E-5}, "ResistivityAverageInOhmMeters": 0.000888,"ResistivitySamples":[{"ResistivityInOhmMeters": 0.000754}]}'
+        getter:
+            q: "RESISTIVITY:RESULT:JSON:ALL? 0"
+            r: "{}"
+
+
+resources:
+  TCPIP0::127.0.0.1::33577::SOCKET:
+    device: m91
