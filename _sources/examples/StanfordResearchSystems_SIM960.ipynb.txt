@@ -1,0 +1,164 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "id": "introduction",
+   "metadata": {},
+   "source": [
+    "# Stanford Research Systems SIM900 and SIM960\n",
+    "\n",
+    "This example connects to a SIM900 mainframe and a SIM960 analog PID controller in port 1, configures the controller, selects its display, and reads a single monitor sample.\n",
+    "\n",
+    "**Hardware required:** a SIM900 with a SIM960 installed and a working VISA backend. Change the VISA address and port for your setup. The SIM960 occupies two slots; use the port connected to the module. Serial communication defaults to 9600 baud, 8 data bits, no parity, and one stop bit. If the mainframe uses another baud rate, configure it through VISA before running this example.\n",
+    "\n",
+    "**Before running:** check the wiring, feedback polarity, and appropriate output limits for your experiment. Switching to manual mode or changing settings can change the physical output. This example leaves the controller in manual mode; it does not enable closed-loop feedback. Closing the VISA connection does not disable the output."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "connect",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from qcodes_contrib_drivers.drivers.StanfordResearchSystems.SIM900 import SIM900\n",
+    "from qcodes_contrib_drivers.drivers.StanfordResearchSystems.SIM960 import SIM960\n",
+    "\n",
+    "sim900 = SIM900(\"sim900\", \"ASRL1::INSTR\")\n",
+    "sim960 = SIM960(sim900, \"pid\", port=1)\n",
+    "sim900.add_submodule(\"pid\", sim960)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "gain-description",
+   "metadata": {},
+   "source": [
+    "## Set gain and select the display\n",
+    "\n",
+    "Each setting is a QCoDeS parameter: call it with a value to set, or without arguments to query. Gain is signed; setting it also updates polarity. Selecting a display field does not change the corresponding setting."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "gain",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "sim960.manual_output(0.0)\n",
+    "sim960.output_mode(\"manual\")\n",
+    "sim960.gain(2.0)\n",
+    "sim960.display(\"gain\")\n",
+    "print(sim960.gain())"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "display",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "sim960.display(\"error_monitor\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "configuration-description",
+   "metadata": {},
+   "source": [
+    "## Configure the controller\n",
+    "\n",
+    "Call each QCoDeS parameter with the desired value to apply its setting. Choose values appropriate to your experiment. Output limits are separate parameters and must satisfy `lower <= upper` at every step; the driver queries the opposite limit before changing one. For example, with the factory limits of -10 V and +10 V, set `sim960.output_limit_lower(-1.0)` followed by `sim960.output_limit_upper(1.0)` to narrow the range.\n",
+    "\n",
+    "The controller remains in manual mode throughout configuration. Setting `output_mode` to `\"pid\"` would enable feedback, so only do that after checking your setup."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "configuration",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "sim960.gain(2.0)\n",
+    "sim960.integral(1.0)\n",
+    "sim960.derivative(1e-3)\n",
+    "sim960.offset(0.0)\n",
+    "sim960.polarity(\"positive\")\n",
+    "sim960.ramp_rate(0.1)\n",
+    "sim960.ramp_enable(False)\n",
+    "sim960.setpoint_source(\"internal\")\n",
+    "sim960.setpoint(0.0)\n",
+    "sim960.proportional_enable(True)\n",
+    "sim960.integral_enable(True)\n",
+    "sim960.derivative_enable(False)\n",
+    "sim960.offset_enable(False)\n",
+    "\n",
+    "sim960.display(\"setpoint\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "monitor-description",
+   "metadata": {},
+   "source": [
+    "## Read a monitor and capture settings\n",
+    "\n",
+    "`setpoint_monitor` reads one voltage sample, not a stream. The other read-only monitor parameters are `measure_monitor`, `error_monitor`, and `output_monitor`. Module queries flush stale input and wait for a complete response, using the mainframe's timeout. Do not use streaming commands concurrently with parameter queries or snapshots.\n",
+    "\n",
+    "Registering the PID controller as a submodule includes its parameters in the station snapshot."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "monitor",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "setpoint_voltage = sim960.setpoint_monitor()\n",
+    "print(f\"Setpoint monitor: {setpoint_voltage:.6f} V\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "close-description",
+   "metadata": {},
+   "source": [
+    "## Close the connection\n",
+    "\n",
+    "Place the connected equipment in the desired state before closing. Only the mainframe owns a VISA connection; closing it also removes its QCoDeS submodules but does not change the physical controller settings."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "close",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "sim900.close()"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "pygments_lexer": "ipython3"
+  },
+  "nbsphinx": {
+   "execute": "never"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}
