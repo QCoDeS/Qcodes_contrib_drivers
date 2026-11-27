@@ -1,0 +1,340 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "id": "introduction",
+   "metadata": {},
+   "source": [
+    "# Teledyne LeCroy T3PS3000 DC power supply\n",
+    "\n",
+    "The T3PS3000 has two programmable outputs (CH1 and CH2, each 0-32 V and 0-3.2 A) and a third output whose voltage is selected on the front panel (2.5, 3.3, or 5 V). The QCoDeS driver exposes these as `ch1`, `ch2`, and `ch3`. The `channels` tuple contains only CH1 and CH2.\n",
+    "\n",
+    "You need a connected instrument and a working VISA backend. Replace the example VISA address with your device's USB or LAN address. Check wiring and choose appropriate voltage and current limits before enabling any output. Initialization does not reset the supply or change output settings, and closing the connection does not switch outputs off.\n",
+    "\n",
+    "The output-control cells enable physical outputs when run. Check the connected circuit before running them or using Run All. Timer enable commands remain commented out.\n",
+    "\n",
+    "Close the NI VISA test-panel session before connecting. The driver waits 0.1 seconds after each write command before returning, so subsequent writes or queries do not arrive too soon. Queries separately wait one second between writing the query and reading its reply, including the initial `*IDN?`; reading immediately can hang USB communication on this supply. Restart the kernel after updating the driver so the new timing is loaded.\n",
+    "\n",
+    "This Windows setup selects NI-VISA directly with `visalib` because the default shared VISA dispatcher did not reliably return identification. On other systems, replace this path with the installed VISA library or omit `visalib` to use the default backend.\n",
+    "\n",
+    "The connection below skips VISA device-clear (`device_clear=False`) as a USB troubleshooting precaution; this does not disable outputs or reset the supply. The three-second timeout requests a VISA I/O limit, but a blocked native USB operation may not honor it. Progress messages distinguish instrument construction from station registration. Station registration uses cached values rather than querying every parameter."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "id": "connect",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from qcodes_contrib_drivers.drivers.Teledyne import TeledyneT3PS3000\n",
+    "from qcodes.station import Station\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "b16f9a7b",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Opening VISA resource and querying *IDN?...\n",
+      "Connected to: T3PS3000 T0103C19150168 (serial:1.01.01.02.05R1, firmware:V3.0) in 1.12s\n",
+      "Instrument initialized; registering with station...\n",
+      "Station ready.\n"
+     ]
+    }
+   ],
+   "source": [
+    "resource_name = \"USB0::0xF4EC::0x1430::T0103C19150168::INSTR\"\n",
+    "print(\"Opening VISA resource and querying *IDN?...\", flush=True)\n",
+    "pwr = TeledyneT3PS3000(\"pwr\", resource_name, device_clear=False, timeout=3)\n",
+    "print(\"Instrument initialized; registering with station...\", flush=True)\n",
+    "station = Station()\n",
+    "station.add_component(pwr, update_snapshot=False)\n",
+    "print(\"Station ready.\", flush=True)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "configure-description",
+   "metadata": {},
+   "source": [
+    "## Independent operation\n",
+    "\n",
+    "Disable timers and outputs before configuring. Channel parameters always address the named channel, regardless of `selected_channel`. Valid tracking modes are `\"independent\"`, `\"series\"`, and `\"parallel\"`. This example uses independent mode. In tracking modes the setpoints remain per-channel values; do not program a combined 64 V or 6.4 A value into a single channel."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "id": "configure",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "pwr_ch1 5.0 V 1.0 A\n",
+      "pwr_ch2 12.0 V 0.5 A\n"
+     ]
+    }
+   ],
+   "source": [
+    "for channel in pwr.channels:\n",
+    "    channel.timer_enabled(False)\n",
+    "    channel.output(False)\n",
+    "pwr.ch3.output(False)\n",
+    "pwr.operation_mode(\"independent\")\n",
+    "\n",
+    "pwr.ch1.voltage(5.0)\n",
+    "pwr.ch1.current(1.0)\n",
+    "pwr.ch2.voltage(12.0)\n",
+    "pwr.ch2.current(0.5)\n",
+    "\n",
+    "for channel in pwr.channels:\n",
+    "    print(channel.name, channel.voltage(), \"V\", channel.current(), \"A\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "status-description",
+   "metadata": {},
+   "source": [
+    "## Status and measurements\n",
+    "\n",
+    "Read output state, regulation mode, and actual voltage/current/power through channel parameters. CH3 output control is **write-only**: the instrument does not report its output state in the status register, so the driver does not invent a readback value. CH3 voltage is selected on the front panel.\n",
+    "\n",
+    "Run an output-enable cell only after checking the connected circuit."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "status",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Status: 0x0004\n",
+      "Operation mode: independent\n",
+      "Selected channel: CH1\n",
+      "pwr_ch1 enabled: False mode: CV\n",
+      "0.0 V 0.0 A\n",
+      "0.0 W\n",
+      "pwr_ch2 enabled: False mode: CV\n",
+      "0.0 V 0.0 A\n",
+      "0.0 W\n"
+     ]
+    }
+   ],
+   "source": [
+    "print(f\"Status: {pwr.status():#06x}\")\n",
+    "print(\"Operation mode:\", pwr.operation_mode())\n",
+    "print(\"Selected channel:\", pwr.selected_channel())\n",
+    "\n",
+    "for channel in pwr.channels:\n",
+    "    print(channel.name, \"enabled:\", channel.output(), \"mode:\", channel.mode())\n",
+    "    print(channel.measured_voltage(), \"V\", channel.measured_current(), \"A\")\n",
+    "    print(channel.measured_power(), \"W\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "51c879a9",
+   "metadata": {},
+   "source": [
+    "## Output control\n",
+    "Turn channels 1 & 2 on"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "id": "ef9a9d50",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "pwr.ch1.output(True)\n",
+    "pwr.ch2.output(True)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "5cb0b037",
+   "metadata": {},
+   "source": [
+    "Turn channels 1 & 2 off"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "id": "088c29b0",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "pwr.ch1.output(False)\n",
+    "pwr.ch2.output(False)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "ch3-on-description",
+   "metadata": {},
+   "source": [
+    "### Channel 3\n",
+    "\n",
+    "Check the front-panel voltage selection (2.5, 3.3, or 5 V) and the connected circuit before enabling CH3. Its output state cannot be queried remotely.\n",
+    "\n",
+    "Turn channel 3 on."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "id": "ch3-on",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "pwr.ch3.output(True)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "ch3-off-description",
+   "metadata": {},
+   "source": [
+    "Turn channel 3 off."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "id": "ch3-off",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "pwr.ch3.output(False)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "timer-description",
+   "metadata": {},
+   "source": [
+    "## Timer sequences\n",
+    "\n",
+    "Each adjustable channel has five timer steps. A step specifies voltage, current limit, and duration (0-10000 seconds). All values are validated before transmission. Timers can only be enabled in independent mode.\n",
+    "\n",
+    "Program all five steps so an old configuration cannot contribute unexpected later steps. The unused final steps are set to zero voltage, current, and duration. `set_timer` only programs a step; it does not start the timer. `get_timer` returns `(voltage, current, duration)` as floats."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "timer",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "steps = [\n",
+    "    (5.0, 0.5, 10.0),\n",
+    "    (10.0, 1.0, 20.0),\n",
+    "    (3.3, 0.2, 15.0),\n",
+    "    (0.0, 0.0, 0.0),\n",
+    "    (0.0, 0.0, 0.0),\n",
+    "]\n",
+    "for group, (voltage, current, duration) in enumerate(steps, start=1):\n",
+    "    pwr.ch1.set_timer(group, voltage, current, duration)\n",
+    "\n",
+    "print(\"First timer step:\", pwr.ch1.get_timer(1))\n",
+    "# pwr.ch1.timer_enabled(True)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "network-description",
+   "metadata": {},
+   "source": [
+    "## Network configuration\n",
+    "\n",
+    "Query LAN configuration using ordinary parameters. Static address setters validate IPv4 syntax and require DHCP to be disabled. Changing DHCP or an IP address may disconnect a LAN session; perform changes over USB when possible and reconnect at the new address. The example only reads these values."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "network",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "print(\"DHCP:\", pwr.dhcp())\n",
+    "print(\"IP:\", pwr.ip_address())\n",
+    "print(\"Subnet mask:\", pwr.subnet_mask())\n",
+    "print(\"Gateway:\", pwr.gateway())\n",
+    "\n",
+    "# pwr.dhcp(False)\n",
+    "# pwr.subnet_mask(\"255.255.255.0\")\n",
+    "# pwr.gateway(\"192.0.2.1\")\n",
+    "# pwr.ip_address(\"192.0.2.10\")\n",
+    "\n",
+    "snapshot = station.snapshot(update=\"All\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "close-description",
+   "metadata": {},
+   "source": [
+    "## Stop timers, disable outputs, and close\n",
+    "\n",
+    "Run cleanup even if an earlier cell raises an error. If communication fails during shutdown, check the outputs on the front panel; closing VISA alone is not an output-off command."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "id": "close",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "try:\n",
+    "    for channel in pwr.channels:\n",
+    "        channel.timer_enabled(False)\n",
+    "        channel.output(False)\n",
+    "    pwr.ch3.output(False)\n",
+    "finally:\n",
+    "    pwr.close()"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": ".venv (3.12.14)",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.12.14"
+  },
+  "nbsphinx": {
+   "execute": "never"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}

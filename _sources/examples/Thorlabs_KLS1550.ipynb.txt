@@ -1,0 +1,190 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "id": "5658297a",
+   "metadata": {},
+   "source": [
+    "# QCoDeS example with Thorlabs KLS1550 laser source\n",
+    "(same .dll as for KLS101, KLSnnn)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "1a175bbe",
+   "metadata": {},
+   "source": [
+    "## Initialisation\n",
+    "Import all required libraries for driving the devices."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "id": "e1d78fec",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import qcodes as qc\n",
+    "from qcodes_contrib_drivers.drivers.Thorlabs.Kinesis import Thorlabs_Kinesis\n",
+    "from qcodes_contrib_drivers.drivers.Thorlabs.KLS1550 import Thorlabs_KLS1550"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "59f40438",
+   "metadata": {},
+   "source": [
+    "Create an instance of `Thorlabs_Kinesis` which is a wrapper for the device dll (passed as an argument to the object) that starts up the Kinesis server. The DLL needs be installed from https://www.thorlabs.com/software_pages/viewsoftwarepage.cfm?code=Motion_Control under \"Kinesis software\"."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "58c7f162",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "kinesis = Thorlabs_Kinesis(\"Thorlabs.MotionControl.KCube.LaserSource.dll\", sim=False)\n",
+    "print(kinesis.device_list())"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "c318ee9d",
+   "metadata": {},
+   "source": [
+    "Create an instance of `Thorlabs_KLS1550` which is the device driver object, opening the device and starting polling (requesting device information) at 200 milisecods loops (must know the serial number shown on the device)."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "f3b0d44a",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "qc.Instrument.close_all()\n",
+    "laser = Thorlabs_KLS1550(\n",
+    "    name=\"laser\",\n",
+    "    serial_number=\"...\",\n",
+    "    polling_speed=200, \n",
+    "    kinesis=kinesis)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "23bbe1b8",
+   "metadata": {},
+   "source": [
+    "## Turning the laser output on/off\n",
+    "Set the parameter `output_enabled` to True for \"laser on\" and False for \"laser off\". Note that the laser will only turn on if the safety switch is also on."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "be1b61a4",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "laser.output_enabled.set(True) # laser turns on"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "6bf23da9",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "laser.output_enabled.set(False) # laser turns off"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "2f603470",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "laser.output_enabled.get() # Check laser output status"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "c58d355f",
+   "metadata": {},
+   "source": [
+    "## Setting the laser output power\n",
+    "Set the laser output power in Watts and get the current power value from the device (also in Watts)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "id": "d4d690cd",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "laser.power.set(1e-3) # Set power to 1 mW"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "7e852001",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "laser.power.get() # Gets laser power reading"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "b497e7c7",
+   "metadata": {},
+   "source": [
+    "## Disconnecting\n",
+    "Disconnect the device from the driver (but not the server, it still shows under `device_list`), stopping polling and closing the device (both for Kinesis server and qcodes)."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "id": "7333f215",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "laser.close()"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python (qcodes)",
+   "language": "python",
+   "name": "qcodes"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.11.4"
+  },
+  "toc-autonumbering": false,
+  "toc-showcode": true,
+  "toc-showmarkdowntxt": false,
+  "nbsphinx": {
+    "execute": "never"
+   }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}

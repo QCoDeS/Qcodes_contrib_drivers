@@ -1,0 +1,472 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "id": "698bb0f1-a091-4329-89c7-9405843ed4f9",
+   "metadata": {},
+   "source": [
+    "# Qcodes example with Swabian Instruments Time Tagger"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "id": "92e75416-ceb5-41ce-b061-58a03c1414b5",
+   "metadata": {
+    "editable": true,
+    "slideshow": {
+     "slide_type": ""
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "from qcodes_contrib_drivers.drivers.SwabianInstruments.Swabian_Instruments_Time_Tagger import TimeTagger"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "73f1dc31-726f-4b86-9718-dea2897c2a49",
+   "metadata": {},
+   "source": [
+    "The driver wraps the `TimeTagger` python API provided by Swabian Instruments (download [here](https://www.swabianinstruments.com/time-tagger/downloads/)). As the API is very object-oriented, the QCoDeS driver is fairly dynamic in that, for each new measurement type, a new `InstrumentChannel` of the corresponding type is added to the main instrument. These channels have parameters which correspond to the instantiation arguments of the API objects, as well as gettable parameters which correspond to the measured data.\n",
+    "\n",
+    "For more information on the driver design, see the `SwabianInstruments/Swabian_Instruments_Time_Tagger.py` module docstring."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "id": "48cfd35e-4fbd-4651-ba03-aaec8dd4f431",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Connected to: Swabian Instruments Time Tagger 20 (serial:1234567AB8, firmware:TT-20, FW4, OK 3.1) in 1.40s\n"
+     ]
+    }
+   ],
+   "source": [
+    "tagger = TimeTagger('tagger')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "84fa2cbf-1483-4469-8d2a-fc8dfdedadc5",
+   "metadata": {},
+   "source": [
+    "## Measurements\n",
+    "The `tagger` instrument has submodules (channel lists) for each type of measurement or virtual channel that is implemented and which are at first empty:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "id": "db0b66c5-a31f-4ebe-bb00-8d01d7cdd395",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "{'synchronized_measurements': <TimeTaggerSynchronizedMeasurements: tagger_synchronized_measurements of TimeTagger: tagger>,\n",
+       " 'correlation_measurements': ChannelList(<TimeTagger: tagger>, CorrelationMeasurement, []),\n",
+       " 'combiner_virtual_channels': ChannelList(<TimeTagger: tagger>, CombinerVirtualChannel, []),\n",
+       " 'count_rate_measurements': ChannelList(<TimeTagger: tagger>, CountRateMeasurement, []),\n",
+       " 'histogram_log_bins_measurements': ChannelList(<TimeTagger: tagger>, HistogramLogBinsMeasurement, []),\n",
+       " 'counter_measurements': ChannelList(<TimeTagger: tagger>, CounterMeasurement, []),\n",
+       " 'coincidence_virtual_channels': ChannelList(<TimeTagger: tagger>, CoincidenceVirtualChannel, [])}"
+      ]
+     },
+     "execution_count": 3,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "tagger.submodules"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "1c1b074c-b0da-4a7d-9e0b-9d4807144901",
+   "metadata": {},
+   "source": [
+    "To add for example a new `Correlation` measurement, use the automatically generated helper method `add_correlation_measurement`, which adds a `CorrelationMeasurement` channel to the `correlation_measurements` channel list."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "id": "a667dd11-1241-43d2-96f1-40eead292a9e",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "<CorrelationMeasurement: tagger_correlation_1 of TimeTagger: tagger>"
+      ]
+     },
+     "execution_count": 4,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "correlation = tagger.add_correlation_measurement()\n",
+    "correlation"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "8816c693-b97f-4180-bd5c-bcd553969e7f",
+   "metadata": {},
+   "source": [
+    "At first, the API object is not yet instantiated because arguments are missing:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "id": "4b06f767-36d5-4b19-8640-316781867eeb",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "The following parameters need to be initialized first: channels\n"
+     ]
+    }
+   ],
+   "source": [
+    "try:\n",
+    "    correlation.api\n",
+    "except RuntimeError as err:\n",
+    "    print(err)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "a1e64ff0-c26a-426b-b965-eb37b3408bcf",
+   "metadata": {},
+   "source": [
+    "Instead, we must provide the arguments by setting the parameters (note that units are the same as the API driver, so usually picoseconds):"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "id": "c67da704-550a-449c-85bf-0e0802d23d24",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "<TimeTagger.Correlation; proxy of <Swig Object of type 'Correlation *' at 0x00000260E600A630> >"
+      ]
+     },
+     "execution_count": 6,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "correlation.channels([1, 2])\n",
+    "correlation.binwidth(1)\n",
+    "correlation.n_bins(4_000_000)\n",
+    "correlation.api"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "393fc34f-dd09-4845-ad09-f3cadcddd31a",
+   "metadata": {},
+   "source": [
+    "We can now start measuring (we switch on the test signal to have a meaningful output):"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "id": "6849bfda-4be3-4335-ba57-7249ad0af0cd",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "5000000000000\n"
+     ]
+    },
+    {
+     "data": {
+      "text/plain": [
+       "array([0., 0., 0., ..., 0., 0., 0.])"
+      ]
+     },
+     "execution_count": 7,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "tagger.set_test_signal([1, 2], state=True)\n",
+    "\n",
+    "correlation.start_for(5 * 10 ** 12, clear=True)\n",
+    "correlation.wait_until_finished()\n",
+    "\n",
+    "# The capture_duration parameter is inherited by all Measurement classes\n",
+    "print(correlation.capture_duration())  # ps\n",
+    "correlation.data_normalized()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "2af6e354-b0a3-4ee3-9b88-f5b255f79a8d",
+   "metadata": {},
+   "source": [
+    "Once a measurement is not needed anymore, it may also be removed from the tagger object:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 8,
+   "id": "cf63c729-88df-4137-b04a-1ee61b6a16e8",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "tagger.correlation_measurements.remove(correlation)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "be7f25cd-4b9e-46f7-8863-d354d955441f",
+   "metadata": {},
+   "source": [
+    "## Virtual Channels\n",
+    "The second type of API object that is implemented are *virtual channels*. These are objects that behave like a physical channel (i.e., they return time stamps of clicks), but can process events from multiple physical channels (such as aggregation or coincidence counting). \n",
+    "\n",
+    "To reproduce the [API documentation's example](https://www.swabianinstruments.com/static/documentation/TimeTagger/api/examples.html#using-virtual-channels), do the following:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 9,
+   "id": "3407d36c-b2fd-465b-b6df-2fbf0188afd7",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "[ 815477.  815477. 1630954.]\n"
+     ]
+    }
+   ],
+   "source": [
+    "tagger.set_test_signal([1, 2], True)\n",
+    "\n",
+    "vc = tagger.add_combiner_virtual_channel()\n",
+    "vc.channels([1, 2])\n",
+    "\n",
+    "rate = tagger.add_count_rate_measurement()\n",
+    "rate.channels([1, 2, vc.get_channel()])\n",
+    "\n",
+    "rate.start_for(int(1e12), clear=True)\n",
+    "rate.wait_until_finished()\n",
+    "\n",
+    "print(rate.data())"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "53a72f95-ff2d-4e9d-99ca-9815f41ad89a",
+   "metadata": {},
+   "source": [
+    "## Synchronized measurements"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "74a564b9-f1b1-48c6-85b1-1ff0d92bb6a2",
+   "metadata": {},
+   "source": [
+    "The `TimeTagger` driver also implements the `SynchronizedMeasurements` functionality of the API. This is an object that helps to synchronize multiple different measurements using the same physical tagger. It can either be used by passing the virtual tagger return by its `get_tagger()` method to the measurement, or by calling the `register_measurement()` and `unregister_measurement()` methods:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 10,
+   "id": "0fea0f36-0e36-4bb9-89ac-15bc1d055196",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "<TimeTaggerSynchronizedMeasurements: tagger_synchronized_measurements of TimeTagger: tagger>"
+      ]
+     },
+     "execution_count": 10,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "tagger.synchronized_measurements"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 11,
+   "id": "66765991-64f0-4d53-bba0-d9efd6d156b9",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "sync_tagger = tagger.synchronized_measurements.api_tagger\n",
+    "\n",
+    "sync_correlation = tagger.add_correlation_measurement(api_tagger=sync_tagger)\n",
+    "sync_correlation.channels([1, 2])\n",
+    "\n",
+    "sync_count_rate = tagger.add_count_rate_measurement(api_tagger=sync_tagger)\n",
+    "sync_count_rate.channels([1, 2])"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "0f06623f-cc98-4f4e-ae85-a89fc28bfb68",
+   "metadata": {},
+   "source": [
+    "Measurements are then controlled by the `SynchronizedMeasurements` object. \n",
+    "\n",
+    "<div class=\"alert alert-block alert-warning\">\n",
+    "<b>Note:</b> Currently, the <code>api</code> property of the measurements and virtual channels needs to be accessed once before using the measurement control methods of the <code>SynchronizedMeasurements</code> object. This is because the Time Tagger API object is only instantiated once the <code>api</code> cached property is accessed (as parameters need to be initialized for this).\n",
+    "</div>"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 12,
+   "id": "46ac8df6-3cea-439c-ae72-927cfb0680c8",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "<TimeTagger.Countrate; proxy of <Swig Object of type 'Countrate *' at 0x00000260FDF97180> >"
+      ]
+     },
+     "execution_count": 12,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "sync_correlation.api\n",
+    "sync_count_rate.api"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 13,
+   "id": "2f6d9b8c-54f8-4e81-953c-4c5e01c2d526",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "[815269. 815269.]\n"
+     ]
+    }
+   ],
+   "source": [
+    "tagger.synchronized_measurements.start_for(int(1e12), clear=True)\n",
+    "tagger.synchronized_measurements.wait_until_finished()\n",
+    "\n",
+    "print(sync_count_rate.data())"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "0173bdcc-561b-4276-b260-57ac8a24c718",
+   "metadata": {},
+   "source": [
+    "Or, equivalently (note that parameters need to be initialized):"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 14,
+   "id": "d28f042a-8f22-4338-a24e-0ad447597d5a",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "correlation = tagger.add_correlation_measurement()\n",
+    "correlation.channels([-1, -2])  # falling flank\n",
+    "\n",
+    "count_rate = tagger.add_count_rate_measurement()\n",
+    "count_rate.channels([-1, -2])\n",
+    "\n",
+    "tagger.synchronized_measurements.register_measurement(correlation)\n",
+    "tagger.synchronized_measurements.register_measurement(count_rate)\n",
+    "# Perform measurement as usual\n",
+    "tagger.synchronized_measurements.unregister_measurement(correlation)\n",
+    "tagger.synchronized_measurements.unregister_measurement(count_rate)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "ec6e1184-b05b-4916-9ef0-a0513daec369",
+   "metadata": {},
+   "source": [
+    "Using this syntax, the `api` property is automatically accessed by the `register_measurement` method and the above note does not apply."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 15,
+   "id": "65f1d665-f8f3-4186-a9af-9d16e23274ee",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Convenience methods to clear all channel lists\n",
+    "tagger.remove_all_measurements()\n",
+    "tagger.remove_all_virtual_channels()\n",
+    "tagger.close()"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3 (ipykernel)",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.12.3"
+  },
+  "widgets": {
+   "application/vnd.jupyter.widget-state+json": {
+    "state": {},
+    "version_major": 2,
+    "version_minor": 0
+   }
+  },
+  "nbsphinx": {
+    "execute": "never"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}
